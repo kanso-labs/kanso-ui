@@ -12,6 +12,13 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  build: {
+    lib: {
+      entry: path.resolve(__dirname, 'src/index.ts'),
+      fileName: (format) => `index.${format}`,
+      formats: ['cjs', 'es'],
+    },
+  },
   plugins: [
     react({
       babel: {
