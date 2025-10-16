@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc -b && vite build",
     "build-storybook": "storybook build",
+    "chromatic": "npx chromatic",
     "clean": "rimraf dist",
     "dev": "npm run storybook",
     "lint": "eslint .",
