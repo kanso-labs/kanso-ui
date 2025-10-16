@@ -16,7 +16,7 @@ export default defineConfig([
       eslintJs.configs.recommended,
       typescriptEslint.configs.recommended,
       eslintPluginPerfectionist.configs['recommended-natural'],
-      eslintPluginReactHooks.configs['recommended-latest'],
+      eslintPluginReactHooks.configs.flat.recommended,
       eslintPluginReactRefresh.configs.vite,
       eslintPluginPrettierRecommended,
     ],
