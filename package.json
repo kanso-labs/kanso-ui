@@ -19,7 +19,7 @@
     "storybook": "storybook dev -p 6006"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "4.1.1",
+    "@chromatic-com/storybook": "4.1.2",
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
     "@eslint/js": "9.39.1",
