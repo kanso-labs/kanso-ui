@@ -14,3 +14,7 @@ updates:
           - 'eslint-plugin-storybook'
           - 'storybook'
           - '@storybook/*'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
