@@ -22,7 +22,7 @@
     "@chromatic-com/storybook": "4.1.1",
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
-    "@eslint/js": "9.37.0",
+    "@eslint/js": "9.39.0",
     "@storybook/addon-a11y": "9.1.12",
     "@storybook/addon-docs": "9.1.12",
     "@storybook/addon-vitest": "9.1.12",
