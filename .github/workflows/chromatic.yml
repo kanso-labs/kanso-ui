@@ -23,4 +23,5 @@ jobs:
       - name: Run Chromatic
         uses: chromaui/action@v13.3.3
         with:
+          onlyChanged: true
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
