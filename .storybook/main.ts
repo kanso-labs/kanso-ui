@@ -1,4 +1,7 @@
 import type { StorybookConfig } from '@storybook/react-vite'
+import type { InlineConfig } from 'vite'
+
+import { withoutVitePlugins } from '@storybook/builder-vite'
 
 const config: StorybookConfig = {
   addons: [
@@ -12,6 +15,12 @@ const config: StorybookConfig = {
     options: {},
   },
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  async viteFinal(config: InlineConfig) {
+    return {
+      ...config,
+      plugins: await withoutVitePlugins(config.plugins, ['node-externals']),
+    }
+  },
 }
 
 export default config
