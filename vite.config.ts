@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import rollupPluginNodeExternals from 'rollup-plugin-node-externals'
 import { defineConfig } from 'vite'
+import { playwright } from '@vitest/browser-playwright'
 
 const dirname =
   typeof __dirname !== 'undefined'
@@ -64,7 +65,7 @@ export default defineConfig({
                 browser: 'chromium',
               },
             ],
-            provider: 'playwright',
+            provider: playwright({}),
           },
           name: 'storybook',
           setupFiles: ['.storybook/vitest.setup.ts'],
