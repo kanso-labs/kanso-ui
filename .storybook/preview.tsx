@@ -1,6 +1,17 @@
 import type { Preview } from '@storybook/react-vite'
 
+import React from 'react'
+import StyleXLoader from './components/StyleXLoader'
+
 const preview: Preview = {
+  decorators: [
+    (Story) => (
+      <>
+        <StyleXLoader />
+        <Story />
+      </>
+    ),
+  ],
   parameters: {
     a11y: {
       // 'todo' - show a11y violations in the test UI only

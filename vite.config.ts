@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
+import stylex from '@stylexjs/unplugin'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
@@ -40,6 +41,11 @@ export default defineConfig({
     sourcemap: true,
   },
   plugins: [
+    stylex.vite({
+      dev: process.env.NODE_ENV === 'development',
+      runtimeInjection: false,
+      useCSSLayers: true,
+    }),
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler']],
