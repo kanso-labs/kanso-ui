@@ -2,11 +2,11 @@
 
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import react from '@vitejs/plugin-react'
+import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import rollupPluginNodeExternals from 'rollup-plugin-node-externals'
 import { defineConfig } from 'vite'
-import { playwright } from '@vitest/browser-playwright'
 
 const dirname =
   typeof __dirname !== 'undefined'

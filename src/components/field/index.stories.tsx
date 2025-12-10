@@ -1,24 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
-import Button from '.'
+import Field from '.'
 
 const meta = {
-  component: Button,
-  title: 'Components/Button',
-} satisfies Meta<typeof Button>
+  component: Field,
+  title: 'Components/Field',
+} satisfies Meta<typeof Field>
 
 type Story = StoryObj<typeof meta>
 
 const Default: Story = {
   args: {
-    children: 'Button',
+    label: 'Field',
   },
 }
 
 const Disabled: Story = {
   args: {
-    children: 'Button',
     disabled: true,
+    label: 'Field',
   },
 }
 

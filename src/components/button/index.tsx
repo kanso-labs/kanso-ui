@@ -1,42 +1,15 @@
-import './styles.css'
+import type { ButtonProps as BaseUIButtonProps } from '@base-ui-components/react/button'
 
-export interface ButtonProps {
-  /** What background color to use */
-  backgroundColor?: string
-  /** Button contents */
-  label: string
-  /** Optional click handler */
-  onClick?: () => void
-  /** Is this the principal call to action on the page? */
-  primary?: boolean
-  /** How large should the button be? */
-  size?: 'large' | 'medium' | 'small'
+import { Button as BaseUIButton } from '@base-ui-components/react/button'
+
+type ButtonProps = Omit<BaseUIButtonProps, 'children'> & {
+  label: BaseUIButtonProps['children']
 }
 
-/** Primary UI component for user interaction */
-const Button = ({
-  backgroundColor,
-  label,
-  primary = false,
-  size = 'medium',
-  ...props
-}: ButtonProps) => {
-  const mode = primary
-    ? 'storybook-button--primary'
-    : 'storybook-button--secondary'
-
-  return (
-    <button
-      className={['storybook-button', `storybook-button--${size}`, mode].join(
-        ' ',
-      )}
-      style={{ backgroundColor }}
-      type="button"
-      {...props}
-    >
-      {label}
-    </button>
-  )
+function Button(props: ButtonProps) {
+  return <BaseUIButton {...props} />
 }
+
+export type { ButtonProps }
 
 export default Button
