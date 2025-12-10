@@ -11,14 +11,14 @@ type Story = StoryObj<typeof meta>
 
 const Default: Story = {
   args: {
-    children: 'Button',
+    label: 'Button',
   },
 }
 
 const Disabled: Story = {
   args: {
-    children: 'Button',
     disabled: true,
+    label: 'Button',
   },
 }
 
