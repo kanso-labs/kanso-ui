@@ -9,15 +9,17 @@ updates:
     schedule:
       interval: 'weekly'
     groups:
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
       storybook:
         patterns:
           - 'eslint-plugin-storybook'
           - 'storybook'
           - '@storybook/*'
-      types-react:
-        patterns:
-          - '@types/react'
-          - '@types/react-dom'
       vitest:
         patterns:
           - 'vitest'
