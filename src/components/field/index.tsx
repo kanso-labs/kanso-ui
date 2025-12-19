@@ -1,9 +1,9 @@
 import type {
   FieldLabelProps as BaseUIFieldLabelProps,
   FieldRootProps as BaseUIFieldProps,
-} from '@base-ui-components/react/field'
+} from '@base-ui/react/field'
 
-import { Field as BaseUIField } from '@base-ui-components/react/field'
+import { Field as BaseUIField } from '@base-ui/react/field'
 import * as stylex from '@stylexjs/stylex'
 
 const styles = stylex.create({

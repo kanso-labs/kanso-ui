@@ -1,6 +1,6 @@
-import type { ButtonProps as BaseUIButtonProps } from '@base-ui-components/react/button'
+import type { ButtonProps as BaseUIButtonProps } from '@base-ui/react/button'
 
-import { Button as BaseUIButton } from '@base-ui-components/react/button'
+import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
 const styles = stylex.create({
