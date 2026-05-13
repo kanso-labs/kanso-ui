@@ -18,5 +18,6 @@ jobs:
       - name: Run Release Please
         uses: googleapis/release-please-action@v5.0.0
         with:
+          bump-minor-pre-major: true
           release-type: node
           token: ${{ secrets.GITHUB_TOKEN }}
