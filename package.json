@@ -32,7 +32,7 @@
     "@storybook/builder-vite": "10.4.0",
     "@storybook/react-vite": "10.4.0",
     "@stylexjs/unplugin": "0.18.3",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
     "@vitest/browser-playwright": "4.1.6",
