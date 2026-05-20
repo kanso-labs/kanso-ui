@@ -1,8 +1,9 @@
 /// <reference types="vitest/config" />
 
+import babel from '@rolldown/plugin-babel'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import stylex from '@stylexjs/unplugin'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -46,10 +47,9 @@ export default defineConfig({
       runtimeInjection: false,
       useCSSLayers: true,
     }),
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler']],
-      },
+    react(),
+    babel({
+      presets: [reactCompilerPreset()],
     }),
     rollupPluginNodeExternals(),
   ],
