@@ -15,8 +15,9 @@
     "clean": "rimraf dist",
     "dev": "npm run storybook",
     "lint": "eslint .",
-    "prepare": "husky",
-    "storybook": "storybook dev -p 6006"
+    "prepare": "husky && playwright install --with-deps",
+    "storybook": "storybook dev -p 6006",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "1.5.0"
