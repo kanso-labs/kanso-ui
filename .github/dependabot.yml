@@ -10,6 +10,15 @@ updates:
     schedule:
       interval: 'weekly'
     groups:
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@eslint/*'
+          - 'eslint-plugin-*'
+          - 'eslint-config-*'
+          - 'typescript-eslint'
+        exclude-patterns:
+          - 'eslint-plugin-storybook'
       react:
         patterns:
           - 'react'
