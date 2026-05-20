@@ -19,7 +19,7 @@
     "storybook": "storybook dev -p 6006"
   },
   "dependencies": {
-    "@base-ui/react": "1.0.0"
+    "@base-ui/react": "1.5.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "4.1.3",
