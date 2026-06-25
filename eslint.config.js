@@ -11,22 +11,38 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist', 'storybook-static']),
   {
+    ...eslintJs.configs.recommended,
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      eslintJs.configs.recommended,
-      typescriptEslint.configs.recommended,
-      eslintPluginPerfectionist.configs['recommended-natural'],
-      eslintPluginReactHooks.configs.flat.recommended,
-      eslintPluginReactRefresh.configs.vite,
-      eslintPluginPrettierRecommended,
-    ],
+  },
+  ...typescriptEslint.configs.recommended.map((config) => ({
+    ...config,
+    files: ['**/*.{ts,tsx}'],
+  })),
+  {
+    ...eslintPluginPerfectionist.configs['recommended-natural'],
+    files: ['**/*.{ts,tsx}'],
+  },
+  {
+    ...eslintPluginReactHooks.configs.flat.recommended,
+    files: ['**/*.{ts,tsx}'],
+  },
+  {
+    ...eslintPluginReactRefresh.configs.vite,
+    files: ['**/*.{ts,tsx}'],
+  },
+  {
+    ...eslintPluginPrettierRecommended,
+    files: ['**/*.{ts,tsx}'],
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
     },
   },
   {
+    ...eslintPluginStorybook.configs['flat/recommended'],
     files: ['**/*.stories.tsx'],
-    extends: [eslintPluginStorybook.configs['flat/recommended']],
   },
 ])
