@@ -2,6 +2,10 @@ name: Chromatic
 
 on: push
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   chromatic:
     name: Chromatic
