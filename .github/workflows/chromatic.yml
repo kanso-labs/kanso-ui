@@ -25,7 +25,7 @@ jobs:
         run: npm ci
 
       - name: Run Chromatic
-        uses: chromaui/action@v17.6.0
+        uses: chromaui/action@v17.7.1
         with:
           exitOnceUploaded: true
           onlyChanged: true
