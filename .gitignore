@@ -5,6 +5,10 @@
 # or operating system, you probably want to add a global ignore instead:
 #   git config --global core.excludesfile "~/.gitignore_global"
 
+### Claude Code ###
+# Per-session worktrees created by the desktop app / --worktree
+.claude/worktrees/
+
 ### Storybook ###
 *storybook.log
 storybook-static
