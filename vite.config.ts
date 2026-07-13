@@ -41,6 +41,9 @@ export default defineConfig({
     },
     sourcemap: true,
   },
+  optimizeDeps: {
+    include: ['@testing-library/dom'],
+  },
   plugins: [
     stylex.vite({
       dev: process.env.NODE_ENV === 'development',
