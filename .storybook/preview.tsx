@@ -26,6 +26,9 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    darkMode: {
+      stylePreview: true,
+    },
   },
 }
 
