@@ -1,7 +1,6 @@
 import eslintJs from '@eslint/js'
 import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import eslintPluginPerfectionist from 'eslint-plugin-perfectionist'
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
 import eslintPluginStorybook from 'eslint-plugin-storybook'
@@ -19,7 +18,6 @@ export default defineConfig([
       eslintPluginPerfectionist.configs['recommended-natural'],
       eslintPluginReactHooks.configs.flat.recommended,
       eslintPluginReactRefresh.configs.vite,
-      eslintPluginPrettierRecommended,
     ],
     languageOptions: {
       ecmaVersion: 2020,

@@ -10,12 +10,12 @@ React Compiler. Components are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command             | Notes                                                           |
-| ---------- | ------------------- | --------------------------------------------------------------- |
-| Dev server | `npm run storybook` | Storybook at http://localhost:6006 (`npm run dev` is an alias)  |
-| Test       | `npm test`          | Vitest running story-based tests in headless Chromium           |
-| Lint       | `npm run lint`      | oxlint, then ESLint (which includes Prettier formatting checks) |
-| Build      | `npm run build`     | Type-checks (`tsc -b`) then builds ESM + CJS into `dist/`       |
+| Task       | Command             | Notes                                                          |
+| ---------- | ------------------- | -------------------------------------------------------------- |
+| Dev server | `npm run storybook` | Storybook at http://localhost:6006 (`npm run dev` is an alias) |
+| Test       | `npm test`          | Vitest running story-based tests in headless Chromium          |
+| Lint       | `npm run lint`      | oxlint, then ESLint, then oxfmt formatting check               |
+| Build      | `npm run build`     | Type-checks (`tsc -b`) then builds ESM + CJS into `dist/`      |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
