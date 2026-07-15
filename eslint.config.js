@@ -1,4 +1,5 @@
 import eslintJs from '@eslint/js'
+import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import eslintPluginPerfectionist from 'eslint-plugin-perfectionist'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
@@ -29,4 +30,5 @@ export default defineConfig([
     files: ['**/*.stories.tsx'],
     extends: [eslintPluginStorybook.configs['flat/recommended']],
   },
+  ...eslintPluginOxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
 ])
