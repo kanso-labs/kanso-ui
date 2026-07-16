@@ -22,6 +22,10 @@ updates:
           - 'typescript-eslint'
         exclude-patterns:
           - 'eslint-plugin-storybook'
+      oxlint:
+        patterns:
+          - 'eslint-plugin-oxlint'
+          - 'oxlint'
       react:
         patterns:
           - 'react'
