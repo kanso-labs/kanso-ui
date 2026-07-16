@@ -57,6 +57,9 @@ export default defineConfig({
     projects: [
       {
         extends: true,
+        optimizeDeps: {
+          include: ['@testing-library/dom', '@testing-library/jest-dom'],
+        },
         plugins: [
           storybookTest({
             configDir: path.join(dirname, '.storybook'),
