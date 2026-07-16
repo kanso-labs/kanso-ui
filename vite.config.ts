@@ -7,7 +7,6 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import rollupPluginNodeExternals from 'rollup-plugin-node-externals'
 import { defineConfig } from 'vite'
 
 const dirname =
@@ -16,31 +15,6 @@ const dirname =
     : path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  build: {
-    lib: {
-      entry: path.join(dirname, 'src/index.ts'),
-    },
-    rolldownOptions: {
-      output: [
-        {
-          dir: 'dist/cjs',
-          entryFileNames: '[name].cjs',
-          exports: 'auto',
-          format: 'cjs',
-          preserveModules: true,
-          preserveModulesRoot: 'src',
-        },
-        {
-          dir: 'dist',
-          entryFileNames: '[name].js',
-          format: 'es',
-          preserveModules: true,
-          preserveModulesRoot: 'src',
-        },
-      ],
-    },
-    sourcemap: true,
-  },
   plugins: [
     stylex.vite({
       dev: process.env.NODE_ENV === 'development',
@@ -51,7 +25,6 @@ export default defineConfig({
     babel({
       presets: [reactCompilerPreset()],
     }),
-    rollupPluginNodeExternals(),
   ],
   test: {
     projects: [
