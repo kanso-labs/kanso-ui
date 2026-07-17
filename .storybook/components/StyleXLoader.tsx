@@ -5,7 +5,7 @@ import React, { useEffect } from 'react'
 function StyleXLoader() {
   useEffect(() => {
     if (import.meta.env.DEV) {
-      import('virtual:stylex:runtime')
+      void import('virtual:stylex:runtime')
     }
   }, [])
 
