@@ -3,29 +3,67 @@ import type { ButtonProps as BaseUIButtonProps } from '@base-ui/react/button'
 import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
+import {
+  colors,
+  radii,
+  shadows,
+  spacing,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
+
+// A filled button composites an 'on-color' over its container at the
+// interaction state's opacity, rather than swapping in a separate
+// hover/pressed color. calc(<opacity> * 100%) turns the token's unitless
+// 0-1 ratio into the percentage color-mix() takes. Inlined rather than
+// factored into a helper: @stylexjs/babel-plugin only statically recognizes
+// expressions written directly as property values, and a call to an
+// externally-defined function isn't one of them.
 const styles = stylex.create({
   base: {
-    borderRadius: '3em',
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      ':focus-visible': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      default: colors.primary,
+    },
+    borderRadius: radii.full,
     borderWidth: 0,
-    cursor: 'pointer',
+    boxShadow: {
+      ':active': 'none',
+      ':hover': shadows.elevation1,
+      default: 'none',
+    },
+    color: {
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: colors.onPrimary,
+    },
+    cursor: { ':disabled': 'not-allowed', default: 'pointer' },
     display: 'inline-block',
-    fontFamily: "'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-    fontSize: '14px',
-    fontWeight: 700,
-    lineHeight: 1,
-    padding: '11px 20px',
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+    outlineColor: colors.primary,
+    outlineOffset: '2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
+    paddingBlock: spacing.md,
+    paddingInline: spacing.xl,
   },
 })
 
-type ButtonProps = Omit<BaseUIButtonProps, 'children'> & {
-  label: BaseUIButtonProps['children']
-}
+type ButtonProps = BaseUIButtonProps
 
-function Button({ label, ...props }: ButtonProps) {
+function Button({ disabled = false, ...props }: ButtonProps) {
   return (
-    <BaseUIButton {...props} {...stylex.props(styles.base)}>
-      {label}
-    </BaseUIButton>
+    <BaseUIButton
+      disabled={disabled}
+      {...props}
+      {...stylex.props(styles.base)}
+    />
   )
 }
 

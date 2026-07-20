@@ -1,0 +1,574 @@
+{
+  "$description": "kanso-ui design tokens. Conforms to the Design Tokens Community Group format (https://design-tokens.github.io/community-group/format/): $type/$value, group-level type inheritance, {path} alias references. Color roles, type scale, shape scale, elevation, and state-layer opacities are drawn from a verified tonal-palette color system, not approximations. Generated into StyleX via scripts/build-tokens.mjs (npm run tokens:build) — see src/tokens/*.stylex.ts.",
+  "color": {
+    "$type": "color",
+    "$description": "Reference tier — the full tonal palettes. Not consumed directly by components — see semantic.light / semantic.dark, the System tier that maps roles onto specific tones. Each chromatic palette (primary/secondary/tertiary/error) holds all 13 standard tone stops; neutral additionally carries the extra surface-container stops (4/6/12/17/20/22/24/87/92/94/96/98/99).",
+    "primary": {
+      "$description": "Brand hue (violet) — a verified reference baseline seed (#6750a4), used verbatim.",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#21005d" },
+      "20": { "$value": "#381e72" },
+      "30": { "$value": "#4f378b" },
+      "40": { "$value": "#6750a4" },
+      "50": { "$value": "#7f67be" },
+      "60": { "$value": "#9a82db" },
+      "70": { "$value": "#b69df8" },
+      "80": { "$value": "#d0bcff" },
+      "90": { "$value": "#eaddff" },
+      "95": { "$value": "#f6edff" },
+      "99": { "$value": "#fffbfe" },
+      "100": { "$value": "#ffffff" }
+    },
+    "secondary": {
+      "$description": "A muted, lower-chroma variant of the primary hue family.",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#1d192b" },
+      "20": { "$value": "#332d41" },
+      "30": { "$value": "#4a4458" },
+      "40": { "$value": "#625b71" },
+      "50": { "$value": "#7a7289" },
+      "60": { "$value": "#958da5" },
+      "70": { "$value": "#b0a7c0" },
+      "80": { "$value": "#ccc2dc" },
+      "90": { "$value": "#e8def8" },
+      "95": { "$value": "#f6edff" },
+      "99": { "$value": "#fffbfe" },
+      "100": { "$value": "#ffffff" }
+    },
+    "tertiary": {
+      "$description": "An accent hue roughly complementary to primary, for contrast/emphasis.",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#31111d" },
+      "20": { "$value": "#492532" },
+      "30": { "$value": "#633b48" },
+      "40": { "$value": "#7d5260" },
+      "50": { "$value": "#986977" },
+      "60": { "$value": "#b58392" },
+      "70": { "$value": "#d29dac" },
+      "80": { "$value": "#efb8c8" },
+      "90": { "$value": "#ffd8e4" },
+      "95": { "$value": "#ffecf1" },
+      "99": { "$value": "#fffbfa" },
+      "100": { "$value": "#ffffff" }
+    },
+    "error": {
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#410e0b" },
+      "20": { "$value": "#601410" },
+      "30": { "$value": "#8c1d18" },
+      "40": { "$value": "#b3261e" },
+      "50": { "$value": "#dc362e" },
+      "60": { "$value": "#e46962" },
+      "70": { "$value": "#ec928e" },
+      "80": { "$value": "#f2b8b5" },
+      "90": { "$value": "#f9dedc" },
+      "95": { "$value": "#fceeee" },
+      "99": { "$value": "#fffbf9" },
+      "100": { "$value": "#ffffff" }
+    },
+    "neutral": {
+      "$description": "Surfaces, backgrounds, and primary text. The extra stops beyond the standard 13 (4/6/12/17/20/22/24/87/92/94/96/98/99) are what the surface-container roles below draw on.",
+      "0": { "$value": "#000000" },
+      "4": { "$value": "#0f0d13" },
+      "6": { "$value": "#141218" },
+      "10": { "$value": "#1d1b20" },
+      "12": { "$value": "#211f26" },
+      "17": { "$value": "#2b2930" },
+      "20": { "$value": "#322f35" },
+      "22": { "$value": "#36343b" },
+      "24": { "$value": "#3b383e" },
+      "30": { "$value": "#48464c" },
+      "40": { "$value": "#605d64" },
+      "50": { "$value": "#79767d" },
+      "60": { "$value": "#938f96" },
+      "70": { "$value": "#aea9b1" },
+      "80": { "$value": "#cac5cd" },
+      "87": { "$value": "#ded8e1" },
+      "90": { "$value": "#e6e0e9" },
+      "92": { "$value": "#ece6f0" },
+      "94": { "$value": "#f3edf7" },
+      "95": { "$value": "#f5eff7" },
+      "96": { "$value": "#f7f2fa" },
+      "98": { "$value": "#fef7ff" },
+      "99": { "$value": "#fffbff" },
+      "100": { "$value": "#ffffff" }
+    },
+    "neutralVariant": {
+      "$description": "Borders and secondary/muted text — tinted slightly toward the brand hue.",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#1d1a22" },
+      "20": { "$value": "#322f37" },
+      "30": { "$value": "#49454f" },
+      "40": { "$value": "#605d66" },
+      "50": { "$value": "#79747e" },
+      "60": { "$value": "#938f99" },
+      "70": { "$value": "#aea9b4" },
+      "80": { "$value": "#cac4d0" },
+      "90": { "$value": "#e7e0ec" },
+      "95": { "$value": "#f5eefa" },
+      "99": { "$value": "#fffbfe" },
+      "100": { "$value": "#ffffff" }
+    },
+    "positive": {
+      "$description": "Custom color — an app-specific hue outside the core palette: positive/success accent, distinct from secondary/tertiary so it reads unambiguously as 'you're owed'. Generated algorithmically (constant hue/chroma across every tone) from the hue/chroma of the previous hand-authored seed (#1f8f6a), so every stop is a real, verified HCT tone rather than a hand-picked approximation.",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#002115" },
+      "20": { "$value": "#003827" },
+      "30": { "$value": "#00513a" },
+      "40": { "$value": "#006c4d" },
+      "50": { "$value": "#108763" },
+      "60": { "$value": "#39a27c" },
+      "70": { "$value": "#57bd95" },
+      "80": { "$value": "#74d9af" },
+      "90": { "$value": "#90f6ca" },
+      "95": { "$value": "#bdffdf" },
+      "99": { "$value": "#f4fff7" },
+      "100": { "$value": "#ffffff" }
+    },
+    "negative": {
+      "$description": "Custom color: negative/warning accent — distinct from the error hue so a debt doesn't read as a validation error. Generated the same way as positive, from the hue/chroma of the previous hand-authored seed (#c45a3a).",
+      "0": { "$value": "#000000" },
+      "10": { "$value": "#3a0a00" },
+      "20": { "$value": "#5f1600" },
+      "30": { "$value": "#81290c" },
+      "40": { "$value": "#a04022" },
+      "50": { "$value": "#c05738" },
+      "60": { "$value": "#e1704e" },
+      "70": { "$value": "#ff8b69" },
+      "80": { "$value": "#ffb59f" },
+      "90": { "$value": "#ffdbd1" },
+      "95": { "$value": "#ffede8" },
+      "99": { "$value": "#fffbff" },
+      "100": { "$value": "#ffffff" }
+    }
+  },
+  "semantic": {
+    "$type": "color",
+    "$description": "System tier — theme-dependent roles. These are the tokens components consume, exported 1:1 as StyleX vars of the same name. positive*/negative* follow the same custom-color formula as error (the same 40/100/90/10 light and 80/20/30/90 dark pattern) so they read as first-class roles, not a bolted-on exception.",
+    "light": {
+      "background": { "$value": "{color.neutral.98}" },
+      "error": { "$value": "{color.error.40}" },
+      "errorContainer": { "$value": "{color.error.90}" },
+      "inverseOnSurface": { "$value": "{color.neutral.95}" },
+      "inversePrimary": { "$value": "{color.primary.80}" },
+      "inverseSurface": { "$value": "{color.neutral.20}" },
+      "negative": { "$value": "{color.negative.40}" },
+      "negativeContainer": { "$value": "{color.negative.90}" },
+      "onBackground": { "$value": "{color.neutral.10}" },
+      "onError": { "$value": "{color.error.100}" },
+      "onErrorContainer": { "$value": "{color.error.10}" },
+      "onNegative": { "$value": "{color.negative.100}" },
+      "onNegativeContainer": { "$value": "{color.negative.10}" },
+      "onPositive": { "$value": "{color.positive.100}" },
+      "onPositiveContainer": { "$value": "{color.positive.10}" },
+      "onPrimary": { "$value": "{color.primary.100}" },
+      "onPrimaryContainer": { "$value": "{color.primary.10}" },
+      "onPrimaryFixed": { "$value": "{color.primary.10}" },
+      "onPrimaryFixedVariant": { "$value": "{color.primary.30}" },
+      "onSecondary": { "$value": "{color.secondary.100}" },
+      "onSecondaryContainer": { "$value": "{color.secondary.10}" },
+      "onSecondaryFixed": { "$value": "{color.secondary.10}" },
+      "onSecondaryFixedVariant": { "$value": "{color.secondary.30}" },
+      "onSurface": { "$value": "{color.neutral.10}" },
+      "onSurfaceVariant": { "$value": "{color.neutralVariant.30}" },
+      "onTertiary": { "$value": "{color.tertiary.100}" },
+      "onTertiaryContainer": { "$value": "{color.tertiary.10}" },
+      "onTertiaryFixed": { "$value": "{color.tertiary.10}" },
+      "onTertiaryFixedVariant": { "$value": "{color.tertiary.30}" },
+      "outline": { "$value": "{color.neutralVariant.50}" },
+      "outlineVariant": { "$value": "{color.neutralVariant.80}" },
+      "positive": { "$value": "{color.positive.40}" },
+      "positiveContainer": { "$value": "{color.positive.90}" },
+      "primary": { "$value": "{color.primary.40}" },
+      "primaryContainer": { "$value": "{color.primary.90}" },
+      "primaryFixed": { "$value": "{color.primary.90}" },
+      "primaryFixedDim": { "$value": "{color.primary.80}" },
+      "scrim": { "$value": "{color.neutral.0}" },
+      "secondary": { "$value": "{color.secondary.40}" },
+      "secondaryContainer": { "$value": "{color.secondary.90}" },
+      "secondaryFixed": { "$value": "{color.secondary.90}" },
+      "secondaryFixedDim": { "$value": "{color.secondary.80}" },
+      "shadow": { "$value": "{color.neutral.0}" },
+      "surface": { "$value": "{color.neutral.98}" },
+      "surfaceBright": { "$value": "{color.neutral.98}" },
+      "surfaceContainer": { "$value": "{color.neutral.94}" },
+      "surfaceContainerHigh": { "$value": "{color.neutral.92}" },
+      "surfaceContainerHighest": { "$value": "{color.neutral.90}" },
+      "surfaceContainerLow": { "$value": "{color.neutral.96}" },
+      "surfaceContainerLowest": { "$value": "{color.neutral.100}" },
+      "surfaceDim": { "$value": "{color.neutral.87}" },
+      "surfaceTint": { "$value": "{color.primary.40}" },
+      "surfaceVariant": { "$value": "{color.neutralVariant.90}" },
+      "tertiary": { "$value": "{color.tertiary.40}" },
+      "tertiaryContainer": { "$value": "{color.tertiary.90}" },
+      "tertiaryFixed": { "$value": "{color.tertiary.90}" },
+      "tertiaryFixedDim": { "$value": "{color.tertiary.80}" }
+    },
+    "dark": {
+      "background": { "$value": "{color.neutral.6}" },
+      "error": { "$value": "{color.error.80}" },
+      "errorContainer": { "$value": "{color.error.30}" },
+      "inverseOnSurface": { "$value": "{color.neutral.20}" },
+      "inversePrimary": { "$value": "{color.primary.40}" },
+      "inverseSurface": { "$value": "{color.neutral.90}" },
+      "negative": { "$value": "{color.negative.80}" },
+      "negativeContainer": { "$value": "{color.negative.30}" },
+      "onBackground": { "$value": "{color.neutral.90}" },
+      "onError": { "$value": "{color.error.20}" },
+      "onErrorContainer": { "$value": "{color.error.90}" },
+      "onNegative": { "$value": "{color.negative.20}" },
+      "onNegativeContainer": { "$value": "{color.negative.90}" },
+      "onPositive": { "$value": "{color.positive.20}" },
+      "onPositiveContainer": { "$value": "{color.positive.90}" },
+      "onPrimary": { "$value": "{color.primary.20}" },
+      "onPrimaryContainer": { "$value": "{color.primary.90}" },
+      "onPrimaryFixed": { "$value": "{color.primary.10}" },
+      "onPrimaryFixedVariant": { "$value": "{color.primary.30}" },
+      "onSecondary": { "$value": "{color.secondary.20}" },
+      "onSecondaryContainer": { "$value": "{color.secondary.90}" },
+      "onSecondaryFixed": { "$value": "{color.secondary.10}" },
+      "onSecondaryFixedVariant": { "$value": "{color.secondary.30}" },
+      "onSurface": { "$value": "{color.neutral.90}" },
+      "onSurfaceVariant": { "$value": "{color.neutralVariant.80}" },
+      "onTertiary": { "$value": "{color.tertiary.20}" },
+      "onTertiaryContainer": { "$value": "{color.tertiary.90}" },
+      "onTertiaryFixed": { "$value": "{color.tertiary.10}" },
+      "onTertiaryFixedVariant": { "$value": "{color.tertiary.30}" },
+      "outline": { "$value": "{color.neutralVariant.60}" },
+      "outlineVariant": { "$value": "{color.neutralVariant.30}" },
+      "positive": { "$value": "{color.positive.80}" },
+      "positiveContainer": { "$value": "{color.positive.30}" },
+      "primary": { "$value": "{color.primary.80}" },
+      "primaryContainer": { "$value": "{color.primary.30}" },
+      "primaryFixed": { "$value": "{color.primary.90}" },
+      "primaryFixedDim": { "$value": "{color.primary.80}" },
+      "scrim": { "$value": "{color.neutral.0}" },
+      "secondary": { "$value": "{color.secondary.80}" },
+      "secondaryContainer": { "$value": "{color.secondary.30}" },
+      "secondaryFixed": { "$value": "{color.secondary.90}" },
+      "secondaryFixedDim": { "$value": "{color.secondary.80}" },
+      "shadow": { "$value": "{color.neutral.0}" },
+      "surface": { "$value": "{color.neutral.6}" },
+      "surfaceBright": { "$value": "{color.neutral.24}" },
+      "surfaceContainer": { "$value": "{color.neutral.12}" },
+      "surfaceContainerHigh": { "$value": "{color.neutral.17}" },
+      "surfaceContainerHighest": { "$value": "{color.neutral.22}" },
+      "surfaceContainerLow": { "$value": "{color.neutral.10}" },
+      "surfaceContainerLowest": { "$value": "{color.neutral.4}" },
+      "surfaceDim": { "$value": "{color.neutral.6}" },
+      "surfaceTint": { "$value": "{color.primary.80}" },
+      "surfaceVariant": { "$value": "{color.neutralVariant.30}" },
+      "tertiary": { "$value": "{color.tertiary.80}" },
+      "tertiaryContainer": { "$value": "{color.tertiary.30}" },
+      "tertiaryFixed": { "$value": "{color.tertiary.90}" },
+      "tertiaryFixedDim": { "$value": "{color.tertiary.80}" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "$type": "fontFamily",
+      "$description": "Two typeface roles: 'brand' (expressive, used by display/headline/title) and 'plain' (neutral, used by body/label). 'mono' is a kanso-specific extension for numeric/code display, outside the base scale.",
+      "brand": {
+        "$value": ["Roboto Serif", "Iowan Old Style", "Georgia", "serif"]
+      },
+      "mono": {
+        "$value": [
+          "Roboto Mono",
+          "ui-monospace",
+          "SF Mono",
+          "Menlo",
+          "monospace"
+        ]
+      },
+      "plain": {
+        "$value": [
+          "Roboto Flex",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif"
+        ]
+      }
+    },
+    "fontWeight": {
+      "$type": "fontWeight",
+      "bold": { "$value": 700 },
+      "medium": { "$value": 500 },
+      "regular": { "$value": 400 }
+    },
+    "scale": {
+      "$description": "The full 15-style type scale — display/headline/title/body/label, each in large/medium/small. Sizes are px, converted from a verified rem-based scale at a 16px root. `font` names which typeface role (brand/plain) each style uses.",
+      "displayLarge": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "57px" },
+        "lineHeight": { "$type": "dimension", "$value": "64px" },
+        "tracking": { "$type": "dimension", "$value": "-0.25px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "displayMedium": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "45px" },
+        "lineHeight": { "$type": "dimension", "$value": "52px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "displaySmall": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "36px" },
+        "lineHeight": { "$type": "dimension", "$value": "44px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "headlineLarge": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "32px" },
+        "lineHeight": { "$type": "dimension", "$value": "40px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "headlineMedium": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "28px" },
+        "lineHeight": { "$type": "dimension", "$value": "36px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "headlineSmall": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "24px" },
+        "lineHeight": { "$type": "dimension", "$value": "32px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "titleLarge": {
+        "font": { "$value": "{typography.fontFamily.brand}" },
+        "size": { "$type": "dimension", "$value": "22px" },
+        "lineHeight": { "$type": "dimension", "$value": "28px" },
+        "tracking": { "$type": "dimension", "$value": "0px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "titleMedium": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "16px" },
+        "lineHeight": { "$type": "dimension", "$value": "24px" },
+        "tracking": { "$type": "dimension", "$value": "0.15px" },
+        "weight": { "$value": "{typography.fontWeight.medium}" }
+      },
+      "titleSmall": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "14px" },
+        "lineHeight": { "$type": "dimension", "$value": "20px" },
+        "tracking": { "$type": "dimension", "$value": "0.1px" },
+        "weight": { "$value": "{typography.fontWeight.medium}" }
+      },
+      "bodyLarge": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "16px" },
+        "lineHeight": { "$type": "dimension", "$value": "24px" },
+        "tracking": { "$type": "dimension", "$value": "0.5px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "bodyMedium": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "14px" },
+        "lineHeight": { "$type": "dimension", "$value": "20px" },
+        "tracking": { "$type": "dimension", "$value": "0.25px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "bodySmall": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "12px" },
+        "lineHeight": { "$type": "dimension", "$value": "16px" },
+        "tracking": { "$type": "dimension", "$value": "0.4px" },
+        "weight": { "$value": "{typography.fontWeight.regular}" }
+      },
+      "labelLarge": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "14px" },
+        "lineHeight": { "$type": "dimension", "$value": "20px" },
+        "tracking": { "$type": "dimension", "$value": "0.1px" },
+        "weight": { "$value": "{typography.fontWeight.medium}" }
+      },
+      "labelMedium": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "12px" },
+        "lineHeight": { "$type": "dimension", "$value": "16px" },
+        "tracking": { "$type": "dimension", "$value": "0.5px" },
+        "weight": { "$value": "{typography.fontWeight.medium}" }
+      },
+      "labelSmall": {
+        "font": { "$value": "{typography.fontFamily.plain}" },
+        "size": { "$type": "dimension", "$value": "11px" },
+        "lineHeight": { "$type": "dimension", "$value": "16px" },
+        "tracking": { "$type": "dimension", "$value": "0.5px" },
+        "weight": { "$value": "{typography.fontWeight.medium}" }
+      }
+    }
+  },
+  "spacing": {
+    "$type": "dimension",
+    "$description": "kanso-specific — not derived from an external spacing scale, just a general 4px-grid principle.",
+    "primitive": {
+      "2": { "$value": "2px" },
+      "4": { "$value": "4px" },
+      "8": { "$value": "8px" },
+      "12": { "$value": "12px" },
+      "16": { "$value": "16px" },
+      "20": { "$value": "20px" },
+      "24": { "$value": "24px" },
+      "32": { "$value": "32px" },
+      "40": { "$value": "40px" },
+      "56": { "$value": "56px" },
+      "72": { "$value": "72px" },
+      "96": { "$value": "96px" }
+    },
+    "component": {
+      "$description": "T-shirt-named subset consumed by components today.",
+      "xxs": { "$value": "{spacing.primitive.2}" },
+      "xs": { "$value": "{spacing.primitive.4}" },
+      "sm": { "$value": "{spacing.primitive.8}" },
+      "md": { "$value": "{spacing.primitive.12}" },
+      "lg": { "$value": "{spacing.primitive.16}" },
+      "xl": { "$value": "{spacing.primitive.24}" },
+      "xxl": { "$value": "{spacing.primitive.32}" },
+      "xxxl": { "$value": "{spacing.primitive.40}" }
+    }
+  },
+  "radii": {
+    "$type": "dimension",
+    "$description": "A verified corner-radius scale, from sharp to fully round.",
+    "primitive": {
+      "0": { "$value": "0px" },
+      "4": { "$value": "4px" },
+      "8": { "$value": "8px" },
+      "12": { "$value": "12px" },
+      "16": { "$value": "16px" },
+      "28": { "$value": "28px" },
+      "9999": { "$value": "9999px" }
+    },
+    "component": {
+      "none": { "$value": "{radii.primitive.0}" },
+      "xs": { "$value": "{radii.primitive.4}" },
+      "sm": { "$value": "{radii.primitive.8}" },
+      "md": { "$value": "{radii.primitive.12}" },
+      "lg": { "$value": "{radii.primitive.16}" },
+      "xl": { "$value": "{radii.primitive.28}" },
+      "full": { "$value": "{radii.primitive.9999}" }
+    }
+  },
+  "elevation": {
+    "$type": "number",
+    "$description": "Elevation levels, expressed in dp. Informational — see shadow.* below for the actual box-shadow each level renders as.",
+    "level0": { "$value": 0 },
+    "level1": { "$value": 1 },
+    "level2": { "$value": 3 },
+    "level3": { "$value": 6 },
+    "level4": { "$value": 8 },
+    "level5": { "$value": 12 }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation shadows are theme-invariant (always rendered in a fixed black — elevation is instead conveyed in dark mode via the surface-container tones above). Two-layer key+ambient formula, with verified per-level offset/blur/spread. No level0 entry — level0 renders no shadow.",
+    "1": {
+      "$value": [
+        {
+          "color": "rgba(0, 0, 0, 0.3)",
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px"
+        },
+        {
+          "color": "rgba(0, 0, 0, 0.15)",
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "1px"
+        }
+      ]
+    },
+    "2": {
+      "$value": [
+        {
+          "color": "rgba(0, 0, 0, 0.3)",
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "2px",
+          "spread": "0px"
+        },
+        {
+          "color": "rgba(0, 0, 0, 0.15)",
+          "offsetX": "0px",
+          "offsetY": "2px",
+          "blur": "6px",
+          "spread": "2px"
+        }
+      ]
+    },
+    "3": {
+      "$value": [
+        {
+          "color": "rgba(0, 0, 0, 0.3)",
+          "offsetX": "0px",
+          "offsetY": "1px",
+          "blur": "3px",
+          "spread": "0px"
+        },
+        {
+          "color": "rgba(0, 0, 0, 0.15)",
+          "offsetX": "0px",
+          "offsetY": "4px",
+          "blur": "8px",
+          "spread": "3px"
+        }
+      ]
+    },
+    "4": {
+      "$value": [
+        {
+          "color": "rgba(0, 0, 0, 0.3)",
+          "offsetX": "0px",
+          "offsetY": "2px",
+          "blur": "3px",
+          "spread": "0px"
+        },
+        {
+          "color": "rgba(0, 0, 0, 0.15)",
+          "offsetX": "0px",
+          "offsetY": "6px",
+          "blur": "10px",
+          "spread": "4px"
+        }
+      ]
+    },
+    "5": {
+      "$value": [
+        {
+          "color": "rgba(0, 0, 0, 0.3)",
+          "offsetX": "0px",
+          "offsetY": "4px",
+          "blur": "4px",
+          "spread": "0px"
+        },
+        {
+          "color": "rgba(0, 0, 0, 0.15)",
+          "offsetX": "0px",
+          "offsetY": "8px",
+          "blur": "12px",
+          "spread": "6px"
+        }
+      ]
+    }
+  },
+  "stateLayerOpacity": {
+    "$type": "number",
+    "$description": "Verified state-layer opacities for hover/focus/pressed/dragged, plus disabled container/content. Consumers composite the relevant 'on-*' color over the container color at this opacity — e.g. a filled button's hover state is onPrimary painted over primary at hoverOpacity, not a separate discrete color.",
+    "hover": { "$value": 0.08 },
+    "focus": { "$value": 0.12 },
+    "pressed": { "$value": 0.12 },
+    "dragged": { "$value": 0.16 },
+    "disabledContainer": { "$value": 0.12 },
+    "disabledContent": { "$value": 0.38 }
+  }
+}
