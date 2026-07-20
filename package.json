@@ -8,6 +8,10 @@
   "sideEffects": [
     "**/*.css"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanso-labs/kanso-ui.git"
+  },
   "scripts": {
     "build": "tsc -b && tsdown",
     "build-storybook": "storybook build",
