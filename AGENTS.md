@@ -37,3 +37,6 @@ is preconfigured in `.claude/launch.json`; other agents can just run
   inline `style` objects.
 - Commit messages must follow Conventional Commits; commitlint enforces this via
   a husky hook, and release-please derives versions from commit types.
+- Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
+  (oxfmt) automatically on commit via a husky pre-commit hook running
+  lint-staged (config in `.lintstagedrc.json`).
