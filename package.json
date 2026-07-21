@@ -78,7 +78,7 @@
     "storybook": "10.5.3",
     "storybook-dark-mode": "5.0.0",
     "style-dictionary": "5.5.0",
-    "tsdown": "0.22.12",
+    "tsdown": "0.22.13",
     "typescript": "6.0.3",
     "typescript-eslint": "8.65.0",
     "vite": "8.1.5",
