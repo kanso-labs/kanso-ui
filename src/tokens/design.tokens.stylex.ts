@@ -8,63 +8,234 @@ import * as stylex from '@stylexjs/stylex'
 const DARK = '@media (prefers-color-scheme: dark)'
 
 const colors = stylex.defineVars({
-  background: { [DARK]: '#141218', default: '#fef7ff' },
-  error: { [DARK]: '#f2b8b5', default: '#b3261e' },
-  errorContainer: { [DARK]: '#8c1d18', default: '#f9dedc' },
-  inverseOnSurface: { [DARK]: '#322f35', default: '#f5eff7' },
-  inversePrimary: { [DARK]: '#6750a4', default: '#d0bcff' },
-  inverseSurface: { [DARK]: '#e6e0e9', default: '#322f35' },
-  negative: { [DARK]: '#ffb59f', default: '#a04022' },
-  negativeContainer: { [DARK]: '#81290c', default: '#ffdbd1' },
-  onBackground: { [DARK]: '#e6e0e9', default: '#1d1b20' },
-  onError: { [DARK]: '#601410', default: '#ffffff' },
-  onErrorContainer: { [DARK]: '#f9dedc', default: '#410e0b' },
-  onNegative: { [DARK]: '#5f1600', default: '#ffffff' },
-  onNegativeContainer: { [DARK]: '#ffdbd1', default: '#3a0a00' },
-  onPositive: { [DARK]: '#003827', default: '#ffffff' },
-  onPositiveContainer: { [DARK]: '#90f6ca', default: '#002115' },
-  onPrimary: { [DARK]: '#381e72', default: '#ffffff' },
-  onPrimaryContainer: { [DARK]: '#eaddff', default: '#21005d' },
-  onPrimaryFixed: { [DARK]: '#21005d', default: '#21005d' },
-  onPrimaryFixedVariant: { [DARK]: '#4f378b', default: '#4f378b' },
-  onSecondary: { [DARK]: '#332d41', default: '#ffffff' },
-  onSecondaryContainer: { [DARK]: '#e8def8', default: '#1d192b' },
-  onSecondaryFixed: { [DARK]: '#1d192b', default: '#1d192b' },
-  onSecondaryFixedVariant: { [DARK]: '#4a4458', default: '#4a4458' },
-  onSurface: { [DARK]: '#e6e0e9', default: '#1d1b20' },
-  onSurfaceVariant: { [DARK]: '#cac4d0', default: '#49454f' },
-  onTertiary: { [DARK]: '#492532', default: '#ffffff' },
-  onTertiaryContainer: { [DARK]: '#ffd8e4', default: '#31111d' },
-  onTertiaryFixed: { [DARK]: '#31111d', default: '#31111d' },
-  onTertiaryFixedVariant: { [DARK]: '#633b48', default: '#633b48' },
-  outline: { [DARK]: '#938f99', default: '#79747e' },
-  outlineVariant: { [DARK]: '#49454f', default: '#cac4d0' },
-  positive: { [DARK]: '#74d9af', default: '#006c4d' },
-  positiveContainer: { [DARK]: '#00513a', default: '#90f6ca' },
-  primary: { [DARK]: '#d0bcff', default: '#6750a4' },
-  primaryContainer: { [DARK]: '#4f378b', default: '#eaddff' },
-  primaryFixed: { [DARK]: '#eaddff', default: '#eaddff' },
-  primaryFixedDim: { [DARK]: '#d0bcff', default: '#d0bcff' },
-  scrim: { [DARK]: '#000000', default: '#000000' },
-  secondary: { [DARK]: '#ccc2dc', default: '#625b71' },
-  secondaryContainer: { [DARK]: '#4a4458', default: '#e8def8' },
-  secondaryFixed: { [DARK]: '#e8def8', default: '#e8def8' },
-  secondaryFixedDim: { [DARK]: '#ccc2dc', default: '#ccc2dc' },
-  shadow: { [DARK]: '#000000', default: '#000000' },
-  surface: { [DARK]: '#141218', default: '#fef7ff' },
-  surfaceBright: { [DARK]: '#3b383e', default: '#fef7ff' },
-  surfaceContainer: { [DARK]: '#211f26', default: '#f3edf7' },
-  surfaceContainerHigh: { [DARK]: '#2b2930', default: '#ece6f0' },
-  surfaceContainerHighest: { [DARK]: '#36343b', default: '#e6e0e9' },
-  surfaceContainerLow: { [DARK]: '#1d1b20', default: '#f7f2fa' },
-  surfaceContainerLowest: { [DARK]: '#0f0d13', default: '#ffffff' },
-  surfaceDim: { [DARK]: '#141218', default: '#ded8e1' },
-  surfaceTint: { [DARK]: '#d0bcff', default: '#6750a4' },
-  surfaceVariant: { [DARK]: '#49454f', default: '#e7e0ec' },
-  tertiary: { [DARK]: '#efb8c8', default: '#7d5260' },
-  tertiaryContainer: { [DARK]: '#633b48', default: '#ffd8e4' },
-  tertiaryFixed: { [DARK]: '#ffd8e4', default: '#ffd8e4' },
-  tertiaryFixedDim: { [DARK]: '#efb8c8', default: '#efb8c8' },
+  background: {
+    [DARK]: 'var(--kui-color-background, #141218)',
+    default: 'var(--kui-color-background, #fef7ff)',
+  },
+  error: {
+    [DARK]: 'var(--kui-color-error, #f2b8b5)',
+    default: 'var(--kui-color-error, #b3261e)',
+  },
+  errorContainer: {
+    [DARK]: 'var(--kui-color-error-container, #8c1d18)',
+    default: 'var(--kui-color-error-container, #f9dedc)',
+  },
+  inverseOnSurface: {
+    [DARK]: 'var(--kui-color-inverse-on-surface, #322f35)',
+    default: 'var(--kui-color-inverse-on-surface, #f5eff7)',
+  },
+  inversePrimary: {
+    [DARK]: 'var(--kui-color-inverse-primary, #6750a4)',
+    default: 'var(--kui-color-inverse-primary, #d0bcff)',
+  },
+  inverseSurface: {
+    [DARK]: 'var(--kui-color-inverse-surface, #e6e0e9)',
+    default: 'var(--kui-color-inverse-surface, #322f35)',
+  },
+  negative: {
+    [DARK]: 'var(--kui-color-negative, #ffb59f)',
+    default: 'var(--kui-color-negative, #a04022)',
+  },
+  negativeContainer: {
+    [DARK]: 'var(--kui-color-negative-container, #81290c)',
+    default: 'var(--kui-color-negative-container, #ffdbd1)',
+  },
+  onBackground: {
+    [DARK]: 'var(--kui-color-on-background, #e6e0e9)',
+    default: 'var(--kui-color-on-background, #1d1b20)',
+  },
+  onError: {
+    [DARK]: 'var(--kui-color-on-error, #601410)',
+    default: 'var(--kui-color-on-error, #ffffff)',
+  },
+  onErrorContainer: {
+    [DARK]: 'var(--kui-color-on-error-container, #f9dedc)',
+    default: 'var(--kui-color-on-error-container, #410e0b)',
+  },
+  onNegative: {
+    [DARK]: 'var(--kui-color-on-negative, #5f1600)',
+    default: 'var(--kui-color-on-negative, #ffffff)',
+  },
+  onNegativeContainer: {
+    [DARK]: 'var(--kui-color-on-negative-container, #ffdbd1)',
+    default: 'var(--kui-color-on-negative-container, #3a0a00)',
+  },
+  onPositive: {
+    [DARK]: 'var(--kui-color-on-positive, #003827)',
+    default: 'var(--kui-color-on-positive, #ffffff)',
+  },
+  onPositiveContainer: {
+    [DARK]: 'var(--kui-color-on-positive-container, #90f6ca)',
+    default: 'var(--kui-color-on-positive-container, #002115)',
+  },
+  onPrimary: {
+    [DARK]: 'var(--kui-color-on-primary, #381e72)',
+    default: 'var(--kui-color-on-primary, #ffffff)',
+  },
+  onPrimaryContainer: {
+    [DARK]: 'var(--kui-color-on-primary-container, #eaddff)',
+    default: 'var(--kui-color-on-primary-container, #21005d)',
+  },
+  onPrimaryFixed: {
+    [DARK]: 'var(--kui-color-on-primary-fixed, #21005d)',
+    default: 'var(--kui-color-on-primary-fixed, #21005d)',
+  },
+  onPrimaryFixedVariant: {
+    [DARK]: 'var(--kui-color-on-primary-fixed-variant, #4f378b)',
+    default: 'var(--kui-color-on-primary-fixed-variant, #4f378b)',
+  },
+  onSecondary: {
+    [DARK]: 'var(--kui-color-on-secondary, #332d41)',
+    default: 'var(--kui-color-on-secondary, #ffffff)',
+  },
+  onSecondaryContainer: {
+    [DARK]: 'var(--kui-color-on-secondary-container, #e8def8)',
+    default: 'var(--kui-color-on-secondary-container, #1d192b)',
+  },
+  onSecondaryFixed: {
+    [DARK]: 'var(--kui-color-on-secondary-fixed, #1d192b)',
+    default: 'var(--kui-color-on-secondary-fixed, #1d192b)',
+  },
+  onSecondaryFixedVariant: {
+    [DARK]: 'var(--kui-color-on-secondary-fixed-variant, #4a4458)',
+    default: 'var(--kui-color-on-secondary-fixed-variant, #4a4458)',
+  },
+  onSurface: {
+    [DARK]: 'var(--kui-color-on-surface, #e6e0e9)',
+    default: 'var(--kui-color-on-surface, #1d1b20)',
+  },
+  onSurfaceVariant: {
+    [DARK]: 'var(--kui-color-on-surface-variant, #cac4d0)',
+    default: 'var(--kui-color-on-surface-variant, #49454f)',
+  },
+  onTertiary: {
+    [DARK]: 'var(--kui-color-on-tertiary, #492532)',
+    default: 'var(--kui-color-on-tertiary, #ffffff)',
+  },
+  onTertiaryContainer: {
+    [DARK]: 'var(--kui-color-on-tertiary-container, #ffd8e4)',
+    default: 'var(--kui-color-on-tertiary-container, #31111d)',
+  },
+  onTertiaryFixed: {
+    [DARK]: 'var(--kui-color-on-tertiary-fixed, #31111d)',
+    default: 'var(--kui-color-on-tertiary-fixed, #31111d)',
+  },
+  onTertiaryFixedVariant: {
+    [DARK]: 'var(--kui-color-on-tertiary-fixed-variant, #633b48)',
+    default: 'var(--kui-color-on-tertiary-fixed-variant, #633b48)',
+  },
+  outline: {
+    [DARK]: 'var(--kui-color-outline, #938f99)',
+    default: 'var(--kui-color-outline, #79747e)',
+  },
+  outlineVariant: {
+    [DARK]: 'var(--kui-color-outline-variant, #49454f)',
+    default: 'var(--kui-color-outline-variant, #cac4d0)',
+  },
+  positive: {
+    [DARK]: 'var(--kui-color-positive, #74d9af)',
+    default: 'var(--kui-color-positive, #006c4d)',
+  },
+  positiveContainer: {
+    [DARK]: 'var(--kui-color-positive-container, #00513a)',
+    default: 'var(--kui-color-positive-container, #90f6ca)',
+  },
+  primary: {
+    [DARK]: 'var(--kui-color-primary, #d0bcff)',
+    default: 'var(--kui-color-primary, #6750a4)',
+  },
+  primaryContainer: {
+    [DARK]: 'var(--kui-color-primary-container, #4f378b)',
+    default: 'var(--kui-color-primary-container, #eaddff)',
+  },
+  primaryFixed: {
+    [DARK]: 'var(--kui-color-primary-fixed, #eaddff)',
+    default: 'var(--kui-color-primary-fixed, #eaddff)',
+  },
+  primaryFixedDim: {
+    [DARK]: 'var(--kui-color-primary-fixed-dim, #d0bcff)',
+    default: 'var(--kui-color-primary-fixed-dim, #d0bcff)',
+  },
+  scrim: {
+    [DARK]: 'var(--kui-color-scrim, #000000)',
+    default: 'var(--kui-color-scrim, #000000)',
+  },
+  secondary: {
+    [DARK]: 'var(--kui-color-secondary, #ccc2dc)',
+    default: 'var(--kui-color-secondary, #625b71)',
+  },
+  secondaryContainer: {
+    [DARK]: 'var(--kui-color-secondary-container, #4a4458)',
+    default: 'var(--kui-color-secondary-container, #e8def8)',
+  },
+  secondaryFixed: {
+    [DARK]: 'var(--kui-color-secondary-fixed, #e8def8)',
+    default: 'var(--kui-color-secondary-fixed, #e8def8)',
+  },
+  secondaryFixedDim: {
+    [DARK]: 'var(--kui-color-secondary-fixed-dim, #ccc2dc)',
+    default: 'var(--kui-color-secondary-fixed-dim, #ccc2dc)',
+  },
+  shadow: {
+    [DARK]: 'var(--kui-color-shadow, #000000)',
+    default: 'var(--kui-color-shadow, #000000)',
+  },
+  surface: {
+    [DARK]: 'var(--kui-color-surface, #141218)',
+    default: 'var(--kui-color-surface, #fef7ff)',
+  },
+  surfaceBright: {
+    [DARK]: 'var(--kui-color-surface-bright, #3b383e)',
+    default: 'var(--kui-color-surface-bright, #fef7ff)',
+  },
+  surfaceContainer: {
+    [DARK]: 'var(--kui-color-surface-container, #211f26)',
+    default: 'var(--kui-color-surface-container, #f3edf7)',
+  },
+  surfaceContainerHigh: {
+    [DARK]: 'var(--kui-color-surface-container-high, #2b2930)',
+    default: 'var(--kui-color-surface-container-high, #ece6f0)',
+  },
+  surfaceContainerHighest: {
+    [DARK]: 'var(--kui-color-surface-container-highest, #36343b)',
+    default: 'var(--kui-color-surface-container-highest, #e6e0e9)',
+  },
+  surfaceContainerLow: {
+    [DARK]: 'var(--kui-color-surface-container-low, #1d1b20)',
+    default: 'var(--kui-color-surface-container-low, #f7f2fa)',
+  },
+  surfaceContainerLowest: {
+    [DARK]: 'var(--kui-color-surface-container-lowest, #0f0d13)',
+    default: 'var(--kui-color-surface-container-lowest, #ffffff)',
+  },
+  surfaceDim: {
+    [DARK]: 'var(--kui-color-surface-dim, #141218)',
+    default: 'var(--kui-color-surface-dim, #ded8e1)',
+  },
+  surfaceTint: {
+    [DARK]: 'var(--kui-color-surface-tint, #d0bcff)',
+    default: 'var(--kui-color-surface-tint, #6750a4)',
+  },
+  surfaceVariant: {
+    [DARK]: 'var(--kui-color-surface-variant, #49454f)',
+    default: 'var(--kui-color-surface-variant, #e7e0ec)',
+  },
+  tertiary: {
+    [DARK]: 'var(--kui-color-tertiary, #efb8c8)',
+    default: 'var(--kui-color-tertiary, #7d5260)',
+  },
+  tertiaryContainer: {
+    [DARK]: 'var(--kui-color-tertiary-container, #633b48)',
+    default: 'var(--kui-color-tertiary-container, #ffd8e4)',
+  },
+  tertiaryFixed: {
+    [DARK]: 'var(--kui-color-tertiary-fixed, #ffd8e4)',
+    default: 'var(--kui-color-tertiary-fixed, #ffd8e4)',
+  },
+  tertiaryFixedDim: {
+    [DARK]: 'var(--kui-color-tertiary-fixed-dim, #efb8c8)',
+    default: 'var(--kui-color-tertiary-fixed-dim, #efb8c8)',
+  },
 })
 
 export { colors }
@@ -195,146 +366,161 @@ export { colorsDarkTheme }
 
 const typography = stylex.defineVars({
   bodyLargeFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  bodyLargeLineHeight: '24px',
-  bodyLargeSize: '16px',
-  bodyLargeTracking: '0.5px',
-  bodyLargeWeight: '400',
+    "var(--kui-typography-body-large-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  bodyLargeLineHeight: 'var(--kui-typography-body-large-line-height, 24px)',
+  bodyLargeSize: 'var(--kui-typography-body-large-size, 16px)',
+  bodyLargeTracking: 'var(--kui-typography-body-large-tracking, 0.5px)',
+  bodyLargeWeight: 'var(--kui-typography-body-large-weight, 400)',
   bodyMediumFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  bodyMediumLineHeight: '20px',
-  bodyMediumSize: '14px',
-  bodyMediumTracking: '0.25px',
-  bodyMediumWeight: '400',
+    "var(--kui-typography-body-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  bodyMediumLineHeight: 'var(--kui-typography-body-medium-line-height, 20px)',
+  bodyMediumSize: 'var(--kui-typography-body-medium-size, 14px)',
+  bodyMediumTracking: 'var(--kui-typography-body-medium-tracking, 0.25px)',
+  bodyMediumWeight: 'var(--kui-typography-body-medium-weight, 400)',
   bodySmallFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  bodySmallLineHeight: '16px',
-  bodySmallSize: '12px',
-  bodySmallTracking: '0.4px',
-  bodySmallWeight: '400',
-  displayLargeFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  displayLargeLineHeight: '64px',
-  displayLargeSize: '57px',
-  displayLargeTracking: '-0.25px',
-  displayLargeWeight: '400',
-  displayMediumFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  displayMediumLineHeight: '52px',
-  displayMediumSize: '45px',
-  displayMediumTracking: '0px',
-  displayMediumWeight: '400',
-  displaySmallFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  displaySmallLineHeight: '44px',
-  displaySmallSize: '36px',
-  displaySmallTracking: '0px',
-  displaySmallWeight: '400',
-  fontFamilyBrand: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  fontFamilyMono: "'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace",
+    "var(--kui-typography-body-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  bodySmallLineHeight: 'var(--kui-typography-body-small-line-height, 16px)',
+  bodySmallSize: 'var(--kui-typography-body-small-size, 12px)',
+  bodySmallTracking: 'var(--kui-typography-body-small-tracking, 0.4px)',
+  bodySmallWeight: 'var(--kui-typography-body-small-weight, 400)',
+  displayLargeFont:
+    "var(--kui-typography-display-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  displayLargeLineHeight:
+    'var(--kui-typography-display-large-line-height, 64px)',
+  displayLargeSize: 'var(--kui-typography-display-large-size, 57px)',
+  displayLargeTracking: 'var(--kui-typography-display-large-tracking, -0.25px)',
+  displayLargeWeight: 'var(--kui-typography-display-large-weight, 400)',
+  displayMediumFont:
+    "var(--kui-typography-display-medium-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  displayMediumLineHeight:
+    'var(--kui-typography-display-medium-line-height, 52px)',
+  displayMediumSize: 'var(--kui-typography-display-medium-size, 45px)',
+  displayMediumTracking: 'var(--kui-typography-display-medium-tracking, 0px)',
+  displayMediumWeight: 'var(--kui-typography-display-medium-weight, 400)',
+  displaySmallFont:
+    "var(--kui-typography-display-small-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  displaySmallLineHeight:
+    'var(--kui-typography-display-small-line-height, 44px)',
+  displaySmallSize: 'var(--kui-typography-display-small-size, 36px)',
+  displaySmallTracking: 'var(--kui-typography-display-small-tracking, 0px)',
+  displaySmallWeight: 'var(--kui-typography-display-small-weight, 400)',
+  fontFamilyBrand:
+    "var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  fontFamilyMono:
+    "var(--kui-typography-font-family-mono, 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace)",
   fontFamilyPlain:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  headlineLargeFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  headlineLargeLineHeight: '40px',
-  headlineLargeSize: '32px',
-  headlineLargeTracking: '0px',
-  headlineLargeWeight: '400',
-  headlineMediumFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  headlineMediumLineHeight: '36px',
-  headlineMediumSize: '28px',
-  headlineMediumTracking: '0px',
-  headlineMediumWeight: '400',
-  headlineSmallFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  headlineSmallLineHeight: '32px',
-  headlineSmallSize: '24px',
-  headlineSmallTracking: '0px',
-  headlineSmallWeight: '400',
+    "var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  headlineLargeFont:
+    "var(--kui-typography-headline-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  headlineLargeLineHeight:
+    'var(--kui-typography-headline-large-line-height, 40px)',
+  headlineLargeSize: 'var(--kui-typography-headline-large-size, 32px)',
+  headlineLargeTracking: 'var(--kui-typography-headline-large-tracking, 0px)',
+  headlineLargeWeight: 'var(--kui-typography-headline-large-weight, 400)',
+  headlineMediumFont:
+    "var(--kui-typography-headline-medium-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  headlineMediumLineHeight:
+    'var(--kui-typography-headline-medium-line-height, 36px)',
+  headlineMediumSize: 'var(--kui-typography-headline-medium-size, 28px)',
+  headlineMediumTracking: 'var(--kui-typography-headline-medium-tracking, 0px)',
+  headlineMediumWeight: 'var(--kui-typography-headline-medium-weight, 400)',
+  headlineSmallFont:
+    "var(--kui-typography-headline-small-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  headlineSmallLineHeight:
+    'var(--kui-typography-headline-small-line-height, 32px)',
+  headlineSmallSize: 'var(--kui-typography-headline-small-size, 24px)',
+  headlineSmallTracking: 'var(--kui-typography-headline-small-tracking, 0px)',
+  headlineSmallWeight: 'var(--kui-typography-headline-small-weight, 400)',
   labelLargeFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  labelLargeLineHeight: '20px',
-  labelLargeSize: '14px',
-  labelLargeTracking: '0.1px',
-  labelLargeWeight: '500',
+    "var(--kui-typography-label-large-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  labelLargeLineHeight: 'var(--kui-typography-label-large-line-height, 20px)',
+  labelLargeSize: 'var(--kui-typography-label-large-size, 14px)',
+  labelLargeTracking: 'var(--kui-typography-label-large-tracking, 0.1px)',
+  labelLargeWeight: 'var(--kui-typography-label-large-weight, 500)',
   labelMediumFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  labelMediumLineHeight: '16px',
-  labelMediumSize: '12px',
-  labelMediumTracking: '0.5px',
-  labelMediumWeight: '500',
+    "var(--kui-typography-label-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  labelMediumLineHeight: 'var(--kui-typography-label-medium-line-height, 16px)',
+  labelMediumSize: 'var(--kui-typography-label-medium-size, 12px)',
+  labelMediumTracking: 'var(--kui-typography-label-medium-tracking, 0.5px)',
+  labelMediumWeight: 'var(--kui-typography-label-medium-weight, 500)',
   labelSmallFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  labelSmallLineHeight: '16px',
-  labelSmallSize: '11px',
-  labelSmallTracking: '0.5px',
-  labelSmallWeight: '500',
-  titleLargeFont: "'Roboto Serif', 'Iowan Old Style', Georgia, serif",
-  titleLargeLineHeight: '28px',
-  titleLargeSize: '22px',
-  titleLargeTracking: '0px',
-  titleLargeWeight: '400',
+    "var(--kui-typography-label-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  labelSmallLineHeight: 'var(--kui-typography-label-small-line-height, 16px)',
+  labelSmallSize: 'var(--kui-typography-label-small-size, 11px)',
+  labelSmallTracking: 'var(--kui-typography-label-small-tracking, 0.5px)',
+  labelSmallWeight: 'var(--kui-typography-label-small-weight, 500)',
+  titleLargeFont:
+    "var(--kui-typography-title-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+  titleLargeLineHeight: 'var(--kui-typography-title-large-line-height, 28px)',
+  titleLargeSize: 'var(--kui-typography-title-large-size, 22px)',
+  titleLargeTracking: 'var(--kui-typography-title-large-tracking, 0px)',
+  titleLargeWeight: 'var(--kui-typography-title-large-weight, 400)',
   titleMediumFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  titleMediumLineHeight: '24px',
-  titleMediumSize: '16px',
-  titleMediumTracking: '0.15px',
-  titleMediumWeight: '500',
+    "var(--kui-typography-title-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  titleMediumLineHeight: 'var(--kui-typography-title-medium-line-height, 24px)',
+  titleMediumSize: 'var(--kui-typography-title-medium-size, 16px)',
+  titleMediumTracking: 'var(--kui-typography-title-medium-tracking, 0.15px)',
+  titleMediumWeight: 'var(--kui-typography-title-medium-weight, 500)',
   titleSmallFont:
-    "'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  titleSmallLineHeight: '20px',
-  titleSmallSize: '14px',
-  titleSmallTracking: '0.1px',
-  titleSmallWeight: '500',
-  weightBold: '700',
-  weightMedium: '500',
-  weightRegular: '400',
+    "var(--kui-typography-title-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+  titleSmallLineHeight: 'var(--kui-typography-title-small-line-height, 20px)',
+  titleSmallSize: 'var(--kui-typography-title-small-size, 14px)',
+  titleSmallTracking: 'var(--kui-typography-title-small-tracking, 0.1px)',
+  titleSmallWeight: 'var(--kui-typography-title-small-weight, 500)',
+  weightBold: 'var(--kui-typography-weight-bold, 700)',
+  weightMedium: 'var(--kui-typography-weight-medium, 500)',
+  weightRegular: 'var(--kui-typography-weight-regular, 400)',
 })
 
 export { typography }
 
 const spacing = stylex.defineVars({
-  lg: '16px',
-  md: '12px',
-  sm: '8px',
-  xl: '24px',
-  xs: '4px',
-  xxl: '32px',
-  xxs: '2px',
-  xxxl: '40px',
+  lg: 'var(--kui-spacing-lg, 16px)',
+  md: 'var(--kui-spacing-md, 12px)',
+  sm: 'var(--kui-spacing-sm, 8px)',
+  xl: 'var(--kui-spacing-xl, 24px)',
+  xs: 'var(--kui-spacing-xs, 4px)',
+  xxl: 'var(--kui-spacing-xxl, 32px)',
+  xxs: 'var(--kui-spacing-xxs, 2px)',
+  xxxl: 'var(--kui-spacing-xxxl, 40px)',
 })
 
 export { spacing }
 
 const radii = stylex.defineVars({
-  full: '9999px',
-  lg: '16px',
-  md: '12px',
-  none: '0px',
-  sm: '8px',
-  xl: '28px',
-  xs: '4px',
+  full: 'var(--kui-radius-full, 9999px)',
+  lg: 'var(--kui-radius-lg, 16px)',
+  md: 'var(--kui-radius-md, 12px)',
+  none: 'var(--kui-radius-none, 0px)',
+  sm: 'var(--kui-radius-sm, 8px)',
+  xl: 'var(--kui-radius-xl, 28px)',
+  xs: 'var(--kui-radius-xs, 4px)',
 })
 
 export { radii }
 
 const shadows = stylex.defineVars({
   elevation1:
-    '0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+    'var(--kui-shadow-elevation1, 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15))',
   elevation2:
-    '0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+    'var(--kui-shadow-elevation2, 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15))',
   elevation3:
-    '0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15)',
+    'var(--kui-shadow-elevation3, 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15))',
   elevation4:
-    '0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15)',
+    'var(--kui-shadow-elevation4, 0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15))',
   elevation5:
-    '0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15)',
+    'var(--kui-shadow-elevation5, 0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15))',
 })
 
 export { shadows }
 
 const stateLayerOpacity = stylex.defineVars({
-  disabledContainer: '0.12',
-  disabledContent: '0.38',
-  dragged: '0.16',
-  focus: '0.12',
-  hover: '0.08',
-  pressed: '0.12',
+  disabledContainer: 'var(--kui-state-layer-opacity-disabled-container, 0.12)',
+  disabledContent: 'var(--kui-state-layer-opacity-disabled-content, 0.38)',
+  dragged: 'var(--kui-state-layer-opacity-dragged, 0.16)',
+  focus: 'var(--kui-state-layer-opacity-focus, 0.12)',
+  hover: 'var(--kui-state-layer-opacity-hover, 0.08)',
+  pressed: 'var(--kui-state-layer-opacity-pressed, 0.12)',
 })
 
 export { stateLayerOpacity }
