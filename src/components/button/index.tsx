@@ -19,20 +19,25 @@ import {
 // factored into a helper: @stylexjs/babel-plugin only statically recognizes
 // expressions written directly as property values, and a call to an
 // externally-defined function isn't one of them.
+//
+// :hover and :active still match a disabled native <button>, and stylex's
+// fixed pseudo-class ordering places both after :disabled, so without the
+// :not(:disabled) guard a hovered/pressed disabled button would render with
+// the interaction color instead of the disabled one.
 const styles = stylex.create({
   base: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
       ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
       ':focus-visible': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
     },
     borderRadius: radii.full,
     borderWidth: 0,
     boxShadow: {
-      ':active': 'none',
-      ':hover': shadows.elevation1,
+      ':active:not(:disabled)': 'none',
+      ':hover:not(:disabled)': shadows.elevation1,
       default: 'none',
     },
     color: {
