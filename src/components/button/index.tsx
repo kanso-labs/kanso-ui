@@ -3,6 +3,7 @@ import type { ButtonProps as BaseUIButtonProps } from '@base-ui/react/button'
 import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
+import { useRipple } from '../../hooks/useRipple'
 import {
   colors,
   radii,
@@ -57,18 +58,53 @@ const styles = stylex.create({
     outlineWidth: '2px',
     paddingBlock: spacing.md,
     paddingInline: spacing.xl,
+    position: 'relative',
   },
 })
 
-type ButtonProps = BaseUIButtonProps
+type ButtonProps = BaseUIButtonProps & {
+  /**
+   * Disables the press ripple. The hover/pressed background state layer is
+   * unaffected.
+   * @default false
+   */
+  disableRipple?: boolean
+}
 
-function Button({ disabled = false, ...props }: ButtonProps) {
+function Button({
+  children,
+  disabled = false,
+  disableRipple = false,
+  onClick,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
+  ...props
+}: ButtonProps) {
+  // `props` (className/style/render, etc.) is spread separately: `className`
+  // and `style` there may be functions of render state, a Base UI extension
+  // ripple's own handler-only merge doesn't need to know about.
+  const ripple = useRipple<HTMLButtonElement>(!disableRipple, {
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
+
   return (
     <BaseUIButton
       disabled={disabled}
+      {...ripple.handlers}
       {...props}
       {...stylex.props(styles.base)}
-    />
+    >
+      {children}
+      {ripple.surface}
+    </BaseUIButton>
   )
 }
 
