@@ -20,6 +20,12 @@ const Disabled: Story = {
   },
 }
 
-export { Default, Disabled }
+const NoRipple: Story = {
+  args: {
+    disableRipple: true,
+  },
+}
+
+export { Default, Disabled, NoRipple }
 
 export default meta
