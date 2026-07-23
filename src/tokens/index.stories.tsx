@@ -108,14 +108,6 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     height: '16px',
   },
-  stateSwatch: (backgroundColor: string) => ({
-    backgroundColor,
-    borderColor: colors.outlineVariant,
-    borderRadius: radii.md,
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    height: '56px',
-  }),
   subsection: {
     display: 'flex',
     flexDirection: 'column',
@@ -661,7 +653,7 @@ function Tokens() {
         <div {...stylex.props(styles.grid)}>
           {STATE_LAYERS.map((state) => (
             <div key={state.name}>
-              <div {...stylex.props(styles.stateSwatch(state.swatch))} />
+              <div {...stylex.props(styles.swatch(state.swatch))} />
               <span {...stylex.props(styles.swatchName)}>{state.name}</span>
             </div>
           ))}
