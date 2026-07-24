@@ -13,13 +13,14 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
-// A filled button composites an 'on-color' over its container at the
-// interaction state's opacity, rather than swapping in a separate
-// hover/pressed color. calc(<opacity> * 100%) turns the token's unitless
-// 0-1 ratio into the percentage color-mix() takes. Inlined rather than
-// factored into a helper: @stylexjs/babel-plugin only statically recognizes
-// expressions written directly as property values, and a call to an
-// externally-defined function isn't one of them.
+// Each variant composites an 'on-color' (filled) or the brand color itself
+// (outlined/text, over a transparent container) at the interaction state's
+// opacity, rather than swapping in a separate hover/pressed color.
+// calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
+// percentage color-mix() takes. Inlined rather than factored into a helper:
+// @stylexjs/babel-plugin only statically recognizes expressions written
+// directly as property values, and a call to an externally-defined function
+// isn't one of them.
 //
 // :hover and :active still match a disabled native <button>, and stylex's
 // fixed pseudo-class ordering places both after :disabled, so without the
@@ -27,6 +28,25 @@ import {
 // the interaction color instead of the disabled one.
 const styles = stylex.create({
   base: {
+    alignItems: 'center',
+    borderRadius: radii.full,
+    borderWidth: 0,
+    cursor: { ':disabled': 'not-allowed', default: 'pointer' },
+    display: 'inline-flex',
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    gap: spacing.sm,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+    outlineColor: colors.primary,
+    outlineOffset: '2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
+    paddingBlock: spacing.md,
+    position: 'relative',
+  },
+  filled: {
     backgroundColor: {
       ':active:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
       ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
@@ -34,8 +54,6 @@ const styles = stylex.create({
       ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
     },
-    borderRadius: radii.full,
-    borderWidth: 0,
     boxShadow: {
       ':active:not(:disabled)': 'none',
       ':hover:not(:disabled)': shadows.elevation1,
@@ -45,20 +63,39 @@ const styles = stylex.create({
       ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
       default: colors.onPrimary,
     },
-    cursor: { ':disabled': 'not-allowed', default: 'pointer' },
-    display: 'inline-block',
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-    paddingBlock: spacing.md,
     paddingInline: spacing.xl,
-    position: 'relative',
+  },
+  outlined: {
+    backgroundColor: {
+      ':active:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
+    },
+    borderColor: {
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      default: colors.outline,
+    },
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    color: {
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: colors.primary,
+    },
+    paddingInline: spacing.xl,
+  },
+  text: {
+    backgroundColor: {
+      ':active:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
+    },
+    color: {
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: colors.primary,
+    },
+    paddingInline: spacing.lg,
   },
 })
 
@@ -69,6 +106,8 @@ type ButtonProps = BaseUIButtonProps & {
    * @default false
    */
   disableRipple?: boolean
+  /** @default 'filled' */
+  variant?: 'filled' | 'outlined' | 'text'
 }
 
 function Button({
@@ -81,6 +120,7 @@ function Button({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
+  variant = 'filled',
   ...props
 }: ButtonProps) {
   // `props` (className/style/render, etc.) is spread separately: `className`
@@ -100,7 +140,7 @@ function Button({
       disabled={disabled}
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.base)}
+      {...stylex.props(styles.base, styles[variant])}
     >
       {children}
       {ripple.surface}
