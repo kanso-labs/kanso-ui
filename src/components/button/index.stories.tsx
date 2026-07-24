@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import { PlusIcon } from '@phosphor-icons/react'
+
 import Button from '.'
+import Icon from '../icon'
 
 const meta = {
   args: {
@@ -26,6 +29,52 @@ const NoRipple: Story = {
   },
 }
 
-export { Default, Disabled, NoRipple }
+const Outlined: Story = {
+  args: {
+    variant: 'outlined',
+  },
+}
+
+const OutlinedDisabled: Story = {
+  args: {
+    disabled: true,
+    variant: 'outlined',
+  },
+}
+
+const Text: Story = {
+  args: {
+    variant: 'text',
+  },
+}
+
+const TextDisabled: Story = {
+  args: {
+    disabled: true,
+    variant: 'text',
+  },
+}
+
+const WithIcon: Story = {
+  args: {
+    children: (
+      <>
+        <Icon icon={PlusIcon} size="sm" />
+        Add
+      </>
+    ),
+  },
+}
+
+export {
+  Default,
+  Disabled,
+  NoRipple,
+  Outlined,
+  OutlinedDisabled,
+  Text,
+  TextDisabled,
+  WithIcon,
+}
 
 export default meta
