@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ReceiptIcon } from '@phosphor-icons/react'
 import * as stylex from '@stylexjs/stylex'
 
+import type { IconProps } from '.'
+
 import Icon from '.'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
@@ -79,12 +81,31 @@ const Weights: Story = {
   ),
 }
 
-const Decorative: Story = {}
+// `label` only ever drives aria-label/role (§6.1) — it renders no visible
+// text of its own, so Decorative and Labeled are otherwise pixel-identical.
+// This caption makes the accessibility difference observable in Storybook.
+function renderWithCaption(args: IconProps) {
+  return (
+    <div {...stylex.props(styles.cell)}>
+      <Icon {...args} />
+      <span {...stylex.props(styles.label)}>
+        {args.label
+          ? `Announced to screen readers as "${args.label}"`
+          : 'Decorative — hidden from screen readers'}
+      </span>
+    </div>
+  )
+}
+
+const Decorative: Story = {
+  render: renderWithCaption,
+}
 
 const Labeled: Story = {
   args: {
     label: 'Receipt',
   },
+  render: renderWithCaption,
 }
 
 export { Decorative, Labeled, Sizes, Weights }
