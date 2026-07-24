@@ -3,6 +3,7 @@ name: Test
 on: pull_request
 
 permissions:
+  code-quality: write
   contents: read
 
 jobs:
@@ -22,4 +23,11 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-code-coverage@v1.4.1
+        with:
+          file: coverage/cobertura-coverage.xml
+          label: code-coverage/vitest
+          language: TypeScript
