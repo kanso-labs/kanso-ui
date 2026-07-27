@@ -58,7 +58,11 @@ export default defineConfig({
       {
         extends: true,
         optimizeDeps: {
-          include: ['@testing-library/dom', '@testing-library/jest-dom'],
+          include: [
+            '@phosphor-icons/react',
+            '@testing-library/dom',
+            '@testing-library/jest-dom',
+          ],
         },
         plugins: [
           storybookTest({
@@ -86,7 +90,11 @@ export default defineConfig({
       {
         extends: true,
         optimizeDeps: {
-          include: ['@testing-library/dom', '@testing-library/react'],
+          include: [
+            '@phosphor-icons/react',
+            '@testing-library/dom',
+            '@testing-library/react',
+          ],
         },
         test: {
           browser: {
