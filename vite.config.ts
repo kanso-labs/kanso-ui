@@ -45,7 +45,11 @@ export default defineConfig({
   ],
   test: {
     coverage: {
-      exclude: ['src/**/*.stories.tsx', 'src/tokens/**'],
+      exclude: [
+        'src/**/*.stories.tsx',
+        'src/**/*.test.{ts,tsx}',
+        'src/tokens/**',
+      ],
       include: ['src/**/*.{ts,tsx}'],
       provider: 'v8',
       reporter: ['text', 'cobertura'],
@@ -73,6 +77,34 @@ export default defineConfig({
             provider: playwright({}),
           },
           name: 'storybook',
+        },
+      },
+      // Runs in the same browser as the storybook project on purpose. Under
+      // `environment: 'node'` these files get a different transform pipeline,
+      // so sources shared with that project are instrumented twice with
+      // mismatched statement maps and the merged coverage totals go wrong.
+      {
+        extends: true,
+        optimizeDeps: {
+          include: ['@testing-library/dom', '@testing-library/react'],
+        },
+        test: {
+          browser: {
+            enabled: true,
+            headless: true,
+            instances: [
+              {
+                browser: 'chromium',
+              },
+            ],
+            provider: playwright({}),
+            // storybookTest sets this for the other project; without it a
+            // failure here writes a stray PNG into src/.
+            screenshotFailures: false,
+          },
+          include: ['src/**/*.test.{ts,tsx}'],
+          name: 'unit',
+          setupFiles: [path.join(dirname, 'vitest.setup.ts')],
         },
       },
     ],
