@@ -44,6 +44,12 @@ export default defineConfig({
     }),
   ],
   test: {
+    coverage: {
+      exclude: ['src/**/*.stories.tsx', 'src/tokens/**'],
+      include: ['src/**/*.{ts,tsx}'],
+      provider: 'v8',
+      reporter: ['text', 'cobertura'],
+    },
     projects: [
       {
         extends: true,
