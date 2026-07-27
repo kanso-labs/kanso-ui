@@ -10,15 +10,38 @@ React Compiler. Components are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command             | Notes                                                          |
-| ---------- | ------------------- | -------------------------------------------------------------- |
-| Dev server | `npm run storybook` | Storybook at http://localhost:6006 (`npm run dev` is an alias) |
-| Test       | `npm test`          | Vitest running story-based tests in headless Chromium          |
-| Lint       | `npm run lint`      | oxlint, then ESLint, then oxfmt formatting check               |
-| Build      | `npm run build`     | Type-checks (`tsc -b`) then builds ESM + CJS into `dist/`      |
+| Task       | Command                 | Notes                                                            |
+| ---------- | ----------------------- | ---------------------------------------------------------------- |
+| Dev server | `npm run storybook`     | Storybook at http://localhost:6006 (`npm run dev` is an alias)   |
+| Test       | `npm test`              | Vitest in headless Chromium                                      |
+| Coverage   | `npm run test:coverage` | Same suite with v8 coverage; writes Cobertura XML to `coverage/` |
+| Lint       | `npm run lint`          | oxlint, then ESLint, then oxfmt formatting check                 |
+| Build      | `npm run build`         | Type-checks (`tsc -b`) then builds ESM + CJS into `dist/`        |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
+
+**`npm run lint` does not type-check.** It passes on code that `tsc -b` rejects,
+and CI runs a separate Build job that will fail on those errors. Run
+`npm run build` before pushing, not just lint and tests.
+
+## Testing
+
+Vitest runs every `*.stories.tsx` in headless Chromium via
+`@storybook/addon-vitest`. A story without a `play` function still counts as a
+smoke test that the component renders, and a `play` function turns that story
+into an interaction test.
+
+### Coverage
+
+Pull requests report coverage but nothing gates on it, so there are no
+thresholds to satisfy. Stories and generated tokens are excluded, leaving the
+percentage to reflect real source only.
+
+Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
+branches that no test can exercise, and attributes them to source lines holding
+no conditional. Treat an uncovered branch with no matching source conditional as
+an artifact rather than a gap to close.
 
 ## Previewing
 

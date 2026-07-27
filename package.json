@@ -34,6 +34,7 @@
     "prepare": "husky && playwright install --with-deps",
     "storybook": "storybook dev -p 6006",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "tokens:build": "node scripts/build-tokens.mjs"
   },
   "dependencies": {
