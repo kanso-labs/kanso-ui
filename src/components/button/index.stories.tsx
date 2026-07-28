@@ -26,6 +26,40 @@ const NoRipple: Story = {
   },
 }
 
-export { Default, Disabled, NoRipple }
+const Outlined: Story = {
+  args: {
+    variant: 'outlined',
+  },
+}
+
+const OutlinedDisabled: Story = {
+  args: {
+    disabled: true,
+    variant: 'outlined',
+  },
+}
+
+const Text: Story = {
+  args: {
+    variant: 'text',
+  },
+}
+
+const TextDisabled: Story = {
+  args: {
+    disabled: true,
+    variant: 'text',
+  },
+}
+
+export {
+  Default,
+  Disabled,
+  NoRipple,
+  Outlined,
+  OutlinedDisabled,
+  Text,
+  TextDisabled,
+}
 
 export default meta
