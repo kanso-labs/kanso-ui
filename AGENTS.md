@@ -116,4 +116,7 @@ is preconfigured in `.claude/launch.json`; other agents can just run
   a husky hook, and release-please derives versions from commit types.
 - Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
   (oxfmt) automatically on commit via a husky pre-commit hook running
-  lint-staged (config in `.lintstagedrc.json`).
+  lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
+  and `.yml` files are formatted (oxfmt) wherever they live, since
+  `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
+  are absent from that entry because neither reads those formats.
