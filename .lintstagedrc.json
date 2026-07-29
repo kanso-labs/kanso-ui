@@ -1,3 +1,4 @@
 {
+  "*.{json,md,yaml,yml}": ["oxfmt"],
   "*.{ts,tsx}": ["oxlint --type-aware --fix", "eslint --fix", "oxfmt"]
 }
