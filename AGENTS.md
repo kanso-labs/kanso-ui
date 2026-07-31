@@ -44,6 +44,15 @@ states a consumer would want to look at. Exhaustive behavioural permutations
 belong in a `*.test.tsx`, where they cost neither a sidebar entry nor a
 snapshot.
 
+A story can be made to cost neither too, for the rare check that has to run as a
+story (see "Controlling time" below). `tags: ['!dev']` subtracts the tag the
+sidebar filters on while leaving `test`, so it still runs; Chromatic reads the
+index rather than the sidebar and so needs
+`parameters.chromatic.disableSnapshot` separately. `Pressed` in
+`src/components/button/index.stories.tsx` uses both. Reach for this only when a
+story is the only place a check can live — it is not a way to keep ordinary
+behavioural tests out of `*.test.tsx`.
+
 Keep the `unit` project in the browser. Under `environment: 'node'` those files
 get a different transform pipeline, so sources shared with the `storybook`
 project are instrumented twice with mismatched statement maps and the merged
@@ -63,8 +72,15 @@ fake timers do not drive, so the value stays at zero and any branch behind
 with a stand-in whose `currentTime` follows the fake clock. `useRipple` needs
 both, and `src/components/button/index.test.tsx` shows the pattern.
 
-Leave at least one test on real timers and real animations, since stubbing both
-proves the state machine but not that the two work together.
+Leave at least one check on real timers and real animations, since stubbing both
+proves the state machine but not that the two work together. Prefer a story's
+`play` function for it, as `Pressed` in
+`src/components/button/index.stories.tsx` does. Stories run under `npm test`
+exactly as tests do, but they are also the only thing Storybook's own Testing
+widget can execute — it starts Vitest filtered to the `storybook` project alone,
+so a `*.test.tsx` never counts toward the percentage that widget reports.
+Putting the unmocked pass in a story is the one way to have it count in both
+places instead of being written twice.
 
 ### Writing interaction tests
 
@@ -81,6 +97,18 @@ proves the state machine but not that the two work together.
 Pull requests report coverage but nothing gates on it, so there are no
 thresholds to satisfy. Stories, tests, and generated tokens are excluded,
 leaving the percentage to reflect real source only.
+
+`npm run test:coverage` is the number, and it is the one CI uploads. Storybook's
+Testing widget reports a much lower one — around 80% against the ~99% that
+command prints — and the gap is not a gap. The widget starts Vitest filtered to
+the `storybook` project, so only stories run, but `coverage.include` still spans
+all of `src`, which leaves everything covered by a `*.test.tsx` counting against
+it. `useRipple` is most of that difference. Neither half is configurable: the
+project filter is hardcoded in `@storybook/addon-vitest`, and even within that
+project it only runs specs the story index has entries for, so a `*.test.tsx`
+can never run there. Raising the widget's number means writing a story, which is
+worth doing only when the check belongs in one anyway — do not port tests into
+stories to move it.
 
 Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
 branches that no test can exercise, and attributes them to source lines holding

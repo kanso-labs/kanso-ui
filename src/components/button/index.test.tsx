@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
@@ -406,27 +406,7 @@ describe('press behaviour', () => {
 })
 
 // The suite above stubs the Web Animations API and the clock, so it proves the
-// state machine but not that the two work together for real. This one press
-// runs against both, unmocked.
-describe('integration, with real timers and real animations', () => {
-  it('completes a press cycle end to end', async () => {
-    const { button, isPressed } = setup()
-
-    firePointer(button, 'pointerdown', { buttons: 1 })
-    await waitFor(
-      () => {
-        expect(isPressed()).toBe(true)
-      },
-      { timeout: 2000 },
-    )
-
-    firePointer(button, 'pointerup', { buttons: 0 })
-    fireEvent.click(button)
-    await waitFor(
-      () => {
-        expect(isPressed()).toBe(false)
-      },
-      { timeout: 2000 },
-    )
-  })
-})
+// state machine but not that the two work together for real. That one press
+// against both, unmocked, lives in the Pressed story — a story runs in this
+// same browser under `npm test`, and unlike a test here it also counts toward
+// the coverage Storybook's own Testing widget reports.
