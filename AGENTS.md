@@ -39,10 +39,15 @@ Vitest runs two projects, both in headless Chromium (see `vite.config.ts`):
   component renders.
 - **`unit`** — every `*.test.{ts,tsx}`, using Testing Library.
 
-Stories are documentation, and Chromatic snapshots each one, so keep them to
-states a consumer would want to look at. Exhaustive behavioural permutations
-belong in a `*.test.tsx`, where they cost neither a sidebar entry nor a
-snapshot.
+Stories are documentation, and Chromatic snapshots each one **twice** — once per
+mode in `.storybook/modes.ts`, currently light and dark — so keep them to states
+a consumer would want to look at. Exhaustive behavioural permutations belong in
+a `*.test.tsx`, where they cost neither a sidebar entry nor a snapshot.
+
+Each mode carries its own baseline, keyed on the mode's name, so a visual change
+has to be accepted in both themes. A story that is genuinely theme-independent
+can opt one out with
+`parameters: { chromatic: { modes: { dark: { disable: true } } } }`.
 
 Keep the `unit` project in the browser. Under `environment: 'node'` those files
 get a different transform pipeline, so sources shared with the `storybook`
@@ -102,6 +107,13 @@ There is no demo app — Storybook is the runtime surface. To see a component
 render, start the dev server and open its story. Claude Code's browser preview
 is preconfigured in `.claude/launch.json`; other agents can just run
 `npm run storybook`.
+
+The toolbar's Theme control sets the `theme` global, which is what the decorator
+in `.storybook/preview.tsx` reads to pick a StyleX theme. It defaults to light
+rather than following the OS, because `prefers-color-scheme` is not reliably
+applied by the time the preview module evaluates. A story can be opened straight
+into one theme with `&globals=theme:dark` on the URL — that is also the
+mechanism Chromatic's modes use.
 
 ## Layout and conventions
 

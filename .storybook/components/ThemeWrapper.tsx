@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useDarkMode } from 'storybook-dark-mode'
 
 import {
   colors,
@@ -31,18 +30,18 @@ const styles = stylex.create({
 
 type ThemeWrapperProps = {
   children: ReactNode
+  isDark: boolean
 }
 
-// Our tokens default to the OS-level prefers-color-scheme media query, which
-// a manual UI toggle can't override on its own — the storybook-dark-mode
-// toolbar button only flips a class on <body> that nothing in the compiled
-// CSS reads. useDarkMode() always resolves to a concrete true/false (it
-// seeds itself from the OS preference, then tracks whatever the user
-// explicitly picks), so once Storybook has an opinion it should always win —
-// both directions need forcing, not just dark, or picking "light" against a
+// Our tokens default to the OS-level prefers-color-scheme media query, which a
+// toolbar toggle can't override on its own. Applying a createTheme class pins
+// every variable to a concrete value, so the media query stops being consulted
+// — and both directions need that, not just dark, or picking "light" against a
 // dark OS preference would silently fall through to the media query anyway.
-function ThemeWrapper({ children }: ThemeWrapperProps) {
-  const isDark = useDarkMode()
+//
+// isDark comes from the `theme` global (see preview.tsx), which is what lets
+// Chromatic capture the same story in both themes.
+function ThemeWrapper({ children, isDark }: ThemeWrapperProps) {
   const theme = isDark ? colorsDarkTheme : colorsLightTheme
 
   return (
