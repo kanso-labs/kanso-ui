@@ -4,18 +4,42 @@ import React from 'react'
 
 import StyleXLoader from './components/StyleXLoader'
 import ThemeWrapper from './components/ThemeWrapper'
+import { allModes } from './modes'
 
 const preview: Preview = {
   decorators: [
-    (Story) => (
+    (Story, context) => (
       <>
         <StyleXLoader />
-        <ThemeWrapper>
+        <ThemeWrapper isDark={context.globals.theme === 'dark'}>
           <Story />
         </ThemeWrapper>
       </>
     ),
   ],
+  // The theme is a global rather than addon state so that Chromatic's modes
+  // can set it — an addon holding the value privately is invisible to them.
+  globalTypes: {
+    theme: {
+      description: 'Colour theme the story canvas renders in',
+      toolbar: {
+        dynamicTitle: true,
+        items: [
+          { icon: 'sun', title: 'Light', value: 'light' },
+          { icon: 'moon', title: 'Dark', value: 'dark' },
+        ],
+        title: 'Theme',
+      },
+    },
+  },
+  // A fixed default rather than one seeded from prefers-color-scheme. The
+  // preference is not reliably applied by the time this module evaluates, so
+  // reading it here decides the theme by a race; it also leaks the CI
+  // machine's appearance into the a11y checks the Vitest run performs. Both
+  // themes are captured either way — this only picks which one opens first.
+  initialGlobals: {
+    theme: 'light',
+  },
   parameters: {
     a11y: {
       // 'todo' - show a11y violations in the test UI only
@@ -23,14 +47,20 @@ const preview: Preview = {
       // 'off' - skip a11y checks entirely
       test: 'error',
     },
+    // Project-level, so every story is captured in both themes. A component or
+    // story can narrow this with its own `chromatic.modes`, including
+    // `{ dark: { disable: true } }` to opt one back out.
+    chromatic: {
+      modes: {
+        dark: allModes.dark,
+        light: allModes.light,
+      },
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
-    },
-    darkMode: {
-      stylePreview: true,
     },
   },
 }
