@@ -13,6 +13,14 @@ import {
   typography,
 } from './design.tokens.stylex'
 
+// Below this the rows stop fitting on one line — the widest easing value,
+// 'cubic-bezier(0.34, 1.56, 0.64, 1)', is on its own about a third of a
+// phone's viewport — so each row's label takes a line of its own and the
+// rest flows underneath it.
+const NARROW = '@media (max-width: 640px)'
+
+const DOT_SIZE = '16px'
+
 // Every bar is already as long as its duration is slow, so pairing this with
 // a per-token animation-duration makes all nine advance at exactly the same
 // rate: a run reads as nine bars setting off together and stopping one after
@@ -20,6 +28,16 @@ import {
 const growBar = stylex.keyframes({
   from: { transform: 'scaleX(0)' },
   to: { transform: 'scaleX(1)' },
+})
+
+// Easings all travel the same distance over the same time, so the only thing
+// separating one lane from another is the shape of the curve driving it.
+// The lane deliberately doesn't clip: the two spring curves overshoot past 1
+// and the dot running out beyond the end of its track before settling back
+// is the clearest read of what 'overshoot' actually costs you on screen.
+const travelDot = stylex.keyframes({
+  from: { insetInlineStart: '0' },
+  to: { insetInlineStart: `calc(100% - ${DOT_SIZE})` },
 })
 
 const styles = stylex.create({
@@ -96,7 +114,44 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     flexGrow: 1,
     height: '16px',
+    minWidth: 0,
     overflow: 'hidden',
+  },
+  easingDot: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.full,
+    height: DOT_SIZE,
+    insetBlockStart: 0,
+    insetInlineStart: 0,
+    position: 'absolute',
+    width: DOT_SIZE,
+  },
+  // animationTimingFunction is the one thing this doesn't set — it comes from
+  // the per-token style beside it, which is the same declaration the printed
+  // cubic-bezier() and the plotted curve are both read back from.
+  //
+  // fillMode forwards because the default, none, drops the dot back to its
+  // base position the instant the animation ends — the dot would travel the
+  // lane and then teleport home, which reads as a glitch rather than as an
+  // arrival.
+  easingDotPlaying: {
+    animationDuration: motion.durationLong3,
+    animationFillMode: 'forwards',
+    animationName: travelDot,
+  },
+  // The end margin is overshoot headroom, not decoration: springFast peaks at
+  // ~110% of the travel, so at this page's widest the dot clears the end of
+  // its track by a bit under 40px. Without the reservation it would land on
+  // the cubic-bezier() text sitting next to it.
+  easingLane: {
+    backgroundColor: colors.surfaceContainerHighest,
+    borderRadius: radii.full,
+    flexBasis: '96px',
+    flexGrow: 1,
+    height: DOT_SIZE,
+    marginInlineEnd: spacing.xxxl,
+    minWidth: '64px',
+    position: 'relative',
   },
   eyebrow: {
     color: colors.onSurfaceVariant,
@@ -112,16 +167,30 @@ const styles = stylex.create({
     gap: spacing.md,
     gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
   },
+  // Wider than the shared tokenLabel it sits on top of, because
+  // 'easingEmphasizedDecelerate' is 172px of mono and would otherwise spill
+  // out of a 160px box straight into the curve beside it. Scoped to this
+  // section rather than widening the shared label, which would shift every
+  // other row on the page for one section's benefit.
+  motionLabel: {
+    width: { default: '184px', [NARROW]: '100%' },
+  },
   motionValue: {
     color: colors.onSurfaceVariant,
     flexShrink: 0,
     fontFamily: typography.fontFamilyMono,
     fontSize: typography.labelSmallSize,
-    // The duration rows right-align this on their own, since the track
-    // between label and value grows; the easing rows have nothing that
-    // grows, so the auto margin is what lines both subsections up.
+    // Right-aligns the value on its own line once the row has wrapped.
     marginInlineStart: 'auto',
+    textAlign: 'right',
     whiteSpace: 'nowrap',
+    // A fixed column, wide enough for the longest cubic-bezier(), rather than
+    // letting each value size to its own text. The track beside it takes
+    // whatever is left, so sizing to content would hand every row a
+    // different-length track and make two dots at the same progress sit at
+    // visibly different places — which is precisely the comparison these
+    // samples exist to support.
+    width: { default: '224px', [NARROW]: 'auto' },
   },
   page: {
     backgroundColor: colors.surface,
@@ -130,7 +199,7 @@ const styles = stylex.create({
     gap: spacing.xl,
     marginInline: 'auto',
     maxWidth: '960px',
-    padding: spacing.xxl,
+    padding: { default: spacing.xxl, [NARROW]: spacing.lg },
   },
   pageHeader: {
     display: 'flex',
@@ -180,9 +249,14 @@ const styles = stylex.create({
     height: '48px',
     width: '48px',
   },
+  // Wraps rather than overflows: every row here pairs a fixed-width label
+  // with content that has a floor of its own (a nowrap cubic-bezier(), a
+  // 57px type sample), and below NARROW the two together are wider than the
+  // viewport. Nothing moves at desktop width, where it never wraps.
   row: {
     alignItems: 'center',
     display: 'flex',
+    flexWrap: 'wrap',
     gap: spacing.md,
   },
   rowList: {
@@ -230,7 +304,7 @@ const styles = stylex.create({
     flexShrink: 0,
     fontFamily: typography.fontFamilyMono,
     fontSize: typography.labelSmallSize,
-    width: '160px',
+    width: { default: '160px', [NARROW]: '100%' },
   },
   typeSample: {
     color: colors.onSurface,
@@ -540,16 +614,16 @@ const shadowStyles = stylex.create({
 
 // Every motion token compiles to a var(--kui-motion-*, <literal>) reference,
 // so the literal it resolves to exists only in the browser's computed style.
-// Each row below carries its own token as a real animation or transition
-// property and the value is read back off that element, rather than restated
-// here — which keeps this section from drifting out of step with
-// design.tokens.json, and is also the only way to plot an easing curve, since
-// an SVG path can't be handed a CSS timing function.
+// The element that each sample animates carries its own token, and the value
+// is read back off that element rather than restated here — which keeps this
+// section from drifting out of step with design.tokens.json, and is also the
+// only way to plot an easing curve, since an SVG path can't be handed a CSS
+// timing function.
 //
-// The duration half deliberately uses animation-duration rather than
-// transition-duration: it is the property the sample animation actually runs
-// on, so the printed number is read from the same declaration that times the
-// bar instead of from a parallel one that could drift away from it.
+// Both halves deliberately use animation-* rather than transition-*: those
+// are the properties the samples actually run on, so the printed number and
+// the plotted curve are read from the same declarations that drive the bar
+// and the dot, instead of from parallel ones that could drift away from them.
 const motionProbeStyles = stylex.create({
   durationLong1: { animationDuration: motion.durationLong1 },
   durationLong2: { animationDuration: motion.durationLong2 },
@@ -560,16 +634,16 @@ const motionProbeStyles = stylex.create({
   durationShort1: { animationDuration: motion.durationShort1 },
   durationShort2: { animationDuration: motion.durationShort2 },
   durationShort3: { animationDuration: motion.durationShort3 },
-  easingEmphasized: { transitionTimingFunction: motion.easingEmphasized },
+  easingEmphasized: { animationTimingFunction: motion.easingEmphasized },
   easingEmphasizedAccelerate: {
-    transitionTimingFunction: motion.easingEmphasizedAccelerate,
+    animationTimingFunction: motion.easingEmphasizedAccelerate,
   },
   easingEmphasizedDecelerate: {
-    transitionTimingFunction: motion.easingEmphasizedDecelerate,
+    animationTimingFunction: motion.easingEmphasizedDecelerate,
   },
-  easingSpringFast: { transitionTimingFunction: motion.easingSpringFast },
-  easingSpringSlow: { transitionTimingFunction: motion.easingSpringSlow },
-  easingStandard: { transitionTimingFunction: motion.easingStandard },
+  easingSpringFast: { animationTimingFunction: motion.easingSpringFast },
+  easingSpringSlow: { animationTimingFunction: motion.easingSpringSlow },
+  easingStandard: { animationTimingFunction: motion.easingStandard },
 })
 
 type MotionToken = keyof typeof motionProbeStyles
@@ -635,6 +709,20 @@ function overOpacity(layer: string, over: string, opacity: string) {
   return `color-mix(in srgb, ${layer} calc(${opacity} * 100%), ${over})`
 }
 
+// runId doubles as the samples' React key: re-applying the same
+// animation-name to a live element doesn't restart it, so a run remounts the
+// animated node instead. 0 is the untouched first render, and it is the only
+// state Chromatic ever captures.
+function usePlayback() {
+  const [runId, setRunId] = useState(0)
+  // useCallback only to satisfy react-perf/jsx-no-new-function-as-prop — the
+  // React Compiler would memoize this anyway.
+  const play = useCallback(() => {
+    setRunId((n) => n + 1)
+  }, [])
+  return { play, runId }
+}
+
 function useResolvedMotion() {
   const rootRef = useRef<HTMLDivElement>(null)
   const [resolved, setResolved] = useState<
@@ -654,7 +742,7 @@ function useResolvedMotion() {
       const computed = getComputedStyle(probe)
       next[token] = token.startsWith('duration')
         ? computed.animationDuration
-        : computed.transitionTimingFunction
+        : computed.animationTimingFunction
     }
     setResolved(next)
   }, [])
@@ -714,12 +802,8 @@ const STATE_LAYERS: { name: string; swatch: string }[] = [
 
 function Tokens() {
   const { resolved, rootRef } = useResolvedMotion()
-  const [runId, setRunId] = useState(0)
-  // useCallback only to satisfy react-perf/jsx-no-new-function-as-prop — the
-  // React Compiler would memoize this anyway.
-  const play = useCallback(() => {
-    setRunId((n) => n + 1)
-  }, [])
+  const durations = usePlayback()
+  const easings = usePlayback()
   const longestDuration = Math.max(
     ...DURATION_ORDER.map((token) => durationMs(resolved[token])),
     1,
@@ -900,7 +984,7 @@ function Tokens() {
           <div {...stylex.props(styles.subsectionHeader)}>
             <p {...stylex.props(styles.eyebrow)}>Duration</p>
             <button
-              onClick={play}
+              onClick={durations.play}
               type="button"
               {...stylex.props(styles.playButton)}
             >
@@ -912,19 +996,19 @@ function Tokens() {
               const ms = durationMs(resolved[token])
               return (
                 <div key={token} {...stylex.props(styles.row)}>
-                  <span {...stylex.props(styles.tokenLabel)}>{token}</span>
+                  <span
+                    {...stylex.props(styles.tokenLabel, styles.motionLabel)}
+                  >
+                    {token}
+                  </span>
                   <div {...stylex.props(styles.durationTrack)}>
-                    {/* Remounted on every run so the animation restarts —
-                        re-applying the same animation-name to a live element
-                        would not. runId 0 is the untouched first render, which
-                        is what Chromatic snapshots. */}
                     <div
                       data-motion-token={token}
-                      key={runId}
+                      key={durations.runId}
                       {...stylex.props(
                         styles.durationBar(`${(ms / longestDuration) * 100}%`),
                         motionProbeStyles[token],
-                        runId > 0 && styles.durationBarPlaying,
+                        durations.runId > 0 && styles.durationBarPlaying,
                       )}
                     />
                   </div>
@@ -936,20 +1020,27 @@ function Tokens() {
         </div>
 
         <div {...stylex.props(styles.subsection)}>
-          <p {...stylex.props(styles.eyebrow)}>Easing</p>
+          <div {...stylex.props(styles.subsectionHeader)}>
+            <p {...stylex.props(styles.eyebrow)}>Easing</p>
+            <button
+              onClick={easings.play}
+              type="button"
+              {...stylex.props(styles.playButton)}
+            >
+              Play easings
+            </button>
+          </div>
           <div {...stylex.props(styles.rowList)}>
             {EASING_ORDER.map((token) => {
               const points = bezierPoints(resolved[token])
               return (
                 <div key={token} {...stylex.props(styles.row)}>
-                  <span {...stylex.props(styles.tokenLabel)}>{token}</span>
-                  <div
-                    data-motion-token={token}
-                    {...stylex.props(
-                      styles.curveCell,
-                      motionProbeStyles[token],
-                    )}
+                  <span
+                    {...stylex.props(styles.tokenLabel, styles.motionLabel)}
                   >
+                    {token}
+                  </span>
+                  <div {...stylex.props(styles.curveCell)}>
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 100 100"
@@ -969,6 +1060,17 @@ function Tokens() {
                         />
                       ) : null}
                     </svg>
+                  </div>
+                  <div {...stylex.props(styles.easingLane)}>
+                    <div
+                      data-motion-token={token}
+                      key={easings.runId}
+                      {...stylex.props(
+                        styles.easingDot,
+                        motionProbeStyles[token],
+                        easings.runId > 0 && styles.easingDotPlaying,
+                      )}
+                    />
                   </div>
                   <span {...stylex.props(styles.motionValue)}>
                     {resolved[token]}
