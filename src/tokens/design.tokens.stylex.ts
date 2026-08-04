@@ -524,3 +524,29 @@ const stateLayerOpacity = stylex.defineVars({
 })
 
 export { stateLayerOpacity }
+
+const motion = stylex.defineVars({
+  durationLong1: 'var(--kui-motion-duration-long1, 450ms)',
+  durationLong2: 'var(--kui-motion-duration-long2, 500ms)',
+  durationLong3: 'var(--kui-motion-duration-long3, 600ms)',
+  durationMedium1: 'var(--kui-motion-duration-medium1, 250ms)',
+  durationMedium2: 'var(--kui-motion-duration-medium2, 300ms)',
+  durationMedium3: 'var(--kui-motion-duration-medium3, 350ms)',
+  durationShort1: 'var(--kui-motion-duration-short1, 100ms)',
+  durationShort2: 'var(--kui-motion-duration-short2, 150ms)',
+  durationShort3: 'var(--kui-motion-duration-short3, 200ms)',
+  easingEmphasized:
+    'var(--kui-motion-easing-emphasized, cubic-bezier(0.2, 0, 0, 1))',
+  easingEmphasizedAccelerate:
+    'var(--kui-motion-easing-emphasized-accelerate, cubic-bezier(0.3, 0, 0.8, 0.15))',
+  easingEmphasizedDecelerate:
+    'var(--kui-motion-easing-emphasized-decelerate, cubic-bezier(0.05, 0.7, 0.1, 1))',
+  easingSpringFast:
+    'var(--kui-motion-easing-spring-fast, cubic-bezier(0.34, 1.56, 0.64, 1))',
+  easingSpringSlow:
+    'var(--kui-motion-easing-spring-slow, cubic-bezier(0.16, 1, 0.3, 1))',
+  easingStandard:
+    'var(--kui-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1))',
+})
+
+export { motion }
