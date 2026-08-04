@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 import {
   colors,
+  motion,
   radii,
   shadows,
   spacing,
@@ -40,6 +42,44 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xxs,
   },
+  curve: {
+    height: '56px',
+    // The two spring curves overshoot past 1, which puts part of the path
+    // above the viewBox — visible only because the cell below reserves
+    // vertical room for it to spill into.
+    overflow: 'visible',
+    width: '56px',
+  },
+  curveCell: {
+    alignItems: 'center',
+    display: 'flex',
+    flexShrink: 0,
+    justifyContent: 'center',
+    paddingBlock: spacing.lg,
+    width: '72px',
+  },
+  curveFrame: {
+    fill: 'none',
+    stroke: colors.outlineVariant,
+    strokeWidth: '2',
+  },
+  curvePath: {
+    fill: 'none',
+    stroke: colors.primary,
+    strokeWidth: '4',
+  },
+  durationBar: (width: string) => ({
+    backgroundColor: colors.primary,
+    height: '100%',
+    width,
+  }),
+  durationTrack: {
+    backgroundColor: colors.surfaceContainerHighest,
+    borderRadius: radii.xs,
+    flexGrow: 1,
+    height: '16px',
+    overflow: 'hidden',
+  },
   eyebrow: {
     color: colors.onSurfaceVariant,
     fontFamily: typography.fontFamilyPlain,
@@ -53,6 +93,17 @@ const styles = stylex.create({
     display: 'grid',
     gap: spacing.md,
     gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+  },
+  motionValue: {
+    color: colors.onSurfaceVariant,
+    flexShrink: 0,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: typography.labelSmallSize,
+    // The duration rows right-align this on their own, since the track
+    // between label and value grows; the easing rows have nothing that
+    // grows, so the auto margin is what lines both subsections up.
+    marginInlineStart: 'auto',
+    whiteSpace: 'nowrap',
   },
   page: {
     backgroundColor: colors.surface,
@@ -439,12 +490,122 @@ const shadowStyles = stylex.create({
   elevation5: { boxShadow: shadows.elevation5 },
 })
 
+// Every motion token compiles to a var(--kui-motion-*, <literal>) reference,
+// so the literal it resolves to exists only in the browser's computed style.
+// Each row below carries its own token as a real transition property and the
+// value is read back off that element, rather than restated here — which
+// keeps this section from drifting out of step with design.tokens.json, and
+// is also the only way to plot an easing curve, since an SVG path can't be
+// handed a CSS timing function.
+const motionProbeStyles = stylex.create({
+  durationLong1: { transitionDuration: motion.durationLong1 },
+  durationLong2: { transitionDuration: motion.durationLong2 },
+  durationLong3: { transitionDuration: motion.durationLong3 },
+  durationMedium1: { transitionDuration: motion.durationMedium1 },
+  durationMedium2: { transitionDuration: motion.durationMedium2 },
+  durationMedium3: { transitionDuration: motion.durationMedium3 },
+  durationShort1: { transitionDuration: motion.durationShort1 },
+  durationShort2: { transitionDuration: motion.durationShort2 },
+  durationShort3: { transitionDuration: motion.durationShort3 },
+  easingEmphasized: { transitionTimingFunction: motion.easingEmphasized },
+  easingEmphasizedAccelerate: {
+    transitionTimingFunction: motion.easingEmphasizedAccelerate,
+  },
+  easingEmphasizedDecelerate: {
+    transitionTimingFunction: motion.easingEmphasizedDecelerate,
+  },
+  easingSpringFast: { transitionTimingFunction: motion.easingSpringFast },
+  easingSpringSlow: { transitionTimingFunction: motion.easingSpringSlow },
+  easingStandard: { transitionTimingFunction: motion.easingStandard },
+})
+
+type MotionToken = keyof typeof motionProbeStyles
+
+function isMotionToken(value: string | undefined): value is MotionToken {
+  return value !== undefined && value in motionProbeStyles
+}
+
+// Ascending by speed and, for easings, grouped emphasized-then-spring —
+// neither of which is the alphabetical order stylex.create() above requires.
+const DURATION_ORDER: MotionToken[] = [
+  'durationShort1',
+  'durationShort2',
+  'durationShort3',
+  'durationMedium1',
+  'durationMedium2',
+  'durationMedium3',
+  'durationLong1',
+  'durationLong2',
+  'durationLong3',
+]
+
+const EASING_ORDER: MotionToken[] = [
+  'easingStandard',
+  'easingEmphasized',
+  'easingEmphasizedDecelerate',
+  'easingEmphasizedAccelerate',
+  'easingSpringFast',
+  'easingSpringSlow',
+]
+
+// Progress runs bottom-to-top so the curve reads the way easing curves are
+// conventionally drawn — time along x, progress up y — which means flipping
+// each control point's y through the 100-unit box.
+function bezierPath([x1, y1, x2, y2]: number[]) {
+  return `M 0 100 C ${x1 * 100} ${100 - y1 * 100}, ${x2 * 100} ${100 - y2 * 100}, 100 0`
+}
+
+function bezierPoints(resolved: string | undefined) {
+  const points = resolved
+    ?.match(/^cubic-bezier\((.+)\)$/)?.[1]
+    .split(',')
+    .map(Number)
+  return points?.length === 4 && points.every((p) => Number.isFinite(p))
+    ? points
+    : undefined
+}
+
+// Computed transition-duration comes back in seconds ('0.15s'), so it is
+// rounded back to whole milliseconds — the unit design.tokens.json states it
+// in — rather than shown as the browser's own normalization.
+function durationMs(resolved: string | undefined) {
+  return resolved === undefined
+    ? 0
+    : Math.round(Number.parseFloat(resolved) * 1000)
+}
+
 // State layers composite an 'on-color' over its container at one of these
 // opacities (see stateLayerOpacity in design.tokens.json) rather than using a
 // separate hover/pressed color — this is the same color-mix() formula
 // Button's own hover/focus/pressed/disabled styles use.
 function overOpacity(layer: string, over: string, opacity: string) {
   return `color-mix(in srgb, ${layer} calc(${opacity} * 100%), ${over})`
+}
+
+function useResolvedMotion() {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [resolved, setResolved] = useState<
+    Partial<Record<MotionToken, string>>
+  >({})
+  // Layout effect, not a plain effect: this runs before paint, so neither a
+  // reader nor a Chromatic snapshot ever sees the unresolved first render.
+  useLayoutEffect(() => {
+    const probes = rootRef.current?.querySelectorAll<HTMLElement>(
+      '[data-motion-token]',
+    )
+    if (!probes) return
+    const next: Partial<Record<MotionToken, string>> = {}
+    for (const probe of probes) {
+      const token = probe.dataset.motionToken
+      if (!isMotionToken(token)) continue
+      const computed = getComputedStyle(probe)
+      next[token] = token.startsWith('duration')
+        ? computed.transitionDuration
+        : computed.transitionTimingFunction
+    }
+    setResolved(next)
+  }, [])
+  return { resolved, rootRef }
 }
 
 const STATE_LAYERS: { name: string; swatch: string }[] = [
@@ -499,8 +660,14 @@ const STATE_LAYERS: { name: string; swatch: string }[] = [
 ]
 
 function Tokens() {
+  const { resolved, rootRef } = useResolvedMotion()
+  const longestDuration = Math.max(
+    ...DURATION_ORDER.map((token) => durationMs(resolved[token])),
+    1,
+  )
+
   return (
-    <div {...stylex.props(styles.page)}>
+    <div ref={rootRef} {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.pageHeader)}>
         <h1 {...stylex.props(styles.pageTitle)}>Design tokens</h1>
         <p {...stylex.props(styles.pageSubtitle)}>
@@ -657,6 +824,89 @@ function Tokens() {
               <span {...stylex.props(styles.swatchName)}>{state.name}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section {...stylex.props(styles.card)}>
+        <div {...stylex.props(styles.cardIntro)}>
+          <h2 {...stylex.props(styles.cardHeading)}>Motion</h2>
+          <p {...stylex.props(styles.cardDescription)}>
+            Durations and easing curves are kept independent rather than paired
+            into named transitions, so a component can hold one curve while
+            varying speed per property.
+          </p>
+        </div>
+
+        <div {...stylex.props(styles.subsection)}>
+          <p {...stylex.props(styles.eyebrow)}>Duration</p>
+          <div {...stylex.props(styles.rowList)}>
+            {DURATION_ORDER.map((token) => {
+              const ms = durationMs(resolved[token])
+              return (
+                <div key={token} {...stylex.props(styles.row)}>
+                  <span {...stylex.props(styles.tokenLabel)}>{token}</span>
+                  <div
+                    data-motion-token={token}
+                    {...stylex.props(
+                      styles.durationTrack,
+                      motionProbeStyles[token],
+                    )}
+                  >
+                    <div
+                      {...stylex.props(
+                        styles.durationBar(`${(ms / longestDuration) * 100}%`),
+                      )}
+                    />
+                  </div>
+                  <span {...stylex.props(styles.motionValue)}>{ms}ms</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div {...stylex.props(styles.subsection)}>
+          <p {...stylex.props(styles.eyebrow)}>Easing</p>
+          <div {...stylex.props(styles.rowList)}>
+            {EASING_ORDER.map((token) => {
+              const points = bezierPoints(resolved[token])
+              return (
+                <div key={token} {...stylex.props(styles.row)}>
+                  <span {...stylex.props(styles.tokenLabel)}>{token}</span>
+                  <div
+                    data-motion-token={token}
+                    {...stylex.props(
+                      styles.curveCell,
+                      motionProbeStyles[token],
+                    )}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 100 100"
+                      {...stylex.props(styles.curve)}
+                    >
+                      <rect
+                        height="100"
+                        width="100"
+                        x="0"
+                        y="0"
+                        {...stylex.props(styles.curveFrame)}
+                      />
+                      {points ? (
+                        <path
+                          d={bezierPath(points)}
+                          {...stylex.props(styles.curvePath)}
+                        />
+                      ) : null}
+                    </svg>
+                  </div>
+                  <span {...stylex.props(styles.motionValue)}>
+                    {resolved[token]}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
     </div>
