@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
 import {
   colors,
@@ -12,6 +12,15 @@ import {
   stateLayerOpacity,
   typography,
 } from './design.tokens.stylex'
+
+// Every bar is already as long as its duration is slow, so pairing this with
+// a per-token animation-duration makes all nine advance at exactly the same
+// rate: a run reads as nine bars setting off together and stopping one after
+// another, which is the comparison the numbers alone don't give.
+const growBar = stylex.keyframes({
+  from: { transform: 'scaleX(0)' },
+  to: { transform: 'scaleX(1)' },
+})
 
 const styles = stylex.create({
   card: {
@@ -73,6 +82,15 @@ const styles = stylex.create({
     height: '100%',
     width,
   }),
+  // animationDuration is not set here — it comes from the per-token style
+  // alongside it, which is the same declaration the resolved value is read
+  // back from, so the sample can never run at a different speed than the
+  // number printed next to it.
+  durationBarPlaying: {
+    animationName: growBar,
+    animationTimingFunction: 'linear',
+    transformOrigin: 'left center',
+  },
   durationTrack: {
     backgroundColor: colors.surfaceContainerHighest,
     borderRadius: radii.xs,
@@ -133,6 +151,30 @@ const styles = stylex.create({
     lineHeight: typography.displaySmallLineHeight,
     margin: 0,
   },
+  // Tonal treatment, composited the same way Button's variants are — see the
+  // header comment there for why color-mix() has to be written out at each
+  // property rather than factored into a helper.
+  playButton: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: colors.secondaryContainer,
+    },
+    borderRadius: radii.full,
+    borderWidth: 0,
+    color: colors.onSecondaryContainer,
+    cursor: 'pointer',
+    fontFamily: typography.labelMediumFont,
+    fontSize: typography.labelMediumSize,
+    fontWeight: typography.labelMediumWeight,
+    letterSpacing: typography.labelMediumTracking,
+    outlineColor: colors.primary,
+    outlineOffset: '2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
+    paddingBlock: spacing.xs,
+    paddingInline: spacing.md,
+  },
   radiiBox: {
     backgroundColor: colors.primary,
     height: '48px',
@@ -163,6 +205,12 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.sm,
+  },
+  subsectionHeader: {
+    alignItems: 'center',
+    display: 'flex',
+    gap: spacing.md,
+    justifyContent: 'space-between',
   },
   swatch: (backgroundColor: string) => ({
     backgroundColor,
@@ -492,21 +540,26 @@ const shadowStyles = stylex.create({
 
 // Every motion token compiles to a var(--kui-motion-*, <literal>) reference,
 // so the literal it resolves to exists only in the browser's computed style.
-// Each row below carries its own token as a real transition property and the
-// value is read back off that element, rather than restated here — which
-// keeps this section from drifting out of step with design.tokens.json, and
-// is also the only way to plot an easing curve, since an SVG path can't be
-// handed a CSS timing function.
+// Each row below carries its own token as a real animation or transition
+// property and the value is read back off that element, rather than restated
+// here — which keeps this section from drifting out of step with
+// design.tokens.json, and is also the only way to plot an easing curve, since
+// an SVG path can't be handed a CSS timing function.
+//
+// The duration half deliberately uses animation-duration rather than
+// transition-duration: it is the property the sample animation actually runs
+// on, so the printed number is read from the same declaration that times the
+// bar instead of from a parallel one that could drift away from it.
 const motionProbeStyles = stylex.create({
-  durationLong1: { transitionDuration: motion.durationLong1 },
-  durationLong2: { transitionDuration: motion.durationLong2 },
-  durationLong3: { transitionDuration: motion.durationLong3 },
-  durationMedium1: { transitionDuration: motion.durationMedium1 },
-  durationMedium2: { transitionDuration: motion.durationMedium2 },
-  durationMedium3: { transitionDuration: motion.durationMedium3 },
-  durationShort1: { transitionDuration: motion.durationShort1 },
-  durationShort2: { transitionDuration: motion.durationShort2 },
-  durationShort3: { transitionDuration: motion.durationShort3 },
+  durationLong1: { animationDuration: motion.durationLong1 },
+  durationLong2: { animationDuration: motion.durationLong2 },
+  durationLong3: { animationDuration: motion.durationLong3 },
+  durationMedium1: { animationDuration: motion.durationMedium1 },
+  durationMedium2: { animationDuration: motion.durationMedium2 },
+  durationMedium3: { animationDuration: motion.durationMedium3 },
+  durationShort1: { animationDuration: motion.durationShort1 },
+  durationShort2: { animationDuration: motion.durationShort2 },
+  durationShort3: { animationDuration: motion.durationShort3 },
   easingEmphasized: { transitionTimingFunction: motion.easingEmphasized },
   easingEmphasizedAccelerate: {
     transitionTimingFunction: motion.easingEmphasizedAccelerate,
@@ -565,7 +618,7 @@ function bezierPoints(resolved: string | undefined) {
     : undefined
 }
 
-// Computed transition-duration comes back in seconds ('0.15s'), so it is
+// Computed animation-duration comes back in seconds ('0.15s'), so it is
 // rounded back to whole milliseconds — the unit design.tokens.json states it
 // in — rather than shown as the browser's own normalization.
 function durationMs(resolved: string | undefined) {
@@ -600,7 +653,7 @@ function useResolvedMotion() {
       if (!isMotionToken(token)) continue
       const computed = getComputedStyle(probe)
       next[token] = token.startsWith('duration')
-        ? computed.transitionDuration
+        ? computed.animationDuration
         : computed.transitionTimingFunction
     }
     setResolved(next)
@@ -661,6 +714,12 @@ const STATE_LAYERS: { name: string; swatch: string }[] = [
 
 function Tokens() {
   const { resolved, rootRef } = useResolvedMotion()
+  const [runId, setRunId] = useState(0)
+  // useCallback only to satisfy react-perf/jsx-no-new-function-as-prop — the
+  // React Compiler would memoize this anyway.
+  const play = useCallback(() => {
+    setRunId((n) => n + 1)
+  }, [])
   const longestDuration = Math.max(
     ...DURATION_ORDER.map((token) => durationMs(resolved[token])),
     1,
@@ -838,23 +897,34 @@ function Tokens() {
         </div>
 
         <div {...stylex.props(styles.subsection)}>
-          <p {...stylex.props(styles.eyebrow)}>Duration</p>
+          <div {...stylex.props(styles.subsectionHeader)}>
+            <p {...stylex.props(styles.eyebrow)}>Duration</p>
+            <button
+              onClick={play}
+              type="button"
+              {...stylex.props(styles.playButton)}
+            >
+              Play durations
+            </button>
+          </div>
           <div {...stylex.props(styles.rowList)}>
             {DURATION_ORDER.map((token) => {
               const ms = durationMs(resolved[token])
               return (
                 <div key={token} {...stylex.props(styles.row)}>
                   <span {...stylex.props(styles.tokenLabel)}>{token}</span>
-                  <div
-                    data-motion-token={token}
-                    {...stylex.props(
-                      styles.durationTrack,
-                      motionProbeStyles[token],
-                    )}
-                  >
+                  <div {...stylex.props(styles.durationTrack)}>
+                    {/* Remounted on every run so the animation restarts —
+                        re-applying the same animation-name to a live element
+                        would not. runId 0 is the untouched first render, which
+                        is what Chromatic snapshots. */}
                     <div
+                      data-motion-token={token}
+                      key={runId}
                       {...stylex.props(
                         styles.durationBar(`${(ms / longestDuration) * 100}%`),
+                        motionProbeStyles[token],
+                        runId > 0 && styles.durationBarPlaying,
                       )}
                     />
                   </div>
