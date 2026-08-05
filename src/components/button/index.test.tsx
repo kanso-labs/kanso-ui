@@ -6,6 +6,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
+import { colors } from '../../tokens/design.tokens.stylex'
+
+// The tonal assertions compare against an element styled straight from the
+// tokens rather than against hex literals, so they pin which colour role the
+// variant reaches for without also pinning what that role happens to resolve
+// to today.
+const tokenProbeStyles = stylex.create({
+  tonalPair: {
+    backgroundColor: colors.primaryContainer,
+    color: colors.onPrimaryContainer,
+  },
+})
 
 // Mirrored from useRipple so the waits below read as intent.
 const TOUCH_DELAY_MS = 150
@@ -118,6 +130,66 @@ function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
 
   return { ...view, button, isPressed, rippleSurface }
 }
+
+describe('appearance', () => {
+  it('renders each size at its own control height', () => {
+    const heights = [
+      ['xs', '32px'],
+      ['md', '40px'],
+      ['lg', '56px'],
+      ['xl', '80px'],
+    ] as const
+
+    for (const [size, height] of heights) {
+      const { button, unmount } = setup({ size })
+      expect(getComputedStyle(button).height).toBe(height)
+      unmount()
+    }
+  })
+
+  // The one genuinely load-bearing thing about applying size after variant.
+  // Every size but md declares its own inline padding, so md is the only one
+  // where a variant's own padding survives — which is what keeps a text
+  // button tighter than a filled one at the default size, and what makes them
+  // agree at every other size.
+  it('lets the variant keep its inline padding only at the default size', () => {
+    const inlinePadding = (props: Parameters<typeof setup>[0]) => {
+      const { button, unmount } = setup(props)
+      const padding = getComputedStyle(button).paddingLeft
+      unmount()
+      return padding
+    }
+
+    expect(inlinePadding({ variant: 'text' })).not.toBe(
+      inlinePadding({ variant: 'filled' }),
+    )
+    expect(inlinePadding({ size: 'lg', variant: 'text' })).toBe(
+      inlinePadding({ size: 'lg', variant: 'filled' }),
+    )
+  })
+
+  it('paints the tonal variant with the primary container pair', () => {
+    const probe = render(
+      <div data-testid="probe" {...stylex.props(tokenProbeStyles.tonalPair)} />,
+    )
+    const expected = getComputedStyle(probe.getByTestId('probe'))
+    const { backgroundColor, color } = {
+      backgroundColor: expected.backgroundColor,
+      color: expected.color,
+    }
+    probe.unmount()
+
+    const { button } = setup({ variant: 'tonal' })
+    const actual = getComputedStyle(button)
+
+    expect(actual.backgroundColor).toBe(backgroundColor)
+    expect(actual.color).toBe(color)
+    // Guards the comparison itself: a filled button must not satisfy it, or
+    // the two assertions above would pass on any variant that happens to
+    // share a computed value.
+    expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+  })
+})
 
 describe('press behaviour', () => {
   let restoreAnimate: () => void

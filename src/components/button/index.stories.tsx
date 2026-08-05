@@ -5,6 +5,16 @@ import { expect, waitFor } from 'storybook/test'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
+import { spacing } from '../../tokens/design.tokens.stylex'
+
+const storyStyles = stylex.create({
+  row: {
+    alignItems: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
+})
 
 // The classes StyleX generates for the pressed state are the observable signal
 // that the hook considers itself pressed, without reaching into React.
@@ -108,6 +118,28 @@ const Pressed: Story = {
   tags: ['!dev'],
 }
 
+// One story rather than four, because the thing worth looking at is the
+// relationship between the sizes — and it costs one Chromatic snapshot per
+// theme instead of four.
+const Sizes: Story = {
+  render: (args) => (
+    <div {...stylex.props(storyStyles.row)}>
+      <Button {...args} size="xs">
+        Extra small
+      </Button>
+      <Button {...args} size="md">
+        Medium
+      </Button>
+      <Button {...args} size="lg">
+        Large
+      </Button>
+      <Button {...args} size="xl">
+        Extra large
+      </Button>
+    </div>
+  ),
+}
+
 const Text: Story = {
   args: {
     variant: 'text',
@@ -121,6 +153,19 @@ const TextDisabled: Story = {
   },
 }
 
+const Tonal: Story = {
+  args: {
+    variant: 'tonal',
+  },
+}
+
+const TonalDisabled: Story = {
+  args: {
+    disabled: true,
+    variant: 'tonal',
+  },
+}
+
 export {
   Default,
   Disabled,
@@ -128,8 +173,11 @@ export {
   Outlined,
   OutlinedDisabled,
   Pressed,
+  Sizes,
   Text,
   TextDisabled,
+  Tonal,
+  TonalDisabled,
 }
 
 export default meta
