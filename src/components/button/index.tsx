@@ -26,6 +26,14 @@ import {
 // fixed pseudo-class ordering places both after :disabled, so without the
 // :not(:disabled) guard a hovered/pressed disabled button would render with
 // the interaction color instead of the disabled one.
+//
+// Two independent axes, applied base -> variant -> size. The order is what
+// lets `text` keep its tighter inline padding at the default size while the
+// other sizes still set their own: `md` deliberately declares no
+// paddingInline, so a medium button falls through to whatever its variant
+// asked for, and every other size overrides it. That mirrors the source
+// design's own cascade, where the size classes are declared after the
+// variant ones and win on padding for exactly the same reason.
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -43,7 +51,6 @@ const styles = stylex.create({
     outlineOffset: '2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
-    paddingBlock: spacing.md,
     position: 'relative',
   },
   filled: {
@@ -64,6 +71,22 @@ const styles = stylex.create({
       default: colors.onPrimary,
     },
     paddingInline: spacing.xl,
+  },
+  // Control heights and their inline padding are written as literals, not
+  // drawn from the spacing scale: they are the design's fixed control
+  // metrics, and the component scale has no 48px step to hang the largest
+  // one on anyway. Each size takes only the size and line-height of a scale
+  // style and never its font or weight — labelLarge's sans at 500 holds
+  // across all four, so an xl button still reads as a button rather than
+  // picking up the serif face titleLarge carries in this token set.
+  lg: {
+    blockSize: '56px',
+    fontSize: typography.bodyLargeSize,
+    lineHeight: typography.bodyLargeLineHeight,
+    paddingInline: spacing.xxl,
+  },
+  md: {
+    blockSize: '40px',
   },
   outlined: {
     backgroundColor: {
@@ -97,6 +120,37 @@ const styles = stylex.create({
     },
     paddingInline: spacing.lg,
   },
+  tonal: {
+    backgroundColor: {
+      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      ':focus-visible': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.primaryContainer})`,
+      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
+      default: colors.primaryContainer,
+    },
+    boxShadow: {
+      ':active:not(:disabled)': 'none',
+      ':hover:not(:disabled)': shadows.elevation1,
+      default: 'none',
+    },
+    color: {
+      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: colors.onPrimaryContainer,
+    },
+    paddingInline: spacing.xl,
+  },
+  xl: {
+    blockSize: '80px',
+    fontSize: typography.titleLargeSize,
+    lineHeight: typography.titleLargeLineHeight,
+    paddingInline: '48px',
+  },
+  xs: {
+    blockSize: '32px',
+    fontSize: typography.labelMediumSize,
+    lineHeight: typography.labelMediumLineHeight,
+    paddingInline: spacing.lg,
+  },
 })
 
 type ButtonProps = BaseUIButtonProps & {
@@ -106,8 +160,14 @@ type ButtonProps = BaseUIButtonProps & {
    * @default false
    */
   disableRipple?: boolean
+  /**
+   * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 80px. Sizes other
+   * than `md` also set their own inline padding.
+   * @default 'md'
+   */
+  size?: 'lg' | 'md' | 'xl' | 'xs'
   /** @default 'filled' */
-  variant?: 'filled' | 'outlined' | 'text'
+  variant?: 'filled' | 'outlined' | 'text' | 'tonal'
 }
 
 function Button({
@@ -120,6 +180,7 @@ function Button({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
+  size = 'md',
   variant = 'filled',
   ...props
 }: ButtonProps) {
@@ -140,7 +201,7 @@ function Button({
       disabled={disabled}
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.base, styles[variant])}
+      {...stylex.props(styles.base, styles[variant], styles[size])}
     >
       {children}
       {ripple.surface}
