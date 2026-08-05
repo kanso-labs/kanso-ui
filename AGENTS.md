@@ -136,6 +136,11 @@ render, start the dev server and open its story. Claude Code's browser preview
 is preconfigured in `.claude/launch.json`; other agents can just run
 `npm run storybook`.
 
+The port is 6006 unless `PORT` says otherwise, which is what lets two agents
+preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
+session is handed a free port instead of failing to bind. Read the port off the
+URL the preview reports rather than assuming 6006.
+
 The toolbar's Theme control sets the `theme` global, which is what the decorator
 in `.storybook/preview.tsx` reads to pick a StyleX theme. It defaults to light
 rather than following the OS, because `prefers-color-scheme` is not reliably
