@@ -1,19 +1,25 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ButtonProps } from './button'
+import type { SeparatorProps } from './separator'
 import type { TextProps } from './text'
 
 import * as components from '.'
 import ButtonDefault from './button'
+import SeparatorDefault from './separator'
 import TextDefault from './text'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
-    expect(Object.keys(components)).toEqual(['Button', 'Text'])
+    expect(Object.keys(components)).toEqual(['Button', 'Separator', 'Text'])
   })
 
   it('re-exports Button as the same reference as its own module', () => {
     expect(components.Button).toBe(ButtonDefault)
+  })
+
+  it('re-exports Separator as the same reference as its own module', () => {
+    expect(components.Separator).toBe(SeparatorDefault)
   })
 
   it('re-exports Text as the same reference as its own module', () => {
@@ -23,6 +29,11 @@ describe('components barrel', () => {
   it('re-exports the ButtonProps type', () => {
     const props: ButtonProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SeparatorProps type', () => {
+    const props: SeparatorProps = { orientation: 'vertical' }
+    expect(props.orientation).toBe('vertical')
   })
 
   it('re-exports the TextProps type', () => {
