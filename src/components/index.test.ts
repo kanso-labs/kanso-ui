@@ -1,17 +1,28 @@
 import { describe, expect, it } from 'vitest'
 
+import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { SeparatorProps } from './separator'
 import type { TextProps } from './text'
 
 import * as components from '.'
+import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import SeparatorDefault from './separator'
 import TextDefault from './text'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
-    expect(Object.keys(components)).toEqual(['Button', 'Separator', 'Text'])
+    expect(Object.keys(components)).toEqual([
+      'Avatar',
+      'Button',
+      'Separator',
+      'Text',
+    ])
+  })
+
+  it('re-exports Avatar as the same reference as its own module', () => {
+    expect(components.Avatar).toBe(AvatarDefault)
   })
 
   it('re-exports Button as the same reference as its own module', () => {
@@ -24,6 +35,11 @@ describe('components barrel', () => {
 
   it('re-exports Text as the same reference as its own module', () => {
     expect(components.Text).toBe(TextDefault)
+  })
+
+  it('re-exports the AvatarProps type', () => {
+    const props: AvatarProps = { name: 'Ada Lovelace' }
+    expect(props.name).toBe('Ada Lovelace')
   })
 
   it('re-exports the ButtonProps type', () => {
