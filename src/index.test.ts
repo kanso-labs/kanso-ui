@@ -4,6 +4,7 @@ import * as publicApi from '.'
 import {
   Avatar as ComponentsAvatar,
   Button as ComponentsButton,
+  Card as ComponentsCard,
   Separator as ComponentsSeparator,
   Text as ComponentsText,
 } from './components'
@@ -15,6 +16,7 @@ describe('package entry point', () => {
     expect(Object.keys(publicApi)).toEqual([
       'Avatar',
       'Button',
+      'Card',
       'Separator',
       'Text',
     ])
@@ -26,6 +28,10 @@ describe('package entry point', () => {
 
   it('forwards Button as the same reference as the components barrel', () => {
     expect(publicApi.Button).toBe(ComponentsButton)
+  })
+
+  it('forwards Card as the same reference as the components barrel', () => {
+    expect(publicApi.Card).toBe(ComponentsCard)
   })
 
   it('forwards Separator as the same reference as the components barrel', () => {
