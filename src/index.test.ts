@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import * as publicApi from '.'
 import {
+  Amount as ComponentsAmount,
   Avatar as ComponentsAvatar,
   Button as ComponentsButton,
   Separator as ComponentsSeparator,
@@ -13,11 +14,16 @@ describe('package entry point', () => {
   // leaking into the published surface fails here instead of shipping.
   it('exposes exactly the documented public API', () => {
     expect(Object.keys(publicApi)).toEqual([
+      'Amount',
       'Avatar',
       'Button',
       'Separator',
       'Text',
     ])
+  })
+
+  it('forwards Amount as the same reference as the components barrel', () => {
+    expect(publicApi.Amount).toBe(ComponentsAmount)
   })
 
   it('forwards Avatar as the same reference as the components barrel', () => {

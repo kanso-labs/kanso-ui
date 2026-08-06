@@ -1,3 +1,5 @@
+export type { AmountProps } from './amount'
+export { default as Amount } from './amount'
 export type { AvatarProps } from './avatar'
 export { default as Avatar } from './avatar'
 export type { ButtonProps } from './button'
