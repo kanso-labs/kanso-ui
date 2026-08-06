@@ -44,15 +44,15 @@ const Horizontal: Story = {
   render: (args) => (
     <div {...stylex.props(styles.card)}>
       <div {...stylex.props(styles.row)}>
-        <Text variant="bodyMedium">Groceries</Text>
+        <Text variant="bodyMedium">First item</Text>
       </div>
       <Separator {...args} />
       <div {...stylex.props(styles.row)}>
-        <Text variant="bodyMedium">Rent</Text>
+        <Text variant="bodyMedium">Second item</Text>
       </div>
       <Separator {...args} />
       <div {...stylex.props(styles.row)}>
-        <Text variant="bodyMedium">Utilities</Text>
+        <Text variant="bodyMedium">Third item</Text>
       </div>
     </div>
   ),
@@ -67,11 +67,11 @@ const Vertical: Story = {
   },
   render: (args) => (
     <div {...stylex.props(styles.inline)}>
-      <Text variant="labelLarge">Paid by you</Text>
+      <Text variant="labelLarge">First</Text>
       <Separator {...args} />
-      <Text variant="labelLarge">Split evenly</Text>
+      <Text variant="labelLarge">Second</Text>
       <Separator {...args} />
-      <Text variant="labelLarge">3 people</Text>
+      <Text variant="labelLarge">Third</Text>
     </div>
   ),
 }

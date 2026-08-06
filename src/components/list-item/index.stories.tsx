@@ -16,17 +16,10 @@ import Card from '../card'
 import Separator from '../separator'
 import Text from '../text'
 
-// The design's activity rows lead with a tinted tile holding an icon, and its
-// people rows lead with an avatar. Both are just content in the leading slot,
-// which is why the slot takes a node rather than an icon prop.
+// A row can lead with a tinted tile holding a glyph, or with an avatar. Both
+// are just content in the leading slot, which is why the slot takes a node
+// rather than an icon prop.
 const styles = stylex.create({
-  amount: {
-    color: colors.onSurface,
-    fontFamily: typography.fontFamilyMono,
-    fontSize: typography.labelLargeSize,
-    fontVariantNumeric: 'tabular-nums',
-    fontWeight: typography.weightMedium,
-  },
   tile: {
     alignItems: 'center',
     backgroundColor: colors.primaryContainer,
@@ -38,26 +31,28 @@ const styles = stylex.create({
     inlineSize: '36px',
     justifyContent: 'center',
   },
+  value: {
+    color: colors.onSurface,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: typography.labelLargeSize,
+    fontVariantNumeric: 'tabular-nums',
+    fontWeight: typography.weightMedium,
+  },
   width: {
     inlineSize: '380px',
   },
 })
 
-const ACTIVITY = [
-  [
-    'Groceries at Trader Joe’s',
-    'You paid · Split 3 ways · Today',
-    '$42.80',
-    '🧾',
-  ],
-  ['Dinner at Lottie’s', 'Sam paid · You owe $26 · Sun', '$78.00', '🍜'],
-  ['Utilities — March', 'You paid · Priya owes $90 · Mar 1', '$180.00', '⚡'],
+const ROWS = [
+  ['First item', 'Supporting line · Metadata · Detail', '01', '★'],
+  ['Second item', 'Supporting line · Metadata · Detail', '02', '◆'],
+  ['Third item', 'Supporting line · Metadata · Detail', '03', '●'],
 ] as const satisfies [string, string, string, string][]
 
 const meta = {
   args: {
-    children: 'Groceries at Trader Joe’s',
-    supporting: 'You paid · Split 3 ways · Today',
+    children: 'Headline',
+    supporting: 'Supporting line · Metadata · Detail',
   },
   component: ListItem,
   title: 'Components/ListItem',
@@ -77,7 +72,7 @@ const Slots: Story = {
       <ListItem
         {...args}
         leading={<Avatar name="Mia Ng" size="md" tone="positive" />}
-        trailing={<span {...stylex.props(styles.amount)}>$42.80</span>}
+        trailing={<span {...stylex.props(styles.value)}>01</span>}
       />
     </div>
   ),
@@ -91,25 +86,25 @@ const HeadlineOnly: Story = {
   },
   render: (args) => (
     <div {...stylex.props(styles.width)}>
-      <ListItem {...args}>Settle up</ListItem>
+      <ListItem {...args}>Headline only</ListItem>
     </div>
   ),
 }
 
-// What the component is for: the design's activity list, composed from an
-// outlined Card with no padding, rules between rows, and a row per expense.
+// What the component is for: a list, composed from an outlined Card with no
+// padding, rules between rows, and a row per entry.
 const InAList: Story = {
   render: () => (
     <div {...stylex.props(styles.width)}>
       <Card padding="none" variant="outlined">
-        {ACTIVITY.map(([title, meta_, amount, glyph], index) => (
+        {ROWS.map(([title, meta_, value, glyph], index) => (
           <div key={title}>
             {index === 0 ? null : <Separator />}
             <ListItem
               interactive
               leading={<span {...stylex.props(styles.tile)}>{glyph}</span>}
               supporting={meta_}
-              trailing={<span {...stylex.props(styles.amount)}>{amount}</span>}
+              trailing={<span {...stylex.props(styles.value)}>{value}</span>}
             >
               {title}
             </ListItem>
@@ -120,18 +115,18 @@ const InAList: Story = {
   ),
 }
 
-// Long content has to shrink rather than push the amount off the end, which
-// is the one layout behaviour a row cannot be allowed to get wrong.
+// Long content has to shrink rather than push the trailing slot off the end,
+// which is the one layout behaviour a row cannot be allowed to get wrong.
 const Truncating: Story = {
   render: (args) => (
     <div {...stylex.props(styles.width)}>
       <ListItem
         {...args}
-        leading={<Avatar name="Priya R" size="md" tone="tertiary" />}
-        supporting="You paid · Priya owes $90 · a very long supporting line that keeps going"
+        leading={<Avatar name="Ada Lovelace" size="md" tone="tertiary" />}
+        supporting="Supporting line · Metadata · a very long supporting line that keeps going"
         trailing={
           <Text tone="muted" variant="labelSmall">
-            Mar 1
+            Label
           </Text>
         }
       >

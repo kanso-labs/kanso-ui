@@ -63,6 +63,25 @@ get a different transform pipeline, so sources shared with the `storybook`
 project are instrumented twice with mismatched statement maps and the merged
 coverage totals come out wrong.
 
+### Sample copy
+
+kanso-ui is a general-purpose library, so the text inside stories, tests, and
+code comments must stay domain-neutral. Nothing may read as though it came from
+one particular product, and no wording may be lifted from a consuming app's
+screens.
+
+Use placeholder copy that names the slot it fills: `Headline`,
+`Supporting line`, `First item` / `Second item` / `Third item`, `Label`. Where a
+value has to be numeric to show a typographic property such as tabular figures,
+use plain sequence numbers (`01`, `02`, `03`), which carry no units. Person
+names should be neutral and recognisably placeholder — `Ada Lovelace`,
+`Grace Hopper`. Comments describing a story should name the component's own
+behaviour rather than the app feature it was drawn from.
+
+The same applies to new components: write their stories and tests with generic
+copy from the start rather than porting text over from wherever the design
+originated.
+
 ### Controlling time
 
 Do not wait in real time for a component's own timers. An assertion can land
