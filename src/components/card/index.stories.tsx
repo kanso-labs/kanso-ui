@@ -41,7 +41,7 @@ function Body({ title }: { title: string }) {
     <div {...stylex.props(styles.stack)}>
       <Text variant="titleMedium">{title}</Text>
       <Text tone="muted" variant="bodySmall">
-        Four people, split evenly
+        Supporting line beneath the title
       </Text>
     </div>
   )
@@ -74,7 +74,7 @@ const Interactive: Story = {
   },
   render: (args) => (
     <Card {...args} {...stylex.props(styles.wide)}>
-      <Body title="Weekend trip" />
+      <Body title="Interactive" />
     </Card>
   ),
 }
@@ -89,7 +89,7 @@ const AsAList: Story = {
   },
   render: (args) => (
     <Card {...args} {...stylex.props(styles.wide)}>
-      {['Groceries', 'Rent', 'Utilities'].map((label, index) => (
+      {['First item', 'Second item', 'Third item'].map((label, index) => (
         <div key={label}>
           {index === 0 ? null : <Separator />}
           <div {...stylex.props(styles.listRow)}>

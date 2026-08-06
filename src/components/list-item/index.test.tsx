@@ -38,8 +38,8 @@ function rowIn(container: HTMLElement) {
 describe('list item', () => {
   describe('slots', () => {
     it('renders only the slots it was given', () => {
-      const view = render(<ListItem>Groceries</ListItem>)
-      expect(view.getByText('Groceries')).not.toBeNull()
+      const view = render(<ListItem>Headline</ListItem>)
+      expect(view.getByText('Headline')).not.toBeNull()
       expect(view.queryByText('leading')).toBeNull()
       expect(view.queryByText('trailing')).toBeNull()
       // Headline only: the row is the headline's wrapper plus nothing else.
