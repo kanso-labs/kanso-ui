@@ -10,17 +10,24 @@ import * as stylex from '@stylexjs/stylex'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 import { rippleStyles } from '../styles/ripple'
+import { motionDurationMs, motionEasing, spacingPx } from '../tokens/values'
 
-// See src/styles/ripple.ts for the opacity half of the mechanism; this file
-// owns growth and interaction timing.
-const PRESS_GROW_MS = 450
-const MINIMUM_PRESS_MS = 225
+// Every timing this file drives is a motion token, spent at the point of use
+// below. They come from tokens/values rather than the StyleX theme because
+// element.animate() and setTimeout both reject a token's var() form, and the
+// same is true of the one geometry token: `PADDING` is added to a radius, and
+// a var() would concatenate rather than add. See src/styles/ripple.ts for the
+// opacity half of the mechanism, whose three timings are deliberately not
+// tokens.
+
+/** How far the ripple grows past the host's corners. `spacing.sm`. */
+const PADDING = spacingPx.sm
+
+// The rest are ratios and a pixel floor that no token group covers — spacing
+// is layout rhythm, and nothing in the set holds bare geometric ratios.
 const INITIAL_ORIGIN_SCALE = 0.2
-const PADDING = 10
 const SOFT_EDGE_MINIMUM_SIZE = 75
 const SOFT_EDGE_CONTAINER_RATIO = 0.35
-const EASING_STANDARD = 'cubic-bezier(0.2, 0, 0, 1)'
-const TOUCH_DELAY_MS = 150
 
 // Static input, so this is computed once for every consumer of the module
 // rather than once per component instance.
@@ -65,8 +72,8 @@ function isTouch(event: PointerEvent) {
  * Growth runs via the Web Animations API on a single reused element (no
  * per-click DOM nodes to clean up), over a fixed duration independent of how
  * long the element is held — a real press-and-hold keeps the ripple
- * growing until release, while a quick tap still plays a complete,
- * `MINIMUM_PRESS_MS`-enforced animation rather than a flicker.
+ * growing until release, while a quick tap is still held visible for a
+ * minimum duration so it plays a complete animation rather than a flicker.
  *
  * Merges its own handlers with `externalHandlers` (e.g. a component's own
  * consumer-supplied props — ripple's own run first, then the external
@@ -182,8 +189,12 @@ function useRipple<HostElement extends HTMLElement = HTMLElement>(
           ],
         },
         {
-          duration: PRESS_GROW_MS,
-          easing: EASING_STANDARD,
+          // Growth runs over a fixed duration regardless of how long the
+          // press is held, so the token is spent here rather than named as a
+          // constant — element.animate() is one of the two places a StyleX
+          // token could not have gone.
+          duration: motionDurationMs.long1,
+          easing: motionEasing.standard,
           fill: 'forwards',
         },
       )
@@ -201,13 +212,15 @@ function useRipple<HostElement extends HTMLElement = HTMLElement>(
         ? animation.currentTime
         : Infinity
 
-    if (elapsed >= MINIMUM_PRESS_MS) {
+    // The floor on how briefly a ripple may be visible, so a quick tap reads
+    // as a deliberate ripple rather than a flicker.
+    if (elapsed >= motionDurationMs.medium1) {
       setPressed(false)
       return
     }
 
     await new Promise((resolve) => {
-      setTimeout(resolve, MINIMUM_PRESS_MS - elapsed)
+      setTimeout(resolve, motionDurationMs.medium1 - elapsed)
     })
 
     if (growAnimation.current !== animation) {
@@ -241,7 +254,7 @@ function useRipple<HostElement extends HTMLElement = HTMLElement>(
       // ripple — only a held (or quickly released) touch counts as a press.
       state.current = RippleState.TouchDelay
       await new Promise((resolve) => {
-        setTimeout(resolve, TOUCH_DELAY_MS)
+        setTimeout(resolve, motionDurationMs.short2)
       })
 
       if (getState() !== RippleState.TouchDelay) {

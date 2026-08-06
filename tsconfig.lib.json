@@ -15,6 +15,11 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    // So a test can assert against src/tokens/design.tokens.json, the DTCG
+    // source every generated token file is built from — see
+    // src/tokens/motion.values.test.ts. Vite resolves JSON imports natively;
+    // this only tells tsc the same.
+    "resolveJsonModule": true,
 
     /* Linting */
     "strict": true,
