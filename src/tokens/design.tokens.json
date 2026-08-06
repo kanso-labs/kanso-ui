@@ -1,5 +1,5 @@
 {
-  "$description": "kanso-ui design tokens. Conforms to the Design Tokens Community Group format (https://design-tokens.github.io/community-group/format/): $type/$value, group-level type inheritance, {path} alias references. Color roles, type scale, shape scale, elevation, and state-layer opacities are drawn from a verified tonal-palette color system, not approximations. Generated into StyleX via scripts/build-tokens.mjs (npm run tokens:build) — see src/tokens/*.stylex.ts.",
+  "$description": "kanso-ui design tokens. Conforms to the Design Tokens Community Group format (https://design-tokens.github.io/community-group/format/): $type/$value, group-level type inheritance, {path} alias references. Color roles, type scale, shape scale, elevation, and state-layer opacities are drawn from a verified tonal-palette color system, not approximations. Generated into StyleX via scripts/build-tokens.mjs (npm run tokens:build) — see src/tokens/*.stylex.ts. $extensions at the bottom carries the non-token half of the system — how to consume these tokens, and how UI copy should read — so that a reader who has only this file still has the whole contract.",
   "color": {
     "$type": "color",
     "$description": "Reference tier — the full tonal palettes. Not consumed directly by components — see semantic.light / semantic.dark, the System tier that maps roles onto specific tones. Each chromatic palette (primary/secondary/tertiary/error) holds all 13 standard tone stops; neutral additionally carries the extra surface-container stops (4/6/12/17/20/22/24/87/92/94/96/98/99).",
@@ -457,6 +457,18 @@
       "full": { "$value": "{radii.primitive.9999}" }
     }
   },
+  "layout": {
+    "$type": "dimension",
+    "$description": "Window size classes, as the lower bound of each class. Published because a consuming app has to line its own media queries up with the library's, and it can only do that if the thresholds are part of the contract rather than a number each component picked for itself. A breakpoint chosen because a particular piece of content stops fitting is not one of these and belongs at its call site — see the NARROW constant in index.stories.tsx for that case.",
+    "breakpoint": {
+      "$description": "Unlike every other group in this file these are NOT generated as CSS custom properties: a media query condition cannot read var(), so `@media (width >= var(--kui-layout-breakpoint-medium))` is invalid CSS, and a breakpoint held in a custom property would be unusable in the one place it exists to be used. They are emitted instead as stylex.defineConsts() — inlined by the compiler — which is also why they are absent from design.tokens.css and so are not part of the runtime override contract. See `breakpoints` and `media` in design.tokens.stylex.ts. compact gets no query of its own: it is the unprefixed base every style starts from, and `width >= 0px` is always true.",
+      "compact": { "$value": "0px" },
+      "medium": { "$value": "600px" },
+      "expanded": { "$value": "840px" },
+      "large": { "$value": "1200px" },
+      "extraLarge": { "$value": "1600px" }
+    }
+  },
   "elevation": {
     "$type": "number",
     "$description": "Elevation levels, expressed in dp. Informational — see shadow.* below for the actual box-shadow each level renders as.",
@@ -595,6 +607,37 @@
       "standard": { "$value": [0.2, 0, 0, 1] },
       "springFast": { "$value": [0.34, 1.56, 0.64, 1] },
       "springSlow": { "$value": [0.16, 1, 0.3, 1] }
+    }
+  },
+  "$extensions": {
+    "$description": "DTCG's reserved escape hatch for data that is not a token. Style Dictionary walks past it (confirmed — it emits nothing for this subtree and does not warn), so nothing below reaches the generated StyleX or CSS output. It is here rather than in the README because the audience is whoever or whatever is holding this file: an agent handed design.tokens.json and asked to build or restyle something can read the whole contract without being told which other files to go and find.",
+    "com.github.kanso-labs.kanso-ui": {
+      "system": {
+        "name": "kanso-ui",
+        "repository": "https://github.com/kanso-labs/kanso-ui",
+        "tiers": "Reference (color.*, spacing.primitive, radii.primitive) holds raw values and is not consumed directly. System (semantic.light / semantic.dark) maps roles onto specific tones and is what components use for color. The remaining groups — typography, spacing.component, radii.component, elevation, shadow, stateLayerOpacity, motion, layout — are component-facing as written.",
+        "rule": "Reach for the most specific tier that says what you mean. A surface is semantic.surfaceContainer, never color.neutral.94; a gap is spacing.component.md, never 12px."
+      },
+      "consumption": {
+        "stylex": "Inside this repo: import { colors, typography, spacing, radii, shadows, stateLayerOpacity, motion, breakpoints, media } from '../../tokens/design.tokens.stylex' and reference them inside stylex.create(). No CSS files, no inline style objects. These bindings are internal — the package exports components and the stylesheet below, not the token module, so a consumer retheming kanso-ui does it through the custom properties rather than through StyleX.",
+        "css": "src/tokens/design.tokens.css, published as the 'kanso-ui/tokens.css' export. This is the public override contract: redeclare any custom property in it to retheme every component, with no StyleX toolchain of your own required.",
+        "cssVarPrefix": "--kui-",
+        "theming": "Color follows prefers-color-scheme by default. colorsLightTheme and colorsDarkTheme, also exported from design.tokens.stylex.ts, pin a subtree to one scheme for a manual toggle. Breakpoints are the one group with no CSS custom property — see layout.breakpoint above.",
+        "regenerate": "npm run tokens:build after editing this file. The generated .stylex.ts and .css are committed, and the same build also runs automatically under storybook, vitest, and the package build."
+      },
+      "voice": {
+        "$description": "Copy conventions for anything user-visible the library ships or documents: component labels, story text, error and empty states. Kept alongside the visual tokens on the same reasoning — 'sentence case, no exclamation marks' is as much a part of looking like kanso-ui as the type scale is, and it is just as easy to get wrong when the writing is spread across a dozen files.",
+        "tone": "plain, concrete, unadorned — kanso (簡素) is the elimination of clutter, and the writing follows the visual system in that",
+        "labelCase": "sentence case for every label, heading, button, and menu item",
+        "ctaStyle": "imperative, verb first, naming the actual outcome — 'Save changes', not 'Click here to save' and not 'Submit'",
+        "avoid": [
+          "title case in UI labels",
+          "exclamation marks",
+          "jargon and internal component names in user-facing copy",
+          "hedging — 'might', 'try to', 'please wait'",
+          "blaming the reader in error text — say what happened and what to do next"
+        ]
+      }
     }
   }
 }

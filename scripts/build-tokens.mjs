@@ -201,6 +201,23 @@ function isCubicBezier(value) {
   )
 }
 
+// defineConsts, not defineVars: the compiler inlines these at every use
+// site instead of emitting a custom property, which is the only thing that
+// works for a value that has to sit inside an at-rule condition. There is
+// deliberately no withCssVarFallback here and no matching entry in
+// cssSource — see the note on layout.breakpoint in design.tokens.json.
+/** @param {string} exportName @param {Entry[]} entries @returns {string} */
+function defineConstsBlock(exportName, entries) {
+  const lines = entries
+    .map(([name, value]) => `  ${name}: ${value},`)
+    .toSorted((a, b) => a.trim().localeCompare(b.trim()))
+  return `const ${exportName} = stylex.defineConsts({
+${lines.join('\n')}
+})
+
+export { ${exportName} }`
+}
+
 /** @param {string} exportName @param {Entry[]} entries @returns {string} */
 function defineVarsBlock(exportName, entries) {
   const lines = entries
@@ -546,6 +563,49 @@ function stateLayerOpacityEntries(allTokens) {
   ])
 }
 
+// Window size classes, smallest first — see layout.breakpoint in
+// design.tokens.json.
+const BREAKPOINTS = ['compact', 'medium', 'expanded', 'large', 'extraLarge']
+
+/** @param {TransformedToken[]} allTokens @param {string} key @returns {string} */
+function breakpointAt(allTokens, key) {
+  /** @type {unknown} */
+  const value = byPath(allTokens, 'layout', 'breakpoint', key)
+  if (typeof value !== 'string') {
+    throw new TypeError(`Expected string for layout.breakpoint.${key}`)
+  }
+  return value
+}
+
+/** @param {TransformedToken[]} allTokens @returns {Entry[]} */
+function breakpointEntries(allTokens) {
+  return BREAKPOINTS.map((key) => [key, `'${breakpointAt(allTokens, key)}'`])
+}
+
+// A ready-made at-rule per class in both directions, since a media query
+// written by hand from a raw breakpoint is the step where the off-by-one
+// creeps in: the classic max-width pairing for a 600px floor is 599.98px,
+// and getting it wrong leaves a one-pixel window matching both queries or
+// neither. Range syntax sidesteps that arithmetic entirely — `< 600px` and
+// `>= 600px` partition the axis exactly, with no fractional fudge.
+//
+// `medium` is the up-query and `belowMedium` its complement, rather than a
+// Bootstrap-style medium/mediumDown pair where `down` silently means "below
+// the *next* class up". compact appears in neither: `width >= 0px` is always
+// true and `width < 0px` never is, so its two queries would be a no-op and a
+// dead rule. It is the base every style starts from, not a query.
+/** @param {TransformedToken[]} allTokens @returns {Entry[]} */
+function mediaEntries(allTokens) {
+  /** @type {Entry[]} */
+  const entries = []
+  for (const key of BREAKPOINTS.slice(1)) {
+    const width = breakpointAt(allTokens, key)
+    entries.push([key, `'@media (width >= ${width})'`])
+    entries.push([`below${pascalCase(key)}`, `'@media (width < ${width})'`])
+  }
+  return entries
+}
+
 /** @param {unknown} value @returns {value is import('oxfmt').FormatConfig} */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -610,6 +670,10 @@ ${defineVarsBlock(
 )}
 
 ${defineVarsBlock('motion', withCssVarFallback('motion', motionEntries(allTokens)))}
+
+${defineConstsBlock('breakpoints', breakpointEntries(allTokens))}
+
+${defineConstsBlock('media', mediaEntries(allTokens))}
 `
 }
 
@@ -621,6 +685,12 @@ function cssLines(group, entries) {
   )
 }
 
+// layout.breakpoint is absent by design, not by oversight: a custom property
+// here would advertise an override that cannot work, since the media queries
+// consuming it are compiled to literals and no var() in a condition would be
+// read. Retheming a breakpoint means editing design.tokens.json and
+// rebuilding, which is the honest story for a value the compiler has to bake
+// in — everything else in this file really is overridable at runtime.
 /** @param {TransformedToken[]} allTokens @returns {string} */
 function cssSource(allTokens) {
   const themedEntries = colorThemedEntries(allTokens)

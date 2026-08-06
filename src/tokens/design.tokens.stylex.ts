@@ -550,3 +550,26 @@ const motion = stylex.defineVars({
 })
 
 export { motion }
+
+const breakpoints = stylex.defineConsts({
+  compact: '0px',
+  expanded: '840px',
+  extraLarge: '1600px',
+  large: '1200px',
+  medium: '600px',
+})
+
+export { breakpoints }
+
+const media = stylex.defineConsts({
+  belowExpanded: '@media (width < 840px)',
+  belowExtraLarge: '@media (width < 1600px)',
+  belowLarge: '@media (width < 1200px)',
+  belowMedium: '@media (width < 600px)',
+  expanded: '@media (width >= 840px)',
+  extraLarge: '@media (width >= 1600px)',
+  large: '@media (width >= 1200px)',
+  medium: '@media (width >= 600px)',
+})
+
+export { media }
