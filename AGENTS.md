@@ -82,6 +82,12 @@ The same applies to new components: write their stories and tests with generic
 copy from the start rather than porting text over from wherever the design
 originated.
 
+That rule covers what the placeholder text may say. How copy is written — the
+sentence case, the imperative CTAs, the things to avoid — lives in
+`src/tokens/design.tokens.json`, under `$extensions` → `voice`, alongside the
+visual tokens, so it reaches anything handed the token file on its own. Both
+apply to a new component's stories, and neither is a subset of the other.
+
 ### Controlling time
 
 Do not wait in real time for a component's own timers. An assertion can land

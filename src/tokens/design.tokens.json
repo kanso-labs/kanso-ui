@@ -619,11 +619,14 @@
         "rule": "Reach for the most specific tier that says what you mean. A surface is semantic.surfaceContainer, never color.neutral.94; a gap is spacing.component.md, never 12px."
       },
       "consumption": {
-        "stylex": "Inside this repo: import { colors, typography, spacing, radii, shadows, stateLayerOpacity, motion, breakpoints, media } from '../../tokens/design.tokens.stylex' and reference them inside stylex.create(). No CSS files, no inline style objects. These bindings are internal — the package exports components and the stylesheet below, not the token module, so a consumer retheming kanso-ui does it through the custom properties rather than through StyleX.",
+        "$description": "This file generates three files, and picking the wrong one is the mistake worth guarding against — see the 'rule' entry below. Both JS modules are internal: the package exports components and the stylesheet, not the token modules, so a consumer retheming kanso-ui does it through the custom properties rather than through StyleX.",
+        "rule": "Reach for the StyleX theme anywhere a CSS property value will do, and for values.ts only when something has to compute with a token rather than declare it. The StyleX bindings are var(--kui-*, literal) references, so a consumer who redeclares the custom property moves them; the plain values are frozen at build time and cannot honour that override. Choosing values.ts out of convenience silently opts that declaration out of the theming contract.",
+        "stylex": "src/tokens/design.tokens.stylex.ts. Inside this repo: import { colors, typography, spacing, radii, shadows, stateLayerOpacity, motion, breakpoints, media } from '../../tokens/design.tokens.stylex' and reference them inside stylex.create(). No CSS files, no inline style objects.",
+        "values": "src/tokens/values.ts. Tokens as plain JS values — motion durations as a number of milliseconds, easing curves as strings, spacing in px. Only the groups something computes with are generated here: element.animate() throws a TypeError on a var() duration, and useRipple does arithmetic with spacing, so neither can take a CSS value. Color, radii, shadows, typography, and the state-layer opacities are declared rather than computed and are deliberately absent.",
         "css": "src/tokens/design.tokens.css, published as the 'kanso-ui/tokens.css' export. This is the public override contract: redeclare any custom property in it to retheme every component, with no StyleX toolchain of your own required.",
         "cssVarPrefix": "--kui-",
         "theming": "Color follows prefers-color-scheme by default. colorsLightTheme and colorsDarkTheme, also exported from design.tokens.stylex.ts, pin a subtree to one scheme for a manual toggle. Breakpoints are the one group with no CSS custom property — see layout.breakpoint above.",
-        "regenerate": "npm run tokens:build after editing this file. The generated .stylex.ts and .css are committed, and the same build also runs automatically under storybook, vitest, and the package build."
+        "regenerate": "npm run tokens:build after editing this file. All three generated files (design.tokens.stylex.ts, values.ts, design.tokens.css) are committed, and the same build also runs automatically under storybook, vitest, and the package build."
       },
       "voice": {
         "$description": "Copy conventions for anything user-visible the library ships or documents: component labels, story text, error and empty states. Kept alongside the visual tokens on the same reasoning — 'sentence case, no exclamation marks' is as much a part of looking like kanso-ui as the type scale is, and it is just as easy to get wrong when the writing is spread across a dozen files.",
@@ -636,7 +639,8 @@
           "jargon and internal component names in user-facing copy",
           "hedging — 'might', 'try to', 'please wait'",
           "blaming the reader in error text — say what happened and what to do next"
-        ]
+        ],
+        "sampleCopy": "The entries above govern how copy is written; what the placeholder text in stories, tests, and comments is allowed to say is a separate rule with the same weight. It must stay domain-neutral and name the slot it fills, never lifted from a consuming app's screens. AGENTS.md, under 'Sample copy', holds that rule and its placeholder vocabulary — recorded here so a reader holding only this file knows to go and find it."
       }
     }
   }
