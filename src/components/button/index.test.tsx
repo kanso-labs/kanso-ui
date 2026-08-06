@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
 import { colors } from '../../tokens/design.tokens.stylex'
+import { motionDurationMs } from '../../tokens/values'
 
 // The tonal assertions compare against an element styled straight from the
 // tokens rather than against hex literals, so they pin which colour role the
@@ -19,9 +20,14 @@ const tokenProbeStyles = stylex.create({
   },
 })
 
-// Mirrored from useRipple so the waits below read as intent.
-const TOUCH_DELAY_MS = 150
-const MINIMUM_PRESS_MS = 225
+// Named here for the waits below to read as intent, but derived from the same
+// tokens useRipple spends rather than copied as numbers — a retuned token
+// moves the hook and these waits together. What is still mirrored by hand is
+// which token each one is, and the boundary assertions are what catch that
+// going stale: they advance to one millisecond either side of the floor, so a
+// hook waiting on a different step fails here rather than passing loosely.
+const TOUCH_DELAY_MS = motionDurationMs.short2
+const MINIMUM_PRESS_MS = motionDurationMs.medium1
 
 // The ripple's inner span carries the classes from `rippleStyles.pressed` only
 // while the hook considers itself pressed, so their presence is an observable

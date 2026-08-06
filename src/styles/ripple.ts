@@ -11,6 +11,22 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // `pressed` class — with a fast fade-in and a slower fade-out, so a quick
 // tap still reads as a deliberate, visible ripple rather than a flicker.
 //
+// None of the three timings below is a motion token, and that is deliberate
+// rather than an oversight predating them. The fade pair is the asymmetry
+// the paragraph above describes: 105ms in against 375ms out, hand-tuned as
+// a ratio to each other, and neither lands on the scale (105ms is near
+// durationShort1's 100ms; 375ms sits between durationMedium3 and
+// durationLong1). Snapping either to its nearest token would flatten a
+// tuned asymmetry into two arbitrary values, and adding tokens to fit would
+// make a scale that documents itself as three bands of three describe this
+// component instead. `linear` is likewise not on the easing scale, and
+// belongs off it — a fade to and from a state layer wants no acceleration,
+// which is why every curve in the token set is the wrong answer here.
+//
+// These three are now the only ripple timings off the scale. Everything
+// useRipple drives from JS is a token, read through src/tokens/values
+// because element.animate() and setTimeout both reject the StyleX form.
+//
 // The gradient's soft edge (a currentColor disc fading to transparent over
 // its outer 30-35%, capped at 70px) replaces a hard-edged circle so the
 // ripple blends into the surface rather than looking like a solid dot.
