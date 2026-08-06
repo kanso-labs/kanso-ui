@@ -4,7 +4,9 @@ import * as stylex from '@stylexjs/stylex'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
 import {
+  breakpoints,
   colors,
+  media,
   motion,
   radii,
   shadows,
@@ -41,6 +43,22 @@ const travelDot = stylex.keyframes({
 })
 
 const styles = stylex.create({
+  breakpointMarker: {
+    borderRadius: radii.xs,
+    flexGrow: 1,
+    height: '16px',
+    minWidth: 0,
+  },
+  breakpointValue: {
+    color: colors.onSurfaceVariant,
+    flexShrink: 0,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: typography.labelSmallSize,
+    // Right-aligns onto its own line once the row has wrapped, the same way
+    // the motion rows' values do.
+    marginInlineStart: 'auto',
+    whiteSpace: 'nowrap',
+  },
   card: {
     backgroundColor: colors.surfaceContainer,
     borderRadius: radii.lg,
@@ -604,6 +622,53 @@ const radiiOrder: (keyof typeof radiiStyles)[] = [
   'full',
 ]
 
+// A marker fills once the viewport has reached that class's floor, so the
+// column reads cumulatively: at expanded width the first three are filled
+// and the last two are not, which is what "this viewport is in the expanded
+// class" looks like. One condition per style rather than one style stacking
+// all four queries on a single property — that would leave which rule wins a
+// question about how StyleX happens to order at-rules, and the answer would
+// be invisible here until it was wrong.
+//
+// compact is unconditional because it has no query: `width >= 0px` is always
+// true, so its marker is always filled. That is the point of it, not an
+// omission — every style starts in compact and queries up from there.
+const breakpointStyles = stylex.create({
+  compact: { backgroundColor: colors.primary },
+  expanded: {
+    backgroundColor: {
+      default: colors.surfaceContainerHighest,
+      [media.expanded]: colors.primary,
+    },
+  },
+  extraLarge: {
+    backgroundColor: {
+      default: colors.surfaceContainerHighest,
+      [media.extraLarge]: colors.primary,
+    },
+  },
+  large: {
+    backgroundColor: {
+      default: colors.surfaceContainerHighest,
+      [media.large]: colors.primary,
+    },
+  },
+  medium: {
+    backgroundColor: {
+      default: colors.surfaceContainerHighest,
+      [media.medium]: colors.primary,
+    },
+  },
+})
+
+const breakpointOrder: (keyof typeof breakpointStyles)[] = [
+  'compact',
+  'medium',
+  'expanded',
+  'large',
+  'extraLarge',
+]
+
 const shadowStyles = stylex.create({
   elevation1: { boxShadow: shadows.elevation1 },
   elevation2: { boxShadow: shadows.elevation2 },
@@ -926,6 +991,36 @@ function Tokens() {
             <div key={name} {...stylex.props(styles.row)}>
               <span {...stylex.props(styles.tokenLabel)}>{name}</span>
               <div {...stylex.props(styles.radiiBox, radiiStyles[name])} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section {...stylex.props(styles.card)}>
+        <div {...stylex.props(styles.cardIntro)}>
+          <h2 {...stylex.props(styles.cardHeading)}>Layout</h2>
+          <p {...stylex.props(styles.cardDescription)}>
+            Window size classes, as the floor of each class. These are the one
+            group with no CSS custom property behind them — a media query cannot
+            read a var(), so they compile to literals instead and are not part
+            of the runtime override contract. Each marker below fills once this
+            window has reached that class, so the filled ones are the classes
+            currently in effect; resize to watch them turn over.
+          </p>
+        </div>
+        <div {...stylex.props(styles.rowList)}>
+          {breakpointOrder.map((name) => (
+            <div key={name} {...stylex.props(styles.row)}>
+              <span {...stylex.props(styles.tokenLabel)}>{name}</span>
+              <div
+                {...stylex.props(
+                  styles.breakpointMarker,
+                  breakpointStyles[name],
+                )}
+              />
+              <span {...stylex.props(styles.breakpointValue)}>
+                {breakpoints[name]}
+              </span>
             </div>
           ))}
         </div>
