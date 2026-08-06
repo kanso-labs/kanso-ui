@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
+import type { CardProps } from './card'
 import type { SeparatorProps } from './separator'
 import type { TextProps } from './text'
 
 import * as components from '.'
 import AvatarDefault from './avatar'
 import ButtonDefault from './button'
+import CardDefault from './card'
 import SeparatorDefault from './separator'
 import TextDefault from './text'
 
@@ -16,6 +18,7 @@ describe('components barrel', () => {
     expect(Object.keys(components)).toEqual([
       'Avatar',
       'Button',
+      'Card',
       'Separator',
       'Text',
     ])
@@ -27,6 +30,10 @@ describe('components barrel', () => {
 
   it('re-exports Button as the same reference as its own module', () => {
     expect(components.Button).toBe(ButtonDefault)
+  })
+
+  it('re-exports Card as the same reference as its own module', () => {
+    expect(components.Card).toBe(CardDefault)
   })
 
   it('re-exports Separator as the same reference as its own module', () => {
@@ -45,6 +52,11 @@ describe('components barrel', () => {
   it('re-exports the ButtonProps type', () => {
     const props: ButtonProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CardProps type', () => {
+    const props: CardProps = { variant: 'outlined' }
+    expect(props.variant).toBe('outlined')
   })
 
   it('re-exports the SeparatorProps type', () => {
