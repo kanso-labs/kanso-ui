@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
+import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
 import type { TextProps } from './text'
 
@@ -10,6 +11,7 @@ import * as components from '.'
 import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import CardDefault from './card'
+import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
 import TextDefault from './text'
 
@@ -19,6 +21,7 @@ describe('components barrel', () => {
       'Avatar',
       'Button',
       'Card',
+      'ListItem',
       'Separator',
       'Text',
     ])
@@ -34,6 +37,10 @@ describe('components barrel', () => {
 
   it('re-exports Card as the same reference as its own module', () => {
     expect(components.Card).toBe(CardDefault)
+  })
+
+  it('re-exports ListItem as the same reference as its own module', () => {
+    expect(components.ListItem).toBe(ListItemDefault)
   })
 
   it('re-exports Separator as the same reference as its own module', () => {
@@ -57,6 +64,11 @@ describe('components barrel', () => {
   it('re-exports the CardProps type', () => {
     const props: CardProps = { variant: 'outlined' }
     expect(props.variant).toBe('outlined')
+  })
+
+  it('re-exports the ListItemProps type', () => {
+    const props: ListItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 
   it('re-exports the SeparatorProps type', () => {
