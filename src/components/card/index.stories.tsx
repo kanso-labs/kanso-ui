@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 
@@ -7,16 +7,62 @@ import { spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
 
+// See avatar/index.stories.tsx for why the overview is built from the library's
+// own components rather than from shell components of its own, and why its
+// sections are divided by a rule instead of boxed in Cards. That matters most
+// here: every sample sits directly on the page's surface, which is the
+// background these three variants are defined against — a Card panel around
+// them would have been the one context in which they cannot be judged.
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_1 = <h1 />
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_2 = <h2 />
+const PARAGRAPH = <p />
+
 const styles = stylex.create({
+  header: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+  inline: {
+    alignItems: 'flex-end',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
+  intro: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xxs,
+  },
+  // Wider than a variant sample, because list rows need room to read as rows.
+  list: {
+    inlineSize: '320px',
+  },
   // The card sets no padding in this mode, so the rows carry their own and
   // the rules between them reach both edges.
   listRow: {
     paddingBlock: spacing.md,
     paddingInline: spacing.lg,
   },
-  row: {
-    alignItems: 'flex-start',
+  page: {
     display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xl,
+    marginInline: 'auto',
+    maxInlineSize: '960px',
+    padding: spacing.xl,
+  },
+  sample: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+  section: {
+    display: 'flex',
+    flexDirection: 'column',
     gap: spacing.lg,
   },
   stack: {
@@ -25,71 +71,27 @@ const styles = stylex.create({
     gap: spacing.xs,
   },
   wide: {
-    inlineSize: '260px',
+    inlineSize: '240px',
   },
 })
 
-const meta = {
-  component: Card,
-  title: 'Components/Card',
-} satisfies Meta<typeof Card>
-
-type Story = StoryObj<typeof meta>
-
-function Body({ title }: { title: string }) {
+function Body() {
   return (
     <div {...stylex.props(styles.stack)}>
-      <Text variant="titleMedium">{title}</Text>
+      <Text variant="titleMedium">Headline</Text>
       <Text tone="muted" variant="bodySmall">
-        Supporting line beneath the title
+        Supporting line
       </Text>
     </div>
   )
 }
 
-// Side by side rather than one story each, because the three differ only in
-// how they separate themselves from the page and that is a comparison.
-const Variants: Story = {
-  render: (args) => (
-    <div {...stylex.props(styles.row)}>
-      <Card {...args} variant="elevated" {...stylex.props(styles.wide)}>
-        <Body title="Elevated" />
-      </Card>
-      <Card {...args} variant="filled" {...stylex.props(styles.wide)}>
-        <Body title="Filled" />
-      </Card>
-      <Card {...args} variant="outlined" {...stylex.props(styles.wide)}>
-        <Body title="Outlined" />
-      </Card>
-    </div>
-  ),
-}
+const ROWS = ['First item', 'Second item', 'Third item']
 
-// Renders a button, so it ripples and takes focus. Worth its own story
-// because the resting state is the only part a snapshot can show — the lift
-// and the ripple are what you get by pressing it.
-const Interactive: Story = {
-  args: {
-    interactive: true,
-  },
-  render: (args) => (
-    <Card {...args} {...stylex.props(styles.wide)}>
-      <Body title="Interactive" />
-    </Card>
-  ),
-}
-
-// The design's bordered list container is exactly this: an outlined card with
-// no padding of its own, holding rows separated by rules. It is the reason
-// the library has no List component.
-const AsAList: Story = {
-  args: {
-    padding: 'none',
-    variant: 'outlined',
-  },
-  render: (args) => (
-    <Card {...args} {...stylex.props(styles.wide)}>
-      {['First item', 'Second item', 'Third item'].map((label, index) => (
+function List() {
+  return (
+    <>
+      {ROWS.map((label, index) => (
         <div key={label}>
           {index === 0 ? null : <Separator />}
           <div {...stylex.props(styles.listRow)}>
@@ -97,10 +99,198 @@ const AsAList: Story = {
           </div>
         </div>
       ))}
-    </Card>
+    </>
+  )
+}
+
+// A card fills its container, so every sample needs one to have a width. It
+// has to be a wrapper rather than a prop: Card spreads its own StyleX
+// className last and so cannot be widened from the outside.
+const Wide: Decorator = (Story) => (
+  <div {...stylex.props(styles.wide)}>
+    <Story />
+  </div>
+)
+
+const CONTENT = <Body />
+
+const meta = {
+  args: {
+    children: CONTENT,
+  },
+  component: Card,
+  title: 'Components/Card',
+} satisfies Meta<typeof Card>
+
+type Story = StoryObj<typeof meta>
+
+const Overview: Story = {
+  render: () => (
+    <div {...stylex.props(styles.page)}>
+      <header {...stylex.props(styles.header)}>
+        <Text render={HEADING_1} variant="displaySmall">
+          Card
+        </Text>
+        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
+          A surface that groups related content, and optionally makes the whole
+          group pressable.
+        </Text>
+      </header>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Variants
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The three differ only in how they separate themselves from the page:
+            a shadow, a darker fill, or a border. Each therefore sits on a
+            different background, which is why the interaction styles are keyed
+            by variant too.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card variant="elevated">
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              elevated
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card variant="filled">
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card variant="outlined">
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              outlined
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Interactive
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Renders a button that ripples, lifts on hover, and takes focus. Only
+            the resting state is visible here — the rest is what you get by
+            pressing it.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card interactive>
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              interactive
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Padding
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `none` removes the card's own padding, for children that run to its
+            edges.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card variant="outlined">
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              default
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card padding="none" variant="outlined">
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              none
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            As a list
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The design's bordered list container is exactly this — an outlined
+            card with no padding of its own, holding rows separated by rules. It
+            is the reason the library has no List component.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.list)}>
+              <Card padding="none" variant="outlined">
+                <List />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              padding="none" · variant="outlined"
+            </Text>
+          </div>
+        </div>
+      </section>
+    </div>
   ),
 }
 
-export { AsAList, Interactive, Variants }
+const Default: Story = {
+  decorators: [Wide],
+}
+
+// Its own story because it is a different element — a button rather than a
+// div — with focus and ripple behaviour a snapshot cannot show.
+const Interactive: Story = {
+  args: {
+    interactive: true,
+  },
+  decorators: [Wide],
+}
+
+export { Default, Interactive, Overview }
 
 export default meta
