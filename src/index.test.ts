@@ -5,6 +5,7 @@ import {
   Avatar as ComponentsAvatar,
   Button as ComponentsButton,
   Card as ComponentsCard,
+  Chip as ComponentsChip,
   IconButton as ComponentsIconButton,
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
@@ -19,6 +20,7 @@ describe('package entry point', () => {
       'Avatar',
       'Button',
       'Card',
+      'Chip',
       'IconButton',
       'ListItem',
       'Separator',
@@ -36,6 +38,10 @@ describe('package entry point', () => {
 
   it('forwards Card as the same reference as the components barrel', () => {
     expect(publicApi.Card).toBe(ComponentsCard)
+  })
+
+  it('forwards Chip as the same reference as the components barrel', () => {
+    expect(publicApi.Chip).toBe(ComponentsChip)
   })
 
   it('forwards IconButton as the same reference as the components barrel', () => {
