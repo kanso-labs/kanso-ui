@@ -148,6 +148,19 @@ describe('card', () => {
     })
   })
 
+  describe('shape', () => {
+    // A child that reaches the card's edges is square where the card is
+    // round, so its background — a row's hover tint, a ripple — paints over
+    // the corner arcs unless the card clips. Asserted together with the
+    // radius, since clipping only matters while there is a corner to clip to.
+    it('clips its contents to its rounded corners', () => {
+      const view = render(<Card padding="none">content</Card>)
+      const computed = getComputedStyle(cardIn(view.container))
+      expect(computed.overflow).toBe('hidden')
+      expect(computed.borderRadius).not.toBe('0px')
+    })
+  })
+
   describe('padding', () => {
     it('pads its contents by default', () => {
       const expected = probe(
