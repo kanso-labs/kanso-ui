@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
+import type { ChipProps } from './chip'
 import type { IconButtonProps } from './icon-button'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
@@ -12,6 +13,7 @@ import * as components from '.'
 import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import CardDefault from './card'
+import ChipDefault from './chip'
 import IconButtonDefault from './icon-button'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
@@ -23,6 +25,7 @@ describe('components barrel', () => {
       'Avatar',
       'Button',
       'Card',
+      'Chip',
       'IconButton',
       'ListItem',
       'Separator',
@@ -40,6 +43,10 @@ describe('components barrel', () => {
 
   it('re-exports Card as the same reference as its own module', () => {
     expect(components.Card).toBe(CardDefault)
+  })
+
+  it('re-exports Chip as the same reference as its own module', () => {
+    expect(components.Chip).toBe(ChipDefault)
   })
 
   it('re-exports IconButton as the same reference as its own module', () => {
@@ -71,6 +78,11 @@ describe('components barrel', () => {
   it('re-exports the CardProps type', () => {
     const props: CardProps = { variant: 'outlined' }
     expect(props.variant).toBe('outlined')
+  })
+
+  it('re-exports the ChipProps type', () => {
+    const props: ChipProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 
   it('re-exports the IconButtonProps type', () => {
