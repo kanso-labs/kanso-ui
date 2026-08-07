@@ -62,6 +62,31 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    options: {
+      // Overview first within each component, everything else left where it
+      // already was. Returning 0 is what does the second half: the default
+      // order is the order stories are exported in, and lint sorts those
+      // named exports alphabetically, so there is nothing to re-sort here —
+      // only the one entry that should lead rather than land under 'D'.
+      //
+      // Deliberately untyped, and it has to stay that way. Storybook does not
+      // import this function — the indexer reads preview.tsx as text, cuts out
+      // the storySort expression, and eval()s it as plain JavaScript, so a
+      // parameter annotation is a syntax error there and takes the whole story
+      // index down with it. Nothing type-checks this file either way: neither
+      // tsconfig includes .storybook, and nothing under src imports it.
+      /* oxlint-disable typescript/no-unsafe-member-access -- untyped by necessity, see above */
+      storySort: (a, b) => {
+        if (a.title !== b.title) {
+          return 0
+        }
+        if (a.name === 'Overview') {
+          return -1
+        }
+        return b.name === 'Overview' ? 1 : 0
+      },
+      /* oxlint-enable typescript/no-unsafe-member-access */
+    },
   },
 }
 

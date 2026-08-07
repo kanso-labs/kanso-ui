@@ -6,15 +6,8 @@ import { expect, waitFor } from 'storybook/test'
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
 import { spacing } from '../../tokens/design.tokens.stylex'
-
-const storyStyles = stylex.create({
-  row: {
-    alignItems: 'center',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.lg,
-  },
-})
+import Separator from '../separator'
+import Text from '../text'
 
 // The classes StyleX generates for the pressed state are the observable signal
 // that the hook considers itself pressed, without reaching into React.
@@ -35,6 +28,54 @@ function isPressed(button: HTMLElement) {
   )
 }
 
+// See avatar/index.stories.tsx for why the overview is built from the library's
+// own components rather than from shell components of its own, why its sections
+// are divided by a rule instead of boxed in Cards, and why the headings go
+// through Text's `render`.
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_1 = <h1 />
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_2 = <h2 />
+const PARAGRAPH = <p />
+
+const styles = stylex.create({
+  header: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+  inline: {
+    alignItems: 'flex-end',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
+  intro: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xxs,
+  },
+  page: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xl,
+    marginInline: 'auto',
+    maxInlineSize: '960px',
+    padding: spacing.xl,
+  },
+  sample: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+  section: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+  },
+})
+
 const meta = {
   args: {
     children: 'Button',
@@ -45,32 +86,157 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
+// Every variant and size on one page, in both themes, for one Chromatic
+// snapshot apiece. `disableRipple` is the one prop with nothing to show here:
+// it changes what happens on press, and at rest the two are the same pixels.
+const Overview: Story = {
+  render: () => (
+    <div {...stylex.props(styles.page)}>
+      <header {...stylex.props(styles.header)}>
+        <Text render={HEADING_1} variant="displaySmall">
+          Button
+        </Text>
+        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
+          The four emphasis levels of the design's button, at four control
+          heights.
+        </Text>
+      </header>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Variants
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Emphasis, high to low. Each sits on a different background, so the
+            hover and pressed state layers are keyed by variant rather than
+            written once for all four.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button variant="filled">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button variant="tonal">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button variant="outlined">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button variant="text">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              text
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Sizes
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Fixed control heights from the design rather than steps of the
+            spacing scale. Each takes the size and line-height of a type style
+            but never its font or weight, so an xl button still reads as a
+            button.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button size="xs">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              xs · 32px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button size="md">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              md · 40px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button size="lg">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              lg · 56px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button size="xl">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              xl · 80px
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Disabled
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Disabled composites the same on-surface opacity over every variant,
+            so the four converge rather than each fading in its own colour.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button disabled variant="filled">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button disabled variant="tonal">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button disabled variant="outlined">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button disabled variant="text">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              text
+            </Text>
+          </div>
+        </div>
+      </section>
+    </div>
+  ),
+}
+
 const Default: Story = {}
-
-const Disabled: Story = {
-  args: {
-    disabled: true,
-  },
-}
-
-const NoRipple: Story = {
-  args: {
-    disableRipple: true,
-  },
-}
-
-const Outlined: Story = {
-  args: {
-    variant: 'outlined',
-  },
-}
-
-const OutlinedDisabled: Story = {
-  args: {
-    disabled: true,
-    variant: 'outlined',
-  },
-}
 
 // One full press against real timers and real animations. index.test.tsx stubs
 // both the clock and the Web Animations API, so it proves the state machine but
@@ -85,8 +251,8 @@ const OutlinedDisabled: Story = {
 // the widget's percentage. Hidden, not removed — it stays in the index and is
 // still reachable by URL, which is also why Chromatic needs telling separately.
 // It skips this one because the ripple is mid-animation for most of the play
-// function, so a snapshot would diff against itself. Default already covers the
-// filled button visually.
+// function, so a snapshot would diff against itself. Overview already covers
+// the filled button visually.
 const Pressed: Story = {
   parameters: {
     chromatic: { disableSnapshot: true },
@@ -118,66 +284,6 @@ const Pressed: Story = {
   tags: ['!dev'],
 }
 
-// One story rather than four, because the thing worth looking at is the
-// relationship between the sizes — and it costs one Chromatic snapshot per
-// theme instead of four.
-const Sizes: Story = {
-  render: (args) => (
-    <div {...stylex.props(storyStyles.row)}>
-      <Button {...args} size="xs">
-        Extra small
-      </Button>
-      <Button {...args} size="md">
-        Medium
-      </Button>
-      <Button {...args} size="lg">
-        Large
-      </Button>
-      <Button {...args} size="xl">
-        Extra large
-      </Button>
-    </div>
-  ),
-}
-
-const Text: Story = {
-  args: {
-    variant: 'text',
-  },
-}
-
-const TextDisabled: Story = {
-  args: {
-    disabled: true,
-    variant: 'text',
-  },
-}
-
-const Tonal: Story = {
-  args: {
-    variant: 'tonal',
-  },
-}
-
-const TonalDisabled: Story = {
-  args: {
-    disabled: true,
-    variant: 'tonal',
-  },
-}
-
-export {
-  Default,
-  Disabled,
-  NoRipple,
-  Outlined,
-  OutlinedDisabled,
-  Pressed,
-  Sizes,
-  Text,
-  TextDisabled,
-  Tonal,
-  TonalDisabled,
-}
+export { Default, Overview, Pressed }
 
 export default meta

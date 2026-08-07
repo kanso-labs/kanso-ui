@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
+import Separator from '../components/separator'
+import Text from '../components/text'
 import {
   breakpoints,
   colors,
@@ -20,6 +22,18 @@ import {
 // phone's viewport — so each row's label takes a line of its own and the
 // rest flows underneath it.
 const NARROW = '@media (max-width: 640px)'
+
+// Headings and prose go through Text's `render`, so this page is set in the
+// library it documents and matches the component overviews beside it. The
+// samples below stay raw: they exist to show what a token resolves to, and
+// routing one through a component would document the component instead.
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_1 = <h1 />
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_2 = <h2 />
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_3 = <h3 />
+const PARAGRAPH = <p />
 
 const DOT_SIZE = '16px'
 
@@ -58,34 +72,6 @@ const styles = stylex.create({
     // the motion rows' values do.
     marginInlineStart: 'auto',
     whiteSpace: 'nowrap',
-  },
-  card: {
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: radii.lg,
-    boxShadow: shadows.elevation1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-    padding: spacing.xl,
-  },
-  cardDescription: {
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.fontFamilyPlain,
-    fontSize: typography.bodyMediumSize,
-    margin: 0,
-  },
-  cardHeading: {
-    color: colors.onSurface,
-    fontFamily: typography.fontFamilyBrand,
-    fontSize: typography.titleLargeSize,
-    fontWeight: typography.titleLargeWeight,
-    lineHeight: typography.titleLargeLineHeight,
-    margin: 0,
-  },
-  cardIntro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
   },
   curve: {
     height: '56px',
@@ -171,19 +157,15 @@ const styles = stylex.create({
     minWidth: '64px',
     position: 'relative',
   },
-  eyebrow: {
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.fontFamilyPlain,
-    fontSize: typography.labelMediumSize,
-    fontWeight: typography.labelMediumWeight,
-    letterSpacing: '0.06em',
-    margin: 0,
-    textTransform: 'uppercase',
-  },
   grid: {
     display: 'grid',
     gap: spacing.md,
     gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+  },
+  intro: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xxs,
   },
   // Wider than the shared tokenLabel it sits on top of, because
   // 'easingEmphasizedDecelerate' is 172px of mono and would otherwise spill
@@ -223,20 +205,6 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.xs,
-  },
-  pageSubtitle: {
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.fontFamilyPlain,
-    fontSize: typography.bodyLargeSize,
-    margin: 0,
-  },
-  pageTitle: {
-    color: colors.onSurface,
-    fontFamily: typography.fontFamilyBrand,
-    fontSize: typography.displaySmallSize,
-    fontWeight: typography.displaySmallWeight,
-    lineHeight: typography.displaySmallLineHeight,
-    margin: 0,
   },
   // Tonal treatment, composited the same way Button's variants are — see the
   // header comment there for why color-mix() has to be written out at each
@@ -281,6 +249,11 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.sm,
+  },
+  section: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
   },
   shadowBox: {
     backgroundColor: colors.surface,
@@ -877,22 +850,30 @@ function Tokens() {
   return (
     <div ref={rootRef} {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.pageHeader)}>
-        <h1 {...stylex.props(styles.pageTitle)}>Design tokens</h1>
-        <p {...stylex.props(styles.pageSubtitle)}>
+        <Text render={HEADING_1} variant="displaySmall">
+          Design tokens
+        </Text>
+        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
           The full token system every kanso-ui component is built from.
-        </p>
+        </Text>
       </header>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Colors</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Colors
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The semantic roles components import — not the raw tonal palette.
-          </p>
+          </Text>
         </div>
         {COLOR_GROUPS.map((group) => (
           <div key={group.title} {...stylex.props(styles.subsection)}>
-            <p {...stylex.props(styles.eyebrow)}>{group.title}</p>
+            <Text render={HEADING_3} tone="muted" variant="labelMedium">
+              {group.title}
+            </Text>
             <div {...stylex.props(styles.grid)}>
               {group.roles.map((role) => (
                 <div key={role}>
@@ -905,16 +886,22 @@ function Tokens() {
         ))}
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Typography</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Typography
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The full 15-style type scale and its two typeface roles.
-          </p>
+          </Text>
         </div>
 
         <div {...stylex.props(styles.subsection)}>
-          <p {...stylex.props(styles.eyebrow)}>Type scale</p>
+          <Text render={HEADING_3} tone="muted" variant="labelMedium">
+            Type scale
+          </Text>
           <div {...stylex.props(styles.rowList)}>
             {TYPE_SCALE.map((s) => (
               <div key={s.name} {...stylex.props(styles.row)}>
@@ -938,7 +925,9 @@ function Tokens() {
         </div>
 
         <div {...stylex.props(styles.subsection)}>
-          <p {...stylex.props(styles.eyebrow)}>Typeface roles</p>
+          <Text render={HEADING_3} tone="muted" variant="labelMedium">
+            Typeface roles
+          </Text>
           <div {...stylex.props(styles.rowList)}>
             <div {...stylex.props(styles.row)}>
               <span {...stylex.props(styles.tokenLabel)}>fontFamilyBrand</span>
@@ -962,12 +951,16 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Spacing</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Spacing
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             4px-based scale for padding, gaps, and margins.
-          </p>
+          </Text>
         </div>
         <div {...stylex.props(styles.rowList)}>
           {spacingOrder.map((name) => (
@@ -979,12 +972,16 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Shape</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Shape
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Corner rounding from sharp to fully round.
-          </p>
+          </Text>
         </div>
         <div {...stylex.props(styles.rowList)}>
           {radiiOrder.map((name) => (
@@ -996,17 +993,21 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Layout</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Layout
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Window size classes, as the floor of each class. These are the one
             group with no CSS custom property behind them — a media query cannot
             read a var(), so they compile to literals instead and are not part
             of the runtime override contract. Each marker below fills once this
             window has reached that class, so the filled ones are the classes
             currently in effect; resize to watch them turn over.
-          </p>
+          </Text>
         </div>
         <div {...stylex.props(styles.rowList)}>
           {breakpointOrder.map((name) => (
@@ -1026,14 +1027,18 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Elevation</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Elevation
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Five shadow levels, rendered identically in light and dark — depth
             in dark mode instead comes from the surface container tones above,
             not a stronger shadow.
-          </p>
+          </Text>
         </div>
         <div {...stylex.props(styles.grid)}>
           {Object.entries(shadowStyles).map(([name, shadowStyle]) => (
@@ -1045,15 +1050,19 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>State layers</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            State layers
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             hover/focus/pressed/dragged are conveyed by compositing an
             'on-color' over its container at one of these opacities, rather than
             a separate discrete color — shown here over primary
             (disabledContainer/disabledContent over surface).
-          </p>
+          </Text>
         </div>
         <div {...stylex.props(styles.grid)}>
           {STATE_LAYERS.map((state) => (
@@ -1065,19 +1074,25 @@ function Tokens() {
         </div>
       </section>
 
-      <section {...stylex.props(styles.card)}>
-        <div {...stylex.props(styles.cardIntro)}>
-          <h2 {...stylex.props(styles.cardHeading)}>Motion</h2>
-          <p {...stylex.props(styles.cardDescription)}>
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Motion
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Durations and easing curves are kept independent rather than paired
             into named transitions, so a component can hold one curve while
             varying speed per property.
-          </p>
+          </Text>
         </div>
 
         <div {...stylex.props(styles.subsection)}>
           <div {...stylex.props(styles.subsectionHeader)}>
-            <p {...stylex.props(styles.eyebrow)}>Duration</p>
+            <Text render={HEADING_3} tone="muted" variant="labelMedium">
+              Duration
+            </Text>
             <button
               onClick={durations.play}
               type="button"
@@ -1116,7 +1131,9 @@ function Tokens() {
 
         <div {...stylex.props(styles.subsection)}>
           <div {...stylex.props(styles.subsectionHeader)}>
-            <p {...stylex.props(styles.eyebrow)}>Easing</p>
+            <Text render={HEADING_3} tone="muted" variant="labelMedium">
+              Easing
+            </Text>
             <button
               onClick={easings.play}
               type="button"
