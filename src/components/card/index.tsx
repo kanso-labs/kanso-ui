@@ -27,6 +27,18 @@ const styles = stylex.create({
     borderRadius: radii.lg,
     borderWidth: 0,
     display: 'block',
+    // A child that reaches the card's edges — a row in a list, an image
+    // across the top — is square where the card is round, so its background
+    // paints over the corner arcs unless the card clips. The rounding is the
+    // card's, so containing it is the card's job too: nothing a child can
+    // set fixes this, since a row has no way to know it is the first or last
+    // one and so no way to round only the corners that need it.
+    //
+    // Clips the card's contents, not the card: an element's own box-shadow
+    // and outline are drawn outside its border box and are unaffected, which
+    // is what keeps the elevated variant's shadow and the interactive
+    // variant's focus ring intact.
+    overflow: 'hidden',
     // Positioning context for the ripple surface, which fills the card.
     position: 'relative',
   },
