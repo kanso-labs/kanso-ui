@@ -217,12 +217,26 @@ const Small: Story = {
 // full width, only as tall as its content, and rounded along the top instead
 // of down the leading edge.
 const BottomSheet: Story = {
+  // Sizes the frame in Storybook itself, so the story shows a bottom sheet
+  // without having to narrow the window by hand.
   globals: { viewport: { isRotated: false, value: 'mobile1' } },
   parameters: {
-    // The viewport global sizes the frame in Storybook; Chromatic renders in
-    // its own browser and needs telling separately, or it would snapshot this
-    // story at the default width and capture the side sheet again.
-    chromatic: { viewports: [375] },
+    chromatic: {
+      // Chromatic renders in a browser of its own and has to be told the
+      // width separately, or it captures the side sheet again. It has to be
+      // told through `modes` rather than the older `viewports`: the project
+      // sets `modes` for both themes, and Chromatic errors outright if a
+      // story carries both keys. Redeclared here rather than extended,
+      // because .storybook/modes.ts lives outside the src tsconfig — the
+      // theme values have to match it by hand.
+      //
+      // The mode *names* match it too, and that part matters: baselines are
+      // keyed on the name, so renaming either restarts its history.
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 375 } },
+        light: { theme: 'light', viewport: { height: 700, width: 375 } },
+      },
+    },
   },
   render: (args) => (
     <Sheet {...args} defaultOpen>
