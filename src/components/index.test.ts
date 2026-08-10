@@ -7,6 +7,7 @@ import type { ChipProps } from './chip'
 import type { IconButtonProps } from './icon-button'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
+import type { TabsProps } from './tabs'
 import type { TextProps } from './text'
 
 import * as components from '.'
@@ -17,6 +18,7 @@ import ChipDefault from './chip'
 import IconButtonDefault from './icon-button'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
+import TabsDefault from './tabs'
 import TextDefault from './text'
 
 describe('components barrel', () => {
@@ -29,6 +31,7 @@ describe('components barrel', () => {
       'IconButton',
       'ListItem',
       'Separator',
+      'Tabs',
       'Text',
     ])
   })
@@ -59,6 +62,10 @@ describe('components barrel', () => {
 
   it('re-exports Separator as the same reference as its own module', () => {
     expect(components.Separator).toBe(SeparatorDefault)
+  })
+
+  it('re-exports Tabs as the same reference as its own module', () => {
+    expect(components.Tabs).toBe(TabsDefault)
   })
 
   it('re-exports Text as the same reference as its own module', () => {
@@ -98,6 +105,11 @@ describe('components barrel', () => {
   it('re-exports the SeparatorProps type', () => {
     const props: SeparatorProps = { orientation: 'vertical' }
     expect(props.orientation).toBe('vertical')
+  })
+
+  it('re-exports the TabsProps type', () => {
+    const props: TabsProps = { defaultValue: 'first' }
+    expect(props.defaultValue).toBe('first')
   })
 
   it('re-exports the TextProps type', () => {
