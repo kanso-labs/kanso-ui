@@ -9,6 +9,7 @@ import {
   IconButton as ComponentsIconButton,
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
+  Sheet as ComponentsSheet,
   Tabs as ComponentsTabs,
   Text as ComponentsText,
 } from './components'
@@ -25,6 +26,7 @@ describe('package entry point', () => {
       'IconButton',
       'ListItem',
       'Separator',
+      'Sheet',
       'Tabs',
       'Text',
     ])
@@ -56,6 +58,10 @@ describe('package entry point', () => {
 
   it('forwards Separator as the same reference as the components barrel', () => {
     expect(publicApi.Separator).toBe(ComponentsSeparator)
+  })
+
+  it('forwards Sheet as the same reference as the components barrel', () => {
+    expect(publicApi.Sheet).toBe(ComponentsSheet)
   })
 
   it('forwards Tabs as the same reference as the components barrel', () => {
