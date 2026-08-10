@@ -8,6 +8,10 @@
 ### Claude Code ###
 # Per-session worktrees created by the desktop app / --worktree
 .claude/worktrees/
+# Agent scratch space (PR body drafts, screenshots). Ignored here rather than
+# only in a personal global gitignore, because oxfmt reads .gitignore but not
+# core.excludesfile — so `npm run lint` would otherwise fail on these files.
+.context/
 
 ### Storybook ###
 *storybook.log
