@@ -8,6 +8,7 @@ import type { IconButtonProps } from './icon-button'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
 import type { TextProps } from './text'
+import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
 import AvatarDefault from './avatar'
@@ -18,6 +19,7 @@ import IconButtonDefault from './icon-button'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
 import TextDefault from './text'
+import TextFieldDefault from './text-field'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
@@ -30,6 +32,7 @@ describe('components barrel', () => {
       'ListItem',
       'Separator',
       'Text',
+      'TextField',
     ])
   })
 
@@ -70,6 +73,10 @@ describe('components barrel', () => {
     expect(props.name).toBe('Ada Lovelace')
   })
 
+  it('re-exports TextField as the same reference as its own module', () => {
+    expect(components.TextField).toBe(TextFieldDefault)
+  })
+
   it('re-exports the ButtonProps type', () => {
     const props: ButtonProps = { children: 'test' }
     expect(props.children).toBe('test')
@@ -98,6 +105,11 @@ describe('components barrel', () => {
   it('re-exports the SeparatorProps type', () => {
     const props: SeparatorProps = { orientation: 'vertical' }
     expect(props.orientation).toBe('vertical')
+  })
+
+  it('re-exports the TextFieldProps type', () => {
+    const props: TextFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 
   it('re-exports the TextProps type', () => {

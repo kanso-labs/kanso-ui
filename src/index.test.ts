@@ -10,6 +10,7 @@ import {
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
   Text as ComponentsText,
+  TextField as ComponentsTextField,
 } from './components'
 
 describe('package entry point', () => {
@@ -25,6 +26,7 @@ describe('package entry point', () => {
       'ListItem',
       'Separator',
       'Text',
+      'TextField',
     ])
   })
 
@@ -58,5 +60,9 @@ describe('package entry point', () => {
 
   it('forwards Text as the same reference as the components barrel', () => {
     expect(publicApi.Text).toBe(ComponentsText)
+  })
+
+  it('forwards TextField as the same reference as the components barrel', () => {
+    expect(publicApi.TextField).toBe(ComponentsTextField)
   })
 })
