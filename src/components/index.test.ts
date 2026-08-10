@@ -9,6 +9,7 @@ import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
 import type { TabsProps } from './tabs'
 import type { TextProps } from './text'
+import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
 import AvatarDefault from './avatar'
@@ -20,6 +21,7 @@ import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
 import TabsDefault from './tabs'
 import TextDefault from './text'
+import TextFieldDefault from './text-field'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
@@ -33,6 +35,7 @@ describe('components barrel', () => {
       'Separator',
       'Tabs',
       'Text',
+      'TextField',
     ])
   })
 
@@ -70,6 +73,10 @@ describe('components barrel', () => {
 
   it('re-exports Text as the same reference as its own module', () => {
     expect(components.Text).toBe(TextDefault)
+  })
+
+  it('re-exports TextField as the same reference as its own module', () => {
+    expect(components.TextField).toBe(TextFieldDefault)
   })
 
   it('re-exports the AvatarProps type', () => {
@@ -115,5 +122,10 @@ describe('components barrel', () => {
   it('re-exports the TextProps type', () => {
     const props: TextProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TextFieldProps type', () => {
+    const props: TextFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })
