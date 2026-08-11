@@ -4,6 +4,7 @@ import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
+import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
@@ -17,6 +18,7 @@ import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
+import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
@@ -32,6 +34,7 @@ describe('components barrel', () => {
       'Button',
       'Card',
       'Chip',
+      'Currency',
       'IconButton',
       'ListItem',
       'Separator',
@@ -56,6 +59,10 @@ describe('components barrel', () => {
 
   it('re-exports Chip as the same reference as its own module', () => {
     expect(components.Chip).toBe(ChipDefault)
+  })
+
+  it('re-exports Currency as the same reference as its own module', () => {
+    expect(components.Currency).toBe(CurrencyDefault)
   })
 
   it('re-exports IconButton as the same reference as its own module', () => {
@@ -104,6 +111,11 @@ describe('components barrel', () => {
   it('re-exports the ChipProps type', () => {
     const props: ChipProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CurrencyProps type', () => {
+    const props: CurrencyProps = { value: 12.5 }
+    expect(props.value).toBe(12.5)
   })
 
   it('re-exports the IconButtonProps type', () => {
