@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { useEffect } from 'react'
 
 import {
   colors,
@@ -43,6 +44,22 @@ type ThemeWrapperProps = {
 // Chromatic capture the same story in both themes.
 function ThemeWrapper({ children, isDark }: ThemeWrapperProps) {
   const theme = isDark ? colorsDarkTheme : colorsLightTheme
+  const themeClassName = stylex.props(theme).className ?? ''
+
+  // The same theme, copied onto <body>. Portalled content — Sheet's panel and
+  // scrim, and anything else that renders through a portal — is appended to
+  // <body>, outside the div below, so the theme class never reaches it. It
+  // then falls through to the tokens' own prefers-color-scheme default and
+  // renders in the machine's OS theme rather than the one the toolbar asked
+  // for, which would make both Chromatic modes capture the same thing.
+  useEffect(() => {
+    const classNames = themeClassName.split(' ').filter(Boolean)
+    document.body.classList.add(...classNames)
+
+    return () => {
+      document.body.classList.remove(...classNames)
+    }
+  }, [themeClassName])
 
   return (
     <>

@@ -7,6 +7,7 @@ import type { ChipProps } from './chip'
 import type { IconButtonProps } from './icon-button'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
+import type { SheetProps } from './sheet'
 import type { TabsProps } from './tabs'
 import type { TextProps } from './text'
 import type { TextFieldProps } from './text-field'
@@ -19,6 +20,7 @@ import ChipDefault from './chip'
 import IconButtonDefault from './icon-button'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
+import SheetDefault from './sheet'
 import TabsDefault from './tabs'
 import TextDefault from './text'
 import TextFieldDefault from './text-field'
@@ -33,6 +35,7 @@ describe('components barrel', () => {
       'IconButton',
       'ListItem',
       'Separator',
+      'Sheet',
       'Tabs',
       'Text',
       'TextField',
@@ -65,6 +68,10 @@ describe('components barrel', () => {
 
   it('re-exports Separator as the same reference as its own module', () => {
     expect(components.Separator).toBe(SeparatorDefault)
+  })
+
+  it('re-exports Sheet as the same reference as its own module', () => {
+    expect(components.Sheet).toBe(SheetDefault)
   })
 
   it('re-exports Tabs as the same reference as its own module', () => {
@@ -112,6 +119,11 @@ describe('components barrel', () => {
   it('re-exports the SeparatorProps type', () => {
     const props: SeparatorProps = { orientation: 'vertical' }
     expect(props.orientation).toBe('vertical')
+  })
+
+  it('re-exports the SheetProps type', () => {
+    const props: SheetProps = { size: 'sm' }
+    expect(props.size).toBe('sm')
   })
 
   it('re-exports the TabsProps type', () => {
