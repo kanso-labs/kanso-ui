@@ -192,6 +192,41 @@ mechanism Chromatic's modes use.
   `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
   are absent from that entry because neither reads those formats.
 
+## Workflows and checks
+
+**A job name becomes a check name**, so renaming a job edits the merge gate
+rather than the label on it. Ruleset `18125383` ("Default") requires four
+contexts that workflows post — `Build`, `Lint`, `Test`, and
+`Run visual regression tests` — and it matches them by exact string. A job
+renamed without the ruleset renamed alongside it stops reporting the context the
+ruleset still waits on, so every open pull request sits on a check nothing will
+ever post, which reads as a hang rather than a failure. Keep the two in sync in
+one change. The ruleset is editable and a clearer job name is worth having, so
+this is not a rule against renaming — it is a rule against renaming only one
+half, and against forgetting the pull requests already open, which run the
+workflow files from their own branches and so keep reporting the old name until
+they are refreshed.
+
+Two further required contexts, `Storybook Publish` and `UI Tests`, are posted by
+Chromatic as commit statuses rather than by any workflow. Grepping
+`.github/workflows` for either turns up nothing, and that absence is expected
+rather than evidence something was deleted — nothing in those files affects
+them.
+
+The names themselves follow five rules:
+
+1. A workflow's filename is the kebab-case of its `name:` field, with the `.yml`
+   extension. `name: Release Please` lives in `release-please.yml`.
+2. A reusable workflow — one triggered only by `workflow_call` — takes a leading
+   underscore, so entry points and building blocks separate visually in the
+   folder listing. `_build-application.yml`. There are none here yet; the rule
+   is for when there are.
+3. A job name is an imperative verb phrase, with any matrix values appended.
+4. A step name is an imperative verb phrase in sentence case, with no trailing
+   punctuation.
+5. Job ids, step ids, and matrix keys are exempt, since renaming them means
+   updating every `needs.*` and `steps.*` reference for no visible benefit.
+
 ## Commits and pull requests
 
 **The pull request title is the one that has to be right.** Pull requests are
