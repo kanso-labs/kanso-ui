@@ -191,6 +191,14 @@ mechanism Chromatic's modes use.
   and `.yml` files are formatted (oxfmt) wherever they live, since
   `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
   are absent from that entry because neither reads those formats.
+- `CHANGELOG.md` is exempt from formatting, via `ignorePatterns` in
+  `.oxfmtrc.json`. `release-please` writes it, in a style oxfmt disagrees with —
+  `*` bullets rather than `-`, and one long line per entry against a
+  `proseWrap: always` at 80 columns. Since the file is regenerated from the
+  commit history on every release, formatting it only holds until the next
+  release PR, at which point `Lint` fails again on a branch nobody hand-edits.
+  Exempting it is what makes that stop recurring, so reformat the changelog only
+  by teaching `release-please` to emit a different style, never by hand.
 
 ## Workflows and checks
 
