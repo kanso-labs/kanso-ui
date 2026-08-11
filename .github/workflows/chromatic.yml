@@ -8,15 +8,15 @@ permissions:
 
 jobs:
   chromatic:
-    name: Chromatic
+    name: Run visual regression tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Check out repository
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Setup Node
+      - name: Set up Node
         uses: actions/setup-node@v7.0.0
         with:
           node-version-file: '.tool-versions'
