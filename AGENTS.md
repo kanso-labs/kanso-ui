@@ -182,11 +182,41 @@ mechanism Chromatic's modes use.
 - Public API is exported from `src/index.ts`.
 - Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
   inline `style` objects.
-- Commit messages must follow Conventional Commits; commitlint enforces this via
-  a husky hook, and release-please derives versions from commit types.
+- Commit messages and pull request titles must follow Conventional Commits — see
+  "Commits and pull requests" below, since which of the two reaches `main` is
+  not what you would guess.
 - Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
   (oxfmt) automatically on commit via a husky pre-commit hook running
   lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
   and `.yml` files are formatted (oxfmt) wherever they live, since
   `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
   are absent from that entry because neither reads those formats.
+
+## Commits and pull requests
+
+**The pull request title is the one that has to be right.** Pull requests are
+squash-merged, and the repo is set to take the PR title as the squashed commit's
+subject with an empty body. So the PR title — not any commit message on the
+branch — becomes the single commit on `main`, and it is what `release-please`
+parses to pick the next version and write the changelog line. Branch commit
+messages are discarded by the squash and never reach history.
+
+Write both as Conventional Commits anyway. The branch messages are what a
+reviewer reads while the PR is open, and `feat(sheet): add Sheet component` as
+the title is what a released changelog is made of.
+
+Merge commits are disabled at the repo level, and turning them back on
+reintroduces a bug worth knowing about. GitHub was configured to put the PR
+title in the merge commit's _body_, so every PR produced two conventional
+commits on `main` — the merge commit and the branch commit it brought with it —
+and `release-please` counted both. The 0.1.0 changelog carries 22 duplicated
+entries from that period, every one of them a merge-plus-branch pair. Rebase
+merging stays available and is safe: it adds no merge commit, so a PR whose
+individual commits each deserve a changelog line can use it.
+
+**Nothing checks any of this automatically.** `@commitlint/cli` and a
+`.commitlintrc.json` are both installed, but no `commit-msg` hook invokes them
+and no workflow does either — `.husky/` holds only `pre-commit`, which runs
+lint-staged. A malformed type therefore reaches `main` unnoticed and lands in
+the changelog. Until that is wired up, the PR title is on the author to get
+right.
