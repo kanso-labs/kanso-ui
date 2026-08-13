@@ -1,0 +1,51 @@
+name: Test
+
+on: pull_request
+
+permissions:
+  code-quality: write
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      # Both of these have to happen before the dependencies are installed.
+      # The prepare script is what runs "playwright install", and it only
+      # skips the download when the browsers are already in the cache, so a
+      # restore afterwards would arrive too late to save anything.
+      #
+      # Read with jq rather than "node -p" because Node is not set up yet.
+      # Relying on the runner's preinstalled Node here would mean reading the
+      # lockfile with a different version from the one this repository pins.
+      - name: Resolve the Playwright version
+        id: playwright
+        run: |
+          version=$(jq -r '.packages["node_modules/playwright-core"].version' package-lock.json)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key:
+            ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+
+      # Scripts run here, unlike the other jobs: the prepare script is how the
+      # browsers these tests need get installed.
+      - name: Set up Node
+        uses: kanso-labs/github-actions/actions/setup-node@v1.0.2
+
+      - name: Run tests
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-code-coverage@v1.4.2
+        with:
+          file: coverage/cobertura-coverage.xml
+          label: code-coverage/vitest
+          language: TypeScript
