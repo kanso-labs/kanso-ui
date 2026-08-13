@@ -41,7 +41,7 @@ jobs:
   # its two secrets is what fixes that, and needs no change to this file.
   release-please:
     name: Propose releases
-    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v1.0.2
+    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v1.2.0
     secrets:
       app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
       private-key: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
