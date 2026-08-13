@@ -1,0 +1,63 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "minimumReleaseAge": null,
+  "mise": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Grouped in .github/dependabot.yml under a duplicate 'react' key, so YAML dropped it and these were never actually grouped.",
+      "groupName": "commitlint",
+      "matchPackageNames": ["@commitlint/**"]
+    },
+    {
+      "groupName": "eslint",
+      "matchPackageNames": [
+        "@eslint/**",
+        "eslint",
+        "eslint-config-**",
+        "eslint-plugin-**",
+        "typescript-eslint",
+        "!eslint-plugin-oxlint",
+        "!eslint-plugin-storybook"
+      ]
+    },
+    {
+      "groupName": "oxlint",
+      "matchPackageNames": ["eslint-plugin-oxlint", "oxlint"]
+    },
+    {
+      "groupName": "react",
+      "matchPackageNames": [
+        "@types/react",
+        "@types/react-dom",
+        "react",
+        "react-dom"
+      ]
+    },
+    {
+      "groupName": "storybook",
+      "matchPackageNames": [
+        "@storybook/**",
+        "eslint-plugin-storybook",
+        "storybook"
+      ]
+    },
+    {
+      "groupName": "vitest",
+      "matchPackageNames": ["@vitest/**", "vitest"]
+    }
+  ],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "rebaseWhen": "behind-base-branch",
+  "recreateWhen": "always",
+  "vulnerabilityAlerts": {
+    "enabled": false
+  }
+}

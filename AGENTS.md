@@ -221,13 +221,34 @@ Chromatic as commit statuses rather than by any workflow. Grepping
 rather than evidence something was deleted — nothing in those files affects
 them.
 
+**The Node setup and the release job are shared, not configured here.**
+[`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)
+holds both, pinned by exact tag, and Renovate opens the bump pull requests:
+
+- `actions/setup-node` installs the pinned Node, restores the npm cache and runs
+  `npm ci`. It replaced four copies of the same four steps. Pass
+  `ignore-scripts: true` in any job that does not need Playwright's browsers.
+- `_release-please.yaml` proposes the releases. What stays in
+  `release-please.yaml` here is the trigger, the concurrency group, the
+  permissions and the secrets.
+
+**Dependencies come from Renovate**, through the org-wide runner in
+[`kanso-labs/renovate`](https://github.com/kanso-labs/renovate) rather than an
+installed app. This repository is listed in that runner's `config.js`, and
+`.github/renovate.json` holds only what is specific to it. Dependabot was
+removed; do not add `.github/dependabot.yml` back, or the two will open
+competing pull requests for the same upgrades.
+
 The names themselves follow five rules:
 
-1. A workflow's filename is the kebab-case of its `name:` field, with the `.yml`
-   extension. `name: Release Please` lives in `release-please.yml`.
+1. A workflow's filename is the kebab-case of its `name:` field, with the
+   `.yaml` extension. `name: Release Please` lives in `release-please.yaml`. The
+   extension is `.yaml` across every `kanso-labs` repository; GitHub accepts
+   both, and `.github/dependabot.yml` was the one file that could not follow,
+   which stopped mattering when it was deleted.
 2. A reusable workflow — one triggered only by `workflow_call` — takes a leading
    underscore, so entry points and building blocks separate visually in the
-   folder listing. `_build-application.yml`. There are none here yet; the rule
+   folder listing. `_build-application.yaml`. There are none here yet; the rule
    is for when there are.
 3. A job name is an imperative verb phrase, with any matrix values appended.
 4. A step name is an imperative verb phrase in sentence case, with no trailing
