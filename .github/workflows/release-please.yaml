@@ -31,7 +31,7 @@ permissions:
 jobs:
   release-please:
     name: Propose releases
-    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v1.2.0
+    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v1.2.1
     secrets:
       app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
       private-key: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
