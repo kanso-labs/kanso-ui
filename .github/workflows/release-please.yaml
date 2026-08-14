@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+  # release-please only ever reacts to a push, which leaves no way to ask it to
+  # look again. That matters when a release pull request has to be discarded:
+  # release-please rewrites one only when the release it computes changes, so a
+  # pull request that cannot merge — say, one opened before the application was
+  # installed, whose required checks were never started and never will be — is
+  # not repaired by closing it. Nothing proposes a replacement until somebody
+  # happens to push. This is that lever.
+  workflow_dispatch:
 
 # Every release merge pushes main, and every push starts a run. Overlapping runs
 # try to cut the same tags and strip the same labels, and one dies on the
@@ -16,29 +24,11 @@ concurrency:
   cancel-in-progress: false
   group: release-please
 
-# Wider than home-assistant-applications needs, because this repository has no
-# application token yet and the shared workflow therefore falls back to
-# GITHUB_TOKEN, which has to do the writing itself. Once the secrets below
-# exist, this can drop to contents: read.
+# The application token below does the writing, so GITHUB_TOKEN stays on read.
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  # These two secrets do not exist in this repository yet. That is not a
-  # mistake and it does not fail the run: the shared workflow treats both as
-  # optional, and an unset secret arrives as an empty string, which selects its
-  # GITHUB_TOKEN fallback and prints a warning saying so.
-  #
-  # The fallback is not a working release process here, and it never was. A
-  # pull request opened with GITHUB_TOKEN starts no workflow runs, so the
-  # release pull request never starts Build, Lint or Test — the three checks
-  # this repository's ruleset requires to merge it. That is why #11 has sat
-  # open and unmergeable since October 2025.
-  #
-  # Installing the app that home-assistant-applications already uses and adding
-  # its two secrets is what fixes that, and needs no change to this file.
   release-please:
     name: Propose releases
     uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v1.2.0
