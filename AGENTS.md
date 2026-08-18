@@ -21,10 +21,6 @@ React Compiler. Components are developed and documented in Storybook.
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
 
-**`npm run lint` does not type-check.** It passes on code that `tsc -b` rejects,
-and CI runs a separate Build job that will fail on those errors. Run
-`npm run build` before pushing, not just lint and tests.
-
 **Install with the Node version in `.tool-versions`.** CI resolves it from that
 file, and an older npm silently drops the platform entries the lockfile carries
 for Linux builds. If `node --version` disagrees, prefix the command:
@@ -173,7 +169,27 @@ applied by the time the preview module evaluates. A story can be opened straight
 into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
 
-## Layout and conventions
+## Conventions
+
+Shared with the other `kanso-labs` repositories:
+
+- **Keys in JSON and YAML are ordered by name.** Files whose order carries
+  meaning are exempt: workflows, where step order is execution order;
+  changelogs, which are chronological; and `package.json`, where the npm
+  ecosystem expects `name` and `version` first.
+- **A workflow's filename is the kebab-case of its `name:` field.** Reusable
+  workflows, meaning those triggered only by `workflow_call`, take a leading
+  underscore.
+- **Job names and step names are imperative verb phrases.** Job ids, step ids,
+  and matrix keys are exempt.
+- **Actions are pinned to exact release tags**, never a moving major or `@main`.
+  Renovate opens the bump pull requests.
+
+The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
+the command is `npm run format` and the check runs inside `npm run lint`. The
+mechanics are in the bullets below.
+
+Specific to this repository:
 
 - Each component lives in `src/components/<name>/` as `index.tsx` with a
   colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
@@ -269,18 +285,26 @@ Write both as Conventional Commits anyway. The branch messages are what a
 reviewer reads while the PR is open, and `feat(sheet): add Sheet component` as
 the title is what a released changelog is made of.
 
-Merge commits are disabled at the repo level, and turning them back on
-reintroduces a bug worth knowing about. GitHub was configured to put the PR
-title in the merge commit's _body_, so every PR produced two conventional
-commits on `main` — the merge commit and the branch commit it brought with it —
-and `release-please` counted both. The 0.1.0 changelog carries 22 duplicated
-entries from that period, every one of them a merge-plus-branch pair. Rebase
-merging stays available and is safe: it adds no merge commit, so a PR whose
-individual commits each deserve a changelog line can use it.
+## Traps
 
-**Nothing checks any of this automatically.** `@commitlint/cli` and a
-`.commitlintrc.json` are both installed, but no `commit-msg` hook invokes them
+**`npm run lint` does not type-check.** It passes on code that `tsc -b` rejects,
+and CI runs a separate Build job that will fail on those errors. Run
+`npm run build` before pushing, not just lint and tests.
+
+**Re-enabling merge commits duplicates every changelog entry.** They are
+disabled at the repo level, and turning them back on reintroduces a bug worth
+knowing about. GitHub was configured to put the PR title in the merge commit's
+_body_, so every PR produced two conventional commits on `main` — the merge
+commit and the branch commit it brought with it — and `release-please` counted
+both. The 0.1.0 changelog carries 22 duplicated entries from that period, every
+one of them a merge-plus-branch pair. Rebase merging stays available and is
+safe: it adds no merge commit, so a PR whose individual commits each deserve a
+changelog line can use it.
+
+**Nothing enforces the commit conventions automatically.** `@commitlint/cli` and
+a `.commitlintrc.json` are both installed, but no `commit-msg` hook invokes them
 and no workflow does either — `.husky/` holds only `pre-commit`, which runs
 lint-staged. A malformed type therefore reaches `main` unnoticed and lands in
 the changelog. Until that is wired up, the PR title is on the author to get
-right.
+right. `unplugin-style-dictionary` has the same gap, with not even a
+`pre-commit` hook.
