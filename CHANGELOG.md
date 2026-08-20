@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.3.0...kanso-ui-v0.4.0) (2026-08-20)
+
+
+### Features
+
+* **copy-field:** add CopyField component ([#348](https://github.com/kanso-labs/kanso-ui/issues/348)) ([446b289](https://github.com/kanso-labs/kanso-ui/commit/446b289262e1ecb3b2aab8961b30bc0d0d57b0a7))
+* publish the package to npm on release ([#349](https://github.com/kanso-labs/kanso-ui/issues/349)) ([c5e21f5](https://github.com/kanso-labs/kanso-ui/commit/c5e21f526a3bc57abd801940a9bcbe47a8fc065f))
+
 ## [0.3.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.2.0...kanso-ui-v0.3.0) (2026-08-20)
 
 
