@@ -6,6 +6,7 @@ import type { CardProps } from './card'
 import type { ChipProps } from './chip'
 import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
+import type { LinkProps } from './link'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
@@ -20,6 +21,7 @@ import CardDefault from './card'
 import ChipDefault from './chip'
 import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
+import LinkDefault from './link'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
@@ -36,6 +38,7 @@ describe('components barrel', () => {
       'Chip',
       'Currency',
       'IconButton',
+      'Link',
       'ListItem',
       'Separator',
       'Sheet',
@@ -67,6 +70,10 @@ describe('components barrel', () => {
 
   it('re-exports IconButton as the same reference as its own module', () => {
     expect(components.IconButton).toBe(IconButtonDefault)
+  })
+
+  it('re-exports Link as the same reference as its own module', () => {
+    expect(components.Link).toBe(LinkDefault)
   })
 
   it('re-exports ListItem as the same reference as its own module', () => {
@@ -121,6 +128,11 @@ describe('components barrel', () => {
   it('re-exports the IconButtonProps type', () => {
     const props: IconButtonProps = { 'aria-label': 'Add' }
     expect(props['aria-label']).toBe('Add')
+  })
+
+  it('re-exports the LinkProps type', () => {
+    const props: LinkProps = { tone: 'inherit' }
+    expect(props.tone).toBe('inherit')
   })
 
   it('re-exports the ListItemProps type', () => {
