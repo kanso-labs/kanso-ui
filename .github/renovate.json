@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+  "lockFileMaintenance": {
+    "automerge": true,
+    "enabled": true
+  },
   "minimumReleaseAge": null,
   "mise": {
     "enabled": true
@@ -59,8 +63,5 @@
   "recreateWhen": "always",
   "semanticCommitScope": null,
   "semanticCommitType": "deps",
-  "semanticCommits": "enabled",
-  "vulnerabilityAlerts": {
-    "enabled": false
-  }
+  "semanticCommits": "enabled"
 }
