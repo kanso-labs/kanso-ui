@@ -9,6 +9,7 @@ import {
   Chip as ComponentsChip,
   Currency as ComponentsCurrency,
   IconButton as ComponentsIconButton,
+  Link as ComponentsLink,
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
@@ -29,6 +30,7 @@ describe('package entry point', () => {
       'Chip',
       'Currency',
       'IconButton',
+      'Link',
       'ListItem',
       'Separator',
       'Sheet',
@@ -64,6 +66,10 @@ describe('package entry point', () => {
 
   it('forwards IconButton as the same reference as the components barrel', () => {
     expect(publicApi.IconButton).toBe(ComponentsIconButton)
+  })
+
+  it('forwards Link as the same reference as the components barrel', () => {
+    expect(publicApi.Link).toBe(ComponentsLink)
   })
 
   it('forwards ListItem as the same reference as the components barrel', () => {
