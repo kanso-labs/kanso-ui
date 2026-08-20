@@ -2,17 +2,17 @@
 
 We are open to, and grateful for, any contributions made by the community. By
 contributing to this project, you agree to abide by the
-[code of conduct](https://github.com/kanso-org/kanso-ui/blob/main/CODE_OF_CONDUCT.md).
+[code of conduct](https://github.com/kanso-labs/kanso-ui/blob/main/CODE_OF_CONDUCT.md).
 
 ## Reporting Issues and Asking Questions
 
 Before opening an issue, please search the
-[issue tracker](https://github.com/kanso-org/kanso-ui/issues) to make sure your
+[issue tracker](https://github.com/kanso-labs/kanso-ui/issues) to make sure your
 issue hasn't already been reported.
 
 ## Development
 
-Visit the [issue tracker](https://github.com/kanso-org/kanso-ui/issues) to find
+Visit the [issue tracker](https://github.com/kanso-labs/kanso-ui/issues) to find
 a list of open issues that need attention.
 
 Fork, then clone the repo:
@@ -38,7 +38,7 @@ that we won't want to accept.
 ## Submitting Changes
 
 - Open a new issue in the
-  [Issue tracker](https://github.com/kanso-org/kanso-ui/issues).
+  [Issue tracker](https://github.com/kanso-labs/kanso-ui/issues).
 - Fork the repo.
 - Create a new feature branch based off the `main` branch.
 - Submit a pull request, referencing any issues it addresses.
