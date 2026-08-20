@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.1.0...kanso-ui-v0.2.0) (2026-08-20)
+
+
+### Features
+
+* **badge:** add Badge component ([#342](https://github.com/kanso-labs/kanso-ui/issues/342)) ([56a90dd](https://github.com/kanso-labs/kanso-ui/commit/56a90dd7511e4d64ed9f681c18db9ccb2b8b8884))
+* **link:** add Link component ([#344](https://github.com/kanso-labs/kanso-ui/issues/344)) ([0dcd9f0](https://github.com/kanso-labs/kanso-ui/commit/0dcd9f02c1f4a9111661921d3347d84a699ccf1c))
+
 ## [0.1.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.0.1...kanso-ui-v0.1.0) (2026-08-14)
 
 
