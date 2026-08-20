@@ -5,6 +5,7 @@ import type { BadgeProps } from './badge'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
+import type { CodeProps } from './code'
 import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
 import type { LinkProps } from './link'
@@ -21,6 +22,7 @@ import BadgeDefault from './badge'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
+import CodeDefault from './code'
 import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
 import LinkDefault from './link'
@@ -39,6 +41,7 @@ describe('components barrel', () => {
       'Button',
       'Card',
       'Chip',
+      'Code',
       'Currency',
       'IconButton',
       'Link',
@@ -69,6 +72,10 @@ describe('components barrel', () => {
 
   it('re-exports Chip as the same reference as its own module', () => {
     expect(components.Chip).toBe(ChipDefault)
+  })
+
+  it('re-exports Code as the same reference as its own module', () => {
+    expect(components.Code).toBe(CodeDefault)
   })
 
   it('re-exports Currency as the same reference as its own module', () => {
@@ -129,6 +136,11 @@ describe('components barrel', () => {
 
   it('re-exports the ChipProps type', () => {
     const props: ChipProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CodeProps type', () => {
+    const props: CodeProps = { children: 'test' }
     expect(props.children).toBe('test')
   })
 

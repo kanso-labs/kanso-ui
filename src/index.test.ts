@@ -7,6 +7,7 @@ import {
   Button as ComponentsButton,
   Card as ComponentsCard,
   Chip as ComponentsChip,
+  Code as ComponentsCode,
   Currency as ComponentsCurrency,
   IconButton as ComponentsIconButton,
   Link as ComponentsLink,
@@ -28,6 +29,7 @@ describe('package entry point', () => {
       'Button',
       'Card',
       'Chip',
+      'Code',
       'Currency',
       'IconButton',
       'Link',
@@ -58,6 +60,10 @@ describe('package entry point', () => {
 
   it('forwards Chip as the same reference as the components barrel', () => {
     expect(publicApi.Chip).toBe(ComponentsChip)
+  })
+
+  it('forwards Code as the same reference as the components barrel', () => {
+    expect(publicApi.Code).toBe(ComponentsCode)
   })
 
   it('forwards Currency as the same reference as the components barrel', () => {
