@@ -35,3 +35,49 @@ jobs:
     secrets:
       client-id: ${{ secrets.RELEASE_PLEASE_CLIENT_ID }}
       private-key: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
+
+  # Trusted publishing, so there is no npm token in this repository. The first
+  # publish cannot use it: npm configures a trusted publisher on the package
+  # page, and the package has to exist before there is a page to configure. So
+  # @kanso-labs/kanso-ui has to be pushed by hand once, after which this job
+  # takes over. @kanso-labs/unplugin-style-dictionary was bootstrapped the same
+  # way — its 0.2.1 carries a human _npmUser and no provenance attestation.
+  publish:
+    name: Publish to npm
+    needs: release-please
+    # Compared against the string rather than used bare. A bare truthiness test
+    # would also pass on the string "false", which is what this output carries
+    # when release-please runs and decides not to cut a release.
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # npm exchanges this for a short-lived credential, and mints a provenance
+      # attestation off the same token. Granted here rather than at the top of
+      # the file because this job is the only thing that needs it.
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node
+        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        with:
+          # This job installs once and then throws the runner away, so
+          # restoring the cache costs more than the install it would save.
+          cache: false
+          # Skips the prepare script, which downloads Playwright's browsers.
+          ignore-scripts: true
+          registry-url: https://registry.npmjs.org
+
+      - name: Run build
+        run: npm run build
+
+      # --ignore-scripts again, and for a different reason than above: npm runs
+      # prepare on publish as well as on install, so without it the same
+      # Playwright download would happen a second time — here as a step of the
+      # publish itself, where failing to fetch a browser would abort a release
+      # that has already been tagged. Nothing this package ships is produced by
+      # a lifecycle script; the build above is the whole of it.
+      - name: Publish to npm
+        run: npm publish --ignore-scripts

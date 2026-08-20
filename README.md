@@ -11,13 +11,13 @@ Every component is documented in Storybook, published from `main` at
 ## Installation
 
 ```bash
-npm install kanso-ui
+npm install @kanso-labs/kanso-ui
 ```
 
 ## Usage
 
 ```tsx
-import { Button } from 'kanso-ui'
+import { Button } from '@kanso-labs/kanso-ui'
 
 function Example() {
   return <Button>Click me</Button>
@@ -54,13 +54,13 @@ element) — components resolve their tokens once, at the root, so redeclaring a
 `--kui-*` property on a smaller scope (e.g. a wrapping `<div>`) doesn't reach
 them.
 
-[`kanso-ui/tokens.css`](src/tokens/design.tokens.css) is the canonical,
-generated reference for every available variable and its current default value —
-useful for discovering names, not required at runtime (components already carry
-their defaults inline):
+[`@kanso-labs/kanso-ui/tokens.css`](src/tokens/design.tokens.css) is the
+canonical, generated reference for every available variable and its current
+default value — useful for discovering names, not required at runtime
+(components already carry their defaults inline):
 
 ```ts
-import 'kanso-ui/tokens.css'
+import '@kanso-labs/kanso-ui/tokens.css'
 ```
 
 ### For StyleX consumers
