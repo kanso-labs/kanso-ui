@@ -59,6 +59,19 @@ get a different transform pipeline, so sources shared with the `storybook`
 project are instrumented twice with mismatched statement maps and the merged
 coverage totals come out wrong.
 
+`getComputedStyle` is only trustworthy in those files because `vitest.setup.ts`
+fetches StyleX's stylesheet before the first test in each of them. Under the dev
+server the plugin serves that stylesheet from a virtual endpoint, putting a
+`<link>` to it in the document and a runtime module that re-fetches it whenever
+a newly transformed module contributes rules — and a spec's modules are
+transformed only once its page has loaded, so the rules for the component under
+test arrive over that refresh rather than with the document. A read that landed
+first described an unstyled element, which is what made assertions on colours,
+sizes and widths fail under CI's parallel load and pass when a file ran on its
+own. One fetch per file, once collection has transformed everything the file
+imports, is what makes those rules present rather than imminent. Do not swap it
+for a wait.
+
 ### Sample copy
 
 kanso-ui is a general-purpose library, so the text inside stories, tests, and
