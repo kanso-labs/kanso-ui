@@ -6,6 +6,7 @@ import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
+import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
@@ -24,6 +25,7 @@ import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
 import CodeDefault from './code'
+import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
@@ -44,6 +46,7 @@ describe('components barrel', () => {
       'Card',
       'Chip',
       'Code',
+      'CopyField',
       'Currency',
       'IconButton',
       'Keycap',
@@ -79,6 +82,10 @@ describe('components barrel', () => {
 
   it('re-exports Code as the same reference as its own module', () => {
     expect(components.Code).toBe(CodeDefault)
+  })
+
+  it('re-exports CopyField as the same reference as its own module', () => {
+    expect(components.CopyField).toBe(CopyFieldDefault)
   })
 
   it('re-exports Currency as the same reference as its own module', () => {
@@ -149,6 +156,11 @@ describe('components barrel', () => {
   it('re-exports the CodeProps type', () => {
     const props: CodeProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CopyFieldProps type', () => {
+    const props: CopyFieldProps = { value: 'first.second.third' }
+    expect(props.value).toBe('first.second.third')
   })
 
   it('re-exports the CurrencyProps type', () => {
