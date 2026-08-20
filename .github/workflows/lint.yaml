@@ -1,6 +1,10 @@
 name: Lint
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -9,12 +13,24 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
 
+      # Before the install, so a broken workflow fails in a few seconds rather
+      # than after npm ci. It is also a step of this job rather than a job of
+      # its own, because Lint is a context the ruleset requires and a new job
+      # would be a new name nothing requires — free to fail without stopping
+      # anything.
+      #
+      # .github/actionlint.yaml carries the one suppression this repository
+      # needs; see the comment in that file.
+      - name: Run actionlint
+        uses: kanso-labs/github-actions/actions/lint-workflows@v2.1.0
+
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
         with:
           ignore-scripts: true
 

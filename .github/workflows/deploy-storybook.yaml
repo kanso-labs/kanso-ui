@@ -10,12 +10,6 @@ on:
   # re-trigger it. This is the lever to redeploy main without an empty commit.
   workflow_dispatch:
 
-# Only the checkout needs anything, and only the build job performs one. The
-# elevation the deployment requires is granted on that job alone below, since a
-# job-level block replaces this one rather than adding to it.
-permissions:
-  contents: read
-
 # The site is replaced wholesale, so two runs deploying at once race over which
 # one ends up live. Do not add cancel-in-progress: a cancelled deployment can
 # leave a partially uploaded artifact serving as the published site.
@@ -23,10 +17,17 @@ concurrency:
   cancel-in-progress: false
   group: pages
 
+# Only the checkout needs anything, and only the build job performs one. The
+# elevation the deployment requires is granted on that job alone below, since a
+# job-level block replaces this one rather than adding to it.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Storybook
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
@@ -35,7 +36,7 @@ jobs:
       # the Test job needs those; here they are a few hundred megabytes to
       # build a static site with.
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
         with:
           ignore-scripts: true
 
@@ -60,6 +61,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # pages is what lets the deployment write the result; id-token is what it
     # exchanges for the credentials proving the run is allowed to. It never
     # checks the repository out, so it drops contents along with them.

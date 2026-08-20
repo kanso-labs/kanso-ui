@@ -279,16 +279,49 @@ already merged rather than gating what reaches it. Chromatic publishes its own
 Storybook per commit, which is what the `Storybook Publish` context reports on;
 the two are independent, and the Pages copy is the one at a stable URL.
 
-**The Node setup and the release job are shared, not configured here.**
+**Most of CI is shared, not configured here.**
 [`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)
-holds both, pinned by exact tag, and Renovate opens the bump pull requests:
+holds it, pinned by exact tag, and Renovate opens the bump pull requests:
 
 - `actions/setup-node` installs the pinned Node, restores the npm cache and runs
   `npm ci`. It replaced four copies of the same four steps. Pass
   `ignore-scripts: true` in any job that does not need Playwright's browsers.
+- `actions/lint-workflows` runs actionlint. It is a **step of `Lint`**, not a
+  job — `Lint` is a context the ruleset requires, and a new job would be a new
+  name nothing requires, free to fail without stopping anything. It runs before
+  the install so a broken workflow fails in seconds.
 - `_release-please.yaml` proposes the releases. What stays in
   `release-please.yaml` here is the trigger, the concurrency group, the
   permissions and the secrets.
+- `_publish-npm.yaml` publishes to npm once a release is cut. It replaced the
+  four steps that job used to spell out, and its `ignore-scripts` default of
+  `true` is what keeps `prepare` from downloading Playwright's browsers a second
+  time during the publish itself — where failing to fetch one would abort a
+  release that has already been tagged.
+- `_renovate-command.yaml` answers `@renovate rebase` on a dependency pull
+  request, through `renovate-command.yaml` here. Only the copy on `main` ever
+  runs: `issue_comment` is a repository-level event, so a change to that file
+  cannot be tested from a branch.
+
+**actionlint is a release behind GitHub, and `.github/actionlint.yaml` is how
+that is handled.** It carries its own list of valid permission scopes, so
+`code-quality: write` in `test.yaml` — which `actions/upload-code-coverage`
+requires — reads as an unknown scope. The suppression is scoped to that one file
+rather than passed as a global `-ignore`, so the rule keeps running everywhere
+else, and it should be deleted once the pinned actionlint knows the scope.
+
+**`Build`, `Lint` and `Test` run on pushes to `main` as well as on pull
+requests**, so `main` is re-verified after a merge rather than taken on trust.
+The `pull_request` trigger is deliberately unscoped: adding `branches: [main]`
+would match the sibling repositories, but a pull request opened against any
+other base would then post none of the contexts the ruleset requires, which
+reads as a hang rather than a failure.
+
+**`Chromatic` is grouped per ref, and cancels only off `main`.** On a branch the
+newest commit is the one the pull request is gated on, so a run for an older
+commit is answering a question nobody is asking. On `main` each build advances
+the baseline every later comparison is made against, so cancelling one silently
+leaves the next pull request diffed against an older snapshot.
 
 **Dependencies come from Renovate**, through the org-wide runner in
 [`kanso-labs/renovate`](https://github.com/kanso-labs/renovate) rather than an

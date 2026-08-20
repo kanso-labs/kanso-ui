@@ -1,0 +1,13 @@
+# actionlint carries its own copy of the valid permission scopes, so a scope
+# GitHub has added since the pinned release is reported as unknown on a workflow
+# that is perfectly correct. code-quality is one of those: it is what
+# actions/upload-code-coverage requires, and test.yaml grants it because the
+# coverage upload does not work without it.
+#
+# Scoped to the one file rather than passed as a global -ignore, so the rule
+# keeps running over every other workflow. Delete this once the pinned
+# actionlint in kanso-labs/github-actions knows the scope.
+paths:
+  .github/workflows/test.yaml:
+    ignore:
+      - 'unknown permission scope "code-quality"'
