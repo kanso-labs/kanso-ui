@@ -1,5 +1,7 @@
 export type { AvatarProps } from './avatar'
 export { default as Avatar } from './avatar'
+export type { BadgeProps } from './badge'
+export { default as Badge } from './badge'
 export type { ButtonProps } from './button'
 export { default as Button } from './button'
 export type { CardProps } from './card'

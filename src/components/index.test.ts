@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AvatarProps } from './avatar'
+import type { BadgeProps } from './badge'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
@@ -15,6 +16,7 @@ import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
 import AvatarDefault from './avatar'
+import BadgeDefault from './badge'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
@@ -31,6 +33,7 @@ describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
     expect(Object.keys(components)).toEqual([
       'Avatar',
+      'Badge',
       'Button',
       'Card',
       'Chip',
@@ -47,6 +50,10 @@ describe('components barrel', () => {
 
   it('re-exports Avatar as the same reference as its own module', () => {
     expect(components.Avatar).toBe(AvatarDefault)
+  })
+
+  it('re-exports Badge as the same reference as its own module', () => {
+    expect(components.Badge).toBe(BadgeDefault)
   })
 
   it('re-exports Button as the same reference as its own module', () => {
@@ -96,6 +103,11 @@ describe('components barrel', () => {
   it('re-exports the AvatarProps type', () => {
     const props: AvatarProps = { name: 'Ada Lovelace' }
     expect(props.name).toBe('Ada Lovelace')
+  })
+
+  it('re-exports the BadgeProps type', () => {
+    const props: BadgeProps = { tone: 'positive' }
+    expect(props.tone).toBe('positive')
   })
 
   it('re-exports the ButtonProps type', () => {
