@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import * as publicApi from '.'
 import {
   Avatar as ComponentsAvatar,
+  Badge as ComponentsBadge,
   Button as ComponentsButton,
   Card as ComponentsCard,
   Chip as ComponentsChip,
@@ -22,6 +23,7 @@ describe('package entry point', () => {
   it('exposes exactly the documented public API', () => {
     expect(Object.keys(publicApi)).toEqual([
       'Avatar',
+      'Badge',
       'Button',
       'Card',
       'Chip',
@@ -38,6 +40,10 @@ describe('package entry point', () => {
 
   it('forwards Avatar as the same reference as the components barrel', () => {
     expect(publicApi.Avatar).toBe(ComponentsAvatar)
+  })
+
+  it('forwards Badge as the same reference as the components barrel', () => {
+    expect(publicApi.Badge).toBe(ComponentsBadge)
   })
 
   it('forwards Button as the same reference as the components barrel', () => {
