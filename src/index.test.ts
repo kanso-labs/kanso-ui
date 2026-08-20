@@ -8,6 +8,7 @@ import {
   Card as ComponentsCard,
   Chip as ComponentsChip,
   Code as ComponentsCode,
+  CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
@@ -31,6 +32,7 @@ describe('package entry point', () => {
       'Card',
       'Chip',
       'Code',
+      'CopyField',
       'Currency',
       'IconButton',
       'Keycap',
@@ -66,6 +68,10 @@ describe('package entry point', () => {
 
   it('forwards Code as the same reference as the components barrel', () => {
     expect(publicApi.Code).toBe(ComponentsCode)
+  })
+
+  it('forwards CopyField as the same reference as the components barrel', () => {
+    expect(publicApi.CopyField).toBe(ComponentsCopyField)
   })
 
   it('forwards Currency as the same reference as the components barrel', () => {
