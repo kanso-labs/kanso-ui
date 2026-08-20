@@ -57,6 +57,9 @@
   "prHourlyLimit": 0,
   "rebaseWhen": "behind-base-branch",
   "recreateWhen": "always",
+  "semanticCommitScope": null,
+  "semanticCommitType": "deps",
+  "semanticCommits": "enabled",
   "vulnerabilityAlerts": {
     "enabled": false
   }
