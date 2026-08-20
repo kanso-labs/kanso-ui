@@ -5,8 +5,10 @@ import type { BadgeProps } from './badge'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
+import type { CodeProps } from './code'
 import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
+import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
@@ -21,8 +23,10 @@ import BadgeDefault from './badge'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
+import CodeDefault from './code'
 import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
+import KeycapDefault from './keycap'
 import LinkDefault from './link'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
@@ -39,8 +43,10 @@ describe('components barrel', () => {
       'Button',
       'Card',
       'Chip',
+      'Code',
       'Currency',
       'IconButton',
+      'Keycap',
       'Link',
       'ListItem',
       'Separator',
@@ -71,12 +77,20 @@ describe('components barrel', () => {
     expect(components.Chip).toBe(ChipDefault)
   })
 
+  it('re-exports Code as the same reference as its own module', () => {
+    expect(components.Code).toBe(CodeDefault)
+  })
+
   it('re-exports Currency as the same reference as its own module', () => {
     expect(components.Currency).toBe(CurrencyDefault)
   })
 
   it('re-exports IconButton as the same reference as its own module', () => {
     expect(components.IconButton).toBe(IconButtonDefault)
+  })
+
+  it('re-exports Keycap as the same reference as its own module', () => {
+    expect(components.Keycap).toBe(KeycapDefault)
   })
 
   it('re-exports Link as the same reference as its own module', () => {
@@ -132,6 +146,11 @@ describe('components barrel', () => {
     expect(props.children).toBe('test')
   })
 
+  it('re-exports the CodeProps type', () => {
+    const props: CodeProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
   it('re-exports the CurrencyProps type', () => {
     const props: CurrencyProps = { value: 12.5 }
     expect(props.value).toBe(12.5)
@@ -140,6 +159,11 @@ describe('components barrel', () => {
   it('re-exports the IconButtonProps type', () => {
     const props: IconButtonProps = { 'aria-label': 'Add' }
     expect(props['aria-label']).toBe('Add')
+  })
+
+  it('re-exports the KeycapProps type', () => {
+    const props: KeycapProps = { children: 'Enter' }
+    expect(props.children).toBe('Enter')
   })
 
   it('re-exports the LinkProps type', () => {
