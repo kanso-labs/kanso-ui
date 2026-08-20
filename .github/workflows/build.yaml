@@ -1,6 +1,10 @@
 name: Build
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -9,6 +13,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
@@ -17,7 +22,7 @@ jobs:
       # the Test job needs those; here they are a few hundred megabytes to
       # build a library with.
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
         with:
           ignore-scripts: true
 

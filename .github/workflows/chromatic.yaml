@@ -6,10 +6,25 @@ permissions:
   contents: read
   statuses: write
 
+# Two pushes to the same branch inside a minute otherwise start two Chromatic
+# builds that race to report on it. Grouped per ref so one branch never waits
+# on another.
+#
+# cancel-in-progress is on everywhere except main. On a branch the newest commit
+# is the one the pull request is gated on, and the run for an older commit is
+# already answering a question nobody is asking. On main it stays off: each
+# build there advances the baseline every later comparison is made against, so
+# cancelling one silently leaves the next pull request diffed against an older
+# snapshot.
+concurrency:
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: chromatic-${{ github.ref }}
+
 jobs:
   chromatic:
     name: Run visual regression tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
@@ -19,7 +34,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
         with:
           ignore-scripts: true
 

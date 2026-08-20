@@ -1,0 +1,35 @@
+name: Renovate Command
+
+# Renovate has no comment commands of its own, so `@renovate rebase` on one of
+# its pull requests does nothing by default. This answers it: the shared
+# workflow ticks the rebase checkbox in the pull request body — the same edit a
+# person clicking that box makes — and dispatches the org-wide runner so the
+# next Renovate run is a minute away instead of up to three hours.
+#
+# Only the copy of this file on the default branch ever runs. issue_comment is
+# a repository-level event, so a change to it on a branch cannot be tried out
+# by commenting on that branch's own pull request — it has to be merged first.
+on:
+  issue_comment:
+    types:
+      - created
+
+# Two comments in a row would otherwise race on the same pull request body, and
+# the second would read it before the first had ticked anything. Grouped per
+# issue so a command on one pull request never waits on another's.
+# cancel-in-progress stays off: the later comment is the one that means it.
+concurrency:
+  cancel-in-progress: false
+  group: renovate-command-${{ github.event.issue.number }}
+
+# The called workflow does everything through an application token, so
+# GITHUB_TOKEN is never used and is granted nothing at all.
+permissions: {}
+
+jobs:
+  renovate-command:
+    name: Run the command
+    uses: kanso-labs/github-actions/.github/workflows/_renovate-command.yaml@v2.1.0
+    secrets:
+      client-id: ${{ secrets.RENOVATE_CLIENT_ID }}
+      private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
