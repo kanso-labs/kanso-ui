@@ -8,6 +8,7 @@ import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
 import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
+import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
@@ -25,6 +26,7 @@ import ChipDefault from './chip'
 import CodeDefault from './code'
 import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
+import KeycapDefault from './keycap'
 import LinkDefault from './link'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
@@ -44,6 +46,7 @@ describe('components barrel', () => {
       'Code',
       'Currency',
       'IconButton',
+      'Keycap',
       'Link',
       'ListItem',
       'Separator',
@@ -84,6 +87,10 @@ describe('components barrel', () => {
 
   it('re-exports IconButton as the same reference as its own module', () => {
     expect(components.IconButton).toBe(IconButtonDefault)
+  })
+
+  it('re-exports Keycap as the same reference as its own module', () => {
+    expect(components.Keycap).toBe(KeycapDefault)
   })
 
   it('re-exports Link as the same reference as its own module', () => {
@@ -152,6 +159,11 @@ describe('components barrel', () => {
   it('re-exports the IconButtonProps type', () => {
     const props: IconButtonProps = { 'aria-label': 'Add' }
     expect(props['aria-label']).toBe('Add')
+  })
+
+  it('re-exports the KeycapProps type', () => {
+    const props: KeycapProps = { children: 'Enter' }
+    expect(props.children).toBe('Enter')
   })
 
   it('re-exports the LinkProps type', () => {

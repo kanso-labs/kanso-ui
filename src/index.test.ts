@@ -10,6 +10,7 @@ import {
   Code as ComponentsCode,
   Currency as ComponentsCurrency,
   IconButton as ComponentsIconButton,
+  Keycap as ComponentsKeycap,
   Link as ComponentsLink,
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
@@ -32,6 +33,7 @@ describe('package entry point', () => {
       'Code',
       'Currency',
       'IconButton',
+      'Keycap',
       'Link',
       'ListItem',
       'Separator',
@@ -72,6 +74,10 @@ describe('package entry point', () => {
 
   it('forwards IconButton as the same reference as the components barrel', () => {
     expect(publicApi.IconButton).toBe(ComponentsIconButton)
+  })
+
+  it('forwards Keycap as the same reference as the components barrel', () => {
+    expect(publicApi.Keycap).toBe(ComponentsKeycap)
   })
 
   it('forwards Link as the same reference as the components barrel', () => {
