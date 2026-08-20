@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.2.0...kanso-ui-v0.3.0) (2026-08-20)
+
+
+### Features
+
+* **code:** add Code component ([#345](https://github.com/kanso-labs/kanso-ui/issues/345)) ([e355199](https://github.com/kanso-labs/kanso-ui/commit/e355199bb6bb708c3eba9a427e9ec9a9c4827a72))
+* **keycap:** add Keycap component ([#347](https://github.com/kanso-labs/kanso-ui/issues/347)) ([d841b87](https://github.com/kanso-labs/kanso-ui/commit/d841b877dac69e14668c23d5ff86fbe91fc30f92))
+
 ## [0.2.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.1.0...kanso-ui-v0.2.0) (2026-08-20)
 
 
