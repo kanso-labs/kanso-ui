@@ -1,0 +1,72 @@
+name: Deploy Storybook
+
+on:
+  push:
+    branches:
+      - main
+  # Pages keeps serving whatever the last successful run uploaded, so a
+  # deployment that failed on something outside this repository — a Pages
+  # outage, a revoked token — leaves the site stale with nothing left to
+  # re-trigger it. This is the lever to redeploy main without an empty commit.
+  workflow_dispatch:
+
+# Only the checkout needs anything, and only the build job performs one. The
+# elevation the deployment requires is granted on that job alone below, since a
+# job-level block replaces this one rather than adding to it.
+permissions:
+  contents: read
+
+# The site is replaced wholesale, so two runs deploying at once race over which
+# one ends up live. Do not add cancel-in-progress: a cancelled deployment can
+# leave a partially uploaded artifact serving as the published site.
+concurrency:
+  cancel-in-progress: false
+  group: pages
+
+jobs:
+  build:
+    name: Build Storybook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      # Skips the prepare script, which downloads Playwright's browsers. Only
+      # the Test job needs those; here they are a few hundred megabytes to
+      # build a static site with.
+      - name: Set up Node
+        uses: kanso-labs/github-actions/actions/setup-node@v2.0.0
+        with:
+          ignore-scripts: true
+
+      # No base path is configured for this build on purpose. Storybook's
+      # output is already relative — every asset is referenced as ./, and the
+      # manager derives the preview iframe's URL from its own pathname rather
+      # than from the origin — so one artifact serves correctly both from the
+      # custom domain's root and from the /kanso-ui/ subpath Pages would fall
+      # back to without it. A base would hard-code one of those two.
+      - name: Run Storybook build
+        run: npm run build-storybook
+
+      - name: Upload Storybook build
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: storybook-static
+
+  deploy:
+    name: Deploy to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    # pages is what lets the deployment write the result; id-token is what it
+    # exchanges for the credentials proving the run is allowed to. It never
+    # checks the repository out, so it drops contents along with them.
+    permissions:
+      id-token: write
+      pages: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.0

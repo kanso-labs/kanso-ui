@@ -5,6 +5,9 @@ A React component library built on [StyleX](https://stylexjs.com) and
 [W3C Design Tokens (DTCG)](https://design-tokens.github.io/community-group/format/)
 file and compiled via [Style Dictionary](https://styledictionary.com).
 
+Every component is documented in Storybook, published from `main` at
+**[kanso-ui.kansolabs.org](https://kanso-ui.kansolabs.org/)**.
+
 ## Installation
 
 ```bash
@@ -72,6 +75,8 @@ need them exported.
 ## Development
 
 - `npm run storybook` — component playground
+- `npm run build-storybook` — build that playground as a static site, the same
+  way the `Deploy Storybook` workflow does
 - `npm run tokens:build` — regenerate `src/tokens/design.tokens.*` from
   `src/tokens/design.tokens.json`
 - `npm test` — Storybook story tests (vitest, headless Chromium)

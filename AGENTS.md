@@ -157,6 +157,11 @@ render, start the dev server and open its story. Claude Code's browser preview
 is preconfigured in `.claude/launch.json`; other agents can just run
 `npm run storybook`.
 
+`main` is published to GitHub Pages at <https://kanso-ui.kansolabs.org/>, which
+is the copy to link someone who only wants to look. It lags a local server by
+however long the deploy takes and never shows uncommitted work, so it is not a
+substitute for running one while developing.
+
 The port is 6006 unless `PORT` says otherwise, which is what lets two agents
 preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
 session is handed a free port instead of failing to bind. Read the port off the
@@ -236,6 +241,30 @@ Chromatic as commit statuses rather than by any workflow. Grepping
 `.github/workflows` for either turns up nothing, and that absence is expected
 rather than evidence something was deleted — nothing in those files affects
 them.
+
+**`Deploy Storybook` depends on repository settings no file here holds.** Pages
+must have its source set to "GitHub Actions" under Settings → Pages, and
+`actions/deploy-pages` fails the run outright while it is set to a branch
+instead. The custom domain — `kanso-ui.kansolabs.org` — is a second such
+setting, and it is the one that decides the published URL. The root `CNAME` file
+is left over from the branch-based build that preceded this workflow: with Pages
+building from a branch, that file is how the domain is declared, but an Actions
+deployment reads the domain from the Pages configuration and never sees the
+file, since it is not part of `storybook-static`. Deleting it therefore changes
+nothing today, and re-picking a branch source in the UI would rewrite it anyway
+— leave it be.
+
+The build needs no `base`. Storybook's output references every asset relatively,
+and the manager derives the preview iframe's URL from its own pathname rather
+than from the origin, so the same artifact serves correctly from the domain root
+and from a project subpath. That is what makes dropping the custom domain a
+settings change rather than a rebuild.
+
+The workflow runs on `main` only, so neither of its jobs posts a pull request
+check and neither belongs in the ruleset above — the site follows what has
+already merged rather than gating what reaches it. Chromatic publishes its own
+Storybook per commit, which is what the `Storybook Publish` context reports on;
+the two are independent, and the Pages copy is the one at a stable URL.
 
 **The Node setup and the release job are shared, not configured here.**
 [`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)
