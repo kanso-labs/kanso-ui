@@ -297,6 +297,27 @@ installed app. This repository is listed in that runner's `config.js`, and
 removed; do not add `.github/dependabot.yml` back, or the two will open
 competing pull requests for the same upgrades.
 
+**Renovate commits are typed `deps:`, and that is what makes them release.**
+release-please computes a patch bump for any commit that is not a `feat` or a
+breaking change, but it only opens a release pull request when the notes it
+generates are non-empty — a release whose every commit falls in a hidden
+changelog section is skipped as "No user facing commits found". Renovate's own
+default, `chore(deps):`, lands in exactly such a section, so an upgrade never
+cut a release of its own — it shipped only when a feature happened to land
+beside it, and a run of nothing but upgrades published nothing at all.
+`.github/renovate.json` therefore sets `semanticCommits: enabled`,
+`semanticCommitType: deps` and `semanticCommitScope: null`, and
+`release-please-config.json` spells out `changelog-sections` with `deps` visible
+under a `Dependencies` heading. The three move together: the section list
+replaces release-please's defaults wholesale, so a type missing from it is
+invisible rather than merely unstyled, and `deps` with no matching section would
+put the upgrades back where they started.
+
+`deps` is not one of the Conventional Commits types, so `.commitlintrc.json`
+extends the `type-enum` rule from `@commitlint/config-conventional` to admit it
+alongside the standard eleven. A plain `chore:` still publishes nothing, which
+is the point — housekeeping should not cut a release.
+
 The names themselves follow five rules:
 
 1. A workflow's filename is the kebab-case of its `name:` field, with the
