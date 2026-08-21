@@ -236,6 +236,15 @@ Specific to this repository:
   and `.yml` files are formatted (oxfmt) wherever they live, since
   `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
   are absent from that entry because neither reads those formats.
+- **That entry's glob excludes lock files on purpose.** It reads
+  `!(*-lock).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because oxfmt
+  exits non-zero when every path handed to it is one of its own ignores —
+  `Expected at least one target file` — and lock files are among those ignores.
+  Under the plain glob, a commit staging nothing but `package-lock.json` failed
+  the hook outright, so a manual bump of a transitive dependency could only land
+  with `--no-verify`. Renovate never ran into it because it commits through the
+  API rather than through husky. Keeping lock files out of the glob is what
+  stops them reaching oxfmt at all, so do not "simplify" the extglob back.
 - `CHANGELOG.md` is exempt from formatting, via `ignorePatterns` in
   `.oxfmtrc.json`. `release-please` writes it, in a style oxfmt disagrees with —
   `*` bullets rather than `-`, and one long line per entry against a
