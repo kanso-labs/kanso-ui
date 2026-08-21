@@ -306,16 +306,7 @@ function colorThemedEntries(allTokens) {
 }
 
 // The full 15-style type scale (display/headline/title/body/label ×
-// large/medium/small), plus `overline` — a kanso-specific sixteenth outside
-// the scale's five families, and the only one bound to the mono typeface.
-// See typography.scale in design.tokens.json.
-//
-// Every style here is emitted with the same five fields, which is why
-// `overline` carries no text-transform: the capitals are Text's, applied
-// where the variant is styled rather than stored as a token. A consumer
-// redeclaring a --kui-* custom property moves the face, size and tracking;
-// an overline that could be switched out of capitals would be a different
-// style wearing the same name.
+// large/medium/small) — see typography.scale in design.tokens.json.
 const SCALE_STYLES = [
   'displayLarge',
   'displayMedium',
@@ -332,7 +323,6 @@ const SCALE_STYLES = [
   'labelLarge',
   'labelMedium',
   'labelSmall',
-  'overline',
 ]
 
 /** @param {TransformedToken[]} allTokens @returns {Entry[]} */

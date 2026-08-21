@@ -194,12 +194,6 @@
   --kui-typography-label-small-size: 11px;
   --kui-typography-label-small-tracking: 0.5px;
   --kui-typography-label-small-weight: 500;
-  --kui-typography-overline-font:
-    'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --kui-typography-overline-line-height: 16px;
-  --kui-typography-overline-size: 11px;
-  --kui-typography-overline-tracking: 1.5px;
-  --kui-typography-overline-weight: 500;
   --kui-typography-title-large-font:
     'Roboto Serif', 'Iowan Old Style', Georgia, serif;
   --kui-typography-title-large-line-height: 28px;

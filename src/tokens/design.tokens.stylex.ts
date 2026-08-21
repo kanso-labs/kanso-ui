@@ -449,12 +449,6 @@ const typography = stylex.defineVars({
   labelSmallSize: 'var(--kui-typography-label-small-size, 11px)',
   labelSmallTracking: 'var(--kui-typography-label-small-tracking, 0.5px)',
   labelSmallWeight: 'var(--kui-typography-label-small-weight, 500)',
-  overlineFont:
-    "var(--kui-typography-overline-font, 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace)",
-  overlineLineHeight: 'var(--kui-typography-overline-line-height, 16px)',
-  overlineSize: 'var(--kui-typography-overline-size, 11px)',
-  overlineTracking: 'var(--kui-typography-overline-tracking, 1.5px)',
-  overlineWeight: 'var(--kui-typography-overline-weight, 500)',
   titleLargeFont:
     "var(--kui-typography-title-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
   titleLargeLineHeight: 'var(--kui-typography-title-large-line-height, 28px)',

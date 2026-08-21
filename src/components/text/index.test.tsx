@@ -20,14 +20,6 @@ const expected = stylex.create({
   mutedColor: {
     color: colors.onSurfaceVariant,
   },
-  overlineScale: {
-    fontFamily: typography.overlineFont,
-    fontSize: typography.overlineSize,
-    fontWeight: typography.overlineWeight,
-    letterSpacing: typography.overlineTracking,
-    lineHeight: typography.overlineLineHeight,
-    textTransform: 'uppercase',
-  },
   titleMediumScale: {
     fontFamily: typography.titleMediumFont,
     fontSize: typography.titleMediumSize,
@@ -122,71 +114,6 @@ describe('variant', () => {
 
     expect(view.getByText('implicit').className).toBe(
       view.getByText('explicit').className,
-    )
-  })
-})
-
-describe('overline', () => {
-  it('applies the overline scale tokens', () => {
-    const view = render(<Text variant="overline">Section label</Text>)
-
-    expect(
-      hasAll(view.getByText('Section label'), expected.overlineScale),
-    ).toBe(true)
-  })
-
-  it('renders in capitals', () => {
-    const view = render(<Text variant="overline">Section label</Text>)
-    const span = view.getByText('Section label')
-
-    expect(getComputedStyle(span).textTransform).toBe('uppercase')
-  })
-
-  // The whole reason the capitals live in CSS: what a screen reader announces
-  // and what a reader copies out both come from the DOM, which text-transform
-  // never touches. A call site that shouted the string itself would lose both.
-  it('leaves the authored case in the DOM', () => {
-    const view = render(<Text variant="overline">Section label</Text>)
-
-    expect(view.getByText('Section label').textContent).toBe('Section label')
-  })
-
-  it('sets the mono face, which no other variant reaches', () => {
-    const view = render(
-      <>
-        <Text variant="overline">mono</Text>
-        <Text variant="labelSmall">plain</Text>
-      </>,
-    )
-    const mono = getComputedStyle(view.getByText('mono')).fontFamily
-    const plain = getComputedStyle(view.getByText('plain')).fontFamily
-
-    expect(mono).toContain('Roboto Mono')
-    expect(plain).not.toContain('Roboto Mono')
-  })
-})
-
-describe('textTransform reset', () => {
-  // text-transform inherits, so `base` sets `none` for every variant and
-  // overline overrides it. Without that reset this nested Text would render
-  // in capitals it never asked for.
-  it('does not leak the capitals into a nested Text', () => {
-    const view = render(
-      <Text variant="overline">
-        Section label <Text variant="bodyMedium">nested copy</Text>
-      </Text>,
-    )
-
-    expect(getComputedStyle(view.getByText('nested copy')).textTransform).toBe(
-      'none',
-    )
-  })
-
-  it('leaves a plain variant untransformed on its own', () => {
-    const view = render(<Text variant="bodyMedium">Sample text</Text>)
-
-    expect(getComputedStyle(view.getByText('Sample text')).textTransform).toBe(
-      'none',
     )
   })
 })

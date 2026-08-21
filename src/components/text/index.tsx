@@ -3,7 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
-// One key per style in the 16-entry type scale, named exactly as the token
+// One key per style in the 15-entry type scale, named exactly as the token
 // group names it, so `styles[variant]` indexes straight off the prop with no
 // lookup table to keep in sync. Every style sets all five fields the scale
 // defines rather than inheriting any of them: a Text nested inside another
@@ -14,18 +14,9 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // `render` is how a consumer reaches for semantic markup — `<Text
 // render={<h2 />}>` — and an h2's UA margin would then vary the spacing
 // around otherwise identical type.
-//
-// `textTransform` is the sixth field, and the only one declared on `base`
-// rather than on all sixteen styles. It is not a token — see SCALE_STYLES in
-// scripts/build-tokens.mjs — and `overline` is the only style that sets it,
-// so spelling `none` out fifteen times to say nothing would be noise. It
-// still has to be said once: text-transform inherits, so without a reset a
-// bodyMedium Text nested inside an overline would come out in capitals,
-// which is exactly the drift the paragraph above describes.
 const styles = stylex.create({
   base: {
     margin: 0,
-    textTransform: 'none',
   },
   bodyLarge: {
     fontFamily: typography.bodyLargeFont,
@@ -111,20 +102,6 @@ const styles = stylex.create({
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,
   },
-  // The capitals are applied here rather than expected of the call site, so
-  // the DOM keeps the sentence case the author wrote. That is what a screen
-  // reader announces — text-transform is a rendering step and never reaches
-  // the accessibility tree — and it is also what survives being copied out of
-  // the page. `<Text variant="overline">Section label</Text>`, never the
-  // string already shouted.
-  overline: {
-    fontFamily: typography.overlineFont,
-    fontSize: typography.overlineSize,
-    fontWeight: typography.overlineWeight,
-    letterSpacing: typography.overlineTracking,
-    lineHeight: typography.overlineLineHeight,
-    textTransform: 'uppercase',
-  },
   titleLarge: {
     fontFamily: typography.titleLargeFont,
     fontSize: typography.titleLargeSize,
@@ -149,7 +126,7 @@ const styles = stylex.create({
 })
 
 // Tone is a separate axis from variant so the two compose freely — any of the
-// 16 scale styles in any of these colors. Kept to the roles text actually
+// 15 scale styles in any of these colors. Kept to the roles text actually
 // takes on a surface; a consumer needing something outside this set uses
 // `inherit` and colors the parent, rather than this growing a case per role.
 const tones = stylex.create({
@@ -179,10 +156,7 @@ type TextProps = useRender.ComponentProps<'span'> & {
     | 'positive'
     | 'primary'
   /**
-   * Which style of the type scale to render. `overline` sits outside the five
-   * families: it is the eyebrow over a heading and the label down the side of
-   * a section, set in the mono face and rendered in capitals from whatever
-   * case you write.
+   * Which style of the type scale to render.
    * @default 'bodyMedium'
    */
   variant?:
@@ -198,7 +172,6 @@ type TextProps = useRender.ComponentProps<'span'> & {
     | 'labelLarge'
     | 'labelMedium'
     | 'labelSmall'
-    | 'overline'
     | 'titleLarge'
     | 'titleMedium'
     | 'titleSmall'
