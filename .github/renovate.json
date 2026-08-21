@@ -11,6 +11,11 @@
   },
   "packageRules": [
     {
+      "description": "Renovate's own config:recommended sets semanticCommitType through a packageRule, and packageRules beat top-level config. Setting it at the top level therefore does nothing at all: every upgrade stays chore and cuts no release.",
+      "matchPackageNames": ["*"],
+      "semanticCommitType": "deps"
+    },
+    {
       "automerge": true,
       "matchUpdateTypes": ["minor", "patch"]
     },
@@ -62,6 +67,5 @@
   "rebaseWhen": "behind-base-branch",
   "recreateWhen": "always",
   "semanticCommitScope": null,
-  "semanticCommitType": "deps",
   "semanticCommits": "enabled"
 }
