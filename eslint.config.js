@@ -9,7 +9,11 @@ import typescriptEslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'storybook-static']),
+  // `.claude/worktrees/` holds per-session checkouts of this repository, so
+  // without this ESLint lints every other branch alongside the current one.
+  // It is gitignored, but flat config does not read .gitignore the way oxlint
+  // and oxfmt do, so it has to be named here.
+  globalIgnores(['.claude', 'dist', 'storybook-static']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
