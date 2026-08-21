@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repo.
+Guidance for coding agents working in this repository.
 
 ## What this is
 
@@ -200,19 +200,21 @@ Shared with the other `kanso-labs` repositories:
   underscore.
 - **Job names and step names are imperative verb phrases.** Job ids, step ids,
   and matrix keys are exempt.
-- **Actions are pinned to exact release tags**, never a moving major or `@main`.
-  Renovate opens the bump pull requests.
+- **Actions are pinned to exact release tags**, `actions/checkout@v7.0.1`, never
+  a moving major or `@main`. Renovate opens the bump pull requests.
 - **Dependency versions are pinned exactly.** Every `dependencies`,
   `devDependencies`, and `optionalDependencies` entry is a bare version,
-  `19.2.8`, never `^19.2.8`, `~19.2.8`, `>=19.2.8`, `*`, `19.x`, or an `||`
-  union. Renovate opens those bumps too. `peerDependencies` are the deliberate
-  exception: they state what the consumer's own installed copy must satisfy —
-  which is why `react` is pinned in `devDependencies` and a range in
-  `peerDependencies` — so ranges are correct there and stay.
+  `1.2.3`, never `^1.2.3`, `~1.2.3`, `>=1.2.3`, `*`, `1.x`, or an `||` union.
+  Renovate opens those bumps too. `peerDependencies` are the deliberate
+  exception: they state what the consumer's own installed copy must satisfy, so
+  ranges are correct there and stay.
 - **`.tool-versions` pins a fully-specified version on every line**,
-  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`. Installing under a
-  version that disagrees with it is the lockfile hazard described under
-  "Commands" above.
+  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`.
+
+Two of those bullets have a local consequence. `react` is the `peerDependencies`
+exception in practice — pinned in `devDependencies` and a range in
+`peerDependencies` — and installing under a Node version that disagrees with
+`.tool-versions` is the lockfile hazard described under "Commands" above.
 
 The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
 the command is `npm run format` and the check runs inside `npm run lint`. The
@@ -366,10 +368,10 @@ beside it, and a run of nothing but upgrades published nothing at all.
 `.github/renovate.json` therefore sets `semanticCommits: enabled`,
 `semanticCommitType: deps` and `semanticCommitScope: null`, and
 `release-please-config.json` spells out `changelog-sections` with `deps` visible
-under a `Dependencies` heading. The three move together: the section list
-replaces release-please's defaults wholesale, so a type missing from it is
-invisible rather than merely unstyled, and `deps` with no matching section would
-put the upgrades back where they started.
+under a `Dependencies` heading. The two move together: the section list replaces
+release-please's defaults wholesale, so a type missing from it is invisible
+rather than merely unstyled, and `deps` with no matching section would put the
+upgrades back where they started.
 
 **`semanticCommitType` sits in a `packageRule`, and that is the whole fix.** It
 was a top-level key at first and did nothing at all. `config:recommended`
@@ -404,15 +406,16 @@ The names themselves follow five rules:
 ## Commits and pull requests
 
 **The pull request title is the one that has to be right.** Pull requests are
-squash-merged, and the repo is set to take the PR title as the squashed commit's
-subject with an empty body. So the PR title — not any commit message on the
-branch — becomes the single commit on `main`, and it is what `release-please`
-parses to pick the next version and write the changelog line. Branch commit
-messages are discarded by the squash and never reach history.
+squash-merged, and the repository is set to take the pull request title as the
+squashed commit's subject with an empty body. So that title — not any commit
+message on the branch — becomes the single commit on `main`, and it is what
+`release-please` parses to pick the next version and write the changelog line.
+Branch commit messages are discarded by the squash and never reach history.
 
-Write both as Conventional Commits anyway. The branch messages are what a
-reviewer reads while the PR is open, and `feat(sheet): add Sheet component` as
-the title is what a released changelog is made of.
+Write branch commits conventionally anyway. They are what a reviewer reads while
+the pull request is open, even though only the title survives the merge. That
+title is what a released changelog is made of —
+`feat(sheet): add Sheet component`.
 
 ## Traps
 
