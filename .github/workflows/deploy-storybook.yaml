@@ -36,7 +36,7 @@ jobs:
       # the Test job needs those; here they are a few hundred megabytes to
       # build a static site with.
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
+        uses: kanso-labs/github-actions/actions/setup-node@v3.0.1
         with:
           ignore-scripts: true
 

@@ -29,7 +29,7 @@ permissions: {}
 jobs:
   renovate-command:
     name: Run the command
-    uses: kanso-labs/github-actions/.github/workflows/_renovate-command.yaml@v2.1.0
+    uses: kanso-labs/github-actions/.github/workflows/_renovate-command.yaml@v3.0.1
     secrets:
       client-id: ${{ secrets.RENOVATE_CLIENT_ID }}
       private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}

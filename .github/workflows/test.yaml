@@ -43,7 +43,7 @@ jobs:
       # Scripts run here, unlike the other jobs: the prepare script is how the
       # browsers these tests need get installed.
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v2.1.0
+        uses: kanso-labs/github-actions/actions/setup-node@v3.0.1
 
       - name: Run tests
         run: npm run test:coverage
