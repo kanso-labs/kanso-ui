@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.5.1...kanso-ui-v0.6.0) (2026-08-21)
+
+
+### Features
+
+* **product-icon:** add a square mark for things that are not people ([#387](https://github.com/kanso-labs/kanso-ui/issues/387)) ([42fbf8c](https://github.com/kanso-labs/kanso-ui/commit/42fbf8c5634f8e30e1e38fe56fd256477a4832aa))
+
 ## [0.5.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.5.0...kanso-ui-v0.5.1) (2026-08-21)
 
 
