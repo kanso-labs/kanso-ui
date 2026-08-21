@@ -11,9 +11,11 @@ import type { CurrencyProps } from './currency'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
+import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
+import type { SupportingPaneProps } from './supporting-pane'
 import type { TabsProps } from './tabs'
 import type { TextProps } from './text'
 import type { TextFieldProps } from './text-field'
@@ -30,9 +32,11 @@ import CurrencyDefault from './currency'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
+import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
+import SupportingPaneDefault from './supporting-pane'
 import TabsDefault from './tabs'
 import TextDefault from './text'
 import TextFieldDefault from './text-field'
@@ -51,9 +55,11 @@ describe('components barrel', () => {
       'IconButton',
       'Keycap',
       'Link',
+      'ListDetail',
       'ListItem',
       'Separator',
       'Sheet',
+      'SupportingPane',
       'Tabs',
       'Text',
       'TextField',
@@ -104,6 +110,10 @@ describe('components barrel', () => {
     expect(components.Link).toBe(LinkDefault)
   })
 
+  it('re-exports ListDetail as the same reference as its own module', () => {
+    expect(components.ListDetail).toBe(ListDetailDefault)
+  })
+
   it('re-exports ListItem as the same reference as its own module', () => {
     expect(components.ListItem).toBe(ListItemDefault)
   })
@@ -114,6 +124,10 @@ describe('components barrel', () => {
 
   it('re-exports Sheet as the same reference as its own module', () => {
     expect(components.Sheet).toBe(SheetDefault)
+  })
+
+  it('re-exports SupportingPane as the same reference as its own module', () => {
+    expect(components.SupportingPane).toBe(SupportingPaneDefault)
   })
 
   it('re-exports Tabs as the same reference as its own module', () => {
@@ -183,6 +197,11 @@ describe('components barrel', () => {
     expect(props.tone).toBe('inherit')
   })
 
+  it('re-exports the ListDetailProps type', () => {
+    const props: ListDetailProps = { showing: 'detail' }
+    expect(props.showing).toBe('detail')
+  })
+
   it('re-exports the ListItemProps type', () => {
     const props: ListItemProps = { children: 'test' }
     expect(props.children).toBe('test')
@@ -196,6 +215,11 @@ describe('components barrel', () => {
   it('re-exports the SheetProps type', () => {
     const props: SheetProps = { size: 'sm' }
     expect(props.size).toBe('sm')
+  })
+
+  it('re-exports the SupportingPaneProps type', () => {
+    const props: SupportingPaneProps = { main: 'Headline' }
+    expect(props.main).toBe('Headline')
   })
 
   it('re-exports the TabsProps type', () => {
