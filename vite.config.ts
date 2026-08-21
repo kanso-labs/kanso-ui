@@ -1,10 +1,9 @@
 /// <reference types="vitest/config" />
 
 import styleDictionary from '@kanso-labs/unplugin-style-dictionary'
-import babel from '@rolldown/plugin-babel'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import stylex from '@stylexjs/unplugin'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -38,10 +37,7 @@ export default defineConfig({
       runtimeInjection: false,
       useCSSLayers: true,
     }),
-    react(),
-    babel({
-      presets: [reactCompilerPreset()],
-    }),
+    react({ compiler: true }),
   ],
   test: {
     coverage: {
