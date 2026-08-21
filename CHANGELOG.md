@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.5.0...kanso-ui-v0.5.1) (2026-08-21)
+
+
+### Dependencies
+
+* update oxlint to v1.79.0 ([#334](https://github.com/kanso-labs/kanso-ui/issues/334)) ([fa431af](https://github.com/kanso-labs/kanso-ui/commit/fa431af98f08ce2a9cee5a6face71450e2e2a2b8))
+
 ## [0.5.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.6...kanso-ui-v0.5.0) (2026-08-21)
 
 
