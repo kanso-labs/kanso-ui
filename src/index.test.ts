@@ -15,6 +15,7 @@ import {
   Link as ComponentsLink,
   ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
+  ProductIcon as ComponentsProductIcon,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
   SupportingPane as ComponentsSupportingPane,
@@ -41,6 +42,7 @@ describe('package entry point', () => {
       'Link',
       'ListDetail',
       'ListItem',
+      'ProductIcon',
       'Separator',
       'Sheet',
       'SupportingPane',
@@ -100,6 +102,10 @@ describe('package entry point', () => {
 
   it('forwards ListItem as the same reference as the components barrel', () => {
     expect(publicApi.ListItem).toBe(ComponentsListItem)
+  })
+
+  it('forwards ProductIcon as the same reference as the components barrel', () => {
+    expect(publicApi.ProductIcon).toBe(ComponentsProductIcon)
   })
 
   it('forwards Separator as the same reference as the components barrel', () => {

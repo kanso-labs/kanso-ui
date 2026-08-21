@@ -13,6 +13,7 @@ import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
+import type { ProductIconProps } from './product-icon'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { SupportingPaneProps } from './supporting-pane'
@@ -34,6 +35,7 @@ import KeycapDefault from './keycap'
 import LinkDefault from './link'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
+import ProductIconDefault from './product-icon'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import SupportingPaneDefault from './supporting-pane'
@@ -57,6 +59,7 @@ describe('components barrel', () => {
       'Link',
       'ListDetail',
       'ListItem',
+      'ProductIcon',
       'Separator',
       'Sheet',
       'SupportingPane',
@@ -116,6 +119,10 @@ describe('components barrel', () => {
 
   it('re-exports ListItem as the same reference as its own module', () => {
     expect(components.ListItem).toBe(ListItemDefault)
+  })
+
+  it('re-exports ProductIcon as the same reference as its own module', () => {
+    expect(components.ProductIcon).toBe(ProductIconDefault)
   })
 
   it('re-exports Separator as the same reference as its own module', () => {
@@ -205,6 +212,11 @@ describe('components barrel', () => {
   it('re-exports the ListItemProps type', () => {
     const props: ListItemProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ProductIconProps type', () => {
+    const props: ProductIconProps = { name: 'First item' }
+    expect(props.name).toBe('First item')
   })
 
   it('re-exports the SeparatorProps type', () => {
