@@ -16,7 +16,7 @@ React Compiler. Components are developed and documented in Storybook.
 | Test       | `npm test`              | Vitest in headless Chromium                                      |
 | Coverage   | `npm run test:coverage` | Same suite with v8 coverage; writes Cobertura XML to `coverage/` |
 | Lint       | `npm run lint`          | oxlint, then ESLint, then oxfmt formatting check                 |
-| Build      | `npm run build`         | Type-checks (`tsc -b`) then builds ESM + CJS into `dist/`        |
+| Build      | `npm run build`         | Type-checks (`tsc -b`) then builds ESM into `dist/`              |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
@@ -227,6 +227,12 @@ Specific to this repository:
   is behaviour worth pinning. Every component needs stories, since they are both
   its documentation and its render smoke test.
 - Public API is exported from `src/index.ts`.
+- **The `exports` map says `default`, not `import`, and that is what keeps
+  CommonJS working.** The package ships ESM only. Under a `default` condition
+  Node resolves the ESM file for a `require()` too and serves it through
+  `require(esm)`; under `import` alone the same call fails outright with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Renaming it reads like a tidy-up next to
+  `type: module` and silently drops every CommonJS consumer.
 - Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
   inline `style` objects.
 - Commit messages and pull request titles must follow Conventional Commits — see

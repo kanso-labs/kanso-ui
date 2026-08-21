@@ -13,10 +13,7 @@ import {
 export default defineConfig({
   dts: true,
   entry: 'src/index.ts',
-  format: {
-    cjs: { outDir: 'dist/cjs' },
-    esm: { outDir: 'dist' },
-  },
+  format: ['esm'],
   platform: 'neutral',
   plugins: [
     styleDictionaryRolldown({

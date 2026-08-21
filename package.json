@@ -20,14 +20,16 @@
     "access": "public"
   },
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "module": "./dist/index.js",
-  "main": "./dist/cjs/index.cjs",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "default": "./dist/index.js"
     },
     "./tokens.css": "./dist/tokens.css",
     "./package.json": "./package.json"
