@@ -13,9 +13,11 @@ import {
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
   Link as ComponentsLink,
+  ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
+  SupportingPane as ComponentsSupportingPane,
   Tabs as ComponentsTabs,
   Text as ComponentsText,
   TextField as ComponentsTextField,
@@ -37,9 +39,11 @@ describe('package entry point', () => {
       'IconButton',
       'Keycap',
       'Link',
+      'ListDetail',
       'ListItem',
       'Separator',
       'Sheet',
+      'SupportingPane',
       'Tabs',
       'Text',
       'TextField',
@@ -90,6 +94,10 @@ describe('package entry point', () => {
     expect(publicApi.Link).toBe(ComponentsLink)
   })
 
+  it('forwards ListDetail as the same reference as the components barrel', () => {
+    expect(publicApi.ListDetail).toBe(ComponentsListDetail)
+  })
+
   it('forwards ListItem as the same reference as the components barrel', () => {
     expect(publicApi.ListItem).toBe(ComponentsListItem)
   })
@@ -100,6 +108,10 @@ describe('package entry point', () => {
 
   it('forwards Sheet as the same reference as the components barrel', () => {
     expect(publicApi.Sheet).toBe(ComponentsSheet)
+  })
+
+  it('forwards SupportingPane as the same reference as the components barrel', () => {
+    expect(publicApi.SupportingPane).toBe(ComponentsSupportingPane)
   })
 
   it('forwards Tabs as the same reference as the components barrel', () => {
