@@ -21,10 +21,11 @@ React Compiler. Components are developed and documented in Storybook.
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
 
-**Install with the Node version in `.tool-versions`.** CI resolves it from that
-file, and an older npm silently drops the platform entries the lockfile carries
-for Linux builds. If `node --version` disagrees, prefix the command:
-`mise exec node@<version> -- npm install`.
+**Install with the Node version in `.tool-versions` (24.19.0).** CI resolves it
+from that file, and an older npm silently drops the platform entries the
+lockfile carries for Linux builds — a rewrite with no visible symptom until a
+Linux runner installs the wrong native binary. If `node --version` disagrees,
+prefix the command: `mise exec node@24.19.0 -- npm install`.
 
 ## Testing
 
@@ -264,18 +265,19 @@ Specific to this repository:
 
 ## Workflows and checks
 
-**A job name becomes a check name**, so renaming a job edits the merge gate
-rather than the label on it. Ruleset `18125383` ("Default") requires four
-contexts that workflows post — `Build`, `Lint`, `Test`, and
-`Run visual regression tests` — and it matches them by exact string. A job
-renamed without the ruleset renamed alongside it stops reporting the context the
-ruleset still waits on, so every open pull request sits on a check nothing will
-ever post, which reads as a hang rather than a failure. Keep the two in sync in
-one change. The ruleset is editable and a clearer job name is worth having, so
-this is not a rule against renaming — it is a rule against renaming only one
-half, and against forgetting the pull requests already open, which run the
-workflow files from their own branches and so keep reporting the old name until
-they are refreshed.
+**A job name becomes a check name.** Renaming a job edits the merge gate rather
+than the label on it, so keep the job name and the ruleset in sync in one
+change.
+
+Ruleset `18125383` ("Default") requires four contexts that workflows post —
+`Build`, `Lint`, `Test`, and `Run visual regression tests` — and it matches them
+by exact string. A job renamed without the ruleset renamed alongside it stops
+reporting the context the ruleset still waits on, so every open pull request
+sits on a check nothing will ever post. The ruleset is editable and a clearer
+job name is worth having, so this is not a rule against renaming — it is a rule
+against renaming only one half, and against forgetting the pull requests already
+open, which run the workflow files from their own branches and so keep reporting
+the old name until they are refreshed.
 
 Two further required contexts, `Storybook Publish` and `UI Tests`, are posted by
 Chromatic as commit statuses rather than by any workflow. Grepping
@@ -345,10 +347,10 @@ else, and it should be deleted once the pinned actionlint knows the scope.
 
 **`Build`, `Lint` and `Test` run on pushes to `main` as well as on pull
 requests**, so `main` is re-verified after a merge rather than taken on trust.
-The `pull_request` trigger is deliberately unscoped: adding `branches: [main]`
+The `pull_request` trigger is deliberately unscoped. Adding `branches: [main]`
 would match the sibling repositories, but a pull request opened against any
-other base would then post none of the contexts the ruleset requires, which
-reads as a hang rather than a failure.
+other base would then post none of the checks the ruleset requires, which reads
+as a hang rather than a failure because nothing will ever report.
 
 **`Chromatic` is grouped per ref, and cancels only off `main`.** On a branch the
 newest commit is the one the pull request is gated on, so a run for an older
@@ -439,10 +441,9 @@ one of them a merge-plus-branch pair. Rebase merging stays available and is
 safe: it adds no merge commit, so a PR whose individual commits each deserve a
 changelog line can use it.
 
-**Nothing enforces the commit conventions automatically.** `@commitlint/cli` and
-a `.commitlintrc.json` are both installed, but no `commit-msg` hook invokes them
-and no workflow does either — `.husky/` holds only `pre-commit`, which runs
-lint-staged. A malformed type therefore reaches `main` unnoticed and lands in
-the changelog. Until that is wired up, the PR title is on the author to get
-right. `unplugin-style-dictionary` has the same gap, with not even a
-`pre-commit` hook.
+**commitlint is installed but never runs.** `@commitlint/cli`,
+`@commitlint/config-conventional` and `.commitlintrc.json` are all present, and
+`.husky/` carries a `pre-commit` hook — but that hook runs lint-staged, not
+commitlint. There is no `commit-msg` hook and no workflow invoking one, so a
+malformed type reaches `main` unnoticed and lands in the changelog, and the pull
+request title is on the author to get right.
