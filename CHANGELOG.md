@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.1...kanso-ui-v0.4.2) (2026-08-21)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.2.3 ([#365](https://github.com/kanso-labs/kanso-ui/issues/365)) ([a8596ab](https://github.com/kanso-labs/kanso-ui/commit/a8596ab4f3d56d2ca7558eaab7561f6e1c07c69b))
+* update dependency eslint to v10.9.0 ([#366](https://github.com/kanso-labs/kanso-ui/issues/366)) ([8ef48d5](https://github.com/kanso-labs/kanso-ui/commit/8ef48d589f8e579374ed257a208abb9edcfe3ee2))
+
 ## [0.4.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.0...kanso-ui-v0.4.1) (2026-08-21)
 
 
