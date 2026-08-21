@@ -114,6 +114,13 @@ const Wide: Decorator = (Story) => (
 
 const CONTENT = <Body />
 
+// Declared at module scope so it is one stable element rather than a fresh one
+// per render, matching how the heading templates above are handled. Empty for
+// the same reason they are, and disabled for the same reason too: useRender
+// injects the children, so the anchor jsx-a11y sees has no content yet.
+// oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by useRender
+const EXAMPLE_LINK = <a href="https://example.com" />
+
 const meta = {
   args: {
     children: CONTENT,
@@ -193,7 +200,8 @@ const Overview: Story = {
             Interactive
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Renders a button that ripples, lifts on hover, and takes focus. Only
+            Makes the card the thing you press: it ripples, lifts on hover, and
+            takes focus. Renders a button unless `render` says otherwise. Only
             the resting state is visible here — the rest is what you get by
             pressing it.
           </Text>
@@ -207,6 +215,34 @@ const Overview: Story = {
             </div>
             <Text tone="muted" variant="labelSmall">
               interactive
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            As a link
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `render` decides which element the card is, so one that navigates
+            can be a real anchor. It is announced as a link, opens in a new tab
+            on a modifier click, and offers the browser's own link menu — none
+            of which a button with an onClick does.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.wide)}>
+              <Card interactive render={EXAMPLE_LINK}>
+                <Body />
+              </Card>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              interactive · render
             </Text>
           </div>
         </div>
@@ -291,6 +327,18 @@ const Interactive: Story = {
   decorators: [Wide],
 }
 
-export { Default, Interactive, Overview }
+// A third element again, and the only place the anchor's own behaviour can be
+// exercised: tabbing to it, the status bar showing where it goes, the browser
+// menu on a right-click. `render` takes an element rather than a string, so
+// none of that is reachable through the controls panel either.
+const Link: Story = {
+  args: {
+    interactive: true,
+    render: EXAMPLE_LINK,
+  },
+  decorators: [Wide],
+}
+
+export { Default, Interactive, Link, Overview }
 
 export default meta

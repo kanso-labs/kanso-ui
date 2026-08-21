@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Card from '.'
+import { rippleStyles } from '../../styles/ripple'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than
@@ -18,6 +19,20 @@ const probeStyles = stylex.create({
   surfaceContainerLow: { backgroundColor: colors.surfaceContainerLow },
 })
 
+// Empty and hoisted for the same reasons the stories hoist theirs: useRender
+// injects the children, so jsx-a11y sees an anchor with no content yet, and a
+// fresh element per render would trip react-perf's no-jsx-as-prop.
+const ARTICLE = <article />
+// oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by useRender
+const EXAMPLE_LINK = <a href="https://example.com" />
+
+// The ripple's inner span carries these classes only while the hook considers
+// itself pressed, so their presence is an observable signal for its state
+// without reaching into React internals. Matches button/index.test.tsx.
+const pressedClassNames = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
 // Narrows with instanceof rather than an assertion, so a card that failed to
 // render fails the test here instead of further down with something obscure.
 function cardIn(container: HTMLElement) {
@@ -26,6 +41,44 @@ function cardIn(container: HTMLElement) {
     throw new Error('expected the card to render an element')
   }
   return card
+}
+
+/**
+ * Whether the ripple is mid-press. The length check matters: `[].every()` is
+ * vacuously true, so an empty class list would report "pressed" for a press
+ * that never happened.
+ */
+function isPressed(container: HTMLElement) {
+  const span = container.querySelector('span[aria-hidden="true"] > span')
+  if (!span) {
+    return false
+  }
+  return (
+    pressedClassNames.length > 0 &&
+    pressedClassNames.every((name) => span.classList.contains(name))
+  )
+}
+
+/**
+ * Presses with a primary mouse button. `buttons: 1` is load-bearing — the
+ * hook ignores a non-touch pointerdown without it — and the press registers
+ * synchronously, since the hook only awaits before a touch's scroll delay.
+ */
+function pressWithMouse(target: Element) {
+  const rect = target.getBoundingClientRect()
+  fireEvent(
+    target,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      buttons: 1,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+    }),
+  )
 }
 
 // Takes the element rather than the style, so the caller does the
@@ -82,6 +135,95 @@ describe('card', () => {
       expect(
         view.container.querySelector('span[aria-hidden="true"]'),
       ).not.toBeNull()
+    })
+  })
+
+  describe('render', () => {
+    it('renders the element it is given instead of the default', () => {
+      const view = render(<Card render={ARTICLE}>content</Card>)
+
+      expect(view.container.firstElementChild?.tagName).toBe('ARTICLE')
+    })
+
+    it('renders an interactive card as an anchor when given one', () => {
+      const view = render(
+        <Card interactive render={EXAMPLE_LINK}>
+          content
+        </Card>,
+      )
+      const link = view.getByRole('link')
+
+      expect(link.tagName).toBe('A')
+      expect(link.getAttribute('href')).toBe('https://example.com')
+    })
+
+    // The reason Card reaches for useRender rather than Base UI's Button,
+    // whose useButton stamps role="button" onto any non-native element. A
+    // card that navigates should be announced as a link and activate on
+    // Enter alone, not answer to Space as a button does.
+    it('leaves a link card announced as a link, not a button', () => {
+      const view = render(
+        <Card interactive render={EXAMPLE_LINK}>
+          content
+        </Card>,
+      )
+
+      expect(view.queryByRole('button')).toBeNull()
+      expect(view.getByRole('link').getAttribute('role')).toBeNull()
+    })
+
+    // `type` on an <a> is a hint about the MIME type of what it links to, so
+    // carrying the button default across would be actively misleading.
+    it('does not put a button type on an element it did not choose', () => {
+      const view = render(
+        <Card interactive render={EXAMPLE_LINK}>
+          content
+        </Card>,
+      )
+
+      expect(view.getByRole('link').hasAttribute('type')).toBe(false)
+    })
+
+    it('still ripples and takes the interactive styling as a link', () => {
+      const view = render(
+        <Card interactive render={EXAMPLE_LINK}>
+          content
+        </Card>,
+      )
+
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).not.toBeNull()
+      expect(getComputedStyle(view.getByRole('link')).cursor).toBe('pointer')
+    })
+
+    // The UA gives an anchor a link colour and an underline, neither of which
+    // belongs on a surface holding a whole card's worth of content.
+    it('strips the underline a link would otherwise arrive with', () => {
+      const view = render(<Card render={EXAMPLE_LINK}>content</Card>)
+
+      expect(getComputedStyle(view.getByRole('link')).textDecorationLine).toBe(
+        'none',
+      )
+    })
+  })
+
+  describe('pointer handlers', () => {
+    // Ripple's handlers used to be spread and then overwritten by the call
+    // site's, so a card given its own onPointerDown stopped rippling. They
+    // are merged now, and both have to run.
+    it('keeps rippling when the call site supplies its own handler', () => {
+      const onPointerDown = vi.fn<() => void>()
+      const view = render(
+        <Card interactive onPointerDown={onPointerDown}>
+          content
+        </Card>,
+      )
+
+      pressWithMouse(view.getByRole('button'))
+
+      expect(onPointerDown).toHaveBeenCalledTimes(1)
+      expect(isPressed(view.container)).toBe(true)
     })
   })
 

@@ -1,5 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react'
-
+import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
@@ -26,6 +25,13 @@ const styles = stylex.create({
   base: {
     borderRadius: radii.lg,
     borderWidth: 0,
+    // `render` lets the card be any element, and an <a> arrives carrying the
+    // UA's link colour and underline. Both are reset here rather than
+    // alongside the button resets below, because they have to hold for a
+    // card that is a link without being `interactive` too. Neither changes
+    // anything for the default <div>, which already inherits its colour and
+    // underlines nothing.
+    color: 'inherit',
     display: 'block',
     // A child that reaches the card's edges — a row in a list, an image
     // across the top — is square where the card is round, so its background
@@ -41,6 +47,7 @@ const styles = stylex.create({
     overflow: 'hidden',
     // Positioning context for the ripple surface, which fills the card.
     position: 'relative',
+    textDecoration: 'none',
   },
   elevated: {
     backgroundColor: colors.surfaceContainerLow,
@@ -110,16 +117,17 @@ const interactionStyles = stylex.create({
   },
 })
 
-// Typed as the attributes a <div> and a <button> both accept, because
-// `interactive` decides which one renders. Anything element-specific — a
-// button's `type`, a div's ref type — would be wrong for one of the two, so
-// the shared surface is what the prop type can honestly promise.
+// Typed as the attributes a <div> accepts, because that is the surface every
+// element this can render shares. Anything element-specific — a button's
+// `type`, an anchor's `href` — would be wrong for the others, and does not
+// need to be here anyway: those are written on the element handed to
+// `render`, where TypeScript checks them against that element's own props.
 type CardProps = {
-  children?: ReactNode
   /**
-   * Renders a `<button>` that ripples and lifts on hover, for a card that is
-   * itself the thing you press. Leave it off for a card that merely holds
-   * content, including one containing its own buttons.
+   * Makes the card the thing you press: it ripples, lifts on hover, and takes
+   * a focus ring. Renders a `<button>` unless `render` says otherwise. Leave
+   * it off for a card that merely holds content, including one containing its
+   * own buttons.
    * @default false
    */
   interactive?: boolean
@@ -135,45 +143,81 @@ type CardProps = {
    * @default 'elevated'
    */
   variant?: CardVariant
-} & HTMLAttributes<HTMLElement>
+} & useRender.ComponentProps<'div'>
 
 type CardVariant = 'elevated' | 'filled' | 'outlined'
 
+/**
+ * A surface holding related content. `render` decides which element that
+ * surface is, so a card that navigates can be a real `<a href>` — announced
+ * as a link and opening in a new tab on a modifier click, which a `<button>`
+ * with an onClick does neither of.
+ *
+ * `interactive` and `render` are separate axes. `interactive` says the card
+ * is pressable and gives it the ripple, the hover lift, and a focus ring;
+ * `render` says what it is. A pressable card with no `render` is a
+ * `<button>`, which is the right default for one that acts rather than
+ * navigates.
+ */
 function Card({
   children,
   interactive = false,
+  onClick,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   padding = 'default',
+  render,
   variant = 'elevated',
   ...props
 }: CardProps) {
-  const ripple = useRipple<HTMLButtonElement>(interactive)
+  // The consumer's own pointer handlers are handed to useRipple to merge
+  // rather than spread over its handlers afterwards, which is what Button
+  // does and for the same reason: a plain spread means whichever object
+  // comes last silently wins, so an onPointerDown on the call site would
+  // replace the one driving the ripple and the card would stop rippling.
+  const ripple = useRipple(interactive, {
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
   const padded = padding === 'none' ? styles.paddingNone : styles.paddingDefault
 
-  if (!interactive) {
-    return (
-      <div {...props} {...stylex.props(styles.base, styles[variant], padded)}>
-        {children}
-      </div>
-    )
-  }
-
-  return (
-    <button
-      type="button"
-      {...ripple.handlers}
-      {...props}
-      {...stylex.props(
+  return useRender({
+    defaultTagName: interactive ? 'button' : 'div',
+    props: {
+      ...props,
+      // Only when the default <button> is what renders. On an element the
+      // call site chose, `type` is either meaningless or wrong — an <a>'s
+      // `type` is a hint about the MIME type of what it links to — and that
+      // element's own attributes are the call site's to write.
+      ...(interactive && render === undefined ? { type: 'button' } : undefined),
+      ...ripple.handlers,
+      children: (
+        <>
+          {children}
+          {ripple.surface}
+        </>
+      ),
+      // Spread last so it wins over a consumer-supplied className rather than
+      // being merged with one, matching Text and Badge. useRender joins the
+      // two class strings otherwise, and which won would come down to
+      // stylesheet order rather than anything visible at the call site.
+      ...stylex.props(
         styles.base,
         styles[variant],
         padded,
-        styles.interactive,
-        interactionStyles[variant],
-      )}
-    >
-      {children}
-      {ripple.surface}
-    </button>
-  )
+        interactive && styles.interactive,
+        interactive && interactionStyles[variant],
+      ),
+    },
+    render,
+  })
 }
 
 export type { CardProps }
