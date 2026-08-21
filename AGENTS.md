@@ -202,6 +202,17 @@ Shared with the other `kanso-labs` repositories:
   and matrix keys are exempt.
 - **Actions are pinned to exact release tags**, never a moving major or `@main`.
   Renovate opens the bump pull requests.
+- **Dependency versions are pinned exactly.** Every `dependencies`,
+  `devDependencies`, and `optionalDependencies` entry is a bare version,
+  `19.2.8`, never `^19.2.8`, `~19.2.8`, `>=19.2.8`, `*`, `19.x`, or an `||`
+  union. Renovate opens those bumps too. `peerDependencies` are the deliberate
+  exception: they state what the consumer's own installed copy must satisfy —
+  which is why `react` is pinned in `devDependencies` and a range in
+  `peerDependencies` — so ranges are correct there and stay.
+- **`.tool-versions` pins a fully-specified version on every line**,
+  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`. Installing under a
+  version that disagrees with it is the lockfile hazard described under
+  "Commands" above.
 
 The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
 the command is `npm run format` and the check runs inside `npm run lint`. The
