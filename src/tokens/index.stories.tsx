@@ -422,12 +422,7 @@ const COLOR_GROUPS: { roles: ColorRole[]; title: string }[] = [
 ]
 
 // The full 15-style type scale, largest to smallest: display (most
-// expressive) down through label (smallest, UI text), then overline — a
-// sixteenth outside the five families, and the only one on the mono role.
-//
-// Every row is drawn from the tokens alone, so overline appears here in the
-// case it is written in. The capitals belong to Text's `overline` variant,
-// which is where a text-transform that no token carries is applied.
+// expressive) down through label (smallest, UI text).
 const TYPE_SCALE: {
   font: string
   lineHeight: string
@@ -555,14 +550,6 @@ const TYPE_SCALE: {
     size: typography.labelSmallSize,
     tracking: typography.labelSmallTracking,
     weight: typography.labelSmallWeight,
-  },
-  {
-    font: typography.overlineFont,
-    lineHeight: typography.overlineLineHeight,
-    name: 'overline',
-    size: typography.overlineSize,
-    tracking: typography.overlineTracking,
-    weight: typography.overlineWeight,
   },
 ]
 
@@ -907,8 +894,7 @@ function Tokens() {
             Typography
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The full 15-style type scale, the overline outside it, and the three
-            typeface roles they draw on.
+            The full 15-style type scale and its three typeface roles.
           </Text>
         </div>
 

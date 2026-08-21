@@ -92,7 +92,7 @@ function SupportingContent() {
   return (
     <Card variant="outlined">
       <div {...stylex.props(styles.stackStart)}>
-        <Text tone="muted" variant="overline">
+        <Text tone="muted" variant="labelSmall">
           Section label
         </Text>
         {RELATED.map((label) => (
