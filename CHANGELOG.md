@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.0...kanso-ui-v0.4.1) (2026-08-21)
+
+
+### Dependencies
+
+* update js-yaml, brace-expansion and nanoid to patched versions ([#356](https://github.com/kanso-labs/kanso-ui/issues/356)) ([60991bf](https://github.com/kanso-labs/kanso-ui/commit/60991bf505ba4bfbac73de09e0cf0ff02d19566b))
+
 ## [0.4.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.3.0...kanso-ui-v0.4.0) (2026-08-20)
 
 
