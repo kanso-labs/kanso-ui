@@ -413,12 +413,12 @@ The names themselves follow five rules:
 
 ## Commits and pull requests
 
-**The pull request title is the one that has to be right.** Pull requests are
-squash-merged, and the repository is set to take the pull request title as the
-squashed commit's subject with an empty body. So that title — not any commit
-message on the branch — becomes the single commit on `main`, and it is what
+Pull requests are squash-merged, with the pull request title as the commit
+subject and an empty body. That title becomes the only commit on `main`, and
+branch commit messages are discarded by the squash and never reach history.
+
+**The pull request title is therefore the one that has to be right.** It is what
 `release-please` parses to pick the next version and write the changelog line.
-Branch commit messages are discarded by the squash and never reach history.
 
 Write branch commits conventionally anyway. They are what a reviewer reads while
 the pull request is open, even though only the title survives the merge. That
@@ -437,9 +437,10 @@ knowing about. GitHub was configured to put the PR title in the merge commit's
 _body_, so every PR produced two conventional commits on `main` — the merge
 commit and the branch commit it brought with it — and `release-please` counted
 both. The 0.1.0 changelog carries 22 duplicated entries from that period, every
-one of them a merge-plus-branch pair. Rebase merging stays available and is
-safe: it adds no merge commit, so a PR whose individual commits each deserve a
-changelog line can use it.
+one of them a merge-plus-branch pair. Squash is the only strategy the repository
+allows now, rebase merging included. Rebasing would be equally safe — it adds no
+merge commit to double-count — so it is the one to turn on if a pull request
+whose individual commits each deserve a changelog line ever needs it.
 
 **commitlint is installed but never runs.** `@commitlint/cli`,
 `@commitlint/config-conventional` and `.commitlintrc.json` are all present, and
