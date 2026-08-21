@@ -3,16 +3,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import SupportingPane from '.'
+import { breakpointModes } from '../../../.storybook/modes'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Badge from '../badge'
 import Card from '../card'
 import Separator from '../separator'
 import Text from '../text'
-
-// See list-detail/index.stories.tsx for why these two stories carry viewports
-// where nothing else in the library does: a media query answers to the window,
-// so one width can only ever show one of the three arrangements.
-const BREAKPOINT_VIEWPORTS = [500, 700, 1100]
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />
@@ -118,15 +114,20 @@ const meta = {
     supporting: <SupportingContent />,
   },
   component: SupportingPane,
-  parameters: {
-    chromatic: { viewports: BREAKPOINT_VIEWPORTS },
-  },
   title: 'Components/SupportingPane',
 } satisfies Meta<typeof SupportingPane>
 
 type Story = StoryObj<typeof meta>
 
+// Chromatic captures the Overview at the narrow arrangements too, because a
+// media query answers to the window rather than to a container and one width
+// can only ever show one of them. These merge with the project's light and
+// dark rather than replacing them, so the wide arrangement is still covered by
+// the default snapshot — see .storybook/modes.ts.
 const Overview: Story = {
+  parameters: {
+    chromatic: { modes: breakpointModes },
+  },
   render: (args) => (
     <div {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.header)}>

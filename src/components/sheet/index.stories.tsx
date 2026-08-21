@@ -227,8 +227,10 @@ const BottomSheet: Story = {
       // told through `modes` rather than the older `viewports`: the project
       // sets `modes` for both themes, and Chromatic errors outright if a
       // story carries both keys. Redeclared here rather than extended,
-      // because .storybook/modes.ts lives outside the src tsconfig — the
-      // theme values have to match it by hand.
+      // because this story overrides the width of the two themes it already
+      // has rather than adding baselines of its own — see
+      // list-detail/index.stories.tsx for the case that does, which imports
+      // its modes from .storybook/modes.ts instead.
       //
       // The mode *names* match it too, and that part matters: baselines are
       // keyed on the name, so renaming either restarts its history.

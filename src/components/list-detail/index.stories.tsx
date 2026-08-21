@@ -3,23 +3,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import ListDetail from '.'
+import { breakpointModes } from '../../../.storybook/modes'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Card from '../card'
 import ListItem from '../list-item'
 import Separator from '../separator'
 import Text from '../text'
-
-// Every other component in this library can be judged at one width. These two
-// cannot: a media query answers to the window, not to a container, so no
-// arrangement of samples on one page can show compact beside expanded. The
-// widths below are what gives Chromatic a baseline per breakpoint instead —
-// one inside compact, one inside medium, one inside expanded — so a rule that
-// stops matching is caught by the mode it broke rather than by whichever
-// single width the snapshot happened to use.
-//
-// Six snapshots per themed story is more than the one-width default, and it
-// is the cost of the thing these components exist to do.
-const BREAKPOINT_VIEWPORTS = [500, 700, 1100]
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />
@@ -110,15 +99,20 @@ const meta = {
     list: <ListPane />,
   },
   component: ListDetail,
-  parameters: {
-    chromatic: { viewports: BREAKPOINT_VIEWPORTS },
-  },
   title: 'Components/ListDetail',
 } satisfies Meta<typeof ListDetail>
 
 type Story = StoryObj<typeof meta>
 
+// Chromatic captures the Overview at the narrow arrangements too, because a
+// media query answers to the window rather than to a container and one width
+// can only ever show one of them. These merge with the project's light and
+// dark rather than replacing them, so the wide arrangement is still covered by
+// the default snapshot — see .storybook/modes.ts.
 const Overview: Story = {
+  parameters: {
+    chromatic: { modes: breakpointModes },
+  },
   render: (args) => (
     <div {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.header)}>
