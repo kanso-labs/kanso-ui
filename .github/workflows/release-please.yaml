@@ -31,7 +31,7 @@ permissions:
 jobs:
   release-please:
     name: Propose releases
-    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v3.0.1
+    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v3.0.2
     secrets:
       client-id: ${{ secrets.RELEASE_PLEASE_CLIENT_ID }}
       private-key: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
@@ -82,4 +82,4 @@ jobs:
       contents: read
       id-token: write
       packages: write
-    uses: kanso-labs/github-actions/.github/workflows/_publish-npm.yaml@v3.0.1
+    uses: kanso-labs/github-actions/.github/workflows/_publish-npm.yaml@v3.0.2
