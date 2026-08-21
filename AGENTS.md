@@ -346,6 +346,14 @@ replaces release-please's defaults wholesale, so a type missing from it is
 invisible rather than merely unstyled, and `deps` with no matching section would
 put the upgrades back where they started.
 
+**`semanticCommitType` sits in a `packageRule`, and that is the whole fix.** It
+was a top-level key at first and did nothing at all. `config:recommended`
+extends `:semanticPrefixFixDepsChoreOthers`, which sets the type through
+`packageRules` — `matchPackageNames: ["*"]` to `chore`, plus a narrower
+`dependencies` to `fix` — and `packageRules` beat top-level config. So Renovate
+went on writing `chore:` while the setting sat there looking correct, and only
+production dependencies released at all.
+
 `deps` is not one of the Conventional Commits types, so `.commitlintrc.json`
 extends the `type-enum` rule from `@commitlint/config-conventional` to admit it
 alongside the standard eleven. A plain `chore:` still publishes nothing, which
