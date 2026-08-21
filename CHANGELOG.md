@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.5.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.6...kanso-ui-v0.5.0) (2026-08-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop the CommonJS build and ship ESM only ([#382](https://github.com/kanso-labs/kanso-ui/issues/382))
+
+### Features
+
+* **card:** let render choose the card's element, so it can be a link ([#379](https://github.com/kanso-labs/kanso-ui/issues/379)) ([19296ca](https://github.com/kanso-labs/kanso-ui/commit/19296ca71956e09467fb7f1ad99dfe98607a2749))
+* **layout:** add Material 3's list-detail and supporting pane layouts ([#381](https://github.com/kanso-labs/kanso-ui/issues/381)) ([a3c9c83](https://github.com/kanso-labs/kanso-ui/commit/a3c9c832a3fe35f5bcf9ab99b27ca4c5cb4a49bb))
+* **text:** add an overline variant for eyebrows and section labels ([#377](https://github.com/kanso-labs/kanso-ui/issues/377)) ([d5159d9](https://github.com/kanso-labs/kanso-ui/commit/d5159d9be021a05a90ff83a69d36f70e0d7fb98b))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.0 ([#383](https://github.com/kanso-labs/kanso-ui/issues/383)) ([d0beac0](https://github.com/kanso-labs/kanso-ui/commit/d0beac07e148cd414a09c343abfce6f4c609cb1b))
+
+
+### Reverts
+
+* remove the overline type variant ([#384](https://github.com/kanso-labs/kanso-ui/issues/384)) ([0a1d2eb](https://github.com/kanso-labs/kanso-ui/commit/0a1d2ebf7deb5230c66c55b25301e240d6395d6b))
+
+
+### Build System
+
+* drop the CommonJS build and ship ESM only ([#382](https://github.com/kanso-labs/kanso-ui/issues/382)) ([d5bc09e](https://github.com/kanso-labs/kanso-ui/commit/d5bc09e104d99ca0c5cd1283a3f43acd2233f86e))
+
 ## [0.4.6](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.5...kanso-ui-v0.4.6) (2026-08-21)
 
 
