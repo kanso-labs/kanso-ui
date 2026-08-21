@@ -304,11 +304,16 @@ holds it, pinned by exact tag, and Renovate opens the bump pull requests:
 - `_release-please.yaml` proposes the releases. What stays in
   `release-please.yaml` here is the trigger, the concurrency group, the
   permissions and the secrets.
-- `_publish-npm.yaml` publishes to npm once a release is cut. It replaced the
-  four steps that job used to spell out, and its `ignore-scripts` default of
-  `true` is what keeps `prepare` from downloading Playwright's browsers a second
-  time during the publish itself — where failing to fetch one would abort a
-  release that has already been tagged.
+- `_publish-npm.yaml` publishes once a release is cut — to npmjs.com over
+  trusted publishing, then the same tarball to GitHub Packages, the second only
+  if the first succeeded. It replaced the four steps that job used to spell out,
+  and its `ignore-scripts` default of `true` is what keeps `prepare` from
+  downloading Playwright's browsers a second time during the publish itself —
+  where failing to fetch one would abort a release that has already been tagged.
+  Its two jobs want different scopes, so `release-please.yaml` here grants the
+  union: `id-token: write` for npm's OIDC exchange, `packages: write` for GitHub
+  Packages, which has no trusted publishing and authenticates with
+  `GITHUB_TOKEN`. Only the npm half is attested.
 - `_renovate-command.yaml` answers `@renovate rebase` on a dependency pull
   request, through `renovate-command.yaml` here. Only the copy on `main` ever
   runs: `issue_comment` is a repository-level event, so a change to that file

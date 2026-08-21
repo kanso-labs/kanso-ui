@@ -49,6 +49,11 @@ jobs:
   # prepare script from downloading Playwright's browsers twice: once on
   # install, and once as a step of the publish itself, where failing to fetch a
   # browser would abort a release that has already been tagged.
+  #
+  # That workflow publishes the same tarball twice: to npmjs.com over trusted
+  # publishing, then to GitHub Packages. One call, two jobs, and the second only
+  # runs if the first did — so the organization's registry never carries a
+  # version npmjs.com has not got.
   publish:
     name: Publish to npm
     needs: release-please
@@ -56,12 +61,25 @@ jobs:
     # would also pass on the string "false", which is what this output carries
     # when release-please runs and decides not to cut a release.
     if: needs.release-please.outputs.release_created == 'true'
-    # npm exchanges id-token for a short-lived credential, and mints a
-    # provenance attestation off the same token. Granted here rather than at the
-    # top of the file because this job is the only thing that needs it. The
-    # called workflow declares both scopes too, so forgetting one here fails the
-    # run immediately with the scope named rather than being refused by npm.
+    # Three scopes for two registries. npm exchanges id-token for a short-lived
+    # credential and mints a provenance attestation off the same token; GitHub
+    # Packages has no trusted publishing at all and takes GITHUB_TOKEN with
+    # packages: write instead. Granted here rather than at the top of the file
+    # because this job is the only thing that needs any of them.
+    #
+    # The called workflow splits them across its two jobs and neither job holds
+    # the other's, which is why all three are named here rather than the two
+    # npm alone would need. A caller is checked against each job it starts, so
+    # a scope left out fails the run immediately with that scope named rather
+    # than being refused by a registry.
+    #
+    # packages: write landed here before the pin below moved to a version that
+    # has the GitHub Packages job, and that order is not optional: a caller
+    # granting less than a called job asks for fails outright, while a caller
+    # granting more than it asks for is fine. Renovate's bump of the pin is what
+    # turns the second registry on.
     permissions:
       contents: read
       id-token: write
+      packages: write
     uses: kanso-labs/github-actions/.github/workflows/_publish-npm.yaml@v2.1.0
