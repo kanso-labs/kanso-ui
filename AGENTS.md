@@ -27,6 +27,81 @@ lockfile carries for Linux builds — a rewrite with no visible symptom until a
 Linux runner installs the wrong native binary. If `node --version` disagrees,
 prefix the command: `mise exec node@24.19.0 -- npm install`.
 
+## Conventions
+
+Shared with the other `kanso-labs` repositories:
+
+- **Keys in JSON and YAML are ordered by name.** Files whose order carries
+  meaning are exempt: workflows, where step order is execution order;
+  changelogs, which are chronological; and `package.json`, where the npm
+  ecosystem expects `name` and `version` first.
+- **A workflow's filename is the kebab-case of its `name:` field.** Reusable
+  workflows, meaning those triggered only by `workflow_call`, take a leading
+  underscore.
+- **Job names and step names are imperative verb phrases.** Job ids, step ids,
+  and matrix keys are exempt.
+- **Actions are pinned to exact release tags**, `actions/checkout@v7.0.1`, never
+  a moving major or `@main`. Renovate opens the bump pull requests.
+- **Dependency versions are pinned exactly.** Every `dependencies`,
+  `devDependencies`, and `optionalDependencies` entry is a bare version,
+  `1.2.3`, never `^1.2.3`, `~1.2.3`, `>=1.2.3`, `*`, `1.x`, or an `||` union.
+  Renovate opens those bumps too. `peerDependencies` are the deliberate
+  exception: they state what the consumer's own installed copy must satisfy, so
+  ranges are correct there and stay.
+- **`.tool-versions` pins a fully-specified version on every line**,
+  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`.
+
+Two of those bullets have a local consequence. `react` is the `peerDependencies`
+exception in practice — pinned in `devDependencies` and a range in
+`peerDependencies` — and installing under a Node version that disagrees with
+`.tool-versions` is the lockfile hazard described under "Commands" above.
+
+The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
+the command is `npm run format` and the check runs inside `npm run lint`. The
+mechanics are in the bullets below.
+
+Specific to this repository:
+
+- Each component lives in `src/components/<name>/` as `index.tsx` with a
+  colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
+  is behaviour worth pinning. Every component needs stories, since they are both
+  its documentation and its render smoke test.
+- Public API is exported from `src/index.ts`.
+- **The `exports` map says `default`, not `import`, and that is what keeps
+  CommonJS working.** The package ships ESM only. Under a `default` condition
+  Node resolves the ESM file for a `require()` too and serves it through
+  `require(esm)`; under `import` alone the same call fails outright with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Renaming it reads like a tidy-up next to
+  `type: module` and silently drops every CommonJS consumer.
+- Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
+  inline `style` objects.
+- Commit messages and pull request titles must follow Conventional Commits — see
+  "Commits and pull requests" below, since which of the two reaches `main` is
+  not what you would guess.
+- Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
+  (oxfmt) automatically on commit via a husky pre-commit hook running
+  lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
+  and `.yml` files are formatted (oxfmt) wherever they live, since
+  `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
+  are absent from that entry because neither reads those formats.
+- **That entry's glob excludes lock files on purpose.** It reads
+  `!(*-lock).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because oxfmt
+  exits non-zero when every path handed to it is one of its own ignores —
+  `Expected at least one target file` — and lock files are among those ignores.
+  Under the plain glob, a commit staging nothing but `package-lock.json` failed
+  the hook outright, so a manual bump of a transitive dependency could only land
+  with `--no-verify`. Renovate never ran into it because it commits through the
+  API rather than through husky. Keeping lock files out of the glob is what
+  stops them reaching oxfmt at all, so do not "simplify" the extglob back.
+- `CHANGELOG.md` is exempt from formatting, via `ignorePatterns` in
+  `.oxfmtrc.json`. `release-please` writes it, in a style oxfmt disagrees with —
+  `*` bullets rather than `-`, and one long line per entry against a
+  `proseWrap: always` at 80 columns. Since the file is regenerated from the
+  commit history on every release, formatting it only holds until the next
+  release PR, at which point `Lint` fails again on a branch nobody hand-edits.
+  Exempting it is what makes that stop recurring, so reformat the changelog only
+  by teaching `release-please` to emit a different style, never by hand.
+
 ## Testing
 
 Vitest runs two projects, both in headless Chromium (see `vite.config.ts`):
@@ -187,81 +262,6 @@ rather than following the OS, because `prefers-color-scheme` is not reliably
 applied by the time the preview module evaluates. A story can be opened straight
 into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
-
-## Conventions
-
-Shared with the other `kanso-labs` repositories:
-
-- **Keys in JSON and YAML are ordered by name.** Files whose order carries
-  meaning are exempt: workflows, where step order is execution order;
-  changelogs, which are chronological; and `package.json`, where the npm
-  ecosystem expects `name` and `version` first.
-- **A workflow's filename is the kebab-case of its `name:` field.** Reusable
-  workflows, meaning those triggered only by `workflow_call`, take a leading
-  underscore.
-- **Job names and step names are imperative verb phrases.** Job ids, step ids,
-  and matrix keys are exempt.
-- **Actions are pinned to exact release tags**, `actions/checkout@v7.0.1`, never
-  a moving major or `@main`. Renovate opens the bump pull requests.
-- **Dependency versions are pinned exactly.** Every `dependencies`,
-  `devDependencies`, and `optionalDependencies` entry is a bare version,
-  `1.2.3`, never `^1.2.3`, `~1.2.3`, `>=1.2.3`, `*`, `1.x`, or an `||` union.
-  Renovate opens those bumps too. `peerDependencies` are the deliberate
-  exception: they state what the consumer's own installed copy must satisfy, so
-  ranges are correct there and stay.
-- **`.tool-versions` pins a fully-specified version on every line**,
-  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`.
-
-Two of those bullets have a local consequence. `react` is the `peerDependencies`
-exception in practice — pinned in `devDependencies` and a range in
-`peerDependencies` — and installing under a Node version that disagrees with
-`.tool-versions` is the lockfile hazard described under "Commands" above.
-
-The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
-the command is `npm run format` and the check runs inside `npm run lint`. The
-mechanics are in the bullets below.
-
-Specific to this repository:
-
-- Each component lives in `src/components/<name>/` as `index.tsx` with a
-  colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
-  is behaviour worth pinning. Every component needs stories, since they are both
-  its documentation and its render smoke test.
-- Public API is exported from `src/index.ts`.
-- **The `exports` map says `default`, not `import`, and that is what keeps
-  CommonJS working.** The package ships ESM only. Under a `default` condition
-  Node resolves the ESM file for a `require()` too and serves it through
-  `require(esm)`; under `import` alone the same call fails outright with
-  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Renaming it reads like a tidy-up next to
-  `type: module` and silently drops every CommonJS consumer.
-- Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
-  inline `style` objects.
-- Commit messages and pull request titles must follow Conventional Commits — see
-  "Commits and pull requests" below, since which of the two reaches `main` is
-  not what you would guess.
-- Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
-  (oxfmt) automatically on commit via a husky pre-commit hook running
-  lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
-  and `.yml` files are formatted (oxfmt) wherever they live, since
-  `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
-  are absent from that entry because neither reads those formats.
-- **That entry's glob excludes lock files on purpose.** It reads
-  `!(*-lock).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because oxfmt
-  exits non-zero when every path handed to it is one of its own ignores —
-  `Expected at least one target file` — and lock files are among those ignores.
-  Under the plain glob, a commit staging nothing but `package-lock.json` failed
-  the hook outright, so a manual bump of a transitive dependency could only land
-  with `--no-verify`. Renovate never ran into it because it commits through the
-  API rather than through husky. Keeping lock files out of the glob is what
-  stops them reaching oxfmt at all, so do not "simplify" the extglob back.
-- `CHANGELOG.md` is exempt from formatting, via `ignorePatterns` in
-  `.oxfmtrc.json`. `release-please` writes it, in a style oxfmt disagrees with —
-  `*` bullets rather than `-`, and one long line per entry against a
-  `proseWrap: always` at 80 columns. Since the file is regenerated from the
-  commit history on every release, formatting it only holds until the next
-  release PR, at which point `Lint` fails again on a branch nobody hand-edits.
-  Exempting it is what makes that stop recurring, so reformat the changelog only
-  by teaching `release-please` to emit a different style, never by hand.
 
 ## Workflows and checks
 
