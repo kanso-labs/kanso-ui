@@ -63,11 +63,24 @@ const preview: Preview = {
       },
     },
     options: {
-      // Overview first within each component, everything else left where it
-      // already was. Returning 0 is what does the second half: the default
-      // order is the order stories are exported in, and lint sorts those
-      // named exports alphabetically, so there is nothing to re-sort here —
-      // only the one entry that should lead rather than land under 'D'.
+      // Introduction first overall, Overview first within each component, and
+      // everything else left where it already was. Returning 0 is what does
+      // that last part: the default order is the order stories are exported
+      // in, and lint sorts those named exports alphabetically, so there is
+      // nothing to re-sort here — only the two entries that should lead
+      // rather than land where their name puts them.
+      //
+      // Without the Introduction clause that page lands *last*: the glob walks
+      // src/components and src/tokens before the files sitting at the root of
+      // src, so file order puts the one page meant to be read first at the
+      // bottom of the sidebar. Hoisting it here rather than renaming the file
+      // into place is what keeps that independent of how the glob happens to
+      // traverse.
+      //
+      // 'Introduction' is spelled out rather than read from a shared constant
+      // for the reason in the next paragraph: this function is eval()d with
+      // nothing else in scope, so a reference to anything outside it throws
+      // there and takes the story index down with it.
       //
       // Deliberately untyped, and it has to stay that way. Storybook does not
       // import this function — the indexer reads preview.tsx as text, cuts out
@@ -78,7 +91,10 @@ const preview: Preview = {
       /* oxlint-disable typescript/no-unsafe-member-access -- untyped by necessity, see above */
       storySort: (a, b) => {
         if (a.title !== b.title) {
-          return 0
+          if (a.title === 'Introduction') {
+            return -1
+          }
+          return b.title === 'Introduction' ? 1 : 0
         }
         if (a.name === 'Overview') {
           return -1
