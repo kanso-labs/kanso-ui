@@ -10,6 +10,7 @@ import {
   Code as ComponentsCode,
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
+  Feed as ComponentsFeed,
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
   Link as ComponentsLink,
@@ -37,6 +38,7 @@ describe('package entry point', () => {
       'Code',
       'CopyField',
       'Currency',
+      'Feed',
       'IconButton',
       'Keycap',
       'Link',
@@ -82,6 +84,10 @@ describe('package entry point', () => {
 
   it('forwards Currency as the same reference as the components barrel', () => {
     expect(publicApi.Currency).toBe(ComponentsCurrency)
+  })
+
+  it('forwards Feed as the same reference as the components barrel', () => {
+    expect(publicApi.Feed).toBe(ComponentsFeed)
   })
 
   it('forwards IconButton as the same reference as the components barrel', () => {
