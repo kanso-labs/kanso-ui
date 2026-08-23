@@ -8,6 +8,7 @@ import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
+import type { FeedProps } from './feed'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
@@ -30,6 +31,7 @@ import ChipDefault from './chip'
 import CodeDefault from './code'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
+import FeedDefault from './feed'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
@@ -54,6 +56,7 @@ describe('components barrel', () => {
       'Code',
       'CopyField',
       'Currency',
+      'Feed',
       'IconButton',
       'Keycap',
       'Link',
@@ -99,6 +102,10 @@ describe('components barrel', () => {
 
   it('re-exports Currency as the same reference as its own module', () => {
     expect(components.Currency).toBe(CurrencyDefault)
+  })
+
+  it('re-exports Feed as the same reference as its own module', () => {
+    expect(components.Feed).toBe(FeedDefault)
   })
 
   it('re-exports IconButton as the same reference as its own module', () => {
@@ -187,6 +194,11 @@ describe('components barrel', () => {
   it('re-exports the CurrencyProps type', () => {
     const props: CurrencyProps = { value: 12.5 }
     expect(props.value).toBe(12.5)
+  })
+
+  it('re-exports the FeedProps type', () => {
+    const props: FeedProps = { minItemWidth: '272px' }
+    expect(props.minItemWidth).toBe('272px')
   })
 
   it('re-exports the IconButtonProps type', () => {
