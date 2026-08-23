@@ -246,6 +246,18 @@ render, start the dev server and open its story. Claude Code's browser preview
 is preconfigured in `.claude/launch.json`; other agents can just run
 `npm run storybook`.
 
+**The sidebar opens on `Introduction`, and two separate things put it there.**
+The page is `src/introduction.stories.tsx` — a story rather than an `.mdx` doc,
+so it is built from the library's own components, snapshotted in both themes,
+and run as a smoke test like every other page here. `storySort` in
+`.storybook/preview.tsx` hoists its title, since the story glob walks
+`src/components` and `src/tokens` before the files sitting at the root of `src`
+and would otherwise leave the one page meant to be read first at the bottom of
+the sidebar. Its story is then exported as `Introduction` rather than
+`Overview`, because Storybook folds a component holding a single story of the
+same name into one sidebar leaf — call it `Overview` and the first page anyone
+opens acquires a disclosure triangle with one child.
+
 `main` is published to GitHub Pages at <https://kanso-ui.kansolabs.org/>, which
 is the copy to link someone who only wants to look. It lags a local server by
 however long the deploy takes and never shows uncommitted work, so it is not a
