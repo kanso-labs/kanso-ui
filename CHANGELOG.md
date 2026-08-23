@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.0...kanso-ui-v0.7.1) (2026-08-23)
+
+
+### Dependencies
+
+* update dependency @types/react-dom to v19.2.5 ([#401](https://github.com/kanso-labs/kanso-ui/issues/401)) ([4615440](https://github.com/kanso-labs/kanso-ui/commit/46154406024fea69c5fbb778e9f11b0ab97e41c1))
+
 ## [0.7.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.2...kanso-ui-v0.7.0) (2026-08-23)
 
 
