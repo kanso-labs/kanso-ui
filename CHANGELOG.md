@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.2...kanso-ui-v0.7.0) (2026-08-23)
+
+
+### Features
+
+* **feed:** add Material 3's feed layout ([#397](https://github.com/kanso-labs/kanso-ui/issues/397)) ([6acad91](https://github.com/kanso-labs/kanso-ui/commit/6acad91a2f4a6869bf3225cb1d53c2c187025dee))
+
 ## [0.6.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.1...kanso-ui-v0.6.2) (2026-08-22)
 
 
