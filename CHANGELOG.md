@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.1...kanso-ui-v0.11.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* **app-bar:** stop the collapse flickering mid-scroll ([#427](https://github.com/kanso-labs/kanso-ui/issues/427)) ([2021845](https://github.com/kanso-labs/kanso-ui/commit/202184522cb998a98f33b38c07f1cc2380a78c12))
+
 ## [0.11.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.0...kanso-ui-v0.11.1) (2026-08-24)
 
 
