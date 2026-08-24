@@ -111,6 +111,15 @@ Vitest runs two projects, both in headless Chromium (see `vite.config.ts`):
   component renders.
 - **`unit`** — every `*.test.{ts,tsx}`, using Testing Library.
 
+**The `prepare` script installs Chromium alone**, since that is the only browser
+either project names. `playwright install` with no argument fetches Firefox and
+WebKit as well, and `--with-deps` then apt-installs their system libraries — 181
+packages and 114 MB on every CI run, every one of them a Firefox or WebKit
+dependency, while the runner image already carries all fifty of Chromium's own.
+Adding a browser instance to `vite.config.ts` therefore means naming it in
+`prepare` and in the Playwright cache key in `test.yaml` too, or the run fails
+on a browser nothing ever downloaded.
+
 Stories are documentation, and Chromatic snapshots each one **twice** — once per
 mode in `.storybook/modes.ts`, currently light and dark — so keep them to states
 a consumer would want to look at. Exhaustive behavioural permutations belong in

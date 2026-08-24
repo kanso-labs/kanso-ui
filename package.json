@@ -50,7 +50,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint --type-aware . && eslint . && npm run format:check",
-    "prepare": "husky && playwright install --with-deps",
+    "prepare": "husky && playwright install --with-deps chromium",
     "storybook": "storybook dev -p ${PORT:-6006}",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
