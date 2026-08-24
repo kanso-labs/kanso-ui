@@ -124,6 +124,6 @@ export default defineConfig({
     // genuinely slow one. Delete the setting once the plugin clears its
     // interval in middleware mode, rather than restoring the default while
     // the leak is still there.
-    teardownTimeout: 1000,
+    // TEMP BISECT: setting removed to test whether it causes the CI failure.
   },
 })
