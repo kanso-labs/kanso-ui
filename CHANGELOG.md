@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.1...kanso-ui-v0.10.0) (2026-08-24)
+
+
+### Features
+
+* **app-bar:** let the content follow a page's measure and gutter ([#423](https://github.com/kanso-labs/kanso-ui/issues/423)) ([36da933](https://github.com/kanso-labs/kanso-ui/commit/36da933b34e7b10bb246c334ce4d0d2422dec695))
+* **text:** add a block variant for prose ([#420](https://github.com/kanso-labs/kanso-ui/issues/420)) ([5783633](https://github.com/kanso-labs/kanso-ui/commit/57836332a72702ddd465e5bb2ad5f0444ef8498f))
+
 ## [0.9.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.0...kanso-ui-v0.9.1) (2026-08-24)
 
 
