@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.10.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.1...kanso-ui-v0.10.0) (2026-08-24)
+
+
+### Features
+
+* **app-bar:** let the content follow a page's measure and gutter ([#423](https://github.com/kanso-labs/kanso-ui/issues/423)) ([36da933](https://github.com/kanso-labs/kanso-ui/commit/36da933b34e7b10bb246c334ce4d0d2422dec695))
+* **text:** add a block variant for prose ([#420](https://github.com/kanso-labs/kanso-ui/issues/420)) ([5783633](https://github.com/kanso-labs/kanso-ui/commit/57836332a72702ddd465e5bb2ad5f0444ef8498f))
+
+## [0.9.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.0...kanso-ui-v0.9.1) (2026-08-24)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.3 ([#418](https://github.com/kanso-labs/kanso-ui/issues/418)) ([1da9f6d](https://github.com/kanso-labs/kanso-ui/commit/1da9f6d491e7472037e29b1ebe55d21427d67946))
+
+## [0.9.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.2...kanso-ui-v0.9.0) (2026-08-24)
+
+
+### Features
+
+* add Container and Stack layout primitives ([#416](https://github.com/kanso-labs/kanso-ui/issues/416)) ([a5b10a9](https://github.com/kanso-labs/kanso-ui/commit/a5b10a9fc5f38356ca2cb1c2705941cfbf4d5465))
+
 ## [0.8.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.1...kanso-ui-v0.8.2) (2026-08-24)
 
 

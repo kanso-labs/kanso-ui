@@ -49,6 +49,39 @@ StyleX compiles the library's own rules into a CSS `@layer`, and your app's
 stylesheet is unlayered, so your rules win the cascade wherever the two meet —
 no specificity contest, and no `!important`.
 
+### Layout
+
+`Container` centres content at a measure, and `Stack` puts one gap from the
+spacing scale between a row or a column of children. Between them they cover
+page measure, section rhythm, and the ordinary rows and columns that would
+otherwise be bespoke CSS in every consuming app:
+
+```tsx
+<Container>
+  <Stack gap="xl">
+    <Stack align="center" direction="row" justify="between">
+      <Text variant="titleLarge">Headline</Text>
+      <Button>Save changes</Button>
+    </Stack>
+    <Feed minItemWidth="260px">{items}</Feed>
+  </Stack>
+</Container>
+```
+
+Both are layout only: they paint no surface and wrap no child. `Stack` is why no
+component here carries a margin of its own, since the space between two things
+belongs to whatever holds both of them. For the page-level layouts — a list
+beside a detail pane, a main pane with a companion — reach for `ListDetail` and
+`SupportingPane` instead.
+
+An `AppBar` that paints edge to edge can still line its contents up with the
+page beneath it. Give it the page's measure and the page's gutter:
+
+```tsx
+<AppBar contentInset="24px" contentMaxInlineSize="960px" headline="Headline" />
+<Container maxInlineSize="960px">{page}</Container>
+```
+
 `AppBar` takes `scrolled` and `collapsed`, and both are controlled — only the
 app knows which element scrolls. A pinned flexible bar gives its height back as
 the page scrolls, becoming the small bar:
@@ -56,6 +89,7 @@ the page scrolls, becoming the small bar:
 ```tsx
 <AppBar
   collapsed={scrollTop > 24}
+  contentMaxInlineSize="960px"
   headline="Headline"
   scrolled={scrollTop > 0}
   size="large"
@@ -63,6 +97,18 @@ the page scrolls, becoming the small bar:
 ```
 
 ### Rendering as a different element
+
+`Text` renders a `<span>`, which is right for a run of text inside a line and
+wrong for a paragraph. `block` renders a `<p>` instead, so multi-sentence copy
+needs no element named at the call site:
+
+```tsx
+<Text block>First sentence of the copy.</Text>
+```
+
+It carries no margin, the same as every other `Text`, so the space between two
+paragraphs is a decision the container makes rather than one the browser makes
+for it.
 
 `render` swaps the element a component produces, keeping its styling:
 

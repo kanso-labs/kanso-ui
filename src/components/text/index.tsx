@@ -12,9 +12,11 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // the kind of drift the scale exists to prevent.
 //
 // `margin: 0` is the one UA reset here. Text renders a <span> by default, but
-// `render` is how a consumer reaches for semantic markup — `<Text
-// render={<h2 />}>` — and an h2's UA margin would then vary the spacing
-// around otherwise identical type.
+// `block` renders a <p> and `render` is how a consumer reaches for any other
+// semantic markup — `<Text render={<h2 />}>` — and the UA margin on either
+// would then vary the spacing around otherwise identical type. The space
+// between two blocks of text is the job of whatever holds them, which is
+// where it can come from the spacing scale.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
@@ -145,6 +147,19 @@ const tones = stylex.create({
 
 type TextProps = useRender.ComponentProps<'span'> & {
   /**
+   * Renders a `<p>` rather than the default `<span>`, for a block of prose
+   * rather than a run of text inside one.
+   *
+   * The paragraph carries no margin of its own, the same as every other Text.
+   * The space between two paragraphs belongs to whatever holds both of them,
+   * which is where it can be a step of the spacing scale rather than a
+   * browser default.
+   *
+   * Ignored when `render` is given, since that names the element outright.
+   * @default false
+   */
+  block?: boolean
+  /**
    * The color role to render in. `inherit` takes the color of the nearest
    * colored ancestor instead of setting one.
    * @default 'default'
@@ -180,13 +195,17 @@ type TextProps = useRender.ComponentProps<'span'> & {
 }
 
 function Text({
+  block = false,
   render,
   tone = 'default',
   variant = 'bodyMedium',
   ...props
 }: TextProps) {
   return useRender({
-    defaultTagName: 'span',
+    // Card switches its default element the same way, and the props type
+    // stays the span's for the same reason: the two differ only in the ref's
+    // element interface, and neither adds anything a call site reaches for.
+    defaultTagName: block ? 'p' : 'span',
     props: {
       ...props,
       ...mergeStyles(

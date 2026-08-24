@@ -8,6 +8,8 @@ import type { AppBarProps } from '.'
 
 import AppBar from '.'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import { spacingPx } from '../../tokens/values'
+import Container from '../container'
 import IconButton from '../icon-button'
 import Separator from '../separator'
 import Text from '../text'
@@ -15,6 +17,13 @@ import Text from '../text'
 type Size = NonNullable<AppBarProps['size']>
 
 const SIZES = ['small', 'medium', 'large'] as const satisfies readonly Size[]
+
+// The measure the page under the bar runs at, and the gutter Container pads
+// it with. Both are the call site's, which is the whole point: the bar is told
+// them rather than assuming M3's own. The gutter is read off the scale rather
+// than repeated as a figure, so the two cannot drift apart.
+const PAGE_MEASURE = '520px'
+const PAGE_GUTTER = `${spacingPx.xl}px`
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_2 = <h2 />
@@ -83,6 +92,11 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.xxs,
+  },
+  // Block spacing only. The measure and the gutter under the bar are
+  // Container's, which is the pairing this section is about.
+  measured: {
+    paddingBlock: spacing.lg,
   },
   // Narrow enough to force the headline to wrap, which is what the flexible
   // bars were redesigned to handle.
@@ -358,6 +372,74 @@ const Overview: Story = {
           subtitle="Supporting line"
           trailing={TRAILING}
         />
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Lining up with the page
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A bar that paints edge to edge sits over a page whose content
+            usually does not. Give it the page's measure and the page's gutter
+            and its headline starts where the page's own text does, with the
+            surface still running the full width.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A leading slot changes what lands on the measure. The icon takes the
+            inset and the headline sits after it, which is M3's own arrangement
+            rather than something to correct.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.frame)}>
+          <AppBar
+            contentInset={PAGE_GUTTER}
+            contentMaxInlineSize={PAGE_MEASURE}
+            headline="Headline"
+            trailing={TRAILING}
+          />
+          <Container
+            {...stylex.props(styles.measured)}
+            maxInlineSize={PAGE_MEASURE}
+          >
+            <Text render={PARAGRAPH} tone="muted">
+              Supporting line. This paragraph sits at the page's own measure and
+              gutter, and the headline above starts on the same line.
+            </Text>
+          </Container>
+        </div>
+        <div {...stylex.props(styles.frame)}>
+          <AppBar headline="Headline" trailing={TRAILING} />
+          <Container
+            {...stylex.props(styles.measured)}
+            maxInlineSize={PAGE_MEASURE}
+          >
+            <Text render={PARAGRAPH} tone="muted">
+              Supporting line. The same page under a bar left at M3's own
+              margin, which is where the two come apart.
+            </Text>
+          </Container>
+        </div>
+        <div {...stylex.props(styles.frame)}>
+          <AppBar
+            contentInset={PAGE_GUTTER}
+            contentMaxInlineSize={PAGE_MEASURE}
+            headline="Headline"
+            leading={LEADING}
+            trailing={TRAILING}
+          />
+          <Container
+            {...stylex.props(styles.measured)}
+            maxInlineSize={PAGE_MEASURE}
+          >
+            <Text render={PARAGRAPH} tone="muted">
+              Supporting line. The same bar with a leading slot. The icon is
+              what sits on the measure now, and the headline follows it.
+            </Text>
+          </Container>
+        </div>
       </section>
     </div>
   ),

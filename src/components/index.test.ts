@@ -7,6 +7,7 @@ import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
+import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { FeedProps } from './feed'
@@ -18,6 +19,7 @@ import type { ListItemProps } from './list-item'
 import type { ProductIconProps } from './product-icon'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
+import type { StackProps } from './stack'
 import type { SupportingPaneProps } from './supporting-pane'
 import type { TabsProps } from './tabs'
 import type { TextProps } from './text'
@@ -31,6 +33,7 @@ import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
 import CodeDefault from './code'
+import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import FeedDefault from './feed'
@@ -42,6 +45,7 @@ import ListItemDefault from './list-item'
 import ProductIconDefault from './product-icon'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
+import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import TabsDefault from './tabs'
 import TextDefault from './text'
@@ -57,6 +61,7 @@ describe('components barrel', () => {
       'Card',
       'Chip',
       'Code',
+      'Container',
       'CopyField',
       'Currency',
       'Feed',
@@ -68,6 +73,7 @@ describe('components barrel', () => {
       'ProductIcon',
       'Separator',
       'Sheet',
+      'Stack',
       'SupportingPane',
       'Tabs',
       'Text',
@@ -101,6 +107,10 @@ describe('components barrel', () => {
 
   it('re-exports Code as the same reference as its own module', () => {
     expect(components.Code).toBe(CodeDefault)
+  })
+
+  it('re-exports Container as the same reference as its own module', () => {
+    expect(components.Container).toBe(ContainerDefault)
   })
 
   it('re-exports CopyField as the same reference as its own module', () => {
@@ -145,6 +155,10 @@ describe('components barrel', () => {
 
   it('re-exports Sheet as the same reference as its own module', () => {
     expect(components.Sheet).toBe(SheetDefault)
+  })
+
+  it('re-exports Stack as the same reference as its own module', () => {
+    expect(components.Stack).toBe(StackDefault)
   })
 
   it('re-exports SupportingPane as the same reference as its own module', () => {
@@ -196,6 +210,11 @@ describe('components barrel', () => {
   it('re-exports the CodeProps type', () => {
     const props: CodeProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ContainerProps type', () => {
+    const props: ContainerProps = { maxInlineSize: '58ch' }
+    expect(props.maxInlineSize).toBe('58ch')
   })
 
   it('re-exports the CopyFieldProps type', () => {
@@ -251,6 +270,11 @@ describe('components barrel', () => {
   it('re-exports the SheetProps type', () => {
     const props: SheetProps = { size: 'sm' }
     expect(props.size).toBe('sm')
+  })
+
+  it('re-exports the StackProps type', () => {
+    const props: StackProps = { gap: 'lg' }
+    expect(props.gap).toBe('lg')
   })
 
   it('re-exports the SupportingPaneProps type', () => {
