@@ -33,12 +33,17 @@ jobs:
           version=$(jq -r '.packages["node_modules/playwright-core"].version' package-lock.json)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
+      # The key names the browser set alongside the version, because a cache
+      # only ever shrinks when its key changes. actions/cache does not re-save
+      # on a hit, so a key carrying the version alone would go on restoring the
+      # old Chromium-plus-Firefox-plus-WebKit archive indefinitely.
       - name: Cache Playwright browsers
         uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key:
-            ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+            ${{ runner.os }}-playwright-chromium-${{
+            steps.playwright.outputs.version }}
 
       # Scripts run here, unlike the other jobs: the prepare script is how the
       # browsers these tests need get installed.
