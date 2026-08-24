@@ -29,12 +29,14 @@ import {
 // looks wrong the moment the two disagree about either.
 const styles = stylex.create({
   list: {
+    boxSizing: 'border-box',
     display: 'flex',
     // The pills carry their own separation through their padding, so the gap
     // only needs to keep two selected ones from touching.
     gap: spacing.xxs,
   },
   panel: {
+    boxSizing: 'border-box',
     // The panel is focusable so keyboard users can reach its content after
     // the tab strip, which is what Base UI's roving focus hands off to.
     outlineColor: colors.primary,
@@ -48,6 +50,7 @@ const styles = stylex.create({
     blockSize: '32px',
     borderRadius: radii.sm,
     borderWidth: 0,
+    boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     cursor: 'pointer',
     display: 'inline-flex',

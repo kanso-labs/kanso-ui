@@ -37,6 +37,7 @@ const styles = stylex.create({
     borderRadius: radii.sm,
     borderStyle: 'solid',
     borderWidth: '1px',
+    boxSizing: 'border-box',
     display: 'flex',
     gap: spacing.sm,
     paddingBlock: spacing.xs,

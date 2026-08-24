@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import Feed from '.'
+import Card from '../card'
 
 // Hoisted out of the JSX below for react-perf's no-jsx-as-prop, the same way
 // the other suites hoist their `render` templates.
@@ -167,5 +168,33 @@ describe('element', () => {
     )
 
     expect(view.getByRole('region', { name: 'Feed' })).toBeInTheDocument()
+  })
+})
+
+describe('box sizing', () => {
+  // The library ships no reset, so a card sized to its grid cell only fits
+  // inside it if the card counts its own padding and border against that
+  // width. Under the `content-box` a bare page defaults to, a 404px column
+  // held a 438px card — 404 plus 16 of padding each side and a 1px border —
+  // and the overflow came from two of the library's own components rather
+  // than from anything the call site wrote.
+  it('leaves a Card the width of the column it is in', () => {
+    const view = render(
+      <div style={widthOf('900px')}>
+        <Feed minItemWidth="260px">
+          <Card variant="outlined">First item</Card>
+        </Feed>
+      </div>,
+    )
+    const feed = view.container.firstElementChild?.firstElementChild
+    const card = view.getByText('First item')
+    if (!(feed instanceof HTMLElement)) {
+      throw new Error('expected the feed to render an element')
+    }
+
+    const [column] = columnsOf(feed)
+
+    expect(getComputedStyle(card).boxSizing).toBe('border-box')
+    expect(card.getBoundingClientRect().width).toBeCloseTo(column, 1)
   })
 })

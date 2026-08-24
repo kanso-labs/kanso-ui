@@ -30,6 +30,7 @@ const styles = stylex.create({
   // minInlineSize: 0 lets a pane shrink under its content, which is the same
   // reason the tracks are minmax(0, Nfr) rather than a bare Nfr.
   pane: {
+    boxSizing: 'border-box',
     minInlineSize: 0,
   },
   // minmax(0, Nfr) rather than a bare Nfr: a bare fr track takes an automatic
@@ -42,6 +43,7 @@ const styles = stylex.create({
   // that. Neither is worth reading the source to confirm, which is why
   // index.test.tsx measures the resolved columns at every breakpoint.
   root: {
+    boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
     gridTemplateColumns: {

@@ -16,6 +16,7 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // hierarchy those already establish. A call site wanting one can wrap this.
 const styles = stylex.create({
   base: {
+    boxSizing: 'border-box',
     color: colors.onSurface,
     fontFamily: typography.fontFamilyMono,
     fontSize: '0.875em',

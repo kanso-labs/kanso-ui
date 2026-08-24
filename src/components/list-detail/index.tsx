@@ -33,6 +33,7 @@ const styles = stylex.create({
     display: { default: 'none', [media.expanded]: 'block' },
   },
   pane: {
+    boxSizing: 'border-box',
     minInlineSize: 0,
   },
   // minmax(0, 1fr) rather than a bare 1fr: a bare fr track takes an automatic
@@ -47,6 +48,7 @@ const styles = stylex.create({
   // that. Neither is worth reading the source to confirm, which is why
   // index.test.tsx measures the resolved columns at every breakpoint.
   root: {
+    boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
     gridTemplateColumns: {

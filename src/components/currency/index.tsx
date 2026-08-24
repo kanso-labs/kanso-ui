@@ -12,6 +12,7 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // around it.
 const styles = stylex.create({
   base: {
+    boxSizing: 'border-box',
     fontFamily: typography.fontFamilyMono,
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.weightMedium,

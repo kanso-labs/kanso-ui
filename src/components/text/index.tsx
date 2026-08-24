@@ -17,6 +17,7 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // around otherwise identical type.
 const styles = stylex.create({
   base: {
+    boxSizing: 'border-box',
     margin: 0,
   },
   bodyLarge: {

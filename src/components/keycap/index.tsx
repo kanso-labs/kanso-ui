@@ -30,6 +30,7 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     borderStyle: 'solid',
     borderWidth: '1px',
+    boxSizing: 'border-box',
     color: colors.onSurface,
     // inline-block rather than inline, so the padding below opens up the box
     // on all four sides. An inline box takes horizontal padding only.

@@ -26,6 +26,7 @@ const styles = stylex.create({
   base: {
     borderRadius: radii.lg,
     borderWidth: 0,
+    boxSizing: 'border-box',
     // `render` lets the card be any element, and an <a> arrives carrying the
     // UA's link colour and underline. Both are reset here rather than
     // alongside the button resets below, because they have to hold for a

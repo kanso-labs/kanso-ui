@@ -37,6 +37,7 @@ const styles = stylex.create({
       default: radii.full,
     },
     borderWidth: 0,
+    boxSizing: 'border-box',
     cursor: { ':disabled': 'not-allowed', default: 'pointer' },
     display: 'inline-flex',
     flexShrink: 0,

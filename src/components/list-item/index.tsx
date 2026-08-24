@@ -29,6 +29,7 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderWidth: 0,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     display: 'flex',
     gap: spacing.lg,

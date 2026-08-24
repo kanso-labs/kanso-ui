@@ -40,6 +40,7 @@ const styles = stylex.create({
     alignItems: 'center',
     borderRadius: radii.full,
     borderWidth: 0,
+    boxSizing: 'border-box',
     cursor: { ':disabled': 'not-allowed', default: 'pointer' },
     display: 'inline-flex',
     fontFamily: typography.labelLargeFont,

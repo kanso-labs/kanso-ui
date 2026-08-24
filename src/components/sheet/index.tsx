@@ -62,6 +62,7 @@ const styles = stylex.create({
     position: 'fixed',
   },
   body: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     // The only part that scrolls. Header and footer keep their place while
@@ -99,6 +100,7 @@ const styles = stylex.create({
       [media.belowMedium]: radii.xl,
     },
     boxShadow: shadows.elevation1,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     display: 'flex',
     flexDirection: 'column',
@@ -117,6 +119,7 @@ const styles = stylex.create({
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
     borderBlockStartWidth: '1px',
+    boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
     gap: spacing.sm,
@@ -129,6 +132,7 @@ const styles = stylex.create({
     borderBlockEndColor: colors.outlineVariant,
     borderBlockEndStyle: 'solid',
     borderBlockEndWidth: '1px',
+    boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
     gap: spacing.md,
@@ -147,6 +151,7 @@ const styles = stylex.create({
     inlineSize: { default: '320px', [media.belowMedium]: '100%' },
   },
   title: {
+    boxSizing: 'border-box',
     color: colors.onSurface,
     fontFamily: typography.titleLargeFont,
     fontSize: typography.titleLargeSize,

@@ -33,6 +33,7 @@ const DEFAULT_MIN_ITEM_WIDTH = '180px'
 // same mechanism the token gallery's `durationBar` uses.
 const styles = stylex.create({
   root: (minItemWidth: string) => ({
+    boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
     // auto-fill rather than auto-fit, which is what matches M3's own

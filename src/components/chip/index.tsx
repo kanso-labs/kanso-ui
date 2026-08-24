@@ -33,6 +33,7 @@ const styles = stylex.create({
     borderRadius: radii.sm,
     borderStyle: 'solid',
     borderWidth: '1px',
+    boxSizing: 'border-box',
     cursor: { ':disabled': 'not-allowed', default: 'pointer' },
     display: 'inline-flex',
     flexShrink: 0,

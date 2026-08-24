@@ -18,6 +18,7 @@ const styles = stylex.create({
     // the text. A small radius keeps the ring from reading as a hard-edged
     // rectangle dropped over a word mid-sentence.
     borderRadius: radii.xs,
+    boxSizing: 'border-box',
     cursor: 'pointer',
     outlineColor: colors.primary,
     outlineOffset: '2px',

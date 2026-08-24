@@ -40,6 +40,7 @@ const styles = stylex.create({
       ':focus-within': `inset 0 -2px 0 0 ${colors.primary}`,
       default: `inset 0 -1px 0 0 ${colors.outline}`,
     },
+    boxSizing: 'border-box',
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,
@@ -61,6 +62,7 @@ const styles = stylex.create({
   input: {
     backgroundColor: 'transparent',
     borderWidth: 0,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
@@ -126,6 +128,7 @@ const styles = stylex.create({
     fontVariantNumeric: 'tabular-nums',
   },
   root: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
   },

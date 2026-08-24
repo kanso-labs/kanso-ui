@@ -24,6 +24,7 @@ const styles = stylex.create({
   base: {
     backgroundColor: colors.outlineVariant,
     borderWidth: 0,
+    boxSizing: 'border-box',
     flexShrink: 0,
     margin: 0,
   },

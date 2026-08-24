@@ -65,6 +65,7 @@ const styles = stylex.create({
   },
   // The text block takes the space the slots leave, and wraps inside it.
   text: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,

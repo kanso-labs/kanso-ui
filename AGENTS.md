@@ -87,6 +87,13 @@ Specific to this repository:
   `className` and `style` may be functions of render state), both in
   `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
   exported component and fails if a new one forgets.
+- **Every element the library renders sets `boxSizing: 'border-box'`** in the
+  style that is always applied to it, and any internal element carrying padding,
+  a border, or an explicit size does too. The library ships no reset, so without
+  this it silently depends on the consumer providing one: a `Card` in a `Feed`
+  overflowed its own grid cell by exactly its padding and border, with no
+  consumer CSS involved. A rule the whole library follows is also what keeps two
+  of its own components from disagreeing.
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.

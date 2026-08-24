@@ -19,6 +19,7 @@ const styles = stylex.create({
   base: {
     alignItems: 'center',
     borderRadius: radii.full,
+    boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,
     fontFamily: typography.labelLargeFont,
