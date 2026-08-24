@@ -49,6 +49,31 @@ StyleX compiles the library's own rules into a CSS `@layer`, and your app's
 stylesheet is unlayered, so your rules win the cascade wherever the two meet —
 no specificity contest, and no `!important`.
 
+### Layout
+
+`Container` centres content at a measure, and `Stack` puts one gap from the
+spacing scale between a row or a column of children. Between them they cover
+page measure, section rhythm, and the ordinary rows and columns that would
+otherwise be bespoke CSS in every consuming app:
+
+```tsx
+<Container>
+  <Stack gap="xl">
+    <Stack align="center" direction="row" justify="between">
+      <Text variant="titleLarge">Headline</Text>
+      <Button>Save changes</Button>
+    </Stack>
+    <Feed minItemWidth="260px">{items}</Feed>
+  </Stack>
+</Container>
+```
+
+Both are layout only: they paint no surface and wrap no child. `Stack` is why no
+component here carries a margin of its own, since the space between two things
+belongs to whatever holds both of them. For the page-level layouts — a list
+beside a detail pane, a main pane with a companion — reach for `ListDetail` and
+`SupportingPane` instead.
+
 ### Rendering as a different element
 
 `render` swaps the element a component produces, keeping its styling:

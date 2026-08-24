@@ -9,6 +9,7 @@ import {
   Card as ComponentsCard,
   Chip as ComponentsChip,
   Code as ComponentsCode,
+  Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
   Feed as ComponentsFeed,
@@ -20,6 +21,7 @@ import {
   ProductIcon as ComponentsProductIcon,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
+  Stack as ComponentsStack,
   SupportingPane as ComponentsSupportingPane,
   Tabs as ComponentsTabs,
   Text as ComponentsText,
@@ -38,6 +40,7 @@ describe('package entry point', () => {
       'Card',
       'Chip',
       'Code',
+      'Container',
       'CopyField',
       'Currency',
       'Feed',
@@ -49,6 +52,7 @@ describe('package entry point', () => {
       'ProductIcon',
       'Separator',
       'Sheet',
+      'Stack',
       'SupportingPane',
       'Tabs',
       'Text',
@@ -82,6 +86,10 @@ describe('package entry point', () => {
 
   it('forwards Code as the same reference as the components barrel', () => {
     expect(publicApi.Code).toBe(ComponentsCode)
+  })
+
+  it('forwards Container as the same reference as the components barrel', () => {
+    expect(publicApi.Container).toBe(ComponentsContainer)
   })
 
   it('forwards CopyField as the same reference as the components barrel', () => {
@@ -126,6 +134,10 @@ describe('package entry point', () => {
 
   it('forwards Sheet as the same reference as the components barrel', () => {
     expect(publicApi.Sheet).toBe(ComponentsSheet)
+  })
+
+  it('forwards Stack as the same reference as the components barrel', () => {
+    expect(publicApi.Stack).toBe(ComponentsStack)
   })
 
   it('forwards SupportingPane as the same reference as the components barrel', () => {
