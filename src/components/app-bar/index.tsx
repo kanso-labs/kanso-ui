@@ -28,6 +28,16 @@ import Text from '../text'
 // support and text wrapping, so a headline long enough to wrap has to be able
 // to make its bar taller. Fixing the height would truncate exactly the case
 // the variant was redesigned for.
+// How far the headline sits inside whatever comes before it, and the figure
+// an icon button's glyph is inset from the edge of its own touch target. M3
+// leans on the two agreeing, which is what makes a bar with a leading icon
+// and one without start their text in the same place.
+const HEADLINE_OFFSET = '12px'
+
+// Where the bar's visible content starts by default, which is M3's own
+// margin for a top app bar and the same margin its body content takes.
+const DEFAULT_CONTENT_INSET = '16px'
+
 const HEIGHTS = {
   large: { plain: '120px', withSubtitle: '152px' },
   medium: { plain: '112px', withSubtitle: '136px' },
@@ -35,20 +45,27 @@ const HEIGHTS = {
 } as const
 
 const styles = stylex.create({
-  // 4dp each side, which is M3's padding for the bar itself. It is that tight
-  // because the leading and trailing slots hold icon buttons, whose own touch
-  // targets carry the rest of the inset.
   root: {
     alignItems: 'center',
     backgroundColor: colors.surface,
     boxSizing: 'border-box',
     display: 'flex',
-    gap: spacing.xs,
-    paddingInline: spacing.xs,
+    // The bar paints edge to edge and its contents sit in a measured row
+    // inside it, so a full-bleed bar can still line its contents up with the
+    // page beneath.
+    justifyContent: 'center',
     // The spec's separation on scroll is a fill rather than a shadow, so this
     // is the only property `scrolled` moves.
     transitionDuration: '150ms',
     transitionProperty: 'background-color',
+  },
+  row: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    gap: spacing.xs,
+    inlineSize: '100%',
+    marginInline: 'auto',
   },
   // M3 replaced M2's drop shadow with a colour fill, so a bar over scrolled
   // content separates by sitting on a different surface rather than by
@@ -72,10 +89,11 @@ const styles = stylex.create({
     justifyContent: 'center',
     minInlineSize: 0,
     paddingBlock: spacing.sm,
-    // M3 puts the bar's own inset on the text rather than the container, so a
-    // bar with no leading slot still starts its headline in the same place as
-    // one that has it.
-    paddingInline: spacing.md,
+    // M3 puts part of the bar's inset on the text rather than all of it on the
+    // container, so a bar with no leading slot still starts its headline in
+    // the same place as one that has it. An icon button's glyph is centred in
+    // a touch target this much wider than itself, so the two land together.
+    paddingInline: HEADLINE_OFFSET,
   },
   textCenter: {
     textAlign: 'center',
@@ -107,6 +125,18 @@ const heightStyles = stylex.create({
   root: (minBlockSize: string) => ({ minBlockSize }),
 })
 
+// The row's measure and inset both come from the call site, so both are
+// function styles too. The inset is where the bar's visible content starts,
+// and the row carries `contentInset` minus the offset the text block already
+// holds — which is what keeps a leading icon's glyph and a headline with no
+// icon before it starting in the same place.
+const rowStyles = stylex.create({
+  root: (contentInset: string, maxInlineSize: string) => ({
+    maxInlineSize,
+    paddingInline: `calc(${contentInset} - ${HEADLINE_OFFSET})`,
+  }),
+})
+
 type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
   /**
    * Which of M3's alignments the text takes. `center` is the configuration
@@ -114,6 +144,29 @@ type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
    * @default 'start'
    */
   align?: 'center' | 'start'
+  /**
+   * Where the bar's content starts, measured to the headline. A leading slot
+   * sits 12px before that, which is the room an icon button's own padding
+   * fills around its glyph — M3's arrangement, and what makes a bar with an
+   * icon and one without start their text in the same place.
+   *
+   * The default is M3's own margin for a top app bar, which is also the
+   * margin it gives body content, so a bar and the page beneath line up
+   * without either being told about the other. Set it to the page's gutter
+   * where that differs.
+   * @default '16px'
+   */
+  contentInset?: string
+  /**
+   * How wide the bar's contents may run before they stop growing, with the
+   * row centred in whatever is left. The bar's own surface still paints edge
+   * to edge.
+   *
+   * This is what lines a full-bleed bar up with a page whose content sits in
+   * a measure: give it the page's measure, and `contentInset` the page's
+   * gutter. Unset, the row is as wide as the bar.
+   */
+  contentMaxInlineSize?: string
   /** The page's title. Wraps rather than truncating, and grows the bar with it. */
   headline?: ReactNode
   /** Usually a back or menu icon button. Sits before the text. */
@@ -156,6 +209,8 @@ type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
  */
 function AppBar({
   align = 'start',
+  contentInset = DEFAULT_CONTENT_INSET,
+  contentMaxInlineSize = 'none',
   headline,
   leading,
   render,
@@ -175,7 +230,12 @@ function AppBar({
     props: {
       ...props,
       children: (
-        <>
+        <div
+          {...stylex.props(
+            styles.row,
+            rowStyles.root(contentInset, contentMaxInlineSize),
+          )}
+        >
           {leading === undefined ? null : (
             <div {...stylex.props(styles.slot)}>{leading}</div>
           )}
@@ -199,7 +259,7 @@ function AppBar({
           {trailing === undefined ? null : (
             <div {...stylex.props(styles.slot)}>{trailing}</div>
           )}
-        </>
+        </div>
       ),
       ...mergeStyles(
         stylex.props(

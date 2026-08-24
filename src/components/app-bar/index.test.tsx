@@ -16,6 +16,10 @@ const SIZES = ['small', 'medium', 'large'] as const
 
 const NARROW = { inlineSize: '280px' }
 
+// Wider than any measure under test, so what is being read is the row's own
+// limit rather than the room it was given.
+const WIDE = { inlineSize: '1000px' }
+
 const LEADING = <button type="button">Back</button>
 const TRAILING = <button type="button">More</button>
 
@@ -27,14 +31,32 @@ function barIn(container: HTMLElement) {
   return bar
 }
 
+/** The bar inside a wrapper the sample rendered to give it a known width. */
+function barInWrapper(container: HTMLElement) {
+  const wrapper = container.firstElementChild
+  if (!(wrapper instanceof HTMLElement)) {
+    throw new Error('expected the sample to render a wrapper')
+  }
+  return barIn(wrapper)
+}
+
 /** The resolved minimum height, which is what the size tokens come down to. */
 function minHeightOf(bar: HTMLElement) {
   return Number.parseFloat(getComputedStyle(bar).minBlockSize)
 }
 
+/** The measured row the bar's contents sit in. */
+function rowOf(bar: HTMLElement) {
+  const row = bar.firstElementChild
+  if (!(row instanceof HTMLElement)) {
+    throw new Error('expected the app bar to render a content row')
+  }
+  return row
+}
+
 /** The text block, narrowed so a structural change fails here rather than later. */
 function textBlockOf(bar: HTMLElement) {
-  const text = bar.firstElementChild
+  const text = rowOf(bar).firstElementChild
   if (!(text instanceof HTMLElement)) {
     throw new Error('expected the app bar to render a text block')
   }
@@ -165,11 +187,11 @@ describe('slots', () => {
     const view = render(
       <AppBar headline="Headline" leading={LEADING} trailing={TRAILING} />,
     )
-    const bar = barIn(view.container)
+    const row = rowOf(barIn(view.container))
 
-    expect(bar.children).toHaveLength(3)
-    expect(bar.firstElementChild?.textContent).toBe('Back')
-    expect(bar.lastElementChild?.textContent).toBe('More')
+    expect(row.children).toHaveLength(3)
+    expect(row.firstElementChild?.textContent).toBe('Back')
+    expect(row.lastElementChild?.textContent).toBe('More')
   })
 
   // No empty wrapper for a slot nobody filled, so a bar with only a headline
@@ -177,7 +199,78 @@ describe('slots', () => {
   it('renders no wrapper for a slot it was not given', () => {
     const view = render(<AppBar headline="Headline" />)
 
-    expect(barIn(view.container).children).toHaveLength(1)
+    expect(rowOf(barIn(view.container)).children).toHaveLength(1)
+  })
+})
+
+describe('content measure', () => {
+  // The reported problem: a bar painting edge to edge could not put its
+  // contents where the page below put its own, so a headline and the text
+  // under it never lined up.
+  it('centres the row at the measure while the bar paints full bleed', () => {
+    const view = render(
+      <div style={WIDE}>
+        <AppBar contentMaxInlineSize="600px" headline="Headline" />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
+    const barBox = bar.getBoundingClientRect()
+    const rowBox = rowOf(bar).getBoundingClientRect()
+
+    expect(barBox.width).toBe(1000)
+    expect(rowBox.width).toBe(600)
+    expect(rowBox.left - barBox.left).toBeCloseTo(
+      barBox.right - rowBox.right,
+      1,
+    )
+  })
+
+  it('runs the row the full width of the bar without a measure', () => {
+    const view = render(
+      <div style={WIDE}>
+        <AppBar headline="Headline" />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
+
+    expect(rowOf(bar).getBoundingClientRect().width).toBe(1000)
+  })
+
+  // What the prop names: the inset is measured to the headline, which is the
+  // thing a page's own text has to line up with.
+  it('starts the headline at the inset it is given', () => {
+    const view = render(<AppBar contentInset="24px" headline="Headline" />)
+    const heading = view.getByRole('heading', { level: 1 })
+
+    expect(
+      heading.getBoundingClientRect().left -
+        barIn(view.container).getBoundingClientRect().left,
+    ).toBe(24)
+  })
+
+  // The reason the inset is split between the row and the text block rather
+  // than sitting entirely on one. A leading slot starts before the headline by
+  // the room an icon button's own padding fills, so a bar with an icon and one
+  // without put their text in the same place.
+  it('leaves a leading slot the room an icon button pads with', () => {
+    const view = render(
+      <AppBar contentInset="24px" headline="Headline" leading={LEADING} />,
+    )
+    const barLeft = barIn(view.container).getBoundingClientRect().left
+
+    expect(view.getByText('Back').getBoundingClientRect().left - barLeft).toBe(
+      12,
+    )
+  })
+
+  it('takes M3’s own margin as the default inset', () => {
+    const view = render(<AppBar headline="Headline" />)
+    const heading = view.getByRole('heading', { level: 1 })
+
+    expect(
+      heading.getBoundingClientRect().left -
+        barIn(view.container).getBoundingClientRect().left,
+    ).toBe(16)
   })
 })
 

@@ -74,6 +74,14 @@ belongs to whatever holds both of them. For the page-level layouts — a list
 beside a detail pane, a main pane with a companion — reach for `ListDetail` and
 `SupportingPane` instead.
 
+An `AppBar` that paints edge to edge can still line its contents up with the
+page beneath it. Give it the page's measure and the page's gutter:
+
+```tsx
+<AppBar contentInset="24px" contentMaxInlineSize="960px" headline="Headline" />
+<Container maxInlineSize="960px">{page}</Container>
+```
+
 ### Rendering as a different element
 
 `Text` renders a `<span>`, which is right for a run of text inside a line and
