@@ -158,14 +158,23 @@ imports, is what makes those rules present rather than imminent. Do not swap it
 for a wait.
 
 **Every run ends `close timed out after 1000ms`, and that line is expected.**
-Browser mode never finishes closing — the hanging-process reporter shows file
-handles the provider leaves open — so Vitest always falls through to
-force-exiting. The wait before it does is dead time, since results are printed
-and the exit code is decided before the timer starts, which is why
-`teardownTimeout` in `vite.config.ts` is 1000 rather than the 10000 default: at
-the default it was most of a tenth of every CI run. The setting also bounds
-`afterAll` hooks, so raise it before adding a slow one, and do not read the
-warning as a failure to fix by restoring the default.
+`@stylexjs/unplugin`'s Vite plugin starts a 150ms `setInterval` in
+`configureServer` and registers the matching `clearInterval` on the `close`
+event of `server.httpServer`. Vitest runs Vite in middleware mode, where
+`httpServer` is `null`, so the optional chaining skips that registration and the
+interval is never cleared — one per Vite server, three in this configuration.
+Vitest therefore always falls through to force-exiting.
+
+The wait before it does is dead time, since results are printed and the exit
+code is decided before the timer starts, which is why `teardownTimeout` in
+`vite.config.ts` is 1000 rather than the 10000 default: at the default it was
+most of a tenth of every CI run. The setting also bounds `afterAll` hooks, so
+raise it before adding a slow one.
+
+The warning is therefore not a misconfiguration to fix by restoring the default.
+Unref-ing that interval in the plugin removes the hang outright, and the run
+then exits on its own well inside even the 10s default, so the setting should be
+deleted once the plugin clears its interval in middleware mode.
 
 ### Sample copy
 

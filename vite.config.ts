@@ -104,19 +104,26 @@ export default defineConfig({
         },
       },
     ],
-    // How long Vitest waits for teardown before force-exiting. Browser mode
-    // never finishes closing here — every run ends "close timed out after
-    // 10000ms", and the hanging-process reporter shows file handles the
-    // provider leaves open — so the full timeout elapses every time.
+    // How long Vitest waits for teardown before force-exiting. The full
+    // timeout elapses on every run, because a referenced timer outlives the
+    // suite: @stylexjs/unplugin's Vite plugin starts a 150ms setInterval in
+    // configureServer, then registers the matching clearInterval on the
+    // "close" event of server.httpServer. Vitest runs Vite in middleware
+    // mode, where httpServer is null, so the optional chaining skips that
+    // registration and the interval is never cleared. There is one per Vite
+    // server, which is three here.
     //
-    // That wait is dead time rather than work: results are printed and the
-    // exit code is decided before it starts, which a deliberately failing test
-    // confirms by still exiting non-zero at this value. At the 10s default it
-    // was most of a tenth of every CI run.
+    // Nothing in this file can reach that closure, so the length of the wait
+    // is the only part we control. It is dead time rather than work: results
+    // are printed and the exit code is decided before the timer starts, which
+    // a deliberately failing test confirms by still exiting non-zero at this
+    // value. At the 10s default it was most of a tenth of every CI run.
     //
     // This also bounds afterAll hooks. The only teardown here is
     // afterEach(cleanup), so a second is ample — raise it before adding a
-    // genuinely slow one.
+    // genuinely slow one. Delete the setting once the plugin clears its
+    // interval in middleware mode, rather than restoring the default while
+    // the leak is still there.
     teardownTimeout: 1000,
   },
 })
