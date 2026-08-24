@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.0...kanso-ui-v0.8.1) (2026-08-24)
+
+
+### Dependencies
+
+* update dependency oxfmt to v0.65.0 ([#408](https://github.com/kanso-labs/kanso-ui/issues/408)) ([2a91e40](https://github.com/kanso-labs/kanso-ui/commit/2a91e40e28ffab90d3f2f1050fd90e0d8f83e5a4))
+
 ## [0.8.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.1...kanso-ui-v0.8.0) (2026-08-24)
 
 
