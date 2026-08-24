@@ -4,6 +4,7 @@ import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { rendersNativeButton } from '../../render/nativeButton'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -48,6 +49,12 @@ const styles = stylex.create({
     outlineWidth: '2px',
     padding: 0,
     position: 'relative',
+    // `render` lets a button be an <a>, and an <a> arrives underlined.
+    // Reset here rather than per variant, since every variant sets a
+    // colour of its own but none of them touches the rule. Card does the
+    // same for the same reason; without it the two disagreed about what a
+    // link-as-control looks like.
+    textDecoration: 'none',
     transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}`,
     transitionProperty: 'background-color, border-radius',
     transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}`,
@@ -115,7 +122,7 @@ const styles = stylex.create({
   },
 })
 
-type IconButtonProps = BaseUIButtonProps & {
+type IconButtonProps = {
   /**
    * What the button does, in words. Required rather than optional: an icon
    * on its own has no accessible name, so without this the control announces
@@ -129,6 +136,23 @@ type IconButtonProps = BaseUIButtonProps & {
    */
   disableRipple?: boolean
   /**
+   * Whether the element `render` produces is a real `<button>`, which decides
+   * whether Base UI supplies the button role, keyboard activation and
+   * disabled semantics itself.
+   *
+   * Read off `render` when that is a plain element, so
+   * `render={<a href="…" />}` needs nothing here. Worth setting only when
+   * `render` is a component or a function, where the tag it will produce
+   * cannot be read ahead of time.
+   *
+   * An anchor rendered this way is announced as a button rather than as a
+   * link, since that is what Base UI's non-native mode applies. For a control
+   * that should be announced as the link it is, reach for `Link`, or `Card`
+   * with `render`, neither of which imposes button semantics.
+   * @default true
+   */
+  nativeButton?: boolean
+  /**
    * Control size: `xs` 32px, `md` 40px, `lg` 56px — the same heights `Button`
    * uses, so the two line up beside each other in a row.
    * @default 'md'
@@ -140,12 +164,13 @@ type IconButtonProps = BaseUIButtonProps & {
    * @default 'standard'
    */
   variant?: 'filled' | 'standard' | 'tonal'
-}
+} & BaseUIButtonProps
 
 function IconButton({
   children,
   disabled = false,
   disableRipple = false,
+  nativeButton,
   onClick,
   onContextMenu,
   onPointerCancel,
@@ -173,6 +198,10 @@ function IconButton({
   return (
     <BaseUIButton
       disabled={disabled}
+      // Destructured out of `props` above rather than left to flow through
+      // with it: spread later, an absent `nativeButton` would arrive as an
+      // explicit `undefined` and overwrite what is inferred here.
+      nativeButton={nativeButton ?? rendersNativeButton(props.render)}
       {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(
