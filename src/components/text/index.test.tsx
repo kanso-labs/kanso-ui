@@ -68,6 +68,47 @@ describe('element', () => {
     expect(hasAll(heading, expected.titleMediumScale)).toBe(true)
   })
 
+  it('renders a paragraph when asked for a block', () => {
+    const view = render(<Text block>Supporting copy</Text>)
+
+    expect(view.getByText('Supporting copy').tagName).toBe('P')
+  })
+
+  // The whole point of the reset: two paragraphs sit flush against each
+  // other, so the space between them is a decision the container makes from
+  // the spacing scale rather than one the browser makes for it.
+  it('gives that paragraph no margin of its own', () => {
+    const view = render(<Text block>Supporting copy</Text>)
+    const paragraph = getComputedStyle(view.getByText('Supporting copy'))
+
+    expect(paragraph.marginBlockStart).toBe('0px')
+    expect(paragraph.marginBlockEnd).toBe('0px')
+  })
+
+  it('keeps the type scale on that paragraph', () => {
+    const view = render(
+      <Text block variant="titleMedium">
+        Supporting copy
+      </Text>,
+    )
+
+    expect(
+      hasAll(view.getByText('Supporting copy'), expected.titleMediumScale),
+    ).toBe(true)
+  })
+
+  // `render` names the element outright, so it is the more specific of the
+  // two and wins. A block Text rendered as a <div> is a <div>.
+  it('lets `render` win over `block`', () => {
+    const view = render(
+      <Text block render={HEADING_2} variant="titleMedium">
+        Section heading
+      </Text>,
+    )
+
+    expect(view.getByRole('heading', { level: 2 }).tagName).toBe('H2')
+  })
+
   it('forwards a ref to the rendered element', () => {
     const ref = createRef<HTMLSpanElement>()
     render(<Text ref={ref}>Sample text</Text>)

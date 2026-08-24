@@ -51,6 +51,18 @@ no specificity contest, and no `!important`.
 
 ### Rendering as a different element
 
+`Text` renders a `<span>`, which is right for a run of text inside a line and
+wrong for a paragraph. `block` renders a `<p>` instead, so multi-sentence copy
+needs no element named at the call site:
+
+```tsx
+<Text block>First sentence of the copy.</Text>
+```
+
+It carries no margin, the same as every other `Text`, so the space between two
+paragraphs is a decision the container makes rather than one the browser makes
+for it.
+
 `render` swaps the element a component produces, keeping its styling:
 
 ```tsx
