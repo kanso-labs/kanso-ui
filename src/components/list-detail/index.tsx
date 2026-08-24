@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
 // Material 3's recommended snap widths for a fixed pane. The list is the
@@ -122,7 +123,7 @@ function ListDetail({
           </div>
         </>
       ),
-      ...stylex.props(styles.root),
+      ...mergeStyles(stylex.props(styles.root), props),
     },
     render,
   })

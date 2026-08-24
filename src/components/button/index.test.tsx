@@ -114,6 +114,8 @@ function pointerInit(target: Element, init: PointerEventInit = {}) {
   }
 }
 
+// Hoisted for react-perf's no-jsx-as-prop, the way the other suites hoist
+// their `render` templates.
 function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   const view = render(<Button {...props}>Button</Button>)
   const button = view.getByRole('button')

@@ -74,7 +74,19 @@ Specific to this repository:
   `ERR_PACKAGE_PATH_NOT_EXPORTED`. Renaming it reads like a tidy-up next to
   `type: module` and silently drops every CommonJS consumer.
 - Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
-  inline `style` objects.
+  inline `style` objects. `src/styles.css` is the one exception, and it holds no
+  rules: it exists so `src/index.ts` has a specifier to import, which is what
+  carries the compiled stylesheet into the published package. See "How the
+  compiled CSS reaches a consumer" below.
+- **`stylex.props()` is never spread over a component's own props.** It always
+  returns a `className`, so a plain spread overwrites whatever the call site
+  passed rather than merging with it — which is how 0.8.0 shipped a library
+  whose every component silently discarded `className` and `style`, leaving no
+  way to position one from outside. Merge through `mergeStyles` (plain elements
+  and `useRender`) or `mergeStatefulStyles` (Base UI components, whose
+  `className` and `style` may be functions of render state), both in
+  `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
+  exported component and fails if a new one forgets.
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.
@@ -247,6 +259,39 @@ test moves it. What guards them is `src/index.test.ts` and
 Running the suite as an agent hides files at 100% from the printed table, so a
 file missing from that output is covered rather than absent. The uploaded report
 always carries every file.
+
+## How the compiled CSS reaches a consumer
+
+Three pieces, and removing any one of them ships a package whose components all
+render unstyled — which is what 0.8.0 did.
+
+**`src/index.ts` imports `./styles.css` for its side effect**, and
+`src/styles.css` holds no rules. It exists only so that import resolves twice
+over: for `tsc -b`, whose `noUncheckedSideEffectImports` rejects a side-effect
+import of a module that is not there, and for Vite, which resolves it for real
+under Storybook and the test suite. Neither of those needs rules in it, since
+the StyleX plugin serves the compiled stylesheet from a virtual endpoint in dev.
+
+**`deps.neverBundle` in `tsdown.config.ts` lists that specifier**, which is what
+makes the import survive into `dist/index.js` rather than being resolved away.
+It also spares the build tsdown's `css-guard`, which fails outright on a CSS
+module unless `@tsdown/css` is installed, and any asset hashing that would
+rewrite the specifier away from the `./styles.css` the exports map publishes.
+
+**The `emit-stylex-css` plugin moves the compiled rules to `dist/styles.css`.**
+The StyleX plugin is written for application bundles: it appends its rules to a
+CSS asset already in the graph, and with none there it falls back to writing
+`dist/assets/stylex.css`, which nothing imports and no exports entry points at.
+It throws rather than shipping silently if that file is missing, and runs in
+`closeBundle` rather than `writeBundle` because rollup runs `writeBundle` hooks
+in parallel — ours could otherwise read the file before the StyleX plugin had
+written it.
+
+`package.json` then publishes `./styles.css` alongside `./tokens.css`, for an
+environment that cannot import CSS from JavaScript. The two are different
+things: `styles.css` is the library's own compiled rules and is required,
+`tokens.css` is the `--kui-*` override contract and is a reference rather than a
+runtime dependency.
 
 ## Previewing
 

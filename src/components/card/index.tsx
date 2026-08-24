@@ -2,6 +2,7 @@ import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { mergeStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -204,16 +205,15 @@ function Card({
           {ripple.surface}
         </>
       ),
-      // Spread last so it wins over a consumer-supplied className rather than
-      // being merged with one, matching Text and Badge. useRender joins the
-      // two class strings otherwise, and which won would come down to
-      // stylesheet order rather than anything visible at the call site.
-      ...stylex.props(
-        styles.base,
-        styles[variant],
-        padded,
-        interactive && styles.interactive,
-        interactive && interactionStyles[variant],
+      ...mergeStyles(
+        stylex.props(
+          styles.base,
+          styles[variant],
+          padded,
+          interactive && styles.interactive,
+          interactive && interactionStyles[variant],
+        ),
+        props,
       ),
     },
     render,

@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // One key per style in the 15-entry type scale, named exactly as the token
@@ -183,16 +184,14 @@ function Text({
   variant = 'bodyMedium',
   ...props
 }: TextProps) {
-  // stylex.props() spreads after `props` for the same reason Button does it:
-  // it wins over a consumer-supplied className/style rather than merging with
-  // one. useRender would otherwise join the two class strings, and which of
-  // the two won would come down to stylesheet order rather than anything the
-  // call site can see.
   return useRender({
     defaultTagName: 'span',
     props: {
       ...props,
-      ...stylex.props(styles.base, styles[variant], tones[tone]),
+      ...mergeStyles(
+        stylex.props(styles.base, styles[variant], tones[tone]),
+        props,
+      ),
     },
     render,
   })

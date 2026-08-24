@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import Text from '../text'
 
@@ -199,10 +200,13 @@ function AppBar({
           )}
         </>
       ),
-      ...stylex.props(
-        styles.root,
-        heightStyles.root(height),
-        scrolled && styles.scrolled,
+      ...mergeStyles(
+        stylex.props(
+          styles.root,
+          heightStyles.root(height),
+          scrolled && styles.scrolled,
+        ),
+        props,
       ),
     },
     render,

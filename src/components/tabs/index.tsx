@@ -9,6 +9,7 @@ import type {
 import { Tabs as BaseUITabs } from '@base-ui/react/tabs'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -96,19 +97,6 @@ const styles = stylex.create({
   },
 })
 
-// StyleX cannot target [data-selected] on the element it is styling, so the
-// active pill cannot be chosen in CSS. Base UI's answer is a className that is
-// a function of the tab's own state, the same mechanism Chip uses — declared
-// at module scope so it is one stable reference rather than a fresh closure
-// per render.
-function tabClassName(state: BaseUITabsTabState) {
-  return stylex.props(
-    styles.tab,
-    state.active ? styles.tabActive : styles.tabInactive,
-    state.disabled && styles.tabDisabled,
-  ).className
-}
-
 /**
  * A tab strip and its panels. Selection is Base UI's `value`: pass `value`
  * with `onValueChange` to control it, or `defaultValue` to let it keep its
@@ -123,15 +111,40 @@ function Tabs(props: BaseUITabsRootProps) {
 }
 
 function TabsList(props: BaseUITabsListProps) {
-  return <BaseUITabs.List {...props} {...stylex.props(styles.list)} />
+  return (
+    <BaseUITabs.List
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.list), props)}
+    />
+  )
 }
 
 function TabsPanel(props: BaseUITabsPanelProps) {
-  return <BaseUITabs.Panel {...props} {...stylex.props(styles.panel)} />
+  return (
+    <BaseUITabs.Panel
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.panel), props)}
+    />
+  )
 }
 
 function TabsTab(props: BaseUITabsTabProps) {
-  return <BaseUITabs.Tab {...props} className={tabClassName} />
+  return (
+    <BaseUITabs.Tab {...props} {...mergeStatefulStyles(tabStyles, props)} />
+  )
+}
+
+// StyleX cannot target [data-selected] on the element it is styling, so the
+// active pill cannot be chosen in CSS. Base UI's answer is a className that is
+// a function of the tab's own state, the same mechanism Chip uses —
+// mergeStatefulStyles wraps this one so a tab still keeps a className the call
+// site passed.
+function tabStyles(state: BaseUITabsTabState) {
+  return stylex.props(
+    styles.tab,
+    state.active ? styles.tabActive : styles.tabInactive,
+    state.disabled && styles.tabDisabled,
+  )
 }
 
 Tabs.List = TabsList

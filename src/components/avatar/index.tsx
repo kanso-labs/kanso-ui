@@ -3,6 +3,7 @@ import type { AvatarRootProps as BaseUIAvatarRootProps } from '@base-ui/react/av
 import { Avatar as BaseUIAvatar } from '@base-ui/react/avatar'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 
 // Tones are container/on-container pairs rather than one colour each, so the
@@ -117,7 +118,10 @@ function Avatar({
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> takes no children
       role="img"
       {...props}
-      {...stylex.props(styles.base, styles[size], styles[tone])}
+      {...mergeStatefulStyles(
+        stylex.props(styles.base, styles[size], styles[tone]),
+        props,
+      )}
     >
       {src === undefined ? null : (
         <BaseUIAvatar.Image alt="" src={src} {...stylex.props(styles.image)} />

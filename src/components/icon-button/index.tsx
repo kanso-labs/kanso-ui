@@ -4,6 +4,7 @@ import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -156,7 +157,9 @@ function IconButton({
 }: IconButtonProps) {
   // `props` (className/style/render, etc.) is spread separately: `className`
   // and `style` there may be functions of render state, a Base UI extension
-  // ripple's own handler-only merge doesn't need to know about.
+  // ripple's own handler-only merge doesn't need to know about. It is also
+  // why the styles below merge through mergeStatefulStyles rather than the
+  // plain mergeStyles.
   const ripple = useRipple<HTMLButtonElement>(!disableRipple, {
     onClick,
     onContextMenu,
@@ -171,7 +174,10 @@ function IconButton({
       disabled={disabled}
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.base, styles[variant], styles[size])}
+      {...mergeStatefulStyles(
+        stylex.props(styles.base, styles[variant], styles[size]),
+        props,
+      )}
     >
       {children}
       {ripple.surface}

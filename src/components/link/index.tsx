@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 
 // Deliberately sets no font size or family. A link is nearly always a run of
@@ -95,14 +96,14 @@ function Link({
   underline = 'always',
   ...props
 }: LinkProps) {
-  // stylex.props() spreads after `props` for the same reason Text and Currency
-  // do it: it wins over a consumer-supplied className rather than merging with
-  // one, so which of the two applies is not left to stylesheet order.
   return useRender({
     defaultTagName: 'a',
     props: {
       ...props,
-      ...stylex.props(styles.base, tones[tone], underlines[underline]),
+      ...mergeStyles(
+        stylex.props(styles.base, tones[tone], underlines[underline]),
+        props,
+      ),
     },
     render,
   })

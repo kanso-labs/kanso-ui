@@ -12,6 +12,7 @@ import { Dialog as BaseUIDialog } from '@base-ui/react/dialog'
 import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
 
+import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
   media,
@@ -199,7 +200,7 @@ function Sheet({ children, size = 'md', ...props }: SheetProps) {
 }
 
 function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.body)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.body), props)} />
 }
 
 /**
@@ -224,7 +225,10 @@ function SheetContent({ children, container, ...props }: SheetContentProps) {
       <BaseUIDialog.Backdrop {...stylex.props(styles.backdrop)} />
       <BaseUIDialog.Popup
         {...props}
-        {...stylex.props(styles.content, styles[size])}
+        {...mergeStatefulStyles(
+          stylex.props(styles.content, styles[size]),
+          props,
+        )}
       >
         {children}
       </BaseUIDialog.Popup>
@@ -233,11 +237,11 @@ function SheetContent({ children, container, ...props }: SheetContentProps) {
 }
 
 function SheetFooter(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.footer)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
 }
 
 function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.header)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
 }
 
 /**
@@ -246,7 +250,12 @@ function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
  * itself as an unnamed dialog.
  */
 function SheetTitle(props: BaseUIDialogTitleProps) {
-  return <BaseUIDialog.Title {...props} {...stylex.props(styles.title)} />
+  return (
+    <BaseUIDialog.Title
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.title), props)}
+    />
+  )
 }
 
 /**

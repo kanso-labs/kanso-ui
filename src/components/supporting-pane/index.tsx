@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
 // One of Material 3's canonical layouts. The supporting pane holds content
@@ -90,7 +91,7 @@ function SupportingPane({
           <div {...stylex.props(styles.pane)}>{supporting}</div>
         </>
       ),
-      ...stylex.props(styles.root),
+      ...mergeStyles(stylex.props(styles.root), props),
     },
     render,
   })

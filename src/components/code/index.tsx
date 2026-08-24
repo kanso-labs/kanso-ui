@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // Sized in em rather than px, so a fragment of code takes the scale of
@@ -33,14 +34,11 @@ type CodeProps = useRender.ComponentProps<'code'>
  * renders a `<code>` and takes its scale from the text around it.
  */
 function Code({ render, ...props }: CodeProps) {
-  // stylex.props() spreads after `props` for the same reason Text and Currency
-  // do it: it wins over a consumer-supplied className rather than merging with
-  // one, so which of the two applies is not left to stylesheet order.
   return useRender({
     defaultTagName: 'code',
     props: {
       ...props,
-      ...stylex.props(styles.base),
+      ...mergeStyles(stylex.props(styles.base), props),
     },
     render,
   })

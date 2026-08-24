@@ -6,6 +6,7 @@ import type {
 import { Toggle as BaseUIToggle } from '@base-ui/react/toggle'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -94,38 +95,25 @@ function Chip<Value extends string = string>({
   ...props
 }: ChipProps<Value>) {
   return (
-    <BaseUIToggle
-      {...props}
-      className={classNameForState}
-      style={styleForState}
-    >
+    <BaseUIToggle {...props} {...mergeStatefulStyles(propsFor, props)}>
       {children}
     </BaseUIToggle>
   )
 }
 
-function classNameForState(state: BaseUIToggleState) {
-  return propsFor(state).className
-}
-
 // StyleX has no way to target [data-pressed] on the element it is styling, so
 // the selected styles cannot be chosen in CSS. Base UI's answer is to let
 // className and style be functions of the component's own state, which is
-// what these two are — and it is why an uncontrolled chip styles itself
-// correctly without this component keeping a copy of the state.
+// what this is — and it is why an uncontrolled chip styles itself correctly
+// without this component keeping a copy of the state.
 //
-// Declared at module scope so each is one stable reference rather than a
-// fresh closure per render, which is what react-perf's no-new-function-as-prop
-// is after. They close over nothing, so there is nothing to capture.
+// mergeStatefulStyles takes the function rather than a computed result for
+// exactly that reason, and combines it with whatever the call site passed.
 function propsFor(state: BaseUIToggleState) {
   return stylex.props(
     styles.base,
     state.pressed ? styles.selected : styles.unselected,
   )
-}
-
-function styleForState(state: BaseUIToggleState) {
-  return propsFor(state).style
 }
 
 export type { ChipProps }

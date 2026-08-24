@@ -3,6 +3,7 @@ import type { HTMLAttributes } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { mergeStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -41,11 +42,12 @@ const styles = stylex.create({
     paddingBlock: spacing.xs,
     paddingInline: spacing.md,
   },
-  // These sit on a wrapper rather than on the Code itself, because Code
-  // spreads its own styles after the props it is given — a className handed
-  // to it loses. `minInlineSize: 0` is the load-bearing one: left at `auto`, a
-  // long unbroken value sets the flex row's floor and pushes the button out of
-  // the box instead of wrapping.
+  // These sit on a wrapper rather than on the Code itself, so the flex child
+  // and the type are two elements rather than one — Code sets its own font
+  // size relative to the text around it, which a size set on the same element
+  // would then be measured against. `minInlineSize: 0` is the load-bearing
+  // one: left at `auto`, a long unbroken value sets the flex row's floor and
+  // pushes the button out of the box instead of wrapping.
   value: {
     flexGrow: 1,
     fontSize: typography.bodySmallSize,
@@ -126,7 +128,7 @@ function CopyField({
   }, [onCopied, value])
 
   return (
-    <div {...props} {...stylex.props(styles.root)}>
+    <div {...props} {...mergeStyles(stylex.props(styles.root), props)}>
       <span {...stylex.props(styles.value)}>
         <Code>{value}</Code>
       </span>

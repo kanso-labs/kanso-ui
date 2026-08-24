@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -52,14 +53,11 @@ type KeycapProps = useRender.ComponentProps<'kbd'>
  * chord is several of these, combined at the call site.
  */
 function Keycap({ render, ...props }: KeycapProps) {
-  // stylex.props() spreads after `props` for the same reason Text and Currency
-  // do it: it wins over a consumer-supplied className rather than merging with
-  // one, so which of the two applies is not left to stylesheet order.
   return useRender({
     defaultTagName: 'kbd',
     props: {
       ...props,
-      ...stylex.props(styles.base),
+      ...mergeStyles(stylex.props(styles.base), props),
     },
     render,
   })

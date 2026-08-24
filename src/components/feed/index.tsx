@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
 // Material 3's example minimum for an adaptive grid cell, and the only number
@@ -80,11 +81,10 @@ function Feed({
     defaultTagName: 'div',
     props: {
       ...props,
-      // Spread last so the grid wins over a consumer-supplied className,
-      // matching Text, Badge and Card. The dynamic style carries the cell
-      // minimum as a custom property, so this also has to come after `props`
-      // for that value to survive.
-      ...stylex.props(styles.root(minItemWidth)),
+      // The dynamic style carries the cell minimum as a custom property in
+      // `style` rather than as a class, which is why the merge has to reach
+      // `style` as well as `className` — see src/styles/merge.ts.
+      ...mergeStyles(stylex.props(styles.root(minItemWidth)), props),
     },
     render,
   })

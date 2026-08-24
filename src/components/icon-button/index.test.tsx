@@ -38,6 +38,8 @@ function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
   return { ...view, button: view.getByRole('button') }
 }
 
+// Hoisted for react-perf's no-jsx-as-prop, the way the other suites hoist
+// their `render` templates.
 describe('icon button', () => {
   describe('accessibility', () => {
     // An icon carries no text, so the label is the only thing that names the

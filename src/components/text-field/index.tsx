@@ -7,6 +7,7 @@ import { Field as BaseUIField } from '@base-ui/react/field'
 import * as stylex from '@stylexjs/stylex'
 import { useCallback } from 'react'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -196,12 +197,18 @@ function TextField({
         <BaseUIField.Label className={labelClassName}>
           {label}
         </BaseUIField.Label>
+        {/* `props` is the control's, which is what TextFieldProps extends,
+            so a className or style from the call site lands on the <input>
+            rather than on the wrapper around it. */}
         <BaseUIField.Control
           {...props}
-          {...stylex.props(
-            styles.input,
-            numeric && styles.numeric,
-            disabled && styles.inputDisabled,
+          {...mergeStatefulStyles(
+            stylex.props(
+              styles.input,
+              numeric && styles.numeric,
+              disabled && styles.inputDisabled,
+            ),
+            props,
           )}
         />
       </div>
