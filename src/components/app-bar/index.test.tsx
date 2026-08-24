@@ -160,6 +160,94 @@ describe('scrolled', () => {
   })
 })
 
+describe('collapsed', () => {
+  // The whole point: a pinned large bar costs 152px of the viewport for as
+  // long as the page is open unless it can give the space back.
+  it('takes the small bar’s height on the flexible sizes', () => {
+    for (const size of ['medium', 'large'] as const) {
+      const view = render(
+        <AppBar
+          collapsed
+          headline="Headline"
+          size={size}
+          subtitle="Supporting line"
+        />,
+      )
+
+      expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.small.plain)
+      view.unmount()
+    }
+  })
+
+  // M3 does not describe a collapsed large bar as a state of its own. It
+  // describes it as becoming the small bar, so the headline takes the small
+  // bar's type role along with its height.
+  it('takes the small bar’s headline too', () => {
+    const small = render(<AppBar headline="Headline" />)
+    const smallSize = getComputedStyle(
+      small.getByRole('heading', { level: 1 }),
+    ).fontSize
+    small.unmount()
+
+    const large = render(<AppBar collapsed headline="Headline" size="large" />)
+
+    expect(
+      getComputedStyle(large.getByRole('heading', { level: 1 })).fontSize,
+    ).toBe(smallSize)
+  })
+
+  // There is no second line in a 64px bar, so the subtitle goes with the
+  // height rather than being squeezed alongside the headline.
+  it('drops the subtitle', () => {
+    const view = render(
+      <AppBar
+        collapsed
+        headline="Headline"
+        size="large"
+        subtitle="Supporting line"
+      />,
+    )
+
+    expect(view.queryByText('Supporting line')).toBeNull()
+  })
+
+  it('brings the subtitle back on expanding', () => {
+    const view = render(
+      <AppBar
+        collapsed
+        headline="Headline"
+        size="large"
+        subtitle="Supporting line"
+      />,
+    )
+    view.rerender(
+      <AppBar headline="Headline" size="large" subtitle="Supporting line" />,
+    )
+
+    expect(view.getByText('Supporting line')).not.toBeNull()
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.large.withSubtitle)
+  })
+
+  // `small` is already the height the flexible bars collapse to, so a call
+  // site choosing its size from a breakpoint does not have to guard the prop.
+  it('leaves the small bar alone', () => {
+    const view = render(
+      <AppBar collapsed headline="Headline" subtitle="Supporting line" />,
+    )
+
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.small.plain)
+    expect(view.getByText('Supporting line')).not.toBeNull()
+  })
+
+  it('stays expanded by default', () => {
+    const view = render(
+      <AppBar headline="Headline" size="large" subtitle="Supporting line" />,
+    )
+
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.large.withSubtitle)
+  })
+})
+
 describe('slots', () => {
   it('renders the leading and trailing slots around the text', () => {
     const view = render(

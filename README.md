@@ -49,6 +49,19 @@ StyleX compiles the library's own rules into a CSS `@layer`, and your app's
 stylesheet is unlayered, so your rules win the cascade wherever the two meet —
 no specificity contest, and no `!important`.
 
+`AppBar` takes `scrolled` and `collapsed`, and both are controlled — only the
+app knows which element scrolls. A pinned flexible bar gives its height back as
+the page scrolls, becoming the small bar:
+
+```tsx
+<AppBar
+  collapsed={scrollTop > 24}
+  headline="Headline"
+  scrolled={scrollTop > 0}
+  size="large"
+/>
+```
+
 ### Rendering as a different element
 
 `render` swaps the element a component produces, keeping its styling:
