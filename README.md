@@ -87,14 +87,25 @@ app knows which element scrolls. A pinned flexible bar gives its height back as
 the page scrolls, becoming the small bar:
 
 ```tsx
-<AppBar
-  collapsed={scrollTop > 24}
-  contentMaxInlineSize="960px"
-  headline="Headline"
-  scrolled={scrollTop > 0}
-  size="large"
-/>
+<div style={{ overflowAnchor: 'none', overflowY: 'auto' }} onScroll={onScroll}>
+  <AppBar
+    collapsed={scrollTop > 24}
+    contentMaxInlineSize="960px"
+    headline="Headline"
+    scrolled={scrollTop > 0}
+    size="large"
+  />
+  {page}
+</div>
 ```
+
+The scroll container needs `overflow-anchor: none`. Collapsing hands the page
+back the height the bar gives up, and a browser answers that by moving the
+scroll offset the same distance so the content underneath stays put — which is
+the offset `collapsed` was derived from, so the bar expands again and the two
+take turns. Turning anchoring off is also the movement you want, since the
+content then follows the bar's bottom edge up instead of standing still behind
+it.
 
 ### Rendering as a different element
 

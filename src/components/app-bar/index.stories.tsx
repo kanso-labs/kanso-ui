@@ -133,6 +133,12 @@ const styles = stylex.create({
   },
   scroller: {
     blockSize: '320px',
+    // What keeps the collapse from flickering, and the one thing a pinned
+    // flexible bar asks of the container it scrolls in. Without it the
+    // browser answers the bar giving its height back by moving the scroll
+    // offset the same distance, which is the offset `collapsed` was derived
+    // from — so it lands back under the threshold and the two take turns.
+    overflowAnchor: 'none',
     overflowY: 'auto',
   },
   section: {
@@ -142,12 +148,9 @@ const styles = stylex.create({
   },
 })
 
-// How far the page scrolls before the bar has finished collapsing. The figure
-// is the call site's to choose, and the body below is deliberately long: a
-// collapsing bar gives 88px back to a scroller that is only as tall as its
-// content, which shortens the scroll range and can pull the position back
-// under the threshold. The bar then expands, the range grows, and the two
-// take turns. Any page with real content to scroll is well clear of it.
+// How far the page scrolls before the bar collapses. The figure is the call
+// site's to choose, and no figure makes the bar stable on its own — see
+// `overflowAnchor` on the scroller above, which is what does.
 const COLLAPSE_AFTER = 24
 
 function Sample({ label, ...props }: AppBarProps & { label: string }) {
@@ -184,7 +187,7 @@ function ScrollingPage() {
         trailing={TRAILING}
       />
       <div {...stylex.props(styles.scrollBody)}>
-        {Array.from({ length: 24 }, (_, index) => (
+        {Array.from({ length: 12 }, (_, index) => (
           <Text key={index} render={PARAGRAPH} tone="muted">
             Supporting line. Scroll this panel to watch the bar give its height
             back to the page.
