@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { AppBarProps } from './app-bar'
 import type { AvatarProps } from './avatar'
 import type { BadgeProps } from './badge'
 import type { ButtonProps } from './button'
@@ -23,6 +24,7 @@ import type { TextProps } from './text'
 import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
+import AppBarDefault from './app-bar'
 import AvatarDefault from './avatar'
 import BadgeDefault from './badge'
 import ButtonDefault from './button'
@@ -48,6 +50,7 @@ import TextFieldDefault from './text-field'
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
     expect(Object.keys(components)).toEqual([
+      'AppBar',
       'Avatar',
       'Badge',
       'Button',
@@ -70,6 +73,10 @@ describe('components barrel', () => {
       'Text',
       'TextField',
     ])
+  })
+
+  it('re-exports AppBar as the same reference as its own module', () => {
+    expect(components.AppBar).toBe(AppBarDefault)
   })
 
   it('re-exports Avatar as the same reference as its own module', () => {
@@ -154,6 +161,11 @@ describe('components barrel', () => {
 
   it('re-exports TextField as the same reference as its own module', () => {
     expect(components.TextField).toBe(TextFieldDefault)
+  })
+
+  it('re-exports the AppBarProps type', () => {
+    const props: AppBarProps = { size: 'large' }
+    expect(props.size).toBe('large')
   })
 
   it('re-exports the AvatarProps type', () => {
