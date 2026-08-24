@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.2...kanso-ui-v0.9.0) (2026-08-24)
+
+
+### Features
+
+* add Container and Stack layout primitives ([#416](https://github.com/kanso-labs/kanso-ui/issues/416)) ([a5b10a9](https://github.com/kanso-labs/kanso-ui/commit/a5b10a9fc5f38356ca2cb1c2705941cfbf4d5465))
+
 ## [0.8.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.1...kanso-ui-v0.8.2) (2026-08-24)
 
 
