@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.1...kanso-ui-v0.8.0) (2026-08-24)
+
+
+### Features
+
+* **app-bar:** add Material 3's app bar ([#400](https://github.com/kanso-labs/kanso-ui/issues/400)) ([e7ea96a](https://github.com/kanso-labs/kanso-ui/commit/e7ea96af72b6b32bb5f4c1aa04f697ce7369a5da))
+
 ## [0.7.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.0...kanso-ui-v0.7.1) (2026-08-23)
 
 
