@@ -166,19 +166,30 @@ interval is never cleared — one per Vite server, three in this configuration.
 Vitest therefore always falls through to force-exiting, ten seconds after the
 results have already been printed.
 
-**Do not reach for `teardownTimeout` to shorten that wait.** It is the obvious
-fix, it saves about nine seconds locally, and it breaks CI. At `1000` the `Test`
-job fails deterministically: `@stylexjs/unplugin`'s dev CSS endpoint starts
-answering with an empty stylesheet, lightningcss rejects it with
-`Invalid empty selector`, Vite renders an error overlay, and the a11y addon then
-audits the overlay instead of the story — eight failures across `card`,
-`list-item` and `tokens`. It reproduces on re-run and never reproduces locally,
-so a green local suite is not evidence that a lower value is safe.
+The fix is upstream, not here: unref-ing that interval in the plugin removes the
+hang outright, and the suite then exits on its own in roughly half the time with
+`teardownTimeout` left at its default. Nothing in this repository can reach the
+closure holding it, and the plugin exposes no option to suppress it.
 
-The wait is real but the leak is upstream, and so is the fix: unref-ing that
-interval in the plugin removes the hang outright, and the suite then exits on
-its own in about half the time with `teardownTimeout` left at its default. Until
-that lands, the ten seconds stay.
+**Lowering `teardownTimeout` is not the workaround it looks like.** It was tried
+at `1000`, and the `Test` job failed with `Invalid empty selector` from the
+plugin's dev CSS endpoint, a Vite error overlay, and a11y failures on `card`,
+`list-item` and `tokens`. Removing the setting did not reliably fix it, so the
+setting was not the cause and the same failure can appear without it.
+
+**A separate intermittent failure affects the story runs, and it is
+unresolved.** The plugin's dev CSS endpoint sometimes answers with an empty
+stylesheet, lightningcss rejects it with `Invalid empty selector`, Vite renders
+an error overlay, and the a11y addon then audits `vite-error-overlay` instead of
+the story. That surfaces as eight failures across `card`, `list-item` and
+`tokens` — a signature that looks nothing like its cause.
+
+It was seen on three of four consecutive `Test` runs on 2026-08-24, on commits
+whose only difference was documentation, and with the Playwright cache hitting
+in both the passing and the failing runs. It has never reproduced locally over
+repeated full-suite runs. The trigger is not identified, so a green run is not
+evidence that a change fixed it, and a red one is not evidence that a change
+broke it.
 
 ### Sample copy
 
