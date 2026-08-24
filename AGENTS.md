@@ -157,24 +157,28 @@ own. One fetch per file, once collection has transformed everything the file
 imports, is what makes those rules present rather than imminent. Do not swap it
 for a wait.
 
-**Every run ends `close timed out after 1000ms`, and that line is expected.**
+**Every run ends `close timed out after 10000ms`, and that line is expected.**
 `@stylexjs/unplugin`'s Vite plugin starts a 150ms `setInterval` in
 `configureServer` and registers the matching `clearInterval` on the `close`
 event of `server.httpServer`. Vitest runs Vite in middleware mode, where
 `httpServer` is `null`, so the optional chaining skips that registration and the
 interval is never cleared — one per Vite server, three in this configuration.
-Vitest therefore always falls through to force-exiting.
+Vitest therefore always falls through to force-exiting, ten seconds after the
+results have already been printed.
 
-The wait before it does is dead time, since results are printed and the exit
-code is decided before the timer starts, which is why `teardownTimeout` in
-`vite.config.ts` is 1000 rather than the 10000 default: at the default it was
-most of a tenth of every CI run. The setting also bounds `afterAll` hooks, so
-raise it before adding a slow one.
+**Do not reach for `teardownTimeout` to shorten that wait.** It is the obvious
+fix, it saves about nine seconds locally, and it breaks CI. At `1000` the `Test`
+job fails deterministically: `@stylexjs/unplugin`'s dev CSS endpoint starts
+answering with an empty stylesheet, lightningcss rejects it with
+`Invalid empty selector`, Vite renders an error overlay, and the a11y addon then
+audits the overlay instead of the story — eight failures across `card`,
+`list-item` and `tokens`. It reproduces on re-run and never reproduces locally,
+so a green local suite is not evidence that a lower value is safe.
 
-The warning is therefore not a misconfiguration to fix by restoring the default.
-Unref-ing that interval in the plugin removes the hang outright, and the run
-then exits on its own well inside even the 10s default, so the setting should be
-deleted once the plugin clears its interval in middleware mode.
+The wait is real but the leak is upstream, and so is the fix: unref-ing that
+interval in the plugin removes the hang outright, and the suite then exits on
+its own in about half the time with `teardownTimeout` left at its default. Until
+that lands, the ten seconds stay.
 
 ### Sample copy
 
