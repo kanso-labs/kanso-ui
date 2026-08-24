@@ -104,5 +104,19 @@ export default defineConfig({
         },
       },
     ],
+    // How long Vitest waits for teardown before force-exiting. Browser mode
+    // never finishes closing here — every run ends "close timed out after
+    // 10000ms", and the hanging-process reporter shows file handles the
+    // provider leaves open — so the full timeout elapses every time.
+    //
+    // That wait is dead time rather than work: results are printed and the
+    // exit code is decided before it starts, which a deliberately failing test
+    // confirms by still exiting non-zero at this value. At the 10s default it
+    // was most of a tenth of every CI run.
+    //
+    // This also bounds afterAll hooks. The only teardown here is
+    // afterEach(cleanup), so a second is ample — raise it before adding a
+    // genuinely slow one.
+    teardownTimeout: 1000,
   },
 })

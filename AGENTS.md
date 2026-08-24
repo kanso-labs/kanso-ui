@@ -157,6 +157,16 @@ own. One fetch per file, once collection has transformed everything the file
 imports, is what makes those rules present rather than imminent. Do not swap it
 for a wait.
 
+**Every run ends `close timed out after 1000ms`, and that line is expected.**
+Browser mode never finishes closing — the hanging-process reporter shows file
+handles the provider leaves open — so Vitest always falls through to
+force-exiting. The wait before it does is dead time, since results are printed
+and the exit code is decided before the timer starts, which is why
+`teardownTimeout` in `vite.config.ts` is 1000 rather than the 10000 default: at
+the default it was most of a tenth of every CI run. The setting also bounds
+`afterAll` hooks, so raise it before adding a slow one, and do not read the
+warning as a failure to fix by restoring the default.
+
 ### Sample copy
 
 kanso-ui is a general-purpose library, so the text inside stories, tests, and
