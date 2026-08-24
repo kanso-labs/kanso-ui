@@ -177,11 +177,20 @@ type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
    * subtitle goes with the height, since there is no room for a second line
    * in the small bar.
    *
-   * Collapsing hands the page back the height the bar gives up, which
-   * shortens the scroll range. Where the content is barely longer than the
-   * viewport that can pull the position back under whatever threshold set
-   * this, expanding the bar again — so pick a threshold with room under it,
-   * or drive this from something other than a raw offset.
+   * **The scroll container needs `overflow-anchor: none`.** Collapsing hands
+   * the page back the height the bar gives up, and browsers answer a change
+   * in height above the viewport by moving the scroll offset by exactly that
+   * amount, so the content underneath stays where it was. That offset is
+   * what the call site derived `collapsed` from, so it lands back under the
+   * threshold, the bar expands, the offset is restored, and the two take
+   * turns for as long as the reader stays in that band. Turning anchoring off
+   * is what breaks the loop, and it is also the movement you want: the
+   * content follows the bar's bottom edge up rather than standing still while
+   * the bar shrinks behind it.
+   *
+   * No threshold avoids this on its own. The unstable band is as tall as the
+   * height the bar gives back and it sits directly above wherever the
+   * threshold is put, so moving the threshold moves the band with it.
    * @default false
    */
   collapsed?: boolean
