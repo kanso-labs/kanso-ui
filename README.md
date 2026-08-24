@@ -82,6 +82,20 @@ page beneath it. Give it the page's measure and the page's gutter:
 <Container maxInlineSize="960px">{page}</Container>
 ```
 
+`AppBar` takes `scrolled` and `collapsed`, and both are controlled — only the
+app knows which element scrolls. A pinned flexible bar gives its height back as
+the page scrolls, becoming the small bar:
+
+```tsx
+<AppBar
+  collapsed={scrollTop > 24}
+  contentMaxInlineSize="960px"
+  headline="Headline"
+  scrolled={scrollTop > 0}
+  size="large"
+/>
+```
+
 ### Rendering as a different element
 
 `Text` renders a `<span>`, which is right for a run of text inside a line and

@@ -4,7 +4,7 @@ import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
 import { mergeStyles } from '../../styles/merge'
-import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 import Text from '../text'
 
 // Material 3's app bar, in the three sizes M3 Expressive recommends.
@@ -28,6 +28,7 @@ import Text from '../text'
 // support and text wrapping, so a headline long enough to wrap has to be able
 // to make its bar taller. Fixing the height would truncate exactly the case
 // the variant was redesigned for.
+
 // How far the headline sits inside whatever comes before it, and the figure
 // an icon button's glyph is inset from the edge of its own touch target. M3
 // leans on the two agreeing, which is what makes a bar with a leading icon
@@ -44,7 +45,21 @@ const HEIGHTS = {
   small: { plain: '64px', withSubtitle: '64px' },
 } as const
 
+// What a flexible bar collapses to, which is the small bar exactly. M3 does
+// not describe the collapsed large bar as a state of its own — it describes it
+// as becoming the small bar, which is why this reads off the same table rather
+// than being a fourth height.
+const COLLAPSED_HEIGHT = HEIGHTS.small.plain
+
 const styles = stylex.create({
+  // Collapsing swaps the headline's type role, which is a change of class
+  // rather than of value — but the properties underneath still transition,
+  // so the type resizes with the bar instead of snapping when it arrives.
+  headline: {
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'font-size, letter-spacing, line-height',
+    transitionTimingFunction: motion.easingEmphasized,
+  },
   root: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -54,10 +69,14 @@ const styles = stylex.create({
     // inside it, so a full-bleed bar can still line its contents up with the
     // page beneath.
     justifyContent: 'center',
-    // The spec's separation on scroll is a fill rather than a shadow, so this
-    // is the only property `scrolled` moves.
-    transitionDuration: '150ms',
-    transitionProperty: 'background-color',
+    // `scrolled` moves the fill and `collapsed` moves the height, and both
+    // answer the same scroll, so the two have to move together. One duration
+    // and one curve across both is what keeps them from looking like separate
+    // events — a fill that has finished settling while the bar is still
+    // shrinking reads as two things happening rather than one.
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'background-color, min-block-size',
+    transitionTimingFunction: motion.easingEmphasized,
   },
   row: {
     alignItems: 'center',
@@ -145,6 +164,28 @@ type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
    */
   align?: 'center' | 'start'
   /**
+   * Collapses a flexible bar to the height and headline of the small one, for
+   * a pinned bar over content that has been scrolled. M3 specifies it for the
+   * flexible sizes, and without it a pinned `large` costs 152px of the
+   * viewport for as long as the page is open.
+   *
+   * Controlled, and for the same reason `scrolled` is: only the app knows
+   * which element scrolls, and how far into it the bar should have finished
+   * collapsing. Usually set from the same handler.
+   *
+   * Ignored on `small`, which is already the height this collapses to. The
+   * subtitle goes with the height, since there is no room for a second line
+   * in the small bar.
+   *
+   * Collapsing hands the page back the height the bar gives up, which
+   * shortens the scroll range. Where the content is barely longer than the
+   * viewport that can pull the position back under whatever threshold set
+   * this, expanding the bar again — so pick a threshold with room under it,
+   * or drive this from something other than a raw offset.
+   * @default false
+   */
+  collapsed?: boolean
+  /**
    * Where the bar's content starts, measured to the headline. A leading slot
    * sits 12px before that, which is the room an icon button's own padding
    * fills around its glyph — M3's arrangement, and what makes a bar with an
@@ -205,10 +246,12 @@ type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
  *
  * It paints its own surface, unlike the layout components, because separating
  * itself from the content beneath is the job — which is also why `scrolled`
- * exists.
+ * and `collapsed` exist. Neither watches the page: only the app knows which
+ * element scrolls, so both are set from its own scroll handler.
  */
 function AppBar({
   align = 'start',
+  collapsed = false,
   contentInset = DEFAULT_CONTENT_INSET,
   contentMaxInlineSize = 'none',
   headline,
@@ -220,10 +263,15 @@ function AppBar({
   trailing,
   ...props
 }: AppBarProps) {
-  const height =
+  // `small` is already what the flexible bars collapse to, so collapsing it is
+  // a no-op rather than an error. A bar whose size is chosen at the call site
+  // from a breakpoint would otherwise have to guard the prop as well.
+  const collapse = collapsed && size !== 'small'
+  const expandedHeight =
     subtitle === undefined || subtitle === null
       ? HEIGHTS[size].plain
       : HEIGHTS[size].withSubtitle
+  const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
 
   return useRender({
     defaultTagName: 'header',
@@ -246,11 +294,17 @@ function AppBar({
             )}
           >
             {headline === undefined ? null : (
-              <Text render={HEADING_1} variant={HEADLINE_VARIANT[size]}>
+              <Text
+                {...stylex.props(styles.headline)}
+                render={HEADING_1}
+                variant={
+                  collapse ? HEADLINE_VARIANT.small : HEADLINE_VARIANT[size]
+                }
+              >
                 {headline}
               </Text>
             )}
-            {subtitle === undefined ? null : (
+            {subtitle === undefined || collapse ? null : (
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 {subtitle}
               </Text>

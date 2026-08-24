@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { UIEvent } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useState } from 'react'
 
 import type { AppBarProps } from '.'
 
@@ -109,10 +111,29 @@ const styles = stylex.create({
     maxInlineSize: '960px',
     padding: spacing.xl,
   },
+  // A pinned bar needs a scroll container to be pinned inside, and this is
+  // the call site's job rather than the component's — the bar paints a
+  // surface and sets a height, and nothing else.
+  pinned: {
+    insetBlockStart: 0,
+    position: 'sticky',
+  },
   sample: {
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.xs,
+  },
+  // The scrolling demo's body, long enough that the bar has somewhere to
+  // collapse into.
+  scrollBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  scroller: {
+    blockSize: '320px',
+    overflowY: 'auto',
   },
   section: {
     display: 'flex',
@@ -120,6 +141,14 @@ const styles = stylex.create({
     gap: spacing.lg,
   },
 })
+
+// How far the page scrolls before the bar has finished collapsing. The figure
+// is the call site's to choose, and the body below is deliberately long: a
+// collapsing bar gives 88px back to a scroller that is only as tall as its
+// content, which shortens the scroll range and can pull the position back
+// under the threshold. The bar then expands, the range grows, and the two
+// take turns. Any page with real content to scroll is well clear of it.
+const COLLAPSE_AFTER = 24
 
 function Sample({ label, ...props }: AppBarProps & { label: string }) {
   return (
@@ -130,6 +159,38 @@ function Sample({ label, ...props }: AppBarProps & { label: string }) {
       <Text tone="muted" variant="labelSmall">
         {label}
       </Text>
+    </div>
+  )
+}
+
+function ScrollingPage() {
+  const [scrollTop, setScrollTop] = useState(0)
+
+  // Both props come off one handler, because both answer the same scroll.
+  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+    setScrollTop(event.currentTarget.scrollTop)
+  }, [])
+
+  return (
+    <div {...stylex.props(styles.scroller)} onScroll={handleScroll}>
+      <AppBar
+        {...stylex.props(styles.pinned)}
+        collapsed={scrollTop > COLLAPSE_AFTER}
+        headline="Headline"
+        leading={LEADING}
+        scrolled={scrollTop > 0}
+        size="large"
+        subtitle="Supporting line"
+        trailing={TRAILING}
+      />
+      <div {...stylex.props(styles.scrollBody)}>
+        {Array.from({ length: 24 }, (_, index) => (
+          <Text key={index} render={PARAGRAPH} tone="muted">
+            Supporting line. Scroll this panel to watch the bar give its height
+            back to the page.
+          </Text>
+        ))}
+      </div>
     </div>
   )
 }
@@ -284,6 +345,40 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Collapsing on scroll
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A pinned flexible bar gives its height back as the page scrolls,
+            becoming the small bar. Without it a large bar costs 152px of the
+            viewport for as long as the page is open, which is most of a phone
+            screen. The subtitle goes with the height, since there is no second
+            line in a 64px bar.
+          </Text>
+        </div>
+        <Sample
+          headline="Headline"
+          label="expanded"
+          leading={LEADING}
+          size="large"
+          subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+        <Sample
+          collapsed
+          headline="Headline"
+          label="collapsed"
+          leading={LEADING}
+          size="large"
+          subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Lining up with the page
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -361,6 +456,12 @@ const Large: Story = {
   },
 }
 
-export { Default, Large, Overview }
+// The one story that has to be driven rather than described: both props are
+// controlled, so what a reader needs to see is the wiring, not the states.
+const Collapsing: Story = {
+  render: () => <ScrollingPage />,
+}
+
+export { Collapsing, Default, Large, Overview }
 
 export default meta
