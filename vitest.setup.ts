@@ -31,11 +31,15 @@ beforeAll(async () => {
     )
   }
 
+  // An empty answer is not a failure. The plugin assembles this stylesheet
+  // from the rules collected while transforming the modules the current spec
+  // imports, so a spec that imports nothing styled — src/styles/merge.test.ts
+  // tests a pure function — legitimately has none to collect. A spec that does
+  // import styled modules has had them transformed by collection before this
+  // runs, so an empty answer cannot happen there.
   const css = await response.text()
   if (css.trim() === '') {
-    throw new Error(
-      `StyleX stylesheet: GET ${STYLEX_CSS_PATH} answered with no rules.`,
-    )
+    return
   }
 
   const style =

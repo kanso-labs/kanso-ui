@@ -12,6 +12,7 @@ import { Dialog as BaseUIDialog } from '@base-ui/react/dialog'
 import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
 
+import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
   media,
@@ -61,6 +62,7 @@ const styles = stylex.create({
     position: 'fixed',
   },
   body: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     // The only part that scrolls. Header and footer keep their place while
@@ -98,6 +100,7 @@ const styles = stylex.create({
       [media.belowMedium]: radii.xl,
     },
     boxShadow: shadows.elevation1,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     display: 'flex',
     flexDirection: 'column',
@@ -116,6 +119,7 @@ const styles = stylex.create({
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
     borderBlockStartWidth: '1px',
+    boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
     gap: spacing.sm,
@@ -128,6 +132,7 @@ const styles = stylex.create({
     borderBlockEndColor: colors.outlineVariant,
     borderBlockEndStyle: 'solid',
     borderBlockEndWidth: '1px',
+    boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
     gap: spacing.md,
@@ -146,6 +151,7 @@ const styles = stylex.create({
     inlineSize: { default: '320px', [media.belowMedium]: '100%' },
   },
   title: {
+    boxSizing: 'border-box',
     color: colors.onSurface,
     fontFamily: typography.titleLargeFont,
     fontSize: typography.titleLargeSize,
@@ -199,7 +205,7 @@ function Sheet({ children, size = 'md', ...props }: SheetProps) {
 }
 
 function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.body)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.body), props)} />
 }
 
 /**
@@ -224,7 +230,10 @@ function SheetContent({ children, container, ...props }: SheetContentProps) {
       <BaseUIDialog.Backdrop {...stylex.props(styles.backdrop)} />
       <BaseUIDialog.Popup
         {...props}
-        {...stylex.props(styles.content, styles[size])}
+        {...mergeStatefulStyles(
+          stylex.props(styles.content, styles[size]),
+          props,
+        )}
       >
         {children}
       </BaseUIDialog.Popup>
@@ -233,11 +242,11 @@ function SheetContent({ children, container, ...props }: SheetContentProps) {
 }
 
 function SheetFooter(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.footer)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
 }
 
 function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...stylex.props(styles.header)} />
+  return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
 }
 
 /**
@@ -246,7 +255,12 @@ function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
  * itself as an unnamed dialog.
  */
 function SheetTitle(props: BaseUIDialogTitleProps) {
-  return <BaseUIDialog.Title {...props} {...stylex.props(styles.title)} />
+  return (
+    <BaseUIDialog.Title
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.title), props)}
+    />
+  )
 }
 
 /**

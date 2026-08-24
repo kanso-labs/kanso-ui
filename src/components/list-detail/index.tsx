@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
 // Material 3's recommended snap widths for a fixed pane. The list is the
@@ -32,6 +33,7 @@ const styles = stylex.create({
     display: { default: 'none', [media.expanded]: 'block' },
   },
   pane: {
+    boxSizing: 'border-box',
     minInlineSize: 0,
   },
   // minmax(0, 1fr) rather than a bare 1fr: a bare fr track takes an automatic
@@ -46,6 +48,7 @@ const styles = stylex.create({
   // that. Neither is worth reading the source to confirm, which is why
   // index.test.tsx measures the resolved columns at every breakpoint.
   root: {
+    boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
     gridTemplateColumns: {
@@ -122,7 +125,7 @@ function ListDetail({
           </div>
         </>
       ),
-      ...stylex.props(styles.root),
+      ...mergeStyles(stylex.props(styles.root), props),
     },
     render,
   })

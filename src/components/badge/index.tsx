@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -28,6 +29,7 @@ const styles = stylex.create({
     borderRadius: radii.sm,
     borderStyle: 'solid',
     borderWidth: '1px',
+    boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,
     fontFamily: typography.labelSmallFont,
@@ -133,16 +135,11 @@ function Badge({
 }: BadgeProps) {
   const toned = variant === 'filled' ? filledTones[tone] : outlinedTones[tone]
 
-  // stylex.props() spreads after `props` for the same reason Text and Currency
-  // do it: it wins over a consumer-supplied className rather than merging with
-  // one. useRender would otherwise join the two class strings, and which won
-  // would come down to stylesheet order rather than anything visible at the
-  // call site.
   return useRender({
     defaultTagName: 'span',
     props: {
       ...props,
-      ...stylex.props(styles.base, toned),
+      ...mergeStyles(stylex.props(styles.base, toned), props),
     },
     render,
   })

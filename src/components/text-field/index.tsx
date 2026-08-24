@@ -7,6 +7,7 @@ import { Field as BaseUIField } from '@base-ui/react/field'
 import * as stylex from '@stylexjs/stylex'
 import { useCallback } from 'react'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -39,6 +40,7 @@ const styles = stylex.create({
       ':focus-within': `inset 0 -2px 0 0 ${colors.primary}`,
       default: `inset 0 -1px 0 0 ${colors.outline}`,
     },
+    boxSizing: 'border-box',
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,
@@ -60,6 +62,7 @@ const styles = stylex.create({
   input: {
     backgroundColor: 'transparent',
     borderWidth: 0,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
@@ -125,6 +128,7 @@ const styles = stylex.create({
     fontVariantNumeric: 'tabular-nums',
   },
   root: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -196,12 +200,18 @@ function TextField({
         <BaseUIField.Label className={labelClassName}>
           {label}
         </BaseUIField.Label>
+        {/* `props` is the control's, which is what TextFieldProps extends,
+            so a className or style from the call site lands on the <input>
+            rather than on the wrapper around it. */}
         <BaseUIField.Control
           {...props}
-          {...stylex.props(
-            styles.input,
-            numeric && styles.numeric,
-            disabled && styles.inputDisabled,
+          {...mergeStatefulStyles(
+            stylex.props(
+              styles.input,
+              numeric && styles.numeric,
+              disabled && styles.inputDisabled,
+            ),
+            props,
           )}
         />
       </div>

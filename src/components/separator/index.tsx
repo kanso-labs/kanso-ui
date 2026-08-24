@@ -3,6 +3,7 @@ import type { SeparatorProps as BaseUISeparatorProps } from '@base-ui/react/sepa
 import { Separator as BaseUISeparator } from '@base-ui/react/separator'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStatefulStyles } from '../../styles/merge'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // A divider is the same colour as a border, so it draws from outlineVariant
@@ -23,6 +24,7 @@ const styles = stylex.create({
   base: {
     backgroundColor: colors.outlineVariant,
     borderWidth: 0,
+    boxSizing: 'border-box',
     flexShrink: 0,
     margin: 0,
   },
@@ -50,7 +52,10 @@ function Separator({ orientation = 'horizontal', ...props }: SeparatorProps) {
     <BaseUISeparator
       orientation={orientation}
       {...props}
-      {...stylex.props(styles.base, styles[orientation])}
+      {...mergeStatefulStyles(
+        stylex.props(styles.base, styles[orientation]),
+        props,
+      )}
     />
   )
 }

@@ -149,15 +149,20 @@ describe('tone', () => {
 })
 
 describe('className', () => {
-  // Matches Button: stylex.props() is spread last and so replaces a
-  // consumer-supplied className rather than merging with it. Pinned because
-  // it is a deliberate choice, not an accident of spread order — overriding
-  // the scale is done with `variant`/`tone`, not with a competing class.
-  it('is replaced by the generated classes', () => {
-    const view = render(<Text className="consumer">Sample text</Text>)
-
-    expect(view.getByText('Sample text').classList.contains('consumer')).toBe(
-      false,
+  // The scale is still overridden with `variant`/`tone` rather than with a
+  // competing class — StyleX compiles into `@layer`, so a consumer's own
+  // unlayered rule wins the cascade whatever order the two class strings are
+  // written in. What is pinned here is that both survive to the element;
+  // styling.test.tsx pins the same for every other component.
+  it('joins a consumer className rather than replacing it', () => {
+    const view = render(
+      <Text className="consumer" variant="titleMedium">
+        Sample text
+      </Text>,
     )
+    const span = view.getByText('Sample text')
+
+    expect(span.classList.contains('consumer')).toBe(true)
+    expect(hasAll(span, expected.titleMediumScale)).toBe(true)
   })
 })

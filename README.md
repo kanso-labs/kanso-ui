@@ -24,9 +24,47 @@ function Example() {
 }
 ```
 
-Components render correctly with no further setup — every design token has a
-built-in default, in both light and dark (respecting the OS-level
-`prefers-color-scheme`).
+Components render correctly with no further setup. Importing from the package
+pulls in the stylesheet the library compiles, every design token has a built-in
+default, in both light and dark (respecting the OS-level
+`prefers-color-scheme`), and every component sizes itself with
+`box-sizing: border-box` rather than leaving that to a reset you supply.
+
+A bundler is what resolves that stylesheet. In an environment that cannot import
+CSS from JavaScript — some server-side renderers, or a plain Node process —
+import it yourself instead and the components style themselves the same way:
+
+```ts
+import '@kanso-labs/kanso-ui/styles.css'
+```
+
+`className` and `style` reach the element a component renders, so a component is
+positioned from the call site like any other element:
+
+```tsx
+<Card className="col-span-2" style={{ marginBlockStart: '2rem' }} />
+```
+
+StyleX compiles the library's own rules into a CSS `@layer`, and your app's
+stylesheet is unlayered, so your rules win the cascade wherever the two meet —
+no specificity contest, and no `!important`.
+
+### Rendering as a different element
+
+`render` swaps the element a component produces, keeping its styling:
+
+```tsx
+<Text render={<h2 />}>Headline</Text>
+<Card render={<a href="/items/1" />}>First item</Card>
+<Button render={<a href="/items/1" />}>Label</Button>
+```
+
+`Button` and `IconButton` read the tag off `render` and tell Base UI whether it
+is a real `<button>`, so an anchor needs no `nativeButton={false}` and logs no
+error. Base UI then supplies the button semantics that anchor has no native
+version of, which means it is announced as a **button** rather than as a link.
+For a control that should be announced as the link it is, reach for `Link`, or
+`Card` with `render`.
 
 ## Theming
 

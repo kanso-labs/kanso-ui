@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
 // One of Material 3's canonical layouts. The supporting pane holds content
@@ -29,6 +30,7 @@ const styles = stylex.create({
   // minInlineSize: 0 lets a pane shrink under its content, which is the same
   // reason the tracks are minmax(0, Nfr) rather than a bare Nfr.
   pane: {
+    boxSizing: 'border-box',
     minInlineSize: 0,
   },
   // minmax(0, Nfr) rather than a bare Nfr: a bare fr track takes an automatic
@@ -41,6 +43,7 @@ const styles = stylex.create({
   // that. Neither is worth reading the source to confirm, which is why
   // index.test.tsx measures the resolved columns at every breakpoint.
   root: {
+    boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
     gridTemplateColumns: {
@@ -90,7 +93,7 @@ function SupportingPane({
           <div {...stylex.props(styles.pane)}>{supporting}</div>
         </>
       ),
-      ...stylex.props(styles.root),
+      ...mergeStyles(stylex.props(styles.root), props),
     },
     render,
   })

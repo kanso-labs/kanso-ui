@@ -3,6 +3,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { mergeStyles } from '../../styles/merge'
 import {
   colors,
   spacing,
@@ -28,6 +29,7 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderWidth: 0,
+    boxSizing: 'border-box',
     color: colors.onSurface,
     display: 'flex',
     gap: spacing.lg,
@@ -135,7 +137,7 @@ function ListItem({
 
   if (!interactive) {
     return (
-      <div {...props} {...stylex.props(styles.base)}>
+      <div {...props} {...mergeStyles(stylex.props(styles.base), props)}>
         {content}
       </div>
     )
@@ -146,7 +148,7 @@ function ListItem({
       type="button"
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.base, styles.interactive)}
+      {...mergeStyles(stylex.props(styles.base, styles.interactive), props)}
     >
       {content}
       {ripple.surface}

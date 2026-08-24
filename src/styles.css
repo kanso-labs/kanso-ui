@@ -1,0 +1,12 @@
+/* The specifier `src/index.ts` imports so that the published `dist/index.js`
+   carries an `import "./styles.css"` and a consumer gets styled components
+   from the package import alone — see the `emit-stylex-css` plugin in
+   tsdown.config.ts, which writes the compiled rules to dist/styles.css.
+
+   This file is deliberately empty of rules. It exists because the import has
+   to resolve twice over: for `tsc -b`, whose `noUncheckedSideEffectImports`
+   rejects a side-effect import of a module that is not there, and for Vite,
+   which resolves it for real under Storybook and the test suite. Neither of
+   those two ever needs rules in it — the StyleX plugin serves the compiled
+   stylesheet from a virtual endpoint in dev — and the published copy is
+   written by the build rather than copied from here. */

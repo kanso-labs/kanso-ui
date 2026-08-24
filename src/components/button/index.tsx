@@ -4,6 +4,8 @@ import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { rendersNativeButton } from '../../render/nativeButton'
+import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -39,6 +41,7 @@ const styles = stylex.create({
     alignItems: 'center',
     borderRadius: radii.full,
     borderWidth: 0,
+    boxSizing: 'border-box',
     cursor: { ':disabled': 'not-allowed', default: 'pointer' },
     display: 'inline-flex',
     fontFamily: typography.labelLargeFont,
@@ -52,6 +55,12 @@ const styles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     position: 'relative',
+    // `render` lets a button be an <a>, and an <a> arrives underlined.
+    // Reset here rather than per variant, since every variant sets a
+    // colour of its own but none of them touches the rule. Card does the
+    // same for the same reason; without it the two disagreed about what a
+    // link-as-control looks like.
+    textDecoration: 'none',
   },
   filled: {
     backgroundColor: {
@@ -153,13 +162,30 @@ const styles = stylex.create({
   },
 })
 
-type ButtonProps = BaseUIButtonProps & {
+type ButtonProps = {
   /**
    * Disables the press ripple. The hover/pressed background state layer is
    * unaffected.
    * @default false
    */
   disableRipple?: boolean
+  /**
+   * Whether the element `render` produces is a real `<button>`, which decides
+   * whether Base UI supplies the button role, keyboard activation and
+   * disabled semantics itself.
+   *
+   * Read off `render` when that is a plain element, so
+   * `render={<a href="…" />}` needs nothing here. Worth setting only when
+   * `render` is a component or a function, where the tag it will produce
+   * cannot be read ahead of time.
+   *
+   * An anchor rendered this way is announced as a button rather than as a
+   * link, since that is what Base UI's non-native mode applies. For a control
+   * that should be announced as the link it is, reach for `Link`, or `Card`
+   * with `render`, neither of which imposes button semantics.
+   * @default true
+   */
+  nativeButton?: boolean
   /**
    * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 80px. Sizes other
    * than `md` also set their own inline padding.
@@ -168,12 +194,13 @@ type ButtonProps = BaseUIButtonProps & {
   size?: 'lg' | 'md' | 'xl' | 'xs'
   /** @default 'filled' */
   variant?: 'filled' | 'outlined' | 'text' | 'tonal'
-}
+} & BaseUIButtonProps
 
 function Button({
   children,
   disabled = false,
   disableRipple = false,
+  nativeButton,
   onClick,
   onContextMenu,
   onPointerCancel,
@@ -186,7 +213,9 @@ function Button({
 }: ButtonProps) {
   // `props` (className/style/render, etc.) is spread separately: `className`
   // and `style` there may be functions of render state, a Base UI extension
-  // ripple's own handler-only merge doesn't need to know about.
+  // ripple's own handler-only merge doesn't need to know about. It is also
+  // why the styles below merge through mergeStatefulStyles rather than the
+  // plain mergeStyles.
   const ripple = useRipple<HTMLButtonElement>(!disableRipple, {
     onClick,
     onContextMenu,
@@ -199,9 +228,16 @@ function Button({
   return (
     <BaseUIButton
       disabled={disabled}
+      // Destructured out of `props` above rather than left to flow through
+      // with it: spread later, an absent `nativeButton` would arrive as an
+      // explicit `undefined` and overwrite what is inferred here.
+      nativeButton={nativeButton ?? rendersNativeButton(props.render)}
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.base, styles[variant], styles[size])}
+      {...mergeStatefulStyles(
+        stylex.props(styles.base, styles[variant], styles[size]),
+        props,
+      )}
     >
       {children}
       {ripple.surface}

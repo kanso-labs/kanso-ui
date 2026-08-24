@@ -1,6 +1,7 @@
 import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // Deliberately sets no font-size. The same value turns up at several sizes —
@@ -11,6 +12,7 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // around it.
 const styles = stylex.create({
   base: {
+    boxSizing: 'border-box',
     fontFamily: typography.fontFamilyMono,
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.weightMedium,
@@ -77,14 +79,15 @@ function Currency({
   value,
   ...props
 }: CurrencyProps) {
-  // stylex.props() spreads after `props` for the same reason Text does it: it
-  // wins over a consumer-supplied className rather than merging with one.
   return useRender({
     defaultTagName: 'span',
     props: {
       ...props,
       children: formatCurrency(value, { currency, locale, sign }),
-      ...stylex.props(styles.base, tones[resolveTone(value, tone)]),
+      ...mergeStyles(
+        stylex.props(styles.base, tones[resolveTone(value, tone)]),
+        props,
+      ),
     },
     render,
   })
