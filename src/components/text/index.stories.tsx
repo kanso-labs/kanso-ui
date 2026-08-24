@@ -6,6 +6,7 @@ import type { TextProps } from '.'
 
 import Text from '.'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import Code from '../code'
 import Separator from '../separator'
 
 type Tone = NonNullable<TextProps['tone']>
@@ -86,6 +87,19 @@ const styles = stylex.create({
     marginInline: 'auto',
     maxInlineSize: '960px',
     padding: spacing.xl,
+  },
+  // A measure for the prose samples: what makes a line hard to read is how
+  // many characters the eye has to track back across.
+  prose: {
+    maxInlineSize: '58ch',
+  },
+  // Two paragraphs with the space between them coming from the scale, which
+  // is the arrangement the block section is arguing for.
+  proseSpaced: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.md,
+    maxInlineSize: '58ch',
   },
   row: {
     alignItems: 'center',
@@ -259,12 +273,75 @@ const Overview: Story = {
           </div>
         </div>
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Prose takes a block
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A Text is a span, which is right for a run of text inside a line and
+            wrong for a paragraph. <Code>block</Code> renders a p instead, so
+            multi-sentence copy does not need an element named at every call
+            site.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.rows)}>
+          <div {...stylex.props(styles.row)}>
+            <div {...stylex.props(styles.rowLabel)}>
+              <Text tone="muted" variant="labelSmall">
+                span
+              </Text>
+            </div>
+            <div {...stylex.props(styles.fill, styles.prose)}>
+              <Text>First sentence of the copy.</Text>
+              <Text>Second sentence, which runs on from it.</Text>
+            </div>
+          </div>
+          <div {...stylex.props(styles.row)}>
+            <div {...stylex.props(styles.rowLabel)}>
+              <Text tone="muted" variant="labelSmall">
+                block
+              </Text>
+            </div>
+            <div {...stylex.props(styles.fill, styles.prose)}>
+              <Text block>First sentence of the copy.</Text>
+              <Text block>Second sentence, which runs on from it.</Text>
+            </div>
+          </div>
+        </div>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The paragraphs above sit flush, because a block Text carries no
+            margin any more than a span one does. The space between two of them
+            belongs to whatever holds both, which is where it can be a step of
+            the spacing scale rather than a browser default.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.proseSpaced)}>
+          <Text block>First sentence of the copy.</Text>
+          <Text block>Second sentence, which runs on from it.</Text>
+        </div>
+      </section>
     </div>
   ),
 }
 
 const Default: Story = {}
 
-export { Default, Overview }
+// Its own entry because prose is what `block` exists for, and the default
+// story is a single line where the difference does not show.
+const Prose: Story = {
+  args: {
+    block: true,
+    children:
+      'Kanso is the elimination of clutter. The writing follows the visual system in that: plain, concrete, and no longer than it needs to be.',
+    variant: 'bodyLarge',
+  },
+}
+
+export { Default, Overview, Prose }
 
 export default meta
