@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.1...kanso-ui-v0.8.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* deliver the compiled CSS, keep className and style, and set box-sizing ([#410](https://github.com/kanso-labs/kanso-ui/issues/410)) ([bdd4895](https://github.com/kanso-labs/kanso-ui/commit/bdd4895253527231e2e31d8d358303b8945f64f0))
+
 ## [0.8.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.0...kanso-ui-v0.8.1) (2026-08-24)
 
 
