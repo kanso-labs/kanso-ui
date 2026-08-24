@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.10.0...kanso-ui-v0.11.0) (2026-08-24)
+
+
+### Features
+
+* **app-bar:** collapse a flexible bar to small on scroll ([#422](https://github.com/kanso-labs/kanso-ui/issues/422)) ([22c9acd](https://github.com/kanso-labs/kanso-ui/commit/22c9acd35ad3087733a096dd59d6a6b18a49d5cb))
+
 ## [0.10.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.1...kanso-ui-v0.10.0) (2026-08-24)
 
 
