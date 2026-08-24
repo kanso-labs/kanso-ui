@@ -28,6 +28,7 @@ import Text from '../text'
 // support and text wrapping, so a headline long enough to wrap has to be able
 // to make its bar taller. Fixing the height would truncate exactly the case
 // the variant was redesigned for.
+
 // How far the headline sits inside whatever comes before it, and the figure
 // an icon button's glyph is inset from the edge of its own touch target. M3
 // leans on the two agreeing, which is what makes a bar with a leading icon
