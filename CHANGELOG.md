@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.8](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.7...kanso-ui-v0.11.8) (2026-08-26)
+
+
+### Dependencies
+
+* update dependency eslint-plugin-react-refresh to v0.5.5 ([#440](https://github.com/kanso-labs/kanso-ui/issues/440)) ([101445a](https://github.com/kanso-labs/kanso-ui/commit/101445adff6077222ba28920e720fd0dd0639447))
+
 ## [0.11.7](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.6...kanso-ui-v0.11.7) (2026-08-25)
 
 
