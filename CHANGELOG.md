@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.9](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.8...kanso-ui-v0.11.9) (2026-08-26)
+
+
+### Dependencies
+
+* update node.js to v24.20.0 ([#442](https://github.com/kanso-labs/kanso-ui/issues/442)) ([3389ade](https://github.com/kanso-labs/kanso-ui/commit/3389adea8b09b231d3d487de3a3ce4b2a7c552be))
+
 ## [0.11.8](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.7...kanso-ui-v0.11.8) (2026-08-26)
 
 
