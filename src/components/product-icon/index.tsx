@@ -19,6 +19,12 @@ import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 // nothing anyone minds; cropping a wordmark loses the word. The cost is
 // letterboxing — a wide mark leaves space above and below — and that is the
 // right trade for a mark whose whole job is to be recognised.
+//
+// That cost is also why `tone` tints the fallback rather than the root. A mark
+// letterboxed into the square does not cover it, and neither does one drawn
+// with transparency, so a tint on the root showed as a coloured box around
+// every logo that was not an opaque square. On the fallback it is seen exactly
+// when it is meant to be: while there is no mark, or none has loaded.
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -32,6 +38,15 @@ const styles = stylex.create({
     // Clips the mark to the rounded corners, the same reason Card does it.
     overflow: 'hidden',
     userSelect: 'none',
+  },
+  fallback: {
+    alignItems: 'center',
+    // Fills the root so the tint is the whole square rather than a box behind
+    // the glyph, which is what it looked like when the root carried it.
+    blockSize: '100%',
+    display: 'flex',
+    inlineSize: '100%',
+    justifyContent: 'center',
   },
   image: {
     blockSize: '100%',
@@ -94,8 +109,9 @@ type ProductIconProps = Omit<BaseUIAvatarRootProps, 'children'> & {
    */
   src?: string
   /**
-   * Which container/on-container colour pair to tint the fallback with. Has
-   * no effect once `src` has loaded, since the mark covers it.
+   * Which container/on-container colour pair to tint the fallback with. It is
+   * the fallback's own background, so it is gone once `src` has loaded rather
+   * than sitting behind the mark.
    * @default 'primary'
    */
   tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary'
@@ -140,15 +156,14 @@ function ProductIcon({
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> takes no children
       role="img"
       {...props}
-      {...mergeStatefulStyles(
-        stylex.props(styles.base, styles[size], styles[tone]),
-        props,
-      )}
+      {...mergeStatefulStyles(stylex.props(styles.base, styles[size]), props)}
     >
       {src === undefined ? null : (
         <BaseUIAvatar.Image alt="" src={src} {...stylex.props(styles.image)} />
       )}
-      <BaseUIAvatar.Fallback>{initialFrom(name)}</BaseUIAvatar.Fallback>
+      <BaseUIAvatar.Fallback {...stylex.props(styles.fallback, styles[tone])}>
+        {initialFrom(name)}
+      </BaseUIAvatar.Fallback>
     </BaseUIAvatar.Root>
   )
 }
