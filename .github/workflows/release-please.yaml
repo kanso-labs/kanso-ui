@@ -4,13 +4,28 @@ on:
   push:
     branches:
       - main
-  # release-please only ever reacts to a push, which leaves no way to ask it to
-  # look again. That matters when a release pull request has to be discarded:
-  # release-please rewrites one only when the release it computes changes, so a
-  # pull request that cannot merge — say, one opened before the application was
-  # installed, whose required checks were never started and never will be — is
-  # not repaired by closing it. Nothing proposes a replacement until somebody
-  # happens to push. This is that lever.
+  # Releases are batched to one a day rather than one per merge. The push above
+  # keeps the release pull request current — its changelog and its version
+  # always reflect main — and this is the only trigger that turns merging on,
+  # through the auto-merge input below.
+  #
+  # 09:00 UTC is 06:00 America/Sao_Paulo. Every kanso-labs repository releases
+  # on this same cron, which matters here more than most: this repository
+  # devDepends on @kanso-labs/unplugin-style-dictionary, so a change spanning
+  # the two comes out in one morning rather than being a day apart.
+  #
+  # GitHub disables a scheduled workflow after 60 days without repository
+  # activity. Renovate's commits keep this one alive, but that is the shape a
+  # silent stop to releasing would take.
+  schedule:
+    - cron: '0 9 * * *'
+  # Neither trigger above can be asked to look again now: one waits for a push,
+  # the other for the clock. That matters when a release pull request has to be
+  # discarded, because release-please rewrites one only when the release it
+  # computes changes — so a pull request that cannot merge, say one opened
+  # before the application was installed whose required checks were never
+  # started and never will be, is not repaired by closing it. Nothing proposes a
+  # replacement until somebody happens to push. This is that lever.
   workflow_dispatch:
 
 # Every release merge pushes main, and every push starts a run. Overlapping runs
@@ -31,7 +46,19 @@ permissions:
 jobs:
   release-please:
     name: Propose releases
-    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v3.1.2
+    uses: kanso-labs/github-actions/.github/workflows/_release-please.yaml@v3.2.0
+    with:
+      # True only on the scheduled run, which is what batches a day of merges
+      # into one release. A push proposes without merging, and so does
+      # workflow_dispatch — the lever above re-proposes a stuck release pull
+      # request rather than releasing on demand. To publish sooner than the next
+      # scheduled run, enable auto-merge on the pull request by hand.
+      #
+      # v3.2.0 is the floor for this. Before it, auto-merge read the action's
+      # prs output, which is empty on a run that finds the release pull request
+      # already correct — the scheduled run's ordinary case, so an older pin
+      # here would propose every day and merge on none of them.
+      auto-merge: ${{ github.event_name == 'schedule' }}
     secrets:
       client-id: ${{ secrets.RELEASE_PLEASE_CLIENT_ID }}
       private-key: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
@@ -82,4 +109,4 @@ jobs:
       contents: read
       id-token: write
       packages: write
-    uses: kanso-labs/github-actions/.github/workflows/_publish-npm.yaml@v3.1.2
+    uses: kanso-labs/github-actions/.github/workflows/_publish-npm.yaml@v3.2.0
