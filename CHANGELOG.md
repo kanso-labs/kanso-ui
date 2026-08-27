@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.11.14](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.13...kanso-ui-v0.11.14) (2026-08-27)
+
+
+### Bug Fixes
+
+* **product-icon:** tint the fallback rather than the square ([#457](https://github.com/kanso-labs/kanso-ui/issues/457)) ([786166e](https://github.com/kanso-labs/kanso-ui/commit/786166e3d41cf7eab7f742db222e427054d0d8e9))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.11 ([#454](https://github.com/kanso-labs/kanso-ui/issues/454)) ([14ef76c](https://github.com/kanso-labs/kanso-ui/commit/14ef76cb69798d42ca22e635434f0ad95080e66a))
+* update kanso-labs/github-actions action to v3.2.0 ([#455](https://github.com/kanso-labs/kanso-ui/issues/455)) ([5dc5d5b](https://github.com/kanso-labs/kanso-ui/commit/5dc5d5b2feef3611714206b0b5da7ff0e356fd0e))
+
 ## [0.11.13](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.12...kanso-ui-v0.11.13) (2026-08-27)
 
 
