@@ -94,6 +94,22 @@ describe('the mark', () => {
 
     expect(view.container.querySelector('img')).toBeNull()
   })
+
+  // The tint belongs to the fallback, not to the square. A mark is letterboxed
+  // into that square and may be drawn with transparency, so a tone on the root
+  // showed as a coloured box around every logo that was not an opaque square.
+  it('puts nothing behind a loaded mark', async () => {
+    const view = render(<ProductIcon name="First item" src={WIDE_MARK} />)
+    await waitFor(() => {
+      if (!view.container.querySelector('img')) {
+        throw new Error('image has not rendered yet')
+      }
+    })
+
+    const background = getComputedStyle(iconIn(view.container)).backgroundColor
+
+    expect(background).toBe('rgba(0, 0, 0, 0)')
+  })
 })
 
 describe('the fallback', () => {
@@ -137,6 +153,21 @@ describe('the fallback', () => {
     const view = render(<ProductIcon name="   " />)
 
     expect(iconIn(view.container).textContent).toBe('')
+  })
+
+  // The other half of the pair above: the tone still has to be visible in the
+  // one state it is for, or moving it off the root would have removed it.
+  it('carries the tone while there is no mark', () => {
+    const view = render(<ProductIcon name="First item" />)
+    const fallback = iconIn(view.container).firstElementChild
+
+    if (!(fallback instanceof HTMLElement)) {
+      throw new Error('expected the fallback to render an element')
+    }
+
+    expect(getComputedStyle(fallback).backgroundColor).not.toBe(
+      'rgba(0, 0, 0, 0)',
+    )
   })
 })
 
