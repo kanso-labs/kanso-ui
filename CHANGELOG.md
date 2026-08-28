@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.11.15](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.14...kanso-ui-v0.11.15) (2026-08-28)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.6.1 ([#458](https://github.com/kanso-labs/kanso-ui/issues/458)) ([7f15139](https://github.com/kanso-labs/kanso-ui/commit/7f15139d6a645be1a2702be644daee5a6defeac2))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.12 ([#461](https://github.com/kanso-labs/kanso-ui/issues/461)) ([6dcfab1](https://github.com/kanso-labs/kanso-ui/commit/6dcfab185a90d52143035a771d19bd8cffdd5d7f))
+* update dependency @testing-library/react to v16.3.3 ([#459](https://github.com/kanso-labs/kanso-ui/issues/459)) ([708d013](https://github.com/kanso-labs/kanso-ui/commit/708d013e98a63e6a9629054af0bea0b97d0adb1f))
+* update dependency @vitejs/plugin-react to v6.1.1 ([#462](https://github.com/kanso-labs/kanso-ui/issues/462)) ([9f61689](https://github.com/kanso-labs/kanso-ui/commit/9f616899be138fe21fd6ce9bb1a3af577ea3a646))
+
 ## [0.11.14](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.13...kanso-ui-v0.11.14) (2026-08-27)
 
 
