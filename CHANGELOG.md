@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.16](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.15...kanso-ui-v0.11.16) (2026-08-29)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.7.1 ([#464](https://github.com/kanso-labs/kanso-ui/issues/464)) ([4dc4d1c](https://github.com/kanso-labs/kanso-ui/commit/4dc4d1c61ed0e0cae6c31975bb92f0c75346e52c))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.13 ([#463](https://github.com/kanso-labs/kanso-ui/issues/463)) ([2a1d81d](https://github.com/kanso-labs/kanso-ui/commit/2a1d81d943597bef8677f128d8b127c828d2c814))
+
 ## [0.11.15](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.14...kanso-ui-v0.11.15) (2026-08-28)
 
 
