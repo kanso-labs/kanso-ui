@@ -62,6 +62,22 @@ mechanics are in the bullets below.
 
 Specific to this repository:
 
+- **`typescript` is an npm alias for `@typescript/typescript6`, and TypeScript 7
+  itself installs as `@typescript/native`.** TypeScript 7 is the native compiler
+  — it is what `tsc -b` runs, about five times faster here — but it ships no
+  programmatic API, and typescript-eslint needs one. The compat package supplies
+  the TypeScript 6 API under the name tools import, and names its binary `tsc6`
+  so the two `tsc`s never collide. This is Microsoft's documented bridge, not a
+  local invention. Un-aliasing either half breaks something concrete: pointing
+  `typescript` at 7.x makes ESLint refuse to start, and pointing it at a plain
+  6.x collides the binaries the rename exists to avoid. One side effect: the
+  compat package ships no `lib/tsserver.js`, so VS Code's "Use Workspace
+  Version" does nothing and the editor's own TypeScript serves IntelliSense.
+  Drop the aliases only once typescript-eslint supports TypeScript 7 natively
+  ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940),
+  gated on ESLint supporting async parsers). TypeScript 7 also brings ~10
+  per-platform binary packages into the lockfile as optional dependencies, which
+  raises the stakes on the Node-version rule under "Commands" above.
 - Each component lives in `src/components/<name>/` as `index.tsx` with a
   colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
   is behaviour worth pinning. Every component needs stories, since they are both
