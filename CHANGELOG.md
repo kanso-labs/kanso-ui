@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.11.18](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.17...kanso-ui-v0.11.18) (2026-09-01)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.7.2 ([#469](https://github.com/kanso-labs/kanso-ui/issues/469)) ([d16b155](https://github.com/kanso-labs/kanso-ui/commit/d16b155d43b98f59d1d487b9e17bc79094d9d8bf))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.15 ([#470](https://github.com/kanso-labs/kanso-ui/issues/470)) ([8a8a173](https://github.com/kanso-labs/kanso-ui/commit/8a8a173cf4107658cf1bc0ff206cabcdd859dd6d))
+* update dependency globals to v17.12.0 ([#474](https://github.com/kanso-labs/kanso-ui/issues/474)) ([94b46e2](https://github.com/kanso-labs/kanso-ui/commit/94b46e264c1551710402d04318a9f699ac9e10cf))
+* update dependency typescript-eslint to v8.69.0 ([#472](https://github.com/kanso-labs/kanso-ui/issues/472)) ([3591ac6](https://github.com/kanso-labs/kanso-ui/commit/3591ac6a4fae24d34c8abdd14d31bd878f074748))
+
 ## [0.11.17](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.16...kanso-ui-v0.11.17) (2026-08-31)
 
 
