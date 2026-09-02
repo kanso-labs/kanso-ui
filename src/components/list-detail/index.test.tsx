@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
-import { page } from '@vitest/browser/context'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import ListDetail from '.'
 

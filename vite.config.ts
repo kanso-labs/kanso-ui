@@ -6,18 +6,12 @@ import stylex from '@stylexjs/unplugin'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 import {
   registerFormats,
   styleDictionaryConfig,
 } from './scripts/build-tokens.mjs'
-
-const dirname =
-  typeof __dirname !== 'undefined'
-    ? __dirname
-    : path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -58,7 +52,7 @@ export default defineConfig({
         },
         plugins: [
           storybookTest({
-            configDir: path.join(dirname, '.storybook'),
+            configDir: path.join(import.meta.dirname, '.storybook'),
           }),
         ],
         test: {
@@ -100,7 +94,7 @@ export default defineConfig({
           },
           include: ['src/**/*.test.{ts,tsx}'],
           name: 'unit',
-          setupFiles: [path.join(dirname, 'vitest.setup.ts')],
+          setupFiles: [path.join(import.meta.dirname, 'vitest.setup.ts')],
         },
       },
     ],
