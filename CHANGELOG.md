@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.19](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.18...kanso-ui-v0.11.19) (2026-09-02)
+
+
+### Dependencies
+
+* update actions/deploy-pages action to v5.0.1 ([#479](https://github.com/kanso-labs/kanso-ui/issues/479)) ([7613522](https://github.com/kanso-labs/kanso-ui/commit/7613522844c21e8ecf9b0ae70043c3ac72dc43bb))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.16 ([#475](https://github.com/kanso-labs/kanso-ui/issues/475)) ([9818716](https://github.com/kanso-labs/kanso-ui/commit/98187166bc5260506b3abe72d84501ee05eae434))
+* update dependency eslint-plugin-react-refresh to v0.5.6 ([#480](https://github.com/kanso-labs/kanso-ui/issues/480)) ([a859962](https://github.com/kanso-labs/kanso-ui/commit/a85996203e4326cc855139b0bc1bde4085556d06))
+* update dependency oxfmt to v0.66.0 ([#476](https://github.com/kanso-labs/kanso-ui/issues/476)) ([3c6f6c7](https://github.com/kanso-labs/kanso-ui/commit/3c6f6c7d90b3f1266e91b415f3da90e7a31cdb06))
+* update oxlint to v1.81.0 ([#477](https://github.com/kanso-labs/kanso-ui/issues/477)) ([382ab9b](https://github.com/kanso-labs/kanso-ui/commit/382ab9bff6fb3b8d5b9a33249dda66180b823a10))
+
 ## [0.11.18](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.17...kanso-ui-v0.11.18) (2026-09-01)
 
 
