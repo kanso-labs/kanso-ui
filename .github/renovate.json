@@ -25,20 +25,9 @@
       "matchPackageNames": ["@commitlint/**"]
     },
     {
-      "groupName": "eslint",
-      "matchPackageNames": [
-        "@eslint/**",
-        "eslint",
-        "eslint-config-**",
-        "eslint-plugin-**",
-        "typescript-eslint",
-        "!eslint-plugin-oxlint",
-        "!eslint-plugin-storybook"
-      ]
-    },
-    {
-      "groupName": "oxlint",
-      "matchPackageNames": ["eslint-plugin-oxlint", "oxlint"]
+      "description": "ESLint itself no longer runs here; these are the ESLint plugins oxlint hosts as JS plugins. eslint-plugin-storybook moves with the storybook group instead.",
+      "groupName": "eslint-plugins",
+      "matchPackageNames": ["eslint-plugin-**", "!eslint-plugin-storybook"]
     },
     {
       "groupName": "react",

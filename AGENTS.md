@@ -15,7 +15,7 @@ React Compiler. Components are developed and documented in Storybook.
 | Dev server | `npm run storybook`     | Storybook at http://localhost:6006 (`npm run dev` is an alias)   |
 | Test       | `npm test`              | Vitest in headless Chromium                                      |
 | Coverage   | `npm run test:coverage` | Same suite with v8 coverage; writes Cobertura XML to `coverage/` |
-| Lint       | `npm run lint`          | oxlint, then ESLint, then oxfmt formatting check                 |
+| Lint       | `npm run lint`          | oxlint (hosting the ESLint plugins), then oxfmt formatting check |
 | Build      | `npm run build`         | Type-checks (`tsc -b`) then builds ESM into `dist/`              |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
@@ -65,19 +65,42 @@ Specific to this repository:
 - **`typescript` is an npm alias for `@typescript/typescript6`, and TypeScript 7
   itself installs as `@typescript/native`.** TypeScript 7 is the native compiler
   — it is what `tsc -b` runs, about five times faster here — but it ships no
-  programmatic API, and typescript-eslint needs one. The compat package supplies
-  the TypeScript 6 API under the name tools import, and names its binary `tsc6`
-  so the two `tsc`s never collide. This is Microsoft's documented bridge, not a
-  local invention. Un-aliasing either half breaks something concrete: pointing
-  `typescript` at 7.x makes ESLint refuse to start, and pointing it at a plain
-  6.x collides the binaries the rename exists to avoid. One side effect: the
-  compat package ships no `lib/tsserver.js`, so VS Code's "Use Workspace
+  programmatic API, and two things here still need one: Storybook's
+  `react-docgen-typescript`, configured in `.storybook/main.ts` for the Controls
+  panel, and tsdown's `.d.ts` emit. The compat package supplies the TypeScript 6
+  API under the name tools import, and names its binary `tsc6` so the two `tsc`s
+  never collide. This is Microsoft's documented bridge, not a local invention.
+  Un-aliasing either half breaks something concrete: pointing `typescript` at
+  7.x makes `build-storybook` fail on `ts.sys.readFile` and changes the
+  declaration shape of the compound components in `dist/`, and pointing it at a
+  plain 6.x collides the binaries the rename exists to avoid. One side effect:
+  the compat package ships no `lib/tsserver.js`, so VS Code's "Use Workspace
   Version" does nothing and the editor's own TypeScript serves IntelliSense.
-  Drop the aliases only once typescript-eslint supports TypeScript 7 natively
-  ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940),
-  gated on ESLint supporting async parsers). TypeScript 7 also brings ~10
-  per-platform binary packages into the lockfile as optional dependencies, which
-  raises the stakes on the Node-version rule under "Commands" above.
+  Drop the aliases only once those two consumers run on the TypeScript 7.1+ API.
+  TypeScript 7 also brings ~10 per-platform binary packages into the lockfile as
+  optional dependencies, which raises the stakes on the Node-version rule under
+  "Commands" above.
+- **ESLint does not run here; oxlint hosts the ESLint plugins.** `jsPlugins` in
+  `.oxlintrc.json` loads `eslint-plugin-perfectionist`,
+  `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh` and
+  `eslint-plugin-storybook` unmodified, and the `overrides` block carries the
+  rules and options the ESLint config used to, scoped to `**/*.{ts,tsx}` the way
+  ESLint's `files` was — widen it and perfectionist starts flagging
+  `scripts/*.mjs`. `eslint-plugin-react-hooks` loads under the alias
+  `react-hooks-js` because oxlint has a native plugin of that name and refuses
+  the ambiguity. oxlint also ships native ports of most React Compiler rules
+  under `react/*`, on through the `correctness` category, so a violation there
+  is reported twice — once by React's own implementation through
+  `react-hooks-js`, once by the port. Both stay on purpose: coverage under
+  ESLint was already the union of the two, and a port is not the compiler. The
+  `@typescript-eslint` rules that were still active are oxlint natives now
+  (`typescript/*`). Never host `@typescript-eslint/eslint-plugin` itself: its
+  type-aware rules need `parserServices` the JS-plugin API does not provide, and
+  a single such rule enabled makes every file error out with no findings from
+  any other rule. JS plugins are alpha and outside oxlint's semver; Renovate's
+  automerge is gated on the `Lint` check, so a breaking bump fails there rather
+  than landing. `eslint` still appears in `node_modules` as the plugins' peer
+  dependency, but nothing runs it.
 - Each component lives in `src/components/<name>/` as `index.tsx` with a
   colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
   is behaviour worth pinning. Every component needs stories, since they are both
@@ -113,12 +136,12 @@ Specific to this repository:
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.
-- Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
-  (oxfmt) automatically on commit via a husky pre-commit hook running
-  lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
-  and `.yml` files are formatted (oxfmt) wherever they live, since
-  `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
-  are absent from that entry because neither reads those formats.
+- Staged `.ts`/`.tsx` files are linted (oxlint) and formatted (oxfmt)
+  automatically on commit via a husky pre-commit hook running lint-staged
+  (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`, and `.yml`
+  files are formatted (oxfmt) wherever they live, since `npm run lint` ends in
+  `oxfmt --check` over the whole repo. oxlint is absent from that entry because
+  it does not read those formats.
 - **That entry's glob excludes lock files on purpose.** It reads
   `!(*-lock).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because oxfmt
   exits non-zero when every path handed to it is one of its own ignores —

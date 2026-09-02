@@ -11,6 +11,15 @@
     "promise",
     "vitest"
   ],
+  "jsPlugins": [
+    "eslint-plugin-perfectionist",
+    {
+      "name": "react-hooks-js",
+      "specifier": "eslint-plugin-react-hooks"
+    },
+    "eslint-plugin-react-refresh",
+    "eslint-plugin-storybook"
+  ],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -22,10 +31,8 @@
   "rules": {
     "react/react-in-jsx-scope": "off",
     "import/no-named-as-default-member": "off",
-
     "import/no-cycle": "error",
     "import/no-duplicates": "error",
-
     "typescript/no-confusing-void-expression": "error",
     "typescript/no-deprecated": "error",
     "typescript/no-misused-promises": "error",
@@ -59,6 +66,237 @@
     "typescript/promise-function-async": "error",
     "typescript/switch-exhaustiveness-check": "error"
   },
+  "overrides": [
+    {
+      "files": ["**/*.{ts,tsx}"],
+      "rules": {
+        "no-array-constructor": "error",
+        "no-case-declarations": "error",
+        "no-empty": [
+          "error",
+          {
+            "allowEmptyCatch": false
+          }
+        ],
+        "no-fallthrough": [
+          "error",
+          {
+            "allowEmptyCase": false,
+            "reportUnusedFallthroughComment": false
+          }
+        ],
+        "no-prototype-builtins": "error",
+        "no-regex-spaces": "error",
+        "no-useless-assignment": "error",
+        "no-var": "error",
+        "perfectionist/sort-array-includes": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-classes": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-decorators": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-enums": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-export-attributes": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-exports": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-heritage-clauses": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-import-attributes": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-imports": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-interfaces": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-intersection-types": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-jsx-props": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-maps": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-modules": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-named-exports": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-named-imports": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-object-types": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-objects": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-sets": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-switch-case": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-union-types": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "perfectionist/sort-variable-declarations": [
+          "error",
+          {
+            "type": "natural",
+            "order": "asc"
+          }
+        ],
+        "prefer-const": [
+          "error",
+          {
+            "destructuring": "any",
+            "ignoreReadBeforeAssign": false
+          }
+        ],
+        "prefer-rest-params": "error",
+        "prefer-spread": "error",
+        "react-hooks-js/config": "error",
+        "react-hooks-js/error-boundaries": "error",
+        "react-hooks-js/gating": "error",
+        "react-hooks-js/globals": "error",
+        "react-hooks-js/immutability": "error",
+        "react-hooks-js/incompatible-library": "warn",
+        "react-hooks-js/preserve-manual-memoization": "error",
+        "react-hooks-js/purity": "error",
+        "react-hooks-js/refs": "error",
+        "react-hooks-js/rules-of-hooks": "error",
+        "react-hooks-js/set-state-in-effect": "error",
+        "react-hooks-js/set-state-in-render": "error",
+        "react-hooks-js/static-components": "error",
+        "react-hooks-js/unsupported-syntax": "warn",
+        "react-hooks-js/use-memo": "error",
+        "react-refresh/only-export-components": [
+          "error",
+          {
+            "allowConstantExport": true
+          }
+        ],
+        "typescript/ban-ts-comment": "error",
+        "typescript/no-empty-object-type": "error",
+        "typescript/no-explicit-any": "error",
+        "typescript/no-namespace": "error",
+        "typescript/no-require-imports": "error",
+        "typescript/no-unsafe-function-type": "error"
+      }
+    },
+    {
+      "files": ["**/*.stories.tsx"],
+      "rules": {
+        "storybook/await-interactions": "error",
+        "storybook/context-in-play-function": "error",
+        "storybook/default-exports": "error",
+        "storybook/hierarchy-separator": "warn",
+        "storybook/no-redundant-story-name": "warn",
+        "storybook/no-renderer-packages": "error",
+        "storybook/prefer-pascal-case": "warn",
+        "storybook/story-exports": "error",
+        "storybook/use-storybook-expect": "error",
+        "storybook/use-storybook-testing-library": "error"
+      }
+    }
+  ],
   "env": {
     "builtin": true,
     "browser": true
