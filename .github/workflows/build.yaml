@@ -22,7 +22,7 @@ jobs:
       # the Test job needs those; here they are a few hundred megabytes to
       # build a library with.
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v3.2.0
+        uses: kanso-labs/github-actions/actions/setup-node@v3.2.1
         with:
           ignore-scripts: true
 
