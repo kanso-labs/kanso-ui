@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
-    "@chromatic-com/storybook": "5.3.0",
+    "@chromatic-com/storybook": "5.3.1",
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
     "@eslint/js": "10.0.1",
