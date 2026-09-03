@@ -5,6 +5,9 @@ import type { ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { useEffect } from 'react'
 
+import type { DemoTheme } from '../../src/theming/themes'
+
+import { demoThemes } from '../../src/theming/themes'
 import {
   colors,
   colorsDarkTheme,
@@ -31,7 +34,27 @@ const styles = stylex.create({
 
 type ThemeWrapperProps = {
   children: ReactNode
-  isDark: boolean
+  /** 'light', 'dark', or a key of `demoThemes` — whatever the `theme` global says. */
+  name: string
+}
+
+// Keyed by plain string rather than by the names it actually holds, so the
+// `theme` global — an arbitrary string as far as this file knows — can be
+// looked up without an assertion narrowing it back down.
+const DEMO_THEMES: Record<string, DemoTheme> = demoThemes
+
+// The library's own two, then the demo schemes the Theming page is built from.
+// Light is both a case and the fallback, and it has to be spelled out either
+// way for the reason under `ThemeWrapper` below: falling through is not the
+// same as choosing.
+function themeFor(name: string): stylex.CompiledStyles[] {
+  if (name === 'dark') {
+    return [colorsDarkTheme]
+  }
+  if (name in DEMO_THEMES) {
+    return DEMO_THEMES[name].theme
+  }
+  return [colorsLightTheme]
 }
 
 // Our tokens default to the OS-level prefers-color-scheme media query, which a
@@ -40,10 +63,11 @@ type ThemeWrapperProps = {
 // — and both directions need that, not just dark, or picking "light" against a
 // dark OS preference would silently fall through to the media query anyway.
 //
-// isDark comes from the `theme` global (see preview.tsx), which is what lets
-// Chromatic capture the same story in both themes.
-function ThemeWrapper({ children, isDark }: ThemeWrapperProps) {
-  const theme = isDark ? colorsDarkTheme : colorsLightTheme
+// `name` comes from the `theme` global (see preview.tsx), which is what lets
+// Chromatic capture the same story in both themes and what lets a story pin
+// one of the demo schemes for itself.
+function ThemeWrapper({ children, name }: ThemeWrapperProps) {
+  const theme = themeFor(name)
   const themeClassName = stylex.props(theme).className ?? ''
 
   // The same theme, copied onto <body>. Portalled content — Sheet's panel and

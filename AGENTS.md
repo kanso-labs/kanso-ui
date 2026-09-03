@@ -65,7 +65,9 @@ Specific to this repository:
 - Each component lives in `src/components/<name>/` as `index.tsx` with a
   colocated `index.stories.tsx`, and an `index.test.tsx` alongside it once there
   is behaviour worth pinning. Every component needs stories, since they are both
-  its documentation and its render smoke test.
+  its documentation and its render smoke test, **and a place in
+  `src/theming/showcase.tsx`** — see "Previewing" below for what that page
+  catches that its own stories cannot.
 - Public API is exported from `src/index.ts`.
 - **The `exports` map says `default`, not `import`, and that is what keeps
   CommonJS working.** The package ships ESM only. Under a `default` condition
@@ -335,6 +337,59 @@ rather than following the OS, because `prefers-color-scheme` is not reliably
 applied by the time the preview module evaluates. A story can be opened straight
 into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
+
+**That control offers more than light and dark**, and the extra entries come
+from `src/theming/themes.ts`: five demo schemes the `Theming` sidebar section is
+built from, which `ThemeWrapper` applies to any story the same way it applies
+the library's own two. They are Storybook material rather than library API —
+nothing under `src/index.ts` reaches them, they are excluded from coverage
+alongside the generated tokens, and no rule of theirs reaches `dist`.
+
+Four things about them are worth knowing before adding a sixth:
+
+- **A scheme over `colors` has to state every key.** Colour is the one token
+  group whose defaults are a `prefers-color-scheme` pair, so a key left out of a
+  `createTheme` over it falls through to whichever half the reader's OS asks for
+  — a dark scheme missing one key renders that role in its light value on a
+  light machine, and the two Chromatic modes then disagree for reasons nothing
+  in the file explains. Typography, spacing, radii, shadows, motion and the
+  state-layer opacities carry no media query, so partial overrides of those are
+  read the same way everywhere.
+- **Every pair a component renders has to clear WCAG AA**, since `a11y.test` is
+  `'error'` and a scheme that cannot be read is not worth demonstrating. The
+  library's own tokens hold to 4.5:1 for text and about 3:1 for the outline
+  rule; match that rather than eyeballing it.
+- **Each scheme is a story file of its own**, titled `Theming/<Name>`, which is
+  what makes Theming a section beside `Components` rather than one page holding
+  five stories. Those files carry nothing but the scheme: the page itself is
+  `src/theming/showcase.tsx`, shared verbatim. Naming the single story after the
+  entry matters — Storybook folds a component holding one story of the same name
+  into a single leaf, and any other name puts a disclosure triangle with one
+  child in front of every scheme.
+- **Each of them pins its scheme with `globals`**, which beat both the toolbar
+  and a mode's globals, so the page renders the same whatever is asked of it.
+  That also makes the project's light and dark modes redundant there, which is
+  why the meta disables the dark one — one snapshot per scheme.
+
+**A new component goes into `src/theming/showcase.tsx` too, not only into its
+own stories.** That page is the only one rendering the whole library at once
+under a scheme that is not the library's own, which makes it the only place a
+hard-coded colour, corner or step of the spacing scale is visible: everywhere
+else it is drawn under the default tokens, where a literal and the token it
+should have been look exactly alike. On Poster's yellow ground, or with
+Terminal's square corners, the two come apart.
+
+Add it to the section it belongs to — actions, selection, identity, surfaces,
+rows, fields, type, navigation, layouts — rather than appending a row at the
+end, and give it the same placeholder copy the rest of the page uses, since the
+sample-copy rule applies there as everywhere. The page is shared verbatim by all
+five schemes, so one edit reaches every one of them.
+
+**Nothing fails if you forget**, which is why this is written down rather than
+tested: the page still renders, all five snapshots still pass, and the new
+component is simply never checked under a theme.
+`src/components/styling.test.tsx` pins the other list every component has to
+appear in; this one has no equivalent.
 
 ## Workflows and checks
 

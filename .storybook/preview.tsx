@@ -2,20 +2,30 @@ import type { Preview } from '@storybook/react-vite'
 
 import React from 'react'
 
+import { demoThemes } from '../src/theming/themes'
 import StyleXLoader from './components/StyleXLoader'
 import ThemeWrapper from './components/ThemeWrapper'
 import { allModes } from './modes'
 
 const preview: Preview = {
   decorators: [
-    (Story, context) => (
-      <>
-        <StyleXLoader />
-        <ThemeWrapper isDark={context.globals.theme === 'dark'}>
-          <Story />
-        </ThemeWrapper>
-      </>
-    ),
+    (Story, context) => {
+      // Globals arrive untyped, and the value reaches a `string` prop rather
+      // than only an equality check, so it is narrowed here instead of cast.
+      const theme =
+        typeof context.globals.theme === 'string'
+          ? context.globals.theme
+          : 'light'
+
+      return (
+        <>
+          <StyleXLoader />
+          <ThemeWrapper name={theme}>
+            <Story />
+          </ThemeWrapper>
+        </>
+      )
+    },
   ],
   // The theme is a global rather than addon state so that Chromatic's modes
   // can set it — an addon holding the value privately is invisible to them.
@@ -24,9 +34,18 @@ const preview: Preview = {
       description: 'Colour theme the story canvas renders in',
       toolbar: {
         dynamicTitle: true,
+        // The library's own two, then the demo schemes the Theming page is
+        // built from. Listing those here rather than only on that page is
+        // what lets any component's story be read in one of them, which is
+        // the question a scheme actually has to answer.
         items: [
           { icon: 'sun', title: 'Light', value: 'light' },
           { icon: 'moon', title: 'Dark', value: 'dark' },
+          ...Object.entries(demoThemes).map(([value, { label }]) => ({
+            icon: 'paintbrush' as const,
+            title: label,
+            value,
+          })),
         ],
         title: 'Theme',
       },
