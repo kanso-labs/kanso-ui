@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.20](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.19...kanso-ui-v0.11.20) (2026-09-03)
+
+
+### Dependencies
+
+* update dependency @chromatic-com/storybook to v5.3.1 ([#484](https://github.com/kanso-labs/kanso-ui/issues/484)) ([fd5d5ca](https://github.com/kanso-labs/kanso-ui/commit/fd5d5cad0cfa24a967dab366c27955d2faff2108))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.17 ([#485](https://github.com/kanso-labs/kanso-ui/issues/485)) ([2b54f81](https://github.com/kanso-labs/kanso-ui/commit/2b54f8152ebcb5d86f98ec145175d95b00d58ed7))
+* update dependency @types/react-dom to v19.2.7 ([#489](https://github.com/kanso-labs/kanso-ui/issues/489)) ([bfe1d52](https://github.com/kanso-labs/kanso-ui/commit/bfe1d52735558bb3307e7f6c09657f5c661232d3))
+* update kanso-labs/github-actions action to v3.2.1 ([#488](https://github.com/kanso-labs/kanso-ui/issues/488)) ([590ef33](https://github.com/kanso-labs/kanso-ui/commit/590ef3349866fd2c7b8f3f3cb69b334789377df0))
+* update storybook to v10.6.0 ([#486](https://github.com/kanso-labs/kanso-ui/issues/486)) ([1974a4b](https://github.com/kanso-labs/kanso-ui/commit/1974a4b931e32c5b779ed56bc41995354f989d1b))
+
 ## [0.11.19](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.18...kanso-ui-v0.11.19) (2026-09-02)
 
 
