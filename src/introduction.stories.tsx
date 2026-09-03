@@ -173,11 +173,16 @@ function IntroductionPage() {
           <ListItem supporting="The tokens every component is built from — colour, type, spacing, radii, shadows, motion.">
             Foundations
           </ListItem>
+          <Separator />
+          <ListItem supporting="The same page under five schemes, so what a token moves is the only thing that differs.">
+            Theming
+          </ListItem>
         </Card>
         <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The Theme control in the toolbar switches the canvas between light
-            and dark, on this page and on every other.
+            The Theme control in the toolbar switches the canvas between light,
+            dark, and each of those five schemes — on this page and on every
+            other.
           </Text>
         </div>
       </section>
@@ -206,6 +211,10 @@ function IntroductionPage() {
             selector matching the <Code>&lt;html&gt;</Code> element. Components
             resolve their tokens once, at the root, so a <Code>--kui-*</Code>{' '}
             property redeclared on a smaller scope never reaches them.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            How far that goes is the Theming section's question: five schemes,
+            one page, and nothing between them but the tokens they set.
           </Text>
         </div>
       </section>

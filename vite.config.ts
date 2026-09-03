@@ -38,6 +38,11 @@ export default defineConfig({
       exclude: [
         'src/**/*.stories.tsx',
         'src/**/*.test.{ts,tsx}',
+        // Storybook material rather than library source, like the generated
+        // tokens beside it: the demo schemes are `createTheme` calls with
+        // nothing to execute, so counting them would only report 100% for a
+        // file no test could ever move.
+        'src/theming/**',
         'src/tokens/**',
       ],
       include: ['src/**/*.{ts,tsx}'],
