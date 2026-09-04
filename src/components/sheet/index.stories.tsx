@@ -39,13 +39,6 @@ function CloseIcon() {
   )
 }
 
-// Hoisted for the same reason the headings above are: `render` takes an
-// element, and react-perf rejects one built inline on every render.
-const CLOSE_BUTTON = <IconButton aria-label="Close" />
-const FILLED_BUTTON = <Button />
-const OUTLINED_BUTTON = <Button variant="outlined" />
-const TEXT_BUTTON = <Button variant="text" />
-
 const styles = stylex.create({
   header: {
     display: 'flex',
@@ -94,9 +87,9 @@ function PanelContents() {
     <>
       <Sheet.Header>
         <Sheet.Title>Headline</Sheet.Title>
-        <Sheet.Close render={CLOSE_BUTTON}>
+        <IconButton aria-label="Close" slot="close">
           <CloseIcon />
-        </Sheet.Close>
+        </IconButton>
       </Sheet.Header>
       <Sheet.Body>
         <Text tone="muted" variant="bodyMedium">
@@ -108,7 +101,9 @@ function PanelContents() {
         </Text>
       </Sheet.Body>
       <Sheet.Footer>
-        <Sheet.Close render={TEXT_BUTTON}>Cancel</Sheet.Close>
+        <Button slot="close" variant="text">
+          Cancel
+        </Button>
         <Button>Confirm</Button>
       </Sheet.Footer>
     </>
@@ -149,13 +144,13 @@ const Overview: Story = {
         </div>
         <div {...stylex.props(styles.row)}>
           <Sheet size="md">
-            <Sheet.Trigger render={OUTLINED_BUTTON}>Open medium</Sheet.Trigger>
+            <Button variant="outlined">Open medium</Button>
             <Sheet.Content>
               <PanelContents />
             </Sheet.Content>
           </Sheet>
           <Sheet size="sm">
-            <Sheet.Trigger render={OUTLINED_BUTTON}>Open small</Sheet.Trigger>
+            <Button variant="outlined">Open small</Button>
             <Sheet.Content>
               <PanelContents />
             </Sheet.Content>
@@ -171,16 +166,17 @@ const Overview: Story = {
             Dismissal
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Base UI supplies the modal behaviour: focus moves into the panel and
-            is trapped there, Escape closes, a press on the scrim closes, and
-            the page behind cannot be scrolled. Anything wrapped in Sheet.Close
-            closes it too, which is what the header's icon button and the
-            footer's Cancel both are.
+            React Aria supplies the modal behaviour: focus moves into the panel
+            and is trapped there, Escape closes, a press on the scrim closes,
+            and the page behind cannot be scrolled. A button placed directly
+            inside Sheet opens it, and any button given slot=&quot;close&quot;
+            closes it — which is what the header&apos;s icon button and the
+            footer&apos;s Cancel both are.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
           <Sheet>
-            <Sheet.Trigger render={FILLED_BUTTON}>Open</Sheet.Trigger>
+            <Button>Open</Button>
             <Sheet.Content>
               <PanelContents />
             </Sheet.Content>
@@ -290,7 +286,7 @@ const OpensAndCloses: Story = {
   },
   render: (args) => (
     <Sheet {...args}>
-      <Sheet.Trigger render={FILLED_BUTTON}>Open</Sheet.Trigger>
+      <Button>Open</Button>
       <Sheet.Content>
         <PanelContents />
       </Sheet.Content>

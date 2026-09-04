@@ -5,6 +5,8 @@ import { page } from 'vitest/browser'
 
 import Sheet from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import IconButton from '../icon-button'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -58,18 +60,29 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+/** The panel around the element with the dialog role, which is what is sized and shaped. */
+function panelOf(dialog: HTMLElement) {
+  const panel = dialog.parentElement
+  if (!panel) {
+    throw new Error('expected the dialog to sit inside its panel')
+  }
+  return panel
+}
+
 function setup(props: Partial<Parameters<typeof Sheet>[0]> = {}) {
   const view = render(
     <Sheet defaultOpen {...props}>
-      <Sheet.Trigger>Open</Sheet.Trigger>
+      <Button>Open</Button>
       <Sheet.Content>
         <Sheet.Header>
           <Sheet.Title>Headline</Sheet.Title>
-          <Sheet.Close aria-label="Close">×</Sheet.Close>
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>
         </Sheet.Header>
         <Sheet.Body>Supporting line</Sheet.Body>
         <Sheet.Footer>
-          <Sheet.Close>Cancel</Sheet.Close>
+          <Button slot="close">Cancel</Button>
         </Sheet.Footer>
       </Sheet.Content>
     </Sheet>,
@@ -79,7 +92,7 @@ function setup(props: Partial<Parameters<typeof Sheet>[0]> = {}) {
 
 describe('sheet', () => {
   describe('semantics', () => {
-    // The roles are the reason this wraps Base UI rather than styling a fixed
+    // The roles are the reason this wraps React Aria rather than styling a fixed
     // <div>: a dialog traps focus and announces itself, and a positioned div
     // does neither.
     it('renders a dialog named by its title', () => {
@@ -94,7 +107,7 @@ describe('sheet', () => {
     it('renders nothing until it is open', () => {
       const view = render(
         <Sheet>
-          <Sheet.Trigger>Open</Sheet.Trigger>
+          <Button>Open</Button>
           <Sheet.Content>
             <Sheet.Title>Headline</Sheet.Title>
           </Sheet.Content>
@@ -106,7 +119,7 @@ describe('sheet', () => {
     it('opens from its trigger', async () => {
       const view = render(
         <Sheet>
-          <Sheet.Trigger>Open</Sheet.Trigger>
+          <Button>Open</Button>
           <Sheet.Content>
             <Sheet.Title>Headline</Sheet.Title>
           </Sheet.Content>
@@ -120,7 +133,7 @@ describe('sheet', () => {
   })
 
   describe('dismissal', () => {
-    it('closes from any Sheet.Close, wherever it sits', async () => {
+    it('closes from any slot="close" button, wherever it sits', async () => {
       const view = setup()
       fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
       await waitFor(() => {
@@ -140,7 +153,7 @@ describe('sheet', () => {
     // nothing moves until the prop comes back different.
     it('does not close on its own when controlled', async () => {
       const onOpenChange = vi.fn<() => void>()
-      const view = setup({ onOpenChange, open: true })
+      const view = setup({ isOpen: true, onOpenChange })
 
       fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
       await waitFor(() => {
@@ -151,18 +164,19 @@ describe('sheet', () => {
   })
 
   describe('appearance', () => {
+    // React Aria nests the three: the dialog sits inside the panel, which
+    // sits inside the scrim — so both are reached by walking up from the
+    // element that carries the role.
     it('draws the panel on the surface container role', () => {
       const view = setup()
-      expect(hasClasses(view.getByRole('dialog'), CLASSES.surface)).toBe(true)
+      expect(
+        hasClasses(panelOf(view.getByRole('dialog')), CLASSES.surface),
+      ).toBe(true)
     })
 
-    // The scrim is a sibling of the panel rather than a parent, so it is
-    // found through the portal root rather than from the dialog.
     it('lays a scrim behind the panel', () => {
       const view = setup()
-      const scrim = view
-        .getByRole('dialog')
-        .parentElement?.querySelector('[data-open]:not([role=dialog])')
+      const scrim = panelOf(view.getByRole('dialog')).parentElement
 
       expect(scrim).not.toBeNull()
       expect(hasClasses(scrim!, CLASSES.scrim)).toBe(true)
@@ -179,12 +193,12 @@ describe('sheet', () => {
     it('is a side sheet above the medium breakpoint', async () => {
       await page.viewport(1024, 768)
       const view = setup()
-      const dialog = view.getByRole('dialog')
+      const panel = panelOf(view.getByRole('dialog'))
 
-      expect(getComputedStyle(dialog).inlineSize).toBe('400px')
+      expect(getComputedStyle(panel).inlineSize).toBe('400px')
       // Rounded down the content-facing edge, square where it meets the edge
       // of the screen.
-      expect(cornersOf(dialog)).toEqual({
+      expect(cornersOf(panel)).toEqual({
         bottomLeft: '16px',
         bottomRight: '0px',
         topLeft: '16px',
@@ -195,10 +209,10 @@ describe('sheet', () => {
     it('is a bottom sheet below it', async () => {
       await page.viewport(375, 812)
       const view = setup()
-      const dialog = view.getByRole('dialog')
+      const panel = panelOf(view.getByRole('dialog'))
 
-      expect(getComputedStyle(dialog).inlineSize).toBe('375px')
-      expect(cornersOf(dialog)).toEqual({
+      expect(getComputedStyle(panel).inlineSize).toBe('375px')
+      expect(cornersOf(panel)).toEqual({
         bottomLeft: '0px',
         bottomRight: '0px',
         topLeft: '28px',
@@ -219,9 +233,9 @@ describe('sheet', () => {
         await page.viewport(1024, 768)
         const view = setup({ size })
 
-        expect(getComputedStyle(view.getByRole('dialog')).inlineSize).toBe(
-          width,
-        )
+        expect(
+          getComputedStyle(panelOf(view.getByRole('dialog'))).inlineSize,
+        ).toBe(width)
       },
     )
   })

@@ -127,10 +127,6 @@ function PlusIcon() {
 
 // Hoisted for the same reason the heading template is: `render` takes an
 // element, and react-perf rejects one built inline on every render.
-const CLOSE_BUTTON = <IconButton aria-label="Close" />
-const FILLED_BUTTON = <Button />
-const OUTLINED_BUTTON = <Button variant="outlined" />
-const TEXT_BUTTON = <Button variant="text" />
 
 const styles = stylex.create({
   // Bottom-aligned so a row of mixed heights still sits on one line, and
@@ -318,15 +314,13 @@ function Showcase({ name }: ShowcaseProps) {
                 <PlusIcon />
               </IconButton>
               <Sheet>
-                <Sheet.Trigger render={OUTLINED_BUTTON}>
-                  Open sheet
-                </Sheet.Trigger>
+                <Button variant="outlined">Open sheet</Button>
                 <Sheet.Content>
                   <Sheet.Header>
                     <Sheet.Title>Headline</Sheet.Title>
-                    <Sheet.Close render={CLOSE_BUTTON}>
+                    <IconButton aria-label="Close" slot="close">
                       <CloseIcon />
-                    </Sheet.Close>
+                    </IconButton>
                   </Sheet.Header>
                   <Sheet.Body>
                     <Text tone="muted" variant="bodyMedium">
@@ -336,15 +330,15 @@ function Showcase({ name }: ShowcaseProps) {
                     </Text>
                   </Sheet.Body>
                   <Sheet.Footer>
-                    <Sheet.Close render={TEXT_BUTTON}>Cancel</Sheet.Close>
-                    <Sheet.Close render={FILLED_BUTTON}>Confirm</Sheet.Close>
+                    <Button slot="close" variant="text">
+                      Cancel
+                    </Button>
+                    <Button slot="close">Confirm</Button>
                   </Sheet.Footer>
                 </Sheet.Content>
               </Sheet>
               <Popover>
-                <Popover.Trigger render={OUTLINED_BUTTON}>
-                  Open popover
-                </Popover.Trigger>
+                <Button variant="outlined">Open popover</Button>
                 <Popover.Content>
                   <Popover.Title>Headline</Popover.Title>
                   <Popover.Description>
@@ -353,7 +347,9 @@ function Showcase({ name }: ShowcaseProps) {
                     the page does.
                   </Popover.Description>
                   <Stack direction="row" gap="sm" justify="end">
-                    <Popover.Close render={TEXT_BUTTON}>Dismiss</Popover.Close>
+                    <Button slot="close" variant="text">
+                      Dismiss
+                    </Button>
                   </Stack>
                 </Popover.Content>
               </Popover>

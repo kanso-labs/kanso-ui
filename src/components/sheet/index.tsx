@@ -1,16 +1,23 @@
-import type {
-  DialogCloseProps as BaseUIDialogCloseProps,
-  DialogPopupProps as BaseUIDialogPopupProps,
-  DialogPortalProps as BaseUIDialogPortalProps,
-  DialogRootProps as BaseUIDialogRootProps,
-  DialogTitleProps as BaseUIDialogTitleProps,
-  DialogTriggerProps as BaseUIDialogTriggerProps,
-} from '@base-ui/react/dialog'
 import type { HTMLAttributes, ReactNode } from 'react'
+import type {
+  ClassNameOrFunction,
+  DialogProps,
+  DialogTriggerProps,
+  HeadingProps,
+  ModalOverlayProps,
+  ModalRenderProps,
+  StyleOrFunction,
+} from 'react-aria-components'
 
-import { Dialog as BaseUIDialog } from '@base-ui/react/dialog'
 import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
+import {
+  Dialog,
+  DialogTrigger,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from 'react-aria-components'
 
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
@@ -47,8 +54,14 @@ const fadeIn = stylex.keyframes({
 })
 
 // Entry only, so there is no exit animation to wait for and closing is
-// immediate. See the comment on `SheetContent` for why that is a design call
-// rather than a limit of StyleX.
+// immediate: React Aria keeps a closing panel mounted only while an animation
+// is running on it, and finds none. See the comment on `SheetContent` for why
+// that is a design call rather than a limit of StyleX.
+//
+// React Aria's overlay is three nested elements — the scrim, the panel, and
+// the dialog inside it — so the styles are split the same way: `backdrop` on
+// the scrim, `content` and a size on the panel, `dialog` on the element that
+// carries the role.
 const styles = stylex.create({
   backdrop: {
     // Shorter than the panel's 250ms, so the scrim has settled by the time
@@ -115,6 +128,17 @@ const styles = stylex.create({
     overflow: 'hidden',
     position: 'fixed',
   },
+  // The element with the dialog role fills the panel and lays its header,
+  // body and footer out as a column. The panel already draws the focus
+  // treatment through its scrim, so the dialog shows no ring of its own when
+  // React Aria focuses it.
+  dialog: {
+    blockSize: '100%',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    outlineStyle: 'none',
+  },
   footer: {
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
@@ -169,13 +193,7 @@ type SheetSize = 'md' | 'sm'
 // through context rather than making the call site repeat it on both.
 const SheetSizeContext = createContext<SheetSize>('md')
 
-// `children` is narrowed to nodes. Base UI also accepts a function there, to
-// hand the sheet a payload passed by whichever trigger opened it, and that
-// form cannot be wrapped in a context provider without calling it first —
-// which would be doing Base UI's job with none of its state. Nothing in this
-// component needs the payload, so the narrower type says so rather than
-// leaving a signature that type-checks and then fails to render.
-type SheetProps = Omit<BaseUIDialogRootProps, 'children'> & {
+type SheetProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
   /**
    * Panel width on the side-sheet presentation: `sm` 320px, `md` 400px.
@@ -187,20 +205,22 @@ type SheetProps = Omit<BaseUIDialogRootProps, 'children'> & {
 
 /**
  * A modal panel that arrives from the edge of the screen — a side sheet on a
- * wide viewport, a bottom sheet on a narrow one. Open state is Base UI's:
- * pass `open` with `onOpenChange` to control it, or `defaultOpen` to let it
+ * wide viewport, a bottom sheet on a narrow one. Open state is React Aria's:
+ * pass `isOpen` with `onOpenChange` to control it, or `defaultOpen` to let it
  * keep its own.
  *
  * Composed rather than configured by props, because a sheet's header, body,
- * and footer all take arbitrary content — the parts are `Sheet.Trigger`,
- * `Sheet.Content`, `Sheet.Header`, `Sheet.Title`, `Sheet.Body`,
- * `Sheet.Footer`, and `Sheet.Close`.
+ * and footer all take arbitrary content — the parts are `Sheet.Content`,
+ * `Sheet.Header`, `Sheet.Title`, `Sheet.Body`, and `Sheet.Footer`. A
+ * `Button` or `IconButton` placed directly inside `Sheet` opens it, and one
+ * given `slot="close"` anywhere inside the content closes it; neither needs
+ * a part of its own.
  */
 function Sheet({ children, size = 'md', ...props }: SheetProps) {
   return (
-    <BaseUIDialog.Root {...props}>
+    <DialogTrigger {...props}>
       <SheetSizeContext value={size}>{children}</SheetSizeContext>
-    </BaseUIDialog.Root>
+    </DialogTrigger>
   )
 }
 
@@ -209,35 +229,44 @@ function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
 }
 
 /**
- * Closes the sheet when pressed. Carries no styling of its own, so give it
- * the control it should be through `render` — an `IconButton` in the header,
- * a `Button` in the footer.
- */
-function SheetClose(props: BaseUIDialogCloseProps) {
-  return <BaseUIDialog.Close {...props} />
-}
-
-/**
  * The panel itself, and the scrim behind it. Everything the sheet shows goes
- * in here; `Sheet.Trigger` stays outside it, since the trigger lives in the
- * page while this is portalled out to the end of the body.
+ * in here; the trigger stays outside it, since the trigger lives in the page
+ * while this is portalled out to the end of the body.
+ *
+ * A press on the scrim closes the sheet unless `isDismissable` says
+ * otherwise — React Aria's own default is the reverse, and a sheet that
+ * ignores a tap outside it reads as stuck.
  */
-function SheetContent({ children, container, ...props }: SheetContentProps) {
+function SheetContent({
+  children,
+  className,
+  container,
+  isDismissable = true,
+  isKeyboardDismissDisabled,
+  style,
+  ...props
+}: SheetContentProps) {
   const size = useContext(SheetSizeContext)
 
   return (
-    <BaseUIDialog.Portal container={container}>
-      <BaseUIDialog.Backdrop {...stylex.props(styles.backdrop)} />
-      <BaseUIDialog.Popup
-        {...props}
-        {...mergeStatefulStyles(
-          stylex.props(styles.content, styles[size]),
-          props,
-        )}
+    <ModalOverlay
+      isDismissable={isDismissable}
+      isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+      // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+      UNSTABLE_portalContainer={container}
+      {...stylex.props(styles.backdrop)}
+    >
+      <Modal
+        {...mergeStatefulStyles(stylex.props(styles.content, styles[size]), {
+          className,
+          style,
+        })}
       >
-        {children}
-      </BaseUIDialog.Popup>
-    </BaseUIDialog.Portal>
+        <Dialog {...props} {...stylex.props(styles.dialog)}>
+          {children}
+        </Dialog>
+      </Modal>
+    </ModalOverlay>
   )
 }
 
@@ -250,59 +279,48 @@ function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
 }
 
 /**
- * Names the sheet. Rendered through Base UI's title part, which is what
+ * Names the sheet. Rendered through React Aria's title slot, which is what
  * points the dialog's `aria-labelledby` at it — a sheet without one announces
  * itself as an unnamed dialog.
  */
-function SheetTitle(props: BaseUIDialogTitleProps) {
+function SheetTitle(props: SheetTitleProps) {
   return (
-    <BaseUIDialog.Title
+    <Heading
+      slot="title"
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.title), props)}
+      {...mergeStyles(stylex.props(styles.title), props)}
     />
   )
 }
 
-/**
- * Opens the sheet when pressed. Unstyled like `Sheet.Close`, so pass the
- * control through `render`.
- */
-function SheetTrigger(props: BaseUIDialogTriggerProps) {
-  return <BaseUIDialog.Trigger {...props} />
-}
-
 Sheet.Body = SheetBody
-Sheet.Close = SheetClose
 Sheet.Content = SheetContent
 Sheet.Footer = SheetFooter
 Sheet.Header = SheetHeader
 Sheet.Title = SheetTitle
-Sheet.Trigger = SheetTrigger
 
-type SheetCloseProps = BaseUIDialogCloseProps
+// The dialog's own props, plus the scrim's dismissal settings and the panel's
+// styling. A call site has no reason to know there are three elements:
+// `className` and `style` reach the panel, which is the one worth restyling
+// and positioning, and everything else lands on the dialog.
+type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
+  Pick<ModalOverlayProps, 'isDismissable' | 'isKeyboardDismissDisabled'> & {
+    /** A function may compute the class from the panel's render state. */
+    className?: ClassNameOrFunction<ModalRenderProps>
+    /**
+     * Where to portal the panel and scrim. Defaults to the end of `<body>`,
+     * which is right for an app that sets its StyleX theme on `:root`. An app
+     * that scopes the theme to a subtree has to point this at an element inside
+     * it, or the sheet renders outside the theme and falls back to the tokens'
+     * `prefers-color-scheme` default.
+     */
+    container?: Element
+    /** A function may compute the style from the panel's render state. */
+    style?: StyleOrFunction<ModalRenderProps>
+  }
 
-type SheetContentProps = BaseUIDialogPopupProps & {
-  /**
-   * Where to portal the panel and scrim. Defaults to the end of `<body>`,
-   * which is right for an app that sets its StyleX theme on `:root`. An app
-   * that scopes the theme to a subtree has to point this at an element inside
-   * it, or the sheet renders outside the theme and falls back to the tokens'
-   * `prefers-color-scheme` default.
-   */
-  container?: BaseUIDialogPortalProps['container']
-}
+type SheetTitleProps = HeadingProps
 
-type SheetTitleProps = BaseUIDialogTitleProps
-
-type SheetTriggerProps = BaseUIDialogTriggerProps
-
-export type {
-  SheetCloseProps,
-  SheetContentProps,
-  SheetProps,
-  SheetSize,
-  SheetTitleProps,
-  SheetTriggerProps,
-}
+export type { SheetContentProps, SheetProps, SheetSize, SheetTitleProps }
 
 export default Sheet

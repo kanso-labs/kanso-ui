@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Popover from '.'
 import { colors, radii } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -36,30 +37,31 @@ const CLASSES = {
 // call site names none.
 const DEFAULT_SIDE_OFFSET = 8
 
-/**
- * What Base UI lays over the page for a modal popover, or null for the
- * non-modal default: a fixed, full-inset element inside the same portal root
- * as the panel. `data-base-ui-inert` alone is not enough to look for, since
- * the same attribute marks the content the panel was opened from.
- */
-function blockingLayer(dialog: Element) {
-  const portalRoot = dialog.parentElement?.parentElement
-
-  return portalRoot?.querySelector(':scope > [data-base-ui-inert]') ?? null
-}
-
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/**
+ * The positioned panel around the element with the dialog role. React Aria
+ * places, sizes and marks the panel; the dialog inside it carries the role
+ * and the name.
+ */
+function panelOf(dialog: HTMLElement) {
+  const panel = dialog.parentElement
+  if (!panel) {
+    throw new Error('expected the dialog to sit inside its panel')
+  }
+  return panel
 }
 
 function setup(props: Partial<Parameters<typeof Popover>[0]> = {}) {
   return render(
     <Popover defaultOpen {...props}>
-      <Popover.Trigger>Open</Popover.Trigger>
+      <Button>Open</Button>
       <Popover.Content>
         <Popover.Title>Headline</Popover.Title>
         <Popover.Description>Supporting line</Popover.Description>
-        <Popover.Close>Dismiss</Popover.Close>
+        <Button slot="close">Close</Button>
       </Popover.Content>
     </Popover>,
   )
@@ -67,7 +69,7 @@ function setup(props: Partial<Parameters<typeof Popover>[0]> = {}) {
 
 describe('popover', () => {
   describe('semantics', () => {
-    // The roles are the reason this wraps Base UI rather than styling a
+    // The roles are the reason this wraps React Aria rather than styling a
     // positioned <div>: a dialog announces itself and hands focus back to
     // whatever opened it, and a div does neither.
     it('renders a dialog named by its title', () => {
@@ -89,7 +91,7 @@ describe('popover', () => {
     it('renders nothing until it is open', () => {
       const view = render(
         <Popover>
-          <Popover.Trigger>Open</Popover.Trigger>
+          <Button>Open</Button>
           <Popover.Content>
             <Popover.Title>Headline</Popover.Title>
           </Popover.Content>
@@ -102,7 +104,7 @@ describe('popover', () => {
     it('opens from its trigger', async () => {
       const view = render(
         <Popover>
-          <Popover.Trigger>Open</Popover.Trigger>
+          <Button>Open</Button>
           <Popover.Content>
             <Popover.Title>Headline</Popover.Title>
           </Popover.Content>
@@ -116,25 +118,49 @@ describe('popover', () => {
     })
 
     // Non-modal is the whole difference from Sheet: the page behind stays
-    // clickable while the panel is up. The case below is what proves this can
-    // report a layer rather than never finding one.
+    // reachable while the panel is up. A modal popover makes the rest of the
+    // page inert — everything but itself — which is what the case below
+    // looks for on an element outside it, and what proves this one can find
+    // it rather than never finding anything.
     it('leaves the page interactive', () => {
-      const view = setup()
+      const view = render(
+        <>
+          <p>Outside</p>
+          <Popover defaultOpen>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+            </Popover.Content>
+          </Popover>
+        </>,
+      )
 
-      expect(blockingLayer(view.getByRole('dialog'))).toBeNull()
+      expect(
+        view.getByText('Outside').closest('[aria-hidden="true"]'),
+      ).toBeNull()
     })
 
-    it('blocks it when asked to be modal', () => {
-      const view = setup({ modal: true })
+    it('makes the page inert when asked to be modal', () => {
+      const view = render(
+        <>
+          <p>Outside</p>
+          <Popover defaultOpen modal>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+            </Popover.Content>
+          </Popover>
+        </>,
+      )
 
-      expect(blockingLayer(view.getByRole('dialog'))).not.toBeNull()
+      expect(view.getByText('Outside').closest('[inert]')).not.toBeNull()
     })
   })
 
   describe('dismissal', () => {
-    it('closes from Popover.Close', async () => {
+    it('closes from a slot="close" button', async () => {
       const view = setup()
-      fireEvent.click(view.getByRole('button', { name: 'Dismiss' }))
+      fireEvent.click(view.getByRole('button', { name: 'Close' }))
 
       await waitFor(() => {
         expect(view.queryByRole('dialog')).toBeNull()
@@ -154,9 +180,9 @@ describe('popover', () => {
     // nothing moves until the prop comes back different.
     it('does not close on its own when controlled', async () => {
       const onOpenChange = vi.fn<() => void>()
-      const view = setup({ onOpenChange, open: true })
+      const view = setup({ isOpen: true, onOpenChange })
 
-      fireEvent.click(view.getByRole('button', { name: 'Dismiss' }))
+      fireEvent.click(view.getByRole('button', { name: 'Close' }))
       await waitFor(() => {
         expect(onOpenChange).toHaveBeenCalledTimes(1)
       })
@@ -167,10 +193,10 @@ describe('popover', () => {
   describe('appearance', () => {
     it('draws the panel on the surface container role', () => {
       const view = setup()
-      const dialog = view.getByRole('dialog')
+      const panel = panelOf(view.getByRole('dialog'))
 
-      expect(hasClasses(dialog, CLASSES.surface)).toBe(true)
-      expect(hasClasses(dialog, CLASSES.corner)).toBe(true)
+      expect(hasClasses(panel, CLASSES.surface)).toBe(true)
+      expect(hasClasses(panel, CLASSES.corner)).toBe(true)
     })
 
     it('sets the description apart from the title', () => {
@@ -192,30 +218,21 @@ describe('popover', () => {
     ] as const)('caps the %s panel at %s', (size, width) => {
       const view = setup({ size })
 
-      expect(getComputedStyle(view.getByRole('dialog')).maxInlineSize).toBe(
-        width,
-      )
+      expect(
+        getComputedStyle(panelOf(view.getByRole('dialog'))).maxInlineSize,
+      ).toBe(width)
     })
 
-    // The cap is `min()` against the room Base UI measured, so a panel wider
-    // than the viewport is narrowed rather than clipped by it. Proving the
-    // custom property arrives at all is what this is after — without it the
-    // whole declaration is invalid and the panel has no cap.
-    it('never asks for more room than the anchor leaves it', () => {
-      const view = render(
-        <Popover defaultOpen>
-          <Popover.Trigger>Open</Popover.Trigger>
-          <Popover.Content>
-            <Popover.Title>Headline</Popover.Title>
-          </Popover.Content>
-        </Popover>,
-      )
-      const dialog = view.getByRole('dialog')
+    // React Aria measures the room left between the anchor and the edge of
+    // the viewport and sets it as the panel's max height, so a tall panel
+    // scrolls rather than running off the screen. Proving the measurement
+    // arrives at all is what this is after.
+    it('never asks for more room than the anchor leaves it', async () => {
+      const view = setup()
 
-      expect(
-        dialog.parentElement?.style.getPropertyValue('--available-width'),
-      ).not.toBe('')
-      expect(getComputedStyle(dialog).maxBlockSize).not.toBe('none')
+      await waitFor(() => {
+        expect(panelOf(view.getByRole('dialog')).style.maxHeight).not.toBe('')
+      })
     })
   })
 
@@ -224,16 +241,16 @@ describe('popover', () => {
       const view = setup()
 
       await waitFor(() => {
-        expect(view.getByRole('dialog').getAttribute('data-side')).toBe(
-          'bottom',
-        )
+        expect(
+          panelOf(view.getByRole('dialog')).getAttribute('data-placement'),
+        ).toBe('bottom')
       })
     })
 
     it('takes the side it is given', async () => {
       const view = render(
         <Popover defaultOpen>
-          <Popover.Trigger>Open</Popover.Trigger>
+          <Button>Open</Button>
           <Popover.Content side="right">
             <Popover.Title>Headline</Popover.Title>
           </Popover.Content>
@@ -241,20 +258,21 @@ describe('popover', () => {
       )
 
       await waitFor(() => {
-        expect(view.getByRole('dialog').getAttribute('data-side')).toBe('right')
+        expect(
+          panelOf(view.getByRole('dialog')).getAttribute('data-placement'),
+        ).toBe('right')
       })
     })
 
-    // Base UI's own default is 0, which leaves the panel touching the control
-    // that opened it, so the gap is this component's decision rather than an
-    // inherited one.
+    // The gap is this component's decision rather than an inherited one, so
+    // it is pinned here whatever React Aria's own default happens to be.
     it('leaves a gap between the anchor and the panel', async () => {
       const view = setup()
       const trigger = view.getByRole('button', { name: 'Open' })
 
       await waitFor(() => {
         const gap =
-          view.getByRole('dialog').getBoundingClientRect().top -
+          panelOf(view.getByRole('dialog')).getBoundingClientRect().top -
           trigger.getBoundingClientRect().bottom
 
         expect(Math.round(gap)).toBe(DEFAULT_SIDE_OFFSET)
@@ -264,7 +282,7 @@ describe('popover', () => {
     it('lets the call site widen that gap', async () => {
       const view = render(
         <Popover defaultOpen>
-          <Popover.Trigger>Open</Popover.Trigger>
+          <Button>Open</Button>
           <Popover.Content sideOffset={24}>
             <Popover.Title>Headline</Popover.Title>
           </Popover.Content>
@@ -274,7 +292,7 @@ describe('popover', () => {
 
       await waitFor(() => {
         const gap =
-          view.getByRole('dialog').getBoundingClientRect().top -
+          panelOf(view.getByRole('dialog')).getBoundingClientRect().top -
           trigger.getBoundingClientRect().bottom
 
         expect(Math.round(gap)).toBe(24)
