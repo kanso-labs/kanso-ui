@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
@@ -80,7 +82,7 @@ type ListDetailProps = {
    * @default 'list'
    */
   showing?: 'detail' | 'list'
-} & Omit<useRender.ComponentProps<'div'>, 'children'>
+} & Omit<RenderComponentProps<'div'>, 'children'>
 
 /**
  * Material 3's list-detail layout: a fixed list pane beside a flexible detail

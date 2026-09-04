@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -45,7 +47,7 @@ const styles = stylex.create({
   }),
 })
 
-type FeedProps = useRender.ComponentProps<'div'> & {
+type FeedProps = RenderComponentProps<'div'> & {
   /**
    * How narrow a cell may get before the grid drops a column. Every column is
    * at least this wide and the grid fits as many as the space allows, which is

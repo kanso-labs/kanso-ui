@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
@@ -37,7 +39,7 @@ const tones = stylex.create({
 // wobbling column the moment amounts are stacked.
 const MINUS_SIGN = '−'
 
-type CurrencyProps = Omit<useRender.ComponentProps<'span'>, 'children'> & {
+type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
    * ISO 4217 code for the currency to format in.
    * @default 'USD'

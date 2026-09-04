@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 import Text from '../text'
@@ -156,7 +158,7 @@ const rowStyles = stylex.create({
   }),
 })
 
-type AppBarProps = Omit<useRender.ComponentProps<'header'>, 'children'> & {
+type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /**
    * Which of M3's alignments the text takes. `center` is the configuration
    * that replaced the old center-aligned variant.

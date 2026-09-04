@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
@@ -54,7 +56,7 @@ const styles = stylex.create({
   },
 })
 
-type SupportingPaneProps = Omit<useRender.ComponentProps<'div'>, 'children'> & {
+type SupportingPaneProps = Omit<RenderComponentProps<'div'>, 'children'> & {
   /** The primary content. Takes two thirds of the width from expanded up. */
   main?: ReactNode
   /**

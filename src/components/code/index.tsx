@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
@@ -28,7 +30,7 @@ const styles = stylex.create({
   },
 })
 
-type CodeProps = useRender.ComponentProps<'code'>
+type CodeProps = RenderComponentProps<'code'>
 
 /**
  * A fragment of code, a path, or an identifier set in the mono face. It

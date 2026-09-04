@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -103,7 +105,7 @@ const outlinedTones = stylex.create({
   },
 })
 
-type BadgeProps = useRender.ComponentProps<'span'> & {
+type BadgeProps = RenderComponentProps<'span'> & {
   /**
    * Which colour role the badge carries. `neutral` states without ranking;
    * the other three read as good, bad, or worth noticing.

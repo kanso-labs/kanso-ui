@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
@@ -145,7 +147,7 @@ const tones = stylex.create({
   primary: { color: colors.primary },
 })
 
-type TextProps = useRender.ComponentProps<'span'> & {
+type TextProps = RenderComponentProps<'span'> & {
   /**
    * Renders a `<p>` rather than the default `<span>`, for a block of prose
    * rather than a run of text inside one.
