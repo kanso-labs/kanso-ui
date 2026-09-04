@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.12.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.21...kanso-ui-v0.12.0) (2026-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* move Avatar and ProductIcon to React Aria, drop Base UI ([#504](https://github.com/kanso-labs/kanso-ui/issues/504))
+* move Sheet and Popover to React Aria ([#503](https://github.com/kanso-labs/kanso-ui/issues/503))
+* move TextField to React Aria ([#502](https://github.com/kanso-labs/kanso-ui/issues/502))
+* move Button and IconButton to React Aria ([#501](https://github.com/kanso-labs/kanso-ui/issues/501))
+* move Separator, Chip and Tabs to React Aria ([#500](https://github.com/kanso-labs/kanso-ui/issues/500))
+
+### Features
+
+* move Avatar and ProductIcon to React Aria, drop Base UI ([#504](https://github.com/kanso-labs/kanso-ui/issues/504)) ([679e973](https://github.com/kanso-labs/kanso-ui/commit/679e973425dea749233c6eff81ac81e16e87c3fd))
+* move Button and IconButton to React Aria ([#501](https://github.com/kanso-labs/kanso-ui/issues/501)) ([8f89c36](https://github.com/kanso-labs/kanso-ui/commit/8f89c3646d93a62d755830bd1ea09dd57f8a9f14))
+* move Separator, Chip and Tabs to React Aria ([#500](https://github.com/kanso-labs/kanso-ui/issues/500)) ([f6e7f2b](https://github.com/kanso-labs/kanso-ui/commit/f6e7f2b73cfc3292cb61434bf759c7e8bad0a8c3))
+* move Sheet and Popover to React Aria ([#503](https://github.com/kanso-labs/kanso-ui/issues/503)) ([92f085a](https://github.com/kanso-labs/kanso-ui/commit/92f085a7db18abd5e0cc0340dba0a928529d9e9c))
+* move TextField to React Aria ([#502](https://github.com/kanso-labs/kanso-ui/issues/502)) ([cb4bf43](https://github.com/kanso-labs/kanso-ui/commit/cb4bf43eedd15a0f0dbbdbdd28657d7464a38106))
+* **popover:** add Popover component ([#494](https://github.com/kanso-labs/kanso-ui/issues/494)) ([cf3a4a8](https://github.com/kanso-labs/kanso-ui/commit/cf3a4a8c562cbec128fd4e51bdc63ebbba69eae1))
+
+
+### Dependencies
+
+* update dependency @base-ui/react to v1.8.0 ([#497](https://github.com/kanso-labs/kanso-ui/issues/497)) ([c76f830](https://github.com/kanso-labs/kanso-ui/commit/c76f8308113bc16b2b0fcd014cdd7911ae265939))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.18 ([#496](https://github.com/kanso-labs/kanso-ui/issues/496)) ([045afb2](https://github.com/kanso-labs/kanso-ui/commit/045afb29ca8e45f2768d381d4e8ff9278d4e45f7))
+* update dependency eslint to v10.10.0 ([#498](https://github.com/kanso-labs/kanso-ui/issues/498)) ([a5092b2](https://github.com/kanso-labs/kanso-ui/commit/a5092b222612702601bda8524c68596feaa9b8ef))
+
 ## [0.11.21](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.20...kanso-ui-v0.11.21) (2026-09-04)
 
 
