@@ -1,9 +1,9 @@
-import type { SeparatorProps as BaseUISeparatorProps } from '@base-ui/react/separator'
-
-import { Separator as BaseUISeparator } from '@base-ui/react/separator'
 import * as stylex from '@stylexjs/stylex'
 
-import { mergeStatefulStyles } from '../../styles/merge'
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
+import { mergeStyles } from '../../styles/merge'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // A divider is the same colour as a border, so it draws from outlineVariant
@@ -38,7 +38,7 @@ const styles = stylex.create({
   },
 })
 
-type SeparatorProps = Omit<BaseUISeparatorProps, 'orientation'> & {
+type SeparatorProps = RenderComponentProps<'div'> & {
   /**
    * Which way the rule runs. A vertical separator takes its length from a
    * flex or grid parent and has none of its own.
@@ -47,17 +47,31 @@ type SeparatorProps = Omit<BaseUISeparatorProps, 'orientation'> & {
   orientation?: 'horizontal' | 'vertical'
 }
 
-function Separator({ orientation = 'horizontal', ...props }: SeparatorProps) {
-  return (
-    <BaseUISeparator
-      orientation={orientation}
-      {...props}
-      {...mergeStatefulStyles(
-        stylex.props(styles.base, styles[orientation]),
-        props,
-      )}
-    />
-  )
+/**
+ * A 1px rule between items. The orientation drives the accessibility tree as
+ * well as which side the rule is drawn on: `aria-orientation` is spelled out
+ * in both directions rather than leaving the horizontal case to the role's
+ * implicit value.
+ *
+ * A styled element rather than a primitive from the behaviour library: a
+ * separator has no behaviour, and the library's own would drop the
+ * `aria-orientation` written here on its way to the DOM.
+ */
+function Separator({
+  orientation = 'horizontal',
+  render,
+  ...props
+}: SeparatorProps) {
+  return useRender({
+    defaultTagName: 'div',
+    props: {
+      'aria-orientation': orientation,
+      role: 'separator',
+      ...props,
+      ...mergeStyles(stylex.props(styles.base, styles[orientation]), props),
+    },
+    render,
+  })
 }
 
 export type { SeparatorProps }

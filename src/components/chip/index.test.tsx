@@ -63,7 +63,7 @@ describe('chip', () => {
       expect(chip.getAttribute('aria-pressed')).toBe('false')
       unmount()
 
-      const { chip: selected } = setup({ defaultPressed: true })
+      const { chip: selected } = setup({ defaultSelected: true })
       expect(selected.getAttribute('aria-pressed')).toBe('true')
     })
 
@@ -81,18 +81,18 @@ describe('chip', () => {
     // Controlled means the call site owns the value: a press reports the
     // change and nothing moves until the prop comes back different.
     it('does not move on its own when controlled', () => {
-      const onPressedChange = vi.fn<() => void>()
-      const { chip } = setup({ onPressedChange, pressed: false })
+      const onChange = vi.fn<() => void>()
+      const { chip } = setup({ isSelected: false, onChange })
       fireEvent.click(chip)
-      expect(onPressedChange).toHaveBeenCalledTimes(1)
+      expect(onChange).toHaveBeenCalledTimes(1)
       expect(chip.getAttribute('aria-pressed')).toBe('false')
     })
 
     it('does not respond at all when disabled', () => {
-      const onPressedChange = vi.fn<() => void>()
-      const { chip } = setup({ disabled: true, onPressedChange })
+      const onChange = vi.fn<() => void>()
+      const { chip } = setup({ isDisabled: true, onChange })
       fireEvent.click(chip)
-      expect(onPressedChange).not.toHaveBeenCalled()
+      expect(onChange).not.toHaveBeenCalled()
       expect(chip.getAttribute('aria-pressed')).toBe('false')
     })
   })
@@ -105,7 +105,7 @@ describe('chip', () => {
   // depending on what had run before it.
   describe('appearance', () => {
     it('takes the secondary container pair when selected', () => {
-      const { chip } = setup({ defaultPressed: true })
+      const { chip } = setup({ defaultSelected: true })
       expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(true)
       expect(hasClasses(chip, CLASSES.selectedColor)).toBe(true)
     })
@@ -120,12 +120,12 @@ describe('chip', () => {
     // The selected chip has a container of its own to define its edge, so a
     // border on top of it would read as a second, competing outline.
     it('drops the border once selected', () => {
-      const { chip } = setup({ defaultPressed: true })
+      const { chip } = setup({ defaultSelected: true })
       expect(hasClasses(chip, CLASSES.selectedBorder)).toBe(true)
       expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(false)
     })
 
-    // Styling comes from Base UI's state callback rather than from a CSS
+    // Styling comes from React Aria's state callback rather than from a CSS
     // selector, so this is what proves the callback actually re-runs.
     it('restyles itself when an uncontrolled chip is pressed', () => {
       const { chip } = setup()

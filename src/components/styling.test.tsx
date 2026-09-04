@@ -177,9 +177,9 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   {
     element: (
-      <Tabs defaultValue="first">
+      <Tabs defaultSelectedKey="first">
         <Tabs.List {...PROBE}>
-          <Tabs.Tab value="first">Label</Tabs.Tab>
+          <Tabs.Tab id="first">Label</Tabs.Tab>
         </Tabs.List>
       </Tabs>
     ),
@@ -187,8 +187,8 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   {
     element: (
-      <Tabs defaultValue="first">
-        <Tabs.Panel {...PROBE} value="first">
+      <Tabs defaultSelectedKey="first">
+        <Tabs.Panel {...PROBE} id="first">
           First item
         </Tabs.Panel>
       </Tabs>
@@ -197,9 +197,9 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   {
     element: (
-      <Tabs defaultValue="first">
+      <Tabs defaultSelectedKey="first">
         <Tabs.List>
-          <Tabs.Tab {...PROBE} value="first">
+          <Tabs.Tab {...PROBE} id="first">
             Label
           </Tabs.Tab>
         </Tabs.List>

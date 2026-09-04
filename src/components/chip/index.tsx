@@ -1,10 +1,10 @@
 import type {
-  ToggleProps as BaseUIToggleProps,
-  ToggleState as BaseUIToggleState,
-} from '@base-ui/react/toggle'
+  ToggleButtonProps,
+  ToggleButtonRenderProps,
+} from 'react-aria-components'
 
-import { Toggle as BaseUIToggle } from '@base-ui/react/toggle'
 import * as stylex from '@stylexjs/stylex'
+import { ToggleButton } from 'react-aria-components'
 
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -83,37 +83,34 @@ const styles = stylex.create({
   },
 })
 
-type ChipProps<Value extends string = string> = BaseUIToggleProps<Value>
+type ChipProps = ToggleButtonProps
 
 /**
- * A chip is a two-state button, so its selected state is Base UI's `pressed`:
- * pass `pressed` with `onPressedChange` to control it, or `defaultPressed` to
+ * A chip is a two-state button, so its selected state is React Aria's
+ * `isSelected`: pass it with `onChange` to control it, or `defaultSelected` to
  * let it keep its own state. Selection is announced through `aria-pressed`
  * rather than a role of its own.
  */
-function Chip<Value extends string = string>({
-  children,
-  ...props
-}: ChipProps<Value>) {
+function Chip({ children, ...props }: ChipProps) {
   return (
-    <BaseUIToggle {...props} {...mergeStatefulStyles(propsFor, props)}>
+    <ToggleButton {...props} {...mergeStatefulStyles(propsFor, props)}>
       {children}
-    </BaseUIToggle>
+    </ToggleButton>
   )
 }
 
-// StyleX has no way to target [data-pressed] on the element it is styling, so
-// the selected styles cannot be chosen in CSS. Base UI's answer is to let
-// className and style be functions of the component's own state, which is
-// what this is — and it is why an uncontrolled chip styles itself correctly
-// without this component keeping a copy of the state.
+// StyleX has no way to target [data-selected] on the element it is styling,
+// so the selected styles cannot be chosen in CSS. React Aria's answer is to
+// let className and style be functions of the component's own render state,
+// which is what this is — and it is why an uncontrolled chip styles itself
+// correctly without this component keeping a copy of the state.
 //
 // mergeStatefulStyles takes the function rather than a computed result for
 // exactly that reason, and combines it with whatever the call site passed.
-function propsFor(state: BaseUIToggleState) {
+function propsFor(state: ToggleButtonRenderProps) {
   return stylex.props(
     styles.base,
-    state.pressed ? styles.selected : styles.unselected,
+    state.isSelected ? styles.selected : styles.unselected,
   )
 }
 

@@ -28,20 +28,30 @@ function joinClassNames(...names: ReadonlyArray<string | undefined>) {
 }
 
 /**
- * {@link mergeStyles} for an element rendered by a Base UI component, where
- * `className` and `style` may each be a function of the component's render
- * state rather than a plain value.
+ * {@link mergeStyles} for an element rendered by a behaviour-library
+ * component, where `className` and `style` may each be a function of the
+ * component's render state rather than a plain value.
  *
- * Returns functions unconditionally, since Base UI accepts them everywhere it
- * accepts the plain form and one shape is easier to follow than a union that
- * changes with the arguments. `compiled` is itself a function where the
- * component's own styles depend on that state.
+ * Returns functions unconditionally, since the libraries accept them
+ * everywhere they accept the plain form and one shape is easier to follow
+ * than a union that changes with the arguments. `compiled` is itself a
+ * function where the component's own styles depend on that state.
+ *
+ * The two consumer functions carry their own state types rather than sharing
+ * `State`: React Aria hands a `className` function the render state plus
+ * `defaultClassName`, and a `style` function the same state plus
+ * `defaultStyle`, and one parameter could not name both. Each extends
+ * `State`, so `compiled` can be handed either.
  */
-function mergeStatefulStyles<State>(
+function mergeStatefulStyles<
+  State,
+  ClassNameState extends State,
+  StyleState extends State,
+>(
   compiled: ((state: State) => CompiledStyles) | CompiledStyles,
   consumer: {
-    className?: StatefulClassName<State>
-    style?: StatefulStyle<State>
+    className?: StatefulClassName<ClassNameState>
+    style?: StatefulStyle<StyleState>
   },
 ) {
   const compiledFor = (state: State) =>
@@ -50,15 +60,19 @@ function mergeStatefulStyles<State>(
   // Resolved inline rather than through one shared helper: a generic one
   // cannot narrow `typeof value === 'function'` away from its own type
   // parameter, so it needs an assertion where these two need none.
+  //
+  // '' rather than undefined when there is nothing to say: a className
+  // function has to return a string for React Aria, and every component that
+  // reaches here has compiled classes of its own, so the case never renders.
   return {
-    className: (state: State) =>
+    className: (state: ClassNameState) =>
       joinClassNames(
         compiledFor(state).className,
         typeof consumer.className === 'function'
           ? consumer.className(state)
           : consumer.className,
-      ),
-    style: (state: State) =>
+      ) ?? '',
+    style: (state: StyleState) =>
       mergeStyleObjects(
         compiledFor(state).style,
         typeof consumer.style === 'function'

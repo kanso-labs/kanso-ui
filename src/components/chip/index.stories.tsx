@@ -77,12 +77,12 @@ function FilterChip({
   onSelect: (label: string) => void
   selected: boolean
 }) {
-  const handlePressedChange = useCallback(() => {
+  const handleSelectedChange = useCallback(() => {
     onSelect(label)
   }, [label, onSelect])
 
   return (
-    <Chip onPressedChange={handlePressedChange} pressed={selected}>
+    <Chip isSelected={selected} onChange={handleSelectedChange}>
       {label}
     </Chip>
   )
@@ -151,19 +151,19 @@ const Overview: Story = {
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
-            <Chip defaultPressed>Label</Chip>
+            <Chip defaultSelected>Label</Chip>
             <Text tone="muted" variant="labelSmall">
-              defaultPressed
+              defaultSelected
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
-            <Chip disabled>Label</Chip>
+            <Chip isDisabled>Label</Chip>
             <Text tone="muted" variant="labelSmall">
-              disabled
+              isDisabled
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
-            <Chip defaultPressed disabled>
+            <Chip defaultSelected isDisabled>
               Label
             </Chip>
             <Text tone="muted" variant="labelSmall">
@@ -182,9 +182,9 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Left alone, a chip keeps its own state and styles itself from it.
-            Passing `pressed` with `onPressedChange` takes that over, which is
-            how a set enforces one selection at a time — a rule only the call
-            site can apply, since the chip has no notion of its neighbours.
+            Passing `isSelected` with `onChange` takes that over, which is how a
+            set enforces one selection at a time — a rule only the call site can
+            apply, since the chip has no notion of its neighbours.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>

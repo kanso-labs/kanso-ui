@@ -47,7 +47,7 @@ const styles = stylex.create({
 
 const meta = {
   args: {
-    defaultValue: 'first',
+    defaultSelectedKey: 'first',
   },
   component: Tabs,
   title: 'Components/Tabs',
@@ -80,23 +80,23 @@ const Overview: Story = {
             a section, which is what the source design uses.
           </Text>
         </div>
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First item</Tabs.Tab>
-            <Tabs.Tab value="second">Second item</Tabs.Tab>
-            <Tabs.Tab value="third">Third item</Tabs.Tab>
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab id="second">Second item</Tabs.Tab>
+            <Tabs.Tab id="third">Third item</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel {...stylex.props(styles.panel)} value="first">
+          <Tabs.Panel {...stylex.props(styles.panel)} id="first">
             <Text tone="muted" variant="bodyMedium">
               The first panel.
             </Text>
           </Tabs.Panel>
-          <Tabs.Panel {...stylex.props(styles.panel)} value="second">
+          <Tabs.Panel {...stylex.props(styles.panel)} id="second">
             <Text tone="muted" variant="bodyMedium">
               The second panel.
             </Text>
           </Tabs.Panel>
-          <Tabs.Panel {...stylex.props(styles.panel)} value="third">
+          <Tabs.Panel {...stylex.props(styles.panel)} id="third">
             <Text tone="muted" variant="bodyMedium">
               The third panel.
             </Text>
@@ -118,13 +118,13 @@ const Overview: Story = {
             unavailable.
           </Text>
         </div>
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First item</Tabs.Tab>
-            <Tabs.Tab disabled value="second">
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab id="second" isDisabled>
               Second item
             </Tabs.Tab>
-            <Tabs.Tab value="third">Third item</Tabs.Tab>
+            <Tabs.Tab id="third">Third item</Tabs.Tab>
           </Tabs.List>
         </Tabs>
       </section>
@@ -136,21 +136,21 @@ const Default: Story = {
   render: (args) => (
     <Tabs {...args}>
       <Tabs.List>
-        <Tabs.Tab value="first">First item</Tabs.Tab>
-        <Tabs.Tab value="second">Second item</Tabs.Tab>
-        <Tabs.Tab value="third">Third item</Tabs.Tab>
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+        <Tabs.Tab id="third">Third item</Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel {...stylex.props(styles.panel)} value="first">
+      <Tabs.Panel {...stylex.props(styles.panel)} id="first">
         <Text tone="muted" variant="bodyMedium">
           The first panel.
         </Text>
       </Tabs.Panel>
-      <Tabs.Panel {...stylex.props(styles.panel)} value="second">
+      <Tabs.Panel {...stylex.props(styles.panel)} id="second">
         <Text tone="muted" variant="bodyMedium">
           The second panel.
         </Text>
       </Tabs.Panel>
-      <Tabs.Panel {...stylex.props(styles.panel)} value="third">
+      <Tabs.Panel {...stylex.props(styles.panel)} id="third">
         <Text tone="muted" variant="bodyMedium">
           The third panel.
         </Text>
@@ -165,9 +165,9 @@ const WithoutPanels: Story = {
   render: (args) => (
     <Tabs {...args}>
       <Tabs.List>
-        <Tabs.Tab value="first">First item</Tabs.Tab>
-        <Tabs.Tab value="second">Second item</Tabs.Tab>
-        <Tabs.Tab value="third">Third item</Tabs.Tab>
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+        <Tabs.Tab id="third">Third item</Tabs.Tab>
       </Tabs.List>
     </Tabs>
   ),

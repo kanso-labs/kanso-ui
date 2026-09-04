@@ -68,10 +68,9 @@ describe('separator', () => {
     expect(expected).not.toBe('rgba(0, 0, 0, 0)')
   })
 
-  // Base UI spells out aria-orientation in both directions rather than
-  // leaving the horizontal case to the role's implicit value. That is worth
-  // pinning because it is the reason this wraps Base UI's separator instead
-  // of styling a bare div: the orientation prop drives the accessibility
+  // aria-orientation is spelled out in both directions rather than leaving
+  // the horizontal case to the role's implicit value. That is worth pinning
+  // because it is what makes the orientation prop drive the accessibility
   // tree, not only which side the rule is drawn on.
   it('reflects its orientation for assistive technology', () => {
     const { separator, unmount } = setup({ orientation: 'vertical' })

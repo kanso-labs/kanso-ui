@@ -58,7 +58,8 @@
     "tokens:build": "node scripts/build-tokens.mjs"
   },
   "dependencies": {
-    "@base-ui/react": "1.8.0"
+    "@base-ui/react": "1.8.0",
+    "react-aria-components": "1.21.0"
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
