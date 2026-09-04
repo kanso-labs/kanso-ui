@@ -81,7 +81,7 @@
     "@vitest/browser-playwright": "4.1.11",
     "@vitest/coverage-v8": "4.1.11",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "10.9.1",
+    "eslint": "10.10.0",
     "eslint-plugin-oxlint": "1.81.0",
     "eslint-plugin-perfectionist": "5.11.0",
     "eslint-plugin-react-hooks": "7.1.1",
