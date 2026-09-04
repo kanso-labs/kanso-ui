@@ -19,6 +19,7 @@ import {
   Link,
   ListDetail,
   ListItem,
+  Popover,
   ProductIcon,
   Separator,
   Sheet,
@@ -89,6 +90,34 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </ListItem>
     ),
     name: 'ListItem (interactive)',
+  },
+  {
+    element: (
+      <Popover defaultOpen>
+        <Popover.Content {...PROBE}>First item</Popover.Content>
+      </Popover>
+    ),
+    name: 'Popover.Content',
+  },
+  {
+    element: (
+      <Popover defaultOpen>
+        <Popover.Content>
+          <Popover.Description {...PROBE}>Supporting line</Popover.Description>
+        </Popover.Content>
+      </Popover>
+    ),
+    name: 'Popover.Description',
+  },
+  {
+    element: (
+      <Popover defaultOpen>
+        <Popover.Content>
+          <Popover.Title {...PROBE}>Headline</Popover.Title>
+        </Popover.Content>
+      </Popover>
+    ),
+    name: 'Popover.Title',
   },
   { element: <ProductIcon {...PROBE} name="Label" />, name: 'ProductIcon' },
   { element: <Separator {...PROBE} />, name: 'Separator' },
