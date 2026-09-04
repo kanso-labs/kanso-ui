@@ -295,8 +295,8 @@ describe('components barrel', () => {
   })
 
   it('re-exports the TabsProps type', () => {
-    const props: TabsProps = { defaultValue: 'first' }
-    expect(props.defaultValue).toBe('first')
+    const props: TabsProps = { defaultSelectedKey: 'first' }
+    expect(props.defaultSelectedKey).toBe('first')
   })
 
   it('re-exports the TextProps type', () => {

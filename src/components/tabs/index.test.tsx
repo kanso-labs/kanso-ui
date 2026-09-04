@@ -44,15 +44,15 @@ function hasClasses(element: HTMLElement, classes: string[]) {
 
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   const view = render(
-    <Tabs defaultValue="first" {...props}>
+    <Tabs defaultSelectedKey="first" {...props}>
       <Tabs.List>
-        <Tabs.Tab value="first">First</Tabs.Tab>
-        <Tabs.Tab value="second">Second</Tabs.Tab>
-        <Tabs.Tab value="third">Third</Tabs.Tab>
+        <Tabs.Tab id="first">First</Tabs.Tab>
+        <Tabs.Tab id="second">Second</Tabs.Tab>
+        <Tabs.Tab id="third">Third</Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="first">First panel</Tabs.Panel>
-      <Tabs.Panel value="second">Second panel</Tabs.Panel>
-      <Tabs.Panel value="third">Third panel</Tabs.Panel>
+      <Tabs.Panel id="first">First panel</Tabs.Panel>
+      <Tabs.Panel id="second">Second panel</Tabs.Panel>
+      <Tabs.Panel id="third">Third panel</Tabs.Panel>
     </Tabs>,
   )
   return {
@@ -64,16 +64,16 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
 
 describe('tabs', () => {
   describe('semantics', () => {
-    // The roles are the reason this wraps Base UI rather than styling a row
+    // The roles are the reason this wraps React Aria rather than styling a row
     // of buttons: a tab announces that it selects a panel, and a button does
     // not.
     it('exposes a tablist of tabs and the selected panel', () => {
       const view = render(
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First</Tabs.Tab>
+            <Tabs.Tab id="first">First</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="first">First panel</Tabs.Panel>
+          <Tabs.Panel id="first">First panel</Tabs.Panel>
         </Tabs>,
       )
       expect(view.getByRole('tablist')).not.toBeNull()
@@ -89,11 +89,11 @@ describe('tabs', () => {
 
     it('points the active tab at the panel it controls', () => {
       const view = render(
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First</Tabs.Tab>
+            <Tabs.Tab id="first">First</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="first">First panel</Tabs.Panel>
+          <Tabs.Panel id="first">First panel</Tabs.Panel>
         </Tabs>,
       )
       const controls = view.getByRole('tab').getAttribute('aria-controls')
@@ -110,39 +110,37 @@ describe('tabs', () => {
       expect(first.getAttribute('aria-selected')).toBe('false')
     })
 
-    // Base UI keeps the outgoing panel mounted until its exit transition
-    // finishes, marking it `inert` in the meantime — so the panel on show is
-    // the one that is not inert, rather than the only one in the DOM.
+    // React Aria unmounts a panel the moment it is deselected, so the panel
+    // on show is the only one in the DOM — getByRole throws if there were
+    // two, which is what makes it the assertion.
     it('shows only the selected panel', () => {
       const view = render(
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First</Tabs.Tab>
-            <Tabs.Tab value="second">Second</Tabs.Tab>
+            <Tabs.Tab id="first">First</Tabs.Tab>
+            <Tabs.Tab id="second">Second</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="first">First panel</Tabs.Panel>
-          <Tabs.Panel value="second">Second panel</Tabs.Panel>
+          <Tabs.Panel id="first">First panel</Tabs.Panel>
+          <Tabs.Panel id="second">Second panel</Tabs.Panel>
         </Tabs>,
       )
-      const shown = () =>
-        view
-          .getAllByRole('tabpanel')
-          .filter((panel) => !panel.hasAttribute('inert'))
-          .map((panel) => panel.textContent)
 
-      expect(shown()).toEqual(['First panel'])
+      expect(view.getByRole('tabpanel').textContent).toBe('First panel')
 
       fireEvent.click(view.getByRole('tab', { name: 'Second' }))
-      expect(shown()).toEqual(['Second panel'])
+      expect(view.getByRole('tabpanel').textContent).toBe('Second panel')
     })
 
     // Controlled means the call site owns the value: a click reports it and
     // nothing moves until the prop comes back different.
     it('does not move on its own when controlled', () => {
-      const onValueChange = vi.fn<() => void>()
-      const { first, second } = setup({ onValueChange, value: 'first' })
+      const onSelectionChange = vi.fn<() => void>()
+      const { first, second } = setup({
+        onSelectionChange,
+        selectedKey: 'first',
+      })
       fireEvent.click(second)
-      expect(onValueChange).toHaveBeenCalledTimes(1)
+      expect(onSelectionChange).toHaveBeenCalledTimes(1)
       expect(first.getAttribute('aria-selected')).toBe('true')
     })
   })
@@ -160,7 +158,7 @@ describe('tabs', () => {
       expect(hasClasses(second, CLASSES.activeBackground)).toBe(false)
     })
 
-    // Styling comes from Base UI's state callback rather than a CSS selector,
+    // Styling comes from React Aria's state callback rather than a CSS selector,
     // so this is what proves the callback re-runs on selection.
     it('moves the pill when the selection changes', () => {
       const { first, second } = setup()
@@ -173,16 +171,16 @@ describe('tabs', () => {
   })
 
   describe('disabled', () => {
-    // Base UI marks a disabled tab with aria-disabled and data-disabled and
+    // React Aria marks a disabled tab with aria-disabled and data-disabled and
     // leaves the native `disabled` attribute off, so a `:disabled` rule never
     // matches it — the first version of this component styled it that way and
     // a disabled tab rendered identically to an enabled one.
     it('dims a disabled tab', () => {
       const view = render(
-        <Tabs defaultValue="first">
+        <Tabs defaultSelectedKey="first">
           <Tabs.List>
-            <Tabs.Tab value="first">First</Tabs.Tab>
-            <Tabs.Tab disabled value="second">
+            <Tabs.Tab id="first">First</Tabs.Tab>
+            <Tabs.Tab id="second" isDisabled>
               Second
             </Tabs.Tab>
           </Tabs.List>
@@ -200,7 +198,7 @@ describe('tabs', () => {
     })
   })
 
-  // Arrow-key navigation is deliberately not tested here. Base UI's roving
+  // Arrow-key navigation is deliberately not tested here. React Aria's roving
   // focus runs through the browser's own focus handling, which a synthetic
   // keyDown does not drive — a test written against it reports on the test
   // harness rather than on the component. It is verified in a real browser

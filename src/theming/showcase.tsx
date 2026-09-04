@@ -374,7 +374,7 @@ function Showcase({ name }: ShowcaseProps) {
             </div>
             <div {...stylex.props(styles.row)}>
               <Chip>First item</Chip>
-              <Chip defaultPressed>Second item</Chip>
+              <Chip defaultSelected>Second item</Chip>
               <Chip>Third item</Chip>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -552,20 +552,16 @@ function Showcase({ name }: ShowcaseProps) {
                 indicator under the strip takes the primary role.
               </Text>
             </div>
-            <Tabs defaultValue="First item">
+            <Tabs defaultSelectedKey="First item">
               <Tabs.List>
                 {TABS.map((tab) => (
-                  <Tabs.Tab key={tab} value={tab}>
+                  <Tabs.Tab id={tab} key={tab}>
                     {tab}
                   </Tabs.Tab>
                 ))}
               </Tabs.List>
               {TABS.map((tab) => (
-                <Tabs.Panel
-                  key={tab}
-                  {...stylex.props(styles.panel)}
-                  value={tab}
-                >
+                <Tabs.Panel key={tab} {...stylex.props(styles.panel)} id={tab}>
                   <Text tone="muted" variant="bodyMedium">
                     Supporting line
                   </Text>
