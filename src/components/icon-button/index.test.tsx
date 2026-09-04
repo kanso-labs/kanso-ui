@@ -38,14 +38,6 @@ function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
   return { ...view, button: view.getByRole('button') }
 }
 
-// Hoisted for react-perf's no-jsx-as-prop, the way the other suites hoist
-// their `render` templates.
-// Empty on purpose — the component injects the children, so jsx-a11y is
-// reading a template whose content it cannot see, the same way text/'s
-// HEADING_2 template is read.
-// oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by the component
-const LINK = <a href="#label" />
-
 describe('icon button', () => {
   describe('accessibility', () => {
     // An icon carries no text, so the label is the only thing that names the
@@ -60,20 +52,20 @@ describe('icon button', () => {
     })
 
     it('is still a button when disabled', () => {
-      const { button } = setup({ disabled: true })
+      const { button } = setup({ isDisabled: true })
       expect(button).toHaveProperty('disabled', true)
     })
 
-    // The same inference Button makes, for the same reason — see the "as a
+    // The same link form Button has, for the same reason — see the "as a
     // link" block in button/index.test.tsx, which pins the rest of it.
-    it('infers that an anchor given to `render` is not a native button', () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    it('renders an anchor when given href', () => {
+      const view = render(
+        <IconButton aria-label="Add" href="#label">
+          <svg />
+        </IconButton>,
+      )
 
-      const { button } = setup({ render: LINK })
-
-      expect(error).not.toHaveBeenCalled()
-      expect(button.tagName).toBe('A')
-      error.mockRestore()
+      expect(view.getByRole('link', { name: 'Add' }).tagName).toBe('A')
     })
   })
 
