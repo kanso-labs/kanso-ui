@@ -41,16 +41,9 @@ function InfoIcon() {
   )
 }
 
-// Hoisted for the same reason the headings above are: `render` takes an
-// element, and react-perf rejects one built inline on every render.
-const FILLED_BUTTON = <Button />
-const INFO_BUTTON = <IconButton aria-label="About" variant="tonal" />
-const OUTLINED_BUTTON = <Button variant="outlined" />
-
 // Laid out as a two-by-two grid, so each panel has room on the side it asks
 // for — `top` next to the edge of the frame would flip to `bottom` instead.
 const SIDES = ['top', 'right', 'left', 'bottom'] as const
-const TEXT_BUTTON = <Button variant="text" />
 
 const styles = stylex.create({
   // Centres the trigger and leaves the open panel somewhere to go, so the
@@ -112,7 +105,9 @@ function PanelContents() {
         Supporting line describing what the popover is for.
       </Popover.Description>
       <Stack direction="row" gap="sm" justify="end">
-        <Popover.Close render={TEXT_BUTTON}>Dismiss</Popover.Close>
+        <Button slot="close" variant="text">
+          Dismiss
+        </Button>
       </Stack>
     </>
   )
@@ -149,7 +144,7 @@ const Overview: Story = {
       </section>
       <div>
         <Popover>
-          <Popover.Trigger render={OUTLINED_BUTTON}>Open</Popover.Trigger>
+          <Button variant="outlined">Open</Button>
           <Popover.Content>
             <PanelContents />
           </Popover.Content>
@@ -170,15 +165,13 @@ const Overview: Story = {
       </section>
       <Stack direction="row" gap="sm">
         <Popover size="sm">
-          <Popover.Trigger render={OUTLINED_BUTTON}>Open small</Popover.Trigger>
+          <Button variant="outlined">Open small</Button>
           <Popover.Content>
             <PanelContents />
           </Popover.Content>
         </Popover>
         <Popover size="md">
-          <Popover.Trigger render={OUTLINED_BUTTON}>
-            Open medium
-          </Popover.Trigger>
+          <Button variant="outlined">Open medium</Button>
           <Popover.Content>
             <PanelContents />
           </Popover.Content>
@@ -192,17 +185,17 @@ const Overview: Story = {
           Dismissal
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-          Base UI supplies the behaviour: Escape closes, a press outside closes,
-          and focus returns to the trigger. The page behind stays scrollable and
-          clickable, which is the difference from Sheet. Anything wrapped in
-          Popover.Close closes it too.
+          React Aria supplies the behaviour: Escape closes, a press outside
+          closes, and focus returns to the trigger. The page behind stays
+          scrollable and clickable, which is the difference from Sheet. Anything
+          wrapped in a button given slot="close" closes it too.
         </Text>
       </section>
       <div>
         <Popover>
-          <Popover.Trigger render={INFO_BUTTON}>
+          <IconButton aria-label="About" variant="tonal">
             <InfoIcon />
-          </Popover.Trigger>
+          </IconButton>
           <Popover.Content>
             <PanelContents />
           </Popover.Content>
@@ -218,7 +211,7 @@ const Default: Story = {
   render: (args) => (
     <div {...stylex.props(styles.frame)}>
       <Popover {...args} defaultOpen>
-        <Popover.Trigger render={FILLED_BUTTON}>Open</Popover.Trigger>
+        <Button>Open</Button>
         <Popover.Content>
           <PanelContents />
         </Popover.Content>
@@ -232,7 +225,7 @@ const Small: Story = {
   render: (args) => (
     <div {...stylex.props(styles.frame)}>
       <Popover {...args} defaultOpen>
-        <Popover.Trigger render={FILLED_BUTTON}>Open</Popover.Trigger>
+        <Button>Open</Button>
         <Popover.Content>
           <PanelContents />
         </Popover.Content>
@@ -253,11 +246,11 @@ const Sides: Story = {
     <div {...stylex.props(styles.sides)}>
       {SIDES.map((side) => (
         <Popover {...args} defaultOpen key={side}>
-          <Popover.Trigger render={OUTLINED_BUTTON}>{side}</Popover.Trigger>
+          <Button variant="outlined">{side}</Button>
           {/* Four panels open at once means four of them reaching for the
               focus, and whichever wins draws a ring the story is not about.
               Nothing here is meant to be operated, so none of them takes it. */}
-          <Popover.Content initialFocus={false} side={side}>
+          <Popover.Content side={side}>
             <Popover.Title>{side}</Popover.Title>
           </Popover.Content>
         </Popover>
@@ -266,7 +259,7 @@ const Sides: Story = {
   ),
 }
 
-// The one check that runs against the real entry animation and Base UI's own
+// The one check that runs against the real entry animation and React Aria's own
 // focus handling rather than a stubbed clock, which is why it is a story and
 // not a case in index.test.tsx. See AGENTS.md, "Controlling time".
 const OpensAndCloses: Story = {
@@ -304,7 +297,7 @@ const OpensAndCloses: Story = {
   },
   render: (args) => (
     <Popover {...args}>
-      <Popover.Trigger render={FILLED_BUTTON}>Open</Popover.Trigger>
+      <Button>Open</Button>
       <Popover.Content>
         <PanelContents />
       </Popover.Content>
