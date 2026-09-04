@@ -114,14 +114,6 @@ function pointerInit(target: Element, init: PointerEventInit = {}) {
   }
 }
 
-// Hoisted for react-perf's no-jsx-as-prop, the way the other suites hoist
-// their `render` templates.
-// Empty on purpose — the component injects the children, so jsx-a11y is
-// reading a template whose content it cannot see, the same way text/'s
-// HEADING_2 template is read.
-// oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by the component
-const LINK = <a href="#label" />
-
 function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   const view = render(<Button {...props}>Button</Button>)
   const button = view.getByRole('button')
@@ -205,63 +197,52 @@ describe('appearance', () => {
   })
 })
 
-// `render` is how a button reaches an element other than <button> — an <a>
-// that navigates, most often. Base UI's Button then has to be told, since a
-// non-<button> gets the role, the tab index and the keyboard activation it
-// has no native version of. Reading the tag off `render` is what spares the
-// call site knowing that; what it cannot read, it leaves alone.
+// `href` is how a button becomes an <a> that navigates: the same styles and
+// ripple, announced as the link it is. React Aria renders it as a link
+// outright rather than giving an anchor button semantics, so nothing here
+// has to be told what the element is.
 describe('as a link', () => {
   // Card resets this and Button did not, so the same control rendered as an
   // anchor was underlined in one and not the other.
   it('drops the underline an anchor arrives with', () => {
-    const view = render(<Button render={LINK}>Button</Button>)
+    const view = render(<Button href="#label">Button</Button>)
 
-    expect(getComputedStyle(view.getByRole('button')).textDecorationLine).toBe(
+    expect(getComputedStyle(view.getByRole('link')).textDecorationLine).toBe(
       'none',
     )
   })
 
-  it('infers that an anchor is not a native button', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('renders an anchor when given href', () => {
+    const view = render(<Button href="#label">Button</Button>)
+    const anchor = view.getByRole('link')
 
-    const view = render(<Button render={LINK}>Button</Button>)
-    const anchor = view.getByRole('button')
-
-    expect(error).not.toHaveBeenCalled()
     expect(anchor.tagName).toBe('A')
-    // Base UI supplies the button semantics an anchor has no native version
-    // of, and leaves off the `type` it gives a real <button> — where on an
-    // <a> it would be a hint about what is being linked to.
+    expect(anchor).toHaveAttribute('href', '#label')
+    // `type` belongs to the button form — on an <a> it would be a hint
+    // about what is being linked to.
     expect(anchor).not.toHaveAttribute('type')
-    error.mockRestore()
   })
 
-  it('leaves the default button native', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    const view = render(<Button>Button</Button>)
-
-    expect(error).not.toHaveBeenCalled()
-    expect(view.getByRole('button')).toHaveAttribute('type', 'button')
-    error.mockRestore()
-  })
-
-  // Only a plain element's tag is read. A `render` that is a function, or an
-  // element whose type is a component, could still produce a <button>, so
-  // those keep Base UI's default and the call site's own value wins over the
-  // inference — which is what this asserts, through the error Base UI logs
-  // when the two disagree.
-  it('leaves an explicit nativeButton alone', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <Button nativeButton render={LINK}>
+  // A disabled link is no link at all: React Aria renders a <span> in its
+  // place, so the disabled styles have to come from the render state rather
+  // than from `:disabled`, which the span never matches.
+  it('renders a disabled link as a span', () => {
+    const view = render(
+      <Button href="#label" isDisabled>
         Button
       </Button>,
     )
+    const element = view.getByText('Button')
 
-    expect(error).toHaveBeenCalled()
-    error.mockRestore()
+    expect(element.tagName).toBe('SPAN')
+    expect(element).toHaveAttribute('data-disabled')
+    expect(getComputedStyle(element).cursor).toBe('not-allowed')
+  })
+
+  it('leaves the default button native', () => {
+    const view = render(<Button>Button</Button>)
+
+    expect(view.getByRole('button')).toHaveAttribute('type', 'button')
   })
 })
 
@@ -518,10 +499,10 @@ describe('press behaviour', () => {
   })
 
   describe('opting out', () => {
-    // `disabled` gates interaction; the surface itself still renders.
+    // `isDisabled` gates interaction; the surface itself still renders.
     it('neither fires handlers nor ripples while disabled', async () => {
       const onClick = vi.fn<() => void>()
-      const { button, isPressed } = setup({ disabled: true, onClick })
+      const { button, isPressed } = setup({ isDisabled: true, onClick })
 
       expect(button.hasAttribute('disabled')).toBe(true)
 

@@ -50,7 +50,7 @@ const RippleState = {
   /** The press has finished growing; waiting for the click that ends it. */
   WaitingForClick: 3,
 } as const
-interface RippleEventHandlers<HostElement extends HTMLElement> {
+interface RippleEventHandlers<HostElement extends Element> {
   onClick?: MouseEventHandler<HostElement>
   onContextMenu?: MouseEventHandler<HostElement>
   onPointerCancel?: PointerEventHandler<HostElement>
@@ -92,7 +92,7 @@ function isTouch(event: PointerEvent) {
  * buttons, say — can memoize around them too, and so stability doesn't
  * depend on any particular compiler being configured.
  */
-function useRipple<HostElement extends HTMLElement = HTMLElement>(
+function useRipple<HostElement extends Element = Element>(
   enabled = true,
   externalHandlers: RippleEventHandlers<HostElement> = {},
 ): {

@@ -191,6 +191,39 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            As a link
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Given `href`, the button is an anchor that navigates — the same
+            styles and ripple, announced as the link it is rather than as a
+            button.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" href="#label" variant="standard">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              standard
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" href="#label" variant="filled">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Disabled
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -200,7 +233,7 @@ const Overview: Story = {
         </div>
         <div {...stylex.props(styles.inline)}>
           <div {...stylex.props(styles.sample)}>
-            <IconButton aria-label="Add" disabled variant="standard">
+            <IconButton aria-label="Add" isDisabled variant="standard">
               <PlusIcon />
             </IconButton>
             <Text tone="muted" variant="labelSmall">
@@ -208,7 +241,7 @@ const Overview: Story = {
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
-            <IconButton aria-label="Add" disabled variant="filled">
+            <IconButton aria-label="Add" isDisabled variant="filled">
               <PlusIcon />
             </IconButton>
             <Text tone="muted" variant="labelSmall">
@@ -216,7 +249,7 @@ const Overview: Story = {
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
-            <IconButton aria-label="Add" disabled variant="tonal">
+            <IconButton aria-label="Add" isDisabled variant="tonal">
               <PlusIcon />
             </IconButton>
             <Text tone="muted" variant="labelSmall">

@@ -1,10 +1,21 @@
-import type { ButtonProps as BaseUIButtonProps } from '@base-ui/react/button'
+import type { DOMAttributes, ReactNode } from 'react'
+import type {
+  ButtonRenderProps,
+  ClassNameOrFunction,
+  FocusableElement,
+  ButtonProps as RACButtonProps,
+  StyleOrFunction,
+} from 'react-aria-components'
 
-import { Button as BaseUIButton } from '@base-ui/react/button'
 import * as stylex from '@stylexjs/stylex'
+import { Button as RACButton, Link as RACLink } from 'react-aria-components'
 
 import { useRipple } from '../../hooks/useRipple'
-import { rendersNativeButton } from '../../render/nativeButton'
+import {
+  ariaAttributesOf,
+  buttonRenderer,
+  linkRenderer,
+} from '../../render/aria'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -24,10 +35,13 @@ import {
 // directly as property values, and a call to an externally-defined function
 // isn't one of them.
 //
-// :hover and :active still match a disabled native <button>, and stylex's
-// fixed pseudo-class ordering places both after :disabled, so without the
-// :not(:disabled) guard a hovered/pressed disabled button would render with
-// the interaction color instead of the disabled one.
+// Disabled is a style of its own per variant rather than a `:disabled`
+// branch inside each property: a button given `href` renders as a link,
+// which React Aria turns into a <span> while disabled, and neither matches
+// the pseudo-class. The disabled styles are applied last from the render
+// state's `isDisabled`, and StyleX replaces a property whole, so they also
+// take the hover and pressed branches with them — which is what keeps a
+// hovered disabled button from lighting up.
 //
 // Two independent axes, applied base -> variant -> size. The order is what
 // lets `text` keep its tighter inline padding at the default size while the
@@ -42,7 +56,7 @@ const styles = stylex.create({
     borderRadius: radii.full,
     borderWidth: 0,
     boxSizing: 'border-box',
-    cursor: { ':disabled': 'not-allowed', default: 'pointer' },
+    cursor: 'pointer',
     display: 'inline-flex',
     fontFamily: typography.labelLargeFont,
     fontSize: typography.labelLargeSize,
@@ -55,31 +69,35 @@ const styles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     position: 'relative',
-    // `render` lets a button be an <a>, and an <a> arrives underlined.
-    // Reset here rather than per variant, since every variant sets a
-    // colour of its own but none of them touches the rule. Card does the
-    // same for the same reason; without it the two disagreed about what a
+    // `href` makes a button an <a>, and an <a> arrives underlined. Reset
+    // here rather than per variant, since every variant sets a colour of
+    // its own but none of them touches the rule. Card does the same for the
+    // same reason; without it the two disagreed about what a
     // link-as-control looks like.
     textDecoration: 'none',
   },
+  disabled: {
+    cursor: 'not-allowed',
+  },
   filled: {
     backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
       ':focus-visible': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
     },
     boxShadow: {
-      ':active:not(:disabled)': 'none',
-      ':hover:not(:disabled)': shadows.elevation1,
+      ':active': 'none',
+      ':hover': shadows.elevation1,
       default: 'none',
     },
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.onPrimary,
-    },
+    color: colors.onPrimary,
     paddingInline: spacing.xl,
+  },
+  filledDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    boxShadow: 'none',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   // Control heights and their inline padding are written as literals, not
   // drawn from the spacing scale: they are the design's fixed control
@@ -99,54 +117,55 @@ const styles = stylex.create({
   },
   outlined: {
     backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
       ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
-    borderColor: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-      default: colors.outline,
-    },
+    borderColor: colors.outline,
     borderStyle: 'solid',
     borderWidth: '1px',
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.primary,
-    },
+    color: colors.primary,
     paddingInline: spacing.xl,
+  },
+  outlinedDisabled: {
+    backgroundColor: 'transparent',
+    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   text: {
     backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
       ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.primary,
-    },
+    color: colors.primary,
     paddingInline: spacing.lg,
+  },
+  textDisabled: {
+    backgroundColor: 'transparent',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   tonal: {
     backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
       ':focus-visible': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.primaryContainer})`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
       default: colors.primaryContainer,
     },
     boxShadow: {
-      ':active:not(:disabled)': 'none',
-      ':hover:not(:disabled)': shadows.elevation1,
+      ':active': 'none',
+      ':hover': shadows.elevation1,
       default: 'none',
     },
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.onPrimaryContainer,
-    },
+    color: colors.onPrimaryContainer,
     paddingInline: spacing.xl,
+  },
+  tonalDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    boxShadow: 'none',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   xl: {
     blockSize: '80px',
@@ -162,7 +181,23 @@ const styles = stylex.create({
   },
 })
 
+const disabledStyles = {
+  filled: styles.filledDisabled,
+  outlined: styles.outlinedDisabled,
+  text: styles.textDisabled,
+  tonal: styles.tonalDisabled,
+}
+
+type ButtonDOMProps = Omit<
+  RACButtonProps,
+  'children' | 'className' | 'style' | GlobalEventKey
+> &
+  Pick<DOMAttributes<HTMLElement>, GlobalEventKey>
+
 type ButtonProps = {
+  children?: ReactNode
+  /** A function may compute the class from the button's render state. */
+  className?: ClassNameOrFunction<ButtonState>
   /**
    * Disables the press ripple. The hover/pressed background state layer is
    * unaffected.
@@ -170,53 +205,85 @@ type ButtonProps = {
    */
   disableRipple?: boolean
   /**
-   * Whether the element `render` produces is a real `<button>`, which decides
-   * whether Base UI supplies the button role, keyboard activation and
-   * disabled semantics itself.
-   *
-   * Read off `render` when that is a plain element, so
-   * `render={<a href="…" />}` needs nothing here. Worth setting only when
-   * `render` is a component or a function, where the tag it will produce
-   * cannot be read ahead of time.
-   *
-   * An anchor rendered this way is announced as a button rather than as a
-   * link, since that is what Base UI's non-native mode applies. For a control
-   * that should be announced as the link it is, reach for `Link`, or `Card`
-   * with `render`, neither of which imposes button semantics.
-   * @default true
+   * Where the button leads. Given one, the button is rendered as a link —
+   * an `<a>`, announced as the link it is — with the same styles and ripple.
+   * `render`, `type`, and the form and pending props apply to the button
+   * form only.
    */
-  nativeButton?: boolean
+  href?: string
+  /** The link's `rel`, when `href` is set. */
+  rel?: string
   /**
    * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 80px. Sizes other
    * than `md` also set their own inline padding.
    * @default 'md'
    */
-  size?: 'lg' | 'md' | 'xl' | 'xs'
+  size?: ButtonSize
+  /** A function may compute the style from the button's render state. */
+  style?: StyleOrFunction<ButtonState>
+  /** The link's `target`, when `href` is set. */
+  target?: string
   /** @default 'filled' */
-  variant?: 'filled' | 'outlined' | 'text' | 'tonal'
-} & BaseUIButtonProps
+  variant?: ButtonVariant
+} & ButtonDOMProps
 
+type ButtonSize = 'lg' | 'md' | 'xl' | 'xs'
+
+// The render state both of React Aria's elements share. A className or
+// style function written against it serves the button and the link alike;
+// `isPending` belongs to the button alone, and `isCurrent` to the link.
+type ButtonState = Pick<
+  ButtonRenderProps,
+  'isDisabled' | 'isFocused' | 'isFocusVisible' | 'isHovered' | 'isPressed'
+>
+
+type ButtonVariant = 'filled' | 'outlined' | 'text' | 'tonal'
+
+// React Aria types the global DOM events — pointer, mouse, touch, wheel and
+// the rest — against the element each component renders, and a handler
+// written for a <button> does not type-check against an <a>. The keys are
+// retyped against HTMLElement here so one set of props serves both forms;
+// the events React Aria defines itself (press, focus, keyboard) keep its
+// types, since it hands those its own event objects.
+type GlobalEventKey = Exclude<
+  keyof DOMAttributes<HTMLElement> & keyof RACButtonProps,
+  'onBlur' | 'onClick' | 'onFocus'
+>
+
+/**
+ * The design's button, at four emphasis levels and four control heights.
+ * Given `href` it is a link with the same appearance. Every `aria-*` prop is
+ * forwarded to the element; React Aria alone would keep only the labelling
+ * ones.
+ */
 function Button({
   children,
-  disabled = false,
   disableRipple = false,
-  nativeButton,
+  href,
+  isDisabled = false,
   onClick,
   onContextMenu,
+  onKeyDown,
+  onKeyUp,
   onPointerCancel,
   onPointerDown,
   onPointerLeave,
   onPointerUp,
+  rel,
+  render,
   size = 'md',
+  target,
   variant = 'filled',
   ...props
 }: ButtonProps) {
-  // `props` (className/style/render, etc.) is spread separately: `className`
-  // and `style` there may be functions of render state, a Base UI extension
-  // ripple's own handler-only merge doesn't need to know about. It is also
-  // why the styles below merge through mergeStatefulStyles rather than the
-  // plain mergeStyles.
-  const ripple = useRipple<HTMLButtonElement>(!disableRipple, {
+  // `props` (className/style, etc.) is spread separately: `className` and
+  // `style` there may be functions of render state, which ripple's own
+  // handler-only merge doesn't need to know about. It is also why the styles
+  // below merge through mergeStatefulStyles rather than the plain
+  // mergeStyles. The ripple is off while disabled: React Aria still forwards
+  // pointer events to a disabled element, and a press that changes nothing
+  // should not look like one.
+  const ripple = useRipple<FocusableElement>(!disableRipple && !isDisabled, {
     onClick,
     onContextMenu,
     onPointerCancel,
@@ -225,26 +292,58 @@ function Button({
     onPointerUp,
   })
 
+  const styleProps = mergeStatefulStyles(
+    (state: ButtonState) =>
+      stylex.props(
+        styles.base,
+        styles[variant],
+        styles[size],
+        state.isDisabled && styles.disabled,
+        state.isDisabled && disabledStyles[variant],
+      ),
+    props,
+  )
+
+  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+
+  if (href !== undefined) {
+    return (
+      <RACLink
+        href={href}
+        isDisabled={isDisabled}
+        rel={rel}
+        render={linkRenderer(element)}
+        target={target}
+        {...ripple.handlers}
+        {...props}
+        {...styleProps}
+      >
+        {children}
+        {ripple.surface}
+      </RACLink>
+    )
+  }
+
   return (
-    <BaseUIButton
-      disabled={disabled}
-      // Destructured out of `props` above rather than left to flow through
-      // with it: spread later, an absent `nativeButton` would arrive as an
-      // explicit `undefined` and overwrite what is inferred here.
-      nativeButton={nativeButton ?? rendersNativeButton(props.render)}
+    <RACButton
+      isDisabled={isDisabled}
+      render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(
-        stylex.props(styles.base, styles[variant], styles[size]),
-        props,
-      )}
+      {...styleProps}
     >
       {children}
       {ripple.surface}
-    </BaseUIButton>
+    </RACButton>
   )
 }
 
-export type { ButtonProps }
+export type {
+  ButtonDOMProps,
+  ButtonProps,
+  ButtonSize,
+  ButtonState,
+  ButtonVariant,
+}
 
 export default Button
