@@ -117,8 +117,8 @@ function IntroductionPage() {
         </div>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
           A React component library built on{' '}
-          <Link href="https://base-ui.com" {...LINK_TARGET}>
-            Base UI
+          <Link href="https://react-aria.adobe.com" {...LINK_TARGET}>
+            React Aria Components
           </Link>{' '}
           primitives and styled with{' '}
           <Link href="https://stylexjs.com" {...LINK_TARGET}>

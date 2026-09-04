@@ -189,9 +189,12 @@ function styleOf(value: unknown) {
  * `defaultTagName` is rendered. A default `button` is given `type="button"`,
  * since a bare one submits any form it happens to sit in.
  *
- * The semantics are Base UI's `useRender`, which the library's non-primitive
- * components were written against; keeping them here is what lets those
- * components stay put whichever primitive library sits underneath the rest.
+ * The element form is the point of owning this. React Aria's own `render`
+ * is a function that must return the element the component would have
+ * rendered itself, which suits its interactive components and nothing else;
+ * the non-interactive ones here take `render={<h2 />}`, and keeping that
+ * contract in a hook of the library's own is what lets them stay put
+ * whichever behaviour library sits underneath the rest.
  */
 function useRender({
   defaultTagName = 'div',
