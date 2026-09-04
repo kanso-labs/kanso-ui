@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -46,7 +48,7 @@ const styles = stylex.create({
   },
 })
 
-type KeycapProps = useRender.ComponentProps<'kbd'>
+type KeycapProps = RenderComponentProps<'kbd'>
 
 /**
  * A single key on a keyboard, as named in an instruction — `Enter`, `Esc`,

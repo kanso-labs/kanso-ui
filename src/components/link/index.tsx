@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 
@@ -81,7 +83,7 @@ type LinkProps = {
    * @default 'always'
    */
   underline?: LinkUnderline
-} & useRender.ComponentProps<'a'>
+} & RenderComponentProps<'a'>
 
 type LinkTone = 'inherit' | 'primary'
 

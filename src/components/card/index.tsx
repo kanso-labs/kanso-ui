@@ -1,7 +1,9 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
 import { useRipple } from '../../hooks/useRipple'
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -145,7 +147,7 @@ type CardProps = {
    * @default 'elevated'
    */
   variant?: CardVariant
-} & useRender.ComponentProps<'div'>
+} & RenderComponentProps<'div'>
 
 type CardVariant = 'elevated' | 'filled' | 'outlined'
 

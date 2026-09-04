@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -114,7 +116,7 @@ type StackProps = {
    * @default false
    */
   wrap?: boolean
-} & useRender.ComponentProps<'div'>
+} & RenderComponentProps<'div'>
 
 /**
  * A row or a column of children with one gap between them, taken from the

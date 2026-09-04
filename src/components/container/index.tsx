@@ -1,6 +1,8 @@
-import { useRender } from '@base-ui/react/use-render'
 import * as stylex from '@stylexjs/stylex'
 
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -31,7 +33,7 @@ const styles = stylex.create({
   }),
 })
 
-type ContainerProps = useRender.ComponentProps<'div'> & {
+type ContainerProps = RenderComponentProps<'div'> & {
   /**
    * How wide the content may run before it stops growing. The container is
    * centred in whatever space is left over.
