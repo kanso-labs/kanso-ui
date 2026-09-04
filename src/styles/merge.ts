@@ -6,11 +6,10 @@ import type { CSSProperties } from 'react'
 // arrives as a custom property there rather than as a class.
 type CompiledStyles = ReturnType<typeof stylex.props>
 
-// Base UI lets `className` and `style` be functions of a component's own
+// React Aria lets `className` and `style` be functions of a component's own
 // render state, which is how a style can depend on something CSS cannot
-// select — Chip's pressed state, a field label following its input's focus.
-// A consumer may pass either form, so anything merging with one has to
-// accept both.
+// select — Chip's selected state, a tab's active one. A consumer may pass
+// either form, so anything merging with one has to accept both.
 type StatefulClassName<State> =
   | ((state: State) => string | undefined)
   | string

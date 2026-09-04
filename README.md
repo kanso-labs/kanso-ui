@@ -1,7 +1,8 @@
 # Kanso UI
 
 A React component library built on [StyleX](https://stylexjs.com) and
-[Base UI](https://base-ui.com), with design tokens sourced from a single
+[React Aria Components](https://react-aria.adobe.com), with design tokens
+sourced from a single
 [W3C Design Tokens (DTCG)](https://design-tokens.github.io/community-group/format/)
 file and compiled via [Style Dictionary](https://styledictionary.com).
 
@@ -126,15 +127,38 @@ for it.
 ```tsx
 <Text render={<h2 />}>Headline</Text>
 <Card render={<a href="/items/1" />}>First item</Card>
-<Button render={<a href="/items/1" />}>Label</Button>
 ```
 
-`Button` and `IconButton` read the tag off `render` and tell Base UI whether it
-is a real `<button>`, so an anchor needs no `nativeButton={false}` and logs no
-error. Base UI then supplies the button semantics that anchor has no native
-version of, which means it is announced as a **button** rather than as a link.
-For a control that should be announced as the link it is, reach for `Link`, or
-`Card` with `render`.
+`Button` and `IconButton` take `href` instead: given one, they render an `<a>`
+with the same styles and ripple, announced as the link it is.
+
+```tsx
+<Button href="/items/1">Label</Button>
+```
+
+The overlays — `Sheet` and `Popover` — are opened by a `Button` or `IconButton`
+placed directly inside them, and closed by any button inside their content given
+`slot="close"`:
+
+```tsx
+<Sheet>
+  <Button>Open</Button>
+  <Sheet.Content>
+    <Sheet.Header>
+      <Sheet.Title>Headline</Sheet.Title>
+      <IconButton aria-label="Close" slot="close">
+        <CloseIcon />
+      </IconButton>
+    </Sheet.Header>
+  </Sheet.Content>
+</Sheet>
+```
+
+An open overlay carries a visually hidden dismiss button for screen readers,
+whose label React Aria ships in some thirty languages. A bundler includes all of
+them unless told which the app supports; React Aria's
+[`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
+is how an app says so.
 
 ## Theming
 

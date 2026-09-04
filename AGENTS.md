@@ -4,9 +4,10 @@ Guidance for coding agents working in this repository.
 
 ## What this is
 
-kanso-ui is a React component library built on [Base UI](https://base-ui.com)
-primitives, styled with [StyleX](https://stylexjs.com), and compiled with the
-React Compiler. Components are developed and documented in Storybook.
+kanso-ui is a React component library built on
+[React Aria Components](https://react-aria.adobe.com) primitives, styled with
+[StyleX](https://stylexjs.com), and compiled with the React Compiler. Components
+are developed and documented in Storybook.
 
 ## Commands
 
@@ -85,10 +86,24 @@ Specific to this repository:
   passed rather than merging with it — which is how 0.8.0 shipped a library
   whose every component silently discarded `className` and `style`, leaving no
   way to position one from outside. Merge through `mergeStyles` (plain elements
-  and `useRender`) or `mergeStatefulStyles` (Base UI components, whose
-  `className` and `style` may be functions of render state), both in
-  `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
+  and `useRender`) or `mergeStatefulStyles` (React Aria components, whose
+  `className` and `style` may be functions of render state — one handed the
+  state plus `defaultClassName`, the other the state plus `defaultStyle`), both
+  in `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
   exported component and fails if a new one forgets.
+- **React Aria supplies behaviour and nothing visual.** Four of its habits shape
+  how a component here is written. Its `render` prop is a function that must
+  return the element it would have rendered itself — a `Button` cannot become an
+  `<a>` through it, which is why `Button` takes `href` and renders React Aria's
+  `Link` instead. It forwards only the labelling `aria-*` props and wraps
+  keyboard handlers to stop propagation, so `Button` and `IconButton` put every
+  `aria-*` prop and the keyboard handlers back on the element themselves through
+  `src/render/aria.tsx`. An overlay's trigger is a `Button` placed directly
+  inside `Sheet` or `Popover`, and its close button is any button given
+  `slot="close"`, both wired through React Aria's contexts rather than a part of
+  ours. And it stamps `data-rac` on what it renders; never assert on it. The
+  `useRender` the non-interactive components use is ours, in
+  `src/render/useRender.tsx`, so a `render` prop there still takes an element.
 - **Every element the library renders sets `boxSizing: 'border-box'`** in the
   style that is always applied to it, and any internal element carrying padding,
   a border, or an explicit size does too. The library ships no reset, so without

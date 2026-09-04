@@ -157,7 +157,7 @@ describe('card', () => {
       expect(link.getAttribute('href')).toBe('https://example.com')
     })
 
-    // The reason Card reaches for useRender rather than Base UI's Button,
+    // The reason Card reaches for useRender rather than React Aria's Button,
     // whose useButton stamps role="button" onto any non-native element. A
     // card that navigates should be announced as a link and activate on
     // Enter alone, not answer to Space as a button does.

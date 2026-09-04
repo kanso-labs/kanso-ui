@@ -1,9 +1,10 @@
-import type { AvatarRootProps as BaseUIAvatarRootProps } from '@base-ui/react/avatar'
-
-import { Avatar as BaseUIAvatar } from '@base-ui/react/avatar'
 import * as stylex from '@stylexjs/stylex'
 
-import { mergeStatefulStyles } from '../../styles/merge'
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useImageLoadingStatus } from '../../hooks/useImageLoadingStatus'
+import { useRender } from '../../render/useRender'
+import { mergeStyles } from '../../styles/merge'
 import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 
 // Tones are container/on-container pairs rather than one colour each, so the
@@ -74,7 +75,7 @@ const styles = stylex.create({
   },
 })
 
-type AvatarProps = Omit<BaseUIAvatarRootProps, 'children'> & {
+type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
    * The person this represents. Supplies both the initials and the accessible
    * name, so a screen reader announces who it is rather than reading two
@@ -100,36 +101,41 @@ type AvatarProps = Omit<BaseUIAvatarRootProps, 'children'> & {
 
 function Avatar({
   name,
+  render,
   size = 'md',
   src,
   tone = 'primary',
   ...props
 }: AvatarProps) {
-  return (
-    // role/aria-label rather than letting the initials be read: "AL" is not
-    // what anyone means to announce. Marking the root as an image also makes
-    // its contents presentational, so the photo and the initials can't be
-    // announced a second time underneath the name.
-    //
-    // The lint rule below wants a real <img> tag instead of the role, which
-    // cannot work here: an <img> is void, and this element's whole job is to
-    // hold the initials shown when there is no photo, or none has loaded yet.
-    <BaseUIAvatar.Root
-      aria-label={name}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> takes no children
-      role="img"
-      {...props}
-      {...mergeStatefulStyles(
+  // The photo is shown only once it has loaded, and the initials stay until
+  // then and come back if it fails — see useImageLoadingStatus.
+  const status = useImageLoadingStatus(src)
+
+  // role/aria-label rather than letting the initials be read: "AL" is not
+  // what anyone means to announce. Marking the root as an image also makes
+  // its contents presentational, so the photo and the initials can't be
+  // announced a second time underneath the name. A span rather than an
+  // <img>, which is void: this element's whole job is to hold the initials
+  // shown when there is no photo, or none has loaded yet.
+  return useRender({
+    defaultTagName: 'span',
+    props: {
+      'aria-label': name,
+      role: 'img',
+      ...props,
+      children:
+        status === 'loaded' ? (
+          <img alt="" src={src} {...stylex.props(styles.image)} />
+        ) : (
+          initialsFrom(name)
+        ),
+      ...mergeStyles(
         stylex.props(styles.base, styles[size], styles[tone]),
         props,
-      )}
-    >
-      {src === undefined ? null : (
-        <BaseUIAvatar.Image alt="" src={src} {...stylex.props(styles.image)} />
-      )}
-      <BaseUIAvatar.Fallback>{initialsFrom(name)}</BaseUIAvatar.Fallback>
-    </BaseUIAvatar.Root>
-  )
+      ),
+    },
+    render,
+  })
 }
 
 // First letter of the first and last word, which handles both "Ada" and "Ada

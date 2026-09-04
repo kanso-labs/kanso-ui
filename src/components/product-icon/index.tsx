@@ -1,9 +1,10 @@
-import type { AvatarRootProps as BaseUIAvatarRootProps } from '@base-ui/react/avatar'
-
-import { Avatar as BaseUIAvatar } from '@base-ui/react/avatar'
 import * as stylex from '@stylexjs/stylex'
 
-import { mergeStatefulStyles } from '../../styles/merge'
+import type { RenderComponentProps } from '../../render/useRender'
+
+import { useImageLoadingStatus } from '../../hooks/useImageLoadingStatus'
+import { useRender } from '../../render/useRender'
+import { mergeStyles } from '../../styles/merge'
 import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 
 // The counterpart to Avatar: Avatar stands for a person, this stands for
@@ -90,7 +91,7 @@ const styles = stylex.create({
   },
 })
 
-type ProductIconProps = Omit<BaseUIAvatarRootProps, 'children'> & {
+type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
    * What this identifies. Supplies both the fallback initial and the
    * accessible name, so a screen reader announces the thing rather than
@@ -137,35 +138,40 @@ function initialFrom(name: string) {
  */
 function ProductIcon({
   name,
+  render,
   size = 'md',
   src,
   tone = 'primary',
   ...props
 }: ProductIconProps) {
-  return (
-    // role/aria-label rather than letting the fallback letter be read: "B" is
-    // not what anyone means to announce. Marking the root as an image also
-    // makes its contents presentational, so neither the mark nor the letter
-    // is announced a second time underneath the name.
-    //
-    // The lint rule below wants a real <img> tag instead of the role, which
-    // cannot work here: an <img> is void, and this element's whole job is to
-    // hold the letter shown when there is no mark, or none has loaded yet.
-    <BaseUIAvatar.Root
-      aria-label={name}
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> takes no children
-      role="img"
-      {...props}
-      {...mergeStatefulStyles(stylex.props(styles.base, styles[size]), props)}
-    >
-      {src === undefined ? null : (
-        <BaseUIAvatar.Image alt="" src={src} {...stylex.props(styles.image)} />
-      )}
-      <BaseUIAvatar.Fallback {...stylex.props(styles.fallback, styles[tone])}>
-        {initialFrom(name)}
-      </BaseUIAvatar.Fallback>
-    </BaseUIAvatar.Root>
-  )
+  // The mark is shown only once it has loaded, and the letter stays until
+  // then and comes back if it fails — see useImageLoadingStatus.
+  const status = useImageLoadingStatus(src)
+
+  // role/aria-label rather than letting the fallback letter be read: "B" is
+  // not what anyone means to announce. Marking the root as an image also
+  // makes its contents presentational, so neither the mark nor the letter
+  // is announced a second time underneath the name. A span rather than an
+  // <img>, which is void: this element's whole job is to hold the letter
+  // shown when there is no mark, or none has loaded yet.
+  return useRender({
+    defaultTagName: 'span',
+    props: {
+      'aria-label': name,
+      role: 'img',
+      ...props,
+      children:
+        status === 'loaded' ? (
+          <img alt="" src={src} {...stylex.props(styles.image)} />
+        ) : (
+          <span {...stylex.props(styles.fallback, styles[tone])}>
+            {initialFrom(name)}
+          </span>
+        ),
+      ...mergeStyles(stylex.props(styles.base, styles[size]), props),
+    },
+    render,
+  })
 }
 
 export type { ProductIconProps }

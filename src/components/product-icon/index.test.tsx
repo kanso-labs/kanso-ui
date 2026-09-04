@@ -7,7 +7,7 @@ import Avatar from '../avatar'
 // A 2:1 PNG, so `contain` and `cover` resolve to visibly different geometry
 // and the assertions below cannot both pass. Inline rather than fetched: a
 // real request would make these tests depend on the dev server serving a
-// fixture, and Base UI only swaps the fallback out once the image loads.
+// fixture, and the fallback is swapped out only once the image has loaded.
 const WIDE_MARK =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAFElEQVR4nGP8z8Dwn4GBgYERRIAAI7YCCXhOjT8AAAAASUVORK5CYII='
 

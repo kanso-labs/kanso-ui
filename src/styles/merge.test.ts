@@ -11,7 +11,7 @@ const COMPILED = { className: 'kui', style: { zIndex: 1 } }
 const EMPTY = {}
 
 // The form Chip and Tabs.Tab need: styles that cannot be chosen in CSS
-// because they depend on state only Base UI knows.
+// because they depend on state only React Aria knows.
 const compiledFor = (state: { pressed: boolean }) => ({
   className: state.pressed ? 'kui-on' : 'kui-off',
 })
