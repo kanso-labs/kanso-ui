@@ -30,6 +30,7 @@ import Keycap from '../components/keycap'
 import Link from '../components/link'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
+import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
@@ -340,6 +341,22 @@ function Showcase({ name }: ShowcaseProps) {
                   </Sheet.Footer>
                 </Sheet.Content>
               </Sheet>
+              <Popover>
+                <Popover.Trigger render={OUTLINED_BUTTON}>
+                  Open popover
+                </Popover.Trigger>
+                <Popover.Content>
+                  <Popover.Title>Headline</Popover.Title>
+                  <Popover.Description>
+                    The panel is anchored to the control that opened it, and
+                    takes its surface, corner and elevation from the same tokens
+                    the page does.
+                  </Popover.Description>
+                  <Stack direction="row" gap="sm" justify="end">
+                    <Popover.Close render={TEXT_BUTTON}>Dismiss</Popover.Close>
+                  </Stack>
+                </Popover.Content>
+              </Popover>
             </div>
           </section>
 
