@@ -118,8 +118,8 @@ describe('text field', () => {
   describe('focus', () => {
     // The label's colour follows the field's focus, which StyleX cannot
     // express: the label is the input's sibling, so `:focus-within` on the
-    // label never matches. It comes from Base UI's state callback instead,
-    // and this is what proves that callback re-runs.
+    // label never matches. It comes from the box's own focus state instead,
+    // and this is what proves that state follows the input.
     it('turns the label the primary colour while focused', () => {
       const { input, label } = setup()
       expect(hasClasses(label, CLASSES.mutedLabel)).toBe(true)
@@ -163,7 +163,7 @@ describe('text field', () => {
     })
 
     it('does not accept input when disabled', () => {
-      const { input } = setup({ disabled: true })
+      const { input } = setup({ isDisabled: true })
       expect(input).toHaveProperty('disabled', true)
     })
   })

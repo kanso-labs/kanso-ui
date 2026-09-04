@@ -1,11 +1,13 @@
-import type {
-  FieldControlProps as BaseUIFieldControlProps,
-  FieldLabelState as BaseUIFieldLabelState,
-} from '@base-ui/react/field'
+import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 
-import { Field as BaseUIField } from '@base-ui/react/field'
 import * as stylex from '@stylexjs/stylex'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
+import {
+  Input,
+  Label,
+  TextField as RACTextField,
+  Text,
+} from 'react-aria-components'
 
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -26,6 +28,11 @@ import {
 // The label sits at a fixed size at the top rather than floating up out of
 // the input on focus: the design draws it small and in place at all times, so
 // there is no transition between two positions to get right.
+//
+// The label's colour follows the input's focus, which no selector on the
+// label alone can express — the label is the input's sibling, not its
+// ancestor. The box tracks whether focus is within it, through the focus
+// events React bubbles, and the label takes `labelFocused` from that state.
 const styles = stylex.create({
   box: {
     backgroundColor: colors.surfaceContainerHighest,
@@ -157,77 +164,85 @@ type TextFieldProps = {
    * @default false
    */
   numeric?: boolean
-} & Omit<BaseUIFieldControlProps, 'render'>
+} & Omit<RACTextFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
+/**
+ * A labelled single-line input. Its value is React Aria's: pass `value` with
+ * `onChange` to control it, or `defaultValue` to let it keep its own — and
+ * `onChange` is handed the string, not the event. The call site's
+ * `className` and `style` land on the field as a whole, which is the element
+ * a layout positions.
+ */
 function TextField({
   description,
-  disabled = false,
   error,
+  isDisabled = false,
   label,
   numeric = false,
   ...props
 }: TextFieldProps) {
   const invalid = error !== undefined
 
-  // The label's colour follows the field's focus, which is a state only Base
-  // UI knows — StyleX cannot express `.box:focus-within .label`, because the
-  // label is the input's sibling rather than its ancestor. useCallback keeps
-  // it one reference between renders, which is what react-perf is after.
-  const labelClassName = useCallback(
-    (state: BaseUIFieldLabelState) =>
-      stylex.props(
-        styles.label,
-        disabled && styles.labelDisabled,
-        invalid && styles.labelError,
-        !disabled && !invalid && state.focused && styles.labelFocused,
-      ).className,
-    [disabled, invalid],
-  )
+  // Focus events bubble in React, so the box hears its input gain and lose
+  // focus without the input being told anything.
+  const [focused, setFocused] = useState(false)
+  const handleFocus = useCallback(() => {
+    setFocused(true)
+  }, [])
+  const handleBlur = useCallback(() => {
+    setFocused(false)
+  }, [])
 
   return (
-    <BaseUIField.Root
-      disabled={disabled}
-      invalid={invalid}
-      {...stylex.props(styles.root)}
+    <RACTextField
+      isDisabled={isDisabled}
+      isInvalid={invalid}
+      // The message is this component's to show, so validation only marks
+      // the control rather than surfacing the browser's own constraint UI.
+      validationBehavior="aria"
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.root), props)}
     >
       <div
+        onBlur={handleBlur}
+        onFocus={handleFocus}
         {...stylex.props(
           styles.box,
           invalid && styles.boxError,
-          disabled && styles.boxDisabled,
+          isDisabled && styles.boxDisabled,
         )}
       >
-        <BaseUIField.Label className={labelClassName}>
+        <Label
+          {...stylex.props(
+            styles.label,
+            isDisabled && styles.labelDisabled,
+            invalid && styles.labelError,
+            !isDisabled && !invalid && focused && styles.labelFocused,
+          )}
+        >
           {label}
-        </BaseUIField.Label>
-        {/* `props` is the control's, which is what TextFieldProps extends,
-            so a className or style from the call site lands on the <input>
-            rather than on the wrapper around it. */}
-        <BaseUIField.Control
-          {...props}
-          {...mergeStatefulStyles(
-            stylex.props(
-              styles.input,
-              numeric && styles.numeric,
-              disabled && styles.inputDisabled,
-            ),
-            props,
+        </Label>
+        <Input
+          {...stylex.props(
+            styles.input,
+            numeric && styles.numeric,
+            isDisabled && styles.inputDisabled,
           )}
         />
       </div>
       {invalid ? (
-        <BaseUIField.Error
-          match
+        <Text
+          slot="errorMessage"
           {...stylex.props(styles.message, styles.messageError)}
         >
           {error}
-        </BaseUIField.Error>
+        </Text>
       ) : description === undefined ? null : (
-        <BaseUIField.Description {...stylex.props(styles.message)}>
+        <Text slot="description" {...stylex.props(styles.message)}>
           {description}
-        </BaseUIField.Description>
+        </Text>
       )}
-    </BaseUIField.Root>
+    </RACTextField>
   )
 }
 

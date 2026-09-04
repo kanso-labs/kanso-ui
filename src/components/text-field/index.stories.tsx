@@ -100,7 +100,7 @@ const Overview: Story = {
             error="Enter a value."
             label="With an error"
           />
-          <TextField defaultValue="Value" disabled label="Disabled" />
+          <TextField defaultValue="Value" isDisabled label="Disabled" />
         </div>
       </section>
 
@@ -153,7 +153,7 @@ const Numeric: Story = {
 
 const Disabled: Story = {
   args: {
-    disabled: true,
+    isDisabled: true,
   },
 }
 
