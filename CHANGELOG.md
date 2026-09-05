@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.0...kanso-ui-v0.12.1) (2026-09-05)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.18 ([#506](https://github.com/kanso-labs/kanso-ui/issues/506)) ([2d67aa1](https://github.com/kanso-labs/kanso-ui/commit/2d67aa1331c04d5a3483ad9d6f72dfe157f917c0))
+* update dependency eslint to v10.10.0 ([#508](https://github.com/kanso-labs/kanso-ui/issues/508)) ([de6ab14](https://github.com/kanso-labs/kanso-ui/commit/de6ab14b389084f1b2bb3bb51a0acf3eec80cfa8))
+* update dependency lint-staged to v17.5.0 ([#511](https://github.com/kanso-labs/kanso-ui/issues/511)) ([d260227](https://github.com/kanso-labs/kanso-ui/commit/d26022799a51a33c916ad02076544881c3f17a16))
+* update dependency react-aria-components to v1.21.1 ([#507](https://github.com/kanso-labs/kanso-ui/issues/507)) ([ace5392](https://github.com/kanso-labs/kanso-ui/commit/ace53920a864606af5ef4c10c8a8444f18bd82ef))
+
 ## [0.12.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.21...kanso-ui-v0.12.0) (2026-09-04)
 
 
