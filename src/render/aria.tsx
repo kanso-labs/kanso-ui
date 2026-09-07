@@ -82,13 +82,23 @@ function chain<Event>(
 }
 
 /**
- * The same for a React Aria `Link`, which renders an anchor — or, while
- * disabled, a span in its place, since a disabled anchor is no link at all.
+ * The same for a React Aria `Link`, handed on to the call site's own `render`
+ * when there is one. React Aria expects an anchor while the link is enabled
+ * and has somewhere to go, and a span in every other case — a disabled anchor
+ * is no link at all, and one without `href` is a placeholder — and it leaves
+ * `href` out of what it hands over in both span cases, which is what the
+ * element is chosen from.
  */
-function linkRenderer(element: ElementProps): NonNullable<LinkProps['render']> {
+function linkRenderer(
+  element: ElementProps,
+  render?: LinkProps['render'],
+): NonNullable<LinkProps['render']> {
   return (domProps, state) => {
     const merged = withElementProps(domProps, element)
-    if (state.isDisabled) {
+    if (render !== undefined) {
+      return render(merged, state)
+    }
+    if (state.isDisabled || !('href' in merged)) {
       return createElement('span', { ...merged, href: undefined })
     }
     return createElement('a', merged)

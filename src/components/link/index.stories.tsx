@@ -138,6 +138,30 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Disabled
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A disabled link is a span announced as a link, since a disabled
+            anchor is no link at all. It keeps its place in the sentence and
+            loses its colour, its hover, and its href.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.prose)}>
+          <Text render={PARAGRAPH} variant="bodyLarge">
+            A paragraph of supporting copy with{' '}
+            <Link href="#first" isDisabled>
+              a link that cannot be followed
+            </Link>{' '}
+            in the middle of it.
+          </Text>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             In a footer
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
