@@ -73,10 +73,11 @@ Specific to this repository:
 - **Shared internals live beside `src/components`, never inside it**:
   `src/render` for the render helpers, `src/styles` for the merge helpers and
   the styles more than one component draws (`overlay.ts`, `ripple.ts`),
-  `src/hooks`, and `src/field` for the chrome every field renders through. A
-  directory under `src/components` is a public component, with stories, a barrel
-  entry and a `styling.test.tsx` case, and an internal module there would look
-  like one that forgot all three.
+  `src/hooks`, `src/field` for the chrome every field renders through, and
+  `src/row` for the row every list, menu and tree item draws. A directory under
+  `src/components` is a public component, with stories, a barrel entry and a
+  `styling.test.tsx` case, and an internal module there would look like one that
+  forgot all three.
 - **The `exports` map says `default`, not `import`, and that is what keeps
   CommonJS working.** The package ships ESM only. Under a `default` condition
   Node resolves the ESM file for a `require()` too and serves it through
