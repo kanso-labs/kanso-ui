@@ -26,9 +26,13 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
-// Each variant composites an 'on-color' (filled) or the brand color itself
-// (outlined/text, over a transparent container) at the interaction state's
-// opacity, rather than swapping in a separate hover/pressed color.
+// Each variant composites its label colour over its container at the
+// interaction state's opacity, rather than swapping in a separate
+// hover/pressed color: filled and tonal paint the 'on-color' over the
+// container, outlined and text paint the label colour over a transparent
+// one. The pairs are the buttons spec page's, Expressive column: tonal on
+// secondary container, outlined with an outline variant border and an
+// on-surface-variant label, text on primary.
 // calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
 // percentage color-mix() takes. Inlined rather than factored into a helper:
 // @stylexjs/babel-plugin only statically recognizes expressions written
@@ -117,15 +121,15 @@ const styles = stylex.create({
   },
   outlined: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':focus-visible': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
-    borderColor: colors.outline,
+    borderColor: colors.outlineVariant,
     borderStyle: 'solid',
     borderWidth: '1px',
-    color: colors.primary,
+    color: colors.onSurfaceVariant,
     paddingInline: spacing.xl,
   },
   outlinedDisabled: {
@@ -149,17 +153,17 @@ const styles = stylex.create({
   },
   tonal: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
-      ':focus-visible': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.primaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
-      default: colors.primaryContainer,
+      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':focus-visible': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: colors.secondaryContainer,
     },
     boxShadow: {
       ':active': 'none',
       ':hover': shadows.elevation1,
       default: 'none',
     },
-    color: colors.onPrimaryContainer,
+    color: colors.onSecondaryContainer,
     paddingInline: spacing.xl,
   },
   tonalDisabled: {
