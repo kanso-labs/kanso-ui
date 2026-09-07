@@ -106,9 +106,9 @@
   --kui-state-layer-opacity-disabled-container: 0.12;
   --kui-state-layer-opacity-disabled-content: 0.38;
   --kui-state-layer-opacity-dragged: 0.16;
-  --kui-state-layer-opacity-focus: 0.12;
+  --kui-state-layer-opacity-focus: 0.1;
   --kui-state-layer-opacity-hover: 0.08;
-  --kui-state-layer-opacity-pressed: 0.12;
+  --kui-state-layer-opacity-pressed: 0.1;
   --kui-typography-body-large-font:
     'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     sans-serif;
