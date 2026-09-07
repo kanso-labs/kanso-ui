@@ -20,6 +20,7 @@ import {
 } from 'react-aria-components'
 
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
+import { overlay } from '../../styles/overlay'
 import {
   colors,
   media,
@@ -48,32 +49,18 @@ const slideInFromBottom = stylex.keyframes({
   to: { opacity: 1, transform: 'translateY(0)' },
 })
 
-const fadeIn = stylex.keyframes({
-  from: { opacity: 0 },
-  to: { opacity: 1 },
-})
-
 // Entry only, so there is no exit animation to wait for and closing is
 // immediate: React Aria keeps a closing panel mounted only while an animation
 // is running on it, and finds none. See the comment on `SheetContent` for why
 // that is a design call rather than a limit of StyleX.
 //
 // React Aria's overlay is three nested elements — the scrim, the panel, and
-// the dialog inside it — so the styles are split the same way: `backdrop` on
-// the scrim, `content` and a size on the panel, `dialog` on the element that
-// carries the role.
+// the dialog inside it — so the styles are split the same way: the overlay
+// module's scrim on the first, `content` and a size on the panel, its modal
+// dialog style on the element that carries the role. The scrim and that
+// dialog style are shared with every modal overlay; the panel is the sheet's
+// own, since which edge it is pinned to is what makes it a sheet.
 const styles = stylex.create({
-  backdrop: {
-    // Shorter than the panel's 250ms, so the scrim has settled by the time
-    // the panel arrives rather than the two finishing together.
-    animationDuration: motion.durationShort2,
-    animationName: fadeIn,
-    animationTimingFunction: motion.easingStandard,
-    // M3's scrim is the scrim role at 32%, not a colour of its own.
-    backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
-    inset: 0,
-    position: 'fixed',
-  },
   body: {
     boxSizing: 'border-box',
     display: 'flex',
@@ -127,17 +114,6 @@ const styles = stylex.create({
     // Clips the body's scroll to the rounded corners.
     overflow: 'hidden',
     position: 'fixed',
-  },
-  // The element with the dialog role fills the panel and lays its header,
-  // body and footer out as a column. The panel already draws the focus
-  // treatment through its scrim, so the dialog shows no ring of its own when
-  // React Aria focuses it.
-  dialog: {
-    blockSize: '100%',
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    outlineStyle: 'none',
   },
   footer: {
     borderBlockStartColor: colors.outlineVariant,
@@ -254,7 +230,7 @@ function SheetContent({
       isKeyboardDismissDisabled={isKeyboardDismissDisabled}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
-      {...stylex.props(styles.backdrop)}
+      {...stylex.props(overlay.scrim)}
     >
       <Modal
         {...mergeStatefulStyles(stylex.props(styles.content, styles[size]), {
@@ -262,7 +238,7 @@ function SheetContent({
           style,
         })}
       >
-        <Dialog {...props} {...stylex.props(styles.dialog)}>
+        <Dialog {...props} {...stylex.props(overlay.modalDialog)}>
           {children}
         </Dialog>
       </Modal>

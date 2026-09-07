@@ -28,14 +28,8 @@ import {
 } from 'react-aria-components'
 
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import {
-  colors,
-  motion,
-  radii,
-  shadows,
-  spacing,
-  typography,
-} from '../../tokens/design.tokens.stylex'
+import { overlay, popupOrigin } from '../../styles/overlay'
+import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 // The gap between the anchor and the panel, matching `spacing.sm`'s default.
 // A number rather than the token, because React Aria computes the position in
@@ -45,20 +39,9 @@ import {
 // rather than an inherited one.
 const DEFAULT_SIDE_OFFSET = 8
 
-// Growing from the edge the panel is anchored by, rather than from its own
-// centre, which is what makes it read as coming out of the trigger. React
-// Aria reports which side the panel landed on through its render state, so
-// the origin follows the placement it actually got rather than the one asked
-// for, and the same keyframes serve all four sides.
-const scaleIn = stylex.keyframes({
-  from: { opacity: 0, transform: 'scale(0.95)' },
-  to: { opacity: 1, transform: 'scale(1)' },
-})
-
-// Entry only, for the same reason Sheet's is: an exit animation is something
-// the panel has to stay mounted through, and a popover is dismissed far more
-// often than a modal panel — usually by pressing something else, where a
-// lingering panel is in the way of whatever the press was for.
+// The surface, its entry and the dialog's focus ring are the overlay module's,
+// shared with every anchored overlay; what is here is Popover's own — its
+// inset, its two widths, and the type of its title and description.
 //
 // No arrow, and that is M3 rather than an omission: menus and rich tooltips
 // both sit as plain rounded surfaces offset from their anchor, with no caret
@@ -66,9 +49,14 @@ const scaleIn = stylex.keyframes({
 // that want one; nothing here renders it.
 //
 // React Aria's popover is two elements — the positioned panel and the dialog
-// inside it — so the styles are split the same way: `popup` and a size on
-// the panel, `dialog` on the element that carries the role.
+// inside it — so the styles are split the same way: the surface, `content`
+// and a size on the panel, the dialog style on the element that carries the
+// role.
 const styles = stylex.create({
+  // The inset the surface leaves out, since a menu's items run to its edges.
+  content: {
+    padding: spacing.lg,
+  },
   description: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -79,45 +67,12 @@ const styles = stylex.create({
     lineHeight: typography.bodyMediumLineHeight,
     margin: 0,
   },
-  // React Aria focuses the dialog itself when nothing inside it takes focus,
-  // so it is a focusable element and needs a ring for the case where a
-  // keyboard put it there — the same treatment Tabs gives its panel.
-  dialog: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.sm,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-  },
-  fromBottom: { transformOrigin: 'bottom center' },
-  fromLeft: { transformOrigin: 'left center' },
-  fromRight: { transformOrigin: 'right center' },
-  fromTop: { transformOrigin: 'top center' },
-  // The width belongs to the size rather than to `popup`, the same split Sheet
-  // makes: StyleX merges a property whole, so one unconditional `maxInlineSize`
-  // on the shared style would be replaced outright by whichever size applied
-  // after it. Capped at the viewport as well, so a panel wider than the
-  // screen is narrowed rather than clipped by it.
+  // The width belongs to the size rather than to the surface, the same split
+  // Sheet makes: StyleX merges a property whole, so one unconditional
+  // `maxInlineSize` on the shared style would be replaced outright by
+  // whichever size applied after it. Capped at the viewport as well, so a
+  // panel wider than the screen is narrowed rather than clipped by it.
   md: { maxInlineSize: 'min(320px, 100vw)' },
-  popup: {
-    animationDuration: motion.durationShort3,
-    animationName: scaleIn,
-    // Decelerating, so the panel arrives quickly and settles.
-    animationTimingFunction: motion.easingEmphasizedDecelerate,
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: radii.md,
-    boxShadow: shadows.elevation2,
-    boxSizing: 'border-box',
-    color: colors.onSurface,
-    // React Aria measures the room left between the anchor and the edge of
-    // the viewport and sets it as the panel's max height inline, so the
-    // panel scrolls rather than running off the screen.
-    overflowY: 'auto',
-    padding: spacing.lg,
-  },
   sm: { maxInlineSize: 'min(240px, 100vw)' },
   title: {
     boxSizing: 'border-box',
@@ -136,17 +91,6 @@ type PopoverAlign = 'center' | 'end' | 'start'
 type PopoverSide = 'bottom' | 'left' | 'right' | 'top'
 
 type PopoverSize = 'md' | 'sm'
-
-// Which side the panel opens on, and the origin its entry grows from. Keyed
-// on the placement React Aria reports rather than the one asked for, since
-// the panel flips to the opposite side when there is no room on its own.
-const origins = {
-  bottom: styles.fromTop,
-  center: styles.fromTop,
-  left: styles.fromRight,
-  right: styles.fromLeft,
-  top: styles.fromBottom,
-}
 
 // `size` and `modal` are declared on the root, where a reader expects to set
 // the shape of the whole popover, but it is `Popover.Content` that has to
@@ -276,9 +220,10 @@ function PopoverContent({
       {...mergeStatefulStyles(
         (state: PopoverRenderProps) =>
           stylex.props(
-            styles.popup,
+            overlay.popup,
+            styles.content,
             styles[size],
-            origins[state.placement ?? 'bottom'],
+            popupOrigin(state.placement),
           ),
         { className, style },
       )}
@@ -286,7 +231,7 @@ function PopoverContent({
       <Dialog
         aria-describedby={described ? descriptionId : undefined}
         {...props}
-        {...stylex.props(styles.dialog)}
+        {...stylex.props(overlay.popupDialog)}
       >
         <DescriptionContext value={description}>{children}</DescriptionContext>
       </Dialog>
