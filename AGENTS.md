@@ -70,6 +70,12 @@ Specific to this repository:
   `src/theming/showcase.tsx`** — see "Previewing" below for what that page
   catches that its own stories cannot.
 - Public API is exported from `src/index.ts`.
+- **Shared internals live beside `src/components`, never inside it**:
+  `src/render` for the render helpers, `src/styles` for the merge helpers,
+  `src/hooks`, and `src/field` for the chrome every field renders through. A
+  directory under `src/components` is a public component, with stories, a barrel
+  entry and a `styling.test.tsx` case, and an internal module there would look
+  like one that forgot all three.
 - **The `exports` map says `default`, not `import`, and that is what keeps
   CommonJS working.** The package ships ESM only. Under a `default` condition
   Node resolves the ESM file for a `require()` too and serves it through
@@ -568,6 +574,59 @@ Write branch commits conventionally anyway. They are what a reviewer reads while
 the pull request is open, even though only the title survives the merge. That
 title is what a released changelog is made of —
 `feat(sheet): add Sheet component`.
+
+### Pull request bodies
+
+**A pull request that changes what a component renders carries screenshots of
+every story it touches, in both themes.** A change to an existing component
+carries a before and an after, side by side; a new component carries the after
+alone. The reviewer approves what a consumer will see, and a diff of StyleX
+declarations does not show it — a Chromatic build does, but only after the
+reviewer has already read the description, and only in the Chromatic UI.
+
+Capture them yourself, with whatever the session has: the in-app browser, or
+Playwright from `node_modules` run from a scratch file outside the repository.
+Do not add a capture script to the repository for it, and do not ask a person
+for the images — the rule is about what a reviewer sees, not about tooling. The
+story alone is the subject, so load the preview iframe rather than the manager:
+`http://localhost:<port>/iframe.html?viewMode=story&id=<story-id>`, with
+`&globals=theme:light` and `&globals=theme:dark` for the two themes, full page,
+at 2x so the capture reads on a retina screen. Storybook's story id is the one
+in its URL — `Components/TextField` becomes `components-textfield--overview`.
+
+"Before" comes from `main`. Check it out, or a worktree of it, and capture from
+a Storybook serving that tree; the dev server reloads on a checkout, so one
+server can serve both captures if the branch is switched underneath it and given
+a moment. "After" comes from the branch. Captures go under `.context/`, which is
+ignored so they never land in a commit; the pull request is where they belong,
+uploaded when it is opened.
+
+## Working the coverage plan
+
+The [Kanso Labs project](https://github.com/orgs/kanso-labs/projects/1) holds
+the plan to give the library a component for every React Aria Components export:
+one issue per pull request, from #520 on, and a draft item per decision the plan
+rested on, each of which records the choice taken. Every item carries a Phase, a
+Kind, an Area and a Size; the Roadmap view is the board by phase, and each issue
+names what it depends on.
+
+Items are worked in phase order, and the project is kept current as they are:
+
+- Starting an item sets its Status to In Progress. Its pull request closes it
+  with `Closes #N`, and the project's own workflow moves it to Done when that
+  pull request merges — nothing else needs to move it.
+- Each item branches from `main`, unless its "Depends on" names a branch that
+  has not merged yet, and its pull request title is the issue title, which is
+  already the Conventional Commit the changelog wants.
+- A pull request that changes an existing component follows "Pull request
+  bodies" above: before from `main`, after from the branch, both themes.
+- A decision an item assumes is already taken. It is recorded on the decision's
+  draft item and repeated, struck through, under the issue's "Depends on"; read
+  it there rather than reopening it.
+
+Phase 0 is serial, since each refactor feeds the next; from Phase 1 on, items
+within a phase are independent unless an issue says otherwise, so they can run
+in parallel worktrees.
 
 ## Traps
 
