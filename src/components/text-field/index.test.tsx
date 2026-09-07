@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import TextField from '.'
@@ -119,23 +119,32 @@ describe('text field', () => {
     // The label's colour follows the field's focus, which StyleX cannot
     // express: the label is the input's sibling, so `:focus-within` on the
     // label never matches. It comes from the box's own focus state instead,
-    // and this is what proves that state follows the input.
+    // and this is what proves that state follows the input. Focus is moved
+    // for real rather than fired as an event: React Aria ignores a focus
+    // event whose target is not the active element, so a synthetic one never
+    // reaches the state.
     it('turns the label the primary colour while focused', () => {
       const { input, label } = setup()
       expect(hasClasses(label, CLASSES.mutedLabel)).toBe(true)
 
-      fireEvent.focus(input)
+      act(() => {
+        input.focus()
+      })
       expect(hasClasses(label, CLASSES.focusedLabel)).toBe(true)
       expect(hasClasses(label, CLASSES.mutedLabel)).toBe(false)
 
-      fireEvent.blur(input)
+      act(() => {
+        input.blur()
+      })
       expect(hasClasses(label, CLASSES.mutedLabel)).toBe(true)
     })
 
     it('keeps the label in the error colour even while focused', () => {
       const view = render(<TextField error="Enter a value." label="Label" />)
       const input = view.getByLabelText('Label')
-      fireEvent.focus(input)
+      act(() => {
+        input.focus()
+      })
 
       const label = view.getByText('Label')
       expect(hasClasses(label, CLASSES.errorText)).toBe(true)
