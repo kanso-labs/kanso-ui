@@ -71,7 +71,8 @@ Specific to this repository:
   catches that its own stories cannot.
 - Public API is exported from `src/index.ts`.
 - **Shared internals live beside `src/components`, never inside it**:
-  `src/render` for the render helpers, `src/styles` for the merge helpers,
+  `src/render` for the render helpers, `src/styles` for the merge helpers and
+  the styles more than one component draws (`overlay.ts`, `ripple.ts`),
   `src/hooks`, and `src/field` for the chrome every field renders through. A
   directory under `src/components` is a public component, with stories, a barrel
   entry and a `styling.test.tsx` case, and an internal module there would look
