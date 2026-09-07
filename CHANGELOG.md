@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.3](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.2...kanso-ui-v0.12.3) (2026-09-07)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.20 ([#517](https://github.com/kanso-labs/kanso-ui/issues/517)) ([3d55d85](https://github.com/kanso-labs/kanso-ui/commit/3d55d85df6a69cd1ef2a245cd7deaae9d5a677f6))
+* update dependency @rolldown/plugin-babel to v0.2.4 ([#516](https://github.com/kanso-labs/kanso-ui/issues/516)) ([62e6178](https://github.com/kanso-labs/kanso-ui/commit/62e6178e9985650a190e6866452325752a80ff60))
+* update dependency playwright to v1.63.0 ([#510](https://github.com/kanso-labs/kanso-ui/issues/510)) ([989c4a4](https://github.com/kanso-labs/kanso-ui/commit/989c4a41083b9bf81e9baa2c1baa2df76ba07ed4))
+* update dependency style-dictionary to v5.5.3 ([#514](https://github.com/kanso-labs/kanso-ui/issues/514)) ([7bfa378](https://github.com/kanso-labs/kanso-ui/commit/7bfa3782c198fa7e02b3bb9b582de2490c52b001))
+
 ## [0.12.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.1...kanso-ui-v0.12.2) (2026-09-06)
 
 
