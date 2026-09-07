@@ -70,6 +70,19 @@ Specific to this repository:
   `src/theming/showcase.tsx`** — see "Previewing" below for what that page
   catches that its own stories cannot.
 - Public API is exported from `src/index.ts`.
+- **Every component follows its Material 3 spec page**, at
+  `https://m3.material.io/components/<component>/specs`: the container heights
+  and widths, corner shapes, paddings, icon sizes, type roles and colour roles
+  the page gives, in every state it lists. The tokens are the spec's tokens, so
+  a value that matches the spec is a token and a literal is usually a sign of
+  drift. Where a component has no Material counterpart — `Code`, `Keycap`,
+  `CopyField`, the layouts — follow the nearest one's metrics and say which in
+  the component's comment. A deliberate departure from the spec is written down
+  in the component's comment with the reason, and shown in its stories, so the
+  next reader can tell a decision from a mistake. Where a page gives two sets of
+  values, M3 and M3 Expressive, the Expressive one is the spec: it is what the
+  page recommends, and it is what the sizes and app bar heights here already
+  follow.
 - **Shared internals live beside `src/components`, never inside it**:
   `src/render` for the render helpers, `src/styles` for the merge helpers and
   the styles more than one component draws (`overlay.ts`, `ripple.ts`),
