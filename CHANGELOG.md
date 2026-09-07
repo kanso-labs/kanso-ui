@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.4...kanso-ui-v0.13.0) (2026-09-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* move Link and Separator to React Aria ([#577](https://github.com/kanso-labs/kanso-ui/issues/577))
+
+### Features
+
+* move Link and Separator to React Aria ([#577](https://github.com/kanso-labs/kanso-ui/issues/577)) ([a82808a](https://github.com/kanso-labs/kanso-ui/commit/a82808a59fda71ef8b4514f684328211cade2ab3))
+
 ## [0.12.4](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.3...kanso-ui-v0.12.4) (2026-09-07)
 
 
