@@ -9,14 +9,18 @@ import { rippleStyles } from '../../styles/ripple'
 import { colors } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
-// The tonal assertions compare against an element styled straight from the
-// tokens rather than against hex literals, so they pin which colour role the
-// variant reaches for without also pinning what that role happens to resolve
-// to today.
+// The variant assertions compare against an element styled straight from
+// the tokens rather than against hex literals, so they pin which colour role
+// the variant reaches for without also pinning what that role happens to
+// resolve to today. The pairs are the buttons spec page's.
 const tokenProbeStyles = stylex.create({
+  outlinedPair: {
+    borderColor: colors.outlineVariant,
+    color: colors.onSurfaceVariant,
+  },
   tonalPair: {
-    backgroundColor: colors.primaryContainer,
-    color: colors.onPrimaryContainer,
+    backgroundColor: colors.secondaryContainer,
+    color: colors.onSecondaryContainer,
   },
 })
 
@@ -174,7 +178,7 @@ describe('appearance', () => {
     )
   })
 
-  it('paints the tonal variant with the primary container pair', () => {
+  it('paints the tonal variant with the secondary container pair', () => {
     const probe = render(
       <div data-testid="probe" {...stylex.props(tokenProbeStyles.tonalPair)} />,
     )
@@ -194,6 +198,33 @@ describe('appearance', () => {
     // the two assertions above would pass on any variant that happens to
     // share a computed value.
     expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
+  // The outlined button's container is invisible at rest, so its border and
+  // its label are the two roles that identify it.
+  it('draws the outlined variant with the outline variant and on surface variant pair', () => {
+    const probe = render(
+      <div
+        data-testid="probe"
+        {...stylex.props(tokenProbeStyles.outlinedPair)}
+      />,
+    )
+    const expected = getComputedStyle(probe.getByTestId('probe'))
+    const { borderColor, color } = {
+      borderColor: expected.borderColor,
+      color: expected.color,
+    }
+    probe.unmount()
+
+    const { button } = setup({ variant: 'outlined' })
+    const actual = getComputedStyle(button)
+
+    expect(actual.borderTopColor).toBe(borderColor)
+    expect(actual.color).toBe(color)
+    expect(actual.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    // Guards the comparison: the two roles must differ from each other, or a
+    // button painting both from one role would pass.
+    expect(borderColor).not.toBe(color)
   })
 })
 
