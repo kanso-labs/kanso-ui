@@ -518,9 +518,9 @@ const stateLayerOpacity = stylex.defineVars({
   disabledContainer: 'var(--kui-state-layer-opacity-disabled-container, 0.12)',
   disabledContent: 'var(--kui-state-layer-opacity-disabled-content, 0.38)',
   dragged: 'var(--kui-state-layer-opacity-dragged, 0.16)',
-  focus: 'var(--kui-state-layer-opacity-focus, 0.12)',
+  focus: 'var(--kui-state-layer-opacity-focus, 0.1)',
   hover: 'var(--kui-state-layer-opacity-hover, 0.08)',
-  pressed: 'var(--kui-state-layer-opacity-pressed, 0.12)',
+  pressed: 'var(--kui-state-layer-opacity-pressed, 0.1)',
 })
 
 export { stateLayerOpacity }

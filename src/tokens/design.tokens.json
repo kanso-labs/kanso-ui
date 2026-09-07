@@ -575,10 +575,10 @@
   },
   "stateLayerOpacity": {
     "$type": "number",
-    "$description": "Verified state-layer opacities for hover/focus/pressed/dragged, plus disabled container/content. Consumers composite the relevant 'on-*' color over the container color at this opacity — e.g. a filled button's hover state is onPrimary painted over primary at hoverOpacity, not a separate discrete color.",
+    "$description": "State-layer opacities from the Material 3 spec pages (the icon buttons page lists them): hover 8%, focus 10%, pressed 10%, dragged 16%, plus the disabled container at 12% and disabled content at 38%. Focus and pressed were 12%, the values Material published first; the current pages give 10%. Consumers composite the relevant 'on-*' color over the container color at this opacity — e.g. a filled button's hover state is onPrimary painted over primary at hoverOpacity, not a separate discrete color.",
     "hover": { "$value": 0.08 },
-    "focus": { "$value": 0.12 },
-    "pressed": { "$value": 0.12 },
+    "focus": { "$value": 0.1 },
+    "pressed": { "$value": 0.1 },
     "dragged": { "$value": 0.16 },
     "disabledContainer": { "$value": 0.12 },
     "disabledContent": { "$value": 0.38 }
