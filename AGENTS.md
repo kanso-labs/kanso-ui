@@ -101,9 +101,12 @@ Specific to this repository:
   `src/render/aria.tsx`. An overlay's trigger is a `Button` placed directly
   inside `Sheet` or `Popover`, and its close button is any button given
   `slot="close"`, both wired through React Aria's contexts rather than a part of
-  ours. And it stamps `data-rac` on what it renders; never assert on it. The
-  `useRender` the non-interactive components use is ours, in
-  `src/render/useRender.tsx`, so a `render` prop there still takes an element.
+  ours. And it stamps `data-rac` on what it renders; never assert on it. `Link`
+  and `Separator` are React Aria's too, though neither looks interactive: that
+  is what lets a `Menu`, `Toolbar` or `Breadcrumbs` reach them through context,
+  and why their `render` is React Aria's function form. The `useRender` the
+  non-interactive components use is ours, in `src/render/useRender.tsx`, so a
+  `render` prop there still takes an element.
 - **Every element the library renders sets `boxSizing: 'border-box'`** in the
   style that is always applied to it, and any internal element carrying padding,
   a border, or an explicit size does too. The library ships no reset, so without

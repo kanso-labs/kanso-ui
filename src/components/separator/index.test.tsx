@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
+import { SeparatorContext } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import Separator from '.'
@@ -22,6 +23,10 @@ const styles = stylex.create({
 })
 
 const HARNESS_HEIGHT = '48px'
+
+// Hoisted rather than written at the prop, which is what react-perf's
+// no-new-object-as-prop is after.
+const FROM_CONTEXT = { id: 'from-context' }
 
 function setup(props: Parameters<typeof Separator>[0] = {}) {
   const view = render(
@@ -68,16 +73,41 @@ describe('separator', () => {
     expect(expected).not.toBe('rgba(0, 0, 0, 0)')
   })
 
-  // aria-orientation is spelled out in both directions rather than leaving
-  // the horizontal case to the role's implicit value. That is worth pinning
-  // because it is what makes the orientation prop drive the accessibility
-  // tree, not only which side the rule is drawn on.
-  it('reflects its orientation for assistive technology', () => {
-    const { separator, unmount } = setup({ orientation: 'vertical' })
-    expect(separator.getAttribute('aria-orientation')).toBe('vertical')
-    unmount()
+  // The orientation drives the accessibility tree, not only which side the
+  // rule is drawn on. Horizontal is an <hr>, whose role and orientation are
+  // implicit; vertical has to be a <div> told both, since an <hr> is
+  // horizontal by definition.
+  describe('orientation', () => {
+    it('renders a horizontal rule with the semantics an hr carries', () => {
+      const { separator } = setup()
+      expect(separator.tagName).toBe('HR')
+      expect(separator.hasAttribute('aria-orientation')).toBe(false)
+    })
 
-    const { separator: horizontal } = setup()
-    expect(horizontal.getAttribute('aria-orientation')).toBe('horizontal')
+    it('renders a vertical rule as a div told its orientation', () => {
+      const { separator } = setup({ orientation: 'vertical' })
+      expect(separator.tagName).toBe('DIV')
+      expect(separator.getAttribute('role')).toBe('separator')
+      expect(separator.getAttribute('aria-orientation')).toBe('vertical')
+    })
+
+    it('renders a different element when asked', () => {
+      const { separator } = setup({ elementType: 'div' })
+      expect(separator.tagName).toBe('DIV')
+      expect(separator.getAttribute('role')).toBe('separator')
+    })
+  })
+
+  // The reason this is React Aria's Separator rather than a styled element of
+  // the library's own: a Menu or Toolbar around it hands props down through
+  // this context, and a separator that ignored them would sit outside the
+  // collection it divides.
+  it('takes props a parent hands down through context', () => {
+    const view = render(
+      <SeparatorContext value={FROM_CONTEXT}>
+        <Separator />
+      </SeparatorContext>,
+    )
+    expect(view.getByRole('separator').id).toBe('from-context')
   })
 })

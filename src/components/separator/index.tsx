@@ -1,8 +1,8 @@
+import type { SeparatorProps as RACSeparatorProps } from 'react-aria-components'
+
 import * as stylex from '@stylexjs/stylex'
+import { Separator as RACSeparator } from 'react-aria-components'
 
-import type { RenderComponentProps } from '../../render/useRender'
-
-import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors } from '../../tokens/design.tokens.stylex'
 
@@ -14,6 +14,9 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // Drawn as a background on a 1px box rather than as a border, so the rule is
 // the element itself. A border would leave the element's own box at zero
 // size, which makes it invisible to flex `gap` and to anything measuring it.
+// The horizontal element is an <hr>, which arrives with a border and a
+// margin of its own; both are zeroed here so it is the same 1px box a <div>
+// would be.
 //
 // Vertical has no length of its own. `alignSelf: stretch` takes it from the
 // flex or grid parent, since a divider between two rows should match
@@ -38,7 +41,7 @@ const styles = stylex.create({
   },
 })
 
-type SeparatorProps = RenderComponentProps<'div'> & {
+type SeparatorProps = Omit<RACSeparatorProps, 'orientation'> & {
   /**
    * Which way the rule runs. A vertical separator takes its length from a
    * flex or grid parent and has none of its own.
@@ -49,29 +52,24 @@ type SeparatorProps = RenderComponentProps<'div'> & {
 
 /**
  * A 1px rule between items. The orientation drives the accessibility tree as
- * well as which side the rule is drawn on: `aria-orientation` is spelled out
- * in both directions rather than leaving the horizontal case to the role's
- * implicit value.
+ * well as which side the rule is drawn on: horizontal renders an `<hr>`,
+ * whose role and orientation are implicit, and vertical a `<div>` given the
+ * separator role and `aria-orientation="vertical"`.
  *
- * A styled element rather than a primitive from the behaviour library: a
- * separator has no behaviour, and the library's own would drop the
- * `aria-orientation` written here on its way to the DOM.
+ * React Aria's rather than a styled element of the library's own, so a
+ * `Menu` or `Toolbar` around it reaches it through context — a separator
+ * between menu items is part of the collection, and one in a toolbar takes
+ * the toolbar's orientation. `elementType` picks a different element, and
+ * `render` is React Aria's function form.
  */
-function Separator({
-  orientation = 'horizontal',
-  render,
-  ...props
-}: SeparatorProps) {
-  return useRender({
-    defaultTagName: 'div',
-    props: {
-      'aria-orientation': orientation,
-      role: 'separator',
-      ...props,
-      ...mergeStyles(stylex.props(styles.base, styles[orientation]), props),
-    },
-    render,
-  })
+function Separator({ orientation = 'horizontal', ...props }: SeparatorProps) {
+  return (
+    <RACSeparator
+      orientation={orientation}
+      {...props}
+      {...mergeStyles(stylex.props(styles.base, styles[orientation]), props)}
+    />
+  )
 }
 
 export type { SeparatorProps }
