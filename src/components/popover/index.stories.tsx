@@ -291,8 +291,13 @@ const OpensAndCloses: Story = {
     })
 
     // Focus goes back to the trigger rather than to the top of the page,
-    // which is what lets a keyboard carry on from where it was.
-    await expect(document.activeElement).toBe(trigger)
+    // which is what lets a keyboard carry on from where it was. React Aria
+    // restores it a frame after the panel unmounts, so the panel being gone
+    // does not mean focus has landed yet — reading it straight away caught
+    // the trigger under Chromium 152 and `<body>` under 153.
+    await waitFor(async () => {
+      await expect(document.activeElement).toBe(trigger)
+    })
     await expect(trigger.getAttribute('aria-expanded')).toBe('false')
   },
   render: (args) => (
