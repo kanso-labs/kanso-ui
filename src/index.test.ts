@@ -1,3 +1,4 @@
+import * as reactAria from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import * as publicApi from '.'
@@ -40,25 +41,50 @@ describe('package entry point', () => {
       'Card',
       'Chip',
       'Code',
+      'Collection',
       'Container',
       'CopyField',
       'Currency',
+      'DIRECTORY_DRAG_TYPE',
       'Feed',
+      'Focusable',
+      'GridLayout',
+      'I18nProvider',
       'IconButton',
       'Keycap',
       'Link',
       'ListDetail',
       'ListItem',
+      'ListLayout',
       'Popover',
+      'Pressable',
       'ProductIcon',
+      'RouterProvider',
       'Separator',
       'Sheet',
       'Stack',
       'SupportingPane',
+      'TableLayout',
       'Tabs',
       'Tag',
       'Text',
       'TextField',
+      'Virtualizer',
+      'VisuallyHidden',
+      'WaterfallLayout',
+      'getColorChannels',
+      'isDirectoryDropItem',
+      'isFileDropItem',
+      'isTextDropItem',
+      'parseColor',
+      'useAsyncList',
+      'useDrag',
+      'useDragAndDrop',
+      'useDrop',
+      'useFilter',
+      'useListData',
+      'useLocale',
+      'useTreeData',
     ])
   })
 
@@ -161,4 +187,50 @@ describe('package entry point', () => {
   it('forwards TextField as the same reference as the components barrel', () => {
     expect(publicApi.TextField).toBe(ComponentsTextField)
   })
+
+  // Every utility is React Aria's own object, not a wrapper: a consumer's
+  // `I18nProvider` from here has to be the one the components read, or the
+  // locale it sets never reaches them. Written as static property reads
+  // rather than a name list, so a name missing from either side fails to
+  // compile rather than comparing two undefineds.
+  const REACT_ARIA_UTILITIES = {
+    Collection: [publicApi.Collection, reactAria.Collection],
+    DIRECTORY_DRAG_TYPE: [
+      publicApi.DIRECTORY_DRAG_TYPE,
+      reactAria.DIRECTORY_DRAG_TYPE,
+    ],
+    Focusable: [publicApi.Focusable, reactAria.Focusable],
+    getColorChannels: [publicApi.getColorChannels, reactAria.getColorChannels],
+    GridLayout: [publicApi.GridLayout, reactAria.GridLayout],
+    I18nProvider: [publicApi.I18nProvider, reactAria.I18nProvider],
+    isDirectoryDropItem: [
+      publicApi.isDirectoryDropItem,
+      reactAria.isDirectoryDropItem,
+    ],
+    isFileDropItem: [publicApi.isFileDropItem, reactAria.isFileDropItem],
+    isTextDropItem: [publicApi.isTextDropItem, reactAria.isTextDropItem],
+    ListLayout: [publicApi.ListLayout, reactAria.ListLayout],
+    parseColor: [publicApi.parseColor, reactAria.parseColor],
+    Pressable: [publicApi.Pressable, reactAria.Pressable],
+    RouterProvider: [publicApi.RouterProvider, reactAria.RouterProvider],
+    TableLayout: [publicApi.TableLayout, reactAria.TableLayout],
+    useAsyncList: [publicApi.useAsyncList, reactAria.useAsyncList],
+    useDrag: [publicApi.useDrag, reactAria.useDrag],
+    useDragAndDrop: [publicApi.useDragAndDrop, reactAria.useDragAndDrop],
+    useDrop: [publicApi.useDrop, reactAria.useDrop],
+    useFilter: [publicApi.useFilter, reactAria.useFilter],
+    useListData: [publicApi.useListData, reactAria.useListData],
+    useLocale: [publicApi.useLocale, reactAria.useLocale],
+    useTreeData: [publicApi.useTreeData, reactAria.useTreeData],
+    Virtualizer: [publicApi.Virtualizer, reactAria.Virtualizer],
+    VisuallyHidden: [publicApi.VisuallyHidden, reactAria.VisuallyHidden],
+    WaterfallLayout: [publicApi.WaterfallLayout, reactAria.WaterfallLayout],
+  }
+
+  it.each(Object.entries(REACT_ARIA_UTILITIES))(
+    'forwards %s as the same reference as react-aria-components',
+    (_name, [ours, theirs]) => {
+      expect(ours).toBe(theirs)
+    },
+  )
 })

@@ -50,6 +50,27 @@ StyleX compiles the library's own rules into a CSS `@layer`, and your app's
 stylesheet is unlayered, so your rules win the cascade wherever the two meet —
 no specificity contest, and no `!important`.
 
+### React Aria utilities
+
+The components are built on
+[React Aria Components](https://react-aria.adobe.com), and the utilities an app
+needs around them come from this package too: `I18nProvider` and
+`RouterProvider`, `Collection`, `VisuallyHidden`, `Focusable` and `Pressable`,
+`Virtualizer` with its layouts, the `useFilter`, `useListData`, `useTreeData`
+and `useAsyncList` hooks, `useDragAndDrop` with `useDrag`, `useDrop` and the
+drop item guards, `useLocale`, `parseColor` and `getColorChannels`, and the
+`Key`, `Selection`, `SortDescriptor` and `PressEvent` types.
+
+```tsx
+import { I18nProvider, useListData } from '@kanso-labs/kanso-ui'
+```
+
+**Do not install `react-aria-components` alongside this package.** A second copy
+of the library carries a second set of contexts, and the two never meet: a
+`Button` placed inside a `Sheet` from this package opens nothing when the
+trigger context it looks for belongs to your copy. Everything above is the same
+object the components use, which is what keeps them talking to each other.
+
 ### Layout
 
 `Container` centres content at a measure, and `Stack` puts one gap from the
