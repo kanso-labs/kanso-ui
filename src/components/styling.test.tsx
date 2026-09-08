@@ -22,6 +22,8 @@ import {
   ListItem,
   Popover,
   ProductIcon,
+  Radio,
+  RadioGroup,
   Separator,
   Sheet,
   SupportingPane,
@@ -126,6 +128,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Popover.Title',
   },
   { element: <ProductIcon {...PROBE} name="Label" />, name: 'ProductIcon' },
+  {
+    element: (
+      <RadioGroup label="Label">
+        <Radio {...PROBE} value="first">
+          Label
+        </Radio>
+      </RadioGroup>
+    ),
+    name: 'Radio',
+  },
+  { element: <RadioGroup {...PROBE} label="Label" />, name: 'RadioGroup' },
   { element: <Separator {...PROBE} />, name: 'Separator' },
   {
     element: (

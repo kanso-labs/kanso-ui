@@ -19,6 +19,7 @@ import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
 import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
+import type { RadioGroupProps, RadioProps } from './radio-group'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { StackProps } from './stack'
@@ -48,6 +49,7 @@ import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
+import RadioGroupDefault, { Radio } from './radio-group'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import StackDefault from './stack'
@@ -79,6 +81,8 @@ describe('components barrel', () => {
       'ListItem',
       'Popover',
       'ProductIcon',
+      'Radio',
+      'RadioGroup',
       'Separator',
       'Sheet',
       'Stack',
@@ -196,6 +200,14 @@ describe('components barrel', () => {
 
   it('re-exports CheckboxGroup as the same reference as its own module', () => {
     expect(components.CheckboxGroup).toBe(CheckboxGroupDefault)
+  })
+
+  it('re-exports RadioGroup as the same reference as its own module', () => {
+    expect(components.RadioGroup).toBe(RadioGroupDefault)
+  })
+
+  it('re-exports Radio as the same reference as its own module', () => {
+    expect(components.Radio).toBe(Radio)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -331,5 +343,15 @@ describe('components barrel', () => {
   it('re-exports the CheckboxGroupProps type', () => {
     const props: CheckboxGroupProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the RadioGroupProps type', () => {
+    const props: RadioGroupProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the RadioProps type', () => {
+    const props: RadioProps = { value: 'first' }
+    expect(props.value).toBe('first')
   })
 })

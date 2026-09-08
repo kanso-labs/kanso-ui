@@ -22,6 +22,8 @@ import {
   ListItem as ComponentsListItem,
   Popover as ComponentsPopover,
   ProductIcon as ComponentsProductIcon,
+  Radio as ComponentsRadio,
+  RadioGroup as ComponentsRadioGroup,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
   Stack as ComponentsStack,
@@ -63,6 +65,8 @@ describe('package entry point', () => {
       'Popover',
       'Pressable',
       'ProductIcon',
+      'Radio',
+      'RadioGroup',
       'RouterProvider',
       'Separator',
       'Sheet',
@@ -198,6 +202,14 @@ describe('package entry point', () => {
 
   it('forwards CheckboxGroup as the same reference as the components barrel', () => {
     expect(publicApi.CheckboxGroup).toBe(ComponentsCheckboxGroup)
+  })
+
+  it('forwards RadioGroup as the same reference as the components barrel', () => {
+    expect(publicApi.RadioGroup).toBe(ComponentsRadioGroup)
+  })
+
+  it('forwards Radio as the same reference as the components barrel', () => {
+    expect(publicApi.Radio).toBe(ComponentsRadio)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
