@@ -97,7 +97,7 @@ const Overview: Story = {
           Button
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          The four emphasis levels of the design's button, at four control
+          The four emphasis levels of the design's button, at five control
           heights.
         </Text>
       </header>
@@ -151,10 +151,10 @@ const Overview: Story = {
             Sizes
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Fixed control heights from the design rather than steps of the
-            spacing scale. Each takes the size and line-height of a type style
-            but never its font or weight, so an xl button still reads as a
-            button.
+            The buttons page's five sizes, XS to XL. Each takes the type role
+            the page gives it, label-large for the two small sizes and then
+            title-medium, headline-small and headline-large, and its own inline
+            padding; md is the page's default.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -179,7 +179,13 @@ const Overview: Story = {
           <div {...stylex.props(styles.sample)}>
             <Button size="xl">Button</Button>
             <Text tone="muted" variant="labelSmall">
-              xl · 80px
+              xl · 96px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button size="xxl">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              xxl · 136px
             </Text>
           </div>
         </div>
