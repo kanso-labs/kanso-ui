@@ -226,6 +226,44 @@ own. One fetch per file, once collection has transformed everything the file
 imports, is what makes those rules present rather than imminent. Do not swap it
 for a wait.
 
+**A filtered run can open with Vite's error overlay in every story, and
+`errorRecovery` in `vite.config.ts` is what stops it.** The symptom is every
+story in a file failing the a11y check with
+`Expected the HTML found at $('vite-error-overlay,.stack') to have no violations`,
+a handful of `[vite] Internal server error: Invalid empty selector` lines
+printed in the same second, each with a stack that ends in the plugin's
+stylesheet middleware. The error is lightningcss rejecting the stylesheet the
+StyleX plugin assembles for `/virtual:stylex.css`, which is built from whatever
+modules the plugin has transformed so far. The `media` queries the pane layouts
+and Sheet key their styles on are `defineConsts`, and those compile into each
+consumer as a `var(--hash)` placeholder that is only substituted once the tokens
+module's own rules have been collected. That module is the largest file the
+plugin handles, so on a cold start it lands last, and an answer assembled in
+between holds `var(--x){.x.x{display:block}}` — an empty selector as far as the
+parser is concerned. The plugin answers 500, Vite broadcasts its overlay to
+every open iframe, and axe finds it in each of them. The window is a couple of
+hundred milliseconds long and closes for good once the tokens are in, since the
+plugin's store is shared by both projects and keeps a module's rules for the
+life of the process — which is why it lands on runs whose first files import
+those components. Before the workaround,
+`npx vitest run src/components/supporting-pane src/components/list-detail src/components/styling.test.tsx`
+failed seven runs in ten; each story file alone passed, and `npm test` never
+failed, since the files it runs first have the tokens transformed long before it
+reaches the panes.
+
+`errorRecovery` has lightningcss drop the rules it cannot parse rather than
+reject the stylesheet, so an intermediate answer is incomplete instead of an
+error, and the runtime's next refetch — the one the plugin triggers when the
+tokens land, the same path every late rule reaches the page by — replaces it.
+Nothing a test observes changes: a story renders only after its module graph has
+loaded, and a spec's `beforeAll` fetch runs after collection, so both read a
+stylesheet the tokens are already in. It is scoped to the dev server because a
+build's stylesheet is final and has to parse; `storybook build` and tsdown keep
+lightningcss strict. The cause is upstream, in `@stylexjs/unplugin` serving an
+unfinished stylesheet as though it were whole, so this is a workaround rather
+than a fix: keep it until a plugin release either resolves the constants at
+compile time or stops throwing on a partial store.
+
 ### Sample copy
 
 kanso-ui is a general-purpose library, so the text inside stories, tests, and
