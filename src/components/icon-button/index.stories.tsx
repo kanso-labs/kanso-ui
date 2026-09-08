@@ -23,7 +23,7 @@ const styles = stylex.create({
     gap: spacing.xs,
   },
   // Sized in `em` so it follows the button's own type size, which is what
-  // makes one icon serve all three sizes.
+  // makes one icon serve all five sizes.
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
@@ -153,9 +153,10 @@ const Overview: Story = {
             Sizes
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same three heights Button uses, so the two line up beside each
-            other in a row. One icon serves all three: it is drawn in `em`, so
-            it scales with the button rather than needing a size of its own.
+            The icon buttons page's five sizes, XS to XL, which are the heights
+            Button uses, so the two line up beside each other in a row. One icon
+            serves all five: it is drawn in `em`, so it takes the icon size the
+            page gives each container, 20 to 40.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -181,6 +182,22 @@ const Overview: Story = {
             </IconButton>
             <Text tone="muted" variant="labelSmall">
               lg · 56px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" size="xl">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              xl · 96px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" size="xxl">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              xxl · 136px
             </Text>
           </div>
         </div>
