@@ -13,6 +13,14 @@ import {
 // so that file exports components alone, which is what keeps fast refresh
 // working for it.
 //
+// Two variants, because two spec pages draw two rows. The lists page gives a
+// list item a 56dp floor, a body-large headline and a body-medium supporting
+// line, and primary container when selected. The menus page gives a menu
+// item 48dp, a label-large label, and tertiary container when selected. The
+// layout, the padding, the state layers and the disabled treatment are one
+// row; `list` and `menu` carry only what the two pages disagree on, and a
+// consumer applies one of them beside `base`.
+//
 // Laid out with flex rather than the grid the design draws. The design's
 // three columns are `auto 1fr auto`, which is what flex does natively — and
 // unlike a fixed three-column grid it stays correct when a row has no leading
@@ -26,9 +34,7 @@ import {
 // The state layer composites over `transparent` rather than over a container
 // colour, because a row's own background is transparent and it therefore
 // tints whatever it happens to be sitting on — a card, a menu, or the page.
-// `selected` is the one state that brings a container of its own, the
-// secondary one Chip's selected state uses, so a selected row and a selected
-// chip in the same view read as the same thing.
+// The two selected states are the ones that bring a container of their own.
 const rowStyles = stylex.create({
   base: {
     alignItems: 'center',
@@ -39,7 +45,6 @@ const rowStyles = stylex.create({
     display: 'flex',
     gap: spacing.lg,
     inlineSize: '100%',
-    minBlockSize: '56px',
     paddingBlock: spacing.md,
     paddingInline: spacing.lg,
     position: 'relative',
@@ -54,7 +59,14 @@ const rowStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
   },
-  headline: {
+  headlineList: {
+    fontFamily: typography.bodyLargeFont,
+    fontSize: typography.bodyLargeSize,
+    fontWeight: typography.bodyLargeWeight,
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+  },
+  headlineMenu: {
     fontFamily: typography.labelLargeFont,
     fontSize: typography.labelLargeSize,
     fontWeight: typography.labelLargeWeight,
@@ -77,12 +89,16 @@ const rowStyles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
   },
+  // The lists page's one-line floor. A row with a supporting line grows past
+  // it to the page's 72, and one that wraps grows further; nothing truncates.
+  list: {
+    minBlockSize: '56px',
+  },
   // Prose wraps, so this column's min-content width is usually one word and
   // it shrinks happily. min-width: 0 is for the case that cannot wrap — a
   // long unbroken string, a URL, an email — where a flex item otherwise
   // refuses to go below its content's width and shoves the trailing slot off
-  // the end of the row. Nothing here truncates; a headline that needs two
-  // lines takes two, and the row grows past its 56px floor.
+  // the end of the row.
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -90,13 +106,25 @@ const rowStyles = stylex.create({
     gap: spacing.xxs,
     minInlineSize: 0,
   },
-  selected: {
+  // The menus page's item height.
+  menu: {
+    minBlockSize: '48px',
+  },
+  selectedList: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
+      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
+      default: colors.primaryContainer,
     },
-    color: colors.onSecondaryContainer,
+    color: colors.onPrimaryContainer,
+  },
+  selectedMenu: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onTertiaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.tertiaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onTertiaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.tertiaryContainer})`,
+      default: colors.tertiaryContainer,
+    },
+    color: colors.onTertiaryContainer,
   },
   slot: {
     alignItems: 'center',
@@ -105,11 +133,11 @@ const rowStyles = stylex.create({
   },
   supporting: {
     color: colors.onSurfaceVariant,
-    fontFamily: typography.bodySmallFont,
-    fontSize: typography.bodySmallSize,
-    fontWeight: typography.bodySmallWeight,
-    letterSpacing: typography.bodySmallTracking,
-    lineHeight: typography.bodySmallLineHeight,
+    fontFamily: typography.bodyMediumFont,
+    fontSize: typography.bodyMediumSize,
+    fontWeight: typography.bodyMediumWeight,
+    letterSpacing: typography.bodyMediumTracking,
+    lineHeight: typography.bodyMediumLineHeight,
   },
 })
 

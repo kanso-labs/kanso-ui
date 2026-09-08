@@ -12,9 +12,11 @@ import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ListItem from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
+  bodyLarge: { fontSize: typography.bodyLargeSize },
+  bodyMedium: { fontSize: typography.bodyMediumSize },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
 })
 
@@ -23,6 +25,13 @@ function probeColor(element: ReactElement) {
   const color = getComputedStyle(view.getByTestId('probe')).color
   view.unmount()
   return color
+}
+
+function probeFontSize(element: ReactElement) {
+  const view = render(element)
+  const size = getComputedStyle(view.getByTestId('probe')).fontSize
+  view.unmount()
+  return size
 }
 
 // Narrows with instanceof rather than an assertion, so a row that failed to
@@ -58,6 +67,27 @@ describe('list item', () => {
       )
       const text = rowIn(view.container).textContent
       expect(text).toBe('leadingheadlinesupportingtrailing')
+    })
+
+    // The lists spec page's type roles: a body-large headline over a
+    // body-medium supporting line, compared by computed size against probes
+    // styled from the tokens so a retuned scale moves both together.
+    it('sets the headline in body-large and the supporting line in body-medium', () => {
+      const headlineSize = probeFontSize(
+        <div data-testid="probe" {...stylex.props(probeStyles.bodyLarge)} />,
+      )
+      const supportingSize = probeFontSize(
+        <div data-testid="probe" {...stylex.props(probeStyles.bodyMedium)} />,
+      )
+      expect(headlineSize).not.toBe(supportingSize)
+
+      const view = render(<ListItem supporting="supporting">headline</ListItem>)
+      expect(getComputedStyle(view.getByText('headline')).fontSize).toBe(
+        headlineSize,
+      )
+      expect(getComputedStyle(view.getByText('supporting')).fontSize).toBe(
+        supportingSize,
+      )
     })
 
     it('keeps the supporting line in the muted role', () => {

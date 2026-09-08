@@ -25,10 +25,12 @@ type ListItemProps = {
 } & HTMLAttributes<HTMLElement>
 
 /**
- * A static row: the row every list draws, on its own. The layout and the
- * states are the row module's in `src/row`, shared with every collection
- * item; what is here is the element around them — a `<div>` that presents,
- * or a `<button>` that ripples — and the props that fill the slots.
+ * A static row: the row every list draws, on its own, as the lists spec page
+ * gives it — a 56px floor, a body-large headline and a body-medium
+ * supporting line. The layout and the states are the row module's in
+ * `src/row`, shared with every collection item; what is here is the element
+ * around them — a `<div>` that presents, or a `<button>` that ripples — and
+ * the props that fill the slots.
  */
 function ListItem({
   children,
@@ -48,7 +50,10 @@ function ListItem({
 
   if (!interactive) {
     return (
-      <div {...props} {...mergeStyles(stylex.props(rowStyles.base), props)}>
+      <div
+        {...props}
+        {...mergeStyles(stylex.props(rowStyles.base, rowStyles.list), props)}
+      >
         {content}
       </div>
     )
@@ -60,7 +65,7 @@ function ListItem({
       {...ripple.handlers}
       {...props}
       {...mergeStyles(
-        stylex.props(rowStyles.base, rowStyles.interactive),
+        stylex.props(rowStyles.base, rowStyles.list, rowStyles.interactive),
         props,
       )}
     >
