@@ -4,7 +4,6 @@ import * as publicApi from '.'
 import {
   AppBar as ComponentsAppBar,
   Avatar as ComponentsAvatar,
-  Badge as ComponentsBadge,
   Button as ComponentsButton,
   Card as ComponentsCard,
   Chip as ComponentsChip,
@@ -25,6 +24,7 @@ import {
   Stack as ComponentsStack,
   SupportingPane as ComponentsSupportingPane,
   Tabs as ComponentsTabs,
+  Tag as ComponentsTag,
   Text as ComponentsText,
   TextField as ComponentsTextField,
 } from './components'
@@ -36,7 +36,6 @@ describe('package entry point', () => {
     expect(Object.keys(publicApi)).toEqual([
       'AppBar',
       'Avatar',
-      'Badge',
       'Button',
       'Card',
       'Chip',
@@ -57,6 +56,7 @@ describe('package entry point', () => {
       'Stack',
       'SupportingPane',
       'Tabs',
+      'Tag',
       'Text',
       'TextField',
     ])
@@ -70,8 +70,8 @@ describe('package entry point', () => {
     expect(publicApi.Avatar).toBe(ComponentsAvatar)
   })
 
-  it('forwards Badge as the same reference as the components barrel', () => {
-    expect(publicApi.Badge).toBe(ComponentsBadge)
+  it('forwards Tag as the same reference as the components barrel', () => {
+    expect(publicApi.Tag).toBe(ComponentsTag)
   })
 
   it('forwards Button as the same reference as the components barrel', () => {

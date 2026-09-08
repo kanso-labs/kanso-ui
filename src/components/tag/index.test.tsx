@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import Badge from '.'
+import Tag from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than hex
@@ -80,48 +80,48 @@ function outlinedRoleColors() {
   return expected
 }
 
-function setup(props: Partial<Parameters<typeof Badge>[0]> = {}) {
+function setup(props: Partial<Parameters<typeof Tag>[0]> = {}) {
   const view = render(
-    <Badge data-testid="badge" {...props}>
+    <Tag data-testid="tag" {...props}>
       Label
-    </Badge>,
+    </Tag>,
   )
-  return { ...view, badge: view.getByTestId('badge') }
+  return { ...view, tag: view.getByTestId('tag') }
 }
 
 const TONES = ['negative', 'neutral', 'positive', 'primary'] as const
 
-describe('badge', () => {
+describe('tag', () => {
   describe('structure', () => {
     it('renders a span carrying its children', () => {
-      const { badge } = setup()
-      expect(badge.tagName).toBe('SPAN')
-      expect(badge.textContent).toBe('Label')
+      const { tag } = setup()
+      expect(tag.tagName).toBe('SPAN')
+      expect(tag.textContent).toBe('Label')
     })
 
     it('renders as another element when given one', () => {
-      const { badge } = setup({ render: LIST_ITEM })
-      expect(badge.tagName).toBe('LI')
-      expect(badge.textContent).toBe('Label')
+      const { tag } = setup({ render: LIST_ITEM })
+      expect(tag.tagName).toBe('LI')
+      expect(tag.textContent).toBe('Label')
     })
 
     it('passes attributes through to the element', () => {
-      const { badge } = setup({ id: 'status', title: 'Supporting line' })
-      expect(badge.id).toBe('status')
-      expect(badge.getAttribute('title')).toBe('Supporting line')
+      const { tag } = setup({ id: 'status', title: 'Supporting line' })
+      expect(tag.id).toBe('status')
+      expect(tag.getAttribute('title')).toBe('Supporting line')
     })
   })
 
   // The line between this and Chip. A chip is a two-state button and says so
-  // through aria-pressed; a badge that grew any of this would put a control
+  // through aria-pressed; a tag that grew any of this would put a control
   // in the accessibility tree that nothing can operate.
   describe('semantics', () => {
     it('takes no interaction', () => {
-      const { badge } = setup()
-      expect(badge.getAttribute('role')).toBe(null)
-      expect(badge.getAttribute('aria-pressed')).toBe(null)
-      expect(badge.getAttribute('tabindex')).toBe(null)
-      expect(badge.closest('button')).toBe(null)
+      const { tag } = setup()
+      expect(tag.getAttribute('role')).toBe(null)
+      expect(tag.getAttribute('aria-pressed')).toBe(null)
+      expect(tag.getAttribute('tabindex')).toBe(null)
+      expect(tag.closest('button')).toBe(null)
     })
   })
 
@@ -133,8 +133,8 @@ describe('badge', () => {
       expect(new Set(Object.values(expected)).size).toBe(4)
 
       for (const tone of TONES) {
-        const { badge, unmount } = setup({ tone })
-        expect(getComputedStyle(badge).color).toBe(expected[tone])
+        const { tag, unmount } = setup({ tone })
+        expect(getComputedStyle(tag).color).toBe(expected[tone])
         unmount()
       }
     })
@@ -144,8 +144,8 @@ describe('badge', () => {
       expect(new Set(Object.values(expected)).size).toBe(4)
 
       for (const tone of TONES) {
-        const { badge, unmount } = setup({ tone, variant: 'outlined' })
-        expect(getComputedStyle(badge).borderTopColor).toBe(expected[tone])
+        const { tag, unmount } = setup({ tone, variant: 'outlined' })
+        expect(getComputedStyle(tag).borderTopColor).toBe(expected[tone])
         unmount()
       }
     })
@@ -154,29 +154,29 @@ describe('badge', () => {
   describe('variant', () => {
     it('fills a container, or leaves the page showing through', () => {
       const filled = setup()
-      const filledBackground = getComputedStyle(filled.badge).backgroundColor
+      const filledBackground = getComputedStyle(filled.tag).backgroundColor
       filled.unmount()
 
       const outlined = setup({ variant: 'outlined' })
-      expect(getComputedStyle(outlined.badge).backgroundColor).toBe(
+      expect(getComputedStyle(outlined.tag).backgroundColor).toBe(
         'rgba(0, 0, 0, 0)',
       )
-      // Without this the assertion above would also pass on a filled badge
+      // Without this the assertion above would also pass on a filled tag
       // that had quietly lost its container.
       expect(filledBackground).not.toBe('rgba(0, 0, 0, 0)')
     })
 
     // Filled keeps a transparent border rather than dropping it, so
-    // emphasising one badge in a row does not nudge its neighbours.
+    // emphasising one tag in a row does not nudge its neighbours.
     it('keeps the same footprint in both variants', () => {
       const filled = setup()
-      const filledBox = filled.badge.getBoundingClientRect()
-      expect(getComputedStyle(filled.badge).borderTopWidth).toBe('1px')
+      const filledBox = filled.tag.getBoundingClientRect()
+      expect(getComputedStyle(filled.tag).borderTopWidth).toBe('1px')
       filled.unmount()
 
       const outlined = setup({ variant: 'outlined' })
-      const outlinedBox = outlined.badge.getBoundingClientRect()
-      expect(getComputedStyle(outlined.badge).borderTopWidth).toBe('1px')
+      const outlinedBox = outlined.tag.getBoundingClientRect()
+      expect(getComputedStyle(outlined.tag).borderTopWidth).toBe('1px')
 
       expect(filledBox.width).toBe(outlinedBox.width)
       expect(filledBox.height).toBe(outlinedBox.height)
@@ -184,11 +184,11 @@ describe('badge', () => {
   })
 
   describe('typography', () => {
-    // Ports, counts and versions are what a badge mostly carries, and a
+    // Ports, counts and versions are what a tag mostly carries, and a
     // column of them down a list wobbles on proportional digits.
     it('renders figures on a fixed advance', () => {
-      const { badge } = setup({ children: '01' })
-      expect(getComputedStyle(badge).fontVariantNumeric).toBe('tabular-nums')
+      const { tag } = setup({ children: '01' })
+      expect(getComputedStyle(tag).fontVariantNumeric).toBe('tabular-nums')
     })
   })
 })

@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 import {
   AppBar,
   Avatar,
-  Badge,
   Button,
   Card,
   Chip,
@@ -25,6 +24,7 @@ import {
   Sheet,
   SupportingPane,
   Tabs,
+  Tag,
   Text,
   TextField,
 } from '.'
@@ -45,7 +45,6 @@ const PROBE = { className: 'probe', style: { zIndex: 42 } }
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
-  { element: <Badge {...PROBE}>Label</Badge>, name: 'Badge' },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
   {
@@ -207,6 +206,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'Tabs.Tab',
   },
+  { element: <Tag {...PROBE}>Label</Tag>, name: 'Tag' },
   { element: <Text {...PROBE}>Headline</Text>, name: 'Text' },
   { element: <TextField {...PROBE} label="Label" />, name: 'TextField' },
 ]

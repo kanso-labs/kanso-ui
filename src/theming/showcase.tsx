@@ -16,7 +16,6 @@ import type { DemoThemeName } from './themes'
 
 import AppBar from '../components/app-bar'
 import Avatar from '../components/avatar'
-import Badge from '../components/badge'
 import Button from '../components/button'
 import Card from '../components/card'
 import Chip from '../components/chip'
@@ -37,6 +36,7 @@ import Sheet from '../components/sheet'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Tabs from '../components/tabs'
+import Tag from '../components/tag'
 import Text from '../components/text'
 import TextField from '../components/text-field'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
@@ -364,7 +364,7 @@ function Showcase({ name }: ShowcaseProps) {
                 Selection and status
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-                Chips and badges lean on the container roles, which is where a
+                Chips and tags lean on the container roles, which is where a
                 scheme's secondary and tertiary families show up.
               </Text>
             </div>
@@ -375,14 +375,14 @@ function Showcase({ name }: ShowcaseProps) {
             </div>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
-                <Badge key={tone} tone={tone}>
+                <Tag key={tone} tone={tone}>
                   Label
-                </Badge>
+                </Tag>
               ))}
               {BADGE_TONES.map((tone) => (
-                <Badge key={tone} tone={tone} variant="outlined">
+                <Tag key={tone} tone={tone} variant="outlined">
                   Label
-                </Badge>
+                </Tag>
               ))}
             </div>
           </section>
@@ -434,7 +434,7 @@ function Showcase({ name }: ShowcaseProps) {
                     </Text>
                     <div {...stylex.props(styles.row)}>
                       <Currency value={1240.5} />
-                      <Badge>Label</Badge>
+                      <Tag>Label</Tag>
                     </div>
                   </Stack>
                 </Card>

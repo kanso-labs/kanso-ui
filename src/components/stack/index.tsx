@@ -84,7 +84,7 @@ type StackProps = {
    * column, down the block axis of a row. Left unset, they stretch, which is
    * what makes every card in a column the same width.
    *
-   * `start` is what an inline-sized child needs in a column — a Badge or a
+   * `start` is what an inline-sized child needs in a column — a Tag or a
    * Chip spans the whole width otherwise.
    */
   align?: StackAlign

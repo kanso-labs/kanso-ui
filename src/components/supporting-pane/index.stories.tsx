@@ -5,9 +5,9 @@ import * as stylex from '@stylexjs/stylex'
 import SupportingPane from '.'
 import { breakpointModes } from '../../../.storybook/modes'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
-import Badge from '../badge'
 import Card from '../card'
 import Separator from '../separator'
+import Tag from '../tag'
 import Text from '../text'
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -58,7 +58,7 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.sm,
   },
-  // A flex column stretches its children, which leaves an inline-flex Badge
+  // A flex column stretches its children, which leaves an inline-flex Tag
   // spanning the pane instead of sizing to its own label.
   stackStart: {
     alignItems: 'flex-start',
@@ -100,9 +100,9 @@ function SupportingContent() {
             {label}
           </Text>
         ))}
-        <Badge tone="neutral" variant="outlined">
+        <Tag tone="neutral" variant="outlined">
           Label
-        </Badge>
+        </Tag>
       </div>
     </Card>
   )
