@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.14.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.13.0...kanso-ui-v0.14.0) (2026-09-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **button:** the spec's five sizes ([#611](https://github.com/kanso-labs/kanso-ui/issues/611))
+
+### Bug Fixes
+
+* **button:** the spec's five sizes ([#611](https://github.com/kanso-labs/kanso-ui/issues/611)) ([69e3aec](https://github.com/kanso-labs/kanso-ui/commit/69e3aec54761bac24d1ea595c00799dce16e28b6))
+* **button:** tonal and outlined on the spec's colour roles ([#610](https://github.com/kanso-labs/kanso-ui/issues/610)) ([20fe6d5](https://github.com/kanso-labs/kanso-ui/commit/20fe6d5f9a25a931f9f55b29d004710acc7b2363))
+* **card:** 12dp corner ([#613](https://github.com/kanso-labs/kanso-ui/issues/613)) ([b8f51d0](https://github.com/kanso-labs/kanso-ui/commit/b8f51d04c5b371ebc2cdc7f38b33f77b3182140c))
+* **icon-button:** tonal colour, icon sizes and the two larger sizes ([#612](https://github.com/kanso-labs/kanso-ui/issues/612)) ([c86603b](https://github.com/kanso-labs/kanso-ui/commit/c86603b93e39dc9cd58d51a68f2ec1fd0ca83614))
+* **tokens:** focus and pressed state layers at 10% ([#609](https://github.com/kanso-labs/kanso-ui/issues/609)) ([45db253](https://github.com/kanso-labs/kanso-ui/commit/45db253dabd55b7753212e2237c4eb4bcbf6c9b7))
+
+
+### Dependencies
+
+* update dependency oxfmt to v0.67.0 ([#582](https://github.com/kanso-labs/kanso-ui/issues/582)) ([7dbe920](https://github.com/kanso-labs/kanso-ui/commit/7dbe920d25faf24e9da465b1efcbd090c1be2598))
+* update dependency typescript-eslint to v8.70.0 ([#583](https://github.com/kanso-labs/kanso-ui/issues/583)) ([1666c28](https://github.com/kanso-labs/kanso-ui/commit/1666c28980f4900583efc570874ac815c135d965))
+* update oxlint to v1.82.0 ([#585](https://github.com/kanso-labs/kanso-ui/issues/585)) ([1d7e3f0](https://github.com/kanso-labs/kanso-ui/commit/1d7e3f0853d8672b1eb4ca8195262b70858f5250))
+
 ## [0.13.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.4...kanso-ui-v0.13.0) (2026-09-07)
 
 
