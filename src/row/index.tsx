@@ -13,14 +13,24 @@ interface RowContentProps {
   supporting?: ReactNode
   /** Content after the headline, such as an amount or a control. */
   trailing?: ReactNode
+  /**
+   * Which spec page's row this is. A list item's headline is body-large; a
+   * menu item's label is label-large. The element around the content applies
+   * the matching `rowStyles.list` or `rowStyles.menu` beside `rowStyles.base`.
+   * @default 'list'
+   */
+  variant?: RowVariant
 }
+
+type RowVariant = 'list' | 'menu'
 
 /**
  * The inside of a row: the leading slot, the headline with its supporting
  * line, and the trailing slot, each rendered only when given. The element
  * around it is the caller's — ListItem's div or button, a collection's item —
- * and takes `rowStyles.base` with whichever states apply; this is what every
- * one of them puts inside it, so a list, a menu and a tree draw the same row.
+ * and takes `rowStyles.base`, the variant's `rowStyles.list` or
+ * `rowStyles.menu`, and whichever states apply; this is what every one of
+ * them puts inside it, so a list, a menu and a tree draw the same row.
  *
  * Not a component of the library's own and not exported; see `src/field` for
  * the same arrangement around a field.
@@ -30,6 +40,7 @@ function RowContent({
   leading,
   supporting,
   trailing,
+  variant = 'list',
 }: RowContentProps) {
   return (
     <>
@@ -37,7 +48,15 @@ function RowContent({
         <span {...stylex.props(rowStyles.slot)}>{leading}</span>
       )}
       <span {...stylex.props(rowStyles.main)}>
-        <span {...stylex.props(rowStyles.headline)}>{children}</span>
+        <span
+          {...stylex.props(
+            variant === 'menu'
+              ? rowStyles.headlineMenu
+              : rowStyles.headlineList,
+          )}
+        >
+          {children}
+        </span>
         {supporting === undefined ? null : (
           <span {...stylex.props(rowStyles.supporting)}>{supporting}</span>
         )}
@@ -49,6 +68,6 @@ function RowContent({
   )
 }
 
-export type { RowContentProps }
+export type { RowContentProps, RowVariant }
 
 export { RowContent }
