@@ -12,9 +12,12 @@ import { colors, radii } from '../../tokens/design.tokens.stylex'
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
   onSurfaceVariant: { color: colors.onSurfaceVariant },
+  pressedLarge: { borderRadius: { ':active': radii.lg, default: radii.full } },
+  pressedMedium: { borderRadius: { ':active': radii.md, default: radii.full } },
+  pressedSmall: { borderRadius: { ':active': radii.sm, default: radii.full } },
   primary: { backgroundColor: colors.primary },
-  primaryContainer: { backgroundColor: colors.primaryContainer },
   radiusFull: { borderRadius: radii.full },
+  secondaryContainer: { backgroundColor: colors.secondaryContainer },
 })
 
 function probe(element: ReactElement) {
@@ -70,18 +73,32 @@ describe('icon button', () => {
   })
 
   describe('appearance', () => {
-    it('renders each size square at its own control height', () => {
+    // The five sizes are the icon buttons spec page's size token sets: a
+    // square container, the icon it holds, and the corner it presses to.
+    it('renders each size square, with the icon and pressed corner the spec gives it', () => {
       const sizes = [
-        ['xs', '32px'],
-        ['md', '40px'],
-        ['lg', '56px'],
+        ['xs', '32px', '20px', probeStyles.pressedSmall],
+        ['md', '40px', '24px', probeStyles.pressedSmall],
+        ['lg', '56px', '24px', probeStyles.pressedMedium],
+        ['xl', '96px', '32px', probeStyles.pressedLarge],
+        ['xxl', '136px', '40px', probeStyles.pressedLarge],
       ] as const
 
-      for (const [size, edge] of sizes) {
+      for (const [size, edge, icon, pressed] of sizes) {
         const { button, unmount } = setup({ size })
         const computed = getComputedStyle(button)
         expect(computed.width).toBe(edge)
         expect(computed.height).toBe(edge)
+        expect(computed.fontSize).toBe(icon)
+        // The pressed corner is a `:active` branch, so it is pinned by class
+        // rather than by a computed value nothing here can press for.
+        const pressedClasses = (stylex.props(pressed).className ?? '')
+          .split(' ')
+          .filter(Boolean)
+        expect(pressedClasses.length).toBeGreaterThan(0)
+        expect(
+          pressedClasses.every((name) => button.classList.contains(name)),
+        ).toBe(true)
         unmount()
       }
     })
@@ -94,7 +111,7 @@ describe('icon button', () => {
         tonal: probe(
           <div
             data-testid="probe"
-            {...stylex.props(probeStyles.primaryContainer)}
+            {...stylex.props(probeStyles.secondaryContainer)}
           />,
         ).background,
       }

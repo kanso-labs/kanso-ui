@@ -26,7 +26,8 @@ import {
 
 // Each variant composites an 'on-color' over its own container at the
 // interaction state's opacity, rather than swapping in a separate hover
-// color. calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
+// color. The pairs are the icon buttons spec page's: filled on primary,
+// tonal on secondary container, standard on surface variant over nothing. calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
 // percentage color-mix() takes. Inlined at each property rather than factored
 // into a helper: @stylexjs/babel-plugin only statically recognizes
 // expressions written directly as property values.
@@ -39,17 +40,17 @@ import {
 // pressed branches included.
 //
 // The corner softens from a circle to a rounded square while pressed, which
-// is the shape morph the source design gives this control. The two
-// transitioned properties take different curves — the colour change is
-// linear-ish and the shape change is emphasized — so the timing functions are
-// a matching comma list rather than one value.
+// is the shape morph the icon buttons spec page gives this control, at the
+// pressed corner its size token set names: 8 for the two small sizes, 12 at
+// medium, 16 at the two large. Each size carries its own pressed radius, since
+// StyleX replaces the property whole. The two transitioned properties take
+// different curves — the colour change is linear-ish and the shape change is
+// emphasized — so the timing functions are a matching comma list rather than
+// one value.
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: {
-      ':active': radii.md,
-      default: radii.full,
-    },
+    borderRadius: radii.full,
     borderWidth: 0,
     boxSizing: 'border-box',
     cursor: 'pointer',
@@ -88,22 +89,21 @@ const styles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
-  // Square, so one number sets both edges. The font size is the icon's size:
-  // it scales a font-driven glyph, and an SVG drawn in `em` follows it, which
-  // is what lets one icon serve all three buttons. An SVG given its own fixed
-  // dimensions ignores it, which is the call site's choice to make.
-  //
-  // These are control metrics rather than type, so they are literals like the
-  // heights beside them — the type scale has no 20px step, and taking its
-  // nearest sizes instead produced an icon that barely grew while the button
-  // went from 32px to 56px.
+  // Square, so one number sets both edges. The five sizes are the icon
+  // buttons spec page's, XS to XL, from its size token sets: the container,
+  // the icon it holds and the corner it presses to. The font size is the
+  // icon's size, since an icon drawn in `em` follows it: 20, 24, 24, 32 and
+  // 40, which is why the two middle sizes share one icon and the container
+  // alone grows between them.
   lg: {
     blockSize: '56px',
-    fontSize: '32px',
+    borderRadius: { ':active': radii.md, default: radii.full },
+    fontSize: '24px',
     inlineSize: '56px',
   },
   md: {
     blockSize: '40px',
+    borderRadius: { ':active': radii.sm, default: radii.full },
     fontSize: '24px',
     inlineSize: '40px',
   },
@@ -123,20 +123,33 @@ const styles = stylex.create({
   },
   tonal: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
-      default: colors.primaryContainer,
+      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: colors.secondaryContainer,
     },
-    color: colors.onPrimaryContainer,
+    color: colors.onSecondaryContainer,
   },
   tonalDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  xl: {
+    blockSize: '96px',
+    borderRadius: { ':active': radii.lg, default: radii.full },
+    fontSize: '32px',
+    inlineSize: '96px',
+  },
   xs: {
     blockSize: '32px',
+    borderRadius: { ':active': radii.sm, default: radii.full },
     fontSize: '20px',
     inlineSize: '32px',
+  },
+  xxl: {
+    blockSize: '136px',
+    borderRadius: { ':active': radii.lg, default: radii.full },
+    fontSize: '40px',
+    inlineSize: '136px',
   },
 })
 
@@ -172,11 +185,13 @@ type IconButtonProps = {
   /** The link's `rel`, when `href` is set. */
   rel?: string
   /**
-   * Control size: `xs` 32px, `md` 40px, `lg` 56px — the same heights `Button`
-   * uses, so the two line up beside each other in a row.
+   * Control size: `xs` 32px, `md` 40px, `lg` 56px, `xl` 96px, `xxl` 136px —
+   * the icon buttons spec page's XS to XL, and the same heights `Button`
+   * uses, so the two line up beside each other in a row. The icon is 20px,
+   * 24px, 24px, 32px and 40px in turn.
    * @default 'md'
    */
-  size?: 'lg' | 'md' | 'xs'
+  size?: 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
   /** A function may compute the style from the button's render state. */
   style?: StyleOrFunction<ButtonState>
   /** The link's `target`, when `href` is set. */
@@ -190,7 +205,7 @@ type IconButtonProps = {
 } & ButtonDOMProps
 
 /**
- * A button that is an icon, at three control heights. Given `href` it is a
+ * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
  * element; React Aria alone would keep only the labelling ones.
  */
