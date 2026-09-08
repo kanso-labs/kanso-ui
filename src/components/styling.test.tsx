@@ -8,6 +8,8 @@ import {
   Avatar,
   Button,
   Card,
+  Checkbox,
+  CheckboxGroup,
   Chip,
   Code,
   CopyField,
@@ -54,6 +56,11 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Card>
     ),
     name: 'Card (interactive)',
+  },
+  { element: <Checkbox {...PROBE}>Label</Checkbox>, name: 'Checkbox' },
+  {
+    element: <CheckboxGroup {...PROBE} label="Label" />,
+    name: 'CheckboxGroup',
   },
   { element: <Chip {...PROBE}>Label</Chip>, name: 'Chip' },
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },

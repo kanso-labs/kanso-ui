@@ -18,6 +18,8 @@ import AppBar from '../components/app-bar'
 import Avatar from '../components/avatar'
 import Button from '../components/button'
 import Card from '../components/card'
+import Checkbox from '../components/checkbox'
+import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import Code from '../components/code'
 import Container from '../components/container'
@@ -185,6 +187,9 @@ const AVATAR_TONES = [
 ] as const
 
 const BADGE_TONES = ['primary', 'positive', 'negative', 'neutral'] as const
+// Hoisted so it is one stable array per render, which is what react-perf's
+// no-new-array-as-prop is after.
+const SHOWCASE_SELECTION = ['second']
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
 
@@ -365,7 +370,8 @@ function Showcase({ name }: ShowcaseProps) {
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 Chips and tags lean on the container roles, which is where a
-                scheme's secondary and tertiary families show up.
+                scheme's secondary and tertiary families show up; a checkbox
+                fills with primary and draws its glyph in on primary.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -373,6 +379,13 @@ function Showcase({ name }: ShowcaseProps) {
               <Chip defaultSelected>Second item</Chip>
               <Chip>Third item</Chip>
             </div>
+            <CheckboxGroup defaultValue={SHOWCASE_SELECTION} label="Label">
+              <Checkbox value="first">First item</Checkbox>
+              <Checkbox value="second">Second item</Checkbox>
+              <Checkbox isIndeterminate value="third">
+                Third item
+              </Checkbox>
+            </CheckboxGroup>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
                 <Tag key={tone} tone={tone}>
