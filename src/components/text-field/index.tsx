@@ -20,6 +20,13 @@ type TextFieldProps = {
    */
   error?: string
   /**
+   * Whether the label sits in the empty box and floats to the top once the
+   * field is focused or holds a value, as the text fields page draws it.
+   * `false` keeps it small at the top in every state.
+   * @default true
+   */
+  floatingLabel?: boolean
+  /**
    * What the field is for. Required rather than optional: a text field with
    * no label is a box a screen reader cannot name.
    */
@@ -46,6 +53,7 @@ type TextFieldProps = {
 function TextField({
   description,
   error,
+  floatingLabel = true,
   isDisabled = false,
   label,
   numeric = false,
@@ -59,7 +67,7 @@ function TextField({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox label={label}>
+      <FieldBox floatingLabel={floatingLabel} label={label}>
         <FieldInput numeric={numeric} />
       </FieldBox>
       <FieldMessage description={description} error={error} />

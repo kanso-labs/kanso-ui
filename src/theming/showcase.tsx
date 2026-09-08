@@ -480,12 +480,14 @@ function Showcase({ name }: ShowcaseProps) {
                 Fields
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-                The filled field carries its own surface and an underline that
+                The filled field carries its own surface, a label that floats to
+                the top once the field holds a value, and an underline that
                 takes the primary role while focused, or the error role once
                 there is a message.
               </Text>
             </div>
             <Stack gap="md">
+              <TextField defaultValue="" label="Label" />
               <TextField defaultValue="Label" label="Label" />
               <TextField
                 defaultValue="01"

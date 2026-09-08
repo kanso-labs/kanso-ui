@@ -51,25 +51,45 @@ function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+function placeholderColorOf(input: HTMLElement) {
+  return getComputedStyle(input, '::placeholder').color
+}
+
+// The label moves through a transition, and a computed value read while one
+// is running is the value part way along it. Finishing every animation on the
+// element first reads the state it is heading for, without waiting for it.
+function settled(element: HTMLElement) {
+  for (const animation of element.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(element)
+}
+
+const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+
 // The parts only make sense inside a React Aria field, which is what
 // associates the label, wires the messages and carries validation. A bare
 // React Aria TextField stands in for whichever field a consumer builds.
 function setup(
   props: {
+    defaultValue?: string
     description?: string
     error?: string
+    floatingLabel?: boolean
     isDisabled?: boolean
     numeric?: boolean
+    placeholder?: string
   } = {},
 ) {
   const view = render(
     <TextField
+      defaultValue={props.defaultValue}
       isDisabled={props.isDisabled}
       isInvalid={props.error !== undefined}
       validationBehavior={FIELD_VALIDATION_BEHAVIOR}
     >
-      <FieldBox label="Label">
-        <FieldInput numeric={props.numeric} />
+      <FieldBox floatingLabel={props.floatingLabel} label="Label">
+        <FieldInput numeric={props.numeric} placeholder={props.placeholder} />
       </FieldBox>
       <FieldMessage description={props.description} error={props.error} />
     </TextField>,
@@ -132,6 +152,77 @@ describe('field chrome', () => {
     it('is muted with no state at all', () => {
       const view = render(<FieldLabel>Label</FieldLabel>)
       expect(hasClasses(view.getByText('Label'), CLASSES.mutedLabel)).toBe(true)
+    })
+  })
+
+  // The text fields page's label: body-large and centred in an empty,
+  // unfocused box, body-small at the top once the field is focused or holds a
+  // value. Read as the browser resolved it, since the label's type is what
+  // the box hands down rather than a class of its own.
+  describe('label position', () => {
+    it('rests in the box and floats to the top on focus', () => {
+      const { input, label } = setup()
+      expect(settled(label).fontSize).toBe('16px')
+      expect(settled(label).lineHeight).toBe('40px')
+
+      act(() => {
+        input.focus()
+      })
+      expect(settled(label).fontSize).toBe('12px')
+      expect(settled(label).lineHeight).toBe('16px')
+
+      act(() => {
+        input.blur()
+      })
+      expect(settled(label).fontSize).toBe('16px')
+    })
+
+    it('stays at the top while the control holds a value', () => {
+      const { label } = setup({ defaultValue: 'Value' })
+      expect(settled(label).fontSize).toBe('12px')
+    })
+
+    it('stays at the top in every state when the label is fixed', () => {
+      const { input, label } = setup({ floatingLabel: false })
+      expect(settled(label).fontSize).toBe('12px')
+
+      act(() => {
+        input.focus()
+      })
+      expect(settled(label).fontSize).toBe('12px')
+    })
+
+    // The placeholder and the resting label would share the middle of the
+    // box, so under a floating label the placeholder waits for focus.
+    it('shows the placeholder only while focused under a floating label', () => {
+      const { input } = setup({ placeholder: 'Placeholder' })
+      expect(input.getAttribute('placeholder')).toBe('Placeholder')
+      expect(placeholderColorOf(input)).toBe(TRANSPARENT)
+
+      act(() => {
+        input.focus()
+      })
+      expect(placeholderColorOf(input)).not.toBe(TRANSPARENT)
+    })
+
+    it('shows the placeholder at rest under a fixed label', () => {
+      const { input } = setup({
+        floatingLabel: false,
+        placeholder: 'Placeholder',
+      })
+      expect(placeholderColorOf(input)).not.toBe(TRANSPARENT)
+    })
+
+    // A control with no placeholder of its own gets a blank one, which is what
+    // `:placeholder-shown` needs to hold while the control is empty.
+    it('carries a blank placeholder for the box to read', () => {
+      const { input } = setup()
+      expect(input.getAttribute('placeholder')).toBe(' ')
+    })
+
+    it('carries no placeholder of its own under a fixed label', () => {
+      const { input } = setup({ floatingLabel: false })
+      expect(input.hasAttribute('placeholder')).toBe(false)
     })
   })
 
