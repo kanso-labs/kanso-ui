@@ -43,18 +43,22 @@ const DEFAULT_SIDE_OFFSET = 8
 // shared with every anchored overlay; what is here is Popover's own — its
 // inset, its two widths, and the type of its title and description.
 //
-// The surface sits as a plain rounded panel offset from its anchor, with no
-// caret drawn between the two, which is how Material Design draws menus and
-// rich tooltips.
+// Popover has no page of its own, so the inset and the type follow the rich
+// tooltip, the nearest thing the Material Design pages draw: a plain rounded
+// panel offset from its anchor, with no caret drawn between the two, holding
+// a subhead over supporting text.
 //
 // React Aria's popover is two elements — the positioned panel and the dialog
 // inside it — so the styles are split the same way: the surface, `content`
 // and a size on the panel, the dialog style on the element that carries the
 // role.
 const styles = stylex.create({
-  // The inset the surface leaves out, since a menu's items run to its edges.
+  // The rich tooltip's inset: 12 above, 8 below and 16 at the sides. The
+  // surface leaves it out, since a menu's items run to its edges.
   content: {
-    padding: spacing.lg,
+    paddingBlockEnd: spacing.sm,
+    paddingBlockStart: spacing.md,
+    paddingInline: spacing.lg,
   },
   description: {
     boxSizing: 'border-box',
@@ -73,14 +77,16 @@ const styles = stylex.create({
   // panel wider than the screen is narrowed rather than clipped by it.
   md: { maxInlineSize: 'min(320px, 100vw)' },
   sm: { maxInlineSize: 'min(240px, 100vw)' },
+  // The rich tooltip's subhead: title-small, in the same on surface variant
+  // as the supporting text under it.
   title: {
     boxSizing: 'border-box',
-    color: colors.onSurface,
-    fontFamily: typography.titleMediumFont,
-    fontSize: typography.titleMediumSize,
-    fontWeight: typography.titleMediumWeight,
-    letterSpacing: typography.titleMediumTracking,
-    lineHeight: typography.titleMediumLineHeight,
+    color: colors.onSurfaceVariant,
+    fontFamily: typography.titleSmallFont,
+    fontSize: typography.titleSmallSize,
+    fontWeight: typography.titleSmallWeight,
+    letterSpacing: typography.titleSmallTracking,
+    lineHeight: typography.titleSmallLineHeight,
     margin: 0,
   },
 })

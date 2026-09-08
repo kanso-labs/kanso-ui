@@ -3,7 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Popover from '.'
-import { colors, radii } from '../../tokens/design.tokens.stylex'
+import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -12,7 +12,9 @@ import Button from '../button'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
+  body: { fontSize: typography.bodyMediumSize },
   corner: { borderRadius: radii.md },
+  subhead: { fontSize: typography.titleSmallSize },
   supporting: { color: colors.onSurfaceVariant },
   surface: { backgroundColor: colors.surfaceContainer },
 })
@@ -28,7 +30,9 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  body: classesOf(stylex.props(probeStyles.body)),
   corner: classesOf(stylex.props(probeStyles.corner)),
+  subhead: classesOf(stylex.props(probeStyles.subhead)),
   supporting: classesOf(stylex.props(probeStyles.supporting)),
   surface: classesOf(stylex.props(probeStyles.surface)),
 }
@@ -199,15 +203,30 @@ describe('popover', () => {
       expect(hasClasses(panel, CLASSES.corner)).toBe(true)
     })
 
-    it('sets the description apart from the title', () => {
+    // The rich tooltip's two lines of type: a title-small subhead over
+    // body-medium supporting text, both on surface variant.
+    it('sets the title as the subhead and the description as supporting text', () => {
       const view = setup()
+      const title = view.getByText('Headline')
+      const description = view.getByText('Supporting line')
 
-      expect(
-        hasClasses(view.getByText('Supporting line'), CLASSES.supporting),
-      ).toBe(true)
-      expect(hasClasses(view.getByText('Headline'), CLASSES.supporting)).toBe(
-        false,
-      )
+      expect(hasClasses(title, CLASSES.subhead)).toBe(true)
+      expect(hasClasses(title, CLASSES.supporting)).toBe(true)
+      expect(hasClasses(description, CLASSES.body)).toBe(true)
+      expect(hasClasses(description, CLASSES.supporting)).toBe(true)
+      expect(hasClasses(description, CLASSES.subhead)).toBe(false)
+    })
+
+    // The rich tooltip's inset, read as the browser resolved it, since a
+    // padding is a number rather than a role.
+    it('insets the panel 12 above, 8 below and 16 at the sides', () => {
+      const view = setup()
+      const panel = getComputedStyle(panelOf(view.getByRole('dialog')))
+
+      expect(panel.paddingTop).toBe('12px')
+      expect(panel.paddingBottom).toBe('8px')
+      expect(panel.paddingLeft).toBe('16px')
+      expect(panel.paddingRight).toBe('16px')
     })
 
     // Both sizes have to carry a width of their own, or `styles[size]`
