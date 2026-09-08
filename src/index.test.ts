@@ -7,6 +7,8 @@ import {
   Avatar as ComponentsAvatar,
   Button as ComponentsButton,
   Card as ComponentsCard,
+  Checkbox as ComponentsCheckbox,
+  CheckboxGroup as ComponentsCheckboxGroup,
   Chip as ComponentsChip,
   Code as ComponentsCode,
   Container as ComponentsContainer,
@@ -39,6 +41,8 @@ describe('package entry point', () => {
       'Avatar',
       'Button',
       'Card',
+      'Checkbox',
+      'CheckboxGroup',
       'Chip',
       'Code',
       'Collection',
@@ -186,6 +190,14 @@ describe('package entry point', () => {
 
   it('forwards TextField as the same reference as the components barrel', () => {
     expect(publicApi.TextField).toBe(ComponentsTextField)
+  })
+
+  it('forwards Checkbox as the same reference as the components barrel', () => {
+    expect(publicApi.Checkbox).toBe(ComponentsCheckbox)
+  })
+
+  it('forwards CheckboxGroup as the same reference as the components barrel', () => {
+    expect(publicApi.CheckboxGroup).toBe(ComponentsCheckboxGroup)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

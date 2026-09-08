@@ -202,12 +202,15 @@ const styles = stylex.create({
     lineHeight: typography.bodySmallLineHeight,
     marginBlock: 0,
     marginBlockStart: spacing.xs,
-    // Indented to the box's own inline padding, so the message starts where
-    // the value above it does rather than at the box's edge.
-    marginInline: spacing.lg,
   },
   messageError: {
     color: colors.error,
+  },
+  // Indented to the box's own inline padding, so the message starts where
+  // the value above it does rather than at the box's edge. A field whose
+  // label is not in a box — a checkbox, a group — leaves it out.
+  messageInset: {
+    marginInline: spacing.lg,
   },
   numeric: {
     fontFamily: typography.fontFamilyMono,
@@ -260,6 +263,12 @@ interface FieldMessageProps {
   description?: string | undefined
   /** The problem with the current value, in words. */
   error?: string | undefined
+  /**
+   * Whether the line is indented to a box's inline padding, so it starts
+   * where a value above it does. Off for a field with no box to line up with.
+   * @default true
+   */
+  inset?: boolean
 }
 
 // How the box was asked to draw its label, for the control inside it: a
@@ -384,14 +393,23 @@ function FieldLabel({ state = NO_STATE, ...props }: FieldLabelProps) {
  * errors the field carries when no message is given — which is how a `Form`
  * with server-side errors will reach it without any field changing.
  */
-function FieldMessage({ description, error }: FieldMessageProps) {
+function FieldMessage({ description, error, inset = true }: FieldMessageProps) {
   return (
     <>
-      <FieldError {...stylex.props(styles.message, styles.messageError)}>
+      <FieldError
+        {...stylex.props(
+          styles.message,
+          inset && styles.messageInset,
+          styles.messageError,
+        )}
+      >
         {error}
       </FieldError>
       {error === undefined && description !== undefined ? (
-        <Text slot="description" {...stylex.props(styles.message)}>
+        <Text
+          slot="description"
+          {...stylex.props(styles.message, inset && styles.messageInset)}
+        >
           {description}
         </Text>
       ) : null}

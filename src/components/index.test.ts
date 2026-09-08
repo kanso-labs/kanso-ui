@@ -4,6 +4,8 @@ import type { AppBarProps } from './app-bar'
 import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
+import type { CheckboxProps } from './checkbox'
+import type { CheckboxGroupProps } from './checkbox-group'
 import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
 import type { ContainerProps } from './container'
@@ -31,6 +33,8 @@ import AppBarDefault from './app-bar'
 import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import CardDefault from './card'
+import CheckboxDefault from './checkbox'
+import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
 import CodeDefault from './code'
 import ContainerDefault from './container'
@@ -60,6 +64,8 @@ describe('components barrel', () => {
       'Avatar',
       'Button',
       'Card',
+      'Checkbox',
+      'CheckboxGroup',
       'Chip',
       'Code',
       'Container',
@@ -184,6 +190,14 @@ describe('components barrel', () => {
     expect(components.TextField).toBe(TextFieldDefault)
   })
 
+  it('re-exports Checkbox as the same reference as its own module', () => {
+    expect(components.Checkbox).toBe(CheckboxDefault)
+  })
+
+  it('re-exports CheckboxGroup as the same reference as its own module', () => {
+    expect(components.CheckboxGroup).toBe(CheckboxGroupDefault)
+  })
+
   it('re-exports the AppBarProps type', () => {
     const props: AppBarProps = { size: 'large' }
     expect(props.size).toBe('large')
@@ -306,6 +320,16 @@ describe('components barrel', () => {
 
   it('re-exports the TextFieldProps type', () => {
     const props: TextFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the CheckboxProps type', () => {
+    const props: CheckboxProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CheckboxGroupProps type', () => {
+    const props: CheckboxGroupProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })
