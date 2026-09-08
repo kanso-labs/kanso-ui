@@ -14,6 +14,7 @@ import IconButton from '../icon-button'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
+  headline: { color: colors.onSurfaceVariant },
   scrim: {
     backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
   },
@@ -31,6 +32,7 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  headline: classesOf(stylex.props(probeStyles.headline)),
   scrim: classesOf(stylex.props(probeStyles.scrim)),
   surface: classesOf(stylex.props(probeStyles.surface)),
 }
@@ -181,6 +183,49 @@ describe('sheet', () => {
       expect(scrim).not.toBeNull()
       expect(hasClasses(scrim!, CLASSES.scrim)).toBe(true)
     })
+
+    it('sets the headline in the on surface variant role', () => {
+      const view = setup()
+      expect(hasClasses(view.getByText('Headline'), CLASSES.headline)).toBe(
+        true,
+      )
+    })
+  })
+
+  // The side sheets page's measurements, read as the browser resolved them
+  // rather than as classes, since a padding is a number and not a role.
+  describe('layout', () => {
+    it('insets the header, body and footer by 24', () => {
+      const view = setup()
+      const parts = [
+        view.getByText('Headline').parentElement!,
+        view.getByText('Supporting line'),
+        view.getByRole('button', { name: 'Cancel' }).parentElement!,
+      ]
+
+      for (const part of parts) {
+        const style = getComputedStyle(part)
+        expect(style.paddingInlineStart).toBe('24px')
+        expect(style.paddingInlineEnd).toBe('24px')
+      }
+    })
+
+    // The page's bottom actions area: 72 tall, 16 above the buttons and 24
+    // below, starting at the leading edge. The 72 is a floor, since those
+    // paddings around a 40px button already come to 80 — 81 with the divider
+    // the footer draws along its top.
+    it('starts the actions at the leading edge of a 72 area', () => {
+      const view = setup()
+      const footer = getComputedStyle(
+        view.getByRole('button', { name: 'Cancel' }).parentElement!,
+      )
+
+      expect(footer.justifyContent).toBe('flex-start')
+      expect(footer.minHeight).toBe('72px')
+      expect(footer.paddingTop).toBe('16px')
+      expect(footer.paddingBottom).toBe('24px')
+      expect(footer.height).toBe('81px')
+    })
   })
 
   // The component is a responsive pair, and the runner's viewport decides
@@ -196,6 +241,7 @@ describe('sheet', () => {
       const panel = panelOf(view.getByRole('dialog'))
 
       expect(getComputedStyle(panel).inlineSize).toBe('400px')
+      expect(getComputedStyle(panel).maxHeight).toBe('none')
       // Rounded down the content-facing edge, square where it meets the edge
       // of the screen.
       expect(cornersOf(panel)).toEqual({
@@ -212,6 +258,9 @@ describe('sheet', () => {
       const panel = panelOf(view.getByRole('dialog'))
 
       expect(getComputedStyle(panel).inlineSize).toBe('375px')
+      // Only as tall as its content, up to the bottom sheets page's 72 of top
+      // margin.
+      expect(getComputedStyle(panel).maxHeight).toBe('740px')
       expect(cornersOf(panel)).toEqual({
         bottomLeft: '0px',
         bottomRight: '0px',
@@ -219,24 +268,5 @@ describe('sheet', () => {
         topRight: '28px',
       })
     })
-
-    // Both sizes have to carry a width of their own, or `styles[size]`
-    // resolves to nothing and the panel collapses onto its content. Only
-    // visible on the side sheet, since the bottom sheet is full width either
-    // way.
-    it.each([
-      ['md', '400px'],
-      ['sm', '320px'],
-    ] as const)(
-      'gives the %s side sheet a width of %s',
-      async (size, width) => {
-        await page.viewport(1024, 768)
-        const view = setup({ size })
-
-        expect(
-          getComputedStyle(panelOf(view.getByRole('dialog'))).inlineSize,
-        ).toBe(width)
-      },
-    )
   })
 })

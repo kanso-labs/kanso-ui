@@ -280,8 +280,8 @@ describe('components barrel', () => {
   })
 
   it('re-exports the SheetProps type', () => {
-    const props: SheetProps = { size: 'sm' }
-    expect(props.size).toBe('sm')
+    const props: SheetProps = { defaultOpen: true }
+    expect(props.defaultOpen).toBe(true)
   })
 
   it('re-exports the StackProps type', () => {
