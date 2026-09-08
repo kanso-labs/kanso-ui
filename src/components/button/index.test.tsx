@@ -6,13 +6,38 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
 // The variant assertions compare against an element styled straight from
 // the tokens rather than against hex literals, so they pin which colour role
 // the variant reaches for without also pinning what that role happens to
 // resolve to today. The pairs are the buttons spec page's.
+// One probe per type role a size takes, compared by computed value so the
+// assertion pins the role rather than the numbers it resolves to today.
+const typeProbeStyles = stylex.create({
+  headlineLarge: {
+    fontFamily: typography.headlineLargeFont,
+    fontSize: typography.headlineLargeSize,
+    fontWeight: typography.headlineLargeWeight,
+  },
+  headlineSmall: {
+    fontFamily: typography.headlineSmallFont,
+    fontSize: typography.headlineSmallSize,
+    fontWeight: typography.headlineSmallWeight,
+  },
+  labelLarge: {
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+  },
+  titleMedium: {
+    fontFamily: typography.titleMediumFont,
+    fontSize: typography.titleMediumSize,
+    fontWeight: typography.titleMediumWeight,
+  },
+})
+
 const tokenProbeStyles = stylex.create({
   outlinedPair: {
     borderColor: colors.outlineVariant,
@@ -142,27 +167,31 @@ function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
 }
 
 describe('appearance', () => {
-  it('renders each size at its own control height', () => {
-    const heights = [
-      ['xs', '32px'],
-      ['md', '40px'],
-      ['lg', '56px'],
-      ['xl', '80px'],
+  // The five sizes are the buttons spec page's size token sets: height,
+  // inline padding and the outlined border's width, XS to XL.
+  it("renders each size at the spec's height, padding and outline width", () => {
+    const sizes = [
+      ['xs', '32px', '16px', '1px'],
+      ['md', '40px', '16px', '1px'],
+      ['lg', '56px', '24px', '1px'],
+      ['xl', '96px', '48px', '2px'],
+      ['xxl', '136px', '64px', '3px'],
     ] as const
 
-    for (const [size, height] of heights) {
-      const { button, unmount } = setup({ size })
-      expect(getComputedStyle(button).height).toBe(height)
+    for (const [size, height, padding, outline] of sizes) {
+      const { button, unmount } = setup({ size, variant: 'outlined' })
+      const computed = getComputedStyle(button)
+      expect(computed.height).toBe(height)
+      expect(computed.paddingLeft).toBe(padding)
+      expect(computed.borderLeftWidth).toBe(outline)
       unmount()
     }
   })
 
-  // The one genuinely load-bearing thing about applying size after variant.
-  // Every size but md declares its own inline padding, so md is the only one
-  // where a variant's own padding survives — which is what keeps a text
-  // button tighter than a filled one at the default size, and what makes them
-  // agree at every other size.
-  it('lets the variant keep its inline padding only at the default size', () => {
+  // Padding belongs to the size, not the variant, so a text button and a
+  // filled one agree at every size — including the default, where the text
+  // button used to be tighter.
+  it('gives every variant the same inline padding at a size', () => {
     const inlinePadding = (props: Parameters<typeof setup>[0]) => {
       const { button, unmount } = setup(props)
       const padding = getComputedStyle(button).paddingLeft
@@ -170,12 +199,41 @@ describe('appearance', () => {
       return padding
     }
 
-    expect(inlinePadding({ variant: 'text' })).not.toBe(
-      inlinePadding({ variant: 'filled' }),
-    )
-    expect(inlinePadding({ size: 'lg', variant: 'text' })).toBe(
-      inlinePadding({ size: 'lg', variant: 'filled' }),
-    )
+    for (const size of ['md', 'lg'] as const) {
+      expect(inlinePadding({ size, variant: 'text' })).toBe(
+        inlinePadding({ size, variant: 'filled' }),
+      )
+    }
+  })
+
+  // The type role per size is the page's: label-large up to md, then
+  // title-medium, headline-small and headline-large, face and weight included.
+  it('sets each size in the type role the spec gives it', () => {
+    const roles = [
+      ['xs', typeProbeStyles.labelLarge],
+      ['md', typeProbeStyles.labelLarge],
+      ['lg', typeProbeStyles.titleMedium],
+      ['xl', typeProbeStyles.headlineSmall],
+      ['xxl', typeProbeStyles.headlineLarge],
+    ] as const
+
+    for (const [size, role] of roles) {
+      const probe = render(<span data-testid="probe" {...stylex.props(role)} />)
+      const expected = getComputedStyle(probe.getByTestId('probe'))
+      const { fontFamily, fontSize, fontWeight } = {
+        fontFamily: expected.fontFamily,
+        fontSize: expected.fontSize,
+        fontWeight: expected.fontWeight,
+      }
+      probe.unmount()
+
+      const { button, unmount } = setup({ size })
+      const actual = getComputedStyle(button)
+      expect(actual.fontSize).toBe(fontSize)
+      expect(actual.fontWeight).toBe(fontWeight)
+      expect(actual.fontFamily).toBe(fontFamily)
+      unmount()
+    }
   })
 
   it('paints the tonal variant with the secondary container pair', () => {

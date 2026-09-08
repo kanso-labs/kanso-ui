@@ -96,28 +96,32 @@ const styles = stylex.create({
       default: 'none',
     },
     color: colors.onPrimary,
-    paddingInline: spacing.xl,
   },
   filledDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     boxShadow: 'none',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
-  // Control heights and their inline padding are written as literals, not
-  // drawn from the spacing scale: they are the design's fixed control
-  // metrics, and the component scale has no 48px step to hang the largest
-  // one on anyway. Each size takes only the size and line-height of a scale
-  // style and never its font or weight — labelLarge's sans at 500 holds
-  // across all four, so an xl button still reads as a button rather than
-  // picking up the serif face titleLarge carries in this token set.
+  // The five sizes are the buttons spec page's, XS to XL, from its size token
+  // sets: the container height, the inline padding, the gap before an icon,
+  // and the type role — label-large for the two small sizes, then
+  // title-medium, headline-small and headline-large, each taken whole, face
+  // and weight included, since the role is what the page names. The two
+  // largest paddings are literals: 48 and 64 are not steps of the spacing
+  // scale, and the scale should not grow to fit one component. `md` is the
+  // page's S, which it calls the default.
   lg: {
     blockSize: '56px',
-    fontSize: typography.bodyLargeSize,
-    lineHeight: typography.bodyLargeLineHeight,
-    paddingInline: spacing.xxl,
+    fontFamily: typography.titleMediumFont,
+    fontSize: typography.titleMediumSize,
+    fontWeight: typography.titleMediumWeight,
+    letterSpacing: typography.titleMediumTracking,
+    lineHeight: typography.titleMediumLineHeight,
+    paddingInline: spacing.xl,
   },
   md: {
     blockSize: '40px',
+    paddingInline: spacing.lg,
   },
   outlined: {
     backgroundColor: {
@@ -130,7 +134,6 @@ const styles = stylex.create({
     borderStyle: 'solid',
     borderWidth: '1px',
     color: colors.onSurfaceVariant,
-    paddingInline: spacing.xl,
   },
   outlinedDisabled: {
     backgroundColor: 'transparent',
@@ -145,7 +148,6 @@ const styles = stylex.create({
       default: 'transparent',
     },
     color: colors.primary,
-    paddingInline: spacing.lg,
   },
   textDisabled: {
     backgroundColor: 'transparent',
@@ -164,7 +166,6 @@ const styles = stylex.create({
       default: 'none',
     },
     color: colors.onSecondaryContainer,
-    paddingInline: spacing.xl,
   },
   tonalDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
@@ -172,17 +173,41 @@ const styles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   xl: {
-    blockSize: '80px',
-    fontSize: typography.titleLargeSize,
-    lineHeight: typography.titleLargeLineHeight,
+    blockSize: '96px',
+    fontFamily: typography.headlineSmallFont,
+    fontSize: typography.headlineSmallSize,
+    fontWeight: typography.headlineSmallWeight,
+    gap: spacing.md,
+    letterSpacing: typography.headlineSmallTracking,
+    lineHeight: typography.headlineSmallLineHeight,
     paddingInline: '48px',
   },
   xs: {
     blockSize: '32px',
-    fontSize: typography.labelMediumSize,
-    lineHeight: typography.labelMediumLineHeight,
     paddingInline: spacing.lg,
   },
+  xxl: {
+    blockSize: '136px',
+    fontFamily: typography.headlineLargeFont,
+    fontSize: typography.headlineLargeSize,
+    fontWeight: typography.headlineLargeWeight,
+    gap: spacing.lg,
+    letterSpacing: typography.headlineLargeTracking,
+    lineHeight: typography.headlineLargeLineHeight,
+    paddingInline: '64px',
+  },
+})
+
+// The outlined button's border thickens with the size, as the page's size
+// tokens have it: 1dp up to M, 2dp at L, 3dp at XL. A style per size rather
+// than a value in the size style, since a border on a filled button would
+// draw in the label colour.
+const outlineWidths = stylex.create({
+  lg: { borderWidth: '1px' },
+  md: { borderWidth: '1px' },
+  xl: { borderWidth: '2px' },
+  xs: { borderWidth: '1px' },
+  xxl: { borderWidth: '3px' },
 })
 
 const disabledStyles = {
@@ -218,8 +243,9 @@ type ButtonProps = {
   /** The link's `rel`, when `href` is set. */
   rel?: string
   /**
-   * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 80px. Sizes other
-   * than `md` also set their own inline padding.
+   * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 96px, `xxl` 136px —
+   * the buttons spec page's XS, S, M, L and XL, each with its own inline
+   * padding and type role. `md` is the page's default.
    * @default 'md'
    */
   size?: ButtonSize
@@ -231,7 +257,7 @@ type ButtonProps = {
   variant?: ButtonVariant
 } & ButtonDOMProps
 
-type ButtonSize = 'lg' | 'md' | 'xl' | 'xs'
+type ButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
 // The render state both of React Aria's elements share. A className or
 // style function written against it serves the button and the link alike;
@@ -255,7 +281,7 @@ type GlobalEventKey = Exclude<
 >
 
 /**
- * The design's button, at four emphasis levels and four control heights.
+ * The design's button, at four emphasis levels and five control heights.
  * Given `href` it is a link with the same appearance. Every `aria-*` prop is
  * forwarded to the element; React Aria alone would keep only the labelling
  * ones.
@@ -302,6 +328,7 @@ function Button({
         styles.base,
         styles[variant],
         styles[size],
+        variant === 'outlined' && outlineWidths[size],
         state.isDisabled && styles.disabled,
         state.isDisabled && disabledStyles[variant],
       ),
