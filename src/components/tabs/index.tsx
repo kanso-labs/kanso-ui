@@ -28,22 +28,51 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
-// A tinted pill marks the active tab, not the underline Material Design
-// draws. That is what the source design uses, and the two are different
-// controls wearing the same name: an underline belongs to a full-width tab
-// bar, while a row of pills reads as a segmented control sitting inside a
-// section.
+// The tabs page's primary tabs: a 48dp bar on the surface, divided into equal
+// sections, with a 1dp outline-variant divider inside the bar along its
+// bottom edge and, under the active tab's label, a 3dp primary indicator
+// rounded along its top. The indicator follows the label rather than the
+// tab, inset 2dp from the label's ends and never shorter than 24dp, which is
+// what the page draws.
 //
-// The pill takes the same height, radius, and type as Chip. Both are
-// pill-shaped selection controls, and a row of tabs above a row of chips
-// looks wrong the moment the two disagree about either.
+// The label is wrapped in a span of its own so the indicator has the label's
+// width to follow: it is the span's `::after`, and the span is as tall as the
+// tab so the indicator reaches the bottom of the bar. Which tab carries it
+// comes from React Aria's render state rather than a selector, since StyleX
+// cannot target [data-selected] on the element it is styling.
 const styles = stylex.create({
+  // The active indicator. Centred with auto margins between two zero insets,
+  // so the 24dp floor still centres it under a label narrower than that. The
+  // full radius on a 3dp box resolves to the page's 3, 3, 0, 0.
+  indicator: {
+    '::after': {
+      backgroundColor: colors.primary,
+      blockSize: '3px',
+      borderStartEndRadius: radii.full,
+      borderStartStartRadius: radii.full,
+      content: '""',
+      inlineSize: `calc(100% - 2 * ${spacing.xxs})`,
+      insetBlockEnd: 0,
+      insetInline: 0,
+      marginInline: 'auto',
+      minInlineSize: '24px',
+      position: 'absolute',
+    },
+  },
+  label: {
+    alignItems: 'center',
+    blockSize: '100%',
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+    position: 'relative',
+  },
+  // The divider is drawn inside the bar as an inset shadow, so it is part of
+  // the 48 rather than a pixel under it, and the active tab's indicator sits
+  // over it.
   list: {
+    boxShadow: `inset 0 -1px 0 0 ${colors.outlineVariant}`,
     boxSizing: 'border-box',
     display: 'flex',
-    // The pills carry their own separation through their padding, so the gap
-    // only needs to keep two selected ones from touching.
-    gap: spacing.xxs,
   },
   panel: {
     boxSizing: 'border-box',
@@ -57,36 +86,48 @@ const styles = stylex.create({
   tab: {
     alignItems: 'center',
     backgroundColor: 'transparent',
-    blockSize: '32px',
-    borderRadius: radii.sm,
+    blockSize: '48px',
     borderWidth: 0,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     cursor: 'pointer',
-    display: 'inline-flex',
-    flexShrink: 0,
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
+    display: 'flex',
+    // Equal sections: every tab takes the same share of the bar, whatever
+    // its label measures.
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+    fontFamily: typography.titleSmallFont,
+    fontSize: typography.titleSmallSize,
+    fontWeight: typography.titleSmallWeight,
     justifyContent: 'center',
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
+    letterSpacing: typography.titleSmallTracking,
+    lineHeight: typography.titleSmallLineHeight,
+    minInlineSize: 0,
     outlineColor: colors.primary,
-    outlineOffset: '2px',
+    // Drawn inside the tab rather than around it, so a focused tab shows its
+    // whole ring instead of the half that falls under its neighbours.
+    outlineOffset: '-2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     paddingBlock: 0,
-    paddingInline: spacing.md,
+    paddingInline: spacing.lg,
+    position: 'relative',
+    textDecoration: 'none',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'background-color, color',
     transitionTimingFunction: motion.easingStandard,
   },
+  // The state layer over the bar's surface: primary for the active tab, on
+  // surface for an inactive one at rest and primary once pressed, as the
+  // page gives them.
   tabActive: {
     backgroundColor: {
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
-      default: colors.primaryContainer,
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
     },
-    color: colors.onPrimaryContainer,
+    color: colors.primary,
   },
   // Applied from the tab's own state rather than through `:disabled`, which
   // never matches: React Aria marks a disabled tab with aria-disabled and
@@ -98,11 +139,9 @@ const styles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
   },
-  // Transparent, so an inactive tab tints whatever section it sits in rather
-  // than carrying a container of its own — the same treatment ListItem's rows
-  // and IconButton's standard variant get.
   tabInactive: {
     backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
       ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
@@ -134,6 +173,18 @@ type TabsProps = Omit<RACTabsProps, 'children'> & {
   children?: ReactNode
 }
 
+// The label, wrapped so the indicator has its width to follow. Built by a
+// call for the same reason as `tabRenderer` below; React Aria hands the
+// function the tab's state, and it is passed on when the children are a
+// function too.
+function tabContent(children: TabProps['children']) {
+  return (state: TabRenderProps & { defaultChildren: ReactNode }) => (
+    <span {...stylex.props(styles.label, state.isSelected && styles.indicator)}>
+      {typeof children === 'function' ? children(state) : children}
+    </span>
+  )
+}
+
 // React Aria renders a tab with `href` as an anchor and any other as a div,
 // and expects a `render` function to return the same element it would have.
 // Built by a call rather than written inline at the prop, which is what
@@ -160,7 +211,7 @@ function tabRenderer(
 }
 
 /**
- * A tab strip and its panels. Selection is React Aria's `selectedKey`: pass
+ * A tab bar and its panels. Selection is React Aria's `selectedKey`: pass
  * it with `onSelectionChange` to control it, or `defaultSelectedKey` to let
  * it keep its own. Each `Tabs.Tab` names the `Tabs.Panel` it controls through
  * a shared `id`, and a strip may stand alone without panels.
@@ -230,7 +281,7 @@ function TabsPanel(props: TabsPanelProps) {
   )
 }
 
-function TabsTab({ render, ...props }: TabsTabProps) {
+function TabsTab({ children, render, ...props }: TabsTabProps) {
   const panels = useContext(PanelsContext)
   const hasPanel = props.id !== undefined && panels.has(props.id)
 
@@ -239,12 +290,14 @@ function TabsTab({ render, ...props }: TabsTabProps) {
       {...props}
       render={tabRenderer(hasPanel, render)}
       {...mergeStatefulStyles(tabStyles, props)}
-    />
+    >
+      {tabContent(children)}
+    </Tab>
   )
 }
 
 // StyleX cannot target [data-selected] on the element it is styling, so the
-// active pill cannot be chosen in CSS. React Aria's answer is a className that
+// active tab cannot be chosen in CSS. React Aria's answer is a className that
 // is a function of the tab's own state, the same mechanism Chip uses —
 // mergeStatefulStyles wraps this one so a tab still keeps a className the call
 // site passed.
