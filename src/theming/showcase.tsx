@@ -33,6 +33,7 @@ import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
+import RadioGroup, { Radio } from '../components/radio-group'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Stack from '../components/stack'
@@ -370,8 +371,8 @@ function Showcase({ name }: ShowcaseProps) {
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 Chips and tags lean on the container roles, which is where a
-                scheme's secondary and tertiary families show up; a checkbox
-                fills with primary and draws its glyph in on primary.
+                scheme's secondary and tertiary families show up; a checkbox and
+                a radio button take primary once selected.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -386,6 +387,11 @@ function Showcase({ name }: ShowcaseProps) {
                 Third item
               </Checkbox>
             </CheckboxGroup>
+            <RadioGroup defaultValue="second" label="Label">
+              <Radio value="first">First item</Radio>
+              <Radio value="second">Second item</Radio>
+              <Radio value="third">Third item</Radio>
+            </RadioGroup>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
                 <Tag key={tone} tone={tone}>
