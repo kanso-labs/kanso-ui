@@ -13,7 +13,7 @@ import {
   styleDictionaryConfig,
 } from './scripts/build-tokens.mjs'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     // @kanso-labs/unplugin-style-dictionary@^0.2.1+ only — 0.2.0's
     // watchChange had no filtering, so it reacted to design.tokens.stylex.ts
@@ -28,6 +28,27 @@ export default defineConfig({
     }),
     stylex.vite({
       dev: process.env.NODE_ENV === 'development',
+      // The dev server answers `/virtual:stylex.css` from whatever modules
+      // the plugin has transformed so far. The `media` queries the pane
+      // layouts and Sheet key their styles on are `defineConsts`, which
+      // compile into each consumer as a `var(--hash)` placeholder that is
+      // only substituted once the tokens module's own rules are in the
+      // plugin's store — and on a cold start that module, the largest the
+      // plugin handles, lands last. An answer assembled in between holds
+      // `var(--x){.x.x{…}}`, which lightningcss rejects as an empty
+      // selector: the request fails with `Internal server error: Invalid
+      // empty selector`, Vite puts its error overlay into every open iframe,
+      // and the a11y check then fails every story on the page. "Testing" in
+      // AGENTS.md says which runs that lands on.
+      //
+      // errorRecovery has lightningcss drop what it cannot parse instead, so
+      // an intermediate answer is incomplete rather than an error, and the
+      // plugin's runtime refetches the stylesheet as soon as the tokens land
+      // — the path every late rule already reaches the page by. Dev server
+      // only, which is `serve` for Vitest and Storybook alike: a build's
+      // stylesheet is final and has to parse.
+      lightningcssOptions:
+        command === 'serve' ? { errorRecovery: true } : undefined,
       runtimeInjection: false,
       useCSSLayers: true,
     }),
@@ -104,4 +125,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}))
