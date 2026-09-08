@@ -69,7 +69,14 @@ Specific to this repository:
   its documentation and its render smoke test, **and a place in
   `src/theming/showcase.tsx`** — see "Previewing" below for what that page
   catches that its own stories cannot.
-- Public API is exported from `src/index.ts`.
+- Public API is exported from `src/index.ts`: the components barrel, and the
+  curated React Aria utilities in `src/react-aria.ts`. **`react-aria-components`
+  stays a pinned dependency, never a peer**, and that module is why. A consumer
+  with a copy of their own has a second set of contexts, so a `Button` inside a
+  `Sheet` stops opening it; re-exporting what they need is what makes installing
+  it alongside unnecessary, and the README tells them not to. The list is
+  explicit rather than `export *`, so `src/index.test.ts` keeps pinning the
+  exact surface — add a name there when adding one here.
 - **Every component follows its Material Design spec page**, at
   `https://m3.material.io/components/<component>/specs`: the container heights
   and widths, corner shapes, paddings, icon sizes, type roles and colour roles
