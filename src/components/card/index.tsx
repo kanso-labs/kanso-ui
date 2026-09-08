@@ -26,7 +26,8 @@ import {
 // reason — stylex's fixed pseudo-class ordering puts :hover after :disabled.
 const styles = stylex.create({
   base: {
-    borderRadius: radii.lg,
+    // The cards spec page's corner, 12dp, which is the medium shape.
+    borderRadius: radii.md,
     borderWidth: 0,
     boxSizing: 'border-box',
     // `render` lets the card be any element, and an <a> arrives carrying the

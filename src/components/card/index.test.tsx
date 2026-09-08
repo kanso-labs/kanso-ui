@@ -6,12 +6,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Card from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than
 // literals, so the assertions pin which role each variant reaches for without
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  corner: { borderRadius: radii.md },
   outlineVariant: { color: colors.outlineVariant },
   padding: { padding: spacing.lg },
   surface: { backgroundColor: colors.surface },
@@ -88,6 +89,7 @@ function probe(element: ReactElement) {
   const computed = getComputedStyle(view.getByTestId('probe'))
   const read = {
     background: computed.backgroundColor,
+    borderRadius: computed.borderRadius,
     color: computed.color,
     padding: computed.paddingTop,
   }
@@ -300,6 +302,19 @@ describe('card', () => {
       const computed = getComputedStyle(cardIn(view.container))
       expect(computed.overflow).toBe('hidden')
       expect(computed.borderRadius).not.toBe('0px')
+    })
+
+    // The corner is the cards spec page's 12dp, the medium shape, pinned to
+    // the token rather than the number so a retuned scale moves it too.
+    it('rounds its corners to the medium shape', () => {
+      const expected = probe(
+        <div data-testid="probe" {...stylex.props(probeStyles.corner)} />,
+      ).borderRadius
+      const view = render(<Card>content</Card>)
+      expect(getComputedStyle(cardIn(view.container)).borderRadius).toBe(
+        expected,
+      )
+      expect(expected).not.toBe('0px')
     })
   })
 
