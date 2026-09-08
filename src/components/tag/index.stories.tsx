@@ -1,4 +1,4 @@
-// ListItem's trailing slot takes a node, so passing a Badge to it is that
+// ListItem's trailing slot takes a node, so passing a Tag to it is that
 // component's API rather than a misuse of it. react-perf guards against a
 // fresh element identity defeating memoization, which the React Compiler this
 // repo builds with already handles.
@@ -8,7 +8,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 
-import Badge from '.'
+import Tag from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import ListItem from '../list-item'
 import Separator from '../separator'
@@ -49,7 +49,7 @@ const styles = stylex.create({
     maxInlineSize: '960px',
     padding: spacing.xl,
   },
-  // Tighter than the page's sample gap: a set of badges reads as one legend
+  // Tighter than the page's sample gap: a set of tags reads as one legend
   // rather than as separate samples.
   row: {
     alignItems: 'center',
@@ -74,9 +74,9 @@ const meta = {
   args: {
     children: 'Label',
   },
-  component: Badge,
-  title: 'Components/Badge',
-} satisfies Meta<typeof Badge>
+  component: Tag,
+  title: 'Components/Tag',
+} satisfies Meta<typeof Tag>
 
 type Story = StoryObj<typeof meta>
 
@@ -85,7 +85,7 @@ const Overview: Story = {
     <div {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.header)}>
         <Text render={HEADING_1} variant="displaySmall">
-          Badge
+          Tag
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
           A short, read-only label attached to something else. It takes no
@@ -102,15 +102,15 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Neutral states without ranking. The other three name a direction, so
-            reach for one only where the direction is the point — a row of
-            badges in four colours ranks nothing and reads as decoration.
+            reach for one only where the direction is the point — a row of tags
+            in four colours ranks nothing and reads as decoration.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
           {TONES.map((tone) => (
-            <Badge key={tone} tone={tone}>
+            <Tag key={tone} tone={tone}>
               {tone}
-            </Badge>
+            </Tag>
           ))}
         </div>
       </section>
@@ -124,7 +124,7 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Filled sits on a container of its own; outlined is a rule on the
-            page, for a badge that should not compete with the thing it labels.
+            page, for a tag that should not compete with the thing it labels.
             Both are the same size, so one can be emphasised without moving its
             neighbours.
           </Text>
@@ -132,9 +132,9 @@ const Overview: Story = {
         <div {...stylex.props(styles.sample)}>
           <div {...stylex.props(styles.row)}>
             {TONES.map((tone) => (
-              <Badge key={tone} tone={tone}>
+              <Tag key={tone} tone={tone}>
                 Label
-              </Badge>
+              </Tag>
             ))}
           </div>
           <Text tone="muted" variant="labelSmall">
@@ -144,9 +144,9 @@ const Overview: Story = {
         <div {...stylex.props(styles.sample)}>
           <div {...stylex.props(styles.row)}>
             {TONES.map((tone) => (
-              <Badge key={tone} tone={tone} variant="outlined">
+              <Tag key={tone} tone={tone} variant="outlined">
                 Label
-              </Badge>
+              </Tag>
             ))}
           </div>
           <Text tone="muted" variant="labelSmall">
@@ -163,23 +163,23 @@ const Overview: Story = {
             In a row
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The common home for a badge is a list row's trailing slot. Figures
-            sit on a fixed advance, so a column of them lines up rather than
+            The common home for a tag is a list row's trailing slot. Figures sit
+            on a fixed advance, so a column of them lines up rather than
             wobbling from row to row.
           </Text>
         </div>
         <div {...stylex.props(styles.list)}>
-          <ListItem supporting="Supporting line" trailing={<Badge>01</Badge>}>
+          <ListItem supporting="Supporting line" trailing={<Tag>01</Tag>}>
             First item
           </ListItem>
           <Separator />
-          <ListItem supporting="Supporting line" trailing={<Badge>02</Badge>}>
+          <ListItem supporting="Supporting line" trailing={<Tag>02</Tag>}>
             Second item
           </ListItem>
           <Separator />
           <ListItem
             supporting="Supporting line"
-            trailing={<Badge tone="positive">03</Badge>}
+            trailing={<Tag tone="positive">03</Tag>}
           >
             Third item
           </ListItem>

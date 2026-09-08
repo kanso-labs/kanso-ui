@@ -4,13 +4,13 @@ import * as stylex from '@stylexjs/stylex'
 
 import Stack from '.'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
-import Badge from '../badge'
 import Button from '../button'
 import Card from '../card'
 import Chip from '../chip'
 import Code from '../code'
 import Container from '../container'
 import Separator from '../separator'
+import Tag from '../tag'
 import Text from '../text'
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -124,7 +124,7 @@ const Overview: Story = {
                 <Text tone="muted" variant="labelMedium">
                   Stretched
                 </Text>
-                <Badge>Label</Badge>
+                <Tag>Label</Tag>
                 <Chip>Label</Chip>
               </Stack>
             </div>
@@ -133,7 +133,7 @@ const Overview: Story = {
                 <Text tone="muted" variant="labelMedium">
                   align=&quot;start&quot;
                 </Text>
-                <Badge>Label</Badge>
+                <Tag>Label</Tag>
                 <Chip>Label</Chip>
               </Stack>
             </div>

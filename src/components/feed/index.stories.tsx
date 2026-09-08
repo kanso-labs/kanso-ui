@@ -4,10 +4,10 @@ import * as stylex from '@stylexjs/stylex'
 
 import Feed from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
-import Badge from '../badge'
 import Card from '../card'
 import ProductIcon from '../product-icon'
 import Separator from '../separator'
+import Tag from '../tag'
 import Text from '../text'
 
 // A mark of awkward proportions, inline so the story needs no fixture served
@@ -74,7 +74,7 @@ const styles = stylex.create({
     gap: spacing.lg,
   },
   // alignItems, because a flex column stretches its children and an
-  // inline-flex Badge would otherwise span the whole card.
+  // inline-flex Tag would otherwise span the whole card.
   stack: {
     alignItems: 'flex-start',
     display: 'flex',
@@ -103,9 +103,9 @@ function ItemCard({
         <Text tone="muted" variant="bodySmall">
           {supporting}
         </Text>
-        <Badge tone="neutral" variant="outlined">
+        <Tag tone="neutral" variant="outlined">
           Label
-        </Badge>
+        </Tag>
       </div>
     </Card>
   )

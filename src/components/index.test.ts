@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import type { AppBarProps } from './app-bar'
 import type { AvatarProps } from './avatar'
-import type { BadgeProps } from './badge'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { ChipProps } from './chip'
@@ -23,13 +22,13 @@ import type { SheetProps } from './sheet'
 import type { StackProps } from './stack'
 import type { SupportingPaneProps } from './supporting-pane'
 import type { TabsProps } from './tabs'
+import type { TagProps } from './tag'
 import type { TextProps } from './text'
 import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
 import AppBarDefault from './app-bar'
 import AvatarDefault from './avatar'
-import BadgeDefault from './badge'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import ChipDefault from './chip'
@@ -50,6 +49,7 @@ import SheetDefault from './sheet'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import TabsDefault from './tabs'
+import TagDefault from './tag'
 import TextDefault from './text'
 import TextFieldDefault from './text-field'
 
@@ -58,7 +58,6 @@ describe('components barrel', () => {
     expect(Object.keys(components)).toEqual([
       'AppBar',
       'Avatar',
-      'Badge',
       'Button',
       'Card',
       'Chip',
@@ -79,6 +78,7 @@ describe('components barrel', () => {
       'Stack',
       'SupportingPane',
       'Tabs',
+      'Tag',
       'Text',
       'TextField',
     ])
@@ -92,8 +92,8 @@ describe('components barrel', () => {
     expect(components.Avatar).toBe(AvatarDefault)
   })
 
-  it('re-exports Badge as the same reference as its own module', () => {
-    expect(components.Badge).toBe(BadgeDefault)
+  it('re-exports Tag as the same reference as its own module', () => {
+    expect(components.Tag).toBe(TagDefault)
   })
 
   it('re-exports Button as the same reference as its own module', () => {
@@ -194,8 +194,8 @@ describe('components barrel', () => {
     expect(props.name).toBe('Ada Lovelace')
   })
 
-  it('re-exports the BadgeProps type', () => {
-    const props: BadgeProps = { tone: 'positive' }
+  it('re-exports the TagProps type', () => {
+    const props: TagProps = { tone: 'positive' }
     expect(props.tone).toBe('positive')
   })
 

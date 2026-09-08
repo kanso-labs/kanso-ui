@@ -11,18 +11,18 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
-// A badge states something about what it sits beside — a count, a status, a
+// A tag states something about what it sits beside — a count, a status, a
 // version — and is never itself the thing you press. That is the whole line
 // between this and Chip: a chip is a two-state button announcing itself
 // through `aria-pressed`, so reaching for one to render a read-only label
 // puts a control in the accessibility tree that nothing can operate.
 //
 // Both variants carry a 1px border and `filled` makes it transparent rather
-// than dropping it, so a badge is the same size either way. Emphasising one
-// badge in a row otherwise nudges its neighbours by a pixel each side.
+// than dropping it, so a tag is the same size either way. Emphasising one
+// tag in a row otherwise nudges its neighbours by a pixel each side.
 //
 // Tabular figures are unconditional, for the same reason Currency sets them:
-// what ends up in a badge is mostly numeric — counts, versions, ports — and a
+// what ends up in a tag is mostly numeric — counts, versions, ports — and a
 // stack of them down a list wobbles on proportional digits. Text that happens
 // to carry no digits is unaffected.
 const styles = stylex.create({
@@ -43,7 +43,7 @@ const styles = stylex.create({
     lineHeight: typography.labelSmallLineHeight,
     paddingBlock: spacing.xxs,
     paddingInline: spacing.sm,
-    // A badge labels something else, so it should not be the element that
+    // A tag labels something else, so it should not be the element that
     // decides a row can wrap. `:6767` broken across two lines is unreadable.
     whiteSpace: 'nowrap',
   },
@@ -103,36 +103,36 @@ const outlinedTones = stylex.create({
   },
 })
 
-type BadgeProps = RenderComponentProps<'span'> & {
+type TagProps = RenderComponentProps<'span'> & {
   /**
-   * Which colour role the badge carries. `neutral` states without ranking;
+   * Which colour role the tag carries. `neutral` states without ranking;
    * the other three read as good, bad, or worth noticing.
    * @default 'neutral'
    */
-  tone?: BadgeTone
+  tone?: TagTone
   /**
-   * How much weight the badge pulls. `filled` sits on a container of its own;
-   * `outlined` is a rule on the page, for a badge that should not compete
+   * How much weight the tag pulls. `filled` sits on a container of its own;
+   * `outlined` is a rule on the page, for a tag that should not compete
    * with the thing it labels.
    * @default 'filled'
    */
-  variant?: BadgeVariant
+  variant?: TagVariant
 }
 
-type BadgeTone = 'negative' | 'neutral' | 'positive' | 'primary'
+type TagTone = 'negative' | 'neutral' | 'positive' | 'primary'
 
-type BadgeVariant = 'filled' | 'outlined'
+type TagVariant = 'filled' | 'outlined'
 
 /**
  * A short, read-only label attached to something else. It renders a `<span>`
  * and takes no interaction — for a label that can be selected, reach for Chip.
  */
-function Badge({
+function Tag({
   render,
   tone = 'neutral',
   variant = 'filled',
   ...props
-}: BadgeProps) {
+}: TagProps) {
   const toned = variant === 'filled' ? filledTones[tone] : outlinedTones[tone]
 
   return useRender({
@@ -145,6 +145,6 @@ function Badge({
   })
 }
 
-export type { BadgeProps }
+export type { TagProps }
 
-export default Badge
+export default Tag
