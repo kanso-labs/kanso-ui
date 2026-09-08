@@ -330,10 +330,10 @@ function Showcase({ name }: ShowcaseProps) {
                     </Text>
                   </Sheet.Body>
                   <Sheet.Footer>
-                    <Button slot="close" variant="text">
+                    <Button slot="close">Confirm</Button>
+                    <Button slot="close" variant="outlined">
                       Cancel
                     </Button>
-                    <Button slot="close">Confirm</Button>
                   </Sheet.Footer>
                 </Sheet.Content>
               </Sheet>

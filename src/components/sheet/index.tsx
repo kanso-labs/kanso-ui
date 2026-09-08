@@ -10,7 +10,6 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
 import {
   Dialog,
   DialogTrigger,
@@ -33,12 +32,15 @@ import {
 
 // One component, two presentations. Above the medium breakpoint it is a side
 // sheet pinned to the inline end of the viewport; below it, the same panel
-// becomes a bottom sheet. That is Material Design's own pairing rather than
-// two components: a sheet that stayed on the right at 375px would be a drawer
-// covering the whole screen.
+// becomes a bottom sheet. That is the pairing the Material Design pages draw
+// rather than two components: a sheet that stayed on the right at 375px would
+// be a drawer covering the whole screen.
 //
-// The two differ in three things and no more: which edges they are pinned to,
-// which two corners are rounded, and which axis they arrive along.
+// The two differ in four things and no more: which edges they are pinned to,
+// which two corners are rounded, which axis they arrive along, and how much
+// of the viewport they may take. Everything inside the panel — the 24 of
+// start and end padding, the 12 between the header's elements, the actions
+// area — comes from the side sheets page and is drawn the same in both.
 const slideInFromEnd = stylex.keyframes({
   from: { opacity: 0, transform: 'translateX(100%)' },
   to: { opacity: 1, transform: 'translateX(0)' },
@@ -56,10 +58,10 @@ const slideInFromBottom = stylex.keyframes({
 //
 // React Aria's overlay is three nested elements — the scrim, the panel, and
 // the dialog inside it — so the styles are split the same way: the overlay
-// module's scrim on the first, `content` and a size on the panel, its modal
-// dialog style on the element that carries the role. The scrim and that
-// dialog style are shared with every modal overlay; the panel is the sheet's
-// own, since which edge it is pinned to is what makes it a sheet.
+// module's scrim on the first, `content` on the panel, its modal dialog style
+// on the element that carries the role. The scrim and that dialog style are
+// shared with every modal overlay; the panel is the sheet's own, since which
+// edge it is pinned to is what makes it a sheet.
 const styles = stylex.create({
   body: {
     boxSizing: 'border-box',
@@ -71,7 +73,8 @@ const styles = stylex.create({
     flexGrow: 1,
     gap: spacing.lg,
     overflowY: 'auto',
-    padding: spacing.lg,
+    paddingBlock: spacing.lg,
+    paddingInline: spacing.xl,
   },
   content: {
     animationDuration: motion.durationMedium1,
@@ -104,17 +107,30 @@ const styles = stylex.create({
     color: colors.onSurface,
     display: 'flex',
     flexDirection: 'column',
+    // The side sheets page's 400 max-width, and the modal side sheet is
+    // always at it. The bottom sheet is full width: the bottom sheets page
+    // caps it at 640 with 56 of margin beyond, but this presentation only
+    // exists below the medium breakpoint, which is already under that cap.
+    inlineSize: { default: '400px', [media.belowMedium]: '100%' },
     insetBlockEnd: 0,
     insetBlockStart: { default: 0, [media.belowMedium]: 'auto' },
     insetInlineEnd: 0,
     insetInlineStart: { default: 'auto', [media.belowMedium]: 0 },
     // The side sheet is full height; the bottom sheet is only as tall as its
-    // content until it would cover the screen.
-    maxBlockSize: { default: 'none', [media.belowMedium]: '90dvh' },
+    // content, up to the bottom sheets page's 72 of top margin.
+    maxBlockSize: {
+      default: 'none',
+      [media.belowMedium]: 'calc(100dvh - 72px)',
+    },
     // Clips the body's scroll to the rounded corners.
     overflow: 'hidden',
     position: 'fixed',
   },
+  // The side sheets page's bottom actions area: 72 tall, 16 above the buttons
+  // and 24 below them, and the buttons starting at the leading edge. The 72
+  // is a floor rather than a height, since those paddings around a 40px
+  // button come to 80, and a footer holding a second line of actions grows
+  // further still.
   footer: {
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
@@ -123,10 +139,13 @@ const styles = stylex.create({
     display: 'flex',
     flexShrink: 0,
     gap: spacing.sm,
-    justifyContent: 'flex-end',
-    paddingBlock: spacing.md,
-    paddingInline: spacing.lg,
+    justifyContent: 'flex-start',
+    minBlockSize: '72px',
+    paddingBlockEnd: spacing.xl,
+    paddingBlockStart: spacing.lg,
+    paddingInline: spacing.xl,
   },
+  // The page's 12 between the header's elements.
   header: {
     alignItems: 'center',
     borderBlockEndColor: colors.outlineVariant,
@@ -138,21 +157,13 @@ const styles = stylex.create({
     gap: spacing.md,
     justifyContent: 'space-between',
     paddingBlock: spacing.sm,
-    paddingInline: spacing.lg,
+    paddingInline: spacing.xl,
   },
-  // The width belongs to the size rather than to `content`, because StyleX
-  // merges a property whole: an unconditional `inlineSize` here would replace
-  // `content`'s media-conditional one outright and take the mobile case with
-  // it. Each size therefore carries its own override.
-  md: {
-    inlineSize: { default: '400px', [media.belowMedium]: '100%' },
-  },
-  sm: {
-    inlineSize: { default: '320px', [media.belowMedium]: '100%' },
-  },
+  // The headline in the role the side sheets page gives it, on surface
+  // variant, rather than the on surface the body's text takes.
   title: {
     boxSizing: 'border-box',
-    color: colors.onSurface,
+    color: colors.onSurfaceVariant,
     fontFamily: typography.titleLargeFont,
     fontSize: typography.titleLargeSize,
     fontWeight: typography.titleLargeWeight,
@@ -162,21 +173,8 @@ const styles = stylex.create({
   },
 })
 
-type SheetSize = 'md' | 'sm'
-
-// `size` is declared on the root, where a reader expects to set the shape of
-// the whole sheet, but it is `Sheet.Content` that has to apply it. One string
-// through context rather than making the call site repeat it on both.
-const SheetSizeContext = createContext<SheetSize>('md')
-
 type SheetProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
-  /**
-   * Panel width on the side-sheet presentation: `sm` 320px, `md` 400px.
-   * Ignored below the medium breakpoint, where the sheet is full width.
-   * @default 'md'
-   */
-  size?: SheetSize
 }
 
 /**
@@ -192,12 +190,8 @@ type SheetProps = Omit<DialogTriggerProps, 'children'> & {
  * given `slot="close"` anywhere inside the content closes it; neither needs
  * a part of its own.
  */
-function Sheet({ children, size = 'md', ...props }: SheetProps) {
-  return (
-    <DialogTrigger {...props}>
-      <SheetSizeContext value={size}>{children}</SheetSizeContext>
-    </DialogTrigger>
-  )
+function Sheet({ children, ...props }: SheetProps) {
+  return <DialogTrigger {...props}>{children}</DialogTrigger>
 }
 
 function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
@@ -222,8 +216,6 @@ function SheetContent({
   style,
   ...props
 }: SheetContentProps) {
-  const size = useContext(SheetSizeContext)
-
   return (
     <ModalOverlay
       isDismissable={isDismissable}
@@ -233,7 +225,7 @@ function SheetContent({
       {...stylex.props(overlay.scrim)}
     >
       <Modal
-        {...mergeStatefulStyles(stylex.props(styles.content, styles[size]), {
+        {...mergeStatefulStyles(stylex.props(styles.content), {
           className,
           style,
         })}
@@ -297,6 +289,6 @@ type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
 
 type SheetTitleProps = HeadingProps
 
-export type { SheetContentProps, SheetProps, SheetSize, SheetTitleProps }
+export type { SheetContentProps, SheetProps, SheetTitleProps }
 
 export default Sheet

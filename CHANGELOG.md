@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.1...kanso-ui-v0.15.0) (2026-09-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* **list-item:** the spec's type roles and selected colours ([#616](https://github.com/kanso-labs/kanso-ui/issues/616))
+
+### Bug Fixes
+
+* **list-item:** the spec's type roles and selected colours ([#616](https://github.com/kanso-labs/kanso-ui/issues/616)) ([65bca42](https://github.com/kanso-labs/kanso-ui/commit/65bca42609c4cb98415d4765a33e36a9d2ef3842))
+
 ## [0.14.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.0...kanso-ui-v0.14.1) (2026-09-08)
 
 

@@ -71,9 +71,6 @@ const styles = stylex.create({
 })
 
 const meta = {
-  args: {
-    size: 'md',
-  },
   component: Sheet,
   title: 'Components/Sheet',
 } satisfies Meta<typeof Sheet>
@@ -101,10 +98,10 @@ function PanelContents() {
         </Text>
       </Sheet.Body>
       <Sheet.Footer>
-        <Button slot="close" variant="text">
+        <Button>Confirm</Button>
+        <Button slot="close" variant="outlined">
           Cancel
         </Button>
-        <Button>Confirm</Button>
       </Sheet.Footer>
     </>
   )
@@ -143,14 +140,8 @@ const Overview: Story = {
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
-          <Sheet size="md">
-            <Button variant="outlined">Open medium</Button>
-            <Sheet.Content>
-              <PanelContents />
-            </Sheet.Content>
-          </Sheet>
-          <Sheet size="sm">
-            <Button variant="outlined">Open small</Button>
+          <Sheet>
+            <Button variant="outlined">Open</Button>
             <Sheet.Content>
               <PanelContents />
             </Sheet.Content>
@@ -189,17 +180,6 @@ const Overview: Story = {
 
 // Open on load, since a closed sheet renders nothing for Chromatic to compare.
 const Default: Story = {
-  render: (args) => (
-    <Sheet {...args} defaultOpen>
-      <Sheet.Content>
-        <PanelContents />
-      </Sheet.Content>
-    </Sheet>
-  ),
-}
-
-const Small: Story = {
-  args: { size: 'sm' },
   render: (args) => (
     <Sheet {...args} defaultOpen>
       <Sheet.Content>
@@ -295,6 +275,6 @@ const OpensAndCloses: Story = {
   tags: ['!dev'],
 }
 
-export { BottomSheet, Default, OpensAndCloses, Overview, Small }
+export { BottomSheet, Default, OpensAndCloses, Overview }
 
 export default meta
