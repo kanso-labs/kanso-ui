@@ -28,6 +28,7 @@ import {
   Sheet as ComponentsSheet,
   Stack as ComponentsStack,
   SupportingPane as ComponentsSupportingPane,
+  Switch as ComponentsSwitch,
   Tabs as ComponentsTabs,
   Tag as ComponentsTag,
   Text as ComponentsText,
@@ -72,6 +73,7 @@ describe('package entry point', () => {
       'Sheet',
       'Stack',
       'SupportingPane',
+      'Switch',
       'TableLayout',
       'Tabs',
       'Tag',
@@ -210,6 +212,10 @@ describe('package entry point', () => {
 
   it('forwards Radio as the same reference as the components barrel', () => {
     expect(publicApi.Radio).toBe(ComponentsRadio)
+  })
+
+  it('forwards Switch as the same reference as the components barrel', () => {
+    expect(publicApi.Switch).toBe(ComponentsSwitch)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
