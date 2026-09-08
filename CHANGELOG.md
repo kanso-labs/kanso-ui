@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.0...kanso-ui-v0.14.1) (2026-09-08)
+
+
+### Bug Fixes
+
+* **chip:** outline variant border and 16dp padding ([#614](https://github.com/kanso-labs/kanso-ui/issues/614)) ([d1f30e3](https://github.com/kanso-labs/kanso-ui/commit/d1f30e353f093ca2d3fddf61a8cd792756367cb0))
+
 ## [0.14.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.13.0...kanso-ui-v0.14.0) (2026-09-08)
 
 
