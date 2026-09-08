@@ -320,7 +320,7 @@
 
 ### Features
 
-* **app-bar:** add Material 3's app bar ([#400](https://github.com/kanso-labs/kanso-ui/issues/400)) ([e7ea96a](https://github.com/kanso-labs/kanso-ui/commit/e7ea96af72b6b32bb5f4c1aa04f697ce7369a5da))
+* **app-bar:** add Material Design's app bar ([#400](https://github.com/kanso-labs/kanso-ui/issues/400)) ([e7ea96a](https://github.com/kanso-labs/kanso-ui/commit/e7ea96af72b6b32bb5f4c1aa04f697ce7369a5da))
 
 ## [0.7.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.0...kanso-ui-v0.7.1) (2026-08-23)
 
@@ -334,7 +334,7 @@
 
 ### Features
 
-* **feed:** add Material 3's feed layout ([#397](https://github.com/kanso-labs/kanso-ui/issues/397)) ([6acad91](https://github.com/kanso-labs/kanso-ui/commit/6acad91a2f4a6869bf3225cb1d53c2c187025dee))
+* **feed:** add Material Design's feed layout ([#397](https://github.com/kanso-labs/kanso-ui/issues/397)) ([6acad91](https://github.com/kanso-labs/kanso-ui/commit/6acad91a2f4a6869bf3225cb1d53c2c187025dee))
 
 ## [0.6.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.1...kanso-ui-v0.6.2) (2026-08-22)
 
@@ -375,7 +375,7 @@
 ### Features
 
 * **card:** let render choose the card's element, so it can be a link ([#379](https://github.com/kanso-labs/kanso-ui/issues/379)) ([19296ca](https://github.com/kanso-labs/kanso-ui/commit/19296ca71956e09467fb7f1ad99dfe98607a2749))
-* **layout:** add Material 3's list-detail and supporting pane layouts ([#381](https://github.com/kanso-labs/kanso-ui/issues/381)) ([a3c9c83](https://github.com/kanso-labs/kanso-ui/commit/a3c9c832a3fe35f5bcf9ab99b27ca4c5cb4a49bb))
+* **layout:** add Material Design's list-detail and supporting pane layouts ([#381](https://github.com/kanso-labs/kanso-ui/issues/381)) ([a3c9c83](https://github.com/kanso-labs/kanso-ui/commit/a3c9c832a3fe35f5bcf9ab99b27ca4c5cb4a49bb))
 * **text:** add an overline variant for eyebrows and section labels ([#377](https://github.com/kanso-labs/kanso-ui/issues/377)) ([d5159d9](https://github.com/kanso-labs/kanso-ui/commit/d5159d9be021a05a90ff83a69d36f70e0d7fb98b))
 
 

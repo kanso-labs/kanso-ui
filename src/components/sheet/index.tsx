@@ -33,9 +33,9 @@ import {
 
 // One component, two presentations. Above the medium breakpoint it is a side
 // sheet pinned to the inline end of the viewport; below it, the same panel
-// becomes a bottom sheet. That is M3's own pairing rather than two components,
-// and it is why nothing here takes a `side` prop — a sheet that stayed on the
-// right at 375px would be a drawer covering the whole screen.
+// becomes a bottom sheet. That is Material Design's own pairing rather than
+// two components: a sheet that stayed on the right at 375px would be a drawer
+// covering the whole screen.
 //
 // The two differ in three things and no more: which edges they are pinned to,
 // which two corners are rounded, and which axis they arrive along.

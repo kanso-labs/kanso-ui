@@ -28,10 +28,11 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
-// A tinted pill marks the active tab, not the underline Material draws. That
-// is what the source design uses, and the two are different controls wearing
-// the same name: an underline belongs to a full-width tab bar, while a row of
-// pills reads as a segmented control sitting inside a section.
+// A tinted pill marks the active tab, not the underline Material Design
+// draws. That is what the source design uses, and the two are different
+// controls wearing the same name: an underline belongs to a full-width tab
+// bar, while a row of pills reads as a segmented control sitting inside a
+// section.
 //
 // The pill takes the same height, radius, and type as Chip. Both are
 // pill-shaped selection controls, and a row of tabs above a row of chips

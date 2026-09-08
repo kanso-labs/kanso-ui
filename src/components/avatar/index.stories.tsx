@@ -16,8 +16,7 @@ const PHOTO =
 // The overview is built from the library's own Separator and Text rather than
 // from shell components written for the stories, so the page is itself a use of
 // kanso-ui and drifts the moment either of them does. What is left in StyleX
-// here is layout only — flex, gaps, widths — which is what the library has no
-// component for.
+// here is layout only — flex, gaps, widths.
 //
 // Sections are divided by a rule rather than boxed in Cards, which leaves every
 // sample sitting on the page's own surface. That is the background a consumer
@@ -224,8 +223,7 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             First letter of the first and last word, upper-cased — so one prop
-            covers both a full name and a single one, with no second prop for
-            how many letters to take.
+            covers both a full name and a single one.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>

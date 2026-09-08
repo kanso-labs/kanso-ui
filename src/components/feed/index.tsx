@@ -6,22 +6,22 @@ import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
-// Material 3's example minimum for an adaptive grid cell, and the only number
-// the spec puts on one. It is a floor rather than a recommendation: how narrow
-// a card can get before its contents stop making sense is a property of the
-// contents, which is why M3 leaves it a parameter rather than fixing it. Most
-// feeds should say what theirs is instead of taking this.
+// Material Design's example minimum for an adaptive grid cell, and the only
+// number the spec puts on one. It is a floor rather than a recommendation: how
+// narrow a card can get before its contents stop making sense is a property of
+// the contents, which is why Material Design leaves it a parameter rather than
+// fixing it. Most feeds should say what theirs is instead of taking this.
 const DEFAULT_MIN_ITEM_WIDTH = '180px'
 
-// The third of Material 3's canonical layouts, after list-detail and
+// The third of Material Design's canonical layouts, after list-detail and
 // supporting pane. Where those two divide a page into panes, this arranges one
 // pane into a grid of comparable things — the spec's own examples are news and
 // social feeds, and a catalogue of cards is the same shape.
 //
-// M3 describes the grid by its cell rather than by its columns: Compose spells
-// it `GridCells.Adaptive(minSize)`, meaning every column is at least that wide
-// and the grid fits as many as it can. `repeat(auto-fill, minmax(…, 1fr))` is
-// the same sentence in CSS.
+// Material Design describes the grid by its cell rather than by its columns:
+// Compose spells it `GridCells.Adaptive(minSize)`, meaning every column is at
+// least that wide and the grid fits as many as it can.
+// `repeat(auto-fill, minmax(…, 1fr))` is the same sentence in CSS.
 //
 // So there are no breakpoints here, and that is the point rather than an
 // omission. The layout answers to the room it is given instead of to the width
@@ -38,31 +38,32 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'grid',
     gap: spacing.xl,
-    // auto-fill rather than auto-fit, which is what matches M3's own
-    // behaviour: Compose lays items into a fixed number of equal columns, so a
-    // row holding fewer items than it has room for leaves the remainder empty.
-    // auto-fit collapses those empty tracks and stretches what is left, which
-    // turns a feed of two into two enormous cards.
+    // auto-fill rather than auto-fit, which is what matches Material Design's
+    // own behaviour: Compose lays items into a fixed number of equal columns,
+    // so a row holding fewer items than it has room for leaves the remainder
+    // empty. auto-fit collapses those empty tracks and stretches what is left,
+    // which turns a feed of two into two enormous cards.
     gridTemplateColumns: `repeat(auto-fill, minmax(${minItemWidth}, 1fr))`,
   }),
 })
 
-type FeedProps = RenderComponentProps<'div'> & {
+type FeedProps = {
   /**
    * How narrow a cell may get before the grid drops a column. Every column is
    * at least this wide and the grid fits as many as the space allows, which is
-   * how M3 describes an adaptive grid — by its cell rather than by a column
-   * count per breakpoint.
+   * how Material Design describes an adaptive grid — by its cell rather than
+   * by a column count per breakpoint.
    *
-   * Worth setting. The default is the figure M3's own example uses, and it is
-   * a floor rather than advice: only the contents know how narrow they can go.
+   * Worth setting. The default is the figure Material Design's own example
+   * uses, and it is a floor rather than advice: only the contents know how
+   * narrow they can go.
    * @default '180px'
    */
   minItemWidth?: string
-}
+} & RenderComponentProps<'div'>
 
 /**
- * Material 3's feed layout: a grid of comparable items that fits as many
+ * Material Design's feed layout: a grid of comparable items that fits as many
  * columns as the space allows, down to a single column when it allows only
  * one.
  *

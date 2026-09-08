@@ -20,9 +20,9 @@ const HEADING_1 = <h1 />
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
-// The library ships no icons, so a story draws the one it needs — the same
-// thing icon-button/index.stories.tsx does. Sized in `em` so it follows the
-// font size IconButton sets for the control.
+// A story draws the one icon it needs, the same thing
+// icon-button/index.stories.tsx does. Sized in `em` so it follows the font
+// size IconButton sets for the control.
 function InfoIcon() {
   return (
     <svg

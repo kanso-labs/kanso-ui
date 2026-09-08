@@ -61,7 +61,7 @@ const styles = stylex.create({
 })
 
 // A plain glyph rather than an icon set, so the stories stay a demonstration
-// of the button and not of a dependency the library does not have.
+// of the button alone.
 function PlusIcon() {
   return (
     <svg

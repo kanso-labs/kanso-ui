@@ -293,8 +293,7 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The design's bordered list container is exactly this — an outlined
-            card with no padding of its own, holding rows separated by rules. It
-            is the reason the library has no List component.
+            card with no padding of its own, holding rows separated by rules.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>

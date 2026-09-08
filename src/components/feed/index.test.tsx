@@ -56,9 +56,9 @@ function widthOf(inlineSize: string) {
 }
 
 describe('columns', () => {
-  // M3 describes an adaptive grid by its cell rather than by a column count
-  // per breakpoint: every column is at least `minItemWidth`, and the grid
-  // fits as many as the space allows.
+  // Material Design describes an adaptive grid by its cell rather than by a
+  // column count per breakpoint: every column is at least `minItemWidth`, and
+  // the grid fits as many as the space allows.
   it('fits as many columns as the width allows', () => {
     const cases = [
       { columns: 1, width: '300px' },
@@ -103,7 +103,7 @@ describe('columns', () => {
     expect(narrowColumns).toBeGreaterThan(wideColumns)
   })
 
-  it('falls back to M3’s own example minimum', () => {
+  it('falls back to Material Design’s own example minimum', () => {
     const { feed } = renderAtWidth('900px', 6)
 
     for (const column of columnsOf(feed)) {

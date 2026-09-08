@@ -136,8 +136,8 @@ const Overview: Story = {
           Feed
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material 3's feed layout. A grid of comparable items that fits as many
-          columns as the space allows, down to one when it allows only one.
+          Material Design's feed layout. A grid of comparable items that fits as
+          many columns as the space allows, down to one when it allows only one.
         </Text>
       </header>
 
@@ -151,8 +151,8 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             There is no column count and there are no breakpoints. You say how
             narrow a cell may get, and the grid fits as many as it can — which
-            is how M3 describes an adaptive grid, and why the same feed suits a
-            phone and an ultrawide without being told about either.
+            is how Material Design describes an adaptive grid, and why the same
+            feed suits a phone and an ultrawide without being told about either.
           </Text>
         </div>
         <Feed {...args} />

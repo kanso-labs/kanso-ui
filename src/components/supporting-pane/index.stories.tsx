@@ -135,8 +135,8 @@ const Overview: Story = {
           SupportingPane
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material 3's supporting pane layout. A main pane and a companion that
-          reflows underneath it when there is no room beside it.
+          Material Design's supporting pane layout. A main pane and a companion
+          that reflows underneath it when there is no room beside it.
         </Text>
       </header>
 

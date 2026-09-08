@@ -76,8 +76,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The active tab takes a tinted pill rather than the underline
-            Material draws — a row of pills reads as a segmented control inside
-            a section, which is what the source design uses.
+            Material Design draws — a row of pills reads as a segmented control
+            inside a section, which is what the source design uses.
           </Text>
         </div>
         <Tabs defaultSelectedKey="first">

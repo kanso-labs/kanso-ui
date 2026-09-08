@@ -8,25 +8,25 @@ import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
-// Material 3's recommended snap widths for a fixed pane. The list is the
-// fixed one here — M3 points a fixed pane at "lists with light information
-// density" — and the detail pane is the flexible one that absorbs whatever is
-// left, which satisfies the spec's rule that every layout carry at least one
-// flexible pane.
+// Material Design's recommended snap widths for a fixed pane. The list is the
+// fixed one here — Material Design points a fixed pane at "lists with light
+// information density" — and the detail pane is the flexible one that absorbs
+// whatever is left, which satisfies the spec's rule that every layout carry at
+// least one flexible pane.
 const LIST_PANE = '360px'
 const LIST_PANE_EXTRA_LARGE = '412px'
 
-// One of Material 3's canonical layouts, and the fixed-and-flexible shape of
-// its two-pane layouts. Unlike SupportingPane, the detail pane here stands on
-// its own: a message, a product, a file. That is what makes showing it
+// One of Material Design's canonical layouts, and the fixed-and-flexible shape
+// of its two-pane layouts. Unlike SupportingPane, the detail pane here stands
+// on its own: a message, a product, a file. That is what makes showing it
 // *instead of* the list a coherent thing to do when only one pane fits, and
 // why this layout has to be told which pane is showing while SupportingPane
 // does not.
 //
-// M3 puts the second pane on screen from expanded up. Below that the spec
-// shows one pane at a time, with selecting an item swapping to the detail and
-// back returning to the list — app navigation rather than layout, which is
-// why `showing` is controlled rather than held here.
+// Material Design puts the second pane on screen from expanded up. Below that
+// the spec shows one pane at a time, with selecting an item swapping to the
+// detail and back returning to the list — app navigation rather than layout,
+// which is why `showing` is controlled rather than held here.
 const styles = stylex.create({
   // Removed rather than visually hidden: `display: none` takes the pane out
   // of the accessibility tree along with the layout, which is what stops a
@@ -85,16 +85,16 @@ type ListDetailProps = {
 } & Omit<RenderComponentProps<'div'>, 'children'>
 
 /**
- * Material 3's list-detail layout: a fixed list pane beside a flexible detail
- * pane, collapsing to one pane at a time below the expanded breakpoint.
+ * Material Design's list-detail layout: a fixed list pane beside a flexible
+ * detail pane, collapsing to one pane at a time below the expanded breakpoint.
  *
  * Layout only — neither pane paints a surface of its own, so what goes inside
  * them is composed at the call site. `render` swaps the container's element,
  * for a layout that should be a `<main>` rather than a `<div>`.
  *
  * The panes are written to the DOM in the order they are shown, which is what
- * M3 asks of co-planar panes: focus order has to match the arrangement on
- * screen.
+ * Material Design asks of co-planar panes: focus order has to match the
+ * arrangement on screen.
  */
 function ListDetail({
   detail,

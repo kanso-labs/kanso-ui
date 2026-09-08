@@ -52,12 +52,12 @@ const PARAGRAPH = <p />
 
 // The measure the page runs at, and the gutter Container pads it with. The bar
 // is told both so its row lines up with the content beneath it rather than
-// starting at M3's own margin — see app-bar/index.stories.tsx.
+// starting at Material Design's own margin — see app-bar/index.stories.tsx.
 const PAGE_GUTTER = spacing.xl
 const PAGE_MEASURE = '1040px'
 
-// The library ships no icons, so the page draws the ones it needs. Sized in
-// `em` so each follows the font size its control sets.
+// The page draws the icons it needs, sized in `em` so each follows the font
+// size its control sets.
 function CloseIcon() {
   return (
     <svg

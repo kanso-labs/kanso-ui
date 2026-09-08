@@ -30,7 +30,7 @@ import {
 // interaction state's opacity, rather than swapping in a separate
 // hover/pressed color: filled and tonal paint the 'on-color' over the
 // container, outlined and text paint the label colour over a transparent
-// one. The pairs are the buttons spec page's, Expressive column: tonal on
+// one. The pairs are the buttons spec page's newer values: tonal on
 // secondary container, outlined with an outline variant border and an
 // on-surface-variant label, text on primary.
 // calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
