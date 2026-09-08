@@ -26,6 +26,12 @@ import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 // with transparency, so a tint on the root showed as a coloured box around
 // every logo that was not an opaque square. On the fallback it is seen exactly
 // when it is meant to be: while there is no mark, or none has loaded.
+//
+// No Material Design page draws a product mark. Its sizes are the lists
+// page's leading elements, `md` the 40dp avatar and `lg` the 56dp image, and
+// `sm` matches Avatar's own small so the two fill the same slots. The
+// fallback's tint is a container role under its on-colour, the pairing every
+// filled surface in the system uses.
 const styles = stylex.create({
   base: {
     alignItems: 'center',

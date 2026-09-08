@@ -25,6 +25,13 @@ import {
 // what ends up in a tag is mostly numeric — counts, versions, ports — and a
 // stack of them down a list wobbles on proportional digits. Text that happens
 // to carry no digits is unaffected.
+//
+// No Material Design page draws a tag; the badges page's large badge is the
+// nearest, a label-small count on an 8dp corner, and that is the type and the
+// corner here. A tag stands beside a word rather than on an icon, so it takes
+// the padding and 1dp rule above in place of the badge's 16dp box, and the
+// container roles in place of the badge's error pair, since it names a state
+// rather than flagging one.
 const styles = stylex.create({
   base: {
     alignItems: 'center',

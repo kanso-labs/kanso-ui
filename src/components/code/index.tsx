@@ -16,6 +16,10 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // the system uses is already an unmistakable signal, and a tint here would
 // introduce a second surface inside Card and Sheet, competing with the
 // hierarchy those already establish. A call site wanting one can wrap this.
+//
+// No Material Design page draws inline code. What it follows is the type it
+// interrupts: the role and the on surface colour of the prose around it, at
+// the ratio above, in the mono face the type tokens carry.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',

@@ -12,6 +12,11 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // is here: the mono face, tabular figures so a column of them lines up on the
 // decimal point, and the medium weight that separates a figure from the prose
 // around it.
+//
+// No Material Design page draws an amount. It is type alone: the mono face
+// and medium weight from the type tokens, tabular figures, and the on surface
+// role for the neutral tone. Positive and negative are the library's own
+// roles, the pair Tag draws from as well.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
