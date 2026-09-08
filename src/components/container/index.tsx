@@ -16,6 +16,11 @@ const DEFAULT_MAX_INLINE_SIZE = '960px'
 // A dynamic style rather than a static one, for the same reason Feed's is:
 // the measure comes from the call site and StyleX compiles its classes ahead
 // of time, so the value is written to a custom property inline instead.
+//
+// No Material Design page draws a page container; the layout pages give the
+// margins one keeps. The gutter is their 24dp, the margin the pages give a
+// medium window and up, and the measure is the call site's, since the pages
+// leave a pane's width to its content.
 const styles = stylex.create({
   paddingDefault: {
     paddingInline: spacing.xl,

@@ -19,6 +19,12 @@ import Code from '../code'
 // without being long enough to leave the button lying about what it will do.
 const COPIED_RESET_MS = 2000
 
+// No Material Design page draws a read-only value with a copy control. It
+// follows the outlined text field: the 1dp rule in the outline role, the
+// surface behind it, and the control at its trailing end. The value is
+// body-small beside a 32dp text button, so the box is shorter than the
+// field's 56, which suits a value that is read rather than edited, and its
+// corner is the shape scale's small step for the same reason.
 const styles = stylex.create({
   // Clipped to a 1px box rather than `display: none`, which would take it out
   // of the accessibility tree along with the announcement.

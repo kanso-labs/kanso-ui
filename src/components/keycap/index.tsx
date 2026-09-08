@@ -25,6 +25,11 @@ import {
 //
 // Transparent rather than filled, so a keycap inside a Card or a Sheet does
 // not read as a nested surface. The border alone carries the metaphor.
+//
+// No Material Design page draws a keycap. Its rule is the assist chip's, 1dp
+// in the outline role around a label. Its size is the text's, as above, and
+// its corner is the extra-small step of the shape scale rather than the
+// chip's small one, since a box the height of a line has no room for 8dp.
 const styles = stylex.create({
   base: {
     backgroundColor: 'transparent',
