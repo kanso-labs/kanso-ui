@@ -25,7 +25,10 @@ import {
 //
 // The selected chip drops its border rather than recolouring it: it has a
 // container of its own to define its edge, and a border on top of that reads
-// as a second, competing outline.
+// as a second, competing outline. The roles and measurements are the chips
+// spec page's filter chip: a 32dp container with an 8dp corner and 16dp of
+// inline padding, an outline variant border while unselected, the secondary
+// container pair once selected.
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -48,7 +51,7 @@ const styles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     paddingBlock: 0,
-    paddingInline: spacing.md,
+    paddingInline: spacing.lg,
     transitionDuration: motion.durationShort2,
     transitionProperty: 'background-color, border-color, color',
     transitionTimingFunction: motion.easingStandard,
@@ -74,7 +77,7 @@ const styles = stylex.create({
     },
     borderColor: {
       ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-      default: colors.outline,
+      default: colors.outlineVariant,
     },
     color: {
       ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,

@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Chip from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, spacing } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -12,11 +12,12 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // the styles, with no dependency on the browser having applied a rule that
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
+  padding: { paddingInline: spacing.lg },
   selectedBackground: { backgroundColor: colors.secondaryContainer },
   selectedBorder: { borderColor: 'transparent' },
   selectedColor: { color: colors.onSecondaryContainer },
   unselectedBackground: { backgroundColor: 'transparent' },
-  unselectedBorder: { borderColor: colors.outline },
+  unselectedBorder: { borderColor: colors.outlineVariant },
   unselectedColor: { color: colors.onSurfaceVariant },
 })
 
@@ -35,6 +36,7 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  padding: classesOf(stylex.props(probeStyles.padding)),
   selectedBackground: classesOf(stylex.props(probeStyles.selectedBackground)),
   selectedBorder: classesOf(stylex.props(probeStyles.selectedBorder)),
   selectedColor: classesOf(stylex.props(probeStyles.selectedColor)),
@@ -110,11 +112,19 @@ describe('chip', () => {
       expect(hasClasses(chip, CLASSES.selectedColor)).toBe(true)
     })
 
-    it('is transparent with an outline when unselected', () => {
+    it('is transparent with an outline variant border when unselected', () => {
       const { chip } = setup()
       expect(hasClasses(chip, CLASSES.unselectedBackground)).toBe(true)
       expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
       expect(hasClasses(chip, CLASSES.unselectedColor)).toBe(true)
+    })
+
+    // The chips spec page gives 16dp of inline padding for a chip without
+    // icons, pinned to the token rather than the number.
+    it("pads its label by the spec's 16dp at either end", () => {
+      const { chip } = setup()
+      expect(hasClasses(chip, CLASSES.padding)).toBe(true)
+      expect(getComputedStyle(chip).paddingLeft).toBe('16px')
     })
 
     // The selected chip has a container of its own to define its edge, so a
