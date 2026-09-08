@@ -159,15 +159,16 @@ const styles = stylex.create({
   },
   // The handle's travelling box: the pressed handle's 28dp, centred 16dp from
   // the start of the track while off and 16dp from its end while on, which
-  // is where the page's handles sit.
+  // is where the page's handles sit. The insets are measured from inside the
+  // track's 2dp rule, so zero puts the box's centre 16dp from the edge.
   seat: {
     alignItems: 'center',
     blockSize: '28px',
     boxSizing: 'border-box',
     display: 'flex',
     inlineSize: '28px',
-    insetBlockStart: '2px',
-    insetInlineStart: '2px',
+    insetBlockStart: 0,
+    insetInlineStart: 0,
     justifyContent: 'center',
     position: 'absolute',
     transitionDuration: motion.durationShort2,
@@ -175,7 +176,7 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
   },
   seatOn: {
-    insetInlineStart: '22px',
+    insetInlineStart: '20px',
   },
   track: {
     backgroundColor: colors.surfaceContainerHighest,

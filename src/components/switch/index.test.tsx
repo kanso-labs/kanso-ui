@@ -189,7 +189,7 @@ describe('switch', () => {
         animation.finish()
       }
       expect(getComputedStyle(seat).insetInlineStart).not.toBe(before)
-      expect(getComputedStyle(seat).insetInlineStart).toBe('22px')
+      expect(getComputedStyle(seat).insetInlineStart).toBe('20px')
     })
 
     it('draws the check in the handle only while on and asked for', () => {
