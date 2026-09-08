@@ -24,6 +24,7 @@ import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { StackProps } from './stack'
 import type { SupportingPaneProps } from './supporting-pane'
+import type { SwitchProps } from './switch'
 import type { TabsProps } from './tabs'
 import type { TagProps } from './tag'
 import type { TextProps } from './text'
@@ -54,6 +55,7 @@ import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
+import SwitchDefault from './switch'
 import TabsDefault from './tabs'
 import TagDefault from './tag'
 import TextDefault from './text'
@@ -87,6 +89,7 @@ describe('components barrel', () => {
       'Sheet',
       'Stack',
       'SupportingPane',
+      'Switch',
       'Tabs',
       'Tag',
       'Text',
@@ -208,6 +211,10 @@ describe('components barrel', () => {
 
   it('re-exports Radio as the same reference as its own module', () => {
     expect(components.Radio).toBe(Radio)
+  })
+
+  it('re-exports Switch as the same reference as its own module', () => {
+    expect(components.Switch).toBe(SwitchDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -353,5 +360,10 @@ describe('components barrel', () => {
   it('re-exports the RadioProps type', () => {
     const props: RadioProps = { value: 'first' }
     expect(props.value).toBe('first')
+  })
+
+  it('re-exports the SwitchProps type', () => {
+    const props: SwitchProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 })

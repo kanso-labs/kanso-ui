@@ -38,6 +38,7 @@ import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
+import Switch from '../components/switch'
 import Tabs from '../components/tabs'
 import Tag from '../components/tag'
 import Text from '../components/text'
@@ -392,6 +393,12 @@ function Showcase({ name }: ShowcaseProps) {
               <Radio value="second">Second item</Radio>
               <Radio value="third">Third item</Radio>
             </RadioGroup>
+            <div {...stylex.props(styles.row)}>
+              <Switch>Label</Switch>
+              <Switch defaultSelected icon>
+                Label
+              </Switch>
+            </div>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
                 <Tag key={tone} tone={tone}>

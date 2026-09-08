@@ -27,6 +27,7 @@ import {
   Separator,
   Sheet,
   SupportingPane,
+  Switch,
   Tabs,
   Tag,
   Text,
@@ -194,6 +195,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'SupportingPane',
   },
+  { element: <Switch {...PROBE}>Label</Switch>, name: 'Switch' },
   {
     element: (
       <Tabs defaultSelectedKey="first">
