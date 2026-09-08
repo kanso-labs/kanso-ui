@@ -80,8 +80,8 @@ function MainPane() {
         </Text>
         <Separator />
         <Text tone="muted" variant="bodyMedium">
-          The main pane takes two thirds of the width from the expanded
-          breakpoint up, and an even half at medium.
+          The main pane takes whatever width the supporting pane leaves from the
+          expanded breakpoint up.
         </Text>
       </div>
     </div>
@@ -148,9 +148,9 @@ const Overview: Story = {
             Across the breakpoints
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Resize the window to see it move. Below 600px the supporting pane
-            sits under the main one; from 600px the two split the width evenly;
-            from 840px the main pane takes two thirds.
+            Resize the window to see it move. Below 840px the supporting pane
+            sits under the main one; from 840px it sits beside it at a fixed
+            360px, and the main pane takes the rest.
           </Text>
         </div>
         <SupportingPane {...args} />

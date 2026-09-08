@@ -236,8 +236,8 @@ function MainContent() {
       <Stack gap="sm">
         <Text variant="titleMedium">Headline</Text>
         <Text tone="muted" variant="bodyMedium">
-          The main pane takes two thirds of the width from expanded up, and the
-          whole of it below that.
+          The main pane takes what the supporting pane leaves from expanded up,
+          and the whole of the width below that.
         </Text>
       </Stack>
     </div>

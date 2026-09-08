@@ -25,7 +25,9 @@ const allModes: Record<Theme, { theme: Theme }> = {
 // them, so a story using these is captured in light and dark at Chromatic's
 // own width as well. That is what decides which entries belong here: a wide
 // window is already the default snapshot, so these only have to add the
-// arrangements it cannot reach — one pane at compact, an even split at medium.
+// arrangements it cannot reach — the single pane both layouts keep at compact
+// and at medium, since neither puts a second pane beside the first below the
+// expanded breakpoint.
 //
 // The theme is pinned so each of these costs one snapshot rather than two.
 // Grid track sizing is theme-independent, and the inherited light and dark
