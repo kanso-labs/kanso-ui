@@ -52,9 +52,7 @@ const styles = stylex.create({
 // `neutral` draws from the surface roles rather than a colour of its own,
 // which is what lets it state something without ranking it. The other three
 // name a direction, and are the same three Currency uses, plus primary for
-// the notable-but-not-good-or-bad case. `error` is deliberately absent:
-// negative already covers it, and offering both would leave the choice
-// between them to taste.
+// the notable-but-not-good-or-bad case.
 const filledTones = stylex.create({
   negative: {
     backgroundColor: colors.negativeContainer,

@@ -4,10 +4,11 @@ import { page } from 'vitest/browser'
 
 import SupportingPane from '.'
 
-// One pixel either side of each Material 3 breakpoint, so a query written
-// with the wrong comparison fails here rather than passing on a round number
-// both readings agree on. M3's lower bounds: compact below 600, medium from
-// 600, expanded from 840, large from 1200, extra-large from 1600.
+// One pixel either side of each Material Design breakpoint, so a query
+// written with the wrong comparison fails here rather than passing on a round
+// number both readings agree on. Material Design's lower bounds: compact below
+// 600, medium from 600, expanded from 840, large from 1200, extra-large from
+// 1600.
 const COMPACT = 500
 const MEDIUM = 700
 const EXPANDED = 900
@@ -18,10 +19,10 @@ const EXTRA_LARGE = 1700
 // back to something ordinary or whatever runs next inherits 1700px.
 const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
 
-// The ratio is what M3 specifies, so it is what these assert. Comparing the
-// resolved pixel widths against a fixed number instead would pin the viewport
-// arithmetic rather than the spec, and would have to be rewritten every time
-// the gutter moved.
+// The ratio is what Material Design specifies, so it is what these assert.
+// Comparing the resolved pixel widths against a fixed number instead would pin
+// the viewport arithmetic rather than the spec, and would have to be rewritten
+// every time the gutter moved.
 const EXPANDED_RATIO = 2
 const RATIO_TOLERANCE = 0.02
 
@@ -50,8 +51,9 @@ afterAll(async () => {
 })
 
 describe('proportions across the breakpoints', () => {
-  // M3's compact treatment is reflow: the supporting pane moves under the
-  // main one rather than being dismissed, so it stays reachable by scrolling.
+  // Material Design's compact treatment is reflow: the supporting pane moves
+  // under the main one rather than being dismissed, so it stays reachable by
+  // scrolling.
   it('stacks into a single column at compact', async () => {
     expect(await columnsAt(COMPACT)).toHaveLength(1)
   })
@@ -133,9 +135,9 @@ describe('panes', () => {
     expect(root.children).toHaveLength(2)
   })
 
-  // M3 asks that focus order match the arrangement on screen for co-planar
-  // panes, and it is also what puts the supporting pane *below* the main one
-  // when the layout stacks.
+  // Material Design asks that focus order match the arrangement on screen for
+  // co-planar panes, and it is also what puts the supporting pane *below* the
+  // main one when the layout stacks.
   it('writes the main pane before the supporting one', () => {
     const view = render(<SupportingPane {...PANES} />)
     const root = view.container.firstElementChild

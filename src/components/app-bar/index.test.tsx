@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest'
 
 import AppBar from '.'
 
-// M3's documented heights for the three sizes this ships, and the second
-// column is the whole point of the flexible bars: they grow for a subtitle
-// rather than fitting it into a fixed box.
+// Material Design's documented heights for the three sizes this ships, and
+// the second column is the whole point of the flexible bars: they grow for a
+// subtitle rather than fitting it into a fixed box.
 const HEIGHTS = {
   large: { plain: 120, withSubtitle: 152 },
   medium: { plain: 112, withSubtitle: 136 },
@@ -64,7 +64,7 @@ function textBlockOf(bar: HTMLElement) {
 }
 
 describe('size', () => {
-  it('takes M3’s height for each size', () => {
+  it('takes Material Design’s height for each size', () => {
     for (const size of SIZES) {
       const view = render(<AppBar headline="Headline" size={size} />)
 
@@ -73,8 +73,8 @@ describe('size', () => {
     }
   })
 
-  // The flexible bars "hug the text contents" in M3's words, so a subtitle
-  // makes them taller rather than being squeezed in.
+  // The flexible bars "hug the text contents" in Material Design's words, so a
+  // subtitle makes them taller rather than being squeezed in.
   it('grows the flexible sizes for a subtitle', () => {
     for (const size of ['medium', 'large'] as const) {
       const view = render(
@@ -88,9 +88,10 @@ describe('size', () => {
     }
   })
 
-  // M3 publishes a second height for each flexible bar and none for small, so
-  // small keeps its 64px. A headline and a subtitle at their type roles come
-  // to exactly that, which is presumably why the spec needed no second figure.
+  // Material Design publishes a second height for each flexible bar and none
+  // for small, so small keeps its 64px. A headline and a subtitle at their type
+  // roles come to exactly that, which is presumably why the spec needed no
+  // second figure.
   it('leaves the small bar at its height with a subtitle', () => {
     const view = render(
       <AppBar headline="Headline" size="small" subtitle="Supporting line" />,
@@ -101,11 +102,12 @@ describe('size', () => {
     expect(bar.getBoundingClientRect().height).toBe(HEIGHTS.small.plain)
   })
 
-  // A minimum rather than a fixed height, because Expressive added multi-line
-  // support and wrapping. A bar that could not grow would clip exactly the
-  // case the flexible variants exist for, so this measures a headline forced
-  // to wrap rather than reading the CSS keyword back — computed `block-size`
-  // reports the used height, so it says `120px` either way.
+  // A minimum rather than a fixed height, because the spec gives the flexible
+  // bars multi-line support and wrapping. A bar that could not grow would clip
+  // exactly the case the flexible variants exist for, so this measures a
+  // headline forced to wrap rather than reading the CSS keyword back —
+  // computed `block-size` reports the used height, so it says `120px` either
+  // way.
   it('grows past its minimum for a headline that wraps', () => {
     const view = render(
       <div style={NARROW}>
@@ -134,9 +136,10 @@ describe('size', () => {
 })
 
 describe('headline', () => {
-  // M3's own tokens alias the type scale rather than carrying sizes, so each
-  // size has to reach a different role. Compared against each other rather
-  // than against a figure, which pins the ordering without pinning the scale.
+  // Material Design's own tokens alias the type scale rather than carrying
+  // sizes, so each size has to reach a different role. Compared against each
+  // other rather than against a figure, which pins the ordering without
+  // pinning the scale.
   it('gives each size a larger headline than the one below', () => {
     const sizes = SIZES.map((size) => {
       const view = render(<AppBar headline="Headline" size={size} />)
@@ -165,8 +168,9 @@ describe('headline', () => {
 })
 
 describe('scrolled', () => {
-  // M3 replaced M2's drop shadow with a colour fill, so the separation is a
-  // different surface rather than an elevation.
+  // Material Design replaced the drop shadow it once gave a scrolled bar with
+  // a colour fill, so the separation is a different surface rather than an
+  // elevation.
   it('changes the surface rather than casting a shadow', () => {
     const resting = render(<AppBar headline="Headline" />)
     const restingStyle = getComputedStyle(barIn(resting.container))
@@ -201,9 +205,9 @@ describe('collapsed', () => {
     }
   })
 
-  // M3 does not describe a collapsed large bar as a state of its own. It
-  // describes it as becoming the small bar, so the headline takes the small
-  // bar's type role along with its height.
+  // Material Design does not describe a collapsed large bar as a state of its
+  // own. It describes it as becoming the small bar, so the headline takes the
+  // small bar's type role along with its height.
   it('takes the small bar’s headline too', () => {
     const small = render(<AppBar headline="Headline" />)
     const smallSize = getComputedStyle(
@@ -351,7 +355,7 @@ describe('content measure', () => {
     )
   })
 
-  it('takes M3’s own margin as the default inset', () => {
+  it('takes Material Design’s own margin as the default inset', () => {
     const view = render(<AppBar headline="Headline" />)
     const heading = view.getByRole('heading', { level: 1 })
 
@@ -370,8 +374,8 @@ describe('align', () => {
     expect(getComputedStyle(text).textAlign).toBe('start')
   })
 
-  // M3 folded the old center-aligned variant into a configuration, so this is
-  // available at every size rather than only on small.
+  // Material Design folded the old center-aligned variant into a configuration,
+  // so this is available at every size rather than only on small.
   it('centres the text at every size when asked', () => {
     for (const size of SIZES) {
       const view = render(

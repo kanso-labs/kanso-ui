@@ -20,8 +20,8 @@ const SIZES = ['small', 'medium', 'large'] as const satisfies readonly Size[]
 
 // The measure the page under the bar runs at, and the gutter Container pads
 // it with. Both are the call site's, which is the whole point: the bar is told
-// them rather than assuming M3's own. The gutter is read off the scale rather
-// than repeated as a figure, so the two cannot drift apart.
+// them rather than assuming Material Design's own. The gutter is read off the
+// scale rather than repeated as a figure, so the two cannot drift apart.
 const PAGE_MEASURE = '520px'
 const PAGE_GUTTER = `${spacingPx.xl}px`
 
@@ -29,8 +29,7 @@ const PAGE_GUTTER = `${spacingPx.xl}px`
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
-// Two glyphs drawn inline, because the library ships no icon set of its own —
-// IconButton takes whatever the call site hands it.
+// Two glyphs drawn inline: IconButton takes whatever the call site hands it.
 const BackIcon = () => (
   <svg
     aria-hidden="true"
@@ -218,8 +217,8 @@ const Overview: Story = {
           AppBar
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material 3's app bar. The container at the top of a page carrying its
-          title, one or two actions, and the way back out.
+          Material Design's app bar. The container at the top of a page carrying
+          its title, one or two actions, and the way back out.
         </Text>
       </header>
 
@@ -232,9 +231,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             64px, 112px and 120px, each giving the headline a larger type role
-            than the one below. `medium` and `large` are M3 Expressive's
-            flexible bars; the baseline variants they replaced are no longer
-            recommended and are not offered here.
+            than the one below. `medium` and `large` are Material Design's
+            flexible bars, which grow to hug their text.
           </Text>
         </div>
         {SIZES.map((size) => (
@@ -258,9 +256,10 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             A subtitle makes the flexible bars taller rather than being fitted
-            into the same box — 136px and 152px, both published by M3. The small
-            bar keeps its 64px, which a headline and a subtitle at their type
-            roles come to exactly, and is why it suits a title that is a label.
+            into the same box — 136px and 152px, both published by Material
+            Design. The small bar keeps its 64px, which a headline and a
+            subtitle at their type roles come to exactly, and is why it suits a
+            title that is a label.
           </Text>
         </div>
         {SIZES.map((size) => (
@@ -284,9 +283,9 @@ const Overview: Story = {
             A headline that wraps
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The heights are minimums, not fixed. Expressive added multi-line
-            support to the flexible bars, so a long headline in a narrow window
-            grows the bar instead of being cut off.
+            The heights are minimums, not fixed. Material Design gives the
+            flexible bars multi-line support, so a long headline in a narrow
+            window grows the bar instead of being cut off.
           </Text>
         </div>
         <div {...stylex.props(styles.narrow)}>
@@ -307,8 +306,9 @@ const Overview: Story = {
             Centred text
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            M3 folded the old center-aligned variant into a configuration, so it
-            is available at every size rather than only on the small bar.
+            Material Design folded the old center-aligned variant into a
+            configuration, so it is available at every size rather than only on
+            the small bar.
           </Text>
         </div>
         <Sample
@@ -328,10 +328,11 @@ const Overview: Story = {
             Over scrolled content
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            M3 replaced M2's drop shadow with a fill, so a bar separates itself
-            from content beneath by sitting on a different surface rather than
-            casting anything. `scrolled` is controlled, because only the app
-            knows which element is scrolling.
+            Material Design replaced the drop shadow it once gave a scrolled bar
+            with a fill, so a bar separates itself from content beneath by
+            sitting on a different surface rather than casting anything.
+            `scrolled` is controlled, because only the app knows which element
+            is scrolling.
           </Text>
         </div>
         <Sample
@@ -392,8 +393,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             A leading slot changes what lands on the measure. The icon takes the
-            inset and the headline sits after it, which is M3's own arrangement
-            rather than something to correct.
+            inset and the headline sits after it, which is Material Design's own
+            arrangement rather than something to correct.
           </Text>
         </div>
         <div {...stylex.props(styles.frame)}>
@@ -420,8 +421,8 @@ const Overview: Story = {
             maxInlineSize={PAGE_MEASURE}
           >
             <Text render={PARAGRAPH} tone="muted">
-              Supporting line. The same page under a bar left at M3's own
-              margin, which is where the two come apart.
+              Supporting line. The same page under a bar left at Material
+              Design's own margin, which is where the two come apart.
             </Text>
           </Container>
         </div>

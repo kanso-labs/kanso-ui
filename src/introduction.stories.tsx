@@ -162,9 +162,8 @@ function IntroductionPage() {
           </Text>
         </div>
         {/* An outlined Card with no padding of its own is the design's
-            bordered list container — the reason there is no List component —
-            so the rows keep their own inset and the rules between them still
-            span the full width. */}
+            bordered list container, so the rows keep their own inset and the
+            rules between them still span the full width. */}
         <Card padding="none" variant="outlined">
           <ListItem supporting="One page per component, with its props in the Controls panel below the canvas.">
             Components

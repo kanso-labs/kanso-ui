@@ -4,11 +4,11 @@ import { page } from 'vitest/browser'
 
 import ListDetail from '.'
 
-// One pixel either side of each Material 3 breakpoint, so a query written
-// with the wrong comparison fails here rather than passing on a round number
-// that both readings agree on. The lower bounds are M3's own: compact below
-// 600, medium from 600, expanded from 840, large from 1200, extra-large from
-// 1600.
+// One pixel either side of each Material Design breakpoint, so a query
+// written with the wrong comparison fails here rather than passing on a round
+// number that both readings agree on. The lower bounds are Material Design's
+// own: compact below 600, medium from 600, expanded from 840, large from 1200,
+// extra-large from 1600.
 const COMPACT = 500
 const MEDIUM = 700
 const EXPANDED = 900
@@ -55,10 +55,10 @@ afterAll(async () => {
 })
 
 describe('panes across the breakpoints', () => {
-  // M3 puts one pane on screen at compact and medium, and two from expanded
-  // up. Measured rather than inferred from the class list, because StyleX
-  // decides the order the overlapping min-width queries are emitted in and
-  // that ordering is what makes the wider rule win.
+  // Material Design puts one pane on screen at compact and medium, and two
+  // from expanded up. Measured rather than inferred from the class list,
+  // because StyleX decides the order the overlapping min-width queries are
+  // emitted in and that ordering is what makes the wider rule win.
   it('shows one pane below expanded', async () => {
     for (const width of [COMPACT, MEDIUM]) {
       // The window has one width, so resizing is sequential by nature and
@@ -85,9 +85,9 @@ describe('panes across the breakpoints', () => {
     }
   })
 
-  // M3's recommended snap widths for a fixed pane. The list takes the fixed
-  // track and the detail pane absorbs the rest, which is the spec's rule that
-  // every layout carry at least one flexible pane.
+  // Material Design's recommended snap widths for a fixed pane. The list takes
+  // the fixed track and the detail pane absorbs the rest, which is the spec's
+  // rule that every layout carry at least one flexible pane.
   it('gives the list pane 360px at expanded and large', async () => {
     for (const width of [EXPANDED, LARGE]) {
       // The window has one width, so resizing is sequential by nature and
@@ -166,9 +166,9 @@ describe('element', () => {
     expect(view.getByRole('main')).toBeInTheDocument()
   })
 
-  // M3 asks that focus order match the arrangement on screen for co-planar
-  // panes, which for a left-to-right grid means the list has to come first in
-  // the DOM rather than being placed by grid-column.
+  // Material Design asks that focus order match the arrangement on screen for
+  // co-planar panes, which for a left-to-right grid means the list has to come
+  // first in the DOM rather than being placed by grid-column.
   it('writes the panes in the order they are shown', async () => {
     await page.viewport(EXPANDED, 900)
     const view = render(<ListDetail {...PANES} />)

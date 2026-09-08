@@ -83,8 +83,8 @@ const styles = stylex.create({
   },
   // A card holding a list wants none, so its rows can run to the edges and
   // the separators between them can span the full width. That is the whole
-  // of the design's "bordered list container" — an outlined card with no
-  // padding of its own — which is why there is no separate List component.
+  // of the design's "bordered list container": an outlined card with no
+  // padding of its own.
   paddingDefault: {
     padding: spacing.lg,
   },

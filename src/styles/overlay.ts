@@ -92,7 +92,7 @@ const overlay = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
   },
-  // M3's scrim is the scrim role at 32%, not a colour of its own.
+  // Material Design's scrim is the scrim role at 32%, not a colour of its own.
   scrim: {
     animationDuration: motion.durationShort2,
     animationName: fadeIn,

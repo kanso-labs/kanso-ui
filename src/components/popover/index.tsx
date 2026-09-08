@@ -43,10 +43,9 @@ const DEFAULT_SIDE_OFFSET = 8
 // shared with every anchored overlay; what is here is Popover's own — its
 // inset, its two widths, and the type of its title and description.
 //
-// No arrow, and that is M3 rather than an omission: menus and rich tooltips
-// both sit as plain rounded surfaces offset from their anchor, with no caret
-// drawn between the two. React Aria has an `OverlayArrow` part for designs
-// that want one; nothing here renders it.
+// The surface sits as a plain rounded panel offset from its anchor, with no
+// caret drawn between the two, which is how Material Design draws menus and
+// rich tooltips.
 //
 // React Aria's popover is two elements — the positioned panel and the dialog
 // inside it — so the styles are split the same way: the surface, `content`

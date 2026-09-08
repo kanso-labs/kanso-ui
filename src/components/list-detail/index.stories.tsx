@@ -120,9 +120,9 @@ const Overview: Story = {
           ListDetail
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material 3's list-detail layout. A fixed list pane beside a flexible
-          detail pane, collapsing to one pane at a time when the window is
-          narrower than the expanded breakpoint.
+          Material Design's list-detail layout. A fixed list pane beside a
+          flexible detail pane, collapsing to one pane at a time when the window
+          is narrower than the expanded breakpoint.
         </Text>
       </header>
 
@@ -137,7 +137,8 @@ const Overview: Story = {
             Resize the window to see it move. Below 840px only the pane named by
             `showing` is on screen; from 840px both are, with the list fixed at
             360px and the detail taking the rest. At 1600px the list widens to
-            412px, which is M3's recommended fixed-pane width there.
+            412px, which is Material Design's recommended fixed-pane width
+            there.
           </Text>
         </div>
         <ListDetail {...args} />

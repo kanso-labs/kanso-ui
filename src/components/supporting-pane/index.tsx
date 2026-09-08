@@ -8,19 +8,19 @@ import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { media, spacing } from '../../tokens/design.tokens.stylex'
 
-// One of Material 3's canonical layouts. The supporting pane holds content
-// that only means anything next to the main pane — reviewer comments, related
-// items, a tool panel — which is what separates it from list-detail, where
-// the second pane stands on its own.
+// One of Material Design's canonical layouts. The supporting pane holds
+// content that only means anything next to the main pane — reviewer comments,
+// related items, a tool panel — which is what separates it from list-detail,
+// where the second pane stands on its own.
 //
-// M3 gives this layout three shapes across the breakpoints, and all three are
-// reachable in CSS because none of them depends on what the reader selected:
-// stacked at compact, an even split at medium, two thirds to one third from
-// expanded up. Stacking is M3's "reflow" strategy, where the supporting pane
-// moves under the main one rather than being dismissed. The spec's other
-// compact option is a bottom sheet, which is a different component's job —
-// reach for Sheet at the call site when the supporting content should be
-// summoned rather than scrolled to.
+// Material Design gives this layout three shapes across the breakpoints, and
+// all three are reachable in CSS because none of them depends on what the
+// reader selected: stacked at compact, an even split at medium, two thirds to
+// one third from expanded up. Stacking is Material Design's "reflow" strategy,
+// where the supporting pane moves under the main one rather than being
+// dismissed. The spec's other compact option is a bottom sheet, which is a
+// different component's job — reach for Sheet at the call site when the
+// supporting content should be summoned rather than scrolled to.
 //
 const styles = stylex.create({
   // Each pane is wrapped rather than dropped straight into the grid. Handed
@@ -67,7 +67,7 @@ type SupportingPaneProps = Omit<RenderComponentProps<'div'>, 'children'> & {
 }
 
 /**
- * Material 3's supporting pane layout: a main pane and a companion that
+ * Material Design's supporting pane layout: a main pane and a companion that
  * reflows underneath it when there is no room beside it.
  *
  * Layout only — neither pane paints a surface or a border of its own, so what
@@ -76,8 +76,8 @@ type SupportingPaneProps = Omit<RenderComponentProps<'div'>, 'children'> & {
  * be a `<main>` rather than a `<div>`.
  *
  * The panes are written to the DOM in the order they are shown, which is what
- * M3 asks of co-planar panes: focus order has to match the arrangement on
- * screen.
+ * Material Design asks of co-planar panes: focus order has to match the
+ * arrangement on screen.
  */
 function SupportingPane({
   main,
