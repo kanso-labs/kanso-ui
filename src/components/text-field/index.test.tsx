@@ -39,6 +39,14 @@ function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+// Finishes the label's transition before reading it — see field/index.test.tsx.
+function settled(element: HTMLElement) {
+  for (const animation of element.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(element)
+}
+
 function setup(props: Partial<Parameters<typeof TextField>[0]> = {}) {
   const view = render(<TextField label="Label" {...props} />)
   return {
@@ -149,6 +157,25 @@ describe('text field', () => {
       const label = view.getByText('Label')
       expect(hasClasses(label, CLASSES.errorText)).toBe(true)
       expect(hasClasses(label, CLASSES.focusedLabel)).toBe(false)
+    })
+  })
+
+  // The field chrome's own tests cover the positions; these pin that the
+  // prop reaches it and what the default is.
+  describe('label', () => {
+    it('floats by default: centred while empty, at the top once focused', () => {
+      const { input, label } = setup({ defaultValue: '' })
+      expect(settled(label).fontSize).toBe('16px')
+
+      act(() => {
+        input.focus()
+      })
+      expect(settled(label).fontSize).toBe('12px')
+    })
+
+    it('stays small at the top with floatingLabel={false}', () => {
+      const { label } = setup({ defaultValue: '', floatingLabel: false })
+      expect(settled(label).fontSize).toBe('12px')
     })
   })
 
