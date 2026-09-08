@@ -63,7 +63,7 @@ const Overview: Story = {
           Tabs
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A row of pills and the panels they switch between.
+          A tab bar and the panels it switches between.
         </Text>
       </header>
 
@@ -75,9 +75,10 @@ const Overview: Story = {
             Selection
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The active tab takes a tinted pill rather than the underline
-            Material Design draws — a row of pills reads as a segmented control
-            inside a section, which is what the source design uses.
+            The bar divides its width into equal sections and draws a divider
+            along its bottom edge. The active tab&apos;s label takes the primary
+            role and an indicator underneath it, as wide as the label and
+            rounded along its top; an inactive label sits in on surface variant.
           </Text>
         </div>
         <Tabs defaultSelectedKey="first">
@@ -159,8 +160,8 @@ const Default: Story = {
   ),
 }
 
-// The strip on its own, for the case the design actually draws: tabs that
-// filter the content below rather than swapping a panel.
+// The bar on its own: tabs that filter the content below rather than
+// swapping a panel.
 const WithoutPanels: Story = {
   render: (args) => (
     <Tabs {...args}>

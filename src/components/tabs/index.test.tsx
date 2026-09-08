@@ -3,7 +3,11 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
-import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -11,13 +15,14 @@ import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 // without depending on the browser having applied a rule these tests are the
 // first thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
-  activeBackground: { backgroundColor: colors.primaryContainer },
-  activeColor: { color: colors.onPrimaryContainer },
+  activeColor: { color: colors.primary },
   disabledColor: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
-  inactiveBackground: { backgroundColor: 'transparent' },
+  divider: { boxShadow: `inset 0 -1px 0 0 ${colors.outlineVariant}` },
   inactiveColor: { color: colors.onSurfaceVariant },
+  titleSmall: { fontSize: typography.titleSmallSize },
+  transparent: { backgroundColor: 'transparent' },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -31,15 +36,27 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
-  activeBackground: classesOf(stylex.props(probeStyles.activeBackground)),
   activeColor: classesOf(stylex.props(probeStyles.activeColor)),
   disabledColor: classesOf(stylex.props(probeStyles.disabledColor)),
-  inactiveBackground: classesOf(stylex.props(probeStyles.inactiveBackground)),
+  divider: classesOf(stylex.props(probeStyles.divider)),
   inactiveColor: classesOf(stylex.props(probeStyles.inactiveColor)),
+  titleSmall: classesOf(stylex.props(probeStyles.titleSmall)),
+  transparent: classesOf(stylex.props(probeStyles.transparent)),
 }
 
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// The active indicator is the label span's `::after`, so it is read as the
+// browser resolved it rather than as a class: a tab without one has no
+// generated box, and its height reads as `auto`.
+function indicatorOf(tab: HTMLElement) {
+  const label = tab.firstElementChild
+  if (!(label instanceof HTMLElement)) {
+    throw new Error('expected the tab to wrap its label')
+  }
+  return getComputedStyle(label, '::after')
 }
 
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
@@ -146,27 +163,65 @@ describe('tabs', () => {
   })
 
   describe('appearance', () => {
-    it('gives the active tab the primary container pair', () => {
-      const { first } = setup()
-      expect(hasClasses(first, CLASSES.activeBackground)).toBe(true)
+    it('sets the active label in primary and an inactive one in on surface variant', () => {
+      const { first, second } = setup()
       expect(hasClasses(first, CLASSES.activeColor)).toBe(true)
+      expect(hasClasses(first, CLASSES.titleSmall)).toBe(true)
+      expect(hasClasses(second, CLASSES.inactiveColor)).toBe(true)
+      expect(hasClasses(second, CLASSES.activeColor)).toBe(false)
     })
 
-    it('leaves an inactive tab transparent so it tints what it sits on', () => {
-      const { second } = setup()
-      expect(hasClasses(second, CLASSES.inactiveBackground)).toBe(true)
-      expect(hasClasses(second, CLASSES.activeBackground)).toBe(false)
+    it('leaves every tab transparent so the bar shows the surface it sits on', () => {
+      const { first, second } = setup()
+      expect(hasClasses(first, CLASSES.transparent)).toBe(true)
+      expect(hasClasses(second, CLASSES.transparent)).toBe(true)
+    })
+
+    // The tabs page's indicator: 3dp, in primary, rounded along its top, and
+    // never shorter than 24dp. The colour is read against the active label's,
+    // which is the same role.
+    it('draws the indicator under the active label alone', () => {
+      const { first, second } = setup()
+      const indicator = indicatorOf(first)
+
+      expect(indicator.height).toBe('3px')
+      expect(indicator.minWidth).toBe('24px')
+      expect(indicator.backgroundColor).toBe(getComputedStyle(first).color)
+      expect(indicator.borderTopLeftRadius).not.toBe('0px')
+      expect(indicator.borderBottomLeftRadius).toBe('0px')
+      expect(indicatorOf(second).height).toBe('auto')
     })
 
     // Styling comes from React Aria's state callback rather than a CSS selector,
     // so this is what proves the callback re-runs on selection.
-    it('moves the pill when the selection changes', () => {
+    it('moves the indicator when the selection changes', () => {
       const { first, second } = setup()
       fireEvent.click(second)
 
-      expect(hasClasses(second, CLASSES.activeBackground)).toBe(true)
-      expect(hasClasses(first, CLASSES.activeBackground)).toBe(false)
-      expect(hasClasses(first, CLASSES.inactiveBackground)).toBe(true)
+      expect(indicatorOf(second).height).toBe('3px')
+      expect(indicatorOf(first).height).toBe('auto')
+      expect(hasClasses(second, CLASSES.activeColor)).toBe(true)
+      expect(hasClasses(first, CLASSES.inactiveColor)).toBe(true)
+    })
+
+    // The page's bar: 48 tall with the divider inside it, divided into equal
+    // sections whatever the labels measure.
+    it('is a 48 bar of equal sections with the divider inside it', () => {
+      const view = setup()
+      const list = view.getByRole('tablist')
+      const [first, second, third] = view.getAllByRole('tab')
+
+      expect(hasClasses(list, CLASSES.divider)).toBe(true)
+      expect(getComputedStyle(list).height).toBe('48px')
+      expect(getComputedStyle(first).height).toBe('48px')
+      expect(first.getBoundingClientRect().width).toBeCloseTo(
+        second.getBoundingClientRect().width,
+        0,
+      )
+      expect(second.getBoundingClientRect().width).toBeCloseTo(
+        third.getBoundingClientRect().width,
+        0,
+      )
     })
   })
 
