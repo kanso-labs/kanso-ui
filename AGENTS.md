@@ -11,13 +11,14 @@ are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command                 | Notes                                                            |
-| ---------- | ----------------------- | ---------------------------------------------------------------- |
-| Dev server | `npm run storybook`     | Storybook at http://localhost:6006 (`npm run dev` is an alias)   |
-| Test       | `npm test`              | Vitest in headless Chromium                                      |
-| Coverage   | `npm run test:coverage` | Same suite with v8 coverage; writes Cobertura XML to `coverage/` |
-| Lint       | `npm run lint`          | oxlint, then ESLint, then oxfmt formatting check                 |
-| Build      | `npm run build`         | Type-checks (`tsc -b`) then builds ESM into `dist/`              |
+| Task       | Command                           | Notes                                                                  |
+| ---------- | --------------------------------- | ---------------------------------------------------------------------- |
+| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)         |
+| Test       | `npm test`                        | Vitest in headless Chromium                                            |
+| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`       |
+| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                       |
+| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                    |
+| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions" |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
@@ -68,7 +69,11 @@ Specific to this repository:
   is behaviour worth pinning. Every component needs stories, since they are both
   its documentation and its render smoke test, **and a place in
   `src/theming/showcase.tsx`** — see "Previewing" below for what that page
-  catches that its own stories cannot.
+  catches that its own stories cannot. `npm run component:new -- <name>` writes
+  the directory with its three stubs and the four entries the next two bullets
+  and `styling.test.tsx` ask for, in their sorted places, and leaves the
+  showcase placement to you: it is a judgement about which section the component
+  belongs to, which is why the script prints the reminder rather than guessing.
 - Public API is exported from `src/index.ts`: the components barrel, and the
   curated React Aria utilities in `src/react-aria.ts`. **`react-aria-components`
   stays a pinned dependency, never a peer**, and that module is why. A consumer
