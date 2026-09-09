@@ -9,6 +9,15 @@ import Checkbox from '../checkbox'
 import TextArea from '../text-area'
 import TextField from '../text-field'
 
+/** Where the second of two stacked fields starts, which is what shifts. */
+function secondFieldTop(view: ReturnType<typeof render>) {
+  const second = [...formOf(view).children][1]
+  if (!(second instanceof HTMLElement)) {
+    throw new Error('expected the form to hold two fields')
+  }
+  return second.getBoundingClientRect().top
+}
+
 // Hoisted so each is one stable object per render rather than a fresh one,
 // which is what react-perf's no-new-object-as-prop is after.
 const SERVER_ERRORS = { name: 'Choose another name.' }
@@ -113,6 +122,67 @@ describe('form', () => {
       expect(view.getByLabelText('Note').getAttribute('aria-invalid')).toBe(
         'true',
       )
+    })
+  })
+
+  // A message arriving inside a form would otherwise push every field below
+  // it down by the line it takes, at the moment a person is reading the form.
+  describe('room for a message', () => {
+    it('keeps the line clear under a field that has nothing to say', () => {
+      const alone = render(<TextField label="Alone" />)
+      const aloneHeight = alone.container.getBoundingClientRect().height
+      alone.unmount()
+
+      const inForm = render(
+        <Form aria-label="Label">
+          <TextField label="In a form" />
+        </Form>,
+      )
+      const formHeight = inForm.container.getBoundingClientRect().height
+      // The line is 4 of padding and its own 16.
+      expect(formHeight - aloneHeight).toBe(20)
+    })
+
+    it('does not move the field below when a server error arrives', () => {
+      const view = render(
+        <Form aria-label="Label">
+          <TextField label="First" name="name" />
+          <TextField label="Second" name="other" />
+        </Form>,
+      )
+      const before = secondFieldTop(view)
+
+      view.rerender(
+        <Form aria-label="Label" validationErrors={SERVER_ERRORS}>
+          <TextField label="First" name="name" />
+          <TextField label="Second" name="other" />
+        </Form>,
+      )
+      expect(view.getByText('Choose another name.')).not.toBeNull()
+      expect(secondFieldTop(view)).toBe(before)
+    })
+
+    it('does not move the field below when a native message arrives', () => {
+      const view = render(
+        <Form aria-label="Label" validationBehavior="native">
+          <TextField isRequired label="First" name="first" />
+          <TextField label="Second" name="second" />
+        </Form>,
+      )
+      const before = secondFieldTop(view)
+
+      act(() => {
+        formOf(view).requestSubmit()
+      })
+      expect(view.getByLabelText('First').getAttribute('aria-invalid')).toBe(
+        'true',
+      )
+      expect(secondFieldTop(view)).toBe(before)
+    })
+
+    it('leaves a field on its own as it was', () => {
+      const view = render(<TextField label="Alone" />)
+      expect(view.container.querySelectorAll('[slot]')).toHaveLength(0)
     })
   })
 

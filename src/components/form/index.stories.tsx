@@ -103,6 +103,9 @@ const Overview: Story = {
             Pass validationErrors, keyed by field name, to show what a server
             sent back under each field. The field needs nothing of its own: the
             message, the error colour and aria-invalid all follow from the form.
+            Every field inside a form keeps the line under it clear whether or
+            not it has anything to say, so a message arriving leaves the fields
+            below it where they are.
           </Text>
         </div>
         <div {...stylex.props(styles.sample)}>

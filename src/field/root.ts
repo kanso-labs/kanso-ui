@@ -40,6 +40,16 @@ function useFieldValidationBehavior(): 'aria' | 'native' {
   return form?.validationBehavior ?? FIELD_VALIDATION_BEHAVIOR
 }
 
+/**
+ * Whether this field is inside a `Form`. A form is where a message arrives
+ * after the fact — a server's answer, or the browser's own on submit — so it
+ * is where the line under a field is kept clear whether or not there is
+ * anything to say, and the fields below it stay where they are.
+ */
+function useInsideForm() {
+  return useSlottedContext(FormContext) !== null
+}
+
 const fieldStyles = stylex.create({
   root: {
     boxSizing: 'border-box',
@@ -53,4 +63,5 @@ export {
   fieldStyles,
   invalidFrom,
   useFieldValidationBehavior,
+  useInsideForm,
 }
