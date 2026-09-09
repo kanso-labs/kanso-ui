@@ -31,6 +31,7 @@ import type { SwitchProps } from './switch'
 import type { TabsProps } from './tabs'
 import type { TagProps } from './tag'
 import type { TextProps } from './text'
+import type { TextAreaProps } from './text-area'
 import type { TextFieldProps } from './text-field'
 
 import * as components from '.'
@@ -65,6 +66,7 @@ import SwitchDefault from './switch'
 import TabsDefault from './tabs'
 import TagDefault from './tag'
 import TextDefault from './text'
+import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
 
 describe('components barrel', () => {
@@ -102,6 +104,7 @@ describe('components barrel', () => {
       'Tabs',
       'Tag',
       'Text',
+      'TextArea',
       'TextField',
     ])
   })
@@ -236,6 +239,10 @@ describe('components barrel', () => {
 
   it('re-exports SearchField as the same reference as its own module', () => {
     expect(components.SearchField).toBe(SearchFieldDefault)
+  })
+
+  it('re-exports TextArea as the same reference as its own module', () => {
+    expect(components.TextArea).toBe(TextAreaDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -400,6 +407,11 @@ describe('components barrel', () => {
 
   it('re-exports the SearchFieldProps type', () => {
     const props: SearchFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the TextAreaProps type', () => {
+    const props: TextAreaProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })

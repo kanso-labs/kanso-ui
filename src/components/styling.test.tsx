@@ -34,6 +34,7 @@ import {
   Tabs,
   Tag,
   Text,
+  TextArea,
   TextField,
 } from '.'
 
@@ -239,6 +240,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <Tag {...PROBE}>Label</Tag>, name: 'Tag' },
   { element: <Text {...PROBE}>Headline</Text>, name: 'Text' },
+  { element: <TextArea {...PROBE} label="Label" />, name: 'TextArea' },
   { element: <TextField {...PROBE} label="Label" />, name: 'TextField' },
 ]
 
