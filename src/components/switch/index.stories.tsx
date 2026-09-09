@@ -83,7 +83,9 @@ const Overview: Story = {
             Off, the track is outlined and the handle small; on, the track fills
             with primary and the handle grows as it crosses. The handle grows
             again while pressed, and the 40dp state layer around it carries
-            hover, press and the ripple.
+            hover, press and the ripple. The handle can also be dragged across
+            the track: it follows the pointer, and the switch flips when it is
+            let go past the middle or springs back when it is not.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>
