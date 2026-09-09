@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
+import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import IconButton from '.'
@@ -32,6 +33,10 @@ function probe(element: ReactElement) {
   return read
 }
 
+// Hoisted so the context value is one stable object rather than a fresh one
+// per render, which is what react-perf's no-new-object-as-prop is after.
+const DISABLED_CONTEXT = { isDisabled: true }
+
 function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
   const view = render(
     <IconButton aria-label="Add" {...props}>
@@ -57,6 +62,34 @@ describe('icon button', () => {
     it('is still a button when disabled', () => {
       const { button } = setup({ isDisabled: true })
       expect(button).toHaveProperty('disabled', true)
+    })
+
+    // A field disables the buttons it provides through React Aria's context
+    // — a stepper at the end of its range, a clear button with its field —
+    // and a prop given here would win over it, so the default is no prop.
+    it('takes its disabled state from a button context', () => {
+      const view = render(
+        <ButtonContext value={DISABLED_CONTEXT}>
+          <IconButton aria-label="Add">
+            <svg data-testid="icon" />
+          </IconButton>
+        </ButtonContext>,
+      )
+      expect(view.getByRole('button')).toHaveProperty('disabled', true)
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).toBeNull()
+    })
+
+    it('lets its own prop win over the context', () => {
+      const view = render(
+        <ButtonContext value={DISABLED_CONTEXT}>
+          <IconButton aria-label="Add" isDisabled={false}>
+            <svg data-testid="icon" />
+          </IconButton>
+        </ButtonContext>,
+      )
+      expect(view.getByRole('button')).toHaveProperty('disabled', false)
     })
 
     // The same link form Button has, for the same reason — see the "as a

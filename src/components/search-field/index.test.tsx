@@ -135,9 +135,13 @@ describe('search field', () => {
       expect(input).toHaveProperty('value', '')
     })
 
-    it('is disabled through the input', () => {
-      const { input } = setup({ defaultValue: 'typed', isDisabled: true })
-      expect(input).toHaveProperty('disabled', true)
+    it('disables the input and the clear button', () => {
+      const view = setup({ defaultValue: 'typed', isDisabled: true })
+      expect(view.input).toHaveProperty('disabled', true)
+      expect(view.getByRole('button', { name: 'Clear' })).toHaveProperty(
+        'disabled',
+        true,
+      )
     })
   })
 
