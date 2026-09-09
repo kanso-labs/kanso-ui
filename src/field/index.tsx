@@ -32,6 +32,7 @@ import {
   stateLayerOpacity,
   typography,
 } from '../tokens/design.tokens.stylex'
+import { useInsideForm } from './root'
 
 // The chrome every field shares: the filled box with its label at the top, the
 // control inside it, and the line of supporting text under it. TextField drew
@@ -435,6 +436,10 @@ const styles = stylex.create({
     display: 'flex',
     gap: spacing.lg,
     marginBlockStart: spacing.xs,
+    // As tall as one line of its own type whether or not it is holding
+    // anything, so a message arriving does not move the field below it —
+    // see `FieldMessage`, which is where the line is drawn empty.
+    minBlockSize: typography.bodySmallLineHeight,
   },
   numeric: {
     fontFamily: typography.fontFamilyMono,
@@ -1022,8 +1027,14 @@ function FieldMessage({
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
+  const insideForm = useInsideForm()
 
-  if (!invalid && description === undefined && !characterCount) {
+  // Nothing to say, and nowhere a message could arrive from: the field ends
+  // at its control. Inside a form the line is drawn anyway, empty, since a
+  // form is where a message appears after the fact — a server's answer, or
+  // the browser's own on submit — and every field below this one would
+  // otherwise move by the line's height when it does.
+  if (!invalid && description === undefined && !characterCount && !insideForm) {
     return null
   }
 
