@@ -8,7 +8,7 @@ import * as stylex from '@stylexjs/stylex'
 import { SwitchButton, SwitchField } from 'react-aria-components'
 
 import { FieldMessage } from '../../field'
-import { FIELD_VALIDATION_BEHAVIOR } from '../../field/root'
+import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { CheckGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -359,10 +359,12 @@ function Switch({
 }: SwitchProps) {
   const ripple = useRipple<HTMLSpanElement>()
 
+  const validationBehavior = useFieldValidationBehavior()
+
   return (
     <SwitchField
-      isInvalid={error !== undefined}
-      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      isInvalid={invalidFrom(error)}
+      validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(styles.field), props)}
     >

@@ -8,7 +8,7 @@ import * as stylex from '@stylexjs/stylex'
 import { CheckboxGroup as RACCheckboxGroup } from 'react-aria-components'
 
 import { FieldLabel, FieldMessage } from '../../field'
-import { FIELD_VALIDATION_BEHAVIOR } from '../../field/root'
+import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { spacing, typography } from '../../tokens/design.tokens.stylex'
 
@@ -77,10 +77,12 @@ function CheckboxGroup({
   label,
   ...props
 }: CheckboxGroupProps) {
+  const validationBehavior = useFieldValidationBehavior()
+
   return (
     <RACCheckboxGroup
-      isInvalid={error !== undefined}
-      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      isInvalid={invalidFrom(error)}
+      validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(styles.root), props)}
     >

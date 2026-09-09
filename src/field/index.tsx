@@ -12,6 +12,7 @@ import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
 import {
   FieldError,
+  FieldErrorContext,
   Group,
   Input,
   Label,
@@ -537,9 +538,14 @@ function FieldLabel({ state = NO_STATE, ...props }: FieldLabelProps) {
  * otherwise. The error goes through React Aria's `FieldError`, which renders
  * only while the field is invalid and falls back to whatever validation
  * errors the field carries when no message is given — which is how a `Form`
- * with server-side errors will reach it without any field changing.
+ * with server-side errors, or the browser's own, reaches it without any
+ * field changing. The description steps aside for those too, which is what
+ * the field's validation state is read for.
  */
 function FieldMessage({ description, error, inset = true }: FieldMessageProps) {
+  const validation = useContext(FieldErrorContext)
+  const invalid = error !== undefined || (validation?.isInvalid ?? false)
+
   return (
     <>
       <FieldError
@@ -551,7 +557,7 @@ function FieldMessage({ description, error, inset = true }: FieldMessageProps) {
       >
         {error}
       </FieldError>
-      {error === undefined && description !== undefined ? (
+      {!invalid && description !== undefined ? (
         <Text
           slot="description"
           {...stylex.props(styles.message, inset && styles.messageInset)}
