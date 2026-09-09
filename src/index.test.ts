@@ -25,6 +25,7 @@ import {
   NumberField as ComponentsNumberField,
   Popover as ComponentsPopover,
   ProductIcon as ComponentsProductIcon,
+  ProgressIndicator as ComponentsProgressIndicator,
   Radio as ComponentsRadio,
   RadioGroup as ComponentsRadioGroup,
   SearchField as ComponentsSearchField,
@@ -76,6 +77,7 @@ describe('package entry point', () => {
       'Popover',
       'Pressable',
       'ProductIcon',
+      'ProgressIndicator',
       'Radio',
       'RadioGroup',
       'RouterProvider',
@@ -258,6 +260,10 @@ describe('package entry point', () => {
 
   it('forwards Tooltip as the same reference as the components barrel', () => {
     expect(publicApi.Tooltip).toBe(ComponentsTooltip)
+  })
+
+  it('forwards ProgressIndicator as the same reference as the components barrel', () => {
+    expect(publicApi.ProgressIndicator).toBe(ComponentsProgressIndicator)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
