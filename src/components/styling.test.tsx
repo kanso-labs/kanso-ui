@@ -22,6 +22,7 @@ import {
   Link,
   ListDetail,
   ListItem,
+  Meter,
   NumberField,
   Popover,
   ProductIcon,
@@ -119,6 +120,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'ListItem (interactive)',
   },
+  { element: <Meter {...PROBE} label="Label" value={40} />, name: 'Meter' },
   { element: <NumberField {...PROBE} label="Label" />, name: 'NumberField' },
   {
     element: (

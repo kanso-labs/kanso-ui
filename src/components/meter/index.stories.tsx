@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 
-import ProgressIndicator from '.'
+import Meter from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
@@ -16,8 +16,16 @@ const HEADING_1 = <h1 />
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
+const BYTES = {
+  notation: 'compact',
+  style: 'unit',
+  unit: 'gigabyte',
+} as const
+
+const COUNT = { style: 'decimal' } as const
+
 const styles = stylex.create({
-  // A linear indicator fills its container, so the samples need a width.
+  // A meter fills its container, so the samples need a width.
   column: {
     display: 'flex',
     flexDirection: 'column',
@@ -42,11 +50,6 @@ const styles = stylex.create({
     maxInlineSize: '960px',
     padding: spacing.xl,
   },
-  rings: {
-    alignItems: 'center',
-    display: 'flex',
-    gap: spacing.xl,
-  },
   section: {
     display: 'flex',
     flexDirection: 'column',
@@ -59,9 +62,9 @@ const meta = {
     label: 'Label',
     value: 40,
   },
-  component: ProgressIndicator,
-  title: 'Components/ProgressIndicator',
-} satisfies Meta<typeof ProgressIndicator>
+  component: Meter,
+  title: 'Components/Meter',
+} satisfies Meta<typeof Meter>
 
 type Story = StoryObj<typeof meta>
 
@@ -70,10 +73,10 @@ const Overview: Story = {
     <div {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.header)}>
         <Text render={HEADING_1} variant="displaySmall">
-          ProgressIndicator
+          Meter
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Progress through a task, as a line or a ring.
+          How full something is, on a scale it names.
         </Text>
       </header>
 
@@ -82,31 +85,18 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
-            Determinate
+            Measurement
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The active indicator takes the value&apos;s share, the track what is
-            left, and the stop indicator marks the end. Pass showValue to put
-            the percentage beside the label.
+            left, and the stop indicator marks the end. The value is shown
+            beside the label, since the number is the measurement.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>
-          <ProgressIndicator label="Quarter" value={25} />
-          <ProgressIndicator label="Half" showValue value={50} />
-          <ProgressIndicator label="Nearly done" showValue value={90} />
-        </div>
-        <div {...stylex.props(styles.rings)}>
-          <ProgressIndicator
-            aria-label="Quarter"
-            value={25}
-            variant="circular"
-          />
-          <ProgressIndicator aria-label="Half" value={50} variant="circular" />
-          <ProgressIndicator
-            aria-label="Nearly done"
-            value={90}
-            variant="circular"
-          />
+          <Meter label="First item" value={20} />
+          <Meter label="Second item" value={55} />
+          <Meter label="Third item" value={90} />
         </div>
       </section>
 
@@ -115,17 +105,19 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
-            Buffer
+            Tone
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            How far the work is loaded ahead of the value — a video&apos;s
-            buffered seconds, a queue&apos;s fetched pages. The track is solid
-            up to the buffer and dotted beyond it, and the dots scroll.
+            Whether the measurement is good or bad is the call site&apos;s to
+            decide — nothing here reads the number and picks. Only the active
+            indicator changes colour, so a column of meters still shares one
+            track.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>
-          <ProgressIndicator buffer={70} label="Buffered" value={30} />
-          <ProgressIndicator buffer={45} label="Just ahead" value={30} />
+          <Meter label="Neutral" value={40} />
+          <Meter label="Healthy" tone="positive" value={40} />
+          <Meter label="Running out" tone="negative" value={94} />
         </div>
       </section>
 
@@ -134,23 +126,26 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
-            Indeterminate
+            Scale
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            For work whose length is not known. The line sweeps and the ring
-            turns, and both slow down for a reader who has asked for reduced
-            motion rather than stopping — an indicator frozen mid-sweep reads as
-            broken rather than as busy.
+            A meter is read on the scale it is given rather than as a
+            percentage. Set minValue and maxValue for the range, and
+            formatOptions for how the figure reads in the page&apos;s locale.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>
-          <ProgressIndicator isIndeterminate label="Working" />
-        </div>
-        <div {...stylex.props(styles.rings)}>
-          <ProgressIndicator
-            aria-label="Working"
-            isIndeterminate
-            variant="circular"
+          <Meter
+            formatOptions={BYTES}
+            label="First item"
+            maxValue={512}
+            value={318}
+          />
+          <Meter
+            formatOptions={COUNT}
+            label="Second item"
+            maxValue={5}
+            value={4}
           />
         </div>
       </section>
@@ -160,48 +155,34 @@ const Overview: Story = {
 
 const Default: Story = {}
 
-const WithValue: Story = {
+const WithoutValue: Story = {
   args: {
-    showValue: true,
+    showValue: false,
   },
 }
 
-const Indeterminate: Story = {
+const Positive: Story = {
   args: {
-    isIndeterminate: true,
-    value: undefined,
+    tone: 'positive',
   },
 }
 
-const WithBuffer: Story = {
+const Negative: Story = {
   args: {
-    buffer: 70,
-    value: 30,
+    tone: 'negative',
+    value: 94,
   },
 }
 
-const Circular: Story = {
+const OnItsOwnScale: Story = {
   args: {
-    variant: 'circular',
+    formatOptions: BYTES,
+    label: 'Label',
+    maxValue: 512,
+    value: 318,
   },
 }
 
-const CircularIndeterminate: Story = {
-  args: {
-    isIndeterminate: true,
-    value: undefined,
-    variant: 'circular',
-  },
-}
-
-export {
-  Circular,
-  CircularIndeterminate,
-  Default,
-  Indeterminate,
-  Overview,
-  WithBuffer,
-  WithValue,
-}
+export { Default, Negative, OnItsOwnScale, Overview, Positive, WithoutValue }
 
 export default meta

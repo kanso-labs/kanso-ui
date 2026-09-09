@@ -22,6 +22,7 @@ import {
   Link as ComponentsLink,
   ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
+  Meter as ComponentsMeter,
   NumberField as ComponentsNumberField,
   Popover as ComponentsPopover,
   ProductIcon as ComponentsProductIcon,
@@ -73,6 +74,7 @@ describe('package entry point', () => {
       'ListDetail',
       'ListItem',
       'ListLayout',
+      'Meter',
       'NumberField',
       'Popover',
       'Pressable',
@@ -264,6 +266,10 @@ describe('package entry point', () => {
 
   it('forwards ProgressIndicator as the same reference as the components barrel', () => {
     expect(publicApi.ProgressIndicator).toBe(ComponentsProgressIndicator)
+  })
+
+  it('forwards Meter as the same reference as the components barrel', () => {
+    expect(publicApi.Meter).toBe(ComponentsMeter)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
