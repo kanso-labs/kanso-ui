@@ -33,6 +33,7 @@ import {
   Separator,
   Sheet,
   Slider,
+  Snackbar,
   SupportingPane,
   Switch,
   Tabs,
@@ -52,6 +53,12 @@ import {
 // is a rule that has to hold across all of them at once: a new component that
 // forgets to merge fails here rather than shipping the same bug again.
 const PROBE = { className: 'probe', style: { zIndex: 42 } }
+
+// Snackbar renders nothing while its queue is empty, so this one is filled
+// before the case list is built. The queue lives outside React, so the
+// message is there on the first render rather than after an effect.
+const SNACKBARS = new Snackbar.Queue()
+SNACKBARS.add('First item')
 
 // Portalled parts land outside the render container, so every case is found
 // from the document. `cleanup` in vitest.setup.ts unmounts between tests, so
@@ -220,6 +227,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     element: <Slider {...PROBE} defaultValue={40} label="Label" />,
     name: 'Slider',
   },
+  { element: <Snackbar {...PROBE} queue={SNACKBARS} />, name: 'Snackbar' },
   {
     element: (
       <SupportingPane {...PROBE} main="First item" supporting="Second item" />

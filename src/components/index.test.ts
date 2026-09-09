@@ -29,6 +29,7 @@ import type { SearchFieldProps } from './search-field'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { SliderProps } from './slider'
+import type { SnackbarProps } from './snackbar'
 import type { StackProps } from './stack'
 import type { SupportingPaneProps } from './supporting-pane'
 import type { SwitchProps } from './switch'
@@ -69,6 +70,7 @@ import SearchFieldDefault from './search-field'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import SliderDefault from './slider'
+import SnackbarDefault from './snackbar'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import SwitchDefault from './switch'
@@ -112,6 +114,7 @@ describe('components barrel', () => {
       'Separator',
       'Sheet',
       'Slider',
+      'Snackbar',
       'Stack',
       'SupportingPane',
       'Switch',
@@ -278,6 +281,10 @@ describe('components barrel', () => {
 
   it('re-exports Meter as the same reference as its own module', () => {
     expect(components.Meter).toBe(MeterDefault)
+  })
+
+  it('re-exports Snackbar as the same reference as its own module', () => {
+    expect(components.Snackbar).toBe(SnackbarDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -473,5 +480,11 @@ describe('components barrel', () => {
   it('re-exports the MeterProps type', () => {
     const props: MeterProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the SnackbarProps type', () => {
+    const queue = new SnackbarDefault.Queue()
+    const props: SnackbarProps = { queue }
+    expect(props.queue).toBe(queue)
   })
 })
