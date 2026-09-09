@@ -5,11 +5,21 @@ import type {
   InputProps,
   InputRenderProps,
   LabelProps,
+  TextAreaProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
-import { FieldError, Group, Input, Label, Text } from 'react-aria-components'
+import {
+  FieldError,
+  Group,
+  Input,
+  Label,
+  Text,
+  TextArea,
+  TextAreaContext,
+  useSlottedContext,
+} from 'react-aria-components'
 
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import {
@@ -56,6 +66,17 @@ import {
 // React Aria's Group, which reports focus within it as render state, and the
 // label takes `labelFocused` from that.
 const styles = stylex.create({
+  // A text area and its replica in one grid cell, which is as tall as the
+  // taller of the two: the rows the control asks for, or the text it holds.
+  // That is what grows the box with typing without measuring anything — the
+  // replica is the value in the control's own type, wrapped the same way,
+  // and never seen.
+  autosize: {
+    display: 'grid',
+  },
+  autosizeCell: {
+    gridArea: '1 / 1 / 2 / 2',
+  },
   box: {
     backgroundColor: colors.surfaceContainerHighest,
     blockSize: '56px',
@@ -139,6 +160,14 @@ const styles = stylex.create({
     insetBlockStart: spacing.sm,
     insetInlineStart: spacing.lg,
     position: 'absolute',
+  },
+  // A box that takes its height from the control inside it, for a text
+  // area: the page's 56dp at least, with the 8dp under the control that the
+  // page gives the box above it.
+  boxMultiline: {
+    blockSize: 'auto',
+    minBlockSize: '56px',
+    paddingBlockEnd: spacing.sm,
   },
   input: {
     '::placeholder': {
@@ -224,6 +253,23 @@ const styles = stylex.create({
     // digits have to be one width.
     fontVariantNumeric: 'tabular-nums',
   },
+  // Wrapped as the browser wraps a text area, so the two break their lines
+  // at the same places.
+  replica: {
+    overflowWrap: 'break-word',
+    visibility: 'hidden',
+    whiteSpace: 'pre-wrap',
+  },
+  // No handle, since the page draws none; the rows scroll instead.
+  textArea: {
+    display: 'block',
+    overflow: 'auto',
+    resize: 'none',
+  },
+  // Growing with its text, the control never has anything to scroll.
+  textAreaAutosize: {
+    overflow: 'hidden',
+  },
 })
 
 // How the box draws its label, for the control inside it — see the context
@@ -241,6 +287,12 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
   floatingLabel?: boolean
   /** What the field is for. */
   label: string
+  /**
+   * Whether the box takes its height from the control inside it rather
+   * than the page's 56dp, for a text area.
+   * @default false
+   */
+  multiline?: boolean
 }
 
 type FieldInputProps = InputProps & {
@@ -281,6 +333,15 @@ interface FieldMessageProps {
   inset?: boolean
 }
 
+type FieldTextAreaProps = TextAreaProps & {
+  /**
+   * Whether the control grows with the text it holds, from the rows it asks
+   * for. Off, it keeps its rows and scrolls.
+   * @default false
+   */
+  autosize?: boolean
+}
+
 // A control under either label clears it with a margin, and one under a
 // floating label carries a placeholder so the box can tell when it is
 // populated, shown only while focused. The default is what a control
@@ -306,11 +367,12 @@ function boxContent(
   )
 }
 
-function boxStyles(floatingLabel: boolean) {
+function boxStyles(floatingLabel: boolean, multiline: boolean) {
   return (state: GroupRenderProps) =>
     stylex.props(
       styles.box,
       floatingLabel ? styles.boxFloating : styles.boxFixed,
+      multiline && styles.boxMultiline,
       state.isInvalid && styles.boxError,
       state.isDisabled && styles.boxDisabled,
     )
@@ -327,10 +389,14 @@ function FieldBox({
   children,
   floatingLabel = true,
   label,
+  multiline = false,
   ...props
 }: FieldBoxProps) {
   return (
-    <Group {...props} {...mergeStatefulStyles(boxStyles(floatingLabel), props)}>
+    <Group
+      {...props}
+      {...mergeStatefulStyles(boxStyles(floatingLabel, multiline), props)}
+    >
       {boxContent(label, children, floatingLabel)}
     </Group>
   )
@@ -370,6 +436,71 @@ function FieldInput({
         props,
       )}
     />
+  )
+}
+
+/**
+ * A field's multi-line text control, in a {@link FieldBox} drawn `multiline`.
+ * React Aria's `TextArea`, with the same label association, value and
+ * validation {@link FieldInput} takes from the field around it, and the same
+ * placeholder under a floating label.
+ *
+ * Given `autosize` it grows with its text from the rows it asks for. The
+ * value it grows to fit is read off the field's context rather than
+ * measured: the box holds a hidden replica of it in the control's own type,
+ * in the same grid cell as the control, and the cell is as tall as whichever
+ * of the two is taller.
+ */
+function FieldTextArea({
+  autosize = false,
+  placeholder,
+  ...props
+}: FieldTextAreaProps) {
+  const boxLabel = useContext(BoxLabelContext)
+  const context = useSlottedContext(TextAreaContext)
+  const value = typeof context?.value === 'string' ? context.value : ''
+
+  const control = (
+    <TextArea
+      placeholder={placeholder ?? (boxLabel === 'floating' ? ' ' : undefined)}
+      {...props}
+      {...mergeStatefulStyles(
+        (state: InputRenderProps) =>
+          stylex.props(
+            styles.input,
+            boxLabel !== 'none' && styles.inputUnderLabel,
+            boxLabel === 'floating' && styles.inputUnderFloatingLabel,
+            styles.textArea,
+            autosize && styles.textAreaAutosize,
+            autosize && styles.autosizeCell,
+            state.isDisabled && styles.inputDisabled,
+          ),
+        props,
+      )}
+    />
+  )
+
+  if (!autosize) {
+    return control
+  }
+
+  // A trailing space keeps a final line break of the value as a line of the
+  // replica, which is how the control renders it.
+  return (
+    <div {...stylex.props(styles.autosize)}>
+      {control}
+      <div
+        aria-hidden="true"
+        {...stylex.props(
+          styles.input,
+          boxLabel !== 'none' && styles.inputUnderLabel,
+          styles.replica,
+          styles.autosizeCell,
+        )}
+      >
+        {value}{' '}
+      </div>
+    </div>
   )
 }
 
@@ -438,6 +569,7 @@ export type {
   FieldLabelProps,
   FieldLabelState,
   FieldMessageProps,
+  FieldTextAreaProps,
 }
 
-export { FieldBox, FieldInput, FieldLabel, FieldMessage }
+export { FieldBox, FieldInput, FieldLabel, FieldMessage, FieldTextArea }

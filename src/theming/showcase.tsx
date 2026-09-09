@@ -45,6 +45,7 @@ import Switch from '../components/switch'
 import Tabs from '../components/tabs'
 import Tag from '../components/tag'
 import Text from '../components/text'
+import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
@@ -527,6 +528,10 @@ function Showcase({ name }: ShowcaseProps) {
               <TextField
                 defaultValue="Label"
                 error="Supporting line"
+                label="Label"
+              />
+              <TextArea
+                defaultValue={'First line.\nSecond line.\nThird line.'}
                 label="Label"
               />
               <CopyField value="--kui-color-primary" />

@@ -35,6 +35,7 @@ import {
   Tabs as ComponentsTabs,
   Tag as ComponentsTag,
   Text as ComponentsText,
+  TextArea as ComponentsTextArea,
   TextField as ComponentsTextField,
 } from './components'
 
@@ -84,6 +85,7 @@ describe('package entry point', () => {
       'Tabs',
       'Tag',
       'Text',
+      'TextArea',
       'TextField',
       'Virtualizer',
       'VisuallyHidden',
@@ -234,6 +236,10 @@ describe('package entry point', () => {
 
   it('forwards SearchField as the same reference as the components barrel', () => {
     expect(publicApi.SearchField).toBe(ComponentsSearchField)
+  })
+
+  it('forwards TextArea as the same reference as the components barrel', () => {
+    expect(publicApi.TextArea).toBe(ComponentsTextArea)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
