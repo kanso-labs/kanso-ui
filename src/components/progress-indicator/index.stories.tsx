@@ -115,6 +115,25 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Buffer
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            How far the work is loaded ahead of the value — a video&apos;s
+            buffered seconds, a queue&apos;s fetched pages. The track is solid
+            up to the buffer and dotted beyond it, and the dots scroll.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.column)}>
+          <ProgressIndicator buffer={70} label="Buffered" value={30} />
+          <ProgressIndicator buffer={45} label="Just ahead" value={30} />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Indeterminate
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -154,6 +173,13 @@ const Indeterminate: Story = {
   },
 }
 
+const WithBuffer: Story = {
+  args: {
+    buffer: 70,
+    value: 30,
+  },
+}
+
 const Circular: Story = {
   args: {
     variant: 'circular',
@@ -174,6 +200,7 @@ export {
   Default,
   Indeterminate,
   Overview,
+  WithBuffer,
   WithValue,
 }
 

@@ -203,28 +203,79 @@ describe('progress indicator', () => {
       ).toBeCloseTo(-(half + 4), 1)
     })
 
-    // Indeterminate, the ring is a quarter of the circle that turns, so the
-    // arc is a fixed length and the track is the whole circle behind it.
-    it('turns a quarter of the ring while indeterminate', () => {
+    // Indeterminate, the ring is Material Web's three composed animations
+    // rather than the determinate arcs: an arc expanding and contracting,
+    // travelling round the circle, with the whole thing rotating on top.
+    it('composes the three rotations while indeterminate', () => {
       const view = render(
         <ProgressIndicator isIndeterminate label="Label" variant="circular" />,
       )
-      const { active, svg, track } = arcsOf(
-        view.getByRole('progressbar', { name: 'Label' }),
-      )
-      const circumference = 2 * Math.PI * 18
+      const bar = view.getByRole('progressbar', { name: 'Label' })
+      expect(bar.querySelector('svg')).toBeNull()
 
-      expect(
-        Number.parseFloat(active.getAttribute('stroke-dasharray') ?? ''),
-      ).toBeCloseTo(circumference / 4, 1)
-      expect(track.getAttribute('stroke-dasharray')).toBeNull()
-      expect(getComputedStyle(svg).animationName).not.toBe('none')
+      const rotating = bar.lastElementChild
+      const spinner = rotating?.firstElementChild
+      const half = spinner?.firstElementChild
+      const arc = half?.firstElementChild
+      if (
+        !(rotating instanceof HTMLElement) ||
+        !(spinner instanceof HTMLElement) ||
+        !(arc instanceof HTMLElement)
+      ) {
+        throw new Error('expected the ring, the travelling arc and its half')
+      }
+
+      for (const element of [rotating, spinner, arc]) {
+        expect(getComputedStyle(element).animationName).not.toBe('none')
+      }
+      // Material Web's own timings: the arc, four of them to a cycle, and
+      // the linear rotation scaled by 360/306.
+      expect(getComputedStyle(arc).animationDuration).toBe('1.333s')
+      expect(getComputedStyle(spinner).animationDuration).toBe('5.332s')
+      expect(getComputedStyle(rotating).animationDuration).toBe('1.568s')
+    })
+  })
+
+  describe('buffer', () => {
+    // Material Web's buffer: the track is solid up to it and dotted beyond,
+    // and the dots scroll by one pitch of their pattern.
+    it('splits the track at the buffer and dots the rest', () => {
+      const { bar } = setup({ buffer: 70, value: 20 })
+      const { track } = linearPartsOf(bar)
+      const [solid, dots] = [...track.children]
+      if (!(solid instanceof HTMLElement) || !(dots instanceof HTMLElement)) {
+        throw new Error('expected the track to hold the buffer and the dots')
+      }
+
+      // 70 of the way along, with 20 already taken, is five eighths of the
+      // track that is left.
+      const width = track.getBoundingClientRect().width
+      expect(solid.getBoundingClientRect().width).toBeCloseTo(width * 0.625, 0)
+      expect(dots.getBoundingClientRect().width).toBeCloseTo(width * 0.375, 0)
+      expect(getComputedStyle(dots).animationName).not.toBe('none')
+    })
+
+    it('leaves the track solid without one', () => {
+      const { bar } = setup()
+      const { track } = linearPartsOf(bar)
+      expect(track.children).toHaveLength(0)
+      expect(hasClasses(track, CLASSES.track)).toBe(true)
+    })
+
+    it('ignores a buffer while indeterminate', () => {
+      const view = render(
+        <ProgressIndicator buffer={70} isIndeterminate label="Label" />,
+      )
+      const bar = view.getByRole('progressbar', { name: 'Label' })
+      expect(bar.querySelectorAll('[class]')).not.toHaveLength(0)
+      expect(bar.textContent).toBe('Label')
     })
   })
 
   describe('motion', () => {
-    // The page has the indeterminate indicator running the length of the
-    // track over and over; a determinate one only moves when its value does.
+    // Material Web's indeterminate line is two bars, each translated and
+    // scaled at once over 2s; a determinate one only moves when its value
+    // does.
     it('animates only while indeterminate', () => {
       const still = setup()
       expect(
@@ -233,10 +284,26 @@ describe('progress indicator', () => {
       still.unmount()
 
       const moving = render(<ProgressIndicator isIndeterminate label="Label" />)
-      const active = linearPartsOf(
-        moving.getByRole('progressbar', { name: 'Label' }),
-      ).active
-      expect(getComputedStyle(active).animationName).not.toBe('none')
+      const row = moving.getByRole('progressbar', {
+        name: 'Label',
+      }).lastElementChild
+      const [, primary, secondary] = [...(row?.children ?? [])]
+      if (
+        !(primary instanceof HTMLElement) ||
+        !(secondary instanceof HTMLElement)
+      ) {
+        throw new Error('expected the two bars')
+      }
+
+      for (const bar of [primary, secondary]) {
+        expect(getComputedStyle(bar).animationName).not.toBe('none')
+        expect(getComputedStyle(bar).animationDuration).toBe('2s')
+        const inner = bar.firstElementChild
+        if (!(inner instanceof HTMLElement)) {
+          throw new Error('expected each bar to hold its inner bar')
+        }
+        expect(getComputedStyle(inner).animationName).not.toBe('none')
+      }
     })
   })
 })
