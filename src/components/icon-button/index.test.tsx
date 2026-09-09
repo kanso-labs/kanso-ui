@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -217,6 +217,78 @@ describe('icon button', () => {
       expect(
         view.container.querySelector('span[aria-hidden="true"]'),
       ).toBeNull()
+    })
+  })
+
+  // React Aria's pending state keeps the button focusable while it stops
+  // responding to a press, and wants the progress bar in the accessibility
+  // tree the moment it goes pending.
+  describe('pending', () => {
+    it('draws a progress bar in place of the label', () => {
+      const view = render(
+        <IconButton aria-label="Add" isPending>
+          <svg />
+        </IconButton>,
+      )
+      const bar = view.getByRole('progressbar', { name: 'Loading' })
+
+      expect(bar).not.toBeNull()
+      expect(bar.getAttribute('aria-valuenow')).toBeNull()
+    })
+
+    it('takes another name for it', () => {
+      const view = render(
+        <IconButton aria-label="Add" isPending pendingLabel="Saving">
+          <svg />
+        </IconButton>,
+      )
+      expect(view.getByRole('progressbar', { name: 'Saving' })).not.toBeNull()
+    })
+
+    it('draws none until it is pending', () => {
+      const view = render(
+        <IconButton aria-label="Add">
+          <svg />
+        </IconButton>,
+      )
+      expect(view.queryByRole('progressbar')).toBeNull()
+    })
+
+    // The label stays in the flow, so the button keeps the width it had —
+    // a form that resized as it was submitted would move everything under
+    // the pointer.
+    it('keeps the width the label gave it', () => {
+      const idle = render(
+        <IconButton aria-label="Add">
+          <svg />
+        </IconButton>,
+      )
+      const before = idle.getByRole('button').getBoundingClientRect().width
+      idle.unmount()
+
+      const pending = render(
+        <IconButton aria-label="Add" isPending>
+          <svg />
+        </IconButton>,
+      )
+      expect(pending.getByRole('button').getBoundingClientRect().width).toBe(
+        before,
+      )
+    })
+
+    it('stops responding to a press while staying focusable', () => {
+      const onPress = vi.fn<() => void>()
+      const view = render(
+        <IconButton aria-label="Add" isPending onPress={onPress}>
+          <svg />
+        </IconButton>,
+      )
+      const button = view.getByRole('button')
+
+      fireEvent.click(button)
+      expect(onPress).not.toHaveBeenCalled()
+      expect(button.hasAttribute('disabled')).toBe(false)
+      expect(button.getAttribute('aria-disabled')).toBe('true')
     })
   })
 })

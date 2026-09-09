@@ -281,6 +281,13 @@ const Overview: Story = {
 
 const Default: Story = {}
 
-export { Default, Overview }
+const Pending: Story = {
+  args: {
+    'aria-label': 'Add',
+    isPending: true,
+  },
+}
+
+export { Default, Overview, Pending }
 
 export default meta

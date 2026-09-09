@@ -215,10 +215,8 @@ const styles = stylex.create({
     stroke: colors.secondaryContainer,
   },
   circular: {
-    blockSize: `${CIRCULAR_SIZE}px`,
     boxSizing: 'border-box',
     display: 'block',
-    inlineSize: `${CIRCULAR_SIZE}px`,
     // The dash pattern starts at three o'clock; the page's indicator starts
     // at the top.
     transform: 'rotate(-90deg)',
@@ -235,6 +233,13 @@ const styles = stylex.create({
     animationTimingFunction: 'linear',
     transform: 'none',
   },
+  // How wide the ring is drawn. The circle inside keeps its 40 user units,
+  // so the stroke and the gap scale with it rather than needing numbers of
+  // their own — a ring in a button is the button's own type size.
+  circularSize: (size: string) => ({
+    blockSize: size,
+    inlineSize: size,
+  }),
   // The scrolling dots beyond the buffer: the track's colour, at half the
   // thickness, one pitch of five apart.
   dots: {
@@ -418,6 +423,13 @@ type ProgressIndicatorProps = {
    * @default false
    */
   showValue?: boolean
+  /**
+   * How wide the ring is drawn, as a CSS length. Everything inside scales
+   * with it, so `1em` gives a ring the size of the type around it. Ignored
+   * by the line, which fills the width it is given.
+   * @default '40px'
+   */
+  size?: string
   /** A function may compute the style from the indicator's render state. */
   style?: RACProgressBarProps['style']
   /**
@@ -475,9 +487,11 @@ function bufferShare(
 function CircularTrack({
   isIndeterminate,
   percentage,
+  size,
 }: {
   isIndeterminate: boolean
   percentage: number | undefined
+  size: string
 }) {
   const arcs = arcsFor(percentage)
 
@@ -487,6 +501,7 @@ function CircularTrack({
       viewBox={`0 0 ${CIRCULAR_SIZE} ${CIRCULAR_SIZE}`}
       {...stylex.props(
         styles.circular,
+        styles.circularSize(size),
         isIndeterminate && styles.circularIndeterminate,
       )}
     >
@@ -536,6 +551,7 @@ function indicatorContent(
   buffer: number | undefined,
   minValue: number,
   maxValue: number,
+  size: string,
 ) {
   return (state: ProgressBarRenderProps) => (
     <>
@@ -553,6 +569,7 @@ function indicatorContent(
         <CircularTrack
           isIndeterminate={state.isIndeterminate}
           percentage={state.percentage}
+          size={size}
         />
       ) : (
         <LinearTrack
@@ -642,6 +659,7 @@ function ProgressIndicator({
   maxValue = 100,
   minValue = 0,
   showValue = false,
+  size = `${CIRCULAR_SIZE}px`,
   variant = 'linear',
   ...props
 }: ProgressIndicatorProps) {
@@ -658,7 +676,15 @@ function ProgressIndicator({
         props,
       )}
     >
-      {indicatorContent(label, showValue, variant, buffer, minValue, maxValue)}
+      {indicatorContent(
+        label,
+        showValue,
+        variant,
+        buffer,
+        minValue,
+        maxValue,
+        size,
+      )}
     </ProgressBar>
   )
 }

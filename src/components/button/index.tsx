@@ -25,6 +25,7 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import ProgressIndicator from '../progress-indicator'
 
 // Each variant composites its label colour over its container at the
 // interaction state's opacity, rather than swapping in a separate
@@ -54,6 +55,8 @@ import {
 // asked for, and every other size overrides it. That mirrors the source
 // design's own cascade, where the size classes are declared after the
 // variant ones and win on padding for exactly the same reason.
+type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -102,6 +105,16 @@ const styles = stylex.create({
     boxShadow: 'none',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  // While pending, the label stays in the flow so the button keeps its
+  // width, and is hidden — `display: contents` leaves the layout exactly as
+  // it was, and `visibility` is inherited, so the label's own parts go with
+  // it.
+  label: {
+    display: 'contents',
+  },
+  labelPending: {
+    visibility: 'hidden',
+  },
   // The five sizes are the buttons spec page's, XS to XL, from its size token
   // sets: the container height, the inline padding, the gap before an icon,
   // and the type role — label-large for the two small sizes, then
@@ -139,6 +152,14 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // The ring sits over the hidden label, centred in the button.
+  pending: {
+    alignItems: 'center',
+    display: 'flex',
+    inset: 0,
+    justifyContent: 'center',
+    position: 'absolute',
   },
   text: {
     backgroundColor: {
@@ -240,6 +261,12 @@ type ButtonProps = {
    * form only.
    */
   href?: string
+  /**
+   * The name of the ring shown while the button is pending, for a screen
+   * reader. The label it replaces is hidden while it shows.
+   * @default 'Loading'
+   */
+  pendingLabel?: string
   /** The link's `rel`, when `href` is set. */
   rel?: string
   /**
@@ -261,7 +288,10 @@ type ButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
 // The render state both of React Aria's elements share. A className or
 // style function written against it serves the button and the link alike;
-// `isPending` belongs to the button alone, and `isCurrent` to the link.
+// `isPending` belongs to the button alone, and `isCurrent` to the link, so
+// neither is here: a `className` written against this state serves both
+// elements. What the button draws while pending is decided in
+// `buttonContent`, which sees React Aria's own state rather than this one.
 type ButtonState = Pick<
   ButtonRenderProps,
   'isDisabled' | 'isFocused' | 'isFocusVisible' | 'isHovered' | 'isPressed'
@@ -299,6 +329,7 @@ function Button({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
+  pendingLabel = 'Loading',
   rel,
   render,
   size = 'md',
@@ -363,9 +394,44 @@ function Button({
       {...props}
       {...styleProps}
     >
-      {children}
-      {ripple.surface}
+      {buttonContent(children, pendingLabel, ripple)}
     </RACButton>
+  )
+}
+// What the button draws: its label, hidden while the button is pending, with
+// the ring over it. The label stays in the flow so the button keeps its
+// width, which is what stops a form jumping the moment it is submitted.
+// React Aria wants the progress bar in the accessibility tree as soon as the
+// button goes pending, so it is rendered from the render state rather than
+// after a delay.
+//
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after; the React Compiler
+// memoises the result on its inputs.
+function buttonContent(
+  children: ReactNode,
+  pendingLabel: string,
+  ripple: Ripple,
+) {
+  return (state: ButtonRenderProps) => (
+    <>
+      <span
+        {...stylex.props(styles.label, state.isPending && styles.labelPending)}
+      >
+        {children}
+      </span>
+      {state.isPending ? (
+        <span {...stylex.props(styles.pending)}>
+          <ProgressIndicator
+            aria-label={pendingLabel}
+            isIndeterminate
+            size="1em"
+            variant="circular"
+          />
+        </span>
+      ) : null}
+      {ripple.surface}
+    </>
   )
 }
 
