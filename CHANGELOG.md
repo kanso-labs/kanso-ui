@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.16.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.15.0...kanso-ui-v0.16.0) (2026-09-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename Badge to Tag ([#628](https://github.com/kanso-labs/kanso-ui/issues/628))
+* **tabs:** draw the spec's tabs ([#626](https://github.com/kanso-labs/kanso-ui/issues/626))
+* **text-field:** the spec's floating label ([#625](https://github.com/kanso-labs/kanso-ui/issues/625))
+* **sheet:** the spec's paddings, actions area and widths ([#619](https://github.com/kanso-labs/kanso-ui/issues/619))
+
+### Features
+
+* **checkbox:** add Checkbox and CheckboxGroup components ([#634](https://github.com/kanso-labs/kanso-ui/issues/634)) ([a651e0e](https://github.com/kanso-labs/kanso-ui/commit/a651e0eaf69dff639be279b30f35e62212ede884))
+* **radio-group:** add RadioGroup and Radio components ([#635](https://github.com/kanso-labs/kanso-ui/issues/635)) ([9aa9941](https://github.com/kanso-labs/kanso-ui/commit/9aa9941f06d05731022131a75ad82698bc7f19b5))
+* re-export React Aria utilities ([#631](https://github.com/kanso-labs/kanso-ui/issues/631)) ([b52bb76](https://github.com/kanso-labs/kanso-ui/commit/b52bb7639703ac67cf0d38c274a9d461fa6758a9))
+* rename Badge to Tag ([#628](https://github.com/kanso-labs/kanso-ui/issues/628)) ([8b8b0f2](https://github.com/kanso-labs/kanso-ui/commit/8b8b0f228821d38d288635b007044e4928e52229))
+* **slider:** add Slider component ([#638](https://github.com/kanso-labs/kanso-ui/issues/638)) ([04195f2](https://github.com/kanso-labs/kanso-ui/commit/04195f263bda5dce3c6368d38613586b4f776f4f))
+* **switch:** add Switch component ([#636](https://github.com/kanso-labs/kanso-ui/issues/636)) ([5f6d69b](https://github.com/kanso-labs/kanso-ui/commit/5f6d69bbcf03dd8cfc91ec1c2ee167e8e7280e22))
+
+
+### Bug Fixes
+
+* **popover:** rich tooltip paddings and subhead role ([#622](https://github.com/kanso-labs/kanso-ui/issues/622)) ([5001092](https://github.com/kanso-labs/kanso-ui/commit/5001092782766f31b5d30cb5aa287532e7fbbe83))
+* **sheet:** the spec's paddings, actions area and widths ([#619](https://github.com/kanso-labs/kanso-ui/issues/619)) ([0c3f21b](https://github.com/kanso-labs/kanso-ui/commit/0c3f21b5aec6e34381c4ed52b7e00c7048734484))
+* **supporting-pane:** 360dp supporting pane ([#624](https://github.com/kanso-labs/kanso-ui/issues/624)) ([d4ace05](https://github.com/kanso-labs/kanso-ui/commit/d4ace057ee6413d39c71146efce033de20ef8fdb))
+* **tabs:** draw the spec's tabs ([#626](https://github.com/kanso-labs/kanso-ui/issues/626)) ([30d8181](https://github.com/kanso-labs/kanso-ui/commit/30d818143b7ba187e979738d9145644925b085c6))
+* **test:** stop unresolved token constants failing the StyleX dev stylesheet ([#627](https://github.com/kanso-labs/kanso-ui/issues/627)) ([a60c35e](https://github.com/kanso-labs/kanso-ui/commit/a60c35efd6cfc6e956df21a41b483cd92adf45d4))
+* **text-field:** the spec's floating label ([#625](https://github.com/kanso-labs/kanso-ui/issues/625)) ([b5b38fb](https://github.com/kanso-labs/kanso-ui/commit/b5b38fb4a2395460457f0f1ceecf18ecb57b946f))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.22 ([#633](https://github.com/kanso-labs/kanso-ui/issues/633)) ([d281091](https://github.com/kanso-labs/kanso-ui/commit/d281091922f2bbe0b316a50069f98f2f008338d3))
+* update node.js to v24.21.0 ([#637](https://github.com/kanso-labs/kanso-ui/issues/637)) ([89d7ff0](https://github.com/kanso-labs/kanso-ui/commit/89d7ff04894f5b7dabcd42fb08b1559e0f28e3f5))
+
 ## [0.15.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.1...kanso-ui-v0.15.0) (2026-09-08)
 
 
