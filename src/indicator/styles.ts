@@ -42,6 +42,20 @@ export type IndicatorTone = 'inherit' | 'negative' | 'positive' | 'primary'
 
 export const indicatorStyles = stylex.create({
   // The active indicator: the percentage's own share of the row.
+  //
+  // Its width is what moves when the value changes, which lays the row out
+  // again on every frame. Material animates a `scaleX` from a `left center`
+  // origin instead, which the compositor runs on its own, and it can because
+  // its line has neither a gap nor a stop indicator: its bar is the whole
+  // row, and the scale factor is the value.
+  //
+  // The page's line has both, and both are fixed 4dp lengths. A scale factor
+  // is a unitless ratio, so putting the track's start at `value% + 4dp`
+  // needs the row's width in pixels, which no CSS the row itself can carry
+  // knows. Scaling the active indicator alone would also flatten the pill it
+  // is drawn as — a 9999px radius under `scaleX(0.05)` is a tenth of a pixel
+  // across — so the ends would square off as the value fell. The width stays
+  // for those two reasons rather than for want of trying the transform.
   active: {
     backgroundColor: colors.primary,
     blockSize: '100%',
