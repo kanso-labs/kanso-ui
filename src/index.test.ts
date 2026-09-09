@@ -39,6 +39,7 @@ import {
   Text as ComponentsText,
   TextArea as ComponentsTextArea,
   TextField as ComponentsTextField,
+  Tooltip as ComponentsTooltip,
 } from './components'
 
 describe('package entry point', () => {
@@ -91,6 +92,7 @@ describe('package entry point', () => {
       'Text',
       'TextArea',
       'TextField',
+      'Tooltip',
       'Virtualizer',
       'VisuallyHidden',
       'WaterfallLayout',
@@ -252,6 +254,10 @@ describe('package entry point', () => {
 
   it('forwards Dialog as the same reference as the components barrel', () => {
     expect(publicApi.Dialog).toBe(ComponentsDialog)
+  })
+
+  it('forwards Tooltip as the same reference as the components barrel', () => {
+    expect(publicApi.Tooltip).toBe(ComponentsTooltip)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

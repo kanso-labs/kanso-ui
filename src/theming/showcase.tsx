@@ -49,6 +49,7 @@ import Tag from '../components/tag'
 import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
+import Tooltip from '../components/tooltip'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
@@ -332,6 +333,9 @@ function Showcase({ name }: ShowcaseProps) {
               <IconButton aria-label="Add" variant="filled">
                 <PlusIcon />
               </IconButton>
+              <Tooltip label="Supporting text">
+                <Button variant="outlined">Hover for a tooltip</Button>
+              </Tooltip>
               <Dialog>
                 <Button variant="outlined">Open dialog</Button>
                 <Dialog.Content>

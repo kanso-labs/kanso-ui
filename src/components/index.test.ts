@@ -35,6 +35,7 @@ import type { TagProps } from './tag'
 import type { TextProps } from './text'
 import type { TextAreaProps } from './text-area'
 import type { TextFieldProps } from './text-field'
+import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
 import AppBarDefault from './app-bar'
@@ -72,6 +73,7 @@ import TagDefault from './tag'
 import TextDefault from './text'
 import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
+import TooltipDefault from './tooltip'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
@@ -112,6 +114,7 @@ describe('components barrel', () => {
       'Text',
       'TextArea',
       'TextField',
+      'Tooltip',
     ])
   })
 
@@ -257,6 +260,10 @@ describe('components barrel', () => {
 
   it('re-exports Dialog as the same reference as its own module', () => {
     expect(components.Dialog).toBe(DialogDefault)
+  })
+
+  it('re-exports Tooltip as the same reference as its own module', () => {
+    expect(components.Tooltip).toBe(TooltipDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -437,5 +444,10 @@ describe('components barrel', () => {
   it('re-exports the DialogProps type', () => {
     const props: DialogProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TooltipProps type', () => {
+    const props: TooltipProps = { label: 'Supporting text' }
+    expect(props.label).toBe('Supporting text')
   })
 })
