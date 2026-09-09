@@ -19,7 +19,8 @@ const PARAGRAPH = <p />
 
 // One queue for the page. A real app makes one where it can be reached from
 // anywhere and mounts the region once, near the root; a story page is the
-// same shape at a smaller scale.
+// same shape at a smaller scale. Seeded below so the page opens with a
+// snackbar on it rather than with three buttons and nothing to look at.
 const messages = new Snackbar.Queue()
 
 // Long enough to read on a page being looked at rather than used, since the
@@ -46,6 +47,8 @@ function seeded(options: Parameters<typeof messages.add>[1]) {
   queue.add('First item saved', { ...options, timeout: 0 })
   return queue
 }
+
+messages.add('First item saved', { action: UNDO, timeout: 0 })
 
 // The handlers the page's buttons take, built by a call rather than written
 // inline at the prop, which is what react-perf's no-new-function-as-prop is
@@ -121,7 +124,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             A message on its own leaves after a short while. Show one by calling
-            add on the queue; nothing is rendered until you do.
+            add on the queue — nothing is rendered until you do, which is why
+            this page seeds one to open with.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
