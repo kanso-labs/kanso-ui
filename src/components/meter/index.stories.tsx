@@ -22,6 +22,8 @@ const BYTES = {
   unit: 'gigabyte',
 } as const
 
+const COUNT = { style: 'decimal' } as const
+
 const styles = stylex.create({
   // A meter fills its container, so the samples need a width.
   column: {
@@ -139,7 +141,12 @@ const Overview: Story = {
             maxValue={512}
             value={318}
           />
-          <Meter label="Second item" maxValue={5} showValue={false} value={4} />
+          <Meter
+            formatOptions={COUNT}
+            label="Second item"
+            maxValue={5}
+            value={4}
+          />
         </div>
       </section>
     </div>
