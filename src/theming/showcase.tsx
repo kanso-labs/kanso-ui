@@ -43,6 +43,7 @@ import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
+import Snackbar from '../components/snackbar'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Switch from '../components/switch'
@@ -206,6 +207,19 @@ const AVATAR_TONES = [
 const BADGE_TONES = ['primary', 'positive', 'negative', 'neutral'] as const
 // Hoisted so it is one stable array per render, which is what react-perf's
 // no-new-array-as-prop is after.
+// One queue for the page. A snackbar has no trigger of its own, so the page
+// carries a button that shows one — the same shape Dialog and Sheet take
+// here, where what the snapshot pins is the trigger rather than the surface.
+const SHOWCASE_MESSAGES = new Snackbar.Queue()
+
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after.
+function showSnackbar() {
+  SHOWCASE_MESSAGES.add('First item saved', {
+    action: { label: 'Undo', onPress: () => {} },
+  })
+}
+
 const SHOWCASE_SELECTION = ['second']
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
@@ -470,6 +484,12 @@ function Showcase({ name }: ShowcaseProps) {
             </div>
             <Meter label="Label" value={60} />
             <Meter label="Label" tone="negative" value={94} />
+            <div {...stylex.props(styles.row)}>
+              <Button onPress={showSnackbar} variant="tonal">
+                Show a snackbar
+              </Button>
+              <Snackbar queue={SHOWCASE_MESSAGES} />
+            </div>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
                 <Tag key={tone} tone={tone}>

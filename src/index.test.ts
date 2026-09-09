@@ -33,6 +33,7 @@ import {
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
   Slider as ComponentsSlider,
+  Snackbar as ComponentsSnackbar,
   Stack as ComponentsStack,
   SupportingPane as ComponentsSupportingPane,
   Switch as ComponentsSwitch,
@@ -87,6 +88,7 @@ describe('package entry point', () => {
       'Separator',
       'Sheet',
       'Slider',
+      'Snackbar',
       'Stack',
       'SupportingPane',
       'Switch',
@@ -270,6 +272,10 @@ describe('package entry point', () => {
 
   it('forwards Meter as the same reference as the components barrel', () => {
     expect(publicApi.Meter).toBe(ComponentsMeter)
+  })
+
+  it('forwards Snackbar as the same reference as the components barrel', () => {
+    expect(publicApi.Snackbar).toBe(ComponentsSnackbar)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
