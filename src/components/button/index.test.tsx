@@ -667,6 +667,21 @@ describe('pending', () => {
     )
   })
 
+  // The page's primary is a filled button's own fill, so a ring drawn in it
+  // would be invisible. It takes the button's content colour instead.
+  it("draws the ring in the button's colour, not the page's primary", () => {
+    const view = render(<Button isPending>Label</Button>)
+    const button = view.getByRole('button')
+    const arc = button.querySelector('svg circle')
+    if (!(arc instanceof SVGElement)) {
+      throw new Error('expected the ring to draw an arc')
+    }
+
+    const label = getComputedStyle(button).color
+    expect(getComputedStyle(arc).stroke).toBe(label)
+    expect(label).not.toBe(getComputedStyle(button).backgroundColor)
+  })
+
   it('stops responding to a press while staying focusable', () => {
     const onPress = vi.fn<() => void>()
     const view = render(

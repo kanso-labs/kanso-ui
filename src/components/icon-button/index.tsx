@@ -238,7 +238,9 @@ type IconButtonProps = {
 } & ButtonDOMProps
 
 // What the button draws: its label, hidden while the button is pending, with
-// the ring over it. The label stays in the flow so the button keeps its
+// the ring over it. The ring takes the button's own content colour rather
+// than the progress page's primary, which on a filled button is the fill
+// itself and so invisible. The label stays in the flow so the button keeps its
 // width, which is what stops a form jumping the moment it is submitted.
 // React Aria wants the progress bar in the accessibility tree as soon as the
 // button goes pending, so it is rendered from the render state rather than
@@ -265,6 +267,7 @@ function buttonContent(
             aria-label={pendingLabel}
             isIndeterminate
             size="1em"
+            tone="inherit"
             variant="circular"
           />
         </span>
