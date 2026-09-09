@@ -5,15 +5,14 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { Label, ProgressBar } from 'react-aria-components'
+import { ProgressBar } from 'react-aria-components'
 
+import type { IndicatorTone } from '../../indicator/styles'
+
+import { IndicatorLabels, IndicatorLine } from '../../indicator'
+import { indicatorStyles } from '../../indicator/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import {
-  colors,
-  radii,
-  spacing,
-  typography,
-} from '../../tokens/design.tokens.stylex'
+import { colors, radii } from '../../tokens/design.tokens.stylex'
 
 // The progress indicators page's two shapes, drawn flat: the page's wavy
 // shape is the Expressive column's alone, and its amplitude and wavelength
@@ -64,6 +63,12 @@ import {
 // The circle the arcs are cut from. The radius is the diameter less the
 // stroke, halved, so the stroke sits inside the 40dp box rather than
 // straddling its edge.
+//
+// The thickness and the gap are the same 4dp the shared line is drawn at,
+// written again rather than imported from `src/indicator/styles`: StyleX
+// evaluates the values inside `stylex.create` and `stylex.keyframes` as it
+// compiles, and will not follow an import to a module that is not a theme
+// to reach one — an imported constant fails the transform outright.
 const CIRCULAR_SIZE = 40
 const THICKNESS = 4
 const GAP = 4
@@ -78,10 +83,11 @@ const CYCLE_MS = ARC_MS * 4
 const ROTATE_MS = Math.round((ARC_MS * 360) / 306)
 const RING_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
 
-// The line's: 2s for an indeterminate pass, 250ms for a value that changes.
+// The line's own: 2s for an indeterminate pass, and the 250ms the buffer's
+// dots take to scroll one pitch. What a determinate value moves over is the
+// shared line's, since a meter moves the same way.
 const INDETERMINATE_MS = 2000
-const DETERMINATE_MS = 250
-const DETERMINATE_EASING = 'cubic-bezier(0.4, 0, 0.6, 1)'
+const BUFFER_MS = 250
 
 // What `prefers-reduced-motion` slows each shape by.
 const LINE_SLOWDOWN = 2
@@ -174,23 +180,6 @@ const spin = stylex.keyframes({
 })
 
 const styles = stylex.create({
-  // The determinate active indicator: the percentage's own share of the row.
-  active: {
-    backgroundColor: colors.primary,
-    blockSize: '100%',
-    borderRadius: radii.full,
-    boxSizing: 'border-box',
-    flexShrink: 0,
-    transitionDuration: `${DETERMINATE_MS}ms`,
-    transitionProperty: 'inline-size',
-    transitionTimingFunction: DETERMINATE_EASING,
-  },
-  // How far along the active indicator has come. A dynamic style, since
-  // StyleX compiles its classes ahead of time and the number is the value —
-  // it is written to a custom property inline.
-  activeAt: (percentage: number) => ({
-    inlineSize: `${percentage}%`,
-  }),
   arcActive: {
     stroke: colors.primary,
     // Material's own transition for a determinate ring.
@@ -244,9 +233,9 @@ const styles = stylex.create({
   // thickness, one pitch of five apart.
   dots: {
     '@media (prefers-reduced-motion: reduce)': {
-      animationDuration: `${DETERMINATE_MS * LINE_SLOWDOWN}ms`,
+      animationDuration: `${BUFFER_MS * LINE_SLOWDOWN}ms`,
     },
-    animationDuration: `${DETERMINATE_MS}ms`,
+    animationDuration: `${BUFFER_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: buffering,
     animationTimingFunction: 'linear',
@@ -288,44 +277,6 @@ const styles = stylex.create({
     inset: 0,
     position: 'absolute',
   },
-  // Drawn on something that already carries a colour — a ring inside a
-  // button, where the page's primary would be the button's own fill and so
-  // invisible. The active indicator takes the colour it inherits, and the
-  // track a quarter of it.
-  inheritActive: {
-    backgroundColor: 'currentColor',
-    stroke: 'currentColor',
-  },
-  inheritTrack: {
-    backgroundColor: 'color-mix(in srgb, currentColor 25%, transparent)',
-    stroke: 'color-mix(in srgb, currentColor 25%, transparent)',
-  },
-  label: {
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
-  // The label and the value either end of a line above the indicator.
-  labels: {
-    alignItems: 'baseline',
-    boxSizing: 'border-box',
-    display: 'flex',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
-  },
-  // The three parts of a determinate line, with the page's 4dp between them.
-  linear: {
-    alignItems: 'center',
-    blockSize: `${THICKNESS}px`,
-    boxSizing: 'border-box',
-    display: 'flex',
-    gap: `${GAP}px`,
-    inlineSize: '100%',
-  },
   primaryBar: {
     '@media (prefers-reduced-motion: reduce)': {
       animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
@@ -344,13 +295,6 @@ const styles = stylex.create({
     animationIterationCount: 'infinite',
     animationName: primaryScale,
     animationTimingFunction: 'linear',
-  },
-  root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-    inlineSize: '100%',
   },
   // A circular indicator is its own size rather than the room it is given.
   rootCircular: {
@@ -376,28 +320,6 @@ const styles = stylex.create({
     animationName: secondaryScale,
     animationTimingFunction: 'linear',
   },
-  // The stop indicator: the page draws it at the end of the track, in the
-  // same primary as the active indicator.
-  stop: {
-    backgroundColor: colors.primary,
-    blockSize: `${THICKNESS}px`,
-    borderRadius: radii.full,
-    boxSizing: 'border-box',
-    flexShrink: 0,
-    inlineSize: `${THICKNESS}px`,
-  },
-  // The track: whatever the active indicator and the gaps leave. Given a
-  // buffer it is split, the solid part reaching the buffer and the dots
-  // running on to the end.
-  track: {
-    blockSize: '100%',
-    borderRadius: radii.full,
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexGrow: 1,
-    minInlineSize: 0,
-    overflow: 'hidden',
-  },
   trackBuffered: {
     backgroundColor: colors.secondaryContainer,
     blockSize: '100%',
@@ -408,9 +330,6 @@ const styles = stylex.create({
   trackBufferedAt: (share: number) => ({
     inlineSize: `${share}%`,
   }),
-  trackSolid: {
-    backgroundColor: colors.secondaryContainer,
-  },
 })
 
 type ProgressIndicatorProps = {
@@ -460,7 +379,10 @@ type ProgressIndicatorProps = {
   variant?: ProgressIndicatorVariant
 } & Omit<RACProgressBarProps, 'children' | 'className' | 'style'>
 
-type ProgressIndicatorTone = 'inherit' | 'primary'
+// The two of the shared line's four tones an indicator draws. The other two
+// say how a measurement reads, which is a meter's business rather than a
+// running task's.
+type ProgressIndicatorTone = Extract<IndicatorTone, 'inherit' | 'primary'>
 
 type ProgressIndicatorVariant = 'circular' | 'linear'
 
@@ -540,7 +462,10 @@ function CircularTrack({
           strokeDashoffset={arcs.track.strokeDashoffset}
           strokeLinecap="round"
           strokeWidth={THICKNESS}
-          {...stylex.props(styles.arcTrack, inherit && styles.inheritTrack)}
+          {...stylex.props(
+            styles.arcTrack,
+            inherit && indicatorStyles.inheritTrack,
+          )}
         />
       )}
       <circle
@@ -559,7 +484,7 @@ function CircularTrack({
         strokeWidth={THICKNESS}
         {...stylex.props(
           isIndeterminate ? styles.arcIndeterminate : styles.arcActive,
-          inherit && styles.inheritActive,
+          inherit && indicatorStyles.inheritActive,
         )}
       />
     </svg>
@@ -582,16 +507,12 @@ function indicatorContent(
 ) {
   return (state: ProgressBarRenderProps) => (
     <>
-      {label === undefined && !showValue ? null : (
-        <div {...stylex.props(styles.labels)}>
-          {label === undefined ? null : (
-            <Label {...stylex.props(styles.label)}>{label}</Label>
-          )}
-          {showValue && !state.isIndeterminate ? (
-            <span {...stylex.props(styles.label)}>{state.valueText}</span>
-          ) : null}
-        </div>
-      )}
+      <IndicatorLabels
+        label={label}
+        value={
+          showValue && !state.isIndeterminate ? state.valueText : undefined
+        }
+      />
       {variant === 'circular' ? (
         <CircularTrack
           isIndeterminate={state.isIndeterminate}
@@ -629,7 +550,7 @@ function LinearTrack({
         <span
           {...stylex.props(
             styles.indeterminateTrack,
-            inherit && styles.inheritTrack,
+            inherit && indicatorStyles.inheritTrack,
           )}
         />
         <span {...stylex.props(styles.indeterminateBar, styles.primaryBar)}>
@@ -637,7 +558,7 @@ function LinearTrack({
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.primaryBarInner,
-              inherit && styles.inheritActive,
+              inherit && indicatorStyles.inheritActive,
             )}
           />
         </span>
@@ -646,7 +567,7 @@ function LinearTrack({
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.secondaryBarInner,
-              inherit && styles.inheritActive,
+              inherit && indicatorStyles.inheritActive,
             )}
           />
         </span>
@@ -655,35 +576,19 @@ function LinearTrack({
   }
 
   return (
-    <div {...stylex.props(styles.linear)}>
-      <span
-        {...stylex.props(
-          styles.active,
-          styles.activeAt(percentage ?? 0),
-          inherit && styles.inheritActive,
-        )}
-      />
-      <span
-        {...stylex.props(
-          styles.track,
-          buffer === undefined && styles.trackSolid,
-          buffer === undefined && inherit && styles.inheritTrack,
-        )}
-      >
-        {buffer === undefined ? null : (
-          <>
-            <span
-              {...stylex.props(
-                styles.trackBuffered,
-                styles.trackBufferedAt(buffer),
-              )}
-            />
-            <span {...stylex.props(styles.dots)} />
-          </>
-        )}
-      </span>
-      <span {...stylex.props(styles.stop, inherit && styles.inheritActive)} />
-    </div>
+    <IndicatorLine percentage={percentage ?? 0} tone={tone}>
+      {buffer === undefined ? undefined : (
+        <>
+          <span
+            {...stylex.props(
+              styles.trackBuffered,
+              styles.trackBufferedAt(buffer),
+            )}
+          />
+          <span {...stylex.props(styles.dots)} />
+        </>
+      )}
+    </IndicatorLine>
   )
 }
 
@@ -715,7 +620,7 @@ function ProgressIndicator({
       {...props}
       {...mergeStatefulStyles(
         stylex.props(
-          styles.root,
+          indicatorStyles.root,
           variant === 'circular' && styles.rootCircular,
         ),
         props,

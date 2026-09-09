@@ -61,6 +61,26 @@ const preview: Preview = {
   },
   parameters: {
     a11y: {
+      config: {
+        // `aria-allowed-attr` reads `role` as a single token, so React Aria's
+        // `role="meter progressbar"` on a Meter resolves to no role at all and
+        // falls back to the div's own — under which none of `aria-valuenow`,
+        // `aria-valuemin`, `aria-valuemax` or `aria-valuetext` is allowed, and
+        // every story holding a Meter fails. ARIA defines `role` as a list of
+        // fallback tokens whose first valid one wins, which is `meter`, and
+        // `meter` allows all four; the list is there so a reader whose
+        // assistive technology predates `meter` still hears a progress bar.
+        //
+        // The rule's own selector is `*`, so narrowing it to everything but
+        // that element leaves it running everywhere else rather than turning
+        // it off. Drop this once axe resolves a fallback role list.
+        rules: [
+          {
+            id: 'aria-allowed-attr',
+            selector: '*:not([role="meter progressbar"])',
+          },
+        ],
+      },
       // 'todo' - show a11y violations in the test UI only
       // 'error' - fail CI on a11y violations
       // 'off' - skip a11y checks entirely

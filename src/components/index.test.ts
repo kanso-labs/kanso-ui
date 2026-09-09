@@ -19,6 +19,7 @@ import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
+import type { MeterProps } from './meter'
 import type { NumberFieldProps } from './number-field'
 import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
@@ -58,6 +59,7 @@ import KeycapDefault from './keycap'
 import LinkDefault from './link'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
+import MeterDefault from './meter'
 import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
@@ -99,6 +101,7 @@ describe('components barrel', () => {
       'Link',
       'ListDetail',
       'ListItem',
+      'Meter',
       'NumberField',
       'Popover',
       'ProductIcon',
@@ -271,6 +274,10 @@ describe('components barrel', () => {
 
   it('re-exports ProgressIndicator as the same reference as its own module', () => {
     expect(components.ProgressIndicator).toBe(ProgressIndicatorDefault)
+  })
+
+  it('re-exports Meter as the same reference as its own module', () => {
+    expect(components.Meter).toBe(MeterDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -460,6 +467,11 @@ describe('components barrel', () => {
 
   it('re-exports the ProgressIndicatorProps type', () => {
     const props: ProgressIndicatorProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the MeterProps type', () => {
+    const props: MeterProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })

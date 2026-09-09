@@ -33,6 +33,7 @@ import Keycap from '../components/keycap'
 import Link from '../components/link'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
+import Meter from '../components/meter'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
@@ -467,6 +468,8 @@ function Showcase({ name }: ShowcaseProps) {
                 variant="circular"
               />
             </div>
+            <Meter label="Label" value={60} />
+            <Meter label="Label" tone="negative" value={94} />
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (
                 <Tag key={tone} tone={tone}>
