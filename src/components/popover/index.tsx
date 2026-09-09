@@ -23,6 +23,7 @@ import {
   Dialog,
   DialogTrigger,
   Heading,
+  PreviewTrigger,
   Popover as RACPopover,
   Text,
 } from 'react-aria-components'
@@ -91,6 +92,13 @@ const styles = stylex.create({
   },
 })
 
+// How long a pointer rests on the trigger before a hovered popover opens,
+// and how long it has to leave before it closes. React Aria's own defaults,
+// spelled out because they are the whole feel of a hover trigger and worth
+// finding in the component rather than in a changelog.
+const DEFAULT_HOVER_DELAY = 600
+const DEFAULT_HOVER_CLOSE_DELAY = 200
+
 type PopoverAlign = 'center' | 'end' | 'start'
 
 type PopoverSide = 'bottom' | 'left' | 'right' | 'top'
@@ -121,6 +129,18 @@ const DescriptionContext = createContext<{
 type PopoverProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
   /**
+   * How long the pointer has to leave a hovered popover before it closes, in
+   * milliseconds. Ignored by a pressed one.
+   * @default 200
+   */
+  closeDelay?: number
+  /**
+   * How long the pointer has to rest on the trigger before a hovered popover
+   * opens, in milliseconds. Ignored by a pressed one.
+   * @default 600
+   */
+  delay?: number
+  /**
    * Blocks the page behind the panel while it is open, as a dialog would.
    * Off by default: a popover leaves the page interactive, which is the
    * difference from `Sheet`.
@@ -133,7 +153,17 @@ type PopoverProps = Omit<DialogTriggerProps, 'children'> & {
    * @default 'md'
    */
   size?: PopoverSize
+  /**
+   * What opens the panel: a press, or a pointer resting on the trigger.
+   * `hover` is the tooltips page's rich tooltip — it opens on hover, focus
+   * or a long press, and stays open while the pointer is inside it, so the
+   * panel's own buttons and links can be reached.
+   * @default 'press'
+   */
+  trigger?: PopoverTrigger
 }
+
+type PopoverTrigger = 'hover' | 'press'
 
 // React Aria names a placement by the side and, along it, the end the panel
 // is aligned to — `bottom start`, or `left top` on the sides where the axis
@@ -164,16 +194,36 @@ function placementOf(side: PopoverSide, align: PopoverAlign) {
  */
 function Popover({
   children,
+  closeDelay = DEFAULT_HOVER_CLOSE_DELAY,
+  delay = DEFAULT_HOVER_DELAY,
   modal = false,
   size = 'md',
+  trigger = 'press',
   ...props
 }: PopoverProps) {
   const context = useMemo(() => ({ modal, size }), [modal, size])
 
+  // A hovered popover is React Aria's preview trigger, which is a different
+  // element around the same parts rather than a mode of the pressed one: it
+  // opens from hover, focus or a long press, and it is always non-modal,
+  // since a panel that blocked the page while the pointer merely rested on
+  // something would be a trap. `modal` is left alone rather than refused,
+  // and `Popover.Content` reads it as it always did — the two are simply
+  // never combined by anything the page draws.
+  if (trigger === 'hover') {
+    return (
+      <PopoverContext value={context}>
+        <PreviewTrigger closeDelay={closeDelay} delay={delay} {...props}>
+          {children}
+        </PreviewTrigger>
+      </PopoverContext>
+    )
+  }
+
   return (
-    <DialogTrigger {...props}>
-      <PopoverContext value={context}>{children}</PopoverContext>
-    </DialogTrigger>
+    <PopoverContext value={context}>
+      <DialogTrigger {...props}>{children}</DialogTrigger>
+    </PopoverContext>
   )
 }
 
@@ -340,6 +390,7 @@ export type {
   PopoverSide,
   PopoverSize,
   PopoverTitleProps,
+  PopoverTrigger,
 }
 
 export default Popover

@@ -201,12 +201,53 @@ const Overview: Story = {
           </Popover.Content>
         </Popover>
       </div>
+
+      <Separator />
+
+      <section {...stylex.props(styles.intro)}>
+        <Text render={HEADING_2} variant="titleLarge">
+          Opening on hover
+        </Text>
+        <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+          trigger=&quot;hover&quot; opens the panel once a pointer has rested on
+          the trigger, and on focus or a long press. It stays open while the
+          pointer is inside it, so the panel&apos;s own buttons and links can be
+          reached — which is what separates the tooltips page&apos;s rich
+          tooltip from the plain one. delay and closeDelay set how long the
+          pointer has to rest and to leave.
+        </Text>
+      </section>
+      <div>
+        <Popover trigger="hover">
+          <Button variant="outlined">Hover or focus</Button>
+          <Popover.Content>
+            <PanelContents />
+          </Popover.Content>
+        </Popover>
+      </div>
     </div>
   ),
 }
 
 // Open on load, since a closed popover renders nothing for Chromatic to
 // compare.
+// Open on load, for the same reason the others are: a hovered popover that
+// nothing is hovering renders nothing to compare.
+const HoverTrigger: Story = {
+  args: {
+    defaultOpen: true,
+    trigger: 'hover',
+  },
+  render: (args) => (
+    <Popover {...args}>
+      <Button variant="outlined">Hover or focus</Button>
+      <Popover.Content>
+        <PanelContents />
+      </Popover.Content>
+    </Popover>
+  ),
+}
+
 const Default: Story = {
   render: (args) => (
     <div {...stylex.props(styles.frame)}>
@@ -311,6 +352,6 @@ const OpensAndCloses: Story = {
   tags: ['!dev'],
 }
 
-export { Default, OpensAndCloses, Overview, Sides, Small }
+export { Default, HoverTrigger, OpensAndCloses, Overview, Sides, Small }
 
 export default meta
