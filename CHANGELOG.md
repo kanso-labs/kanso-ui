@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.17.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.16.0...kanso-ui-v0.17.0) (2026-09-09)
+
+
+### Features
+
+* **form:** add Form component ([#649](https://github.com/kanso-labs/kanso-ui/issues/649)) ([e935c77](https://github.com/kanso-labs/kanso-ui/commit/e935c77d65eaa93803df5908e5b56cc16f4cb615))
+* **number-field:** add NumberField component ([#639](https://github.com/kanso-labs/kanso-ui/issues/639)) ([bebe33e](https://github.com/kanso-labs/kanso-ui/commit/bebe33e97113a5f277ecc4548d39dbdad26f10a3))
+* **search-field:** add SearchField component ([#642](https://github.com/kanso-labs/kanso-ui/issues/642)) ([f23e1d3](https://github.com/kanso-labs/kanso-ui/commit/f23e1d38233398be6d1b06ed076326e7fb0efe35))
+* **switch:** drag the handle across the track ([#656](https://github.com/kanso-labs/kanso-ui/issues/656)) ([379948f](https://github.com/kanso-labs/kanso-ui/commit/379948fdf6c5f5e0dd59d46cda45e2e75eb135f9))
+* **text-area:** add TextArea component ([#647](https://github.com/kanso-labs/kanso-ui/issues/647)) ([19d6348](https://github.com/kanso-labs/kanso-ui/commit/19d6348b6a4c8df6ee51bd17f53c5f6e686ab82e))
+* **text-field:** add icons, prefix, suffix and a character counter ([#651](https://github.com/kanso-labs/kanso-ui/issues/651)) ([aa9a8cf](https://github.com/kanso-labs/kanso-ui/commit/aa9a8cf21628a8a032389c5aa08047fcc23af481))
+* **text-field:** add the outlined variant ([#652](https://github.com/kanso-labs/kanso-ui/issues/652)) ([0fb42a8](https://github.com/kanso-labs/kanso-ui/commit/0fb42a88743b3d8f96907fe7f2023c774c6d4706))
+
+
+### Bug Fixes
+
+* **container:** the compact window's margin ([#653](https://github.com/kanso-labs/kanso-ui/issues/653)) ([ef72608](https://github.com/kanso-labs/kanso-ui/commit/ef72608ebdb2d6acc4f4be6ac6143d3264fcf8fa))
+* **number-field:** size the side-by-side steppers' glyphs ([#657](https://github.com/kanso-labs/kanso-ui/issues/657)) ([62392ca](https://github.com/kanso-labs/kanso-ui/commit/62392ca53cb0a168575ecdc7777c67ffda2145a9))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.7.3 ([#654](https://github.com/kanso-labs/kanso-ui/issues/654)) ([00edac4](https://github.com/kanso-labs/kanso-ui/commit/00edac49e31be316fd50278ff411abd24cf3fbc3))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.23 ([#645](https://github.com/kanso-labs/kanso-ui/issues/645)) ([5e4083e](https://github.com/kanso-labs/kanso-ui/commit/5e4083e0fbb3250fa48048a7dd4054edc31ccd1a))
+* update kanso-labs/github-actions action to v3.2.2 ([#646](https://github.com/kanso-labs/kanso-ui/issues/646)) ([79c8d02](https://github.com/kanso-labs/kanso-ui/commit/79c8d0200854ecf81f29ea7b86458f7edfca7546))
+* update react to v19.3.0 ([#655](https://github.com/kanso-labs/kanso-ui/issues/655)) ([ace5a99](https://github.com/kanso-labs/kanso-ui/commit/ace5a9912a368c801f6dad68fd42aa50e2f6a563))
+
 ## [0.16.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.15.0...kanso-ui-v0.16.0) (2026-09-09)
 
 
