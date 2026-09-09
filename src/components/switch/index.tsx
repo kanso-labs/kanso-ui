@@ -1,4 +1,13 @@
-import type { MouseEvent, PointerEvent, ReactNode } from 'react'
+// React's event types are aliased because `useHandleDrag` also constructs a
+// DOM `PointerEvent`. Imported unaliased, the name shadows that constructor:
+// TypeScript still resolves the call to the global, since a type-only import
+// takes no value name, but a reader and a static analyser alike read it as
+// React's type, which has no runtime value behind it at all.
+import type {
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  PointerEvent as ReactPointerEvent,
+} from 'react'
 import type {
   SwitchFieldProps as RACSwitchFieldProps,
   SwitchButtonRenderProps,
@@ -453,64 +462,73 @@ function useHandleDrag() {
     setOffset(null)
   }, [])
 
-  const onClickCapture = useCallback((event: MouseEvent<HTMLSpanElement>) => {
-    if (!cancelClick.current) {
-      return
-    }
-    cancelClick.current = false
-    // The label's activation is the browser's own, so this is what stops the
-    // input being flipped by a drag that settled where it began.
-    event.preventDefault()
-    event.stopPropagation()
-  }, [])
+  const onClickCapture = useCallback(
+    (event: ReactMouseEvent<HTMLSpanElement>) => {
+      if (!cancelClick.current) {
+        return
+      }
+      cancelClick.current = false
+      // The label's activation is the browser's own, so this is what stops the
+      // input being flipped by a drag that settled where it began.
+      event.preventDefault()
+      event.stopPropagation()
+    },
+    [],
+  )
 
-  const onPointerMove = useCallback((event: PointerEvent<HTMLSpanElement>) => {
-    const from = origin.current
-    if (from === null) {
-      return
-    }
-    const along = from.rtl ? from.x - event.clientX : event.clientX - from.x
-    const next = Math.min(TRAVEL, Math.max(0, from.base + along))
-    settled.current = next
-    setOffset(next)
-  }, [])
+  const onPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLSpanElement>) => {
+      const from = origin.current
+      if (from === null) {
+        return
+      }
+      const along = from.rtl ? from.x - event.clientX : event.clientX - from.x
+      const next = Math.min(TRAVEL, Math.max(0, from.base + along))
+      settled.current = next
+      setOffset(next)
+    },
+    [],
+  )
 
-  const onPointerUp = useCallback((event: PointerEvent<HTMLSpanElement>) => {
-    const from = origin.current
-    const stopped = settled.current
-    const seat = event.currentTarget
-    origin.current = null
-    settled.current = null
-    setOffset(null)
-    // A press that never moved is a tap, which React Aria flips on its own.
-    if (from === null || stopped === null) {
-      return
-    }
-    // React Aria's press is about to flip the switch from wherever it
-    // started, so it is cancelled first — a pointer cancel is what ends a
-    // press without firing it — and the drag settles the switch instead.
-    seat.dispatchEvent(
-      new PointerEvent('pointercancel', {
-        bubbles: true,
-        pointerId: event.pointerId,
-        pointerType: event.pointerType,
-      }),
-    )
-    // The pointer's own click follows this, by which time the switch has
-    // already settled.
-    cancelClick.current = true
-    if (stopped > TRAVEL / 2 === from.on) {
-      return
-    }
-    const input = seat.closest('label')?.querySelector('input')
-    input?.click()
-  }, [])
+  const onPointerUp = useCallback(
+    (event: ReactPointerEvent<HTMLSpanElement>) => {
+      const from = origin.current
+      const stopped = settled.current
+      const seat = event.currentTarget
+      origin.current = null
+      settled.current = null
+      setOffset(null)
+      // A press that never moved is a tap, which React Aria flips on its own.
+      if (from === null || stopped === null) {
+        return
+      }
+      // React Aria's press is about to flip the switch from wherever it
+      // started, so it is cancelled first — a pointer cancel is what ends a
+      // press without firing it — and the drag settles the switch instead.
+      seat.dispatchEvent(
+        new PointerEvent('pointercancel', {
+          bubbles: true,
+          pointerId: event.pointerId,
+          pointerType: event.pointerType,
+        }),
+      )
+      // The pointer's own click follows this, by which time the switch has
+      // already settled.
+      cancelClick.current = true
+      if (stopped > TRAVEL / 2 === from.on) {
+        return
+      }
+      const input = seat.closest('label')?.querySelector('input')
+      input?.click()
+    },
+    [],
+  )
 
   const handlers = useCallback(
     (on: boolean) => ({
       onClickCapture,
       onPointerCancel,
-      onPointerDown: (event: PointerEvent<HTMLSpanElement>) => {
+      onPointerDown: (event: ReactPointerEvent<HTMLSpanElement>) => {
         if (event.pointerType === 'mouse' && event.button !== 0) {
           return
         }
