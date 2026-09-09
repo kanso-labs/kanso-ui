@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import TextField from '.'
+import { CloseGlyph, SearchGlyph } from '../../glyphs'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
@@ -30,6 +31,11 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xs,
   },
+  // Sized in `em`, so the icon takes the slot's 24.
+  icon: {
+    blockSize: '1em',
+    inlineSize: '1em',
+  },
   intro: {
     display: 'flex',
     flexDirection: 'column',
@@ -49,6 +55,11 @@ const styles = stylex.create({
     gap: spacing.lg,
   },
 })
+
+// The library's own glyphs stand in for an icon set, so the stories stay a
+// demonstration of the field alone.
+const LEADING_ICON = <SearchGlyph {...stylex.props(styles.icon)} />
+const TRAILING_ICON = <CloseGlyph {...stylex.props(styles.icon)} />
 
 const meta = {
   args: {
@@ -131,6 +142,112 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Icons
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A leading icon says what the field is for and a trailing one what
+            can be done with it. Both are 24 in the muted role, 12 from the
+            box&apos;s edge; the trailing one takes the error colour with the
+            rest of the field.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextField
+            defaultValue=""
+            label="Leading"
+            leadingIcon={LEADING_ICON}
+          />
+          <TextField
+            defaultValue="Value"
+            label="Trailing"
+            trailingIcon={TRAILING_ICON}
+          />
+          <TextField
+            defaultValue="Value"
+            label="Both"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+          />
+          <TextField
+            defaultValue=""
+            error="Enter a value."
+            label="With an error"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Prefix and suffix
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Text on the value&apos;s line that is not part of the value: a unit,
+            a currency, a domain. Under a floating label they show once the
+            field is focused or holds a value, since the label rests on their
+            line until then.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextField defaultValue="Value" label="Prefix" prefix="Prefix" />
+          <TextField defaultValue="Value" label="Suffix" suffix="Suffix" />
+          <TextField defaultValue="" label="Empty" prefix="Prefix" />
+          <TextField
+            defaultValue=""
+            floatingLabel={false}
+            label="Fixed label"
+            prefix="Prefix"
+            suffix="Suffix"
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Character counter
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The count of characters against maxLength, at the end of the
+            supporting line and opposite the description or the error, in
+            tabular figures so it does not jitter.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextField
+            characterCount
+            defaultValue="Value"
+            label="Counter"
+            maxLength={20}
+          />
+          <TextField
+            characterCount
+            defaultValue="Value"
+            description="Supporting line"
+            label="With a description"
+            maxLength={20}
+          />
+          <TextField
+            characterCount
+            defaultValue="Value"
+            error="Enter a value."
+            label="With an error"
+            maxLength={20}
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Numeric
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -188,6 +305,28 @@ const Numeric: Story = {
   },
 }
 
+const WithIcons: Story = {
+  args: {
+    leadingIcon: LEADING_ICON,
+    trailingIcon: TRAILING_ICON,
+  },
+}
+
+const WithPrefixAndSuffix: Story = {
+  args: {
+    prefix: 'Prefix',
+    suffix: 'Suffix',
+  },
+}
+
+const WithCharacterCount: Story = {
+  args: {
+    characterCount: true,
+    description: 'Supporting line',
+    maxLength: 20,
+  },
+}
+
 const Disabled: Story = {
   args: {
     isDisabled: true,
@@ -201,8 +340,11 @@ export {
   FixedLabel,
   Numeric,
   Overview,
+  WithCharacterCount,
   WithDescription,
   WithError,
+  WithIcons,
+  WithPrefixAndSuffix,
 }
 
 export default meta

@@ -15,6 +15,7 @@ import {
   FieldErrorContext,
   Group,
   Input,
+  InputContext,
   Label,
   Text,
   TextArea,
@@ -66,7 +67,42 @@ import {
 // The label's colour follows the control's focus the same way: the box is
 // React Aria's Group, which reports focus within it as render state, and the
 // label takes `labelFocused` from that.
+//
+// The box is a row: an icon slot at either end, if the field has one, with
+// the label and control between them. The page gives the icons 24dp, 12dp
+// from the box's edge and 16dp from the text, centred in the box's height;
+// the slot cancels the box's top padding and stretches to its full height,
+// so it centres whatever it holds — a 24dp icon, or an icon button around
+// one. The label and the control sit in a column of their own, which is
+// what the label is positioned against, so it moves past a leading icon
+// with the text.
+//
+// A prefix or suffix sits on the control's line, in the control's type and
+// the muted role, and shows only while the field is focused or holds a
+// value, as the placeholder does — at rest the label is where it would be.
+// It is the column's colour it takes, inherited, since the column can
+// select on its own focus and content and the affix cannot select on
+// either.
 const styles = stylex.create({
+  affix: {
+    flexShrink: 0,
+    fontFamily: typography.bodyLargeFont,
+    fontSize: typography.bodyLargeSize,
+    fontWeight: typography.bodyLargeWeight,
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+    transitionDuration: motion.durationShort3,
+    transitionProperty: 'color',
+    transitionTimingFunction: motion.easingStandard,
+    whiteSpace: 'nowrap',
+  },
+  // The control's line, holding the affixes beside it. The 2dp is Compose's
+  // padding between the two, since the page gives none.
+  affixLine: {
+    alignItems: 'baseline',
+    display: 'flex',
+    gap: spacing.xxs,
+  },
   // A text area and its replica in one grid cell, which is as tall as the
   // taller of the two: the rows the control asks for, or the text it holds.
   // That is what grows the box with typing without measuring anything — the
@@ -79,6 +115,7 @@ const styles = stylex.create({
     gridArea: '1 / 1 / 2 / 2',
   },
   box: {
+    alignItems: 'flex-start',
     backgroundColor: colors.surfaceContainerHighest,
     blockSize: '56px',
     // Square at the bottom, where the focus indicator is drawn — a rounded
@@ -92,10 +129,11 @@ const styles = stylex.create({
       default: `inset 0 -1px 0 0 ${colors.outline}`,
     },
     boxSizing: 'border-box',
+    display: 'flex',
+    gap: spacing.lg,
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,
-    position: 'relative',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'box-shadow',
     transitionTimingFunction: motion.easingStandard,
@@ -154,13 +192,18 @@ const styles = stylex.create({
       default: `calc(56px - 2 * ${spacing.sm})`,
     },
   },
-  // Where the box puts its label. Kept apart from `label`, which is the
-  // colour alone, so a field that lays its label out differently — a
-  // checkbox, a slider — can take the one without the other.
+  // Where the box puts its label: at the top of the column the control is
+  // in. Kept apart from `label`, which is the colour alone, so a field that
+  // lays its label out differently — a checkbox, a slider — can take the
+  // one without the other.
   boxLabel: {
-    insetBlockStart: spacing.sm,
-    insetInlineStart: spacing.lg,
+    insetBlockStart: 0,
+    insetInlineStart: 0,
     position: 'absolute',
+  },
+  // The page's 12dp beside an icon, in place of the 16dp beside text.
+  boxLeading: {
+    paddingInlineStart: spacing.md,
   },
   // A box that takes its height from the control inside it, for a text
   // area: the page's 56dp at least, with the 8dp under the control that the
@@ -169,6 +212,66 @@ const styles = stylex.create({
     blockSize: 'auto',
     minBlockSize: '56px',
     paddingBlockEnd: spacing.sm,
+  },
+  boxTrailing: {
+    paddingInlineEnd: spacing.md,
+  },
+  // The label and control's column. Its colour is the affixes', which have
+  // none of their own: the muted role while the field is focused or holds a
+  // value, and nothing at rest under a floating label.
+  column: {
+    color: colors.onSurfaceVariant,
+    flexGrow: 1,
+    minInlineSize: 0,
+    position: 'relative',
+  },
+  columnDisabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  columnDisabledFloating: {
+    color: {
+      ':has(:is(input, textarea):not(:placeholder-shown))': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: 'transparent',
+    },
+  },
+  columnFloating: {
+    color: {
+      ':focus-within': colors.onSurfaceVariant,
+      ':has(:is(input, textarea):not(:placeholder-shown))':
+        colors.onSurfaceVariant,
+      default: 'transparent',
+    },
+  },
+  // The count of characters, at the end of the message line in tabular
+  // figures so it does not jitter as it counts.
+  counter: {
+    flexShrink: 0,
+    fontVariantNumeric: 'tabular-nums',
+    marginInlineStart: 'auto',
+    whiteSpace: 'nowrap',
+  },
+  // An icon slot: the page's 24dp icon in the muted role, centred in the
+  // box's full height. An icon drawn in `em` follows the slot's size.
+  icon: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    color: colors.onSurfaceVariant,
+    display: 'flex',
+    flexShrink: 0,
+    fontSize: '24px',
+    justifyContent: 'center',
+    marginBlockStart: `calc(-1 * ${spacing.sm})`,
+    transitionDuration: motion.durationShort3,
+    transitionProperty: 'color',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  iconDisabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // The page colours the trailing icon with the error, and the leading one
+  // not.
+  iconError: {
+    color: colors.error,
   },
   input: {
     '::placeholder': {
@@ -237,7 +340,6 @@ const styles = stylex.create({
     letterSpacing: typography.bodySmallTracking,
     lineHeight: typography.bodySmallLineHeight,
     marginBlock: 0,
-    marginBlockStart: spacing.xs,
   },
   messageError: {
     color: colors.error,
@@ -247,6 +349,14 @@ const styles = stylex.create({
   // label is not in a box — a checkbox, a group — leaves it out.
   messageInset: {
     marginInline: spacing.lg,
+  },
+  // The line under the box: the message at the start, the counter at the
+  // end, the page's 4dp under the box and 16dp between the two.
+  messageLine: {
+    alignItems: 'baseline',
+    display: 'flex',
+    gap: spacing.lg,
+    marginBlockStart: spacing.xs,
   },
   numeric: {
     fontFamily: typography.fontFamilyMono,
@@ -288,21 +398,38 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
   floatingLabel?: boolean
   /** What the field is for. */
   label: string
+  /** An icon at the start of the box, before the label and the control. */
+  leading?: ReactNode
   /**
    * Whether the box takes its height from the control inside it rather
    * than the page's 56dp, for a text area.
    * @default false
    */
   multiline?: boolean
+  /** An icon at the end of the box, after the control. */
+  trailing?: ReactNode
 }
 
-type FieldInputProps = InputProps & {
+// `prefix` is also an HTML attribute — the RDFa one, which nothing here
+// wants — and React's element types carry it as a string, so it is left out
+// of the props taken from React Aria to make room for the affix.
+type FieldInputProps = Omit<InputProps, 'prefix'> & {
   /**
    * Renders the value in the mono face with tabular figures, for amounts and
    * other numbers meant to be compared down a column.
    * @default false
    */
   numeric?: boolean
+  /**
+   * Text before the value on its line, shown while the field is focused or
+   * holds a value.
+   */
+  prefix?: ReactNode
+  /**
+   * Text after the value on its line, shown while the field is focused or
+   * holds a value.
+   */
+  suffix?: ReactNode
 }
 
 type FieldLabelProps = LabelProps & {
@@ -320,6 +447,13 @@ type FieldLabelState = Pick<
 
 interface FieldMessageProps {
   /**
+   * Whether to count the characters the control holds at the end of the
+   * line, against `maxLength` where there is one. The count is read off the
+   * field's own input or text area context.
+   * @default false
+   */
+  characterCount?: boolean
+  /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
    */
@@ -332,6 +466,8 @@ interface FieldMessageProps {
    * @default true
    */
   inset?: boolean
+  /** The limit the count is shown against. */
+  maxLength?: number | undefined
 }
 
 type FieldTextAreaProps = TextAreaProps & {
@@ -357,23 +493,64 @@ function boxContent(
   label: string,
   children: ReactNode,
   floatingLabel: boolean,
+  leading: ReactNode,
+  trailing: ReactNode,
 ) {
   return (state: GroupRenderProps) => (
     <BoxLabelContext value={floatingLabel ? 'floating' : 'fixed'}>
-      <FieldLabel state={state} {...stylex.props(styles.boxLabel)}>
-        {label}
-      </FieldLabel>
-      {children}
+      {leading === undefined ? null : (
+        <span
+          {...stylex.props(
+            styles.icon,
+            state.isDisabled && styles.iconDisabled,
+          )}
+        >
+          {leading}
+        </span>
+      )}
+      <div
+        {...stylex.props(
+          styles.column,
+          floatingLabel && styles.columnFloating,
+          state.isDisabled &&
+            (floatingLabel
+              ? styles.columnDisabledFloating
+              : styles.columnDisabled),
+        )}
+      >
+        <FieldLabel state={state} {...stylex.props(styles.boxLabel)}>
+          {label}
+        </FieldLabel>
+        {children}
+      </div>
+      {trailing === undefined ? null : (
+        <span
+          {...stylex.props(
+            styles.icon,
+            state.isInvalid && styles.iconError,
+            state.isDisabled && styles.iconDisabled,
+          )}
+        >
+          {trailing}
+        </span>
+      )}
     </BoxLabelContext>
   )
 }
 
-function boxStyles(floatingLabel: boolean, multiline: boolean) {
+function boxStyles(
+  floatingLabel: boolean,
+  multiline: boolean,
+  leading: boolean,
+  trailing: boolean,
+) {
   return (state: GroupRenderProps) =>
     stylex.props(
       styles.box,
       floatingLabel ? styles.boxFloating : styles.boxFixed,
       multiline && styles.boxMultiline,
+      leading && styles.boxLeading,
+      trailing && styles.boxTrailing,
       state.isInvalid && styles.boxError,
       state.isDisabled && styles.boxDisabled,
     )
@@ -390,15 +567,25 @@ function FieldBox({
   children,
   floatingLabel = true,
   label,
+  leading,
   multiline = false,
+  trailing,
   ...props
 }: FieldBoxProps) {
   return (
     <Group
       {...props}
-      {...mergeStatefulStyles(boxStyles(floatingLabel, multiline), props)}
+      {...mergeStatefulStyles(
+        boxStyles(
+          floatingLabel,
+          multiline,
+          leading !== undefined,
+          trailing !== undefined,
+        ),
+        props,
+      )}
     >
-      {boxContent(label, children, floatingLabel)}
+      {boxContent(label, children, floatingLabel, leading, trailing)}
     </Group>
   )
 }
@@ -417,11 +604,13 @@ function FieldBox({
 function FieldInput({
   numeric = false,
   placeholder,
+  prefix,
+  suffix,
   ...props
 }: FieldInputProps) {
   const boxLabel = useContext(BoxLabelContext)
 
-  return (
+  const control = (
     <Input
       placeholder={placeholder ?? (boxLabel === 'floating' ? ' ' : undefined)}
       {...props}
@@ -437,6 +626,36 @@ function FieldInput({
         props,
       )}
     />
+  )
+
+  if (prefix === undefined && suffix === undefined) {
+    return control
+  }
+
+  return (
+    <span {...stylex.props(styles.affixLine)}>
+      {prefix === undefined ? null : (
+        <span
+          {...stylex.props(
+            styles.affix,
+            boxLabel !== 'none' && styles.inputUnderLabel,
+          )}
+        >
+          {prefix}
+        </span>
+      )}
+      {control}
+      {suffix === undefined ? null : (
+        <span
+          {...stylex.props(
+            styles.affix,
+            boxLabel !== 'none' && styles.inputUnderLabel,
+          )}
+        >
+          {suffix}
+        </span>
+      )}
+    </span>
   )
 }
 
@@ -542,30 +761,53 @@ function FieldLabel({ state = NO_STATE, ...props }: FieldLabelProps) {
  * field changing. The description steps aside for those too, which is what
  * the field's validation state is read for.
  */
-function FieldMessage({ description, error, inset = true }: FieldMessageProps) {
+function FieldMessage({
+  characterCount = false,
+  description,
+  error,
+  inset = true,
+  maxLength,
+}: FieldMessageProps) {
   const validation = useContext(FieldErrorContext)
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
+  const input = useSlottedContext(InputContext)
+  const textArea = useSlottedContext(TextAreaContext)
+
+  if (!invalid && description === undefined && !characterCount) {
+    return null
+  }
+
+  const value = input?.value ?? textArea?.value ?? ''
+  const length = String(value).length
 
   return (
-    <>
-      <FieldError
-        {...stylex.props(
-          styles.message,
-          inset && styles.messageInset,
-          styles.messageError,
-        )}
-      >
+    <div
+      {...stylex.props(
+        styles.message,
+        styles.messageLine,
+        inset && styles.messageInset,
+      )}
+    >
+      <FieldError {...stylex.props(styles.message, styles.messageError)}>
         {error}
       </FieldError>
       {!invalid && description !== undefined ? (
-        <Text
-          slot="description"
-          {...stylex.props(styles.message, inset && styles.messageInset)}
-        >
+        <Text slot="description" {...stylex.props(styles.message)}>
           {description}
         </Text>
       ) : null}
-    </>
+      {characterCount ? (
+        <span
+          {...stylex.props(
+            styles.message,
+            styles.counter,
+            invalid && styles.messageError,
+          )}
+        >
+          {maxLength === undefined ? length : `${length}/${maxLength}`}
+        </span>
+      ) : null}
+    </div>
   )
 }
 

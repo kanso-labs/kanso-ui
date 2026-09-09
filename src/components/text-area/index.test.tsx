@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest'
 
 import TextArea from '.'
 
-// The box the control sits in, which is the element holding its label.
+// The box the control sits in: the label's column is in it.
 function boxOf(label: HTMLElement) {
-  const box = label.parentElement
+  const box = label.parentElement?.parentElement
   if (!(box instanceof HTMLElement)) {
-    throw new Error('expected the label to sit in the box')
+    throw new Error('expected the label to sit in a column in the box')
   }
   return box
 }
@@ -128,6 +128,16 @@ describe('text area', () => {
   })
 
   describe('value', () => {
+    it('counts the characters against the limit', () => {
+      const view = setup({
+        characterCount: true,
+        defaultValue: THREE_LINES,
+        maxLength: 200,
+      })
+      expect(view.control.getAttribute('maxlength')).toBe('200')
+      expect(view.getByText(`${THREE_LINES.length}/200`)).not.toBeNull()
+    })
+
     it('accepts typing and reports the value', () => {
       const { control } = setup({ defaultValue: '' })
       fireEvent.change(control, { target: { value: THREE_LINES } })

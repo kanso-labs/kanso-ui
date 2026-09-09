@@ -30,6 +30,13 @@ type TextAreaProps = {
    */
   autosize?: boolean
   /**
+   * Whether to count the characters the field holds at the end of the
+   * supporting line, against `maxLength` where there is one, as the text
+   * fields page's character counter does.
+   * @default false
+   */
+  characterCount?: boolean
+  /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
    */
@@ -73,6 +80,7 @@ type TextAreaProps = {
  */
 function TextArea({
   autosize = true,
+  characterCount = false,
   description,
   error,
   floatingLabel = true,
@@ -94,7 +102,12 @@ function TextArea({
       <FieldBox floatingLabel={floatingLabel} label={label} multiline>
         <FieldTextArea autosize={autosize} rows={rows} />
       </FieldBox>
-      <FieldMessage description={description} error={error} />
+      <FieldMessage
+        characterCount={characterCount}
+        description={description}
+        error={error}
+        maxLength={props.maxLength}
+      />
     </RACTextField>
   )
 }
