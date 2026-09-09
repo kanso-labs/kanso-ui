@@ -122,7 +122,8 @@ const Overview: Story = {
               stops the content running into the edge of the screen. It sits
               inside the measure rather than widening the box past it, so two
               containers at the same measure line up whether they are padded or
-              not.
+              not. It is the margin the layout pages give a window of each size:
+              16 while the window is compact, and 24 from 600 up.
             </Text>
           </Stack>
           <div {...stylex.props(styles.room)}>

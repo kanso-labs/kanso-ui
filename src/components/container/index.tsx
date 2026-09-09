@@ -13,17 +13,25 @@ import { spacing } from '../../tokens/design.tokens.stylex'
 // files that hold prose use. Say which one you mean rather than taking this.
 const DEFAULT_MAX_INLINE_SIZE = '960px'
 
+// One pixel of the layout pages' own breakpoint: a compact window is below
+// 600, and a medium window starts at it.
+const MEDIUM_WINDOW = '@media (width >= 600px)'
+
 // A dynamic style rather than a static one, for the same reason Feed's is:
 // the measure comes from the call site and StyleX compiles its classes ahead
 // of time, so the value is written to a custom property inline instead.
 //
 // No Material Design page draws a page container; the layout pages give the
-// margins one keeps. The gutter is their 24dp, the margin the pages give a
-// medium window and up, and the measure is the call site's, since the pages
-// leave a pane's width to its content.
+// margins one keeps. The gutter is the margin those pages give a window of
+// each size — 16dp while the window is compact, 24dp from medium up — and
+// the measure is the call site's, since the pages leave a pane's width to
+// its content.
 const styles = stylex.create({
   paddingDefault: {
-    paddingInline: spacing.xl,
+    paddingInline: {
+      default: spacing.lg,
+      [MEDIUM_WINDOW]: spacing.xl,
+    },
   },
   paddingNone: {
     paddingInline: 0,
