@@ -207,6 +207,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     element: (
       <Sheet defaultOpen>
         <Sheet.Content>
+          <Sheet.Handle {...PROBE} />
+        </Sheet.Content>
+      </Sheet>
+    ),
+    name: 'Sheet.Handle',
+  },
+  {
+    element: (
+      <Sheet defaultOpen>
+        <Sheet.Content>
           <Sheet.Header {...PROBE}>First item</Sheet.Header>
         </Sheet.Content>
       </Sheet>

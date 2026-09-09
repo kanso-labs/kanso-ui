@@ -382,6 +382,7 @@ function Showcase({ name }: ShowcaseProps) {
               <Sheet>
                 <Button variant="outlined">Open sheet</Button>
                 <Sheet.Content>
+                  <Sheet.Handle />
                   <Sheet.Header>
                     <Sheet.Title>Headline</Sheet.Title>
                     <IconButton aria-label="Close" slot="close">
