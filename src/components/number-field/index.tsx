@@ -10,6 +10,8 @@ import {
   NumberField as RACNumberField,
 } from 'react-aria-components'
 
+import type { FieldVariant } from '../../field'
+
 import { FieldBox, FieldInput, FieldMessage } from '../../field'
 import {
   fieldStyles,
@@ -83,6 +85,12 @@ const styles = stylex.create({
     transitionProperty: 'background-color, color',
     transitionTimingFunction: motion.easingStandard,
   },
+  // The top stepper takes the box's own top-end corner, so the two read as
+  // one edge, and the bottom one the outlined box's bottom-end corner — the
+  // filled box is square there.
+  stepperBottomOutlined: {
+    borderEndEndRadius: radii.xs,
+  },
   stepperDisabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
@@ -117,8 +125,11 @@ const styles = stylex.create({
     marginBlockStart: 0,
     marginInlineEnd: `calc(${spacing.md} - ${spacing.lg})`,
   },
-  // The top stepper takes the box's own top-end corner, so the two read as
-  // one edge.
+  // In the outlined box the column starts 16dp down rather than 8, so the
+  // stack reaches up that far to sit on the outline.
+  steppersOutlined: {
+    marginBlockStart: `calc(-1 * ${spacing.lg})`,
+  },
   stepperTop: {
     borderStartEndRadius: radii.xs,
   },
@@ -172,6 +183,13 @@ type NumberFieldProps = {
    * @default 'vertical'
    */
   steppers?: 'horizontal' | 'vertical'
+  /**
+   * The filled box, or the outlined one: no fill, an outline that thickens
+   * and takes the primary role while focused, and the label cutting it once
+   * it floats — the text fields page's two fields.
+   * @default 'filled'
+   */
+  variant?: FieldVariant
 } & Omit<RACNumberFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
 /**
@@ -196,6 +214,7 @@ function NumberField({
   label,
   numeric = true,
   steppers = 'vertical',
+  variant = 'filled',
   ...props
 }: NumberFieldProps) {
   const inline = steppers === 'horizontal'
@@ -210,11 +229,15 @@ function NumberField({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox floatingLabel={floatingLabel} label={label}>
+      <FieldBox floatingLabel={floatingLabel} label={label} variant={variant}>
         <div {...stylex.props(styles.row, inline && styles.rowInline)}>
           <FieldInput numeric={numeric} />
           <div
-            {...stylex.props(styles.steppers, inline && styles.steppersInline)}
+            {...stylex.props(
+              styles.steppers,
+              inline && styles.steppersInline,
+              !inline && variant === 'outlined' && styles.steppersOutlined,
+            )}
           >
             {inline ? (
               <>
@@ -235,10 +258,18 @@ function NumberField({
               </>
             ) : (
               <>
-                <StackedStepper label={incrementLabel} slot="increment">
+                <StackedStepper
+                  label={incrementLabel}
+                  outlined={variant === 'outlined'}
+                  slot="increment"
+                >
                   <PlusGlyph {...stylex.props(styles.stepperGlyph)} />
                 </StackedStepper>
-                <StackedStepper label={decrementLabel} slot="decrement">
+                <StackedStepper
+                  label={decrementLabel}
+                  outlined={variant === 'outlined'}
+                  slot="decrement"
+                >
                   <MinusGlyph {...stylex.props(styles.stepperGlyph)} />
                 </StackedStepper>
               </>
@@ -254,17 +285,22 @@ function NumberField({
 function StackedStepper({
   children,
   label,
+  outlined,
   slot,
 }: {
   children: ReactNode
   label: string
+  outlined: boolean
   slot: 'decrement' | 'increment'
 }) {
   return (
     <RACButton
       aria-label={label}
       slot={slot}
-      {...mergeStatefulStyles(stepperStyles(slot === 'increment'), {})}
+      {...mergeStatefulStyles(
+        stepperStyles(slot === 'increment', outlined),
+        {},
+      )}
     >
       {children}
     </RACButton>
@@ -275,11 +311,12 @@ function StackedStepper({
 // looks for, drawn from its render state. Built by a call rather than
 // written inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after.
-function stepperStyles(top: boolean) {
+function stepperStyles(top: boolean, outlined: boolean) {
   return (state: ButtonRenderProps) =>
     stylex.props(
       styles.stepper,
       top && styles.stepperTop,
+      !top && outlined && styles.stepperBottomOutlined,
       state.isHovered && !state.isDisabled && styles.stepperHovered,
       state.isPressed && !state.isDisabled && styles.stepperPressed,
       state.isFocusVisible && styles.stepperFocused,

@@ -158,12 +158,36 @@ const Overview: Story = {
             label="Counter"
             maxLength={200}
           />
+
           <TextArea
             characterCount
             defaultValue={THREE_LINES}
             description="Supporting line"
             label="With a description"
             maxLength={200}
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Outlined
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The page&apos;s other field, with the text area inside it: an
+            outline in place of the fill and the underline, and a label that
+            moves up onto it. It grows the same way.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextArea defaultValue="" label="Empty" variant="outlined" />
+          <TextArea
+            defaultValue={FIVE_LINES}
+            label="Growing"
+            variant="outlined"
           />
         </div>
       </section>
@@ -204,6 +228,12 @@ const Disabled: Story = {
   },
 }
 
+const Outlined: Story = {
+  args: {
+    variant: 'outlined',
+  },
+}
+
 const WithCharacterCount: Story = {
   args: {
     characterCount: true,
@@ -216,6 +246,7 @@ export {
   Disabled,
   Empty,
   FixedRows,
+  Outlined,
   Overview,
   WithCharacterCount,
   WithDescription,

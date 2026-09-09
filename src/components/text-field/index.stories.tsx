@@ -142,6 +142,65 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Outlined
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The page&apos;s other field: no fill, an outline that thickens and
+            takes the primary role while focused, and a label that moves up onto
+            the outline and cuts it. Everything else — the message, the icons,
+            the affixes, the counter — is the same.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextField defaultValue="" label="Empty" variant="outlined" />
+          <TextField defaultValue="Value" label="Label" variant="outlined" />
+          <TextField
+            defaultValue="Value"
+            description="Supporting line"
+            label="With a description"
+            variant="outlined"
+          />
+          <TextField
+            defaultValue=""
+            error="Enter a value."
+            label="With an error"
+            variant="outlined"
+          />
+          <TextField
+            defaultValue="Value"
+            isDisabled
+            label="Disabled"
+            variant="outlined"
+          />
+          <TextField
+            defaultValue=""
+            floatingLabel={false}
+            label="Fixed label"
+            variant="outlined"
+          />
+          <TextField
+            defaultValue="Value"
+            label="With icons"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+            variant="outlined"
+          />
+          <TextField
+            characterCount
+            defaultValue="Value"
+            label="With a counter"
+            maxLength={20}
+            suffix="Suffix"
+            variant="outlined"
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Icons
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -305,6 +364,19 @@ const Numeric: Story = {
   },
 }
 
+const Outlined: Story = {
+  args: {
+    variant: 'outlined',
+  },
+}
+
+const OutlinedEmpty: Story = {
+  args: {
+    defaultValue: '',
+    variant: 'outlined',
+  },
+}
+
 const WithIcons: Story = {
   args: {
     leadingIcon: LEADING_ICON,
@@ -339,6 +411,8 @@ export {
   Empty,
   FixedLabel,
   Numeric,
+  Outlined,
+  OutlinedEmpty,
   Overview,
   WithCharacterCount,
   WithDescription,

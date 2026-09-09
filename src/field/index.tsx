@@ -83,6 +83,30 @@ import {
 // It is the column's colour it takes, inherited, since the column can
 // select on its own focus and content and the affix cannot select on
 // either.
+//
+// The outlined variant is the page's outlined text field: no fill, a 1dp
+// outline in the outline role with 4dp corners all round, 2dp and primary
+// while focused, on surface while hovered, the error role with an error,
+// and the label cutting the outline once it floats, with the page's 4dp
+// beside it. The value is centred, 16dp from the top and bottom, and the
+// label rests on its line and moves up onto the outline — a move, where the
+// filled label only changes type.
+//
+// The outline is a fieldset laid over the box: a browser draws a fieldset's
+// border around its legend, so a legend holding a copy of the label, in the
+// label's floated type, is what cuts the outline to the label's width with
+// nothing measured. Empty, it cuts nothing, which is the closed notch.
+//
+// Neither the notch nor the label can select on the state that drives them.
+// Both are children of the box and the state is the box's, and the filled
+// label reads it in CSS only because it changes type alone, which the box
+// hands down inherited — where the notch changes what it holds and the
+// label changes where it sits, and neither of those inherits. So the box's
+// content computes that state in React instead: focus from the box's own
+// render state, and a value from the control's context, which is where the
+// character counter reads it too. The border's colour is the box's,
+// inherited, which is what carries the hover, focus, error and disabled
+// roles to it.
 const styles = stylex.create({
   affix: {
     flexShrink: 0,
@@ -201,6 +225,18 @@ const styles = stylex.create({
     insetInlineStart: 0,
     position: 'absolute',
   },
+  // Outlined, the label rests on the value's line and moves up onto the
+  // outline, with the page's 4dp beside it — which the notch has too, so
+  // the two line up.
+  boxLabelOutlined: {
+    insetInlineStart: `calc(-1 * ${spacing.xs})`,
+    paddingInline: spacing.xs,
+  },
+  // Floated: half the label's own 16dp line above the column, which is
+  // 16dp of padding below the box's top edge, so it lands centred on it.
+  boxLabelOutlinedFloated: {
+    insetBlockStart: `calc(-1 * (${spacing.lg} + ${spacing.sm}))`,
+  },
   // The page's 12dp beside an icon, in place of the 16dp beside text.
   boxLeading: {
     paddingInlineStart: spacing.md,
@@ -212,6 +248,47 @@ const styles = stylex.create({
     blockSize: 'auto',
     minBlockSize: '56px',
     paddingBlockEnd: spacing.sm,
+  },
+  // Outlined: no fill and no underline, the value centred with 16dp above
+  // and below, and the outline's colour by state — the outline role, on
+  // surface while hovered, primary while focused — for the fieldset to
+  // inherit. The corners are the page's 4dp all round, since there is no
+  // underline for a bottom corner to cut.
+  boxOutlined: {
+    backgroundColor: 'transparent',
+    borderEndEndRadius: radii.xs,
+    borderEndStartRadius: radii.xs,
+    boxShadow: 'none',
+    color: {
+      ':focus-within': colors.primary,
+      ':hover': colors.onSurface,
+      default: colors.outline,
+    },
+    paddingBlockEnd: spacing.lg,
+    paddingBlockStart: spacing.lg,
+    position: 'relative',
+  },
+  boxOutlinedDisabled: {
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+  },
+  boxOutlinedError: {
+    color: {
+      ':focus-within': colors.error,
+      ':hover': colors.onErrorContainer,
+      default: colors.error,
+    },
+  },
+  // The resting label's line is the box less 16dp above and below, which
+  // centres it on the value's line.
+  boxOutlinedFloating: {
+    lineHeight: {
+      ':focus-within': typography.bodySmallLineHeight,
+      ':has(:is(input, textarea):not(:placeholder-shown))':
+        typography.bodySmallLineHeight,
+      default: `calc(56px - 2 * ${spacing.lg})`,
+    },
   },
   boxTrailing: {
     paddingInlineEnd: spacing.md,
@@ -320,7 +397,8 @@ const styles = stylex.create({
   label: {
     color: colors.onSurfaceVariant,
     transitionDuration: motion.durationShort3,
-    transitionProperty: 'color, font-size, letter-spacing, line-height',
+    transitionProperty:
+      'color, font-size, inset-block-start, letter-spacing, line-height',
     transitionTimingFunction: motion.easingStandard,
   },
   labelDisabled: {
@@ -364,6 +442,55 @@ const styles = stylex.create({
     // digits have to be one width.
     fontVariantNumeric: 'tabular-nums',
   },
+  // The outline: a fieldset over the whole box, its border in the box's
+  // colour. Its padding is where the notch starts — the page's 16dp to the
+  // label, less the 4dp the notch adds beside it — and its type is the
+  // label's floated type, so an open notch is exactly the label's width.
+  outline: {
+    borderColor: 'currentColor',
+    borderRadius: radii.xs,
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    boxSizing: 'border-box',
+    fontFamily: typography.bodySmallFont,
+    fontSize: typography.bodySmallSize,
+    fontWeight: typography.bodySmallWeight,
+    inset: 0,
+    letterSpacing: typography.bodySmallTracking,
+    margin: 0,
+    minInlineSize: 0,
+    paddingBlock: 0,
+    paddingInline: `calc(${spacing.lg} - ${spacing.xs})`,
+    pointerEvents: 'none',
+    position: 'absolute',
+    transitionDuration: motion.durationShort2,
+    transitionProperty: 'border-color, border-width',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  outlineFocused: {
+    borderWidth: '2px',
+  },
+  // Past a leading icon: the page's 12dp, the icon and its 16dp.
+  outlineLeading: {
+    paddingInlineStart: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs})`,
+  },
+  // The notch: the legend, holding the label's text out of sight and no
+  // height of its own, so the border stays on the box's edge.
+  outlineNotch: {
+    blockSize: 0,
+    lineHeight: 0,
+    maxInlineSize: '100%',
+    overflow: 'hidden',
+    padding: 0,
+    visibility: 'hidden',
+    whiteSpace: 'nowrap',
+  },
+  // Open, it takes the label's own 4dp on either side, so the two are the
+  // same width. Closed it has none, or it would cut 8dp of outline away
+  // with nothing in it.
+  outlineNotchOpen: {
+    paddingInline: spacing.xs,
+  },
   // Wrapped as the browser wraps a text area, so the two break their lines
   // at the same places.
   replica: {
@@ -382,6 +509,15 @@ const styles = stylex.create({
     overflow: 'hidden',
   },
 })
+
+// What a control needs to know about the box around it: how the label is
+// drawn, and whether the control clears it with a margin — it does under
+// the filled box's label, and not under the outlined box's, whose label
+// sits on the outline rather than over the value.
+interface BoxControl {
+  label: BoxLabel
+  underLabel: boolean
+}
 
 // How the box draws its label, for the control inside it — see the context
 // below.
@@ -408,6 +544,13 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
   multiline?: boolean
   /** An icon at the end of the box, after the control. */
   trailing?: ReactNode
+  /**
+   * The filled box, or the outlined one: no fill, an outline that thickens
+   * and takes the primary role while focused, and the label cutting it once
+   * it floats.
+   * @default 'filled'
+   */
+  variant?: FieldVariant
 }
 
 // `prefix` is also an HTML attribute — the RDFa one, which nothing here
@@ -479,12 +622,26 @@ type FieldTextAreaProps = TextAreaProps & {
   autosize?: boolean
 }
 
-// A control under either label clears it with a margin, and one under a
-// floating label carries a placeholder so the box can tell when it is
-// populated, shown only while focused. The default is what a control
-// rendered outside any box gets — a search bar's, which has no label over it
-// and shows its placeholder in every state.
-const BoxLabelContext = createContext<BoxLabel>('none')
+type FieldVariant = 'filled' | 'outlined'
+
+// A control under a floating label carries a placeholder so the box can
+// tell when it is populated, shown only while focused. The default is what
+// a control rendered outside any box gets — a search bar's, which has no
+// label over it and shows its placeholder in every state. The four a box
+// provides are hoisted so each is one stable object.
+const OUTSIDE_BOX: BoxControl = { label: 'none', underLabel: false }
+const BOX_CONTROLS = {
+  filled: {
+    fixed: { label: 'fixed', underLabel: true },
+    floating: { label: 'floating', underLabel: true },
+  },
+  outlined: {
+    fixed: { label: 'fixed', underLabel: false },
+    floating: { label: 'floating', underLabel: false },
+  },
+} satisfies Record<FieldVariant, Record<'fixed' | 'floating', BoxControl>>
+
+const BoxContext = createContext<BoxControl>(OUTSIDE_BOX)
 
 // Written as calls rather than function literals at the prop, which is what
 // react-perf's no-new-function-as-prop is after; the React Compiler memoises
@@ -495,9 +652,73 @@ function boxContent(
   floatingLabel: boolean,
   leading: ReactNode,
   trailing: ReactNode,
+  variant: FieldVariant,
 ) {
   return (state: GroupRenderProps) => (
-    <BoxLabelContext value={floatingLabel ? 'floating' : 'fixed'}>
+    <BoxContent
+      floatingLabel={floatingLabel}
+      label={label}
+      leading={leading}
+      state={state}
+      trailing={trailing}
+      variant={variant}
+    >
+      {children}
+    </BoxContent>
+  )
+}
+
+/**
+ * What a box holds: its icons, its label and the control between them, plus
+ * the outline when it has one. A component rather than the render function
+ * itself, so it can read whether the control holds a value — which is what
+ * the outlined box's notch and label follow, and what CSS cannot express
+ * for them. See the outlined variant's note above.
+ */
+function BoxContent({
+  children,
+  floatingLabel,
+  label,
+  leading,
+  state,
+  trailing,
+  variant,
+}: {
+  children: ReactNode
+  floatingLabel: boolean
+  label: string
+  leading: ReactNode
+  state: GroupRenderProps
+  trailing: ReactNode
+  variant: FieldVariant
+}) {
+  const populated = useFieldPopulated()
+  const outlined = variant === 'outlined'
+  const floated = !floatingLabel || state.isFocusWithin || populated
+
+  return (
+    <BoxContext
+      value={BOX_CONTROLS[variant][floatingLabel ? 'floating' : 'fixed']}
+    >
+      {outlined ? (
+        <fieldset
+          aria-hidden="true"
+          {...stylex.props(
+            styles.outline,
+            leading !== undefined && styles.outlineLeading,
+            state.isFocusWithin && styles.outlineFocused,
+          )}
+        >
+          <legend
+            {...stylex.props(
+              styles.outlineNotch,
+              floated && styles.outlineNotchOpen,
+            )}
+          >
+            {floated ? label : null}
+          </legend>
+        </fieldset>
+      ) : null}
       {leading === undefined ? null : (
         <span
           {...stylex.props(
@@ -518,7 +739,14 @@ function boxContent(
               : styles.columnDisabled),
         )}
       >
-        <FieldLabel state={state} {...stylex.props(styles.boxLabel)}>
+        <FieldLabel
+          state={state}
+          {...stylex.props(
+            styles.boxLabel,
+            outlined && styles.boxLabelOutlined,
+            outlined && floated && styles.boxLabelOutlinedFloated,
+          )}
+        >
           {label}
         </FieldLabel>
         {children}
@@ -534,7 +762,7 @@ function boxContent(
           {trailing}
         </span>
       )}
-    </BoxLabelContext>
+    </BoxContext>
   )
 }
 
@@ -543,7 +771,10 @@ function boxStyles(
   multiline: boolean,
   leading: boolean,
   trailing: boolean,
+  variant: FieldVariant,
 ) {
+  const outlined = variant === 'outlined'
+
   return (state: GroupRenderProps) =>
     stylex.props(
       styles.box,
@@ -551,13 +782,17 @@ function boxStyles(
       multiline && styles.boxMultiline,
       leading && styles.boxLeading,
       trailing && styles.boxTrailing,
-      state.isInvalid && styles.boxError,
-      state.isDisabled && styles.boxDisabled,
+      outlined && styles.boxOutlined,
+      outlined && floatingLabel && styles.boxOutlinedFloating,
+      state.isInvalid && (outlined ? styles.boxOutlinedError : styles.boxError),
+      state.isDisabled &&
+        (outlined ? styles.boxOutlinedDisabled : styles.boxDisabled),
     )
 }
 
 /**
- * The filled box a control sits in, with its label. React Aria's `Group`, so
+ * The box a control sits in, filled or outlined, with its label. React
+ * Aria's `Group`, so
  * the field around it hands down `isDisabled` and `isInvalid` through context
  * and the box reports focus within it as render state, which is what the
  * label's colour follows. A field that provides no group context — one built
@@ -570,6 +805,7 @@ function FieldBox({
   leading,
   multiline = false,
   trailing,
+  variant = 'filled',
   ...props
 }: FieldBoxProps) {
   return (
@@ -581,11 +817,12 @@ function FieldBox({
           multiline,
           leading !== undefined,
           trailing !== undefined,
+          variant,
         ),
         props,
       )}
     >
-      {boxContent(label, children, floatingLabel, leading, trailing)}
+      {boxContent(label, children, floatingLabel, leading, trailing, variant)}
     </Group>
   )
 }
@@ -608,18 +845,18 @@ function FieldInput({
   suffix,
   ...props
 }: FieldInputProps) {
-  const boxLabel = useContext(BoxLabelContext)
+  const box = useContext(BoxContext)
 
   const control = (
     <Input
-      placeholder={placeholder ?? (boxLabel === 'floating' ? ' ' : undefined)}
+      placeholder={placeholder ?? (box.label === 'floating' ? ' ' : undefined)}
       {...props}
       {...mergeStatefulStyles(
         (state: InputRenderProps) =>
           stylex.props(
             styles.input,
-            boxLabel !== 'none' && styles.inputUnderLabel,
-            boxLabel === 'floating' && styles.inputUnderFloatingLabel,
+            box.underLabel && styles.inputUnderLabel,
+            box.label === 'floating' && styles.inputUnderFloatingLabel,
             numeric && styles.numeric,
             state.isDisabled && styles.inputDisabled,
           ),
@@ -638,7 +875,7 @@ function FieldInput({
         <span
           {...stylex.props(
             styles.affix,
-            boxLabel !== 'none' && styles.inputUnderLabel,
+            box.underLabel && styles.inputUnderLabel,
           )}
         >
           {prefix}
@@ -649,7 +886,7 @@ function FieldInput({
         <span
           {...stylex.props(
             styles.affix,
-            boxLabel !== 'none' && styles.inputUnderLabel,
+            box.underLabel && styles.inputUnderLabel,
           )}
         >
           {suffix}
@@ -676,20 +913,20 @@ function FieldTextArea({
   placeholder,
   ...props
 }: FieldTextAreaProps) {
-  const boxLabel = useContext(BoxLabelContext)
+  const box = useContext(BoxContext)
   const context = useSlottedContext(TextAreaContext)
   const value = typeof context?.value === 'string' ? context.value : ''
 
   const control = (
     <TextArea
-      placeholder={placeholder ?? (boxLabel === 'floating' ? ' ' : undefined)}
+      placeholder={placeholder ?? (box.label === 'floating' ? ' ' : undefined)}
       {...props}
       {...mergeStatefulStyles(
         (state: InputRenderProps) =>
           stylex.props(
             styles.input,
-            boxLabel !== 'none' && styles.inputUnderLabel,
-            boxLabel === 'floating' && styles.inputUnderFloatingLabel,
+            box.underLabel && styles.inputUnderLabel,
+            box.label === 'floating' && styles.inputUnderFloatingLabel,
             styles.textArea,
             autosize && styles.textAreaAutosize,
             autosize && styles.autosizeCell,
@@ -713,7 +950,7 @@ function FieldTextArea({
         aria-hidden="true"
         {...stylex.props(
           styles.input,
-          boxLabel !== 'none' && styles.inputUnderLabel,
+          box.underLabel && styles.inputUnderLabel,
           styles.replica,
           styles.autosizeCell,
         )}
@@ -722,6 +959,19 @@ function FieldTextArea({
       </div>
     </div>
   )
+}
+
+/**
+ * Whether the control in this box is holding anything, read off React
+ * Aria's context for whichever control the field renders. The filled box
+ * reads the same thing in CSS through `:placeholder-shown`; this is for
+ * what CSS cannot express — see the outlined variant's note above.
+ */
+function useFieldPopulated() {
+  const input = useSlottedContext(InputContext)
+  const textArea = useSlottedContext(TextAreaContext)
+  const value = input?.value ?? textArea?.value ?? ''
+  return String(value).length > 0
 }
 
 /**
@@ -818,6 +1068,7 @@ export type {
   FieldLabelState,
   FieldMessageProps,
   FieldTextAreaProps,
+  FieldVariant,
 }
 
 export { FieldBox, FieldInput, FieldLabel, FieldMessage, FieldTextArea }

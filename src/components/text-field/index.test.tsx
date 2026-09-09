@@ -61,7 +61,9 @@ function setup(props: Partial<Parameters<typeof TextField>[0]> = {}) {
   return {
     ...view,
     input: view.getByLabelText('Label'),
-    label: view.getByText('Label'),
+    // The outlined box's notch holds a hidden copy of the label's text, so
+    // the element is found by its role rather than by the text alone.
+    label: view.getByText('Label', { selector: 'label' }),
   }
 }
 
@@ -192,6 +194,110 @@ describe('text field', () => {
     it('stays small at the top with floatingLabel={false}', () => {
       const { label } = setup({ defaultValue: '', floatingLabel: false })
       expect(settled(label).fontSize).toBe('12px')
+    })
+  })
+
+  describe('outlined', () => {
+    // The page's outlined field: no fill, a 1dp outline all round with 4dp
+    // corners, 2dp and primary while focused, and the value centred with
+    // 16dp above and below rather than the filled field's 8dp and label.
+    it('draws an outline in place of the fill and the underline', () => {
+      const view = setup({ variant: 'outlined' })
+      const box = boxOf(view.label)
+      const outline = box.querySelector('fieldset')
+      if (
+        !(outline instanceof SVGElement) &&
+        !(outline instanceof HTMLElement)
+      ) {
+        throw new Error('expected the box to draw an outline')
+      }
+      const style = getComputedStyle(outline)
+      expect(style.borderTopWidth).toBe('1px')
+      expect(style.borderTopLeftRadius).toBe('4px')
+      expect(style.borderBottomLeftRadius).toBe('4px')
+      expect(getComputedStyle(box).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+      expect(getComputedStyle(box).boxShadow).toBe('none')
+      expect(box.getBoundingClientRect().height).toBe(56)
+    })
+
+    it('thickens the outline while the control is focused', () => {
+      const view = setup({ variant: 'outlined' })
+      const outline = boxOf(view.label).querySelector('fieldset')
+      if (outline === null) {
+        throw new Error('expected the box to draw an outline')
+      }
+      expect(getComputedStyle(outline).borderTopWidth).toBe('1px')
+
+      act(() => {
+        view.input.focus()
+      })
+      settled(outline)
+      expect(getComputedStyle(outline).borderTopWidth).toBe('2px')
+
+      act(() => {
+        view.input.blur()
+      })
+      settled(outline)
+      expect(getComputedStyle(outline).borderTopWidth).toBe('1px')
+    })
+
+    // The notch is the legend: closed it has no width beyond its padding,
+    // and open it is as wide as the label's floated text.
+    it('opens the notch once the label floats', () => {
+      const view = setup({ defaultValue: '', variant: 'outlined' })
+      const notch = boxOf(view.label).querySelector('legend')
+      if (notch === null) {
+        throw new Error('expected the outline to hold a notch')
+      }
+      expect(notch.getBoundingClientRect().width).toBe(0)
+
+      act(() => {
+        view.input.focus()
+      })
+      settled(view.label)
+      const open = notch.getBoundingClientRect().width
+      expect(open).toBeGreaterThan(20)
+      expect(
+        Math.abs(open - view.label.getBoundingClientRect().width),
+      ).toBeLessThan(1)
+      expect(notch.getBoundingClientRect().height).toBe(0)
+    })
+
+    it('keeps the notch open under a fixed label', () => {
+      const view = setup({
+        defaultValue: '',
+        floatingLabel: false,
+        variant: 'outlined',
+      })
+      const notch = boxOf(view.label).querySelector('legend')
+      expect(notch?.getBoundingClientRect().width ?? 0).toBeGreaterThan(20)
+    })
+
+    // Resting, the label sits on the value's line; floated, it sits on the
+    // outline — a move, where the filled label only changes type.
+    it('moves the label onto the outline once it floats', () => {
+      const view = setup({ defaultValue: '', variant: 'outlined' })
+      const box = boxOf(view.label)
+      const resting = view.label.getBoundingClientRect()
+      expect(resting.top - box.getBoundingClientRect().top).toBe(16)
+
+      act(() => {
+        view.input.focus()
+      })
+      settled(view.label)
+      const floated = view.label.getBoundingClientRect()
+      expect(floated.top).toBeLessThan(resting.top)
+      expect(Math.round(floated.top + floated.height / 2)).toBe(
+        Math.round(box.getBoundingClientRect().top),
+      )
+    })
+
+    it('centres the value rather than clearing a label above it', () => {
+      const view = setup({ variant: 'outlined' })
+      const box = boxOf(view.label).getBoundingClientRect()
+      const input = view.input.getBoundingClientRect()
+      expect(input.top - box.top).toBe(16)
+      expect(box.bottom - input.bottom).toBe(16)
     })
   })
 

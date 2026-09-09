@@ -4,6 +4,8 @@ import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 import * as stylex from '@stylexjs/stylex'
 import { TextField as RACTextField } from 'react-aria-components'
 
+import type { FieldVariant } from '../../field'
+
 import { FieldBox, FieldInput, FieldMessage } from '../../field'
 import {
   fieldStyles,
@@ -70,6 +72,13 @@ type TextFieldProps = {
    * icon, in the muted role and the error role while the field has an error.
    */
   trailingIcon?: ReactNode
+  /**
+   * The filled box, or the outlined one: no fill, an outline that thickens
+   * and takes the primary role while focused, and the label cutting it once
+   * it floats — the text fields page's two fields.
+   * @default 'filled'
+   */
+  variant?: FieldVariant
 } & Omit<
   RACTextFieldProps,
   'children' | 'isInvalid' | 'prefix' | 'validationBehavior'
@@ -103,6 +112,7 @@ function TextField({
   prefix,
   suffix,
   trailingIcon,
+  variant = 'filled',
   ...props
 }: TextFieldProps) {
   const validationBehavior = useFieldValidationBehavior()
@@ -120,6 +130,7 @@ function TextField({
         label={label}
         leading={leadingIcon}
         trailing={trailingIcon}
+        variant={variant}
       >
         <FieldInput numeric={numeric} prefix={prefix} suffix={suffix} />
       </FieldBox>
