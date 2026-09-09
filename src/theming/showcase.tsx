@@ -386,6 +386,17 @@ function Showcase({ name }: ShowcaseProps) {
                   </Sheet.Footer>
                 </Sheet.Content>
               </Sheet>
+              <Popover trigger="hover">
+                <Button variant="outlined">Hover for a popover</Button>
+                <Popover.Content>
+                  <Popover.Title>Headline</Popover.Title>
+                  <Popover.Description>
+                    A hovered popover holds what a tooltip cannot: its own
+                    buttons and links stay reachable while the pointer is inside
+                    it.
+                  </Popover.Description>
+                </Popover.Content>
+              </Popover>
               <Popover>
                 <Button variant="outlined">Open popover</Button>
                 <Popover.Content>

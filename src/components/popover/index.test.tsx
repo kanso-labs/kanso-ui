@@ -45,6 +45,21 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+/** The same popover, opened by a pointer resting on its trigger. */
+function hovered(props: Partial<Parameters<typeof Popover>[0]> = {}) {
+  const view = render(
+    <Popover trigger="hover" {...props}>
+      <Button>Open</Button>
+      <Popover.Content>
+        <Popover.Title>Headline</Popover.Title>
+        <Popover.Description>Supporting line</Popover.Description>
+        <Button>Action</Button>
+      </Popover.Content>
+    </Popover>,
+  )
+  return { ...view, trigger: view.getByRole('button', { name: 'Open' }) }
+}
+
 /**
  * The positioned panel around the element with the dialog role. React Aria
  * places, sizes and marks the panel; the dialog inside it carries the role
@@ -252,6 +267,81 @@ describe('popover', () => {
       await waitFor(() => {
         expect(panelOf(view.getByRole('dialog')).style.maxHeight).not.toBe('')
       })
+    })
+  })
+
+  // The tooltips page's rich tooltip: a panel that opens from a pointer
+  // resting on the trigger and may hold buttons and links, which is what
+  // separates it from the plain tooltip.
+  //
+  // The hovering itself is not reachable from here. React Aria's preview
+  // state opens through its own hover and warm-up machinery, which a
+  // synthetic pointer event does not drive and a faked clock does not
+  // advance — the trigger takes its hover state and the panel never opens.
+  // What a real pointer does is in the pull request's test plan; what is
+  // left here is everything around it.
+  describe('hover trigger', () => {
+    it('renders nothing until it is open', () => {
+      const view = hovered()
+      expect(view.queryByRole('dialog')).toBeNull()
+      expect(view.trigger).not.toBeNull()
+    })
+
+    it('is named by its title and described by its description', () => {
+      const view = hovered({ defaultOpen: true })
+      const dialog = view.getByRole('dialog')
+
+      expect(dialog.getAttribute('aria-labelledby')).toBe(
+        view.getByText('Headline').id,
+      )
+      expect(dialog.getAttribute('aria-describedby')).toBe(
+        view.getByText('Supporting line').id,
+      )
+    })
+
+    // The rich tooltip's whole point: the panel may hold something to press,
+    // which a plain tooltip may not.
+    it('holds interactive content', () => {
+      const view = hovered({ defaultOpen: true })
+      expect(view.getByRole('button', { name: 'Action' })).not.toBeNull()
+    })
+
+    // A hovered panel is always non-modal: one that blocked the page while
+    // the pointer merely rested on something would be a trap.
+    it('leaves the page interactive, whatever modal asks for', () => {
+      hovered({ defaultOpen: true, modal: true })
+      expect(document.body.getAttribute('aria-hidden')).toBeNull()
+    })
+
+    it('is controlled by isOpen', async () => {
+      const view = hovered({ isOpen: true })
+      expect(view.getByRole('dialog')).not.toBeNull()
+
+      view.rerender(
+        <Popover isOpen={false} trigger="hover">
+          <Button>Open</Button>
+          <Popover.Content>
+            <Popover.Title>Headline</Popover.Title>
+          </Popover.Content>
+        </Popover>,
+      )
+      await waitFor(() => {
+        expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    // A pressed popover is the default, and the new prop does not change it.
+    it('leaves a pressed popover opening on press', async () => {
+      const view = render(
+        <Popover>
+          <Button>Open</Button>
+          <Popover.Content>
+            <Popover.Title>Headline</Popover.Title>
+          </Popover.Content>
+        </Popover>,
+      )
+      fireEvent.click(view.getByRole('button', { name: 'Open' }))
+      expect(await view.findByRole('dialog')).not.toBeNull()
     })
   })
 
