@@ -203,36 +203,28 @@ describe('progress indicator', () => {
       ).toBeCloseTo(-(half + 4), 1)
     })
 
-    // Indeterminate, the ring is Material Web's three composed animations
-    // rather than the determinate arcs: an arc expanding and contracting,
-    // travelling round the circle, with the whole thing rotating on top.
-    it('composes the three rotations while indeterminate', () => {
+    // Indeterminate, the ring is one arc that grows and shrinks while its
+    // start travels the circle, with the whole thing turning — Material's
+    // three composed effects, on the same circle the determinate ring uses.
+    it('composes the three effects while indeterminate', () => {
       const view = render(
         <ProgressIndicator isIndeterminate label="Label" variant="circular" />,
       )
       const bar = view.getByRole('progressbar', { name: 'Label' })
-      expect(bar.querySelector('svg')).toBeNull()
-
-      const rotating = bar.lastElementChild
-      const spinner = rotating?.firstElementChild
-      const half = spinner?.firstElementChild
-      const arc = half?.firstElementChild
-      if (
-        !(rotating instanceof HTMLElement) ||
-        !(spinner instanceof HTMLElement) ||
-        !(arc instanceof HTMLElement)
-      ) {
-        throw new Error('expected the ring, the travelling arc and its half')
+      const svg = bar.querySelector('svg')
+      const arc = svg?.firstElementChild
+      if (!(svg instanceof SVGElement) || !(arc instanceof SVGElement)) {
+        throw new Error('expected the ring to draw one arc')
       }
 
-      for (const element of [rotating, spinner, arc]) {
-        expect(getComputedStyle(element).animationName).not.toBe('none')
-      }
-      // Material Web's own timings: the arc, four of them to a cycle, and
-      // the linear rotation scaled by 360/306.
-      expect(getComputedStyle(arc).animationDuration).toBe('1.333s')
-      expect(getComputedStyle(spinner).animationDuration).toBe('5.332s')
-      expect(getComputedStyle(rotating).animationDuration).toBe('1.568s')
+      // One arc, not the determinate pair.
+      expect(svg.children).toHaveLength(1)
+      // The dash lengths are percentages of a path normalised to 100.
+      expect(arc.getAttribute('pathLength')).toBe('100')
+      // Material's own timings: the arc, four of them to a cycle, and the
+      // rotation scaled by 360/306.
+      expect(getComputedStyle(arc).animationDuration).toBe('1.333s, 5.332s')
+      expect(getComputedStyle(svg).animationDuration).toBe('1.568s')
     })
   })
 

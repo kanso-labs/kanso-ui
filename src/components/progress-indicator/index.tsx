@@ -31,45 +31,63 @@ import {
 // track picks up 4dp past it and stops 4dp before it comes back round,
 // which is the same gap measured along the curve.
 //
-// Every animation here is Material Web's, matched to
-// https://github.com/material-components/material-web/tree/main/progress
-// rather than assembled from the motion tokens — an indeterminate indicator
-// is a piece of choreography, and one written from scratch reads as a
-// different component beside a Material app. Its numbers are copied with
-// its own comments: the line's two bars and their four keyframe sets, the
-// buffer's scrolling dots, and the ring's three composed rotations. The
-// durations are Material Web's own constants rather than steps of the
-// motion scale, since the arc timings are derived from the geometry.
+// The animations are Material's own rather than something assembled from
+// the motion tokens: an indeterminate indicator is a piece of choreography,
+// and one written from scratch reads as a different component beside a
+// Material app. Material Web and Angular Material both descend from the
+// same implementation and agree on every number, so the numbers here are
+// theirs — the line's two bars and their four keyframe sets, the buffer's
+// scrolling dots, the ring's 1333ms arc, its four-arc cycle and its 1568ms
+// rotation, and the 250ms and 500ms a determinate value moves over.
+//
+// Two things are decided differently, both after reading the two of them.
+//
+// The ring is one dashed arc rather than two halves. Material Web draws it
+// as a pair of bordered half-circles, Angular as a pair of clipped SVG
+// circles with a patch over the seam between them; both constructions exist
+// to work around that split, and a single arc whose dash pattern is
+// animated needs neither and shares its geometry with the determinate ring.
+// The three effects it composes are still theirs: the arc grows and shrinks
+// over the arc's duration, its start travels the circle over four of those,
+// and the whole thing turns over the rotation's.
+//
+// Under `prefers-reduced-motion` the motion slows rather than stopping,
+// which is Angular's answer and the better one: an indicator that freezes
+// stops saying the work is going on, and a frozen arc caught at its short
+// end reads as broken. The multipliers are Angular's — two for the line,
+// and a quarter more for the ring.
 //
 // React Aria's `ProgressBar` is the root: it carries the role, the value and
 // its text, and reports the percentage and whether it is indeterminate as
 // render state, which is what everything here is drawn from.
 
-// The circle the determinate arcs are cut from. The radius is the diameter
-// less the stroke, halved, so the stroke sits inside the 40dp box rather
-// than straddling its edge.
+// The circle the arcs are cut from. The radius is the diameter less the
+// stroke, halved, so the stroke sits inside the 40dp box rather than
+// straddling its edge.
 const CIRCULAR_SIZE = 40
 const THICKNESS = 4
 const GAP = 4
 const RADIUS = (CIRCULAR_SIZE - THICKNESS) / 2
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-// Material Web's own timings. The arc is 1333ms; a full cycle is four of
-// them; and the linear rotation is the arc scaled by 360/306, which is the
-// arc's start rotation plus the circle less the arc's size.
+// The ring's timings. The arc is 1333ms; a full cycle is four of them; and
+// the rotation is the arc scaled by 360/306, which is the arc's start
+// rotation plus the circle less the arc's size.
 const ARC_MS = 1333
 const CYCLE_MS = ARC_MS * 4
-const LINEAR_ROTATE_MS = Math.round((ARC_MS * 360) / 306)
-const INDETERMINATE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
+const ROTATE_MS = Math.round((ARC_MS * 360) / 306)
+const RING_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
 
-// The line: 2s for the indeterminate pass, 250ms for a value that changes.
+// The line's: 2s for an indeterminate pass, 250ms for a value that changes.
 const INDETERMINATE_MS = 2000
 const DETERMINATE_MS = 250
 const DETERMINATE_EASING = 'cubic-bezier(0.4, 0, 0.6, 1)'
 
+// What `prefers-reduced-motion` slows each shape by.
+const LINE_SLOWDOWN = 2
+const RING_SLOWDOWN = 1.25
+
 // The two bars of the indeterminate line, translated and scaled at once.
-// The numbers are Material Web's, which took them from the Material
-// Components implementation before it.
 const primaryTranslate = stylex.keyframes({
   '0%': { transform: 'translateX(0px)' },
   '20%': {
@@ -131,34 +149,27 @@ const secondaryScale = stylex.keyframes({
   '100%': { transform: 'scaleX(0.08)' },
 })
 
-// The buffer's dots scroll by one pitch of the pattern and start again. The
-// pitch is five half-thicknesses, which is Material Web's dot background.
+// The buffer's dots scroll by one pitch of the pattern and start again.
 const buffering = stylex.keyframes({
-  from: { backgroundPositionX: '10px' },
+  from: { backgroundPositionX: `${THICKNESS * 2.5}px` },
   to: { backgroundPositionX: '0px' },
 })
 
-// The ring's three composed animations, all Material Web's: an arc expanding
-// between 10 and 270 degrees, that arc travelling round the circle in
-// 135-degree increments, and the whole thing rotating linearly on top.
+// The arc's own length, written against a path the circle normalises to 100
+// with `pathLength`, so these are percentages of the circumference rather
+// than lengths StyleX would have to work out.
 const expandArc = stylex.keyframes({
-  '0%': { transform: 'rotate(265deg)' },
-  '50%': { transform: 'rotate(130deg)' },
-  '100%': { transform: 'rotate(265deg)' },
+  '0%': { strokeDasharray: '2 100' },
+  '50%': { strokeDasharray: '75 100' },
+  '100%': { strokeDasharray: '2 100' },
 })
 
-const rotateArc = stylex.keyframes({
-  '12.5%': { transform: 'rotate(135deg)' },
-  '25%': { transform: 'rotate(270deg)' },
-  '37.5%': { transform: 'rotate(405deg)' },
-  '50%': { transform: 'rotate(540deg)' },
-  '62.5%': { transform: 'rotate(675deg)' },
-  '75%': { transform: 'rotate(810deg)' },
-  '87.5%': { transform: 'rotate(945deg)' },
-  '100%': { transform: 'rotate(1080deg)' },
+const travelArc = stylex.keyframes({
+  from: { strokeDashoffset: '0' },
+  to: { strokeDashoffset: '-100' },
 })
 
-const linearRotate = stylex.keyframes({
+const spin = stylex.keyframes({
   to: { transform: 'rotate(360deg)' },
 })
 
@@ -182,43 +193,26 @@ const styles = stylex.create({
   }),
   arcActive: {
     stroke: colors.primary,
-    // Material Web's own transition for a determinate ring.
+    // Material's own transition for a determinate ring.
     transitionDuration: '500ms',
     transitionProperty: 'stroke-dasharray, stroke-dashoffset',
     transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
   },
+  // Two of the ring's three animations: the arc's length, and its start
+  // travelling the circle.
+  arcIndeterminate: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${ARC_MS * RING_SLOWDOWN}ms, ${CYCLE_MS * RING_SLOWDOWN}ms`,
+    },
+    animationDuration: `${ARC_MS}ms, ${CYCLE_MS}ms`,
+    animationIterationCount: 'infinite, infinite',
+    animationName: `${expandArc}, ${travelArc}`,
+    animationTimingFunction: `${RING_EASING}, linear`,
+    stroke: colors.primary,
+    transitionProperty: 'none',
+  },
   arcTrack: {
     stroke: colors.secondaryContainer,
-  },
-  // One half of the expanding arc, drawn as a bordered circle clipped to its
-  // side. Two of them, offset by half the arc's duration, make one arc that
-  // grows and shrinks.
-  circle: {
-    animationDuration: `${ARC_MS}ms`,
-    animationFillMode: 'both',
-    animationIterationCount: 'infinite',
-    animationName: expandArc,
-    animationTimingFunction: INDETERMINATE_EASING,
-    // Material Web colours the top and the trailing edge, which is the
-    // quadrant the two halves join into one arc across.
-    borderBlockEndColor: 'transparent',
-    borderBlockStartColor: colors.primary,
-    borderInlineEndColor: colors.primary,
-    borderInlineStartColor: 'transparent',
-    borderRadius: radii.full,
-    borderStyle: 'solid',
-    borderWidth: `${THICKNESS}px`,
-    boxSizing: 'border-box',
-    position: 'absolute',
-  },
-  circleLeft: {
-    inset: `0 -100% 0 0`,
-    rotate: '135deg',
-  },
-  circleRight: {
-    animationDelay: `${-0.5 * ARC_MS}ms`,
-    inset: `0 0 0 -100%`,
-    rotate: '100deg',
   },
   circular: {
     blockSize: `${CIRCULAR_SIZE}px`,
@@ -229,21 +223,24 @@ const styles = stylex.create({
     // at the top.
     transform: 'rotate(-90deg)',
   },
-  // The indeterminate ring, which is the two clipped halves rather than the
-  // determinate arcs.
+  // The third of the ring's animations: the whole thing turning, under the
+  // arc's own growth and travel.
   circularIndeterminate: {
-    animationDuration: `${LINEAR_ROTATE_MS}ms`,
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${Math.round(ROTATE_MS * RING_SLOWDOWN)}ms`,
+    },
+    animationDuration: `${ROTATE_MS}ms`,
     animationIterationCount: 'infinite',
-    animationName: linearRotate,
+    animationName: spin,
     animationTimingFunction: 'linear',
-    blockSize: `${CIRCULAR_SIZE}px`,
-    boxSizing: 'border-box',
-    inlineSize: `${CIRCULAR_SIZE}px`,
-    position: 'relative',
+    transform: 'none',
   },
   // The scrolling dots beyond the buffer: the track's colour, at half the
   // thickness, one pitch of five apart.
   dots: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${DETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
     animationDuration: `${DETERMINATE_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: buffering,
@@ -256,20 +253,8 @@ const styles = stylex.create({
     flexGrow: 1,
     minInlineSize: 0,
   },
-  // Half the ring, clipping its circle to one side.
-  half: {
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-    position: 'absolute',
-  },
-  halfLeft: {
-    inset: '0 50% 0 0',
-  },
-  halfRight: {
-    inset: '0 0 0 50%',
-  },
   // The bars of the indeterminate line: full width, scaled and translated
-  // from the left, and started off the leading edge.
+  // from the leading edge, and started off it.
   indeterminateBar: {
     blockSize: `${THICKNESS}px`,
     boxSizing: 'border-box',
@@ -284,7 +269,7 @@ const styles = stylex.create({
     inset: 0,
     position: 'absolute',
   },
-  // The row the indeterminate bars run inside, which clips them at both ends.
+  // The row the bars run inside, which clips them at both ends.
   indeterminateRow: {
     blockSize: `${THICKNESS}px`,
     borderRadius: radii.full,
@@ -292,13 +277,6 @@ const styles = stylex.create({
     inlineSize: '100%',
     overflow: 'hidden',
     position: 'relative',
-  },
-  // Nothing moves under reduced motion, on either shape. The indicator is
-  // left where it stands, so the control still reads as working.
-  indeterminateStill: {
-    '@media (prefers-reduced-motion: reduce)': {
-      animationName: 'none',
-    },
   },
   indeterminateTrack: {
     backgroundColor: colors.secondaryContainer,
@@ -332,6 +310,9 @@ const styles = stylex.create({
     inlineSize: '100%',
   },
   primaryBar: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
     animationDuration: `${INDETERMINATE_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: primaryTranslate,
@@ -339,6 +320,9 @@ const styles = stylex.create({
     insetInlineStart: '-145.167%',
   },
   primaryBarInner: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
     animationDuration: `${INDETERMINATE_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: primaryScale,
@@ -357,6 +341,9 @@ const styles = stylex.create({
     inlineSize: 'auto',
   },
   secondaryBar: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
     animationDuration: `${INDETERMINATE_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: secondaryTranslate,
@@ -364,21 +351,13 @@ const styles = stylex.create({
     insetInlineStart: '-54.8889%',
   },
   secondaryBarInner: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
     animationDuration: `${INDETERMINATE_MS}ms`,
     animationIterationCount: 'infinite',
     animationName: secondaryScale,
     animationTimingFunction: 'linear',
-  },
-  // The arc travelling round the circle, under the linear rotation.
-  spinner: {
-    animationDuration: `${CYCLE_MS}ms`,
-    animationFillMode: 'both',
-    animationIterationCount: 'infinite',
-    animationName: rotateArc,
-    animationTimingFunction: INDETERMINATE_EASING,
-    boxSizing: 'border-box',
-    inset: 0,
-    position: 'absolute',
   },
   // The stop indicator: the page draws it at the end of the track, in the
   // same primary as the active indicator.
@@ -500,49 +479,47 @@ function CircularTrack({
   isIndeterminate: boolean
   percentage: number | undefined
 }) {
-  if (isIndeterminate) {
-    return (
-      <div
-        aria-hidden="true"
-        {...stylex.props(
-          styles.circularIndeterminate,
-          styles.indeterminateStill,
-        )}
-      >
-        <Spinner />
-      </div>
-    )
-  }
-
   const arcs = arcsFor(percentage)
 
   return (
     <svg
       aria-hidden="true"
       viewBox={`0 0 ${CIRCULAR_SIZE} ${CIRCULAR_SIZE}`}
-      {...stylex.props(styles.circular)}
+      {...stylex.props(
+        styles.circular,
+        isIndeterminate && styles.circularIndeterminate,
+      )}
     >
+      {isIndeterminate ? null : (
+        <circle
+          cx={CIRCULAR_SIZE / 2}
+          cy={CIRCULAR_SIZE / 2}
+          fill="none"
+          r={RADIUS}
+          strokeDasharray={arcs.track.strokeDasharray}
+          strokeDashoffset={arcs.track.strokeDashoffset}
+          strokeLinecap="round"
+          strokeWidth={THICKNESS}
+          {...stylex.props(styles.arcTrack)}
+        />
+      )}
       <circle
         cx={CIRCULAR_SIZE / 2}
         cy={CIRCULAR_SIZE / 2}
         fill="none"
+        pathLength={isIndeterminate ? 100 : undefined}
         r={RADIUS}
-        strokeDasharray={arcs.track.strokeDasharray}
-        strokeDashoffset={arcs.track.strokeDashoffset}
+        strokeDasharray={
+          isIndeterminate ? undefined : arcs.active.strokeDasharray
+        }
+        strokeDashoffset={
+          isIndeterminate ? undefined : arcs.active.strokeDashoffset
+        }
         strokeLinecap="round"
         strokeWidth={THICKNESS}
-        {...stylex.props(styles.arcTrack)}
-      />
-      <circle
-        cx={CIRCULAR_SIZE / 2}
-        cy={CIRCULAR_SIZE / 2}
-        fill="none"
-        r={RADIUS}
-        strokeDasharray={arcs.active.strokeDasharray}
-        strokeDashoffset={arcs.active.strokeDashoffset}
-        strokeLinecap="round"
-        strokeWidth={THICKNESS}
-        {...stylex.props(styles.arcActive)}
+        {...stylex.props(
+          isIndeterminate ? styles.arcIndeterminate : styles.arcActive,
+        )}
       />
     </svg>
   )
@@ -601,33 +578,19 @@ function LinearTrack({
     return (
       <div {...stylex.props(styles.indeterminateRow)}>
         <span {...stylex.props(styles.indeterminateTrack)} />
-        <span
-          {...stylex.props(
-            styles.indeterminateBar,
-            styles.primaryBar,
-            styles.indeterminateStill,
-          )}
-        >
+        <span {...stylex.props(styles.indeterminateBar, styles.primaryBar)}>
           <span
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.primaryBarInner,
-              styles.indeterminateStill,
             )}
           />
         </span>
-        <span
-          {...stylex.props(
-            styles.indeterminateBar,
-            styles.secondaryBar,
-            styles.indeterminateStill,
-          )}
-        >
+        <span {...stylex.props(styles.indeterminateBar, styles.secondaryBar)}>
           <span
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.secondaryBarInner,
-              styles.indeterminateStill,
             )}
           />
         </span>
@@ -697,35 +660,6 @@ function ProgressIndicator({
     >
       {indicatorContent(label, showValue, variant, buffer, minValue, maxValue)}
     </ProgressBar>
-  )
-}
-
-// The indeterminate ring: an arc that grows and shrinks, travelling round the
-// circle, with the whole thing rotating on top — Material Web's three
-// composed animations. Each half of the arc is a bordered circle clipped to
-// its own side, the second offset by half the arc's duration.
-function Spinner() {
-  return (
-    <div {...stylex.props(styles.spinner, styles.indeterminateStill)}>
-      <div {...stylex.props(styles.half, styles.halfLeft)}>
-        <div
-          {...stylex.props(
-            styles.circle,
-            styles.circleLeft,
-            styles.indeterminateStill,
-          )}
-        />
-      </div>
-      <div {...stylex.props(styles.half, styles.halfRight)}>
-        <div
-          {...stylex.props(
-            styles.circle,
-            styles.circleRight,
-            styles.indeterminateStill,
-          )}
-        />
-      </div>
-    </div>
   )
 }
 
