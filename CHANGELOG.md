@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.18.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.17.0...kanso-ui-v0.18.0) (2026-09-09)
+
+
+### Features
+
+* **button:** render ProgressIndicator while pending ([#664](https://github.com/kanso-labs/kanso-ui/issues/664)) ([66ea115](https://github.com/kanso-labs/kanso-ui/commit/66ea1155b48d7f6816b5eb7e4234d3350ba91c76))
+* **dialog:** add Dialog component ([#660](https://github.com/kanso-labs/kanso-ui/issues/660)) ([fd3482d](https://github.com/kanso-labs/kanso-ui/commit/fd3482dc182f780d4a35364a0234f195492ab85a))
+* **meter:** add Meter component ([#666](https://github.com/kanso-labs/kanso-ui/issues/666)) ([501bb2c](https://github.com/kanso-labs/kanso-ui/commit/501bb2cd28163c5b89760228ba3e1a4e33534d45))
+* **popover:** add a hover trigger through PreviewTrigger ([#662](https://github.com/kanso-labs/kanso-ui/issues/662)) ([dd14161](https://github.com/kanso-labs/kanso-ui/commit/dd1416159dc2e2d7108612fe62d9d5a78a32ab24))
+* **progress-indicator:** add ProgressIndicator component ([#663](https://github.com/kanso-labs/kanso-ui/issues/663)) ([51d0610](https://github.com/kanso-labs/kanso-ui/commit/51d06104bb1308e2b33dfa31ba427adf942fe1a5))
+* **sheet:** add the bottom sheet drag handle ([#670](https://github.com/kanso-labs/kanso-ui/issues/670)) ([2831f14](https://github.com/kanso-labs/kanso-ui/commit/2831f1422911de6f336613aa27d9c554be811760))
+* **snackbar:** add Snackbar component ([#669](https://github.com/kanso-labs/kanso-ui/issues/669)) ([ac7b0a0](https://github.com/kanso-labs/kanso-ui/commit/ac7b0a0f80279b35e61290a1e940c678dbcfb2c4))
+* **tooltip:** add Tooltip component ([#661](https://github.com/kanso-labs/kanso-ui/issues/661)) ([03844c3](https://github.com/kanso-labs/kanso-ui/commit/03844c3a22108fc19c602ef228ff95fbbd507207))
+
+
+### Bug Fixes
+
+* **field:** keep a validation message from shifting the fields below ([#658](https://github.com/kanso-labs/kanso-ui/issues/658)) ([7d1e78c](https://github.com/kanso-labs/kanso-ui/commit/7d1e78c13c3a459eb604131baad8d1eff69ae7ee))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.7.4 ([#667](https://github.com/kanso-labs/kanso-ui/issues/667)) ([8786367](https://github.com/kanso-labs/kanso-ui/commit/878636707cc6ca6506e80db300f5160c32953db4))
+* update react to v19.3.0 ([#668](https://github.com/kanso-labs/kanso-ui/issues/668)) ([736cbf8](https://github.com/kanso-labs/kanso-ui/commit/736cbf82e57f7a94b5640f9d3560514e8f042417))
+
 ## [0.17.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.16.0...kanso-ui-v0.17.0) (2026-09-09)
 
 
