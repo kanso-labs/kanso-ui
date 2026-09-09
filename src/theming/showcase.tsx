@@ -25,6 +25,7 @@ import Code from '../components/code'
 import Container from '../components/container'
 import CopyField from '../components/copy-field'
 import Currency from '../components/currency'
+import Dialog from '../components/dialog'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -331,6 +332,32 @@ function Showcase({ name }: ShowcaseProps) {
               <IconButton aria-label="Add" variant="filled">
                 <PlusIcon />
               </IconButton>
+              <Dialog>
+                <Button variant="outlined">Open dialog</Button>
+                <Dialog.Content>
+                  <Dialog.Header>
+                    <Dialog.Title>Headline</Dialog.Title>
+                    <IconButton aria-label="Close" slot="close">
+                      <CloseIcon />
+                    </IconButton>
+                  </Dialog.Header>
+                  <Dialog.Body>
+                    <Text tone="muted" variant="bodyMedium">
+                      A dialog is centred over the page and fills the window
+                      below the medium breakpoint, where the page draws its
+                      full-screen dialog instead.
+                    </Text>
+                  </Dialog.Body>
+                  <Dialog.Footer>
+                    <Button slot="close" variant="text">
+                      Cancel
+                    </Button>
+                    <Button slot="close" variant="text">
+                      Confirm
+                    </Button>
+                  </Dialog.Footer>
+                </Dialog.Content>
+              </Dialog>
               <Sheet>
                 <Button variant="outlined">Open sheet</Button>
                 <Sheet.Content>

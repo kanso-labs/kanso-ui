@@ -14,6 +14,7 @@ import {
   Code,
   CopyField,
   Currency,
+  Dialog,
   Feed,
   Form,
   IconButton,
@@ -74,6 +75,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },
   { element: <CopyField {...PROBE} value="Label" />, name: 'CopyField' },
   { element: <Currency {...PROBE} value={1} />, name: 'Currency' },
+  {
+    element: (
+      <Dialog defaultOpen>
+        <Dialog.Content>
+          <Dialog.Body {...PROBE}>First item</Dialog.Body>
+        </Dialog.Content>
+      </Dialog>
+    ),
+    name: 'Dialog.Body',
+  },
   {
     element: (
       <Feed {...PROBE}>
