@@ -36,11 +36,12 @@ import {
 // rather than two components: a sheet that stayed on the right at 375px would
 // be a drawer covering the whole screen.
 //
-// The two differ in four things and no more: which edges they are pinned to,
-// which two corners are rounded, which axis they arrive along, and how much
-// of the viewport they may take. Everything inside the panel — the 24 of
-// start and end padding, the 12 between the header's elements, the actions
-// area — comes from the side sheets page and is drawn the same in both.
+// The two differ in five things and no more: which edges they are pinned to,
+// which two corners are rounded, which axis they arrive along, how much of
+// the viewport they may take, and the drag handle, which is the bottom
+// sheets page's element alone. Everything inside the panel — the 24 of start
+// and end padding, the 12 between the header's elements, the actions area —
+// comes from the side sheets page and is drawn the same in both.
 const slideInFromEnd = stylex.keyframes({
   from: { opacity: 0, transform: 'translateX(100%)' },
   to: { opacity: 1, transform: 'translateX(0)' },
@@ -145,6 +146,26 @@ const styles = stylex.create({
     paddingBlockStart: spacing.lg,
     paddingInline: spacing.xl,
   },
+  // The bottom sheets page's drag handle: a 32 by 4 bar in on surface
+  // variant, centred, with 22 above and below it. Drawn on the bottom sheet
+  // alone, since it is that page's element — above the breakpoint the panel
+  // is a side sheet, and the same markup draws nothing.
+  handle: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: { default: 'none', [media.belowMedium]: 'flex' },
+    flexShrink: 0,
+    justifyContent: 'center',
+    paddingBlock: '22px',
+  },
+  handleBar: {
+    backgroundColor: colors.onSurfaceVariant,
+    blockSize: '4px',
+    // 9999 on a 4dp bar resolves to the page's own 2dp corner.
+    borderRadius: radii.full,
+    boxSizing: 'border-box',
+    inlineSize: '32px',
+  },
   // The page's 12 between the header's elements.
   header: {
     alignItems: 'center',
@@ -242,6 +263,31 @@ function SheetFooter(props: HTMLAttributes<HTMLDivElement>) {
   return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
 }
 
+/**
+ * The bottom sheets page's drag handle: a short bar above the sheet's
+ * content, saying the panel is a bottom sheet. Place it first inside
+ * `Sheet.Content`; above the medium breakpoint the panel is a side sheet and
+ * this draws nothing.
+ *
+ * It is decoration rather than a control, and hidden from assistive
+ * technology. Material's own handle drags a sheet between a collapsed and an
+ * expanded height and dismisses it from the collapsed one; this panel has
+ * one height and cannot be dragged, so a control that only looked draggable
+ * would promise what it cannot do. Closing is already the scrim, Escape, and
+ * any button given `slot="close"`.
+ */
+function SheetHandle(props: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      aria-hidden="true"
+      {...props}
+      {...mergeStyles(stylex.props(styles.handle), props)}
+    >
+      <span {...stylex.props(styles.handleBar)} />
+    </div>
+  )
+}
+
 function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
   return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
 }
@@ -264,6 +310,7 @@ function SheetTitle(props: SheetTitleProps) {
 Sheet.Body = SheetBody
 Sheet.Content = SheetContent
 Sheet.Footer = SheetFooter
+Sheet.Handle = SheetHandle
 Sheet.Header = SheetHeader
 Sheet.Title = SheetTitle
 

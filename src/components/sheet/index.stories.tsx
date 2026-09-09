@@ -82,6 +82,7 @@ type Story = StoryObj<typeof meta>
 function PanelContents() {
   return (
     <>
+      <Sheet.Handle />
       <Sheet.Header>
         <Sheet.Title>Headline</Sheet.Title>
         <IconButton aria-label="Close" slot="close">
@@ -135,8 +136,34 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             One component, two presentations. Above the medium breakpoint it is
             a side sheet pinned to the inline end of the viewport; below it, the
-            same panel becomes a bottom sheet. Narrow the window to watch it
-            change.
+            same panel becomes a bottom sheet with a drag handle over its
+            content. Narrow the window to watch it change.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.row)}>
+          <Sheet>
+            <Button variant="outlined">Open</Button>
+            <Sheet.Content>
+              <PanelContents />
+            </Sheet.Content>
+          </Sheet>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Drag handle
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Place Sheet.Handle first inside the content and the bottom sheet
+            draws the short bar over it; the side sheet draws nothing, since the
+            handle is the bottom sheet&apos;s own element. It is decoration
+            rather than a control, and hidden from assistive technology — this
+            panel has one height and cannot be dragged, so closing stays with
+            the scrim, Escape and any button given slot=&quot;close&quot;.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>

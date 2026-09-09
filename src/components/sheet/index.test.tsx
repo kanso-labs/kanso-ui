@@ -14,6 +14,7 @@ import IconButton from '../icon-button'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
+  handleBar: { backgroundColor: colors.onSurfaceVariant },
   headline: { color: colors.onSurfaceVariant },
   scrim: {
     backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
@@ -32,6 +33,7 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  handleBar: classesOf(stylex.props(probeStyles.handleBar)),
   headline: classesOf(stylex.props(probeStyles.headline)),
   scrim: classesOf(stylex.props(probeStyles.scrim)),
   surface: classesOf(stylex.props(probeStyles.surface)),
@@ -76,6 +78,7 @@ function setup(props: Partial<Parameters<typeof Sheet>[0]> = {}) {
     <Sheet defaultOpen {...props}>
       <Button>Open</Button>
       <Sheet.Content>
+        <Sheet.Handle data-testid="handle" />
         <Sheet.Header>
           <Sheet.Title>Headline</Sheet.Title>
           <IconButton aria-label="Close" slot="close">
@@ -267,6 +270,60 @@ describe('sheet', () => {
         topLeft: '28px',
         topRight: '28px',
       })
+    })
+  })
+
+  // The bottom sheets page's element, so it is drawn on that presentation
+  // alone.
+  describe('the drag handle', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('draws nothing on the side sheet', async () => {
+      await page.viewport(1024, 768)
+      const view = setup()
+
+      expect(getComputedStyle(view.getByTestId('handle')).display).toBe('none')
+    })
+
+    // The page's bar: 32 by 4 in on surface variant, centred, with 22 above
+    // and below it.
+    it('draws the page bar on the bottom sheet', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      const handle = view.getByTestId('handle')
+      const bar = handle.firstElementChild
+
+      if (!(bar instanceof HTMLElement)) {
+        throw new Error('expected the handle to draw a bar')
+      }
+
+      expect(getComputedStyle(handle).display).toBe('flex')
+      expect(getComputedStyle(handle).paddingTop).toBe('22px')
+      expect(getComputedStyle(handle).paddingBottom).toBe('22px')
+      expect(bar.getBoundingClientRect().width).toBe(32)
+      expect(bar.getBoundingClientRect().height).toBe(4)
+      expect(hasClasses(bar, CLASSES.handleBar)).toBe(true)
+
+      // Centred across the panel rather than sitting at one edge.
+      const room = panelOf(view.getByRole('dialog')).getBoundingClientRect()
+      const box = bar.getBoundingClientRect()
+      expect(Math.round(box.left - room.left)).toBe(
+        Math.round(room.right - box.right),
+      )
+    })
+
+    // Decoration rather than a control: it does nothing, so a screen reader
+    // is not told about it.
+    it('is hidden from assistive technology', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+
+      expect(view.getByTestId('handle').getAttribute('aria-hidden')).toBe(
+        'true',
+      )
+      expect(view.queryAllByRole('separator')).toHaveLength(0)
     })
   })
 })
