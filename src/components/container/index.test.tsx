@@ -1,7 +1,23 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import Container from '.'
+
+// One pixel either side of the layout pages' breakpoint, so a query written
+// with the wrong comparison fails here rather than passing on the round
+// number both readings agree on. A compact window is below 600, and a medium
+// window starts at it — see list-detail/index.test.tsx, which walks all five.
+const COMPACT = 599
+const MEDIUM = 601
+
+// Storybook and the other specs share this browser, so the viewport has to go
+// back to something ordinary or whatever runs next inherits 599px.
+const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
+
+afterAll(async () => {
+  await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+})
 
 // Wider than any measure under test, so what is being read is the container's
 // own limit rather than the room it was given. Cached for react-perf's
@@ -94,12 +110,49 @@ describe('padding', () => {
     expect(getComputedStyle(container).paddingLeft).toBe('0px')
   })
 
-  it('pads by default', () => {
+  it('pads by default', async () => {
+    await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     const { container } = renderContainer(
       <Container maxInlineSize="600px">First item</Container>,
     )
 
     expect(Number.parseFloat(getComputedStyle(container).paddingLeft)).toBe(24)
+  })
+
+  // The layout pages give a compact window 16dp margins and a medium window
+  // and up 24dp, so the gutter is one or the other rather than 24 at every
+  // width — below 600 the content was 8 wider than the page on each side.
+  it('narrows the gutter to the compact margin below 600', async () => {
+    await page.viewport(COMPACT, 900)
+    const { container } = renderContainer(
+      <Container maxInlineSize="600px">First item</Container>,
+    )
+
+    const padding = getComputedStyle(container)
+    expect(Number.parseFloat(padding.paddingLeft)).toBe(16)
+    expect(Number.parseFloat(padding.paddingRight)).toBe(16)
+  })
+
+  it('takes the medium margin from 600 up', async () => {
+    await page.viewport(MEDIUM, 900)
+    const { container } = renderContainer(
+      <Container maxInlineSize="600px">First item</Container>,
+    )
+
+    const padding = getComputedStyle(container)
+    expect(Number.parseFloat(padding.paddingLeft)).toBe(24)
+    expect(Number.parseFloat(padding.paddingRight)).toBe(24)
+  })
+
+  it('closes the padding at either size on request', async () => {
+    await page.viewport(COMPACT, 900)
+    const { container } = renderContainer(
+      <Container maxInlineSize="600px" padding="none">
+        First item
+      </Container>,
+    )
+
+    expect(getComputedStyle(container).paddingLeft).toBe('0px')
   })
 })
 
