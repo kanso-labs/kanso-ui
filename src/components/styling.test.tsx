@@ -25,6 +25,7 @@ import {
   ProductIcon,
   Radio,
   RadioGroup,
+  SearchField,
   Separator,
   Sheet,
   Slider,
@@ -143,6 +144,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Radio',
   },
   { element: <RadioGroup {...PROBE} label="Label" />, name: 'RadioGroup' },
+  { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
   { element: <Separator {...PROBE} />, name: 'Separator' },
   {
     element: (

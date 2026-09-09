@@ -6,7 +6,12 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { Button as RACButton, Link as RACLink } from 'react-aria-components'
+import {
+  ButtonContext,
+  Button as RACButton,
+  Link as RACLink,
+  useSlottedContext,
+} from 'react-aria-components'
 
 import type { ButtonDOMProps, ButtonState } from '../button'
 
@@ -213,7 +218,7 @@ function IconButton({
   children,
   disableRipple = false,
   href,
-  isDisabled = false,
+  isDisabled,
   onClick,
   onContextMenu,
   onKeyDown,
@@ -229,12 +234,21 @@ function IconButton({
   variant = 'standard',
   ...props
 }: IconButtonProps) {
+  // A field's context may disable the button — a number field's stepper at
+  // the end of its range, a search field's clear button with the field — and
+  // React Aria takes a prop over its context, so a default of `false` here
+  // would keep every one of them enabled. The call site's own prop still
+  // wins where it is given; the context is read for the ripple, which has
+  // to know before the render state does.
+  const context = useSlottedContext(ButtonContext, props.slot)
+  const disabled = isDisabled ?? context?.isDisabled ?? false
+
   // `props` (className/style, etc.) is spread separately: `className` and
   // `style` there may be functions of render state, which ripple's own
   // handler-only merge doesn't need to know about. It is also why the styles
   // below merge through mergeStatefulStyles rather than the plain
   // mergeStyles. The ripple is off while disabled, as in Button.
-  const ripple = useRipple<FocusableElement>(!disableRipple && !isDisabled, {
+  const ripple = useRipple<FocusableElement>(!disableRipple && !disabled, {
     onClick,
     onContextMenu,
     onPointerCancel,
@@ -261,7 +275,7 @@ function IconButton({
     return (
       <RACLink
         href={href}
-        isDisabled={isDisabled}
+        isDisabled={disabled}
         rel={rel}
         render={linkRenderer(element)}
         target={target}
@@ -277,7 +291,7 @@ function IconButton({
 
   return (
     <RACButton
-      isDisabled={isDisabled}
+      isDisabled={disabled}
       render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}

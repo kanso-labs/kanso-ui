@@ -154,6 +154,27 @@ describe('number field', () => {
       expect(increment).toHaveProperty('disabled', true)
       expect(decrement).toHaveProperty('disabled', true)
     })
+
+    // The side-by-side steppers are icon buttons, disabled through the
+    // field's context like the stacked pair rather than by a prop of their
+    // own — at a bound and with the field.
+    it('disables the side-by-side steppers the same way', () => {
+      const atBound = setup({
+        defaultValue: 10,
+        maxValue: 10,
+        steppers: 'horizontal',
+      })
+      expect(atBound.increment).toHaveProperty('disabled', true)
+      expect(atBound.decrement).toHaveProperty('disabled', false)
+      atBound.unmount()
+
+      const { decrement, increment } = setup({
+        isDisabled: true,
+        steppers: 'horizontal',
+      })
+      expect(increment).toHaveProperty('disabled', true)
+      expect(decrement).toHaveProperty('disabled', true)
+    })
   })
 
   describe('appearance', () => {

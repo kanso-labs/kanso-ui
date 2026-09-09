@@ -35,6 +35,7 @@ import NumberField from '../components/number-field'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
 import RadioGroup, { Radio } from '../components/radio-group'
+import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
@@ -530,6 +531,7 @@ function Showcase({ name }: ShowcaseProps) {
               />
               <CopyField value="--kui-color-primary" />
               <NumberField defaultValue={1234.5} label="Label" />
+              <SearchField label="Label" placeholder="Supporting text" />
               <Slider defaultValue={40} label="Label" />
             </Stack>
           </section>
