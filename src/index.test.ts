@@ -14,6 +14,7 @@ import {
   Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
+  Dialog as ComponentsDialog,
   Feed as ComponentsFeed,
   Form as ComponentsForm,
   IconButton as ComponentsIconButton,
@@ -58,6 +59,7 @@ describe('package entry point', () => {
       'CopyField',
       'Currency',
       'DIRECTORY_DRAG_TYPE',
+      'Dialog',
       'Feed',
       'Focusable',
       'Form',
@@ -246,6 +248,10 @@ describe('package entry point', () => {
 
   it('forwards Form as the same reference as the components barrel', () => {
     expect(publicApi.Form).toBe(ComponentsForm)
+  })
+
+  it('forwards Dialog as the same reference as the components barrel', () => {
+    expect(publicApi.Dialog).toBe(ComponentsDialog)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

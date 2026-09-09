@@ -11,6 +11,7 @@ import type { CodeProps } from './code'
 import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
+import type { DialogProps } from './dialog'
 import type { FeedProps } from './feed'
 import type { FormProps } from './form'
 import type { IconButtonProps } from './icon-button'
@@ -47,6 +48,7 @@ import CodeDefault from './code'
 import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
+import DialogDefault from './dialog'
 import FeedDefault from './feed'
 import FormDefault from './form'
 import IconButtonDefault from './icon-button'
@@ -85,6 +87,7 @@ describe('components barrel', () => {
       'Container',
       'CopyField',
       'Currency',
+      'Dialog',
       'Feed',
       'Form',
       'IconButton',
@@ -250,6 +253,10 @@ describe('components barrel', () => {
 
   it('re-exports Form as the same reference as its own module', () => {
     expect(components.Form).toBe(FormDefault)
+  })
+
+  it('re-exports Dialog as the same reference as its own module', () => {
+    expect(components.Dialog).toBe(DialogDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -424,6 +431,11 @@ describe('components barrel', () => {
 
   it('re-exports the FormProps type', () => {
     const props: FormProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the DialogProps type', () => {
+    const props: DialogProps = { children: 'test' }
     expect(props.children).toBe('test')
   })
 })
