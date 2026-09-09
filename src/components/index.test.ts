@@ -22,6 +22,7 @@ import type { ProductIconProps } from './product-icon'
 import type { RadioGroupProps, RadioProps } from './radio-group'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
+import type { SliderProps } from './slider'
 import type { StackProps } from './stack'
 import type { SupportingPaneProps } from './supporting-pane'
 import type { SwitchProps } from './switch'
@@ -53,6 +54,7 @@ import ProductIconDefault from './product-icon'
 import RadioGroupDefault, { Radio } from './radio-group'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
+import SliderDefault from './slider'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import SwitchDefault from './switch'
@@ -87,6 +89,7 @@ describe('components barrel', () => {
       'RadioGroup',
       'Separator',
       'Sheet',
+      'Slider',
       'Stack',
       'SupportingPane',
       'Switch',
@@ -215,6 +218,10 @@ describe('components barrel', () => {
 
   it('re-exports Switch as the same reference as its own module', () => {
     expect(components.Switch).toBe(SwitchDefault)
+  })
+
+  it('re-exports Slider as the same reference as its own module', () => {
+    expect(components.Slider).toBe(SliderDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -365,5 +372,10 @@ describe('components barrel', () => {
   it('re-exports the SwitchProps type', () => {
     const props: SwitchProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SliderProps type', () => {
+    const props: SliderProps = { defaultValue: 40 }
+    expect(props.defaultValue).toBe(40)
   })
 })
