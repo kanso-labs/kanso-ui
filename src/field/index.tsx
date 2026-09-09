@@ -154,15 +154,16 @@ const styles = stylex.create({
     inlineSize: '100%',
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
-    // Clears the label at the top, which is one small line tall whether it
-    // floated there or is fixed there.
-    marginBlockStart: typography.bodySmallLineHeight,
-    // The box already draws the focus indicator, so a second ring around the
-    // control inside it would be two focus treatments for one focus.
+    // The field around the control draws the focus indicator, so a second
+    // ring around the control inside it would be two focus treatments for
+    // one focus.
     outlineStyle: 'none',
     padding: 0,
   },
   inputDisabled: {
+    '::placeholder': {
+      color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    },
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   // Under a floating label the placeholder shows only while the control is
@@ -174,6 +175,11 @@ const styles = stylex.create({
         default: 'transparent',
       },
     },
+  },
+  // Clears the label at the top of the box, which is one small line tall
+  // whether it floated there or is fixed there.
+  inputUnderLabel: {
+    marginBlockStart: typography.bodySmallLineHeight,
   },
   // The colour alone. The type is inherited from whatever renders the label,
   // which is what lets the box move it — and the transition is here so the
@@ -219,6 +225,10 @@ const styles = stylex.create({
     fontVariantNumeric: 'tabular-nums',
   },
 })
+
+// How the box draws its label, for the control inside it — see the context
+// below.
+type BoxLabel = 'fixed' | 'floating' | 'none'
 
 type FieldBoxProps = Omit<GroupProps, 'children'> & {
   children?: ReactNode
@@ -271,10 +281,12 @@ interface FieldMessageProps {
   inset?: boolean
 }
 
-// How the box was asked to draw its label, for the control inside it: a
-// control under a floating label carries a placeholder so the box can tell
-// when it is populated, and shows it only while focused.
-const FloatingLabelContext = createContext(true)
+// A control under either label clears it with a margin, and one under a
+// floating label carries a placeholder so the box can tell when it is
+// populated, shown only while focused. The default is what a control
+// rendered outside any box gets — a search bar's, which has no label over it
+// and shows its placeholder in every state.
+const BoxLabelContext = createContext<BoxLabel>('none')
 
 // Written as calls rather than function literals at the prop, which is what
 // react-perf's no-new-function-as-prop is after; the React Compiler memoises
@@ -285,12 +297,12 @@ function boxContent(
   floatingLabel: boolean,
 ) {
   return (state: GroupRenderProps) => (
-    <FloatingLabelContext value={floatingLabel}>
+    <BoxLabelContext value={floatingLabel ? 'floating' : 'fixed'}>
       <FieldLabel state={state} {...stylex.props(styles.boxLabel)}>
         {label}
       </FieldLabel>
       {children}
-    </FloatingLabelContext>
+    </BoxLabelContext>
   )
 }
 
@@ -325,30 +337,33 @@ function FieldBox({
 }
 
 /**
- * The text control inside a {@link FieldBox}. React Aria's `Input`, which
- * takes its label association, value and validation from the field around it
- * and reports its disabled state as render state.
+ * A field's text control, in a {@link FieldBox} or on its own. React Aria's
+ * `Input`, which takes its label association, value and validation from the
+ * field around it and reports its disabled state as render state.
  *
- * Under a floating label it always carries a placeholder, since that is what
- * the box reads to tell a populated control from an empty one: its own where
- * it was given one, a blank otherwise.
+ * In a box it clears the label at the top, and under a floating label it
+ * always carries a placeholder, since that is what the box reads to tell a
+ * populated control from an empty one: its own where it was given one, a
+ * blank otherwise. Outside a box it has no label over it and shows the
+ * placeholder it was given in every state.
  */
 function FieldInput({
   numeric = false,
   placeholder,
   ...props
 }: FieldInputProps) {
-  const floatingLabel = useContext(FloatingLabelContext)
+  const boxLabel = useContext(BoxLabelContext)
 
   return (
     <Input
-      placeholder={placeholder ?? (floatingLabel ? ' ' : undefined)}
+      placeholder={placeholder ?? (boxLabel === 'floating' ? ' ' : undefined)}
       {...props}
       {...mergeStatefulStyles(
         (state: InputRenderProps) =>
           stylex.props(
             styles.input,
-            floatingLabel && styles.inputUnderFloatingLabel,
+            boxLabel !== 'none' && styles.inputUnderLabel,
+            boxLabel === 'floating' && styles.inputUnderFloatingLabel,
             numeric && styles.numeric,
             state.isDisabled && styles.inputDisabled,
           ),

@@ -21,6 +21,7 @@ import type { NumberFieldProps } from './number-field'
 import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
 import type { RadioGroupProps, RadioProps } from './radio-group'
+import type { SearchFieldProps } from './search-field'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { SliderProps } from './slider'
@@ -54,6 +55,7 @@ import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
 import RadioGroupDefault, { Radio } from './radio-group'
+import SearchFieldDefault from './search-field'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import SliderDefault from './slider'
@@ -90,6 +92,7 @@ describe('components barrel', () => {
       'ProductIcon',
       'Radio',
       'RadioGroup',
+      'SearchField',
       'Separator',
       'Sheet',
       'Slider',
@@ -229,6 +232,10 @@ describe('components barrel', () => {
 
   it('re-exports NumberField as the same reference as its own module', () => {
     expect(components.NumberField).toBe(NumberFieldDefault)
+  })
+
+  it('re-exports SearchField as the same reference as its own module', () => {
+    expect(components.SearchField).toBe(SearchFieldDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -388,6 +395,11 @@ describe('components barrel', () => {
 
   it('re-exports the NumberFieldProps type', () => {
     const props: NumberFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the SearchFieldProps type', () => {
+    const props: SearchFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })
