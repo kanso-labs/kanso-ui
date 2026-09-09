@@ -38,6 +38,7 @@ import {
   Text,
   TextArea,
   TextField,
+  Tooltip,
 } from '.'
 
 // Every element the library renders that a call site can reach, rendered with
@@ -255,6 +256,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <Text {...PROBE}>Headline</Text>, name: 'Text' },
   { element: <TextArea {...PROBE} label="Label" />, name: 'TextArea' },
   { element: <TextField {...PROBE} label="Label" />, name: 'TextField' },
+  {
+    element: (
+      <Tooltip {...PROBE} defaultOpen label="Supporting text">
+        <Button>Trigger</Button>
+      </Tooltip>
+    ),
+    name: 'Tooltip',
+  },
 ]
 
 /** The probed element, or a failure naming what went missing. */
