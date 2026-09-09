@@ -3,6 +3,8 @@ import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 import * as stylex from '@stylexjs/stylex'
 import { TextField as RACTextField } from 'react-aria-components'
 
+import type { FieldVariant } from '../../field'
+
 import { FieldBox, FieldMessage, FieldTextArea } from '../../field'
 import {
   fieldStyles,
@@ -65,6 +67,13 @@ type TextAreaProps = {
    * @default 3
    */
   rows?: number
+  /**
+   * The filled box, or the outlined one: no fill, an outline that thickens
+   * and takes the primary role while focused, and the label cutting it once
+   * it floats — the text fields page's two fields.
+   * @default 'filled'
+   */
+  variant?: FieldVariant
 } & Omit<RACTextFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
 /**
@@ -87,6 +96,7 @@ function TextArea({
   isDisabled = false,
   label,
   rows = 3,
+  variant = 'filled',
   ...props
 }: TextAreaProps) {
   const validationBehavior = useFieldValidationBehavior()
@@ -99,7 +109,12 @@ function TextArea({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox floatingLabel={floatingLabel} label={label} multiline>
+      <FieldBox
+        floatingLabel={floatingLabel}
+        label={label}
+        multiline
+        variant={variant}
+      >
         <FieldTextArea autosize={autosize} rows={rows} />
       </FieldBox>
       <FieldMessage

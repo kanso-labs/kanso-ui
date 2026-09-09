@@ -551,6 +551,11 @@ function Showcase({ name }: ShowcaseProps) {
                   defaultValue={'First line.\nSecond line.\nThird line.'}
                   label="Label"
                 />
+                <TextField
+                  defaultValue="Label"
+                  label="Label"
+                  variant="outlined"
+                />
                 <CopyField value="--kui-color-primary" />
                 <NumberField defaultValue={1234.5} label="Label" />
                 <SearchField label="Label" placeholder="Supporting text" />
