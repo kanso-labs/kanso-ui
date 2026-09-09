@@ -7,6 +7,13 @@ import { rowStyles } from './styles'
 interface RowContentProps {
   /** The row's headline — the one thing it is mostly about. */
   children?: ReactNode
+  /**
+   * Whether the row is selected. The supporting line takes the selected
+   * container's own content role when it is, rather than staying in the
+   * muted role it draws on the surface.
+   * @default false
+   */
+  isSelected?: boolean
   /** Content before the headline: an avatar, an icon, a checkbox. */
   leading?: ReactNode
   /** A second line under the headline, in the muted role. */
@@ -37,11 +44,13 @@ type RowVariant = 'list' | 'menu'
  */
 function RowContent({
   children,
+  isSelected = false,
   leading,
   supporting,
   trailing,
   variant = 'list',
 }: RowContentProps) {
+  const menu = variant === 'menu'
   return (
     <>
       {leading === undefined ? null : (
@@ -50,15 +59,23 @@ function RowContent({
       <span {...stylex.props(rowStyles.main)}>
         <span
           {...stylex.props(
-            variant === 'menu'
-              ? rowStyles.headlineMenu
-              : rowStyles.headlineList,
+            menu ? rowStyles.headlineMenu : rowStyles.headlineList,
           )}
         >
           {children}
         </span>
         {supporting === undefined ? null : (
-          <span {...stylex.props(rowStyles.supporting)}>{supporting}</span>
+          <span
+            {...stylex.props(
+              rowStyles.supporting,
+              isSelected &&
+                (menu
+                  ? rowStyles.supportingSelectedMenu
+                  : rowStyles.supportingSelectedList),
+            )}
+          >
+            {supporting}
+          </span>
         )}
       </span>
       {trailing === undefined ? null : (

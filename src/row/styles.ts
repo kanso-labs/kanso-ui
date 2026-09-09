@@ -139,6 +139,18 @@ const rowStyles = stylex.create({
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
   },
+  // A supporting line on a selected row takes the same content role its
+  // headline does, rather than staying in on surface variant. The page draws
+  // the muted role on the surface the row usually sits on; over a selected
+  // row's own container it is a second colour family on one container, and
+  // the pair is not guaranteed to be readable — it fails AA outright on the
+  // Terminal scheme, where the primary container is a strong green.
+  supportingSelectedList: {
+    color: colors.onPrimaryContainer,
+  },
+  supportingSelectedMenu: {
+    color: colors.onTertiaryContainer,
+  },
 })
 
 export { rowStyles }

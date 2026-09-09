@@ -20,6 +20,7 @@ import {
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
   Link as ComponentsLink,
+  ListBox as ComponentsListBox,
   ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
   Meter as ComponentsMeter,
@@ -72,6 +73,7 @@ describe('package entry point', () => {
       'IconButton',
       'Keycap',
       'Link',
+      'ListBox',
       'ListDetail',
       'ListItem',
       'ListLayout',
@@ -276,6 +278,10 @@ describe('package entry point', () => {
 
   it('forwards Snackbar as the same reference as the components barrel', () => {
     expect(publicApi.Snackbar).toBe(ComponentsSnackbar)
+  })
+
+  it('forwards ListBox as the same reference as the components barrel', () => {
+    expect(publicApi.ListBox).toBe(ComponentsListBox)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

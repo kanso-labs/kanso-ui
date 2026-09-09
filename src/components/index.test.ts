@@ -17,6 +17,7 @@ import type { FormProps } from './form'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
+import type { ListBoxProps } from './list-box'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
 import type { MeterProps } from './meter'
@@ -58,6 +59,7 @@ import FormDefault from './form'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
+import ListBoxDefault from './list-box'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
 import MeterDefault from './meter'
@@ -101,6 +103,7 @@ describe('components barrel', () => {
       'IconButton',
       'Keycap',
       'Link',
+      'ListBox',
       'ListDetail',
       'ListItem',
       'Meter',
@@ -285,6 +288,10 @@ describe('components barrel', () => {
 
   it('re-exports Snackbar as the same reference as its own module', () => {
     expect(components.Snackbar).toBe(SnackbarDefault)
+  })
+
+  it('re-exports ListBox as the same reference as its own module', () => {
+    expect(components.ListBox).toBe(ListBoxDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -486,5 +493,10 @@ describe('components barrel', () => {
     const queue = new SnackbarDefault.Queue()
     const props: SnackbarProps = { queue }
     expect(props.queue).toBe(queue)
+  })
+
+  it('re-exports the ListBoxProps type', () => {
+    const props: ListBoxProps<object> = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
   })
 })
