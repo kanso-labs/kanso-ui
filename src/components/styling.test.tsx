@@ -20,6 +20,7 @@ import {
   Link,
   ListDetail,
   ListItem,
+  NumberField,
   Popover,
   ProductIcon,
   Radio,
@@ -101,6 +102,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'ListItem (interactive)',
   },
+  { element: <NumberField {...PROBE} label="Label" />, name: 'NumberField' },
   {
     element: (
       <Popover defaultOpen>

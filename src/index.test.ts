@@ -20,6 +20,7 @@ import {
   Link as ComponentsLink,
   ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
+  NumberField as ComponentsNumberField,
   Popover as ComponentsPopover,
   ProductIcon as ComponentsProductIcon,
   Radio as ComponentsRadio,
@@ -64,6 +65,7 @@ describe('package entry point', () => {
       'ListDetail',
       'ListItem',
       'ListLayout',
+      'NumberField',
       'Popover',
       'Pressable',
       'ProductIcon',
@@ -222,6 +224,10 @@ describe('package entry point', () => {
 
   it('forwards Slider as the same reference as the components barrel', () => {
     expect(publicApi.Slider).toBe(ComponentsSlider)
+  })
+
+  it('forwards NumberField as the same reference as the components barrel', () => {
+    expect(publicApi.NumberField).toBe(ComponentsNumberField)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
