@@ -31,6 +31,7 @@ import Keycap from '../components/keycap'
 import Link from '../components/link'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
+import NumberField from '../components/number-field'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
 import RadioGroup, { Radio } from '../components/radio-group'
@@ -528,6 +529,7 @@ function Showcase({ name }: ShowcaseProps) {
                 label="Label"
               />
               <CopyField value="--kui-color-primary" />
+              <NumberField defaultValue={1234.5} label="Label" />
               <Slider defaultValue={40} label="Label" />
             </Stack>
           </section>

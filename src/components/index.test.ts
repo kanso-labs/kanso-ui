@@ -17,6 +17,7 @@ import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
+import type { NumberFieldProps } from './number-field'
 import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
 import type { RadioGroupProps, RadioProps } from './radio-group'
@@ -49,6 +50,7 @@ import KeycapDefault from './keycap'
 import LinkDefault from './link'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
+import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
 import RadioGroupDefault, { Radio } from './radio-group'
@@ -83,6 +85,7 @@ describe('components barrel', () => {
       'Link',
       'ListDetail',
       'ListItem',
+      'NumberField',
       'Popover',
       'ProductIcon',
       'Radio',
@@ -222,6 +225,10 @@ describe('components barrel', () => {
 
   it('re-exports Slider as the same reference as its own module', () => {
     expect(components.Slider).toBe(SliderDefault)
+  })
+
+  it('re-exports NumberField as the same reference as its own module', () => {
+    expect(components.NumberField).toBe(NumberFieldDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -377,5 +384,10 @@ describe('components barrel', () => {
   it('re-exports the SliderProps type', () => {
     const props: SliderProps = { defaultValue: 40 }
     expect(props.defaultValue).toBe(40)
+  })
+
+  it('re-exports the NumberFieldProps type', () => {
+    const props: NumberFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })
