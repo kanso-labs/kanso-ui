@@ -25,6 +25,7 @@ import {
   NumberField,
   Popover,
   ProductIcon,
+  ProgressIndicator,
   Radio,
   RadioGroup,
   SearchField,
@@ -148,6 +149,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Popover.Title',
   },
   { element: <ProductIcon {...PROBE} name="Label" />, name: 'ProductIcon' },
+  {
+    element: <ProgressIndicator {...PROBE} label="Label" value={40} />,
+    name: 'ProgressIndicator',
+  },
   {
     element: (
       <RadioGroup label="Label">

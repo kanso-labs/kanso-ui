@@ -36,6 +36,7 @@ import ListItem from '../components/list-item'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
+import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
@@ -451,6 +452,19 @@ function Showcase({ name }: ShowcaseProps) {
               <Switch defaultSelected icon>
                 Label
               </Switch>
+            </div>
+            <ProgressIndicator label="Label" showValue value={60} />
+            <div {...stylex.props(styles.row)}>
+              <ProgressIndicator
+                aria-label="Label"
+                value={60}
+                variant="circular"
+              />
+              <ProgressIndicator
+                aria-label="Label"
+                isIndeterminate
+                variant="circular"
+              />
             </div>
             <div {...stylex.props(styles.row)}>
               {BADGE_TONES.map((tone) => (

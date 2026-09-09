@@ -22,6 +22,7 @@ import type { ListItemProps } from './list-item'
 import type { NumberFieldProps } from './number-field'
 import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
+import type { ProgressIndicatorProps } from './progress-indicator'
 import type { RadioGroupProps, RadioProps } from './radio-group'
 import type { SearchFieldProps } from './search-field'
 import type { SeparatorProps } from './separator'
@@ -60,6 +61,7 @@ import ListItemDefault from './list-item'
 import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
+import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
 import SearchFieldDefault from './search-field'
 import SeparatorDefault from './separator'
@@ -100,6 +102,7 @@ describe('components barrel', () => {
       'NumberField',
       'Popover',
       'ProductIcon',
+      'ProgressIndicator',
       'Radio',
       'RadioGroup',
       'SearchField',
@@ -264,6 +267,10 @@ describe('components barrel', () => {
 
   it('re-exports Tooltip as the same reference as its own module', () => {
     expect(components.Tooltip).toBe(TooltipDefault)
+  })
+
+  it('re-exports ProgressIndicator as the same reference as its own module', () => {
+    expect(components.ProgressIndicator).toBe(ProgressIndicatorDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -449,5 +456,10 @@ describe('components barrel', () => {
   it('re-exports the TooltipProps type', () => {
     const props: TooltipProps = { label: 'Supporting text' }
     expect(props.label).toBe('Supporting text')
+  })
+
+  it('re-exports the ProgressIndicatorProps type', () => {
+    const props: ProgressIndicatorProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })
