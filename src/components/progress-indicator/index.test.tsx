@@ -226,6 +226,90 @@ describe('progress indicator', () => {
       expect(getComputedStyle(arc).animationDuration).toBe('1.333s, 5.332s')
       expect(getComputedStyle(svg).animationDuration).toBe('1.568s')
     })
+
+    // Material turns the arc's start in eight increments rather than at a
+    // constant rate, each eased with the same curve the growth uses, so it
+    // settles at each position and springs to the next.
+    it('steps the arc around the circle rather than drifting it', () => {
+      const view = render(
+        <ProgressIndicator isIndeterminate label="Label" variant="circular" />,
+      )
+      const arc = view
+        .getByRole('progressbar', { name: 'Label' })
+        .querySelector('circle')
+      if (!(arc instanceof SVGElement)) {
+        throw new Error('expected the ring to draw one arc')
+      }
+
+      // Two animations run on the arc — its growth and its travel — so the
+      // computed value is one curve per animation. `linear` on the second is
+      // the drift this replaced. Read whole rather than split on the comma,
+      // since a cubic-bezier holds three of its own.
+      const easing = 'cubic-bezier(0.4, 0, 0.2, 1)'
+      expect(getComputedStyle(arc).animationTimingFunction).toBe(
+        `${easing}, ${easing}`,
+      )
+    })
+
+    // The page's rounded ends add half the stroke at each end of the dash,
+    // so an arc shorter than about two stroke widths draws as a dot. The
+    // floor is what keeps the shortest state reading as an arc.
+    it('keeps the arc long enough to read as an arc', async () => {
+      const view = render(
+        <ProgressIndicator isIndeterminate label="Label" variant="circular" />,
+      )
+      const arc = view
+        .getByRole('progressbar', { name: 'Label' })
+        .querySelector('circle')
+      if (!(arc instanceof SVGElement)) {
+        throw new Error('expected the ring to draw one arc')
+      }
+
+      // The growth runs on the document timeline, so the shortest state is
+      // read by holding both animations at their own start rather than
+      // waiting for the arc to come round to it.
+      const running = arc.getAnimations()
+      expect(running).not.toHaveLength(0)
+      for (const animation of running) {
+        animation.pause()
+        animation.currentTime = 0
+      }
+      await Promise.all(
+        running.map(async (animation) => {
+          await animation.ready
+        }),
+      )
+
+      const [dash] = getComputedStyle(arc).strokeDasharray.split(',')
+      expect(Number.parseFloat(dash)).toBeGreaterThanOrEqual(8)
+    })
+  })
+
+  describe('the determinate ring', () => {
+    // Both arcs move with the value — `arcsFor` cuts the track's dash and
+    // its offset from the same percentage — so easing one and not the other
+    // shut the 4dp gap between them for a frame on every change.
+    it('eases the track arc as it eases the active one', () => {
+      const view = render(
+        <ProgressIndicator label="Label" value={40} variant="circular" />,
+      )
+      const [track, active] = [
+        ...(view
+          .getByRole('progressbar', { name: 'Label' })
+          .querySelector('svg')?.children ?? []),
+      ]
+      if (!(track instanceof SVGElement) || !(active instanceof SVGElement)) {
+        throw new Error('expected the ring to draw two arcs')
+      }
+
+      for (const arc of [track, active]) {
+        const style = getComputedStyle(arc)
+        expect(style.transitionDuration).toBe('0.5s')
+        expect(style.transitionProperty).toBe(
+          'stroke-dasharray, stroke-dashoffset',
+        )
+      }
+    })
   })
 
   describe('buffer', () => {
@@ -295,6 +379,9 @@ describe('progress indicator', () => {
           throw new Error('expected each bar to hold its inner bar')
         }
         expect(getComputedStyle(inner).animationName).not.toBe('none')
+        // The page draws every part of the line as a pill, and the bars of
+        // the indeterminate one are no exception.
+        expect(getComputedStyle(inner).borderTopLeftRadius).not.toBe('0px')
       }
     })
   })

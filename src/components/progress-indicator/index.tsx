@@ -164,15 +164,36 @@ const buffering = stylex.keyframes({
 // The arc's own length, written against a path the circle normalises to 100
 // with `pathLength`, so these are percentages of the circumference rather
 // than lengths StyleX would have to work out.
+//
+// Material contracts to 10 degrees of turn and grows to 270. The 270 is 75
+// of the circumference and is written as it is; the 10 is not, because the
+// page's rounded ends change what a short dash draws. A round cap adds half
+// the stroke at each end, so a 10-degree dash on the 40dp ring is 3px of
+// path inside a 7px capsule of 4px stroke — a dot rather than the sliver
+// Material's square-cut ends give at the same angle. 8 is the shortest the
+// cap still draws as an arc, and it is the floor for that reason rather
+// than because the page names it.
 const expandArc = stylex.keyframes({
-  '0%': { strokeDasharray: '2 100' },
+  '0%': { strokeDasharray: '8 100' },
   '50%': { strokeDasharray: '75 100' },
-  '100%': { strokeDasharray: '2 100' },
+  '100%': { strokeDasharray: '8 100' },
 })
 
+// Where the arc starts. Material turns it in eight increments of 135 degrees
+// rather than at a constant rate, each eased with the same curve the arc's
+// growth uses, so it settles at each position and springs to the next; three
+// full turns over the cycle, under the rotation's own single turn. The
+// numbers here are those angles along a path of 100: 135 degrees is 37.5 of
+// it, and 1080 degrees is 300.
 const travelArc = stylex.keyframes({
-  from: { strokeDashoffset: '0' },
-  to: { strokeDashoffset: '-100' },
+  '12.5%': { strokeDashoffset: '-37.5' },
+  '25%': { strokeDashoffset: '-75' },
+  '37.5%': { strokeDashoffset: '-112.5' },
+  '50%': { strokeDashoffset: '-150' },
+  '62.5%': { strokeDashoffset: '-187.5' },
+  '75%': { strokeDashoffset: '-225' },
+  '87.5%': { strokeDashoffset: '-262.5' },
+  '100%': { strokeDashoffset: '-300' },
 })
 
 const spin = stylex.keyframes({
@@ -182,10 +203,6 @@ const spin = stylex.keyframes({
 const styles = stylex.create({
   arcActive: {
     stroke: colors.primary,
-    // Material's own transition for a determinate ring.
-    transitionDuration: '500ms',
-    transitionProperty: 'stroke-dasharray, stroke-dashoffset',
-    transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
   },
   // Two of the ring's three animations: the arc's length, and its start
   // travelling the circle.
@@ -196,9 +213,19 @@ const styles = stylex.create({
     animationDuration: `${ARC_MS}ms, ${CYCLE_MS}ms`,
     animationIterationCount: 'infinite, infinite',
     animationName: `${expandArc}, ${travelArc}`,
-    animationTimingFunction: `${RING_EASING}, linear`,
+    animationTimingFunction: `${RING_EASING}, ${RING_EASING}`,
     stroke: colors.primary,
     transitionProperty: 'none',
+  },
+  // Material's own transition for a determinate ring, on both arcs rather
+  // than on the active one alone. `arcsFor` moves the track's dash pattern
+  // and its offset with the value just as much as the active arc's, so
+  // easing one and not the other snapped the 4dp gap between them shut and
+  // open again while the active arc grew smoothly.
+  arcMotion: {
+    transitionDuration: '500ms',
+    transitionProperty: 'stroke-dasharray, stroke-dashoffset',
+    transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
   },
   arcTrack: {
     stroke: colors.secondaryContainer,
@@ -257,8 +284,14 @@ const styles = stylex.create({
     position: 'absolute',
     transformOrigin: 'left center',
   },
+  // The bars of the indeterminate line carry the same pill every other part
+  // of the component draws, which is what Material gives its own inner bar.
+  // The radius is drawn under the bar's own scale, so it flattens as the bar
+  // narrows — that is inherent to scaling the bar rather than sizing it, and
+  // Material's does the same.
   indeterminateBarInner: {
     backgroundColor: colors.primary,
+    borderRadius: radii.full,
     boxSizing: 'border-box',
     inset: 0,
     position: 'absolute',
@@ -463,6 +496,7 @@ function CircularTrack({
           strokeLinecap="round"
           strokeWidth={THICKNESS}
           {...stylex.props(
+            styles.arcMotion,
             styles.arcTrack,
             inherit && indicatorStyles.inheritTrack,
           )}
@@ -483,7 +517,8 @@ function CircularTrack({
         strokeLinecap="round"
         strokeWidth={THICKNESS}
         {...stylex.props(
-          isIndeterminate ? styles.arcIndeterminate : styles.arcActive,
+          isIndeterminate ? styles.arcIndeterminate : styles.arcMotion,
+          isIndeterminate ? null : styles.arcActive,
           inherit && indicatorStyles.inheritActive,
         )}
       />
