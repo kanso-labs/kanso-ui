@@ -36,6 +36,7 @@ import ProductIcon from '../components/product-icon'
 import RadioGroup, { Radio } from '../components/radio-group'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
+import Slider from '../components/slider'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Switch from '../components/switch'
@@ -527,6 +528,7 @@ function Showcase({ name }: ShowcaseProps) {
                 label="Label"
               />
               <CopyField value="--kui-color-primary" />
+              <Slider defaultValue={40} label="Label" />
             </Stack>
           </section>
 

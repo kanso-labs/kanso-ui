@@ -295,6 +295,15 @@ function insertAfterLast(text, marker, block) {
   return `${text.slice(0, cut)}\n${block}${text.slice(cut)}`
 }
 
+// The directory an export line points at: `./x` from `from './x'`.
+/**
+ * @param {string} line
+ * @returns {string}
+ */
+function directoryOf(line) {
+  return line.slice(line.indexOf("from './") + "from './".length, -1)
+}
+
 /**
  * @param {Name} name
  * @returns {string}
@@ -305,21 +314,22 @@ function addToBarrel({ component, directory }) {
   const entry = `export type { ${component}Props } from './${directory}'\nexport { default as ${component} } from './${directory}'\n`
   // The barrel is sorted by path. Placed before the first export whose path
   // sorts after this one, or at the end.
-  const exports = text
-    .split('\n')
+  const lines = text.split('\n')
+  const nextDirectory = lines
     .filter((line) => line.startsWith('export { default as '))
-  const next = exports.find((line) => {
-    const from = line.slice(line.indexOf("from './") + "from './".length, -1)
-    return from > directory
-  })
-  const updated =
-    next === undefined
-      ? `${text}${entry}`
-      : text.replace(
-          `export type { ${next.slice('export { default as '.length, next.indexOf(' }'))}Props } from`,
-          `${entry}$&`,
+    .map(directoryOf)
+    .find((existing) => existing > directory)
+  // Inserted before that directory's first line, its type export, since the
+  // types come first and a component may export several of them.
+  const at =
+    nextDirectory === undefined
+      ? lines.length - 1
+      : lines.findIndex(
+          (line) =>
+            line.startsWith('export ') && directoryOf(line) === nextDirectory,
         )
-  writeFileSync(path, updated)
+  lines.splice(at, 0, ...entry.trimEnd().split('\n'))
+  writeFileSync(path, lines.join('\n'))
   return path
 }
 

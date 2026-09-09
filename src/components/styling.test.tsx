@@ -26,6 +26,7 @@ import {
   RadioGroup,
   Separator,
   Sheet,
+  Slider,
   SupportingPane,
   Switch,
   Tabs,
@@ -188,6 +189,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Sheet>
     ),
     name: 'Sheet.Title',
+  },
+  {
+    element: <Slider {...PROBE} defaultValue={40} label="Label" />,
+    name: 'Slider',
   },
   {
     element: (
