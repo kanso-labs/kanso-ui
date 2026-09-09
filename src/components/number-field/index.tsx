@@ -90,10 +90,20 @@ const styles = stylex.create({
   stepperFocused: {
     outlineStyle: 'solid',
   },
+  // Stacked, the buttons are drawn here rather than by IconButton, so the
+  // glyph takes that same 20dp itself.
   stepperGlyph: {
     blockSize: '20px',
     display: 'block',
     inlineSize: '20px',
+  },
+  // Side by side, the button sizes its icon through its font size, and an
+  // icon drawn in `em` follows it — which is what gives the extra-small
+  // button the icon buttons page's 20dp.
+  stepperGlyphInline: {
+    blockSize: '1em',
+    display: 'block',
+    inlineSize: '1em',
   },
   stepperHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
@@ -223,14 +233,14 @@ function NumberField({
                   size="xs"
                   slot="decrement"
                 >
-                  <MinusGlyph />
+                  <MinusGlyph {...stylex.props(styles.stepperGlyphInline)} />
                 </IconButton>
                 <IconButton
                   aria-label={incrementLabel}
                   size="xs"
                   slot="increment"
                 >
-                  <PlusGlyph />
+                  <PlusGlyph {...stylex.props(styles.stepperGlyphInline)} />
                 </IconButton>
               </>
             ) : (
