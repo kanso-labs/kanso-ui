@@ -222,5 +222,27 @@ describe('number field', () => {
       expect(plus.height).toBe(32)
       expect(box.getBoundingClientRect().right - plus.right).toBe(12)
     })
+
+    // The icon buttons page gives the extra-small button a 20dp icon. The
+    // glyph carries no size of its own, so without one drawn in `em` it
+    // fills the whole 32dp button.
+    it("draws the side-by-side glyphs at the page's 20", () => {
+      const { decrement, increment } = setup({ steppers: 'horizontal' })
+      for (const stepper of [decrement, increment]) {
+        const glyph = stepper.querySelector('svg')
+        if (glyph === null) {
+          throw new Error('expected each stepper to draw a glyph')
+        }
+        const size = glyph.getBoundingClientRect()
+        expect(size.width).toBe(20)
+        expect(size.height).toBe(20)
+      }
+    })
+
+    it('draws the stacked glyphs at the same 20', () => {
+      const { increment } = setup()
+      const glyph = increment.querySelector('svg')
+      expect(glyph?.getBoundingClientRect().width).toBe(20)
+    })
   })
 })
