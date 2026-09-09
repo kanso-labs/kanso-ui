@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react'
+import type { MouseEvent, PointerEvent, ReactNode } from 'react'
 import type {
   SwitchFieldProps as RACSwitchFieldProps,
   SwitchButtonRenderProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useRef, useState } from 'react'
 import { SwitchButton, SwitchField } from 'react-aria-components'
 
 import { FieldMessage } from '../../field'
@@ -45,6 +46,11 @@ import {
 // standard easing; the state layer and the ripple sit on a 40dp disc centred
 // on the handle, so they move with it. The adjacent label is body-large on
 // surface, which the page keeps the same whichever way the switch is.
+//
+// The page's pressed handle follows the pointer: it grows, travels with the
+// drag, and the switch flips when it is released past the middle of the
+// track or springs back when it is not. React Aria's `SwitchButton` has no
+// drag of its own, so the travel is this component's — see `useHandleDrag`.
 const styles = stylex.create({
   // `display: contents`, so the control and the label text sit in the
   // field's two columns themselves. The label element is still what a click
@@ -157,10 +163,6 @@ const styles = stylex.create({
   messages: {
     gridColumnStart: 2,
   },
-  // The handle's travelling box: the pressed handle's 28dp, centred 16dp from
-  // the start of the track while off and 16dp from its end while on, which
-  // is where the page's handles sit. The insets are measured from inside the
-  // track's 2dp rule, so zero puts the box's centre 16dp from the edge.
   seat: {
     alignItems: 'center',
     blockSize: '28px',
@@ -174,6 +176,21 @@ const styles = stylex.create({
     transitionDuration: motion.durationShort2,
     transitionProperty: 'inset-inline-start',
     transitionTimingFunction: motion.easingStandard,
+  },
+  // Where the drag has put the handle, between the two ends. A dynamic
+  // style, since StyleX compiles its classes ahead of time and the number
+  // comes from the pointer — it is written to a custom property inline.
+  seatAt: (offset: number) => ({
+    insetInlineStart: `${offset}px`,
+  }),
+  // The handle's travelling box: the pressed handle's 28dp, centred 16dp from
+  // the start of the track while off and 16dp from its end while on, which
+  // is where the page's handles sit. The insets are measured from inside the
+  // track's 2dp rule, so zero puts the box's centre 16dp from the edge.
+  // Following the pointer: the travel is the drag itself, so the transition
+  // is off until the handle is let go.
+  seatDragging: {
+    transitionDuration: '0s',
   },
   seatOn: {
     insetInlineStart: '20px',
@@ -233,6 +250,12 @@ const pressedLayers = stylex.create({
   },
 })
 
+// How far the seat travels: the track's 48dp inside its 2dp rule, less the
+// seat's own 28dp.
+const TRAVEL = 20
+
+type Drag = ReturnType<typeof useHandleDrag>
+
 type Ripple = ReturnType<typeof useRipple<HTMLSpanElement>>
 
 type SwitchProps = {
@@ -266,10 +289,16 @@ type SwitchProps = {
 // the result on its inputs. The ripple's handlers and surface go on the
 // state layer while the switch can change, and are left off while it
 // cannot, since a press that changes nothing should not look like one.
-function buttonContent(children: ReactNode, icon: boolean, ripple: Ripple) {
+function buttonContent(
+  children: ReactNode,
+  icon: boolean,
+  ripple: Ripple,
+  drag: Drag,
+) {
   return (state: SwitchButtonRenderProps) => {
     const interactive = !state.isDisabled && !state.isReadOnly
     const on = state.isSelected
+    const dragging = interactive && drag.offset !== null
     const active =
       interactive &&
       (state.isHovered || state.isPressed || state.isFocusVisible)
@@ -292,7 +321,15 @@ function buttonContent(children: ReactNode, icon: boolean, ripple: Ripple) {
               state.isFocusVisible && styles.trackFocused,
             )}
           >
-            <span {...stylex.props(styles.seat, on && styles.seatOn)}>
+            <span
+              {...(interactive ? drag.handlers(on) : {})}
+              {...stylex.props(
+                styles.seat,
+                on && styles.seatOn,
+                dragging && styles.seatDragging,
+                dragging && styles.seatAt(drag.offset ?? 0),
+              )}
+            >
               <span
                 {...(interactive ? ripple.handlers : {})}
                 {...stylex.props(
@@ -312,7 +349,8 @@ function buttonContent(children: ReactNode, icon: boolean, ripple: Ripple) {
                   styles.handle,
                   on && styles.handleOn,
                   active && (on ? styles.handleOnActive : styles.handleActive),
-                  interactive && state.isPressed && styles.handlePressed,
+                  (dragging || (interactive && state.isPressed)) &&
+                    styles.handlePressed,
                   state.isDisabled &&
                     (on ? styles.handleOnDisabled : styles.handleDisabled),
                 )}
@@ -358,6 +396,7 @@ function Switch({
   ...props
 }: SwitchProps) {
   const ripple = useRipple<HTMLSpanElement>()
+  const drag = useHandleDrag()
 
   const validationBehavior = useFieldValidationBehavior()
 
@@ -369,13 +408,134 @@ function Switch({
       {...mergeStatefulStyles(stylex.props(styles.field), props)}
     >
       <SwitchButton {...stylex.props(styles.button)}>
-        {buttonContent(children, icon, ripple)}
+        {buttonContent(children, icon, ripple, drag)}
       </SwitchButton>
       <div {...stylex.props(styles.messages)}>
         <FieldMessage description={description} error={error} inset={false} />
       </div>
     </SwitchField>
   )
+}
+
+/**
+ * The handle following a pointer across the track, as the switch page draws
+ * a pressed switch. The seat's inset comes from the drag while one is under
+ * way, and the switch settles from where the handle was let go: on past the
+ * middle of the track, off before it.
+ *
+ * What flips the switch on an ordinary tap is React Aria's own press, which
+ * ends on the pointer being released and pays no attention to where the
+ * handle was dragged to — so a drag has to end that press before releasing,
+ * which is what the pointer cancel is for, and settle the switch itself.
+ * Settling means clicking the field's own input, the same element a tap
+ * reaches in the end: the change goes through React Aria, and a controlled
+ * switch stays controlled, since nothing here calls `onChange` or holds any
+ * state of the switch's own. The click the pointer's release sends after
+ * that is cancelled too, so nothing flips the switch a second time.
+ *
+ * A press that never moves is left alone entirely, so a tap flips the switch
+ * as it did before.
+ */
+function useHandleDrag() {
+  const [offset, setOffset] = useState<null | number>(null)
+  const origin = useRef<null | {
+    base: number
+    on: boolean
+    rtl: boolean
+    x: number
+  }>(null)
+  const settled = useRef<null | number>(null)
+  const cancelClick = useRef(false)
+
+  const onPointerCancel = useCallback(() => {
+    origin.current = null
+    settled.current = null
+    setOffset(null)
+  }, [])
+
+  const onClickCapture = useCallback((event: MouseEvent<HTMLSpanElement>) => {
+    if (!cancelClick.current) {
+      return
+    }
+    cancelClick.current = false
+    // The label's activation is the browser's own, so this is what stops the
+    // input being flipped by a drag that settled where it began.
+    event.preventDefault()
+    event.stopPropagation()
+  }, [])
+
+  const onPointerMove = useCallback((event: PointerEvent<HTMLSpanElement>) => {
+    const from = origin.current
+    if (from === null) {
+      return
+    }
+    const along = from.rtl ? from.x - event.clientX : event.clientX - from.x
+    const next = Math.min(TRAVEL, Math.max(0, from.base + along))
+    settled.current = next
+    setOffset(next)
+  }, [])
+
+  const onPointerUp = useCallback((event: PointerEvent<HTMLSpanElement>) => {
+    const from = origin.current
+    const stopped = settled.current
+    const seat = event.currentTarget
+    origin.current = null
+    settled.current = null
+    setOffset(null)
+    // A press that never moved is a tap, which React Aria flips on its own.
+    if (from === null || stopped === null) {
+      return
+    }
+    // React Aria's press is about to flip the switch from wherever it
+    // started, so it is cancelled first — a pointer cancel is what ends a
+    // press without firing it — and the drag settles the switch instead.
+    seat.dispatchEvent(
+      new PointerEvent('pointercancel', {
+        bubbles: true,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+      }),
+    )
+    // The pointer's own click follows this, by which time the switch has
+    // already settled.
+    cancelClick.current = true
+    if (stopped > TRAVEL / 2 === from.on) {
+      return
+    }
+    const input = seat.closest('label')?.querySelector('input')
+    input?.click()
+  }, [])
+
+  const handlers = useCallback(
+    (on: boolean) => ({
+      onClickCapture,
+      onPointerCancel,
+      onPointerDown: (event: PointerEvent<HTMLSpanElement>) => {
+        if (event.pointerType === 'mouse' && event.button !== 0) {
+          return
+        }
+        origin.current = {
+          base: on ? TRAVEL : 0,
+          on,
+          rtl: getComputedStyle(event.currentTarget).direction === 'rtl',
+          x: event.clientX,
+        }
+        settled.current = null
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch {
+          // A pointer the browser is not tracking has no capture to take —
+          // a synthetic event in a test, where the moves are dispatched on
+          // this element anyway.
+        }
+      },
+      onPointerMove,
+      onPointerUp,
+    }),
+    [onClickCapture, onPointerCancel, onPointerMove, onPointerUp],
+  )
+
+  return { handlers, offset }
 }
 
 export type { SwitchProps }

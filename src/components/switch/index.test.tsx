@@ -58,6 +58,26 @@ function controlOf(input: HTMLElement) {
   return control
 }
 
+/**
+ * A drag across the seat, in device pixels from where it was grabbed. The
+ * pointer events go to the seat, which is what carries the drag; a real
+ * pointer would be captured by it, and a synthetic one is dispatched there
+ * directly. `release` is left to the caller so a test can read the handle
+ * mid-drag.
+ */
+function dragBy(seat: HTMLElement, distance: number) {
+  fireEvent.pointerDown(seat, { button: 0, clientX: 100, pointerId: 1 })
+  fireEvent.pointerMove(seat, { clientX: 100 + distance, pointerId: 1 })
+  return {
+    release: () => {
+      fireEvent.pointerUp(seat, { clientX: 100 + distance, pointerId: 1 })
+      // The label's own click is what flips the switch, and a drag decides
+      // whether to let it through — so the click has to be sent too.
+      fireEvent.click(seat)
+    },
+  }
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -81,12 +101,28 @@ function partsOf(input: HTMLElement) {
   return { handle, layer, seat, track }
 }
 
+/** Finishes the seat's travel, so a computed inset is where it came to rest. */
+function settled(seat: HTMLElement) {
+  for (const animation of seat.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(seat).insetInlineStart
+}
+
 function setup(props: Partial<Parameters<typeof Switch>[0]> = {}) {
   const view = render(<Switch {...props}>Label</Switch>)
   return {
     ...view,
     input: view.getByRole('switch', { name: 'Label' }),
   }
+}
+
+/** Finishes the handle's growth, so a computed size is the settled one. */
+function sized(handle: HTMLElement) {
+  for (const animation of handle.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(handle).width
 }
 
 describe('switch', () => {
@@ -228,6 +264,131 @@ describe('switch', () => {
         fireEvent.pointerOut(layer, { pointerType: 'mouse' })
       })
       expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+    })
+  })
+
+  describe('drag', () => {
+    // The page's pressed switch has the handle following the pointer, and
+    // the flip decided by where it is let go rather than by the press.
+    it('follows the pointer across the track while dragging', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+      expect(settled(seat)).toBe('0px')
+
+      const drag = dragBy(seat, 12)
+      expect(getComputedStyle(seat).insetInlineStart).toBe('12px')
+
+      drag.release()
+      expect(input).toHaveProperty('checked', true)
+      expect(settled(seat)).toBe('20px')
+    })
+
+    it('keeps the handle inside the two ends of the track', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 200)
+      expect(getComputedStyle(seat).insetInlineStart).toBe('20px')
+
+      fireEvent.pointerMove(seat, { clientX: -200, pointerId: 1 })
+      expect(getComputedStyle(seat).insetInlineStart).toBe('0px')
+    })
+
+    it('flips the switch when the handle is let go past the middle', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 11).release()
+      expect(input).toHaveProperty('checked', true)
+    })
+
+    it('springs back when the handle is let go before the middle', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 9).release()
+      expect(input).toHaveProperty('checked', false)
+      expect(settled(seat)).toBe('0px')
+    })
+
+    it('turns an on switch off by dragging back past the middle', () => {
+      const { input } = setup({ defaultSelected: true })
+      const { seat } = partsOf(input)
+      expect(settled(seat)).toBe('20px')
+
+      dragBy(seat, -11).release()
+      expect(input).toHaveProperty('checked', false)
+      expect(settled(seat)).toBe('0px')
+    })
+
+    it('leaves an on switch on when the handle does not cross back', () => {
+      const { input } = setup({ defaultSelected: true })
+      const { seat } = partsOf(input)
+
+      dragBy(seat, -9).release()
+      expect(input).toHaveProperty('checked', true)
+      expect(settled(seat)).toBe('20px')
+    })
+
+    // A press that never moves is a tap, which the label flips as it always
+    // did — the drag has to keep out of its way.
+    it('still flips on a tap that never moves', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      fireEvent.pointerDown(seat, { button: 0, clientX: 100, pointerId: 1 })
+      fireEvent.pointerUp(seat, { clientX: 100, pointerId: 1 })
+      fireEvent.click(input)
+      expect(input).toHaveProperty('checked', true)
+    })
+
+    it('reports a drag on a controlled switch without moving', () => {
+      const onChange = vi.fn<(selected: boolean) => void>()
+      const { input } = setup({ isSelected: false, onChange })
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 15).release()
+      expect(onChange).toHaveBeenCalledWith(true)
+      expect(input).toHaveProperty('checked', false)
+    })
+
+    // The page grows the handle to 28 while it is pressed, and a drag is a
+    // press that lasts.
+    it('grows the handle while it is being dragged', () => {
+      const { input } = setup()
+      const { handle, seat } = partsOf(input)
+      expect(sized(handle)).toBe('16px')
+
+      dragBy(seat, 8)
+      expect(sized(handle)).toBe('28px')
+    })
+
+    // React Aria flips the switch from its own press, which ends on the
+    // pointer being released wherever the handle has been dragged to — so a
+    // drag ends that press before releasing, and settles the switch itself.
+    // Synthetic pointer events do not start a React Aria press, so what a
+    // browser would show is not reachable here; this pins the cancel, which
+    // is the part a browser needs and a reader would otherwise delete.
+    it('ends the press before settling, so nothing flips twice', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+      const cancelled = vi.fn<(event: Event) => void>()
+      seat.addEventListener('pointercancel', cancelled)
+
+      dragBy(seat, 14).release()
+      expect(cancelled).toHaveBeenCalledTimes(1)
+      expect(input).toHaveProperty('checked', true)
+    })
+
+    it('does not drag while disabled or read-only', () => {
+      const disabled = setup({ isDisabled: true })
+      dragBy(partsOf(disabled.input).seat, 15).release()
+      expect(disabled.input).toHaveProperty('checked', false)
+      disabled.unmount()
+
+      const readOnly = setup({ isReadOnly: true })
+      dragBy(partsOf(readOnly.input).seat, 15).release()
+      expect(readOnly.input).toHaveProperty('checked', false)
     })
   })
 
