@@ -329,6 +329,15 @@ const Pressed: Story = {
   tags: ['!dev'],
 }
 
-export { Default, Overview, Pressed }
+// The label is kept in the flow while the ring shows, so the button stays
+// the width it was.
+const Pending: Story = {
+  args: {
+    children: 'Label',
+    isPending: true,
+  },
+}
+
+export { Default, Overview, Pending, Pressed }
 
 export default meta

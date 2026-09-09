@@ -323,6 +323,7 @@ function Showcase({ name }: ShowcaseProps) {
               <Button variant="outlined">Label</Button>
               <Button variant="text">Label</Button>
               <Button isDisabled>Label</Button>
+              <Button isPending>Label</Button>
             </div>
             <div {...stylex.props(styles.row)}>
               <IconButton aria-label="Add">

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type {
+  ButtonRenderProps,
   ClassNameOrFunction,
   FocusableElement,
   StyleOrFunction,
@@ -28,6 +29,7 @@ import {
   radii,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
+import ProgressIndicator from '../progress-indicator'
 
 // Each variant composites an 'on-color' over its own container at the
 // interaction state's opacity, rather than swapping in a separate hover
@@ -52,6 +54,8 @@ import {
 // different curves — the colour change is linear-ish and the shape change is
 // emphasized — so the timing functions are a matching comma list rather than
 // one value.
+type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -94,6 +98,16 @@ const styles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  // While pending, the label stays in the flow so the button keeps its
+  // width, and is hidden — `display: contents` leaves the layout exactly as
+  // it was, and `visibility` is inherited, so the label's own parts go with
+  // it.
+  label: {
+    display: 'contents',
+  },
+  labelPending: {
+    visibility: 'hidden',
+  },
   // Square, so one number sets both edges. The five sizes are the icon
   // buttons spec page's, XS to XL, from its size token sets: the container,
   // the icon it holds and the corner it presses to. The font size is the
@@ -111,6 +125,14 @@ const styles = stylex.create({
     borderRadius: { ':active': radii.sm, default: radii.full },
     fontSize: '24px',
     inlineSize: '40px',
+  },
+  // The ring sits over the hidden label, centred in the button.
+  pending: {
+    alignItems: 'center',
+    display: 'flex',
+    inset: 0,
+    justifyContent: 'center',
+    position: 'absolute',
   },
   // Transparent, so it tints whatever it is sitting on rather than carrying a
   // container of its own — the same treatment ListItem's rows get.
@@ -187,6 +209,12 @@ type IconButtonProps = {
    * form only.
    */
   href?: string
+  /**
+   * The name of the ring shown while the button is pending, for a screen
+   * reader. The label it replaces is hidden while it shows.
+   * @default 'Loading'
+   */
+  pendingLabel?: string
   /** The link's `rel`, when `href` is set. */
   rel?: string
   /**
@@ -209,6 +237,45 @@ type IconButtonProps = {
   variant?: 'filled' | 'standard' | 'tonal'
 } & ButtonDOMProps
 
+// What the button draws: its label, hidden while the button is pending, with
+// the ring over it. The ring takes the button's own content colour rather
+// than the progress page's primary, which on a filled button is the fill
+// itself and so invisible. The label stays in the flow so the button keeps its
+// width, which is what stops a form jumping the moment it is submitted.
+// React Aria wants the progress bar in the accessibility tree as soon as the
+// button goes pending, so it is rendered from the render state rather than
+// after a delay.
+//
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after; the React Compiler
+// memoises the result on its inputs.
+function buttonContent(
+  children: ReactNode,
+  pendingLabel: string,
+  ripple: Ripple,
+) {
+  return (state: ButtonRenderProps) => (
+    <>
+      <span
+        {...stylex.props(styles.label, state.isPending && styles.labelPending)}
+      >
+        {children}
+      </span>
+      {state.isPending ? (
+        <span {...stylex.props(styles.pending)}>
+          <ProgressIndicator
+            aria-label={pendingLabel}
+            isIndeterminate
+            size="1em"
+            tone="inherit"
+            variant="circular"
+          />
+        </span>
+      ) : null}
+      {ripple.surface}
+    </>
+  )
+}
 /**
  * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
@@ -227,6 +294,7 @@ function IconButton({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
+  pendingLabel = 'Loading',
   rel,
   render,
   size = 'md',
@@ -297,8 +365,7 @@ function IconButton({
       {...props}
       {...styleProps}
     >
-      {children}
-      {ripple.surface}
+      {buttonContent(children, pendingLabel, ripple)}
     </RACButton>
   )
 }

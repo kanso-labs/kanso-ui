@@ -626,3 +626,74 @@ describe('press behaviour', () => {
 // against both, unmocked, lives in the Pressed story — a story runs in this
 // same browser under `npm test`, and unlike a test here it also counts toward
 // the coverage Storybook's own Testing widget reports.
+
+// React Aria's pending state keeps the button focusable while it stops
+// responding to a press, and wants the progress bar in the accessibility
+// tree the moment it goes pending.
+describe('pending', () => {
+  it('draws a progress bar in place of the label', () => {
+    const view = render(<Button isPending>Label</Button>)
+    const bar = view.getByRole('progressbar', { name: 'Loading' })
+
+    expect(bar).not.toBeNull()
+    expect(bar.getAttribute('aria-valuenow')).toBeNull()
+  })
+
+  it('takes another name for it', () => {
+    const view = render(
+      <Button isPending pendingLabel="Saving">
+        Label
+      </Button>,
+    )
+    expect(view.getByRole('progressbar', { name: 'Saving' })).not.toBeNull()
+  })
+
+  it('draws none until it is pending', () => {
+    const view = render(<Button>Label</Button>)
+    expect(view.queryByRole('progressbar')).toBeNull()
+  })
+
+  // The label stays in the flow, so the button keeps the width it had —
+  // a form that resized as it was submitted would move everything under
+  // the pointer.
+  it('keeps the width the label gave it', () => {
+    const idle = render(<Button>Label</Button>)
+    const before = idle.getByRole('button').getBoundingClientRect().width
+    idle.unmount()
+
+    const pending = render(<Button isPending>Label</Button>)
+    expect(pending.getByRole('button').getBoundingClientRect().width).toBe(
+      before,
+    )
+  })
+
+  // The page's primary is a filled button's own fill, so a ring drawn in it
+  // would be invisible. It takes the button's content colour instead.
+  it("draws the ring in the button's colour, not the page's primary", () => {
+    const view = render(<Button isPending>Label</Button>)
+    const button = view.getByRole('button')
+    const arc = button.querySelector('svg circle')
+    if (!(arc instanceof SVGElement)) {
+      throw new Error('expected the ring to draw an arc')
+    }
+
+    const label = getComputedStyle(button).color
+    expect(getComputedStyle(arc).stroke).toBe(label)
+    expect(label).not.toBe(getComputedStyle(button).backgroundColor)
+  })
+
+  it('stops responding to a press while staying focusable', () => {
+    const onPress = vi.fn<() => void>()
+    const view = render(
+      <Button isPending onPress={onPress}>
+        Label
+      </Button>,
+    )
+    const button = view.getByRole('button')
+
+    fireEvent.click(button)
+    expect(onPress).not.toHaveBeenCalled()
+    expect(button.hasAttribute('disabled')).toBe(false)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+  })
+})

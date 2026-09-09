@@ -215,10 +215,8 @@ const styles = stylex.create({
     stroke: colors.secondaryContainer,
   },
   circular: {
-    blockSize: `${CIRCULAR_SIZE}px`,
     boxSizing: 'border-box',
     display: 'block',
-    inlineSize: `${CIRCULAR_SIZE}px`,
     // The dash pattern starts at three o'clock; the page's indicator starts
     // at the top.
     transform: 'rotate(-90deg)',
@@ -235,6 +233,13 @@ const styles = stylex.create({
     animationTimingFunction: 'linear',
     transform: 'none',
   },
+  // How wide the ring is drawn. The circle inside keeps its 40 user units,
+  // so the stroke and the gap scale with it rather than needing numbers of
+  // their own — a ring in a button is the button's own type size.
+  circularSize: (size: string) => ({
+    blockSize: size,
+    inlineSize: size,
+  }),
   // The scrolling dots beyond the buffer: the track's colour, at half the
   // thickness, one pitch of five apart.
   dots: {
@@ -282,6 +287,18 @@ const styles = stylex.create({
     backgroundColor: colors.secondaryContainer,
     inset: 0,
     position: 'absolute',
+  },
+  // Drawn on something that already carries a colour — a ring inside a
+  // button, where the page's primary would be the button's own fill and so
+  // invisible. The active indicator takes the colour it inherits, and the
+  // track a quarter of it.
+  inheritActive: {
+    backgroundColor: 'currentColor',
+    stroke: 'currentColor',
+  },
+  inheritTrack: {
+    backgroundColor: 'color-mix(in srgb, currentColor 25%, transparent)',
+    stroke: 'color-mix(in srgb, currentColor 25%, transparent)',
   },
   label: {
     boxSizing: 'border-box',
@@ -418,8 +435,23 @@ type ProgressIndicatorProps = {
    * @default false
    */
   showValue?: boolean
+  /**
+   * How wide the ring is drawn, as a CSS length. Everything inside scales
+   * with it, so `1em` gives a ring the size of the type around it. Ignored
+   * by the line, which fills the width it is given.
+   * @default '40px'
+   */
+  size?: string
   /** A function may compute the style from the indicator's render state. */
   style?: RACProgressBarProps['style']
+  /**
+   * Which colours it is drawn in. `primary` is the page's own pair — the
+   * active indicator in primary over a secondary container track — and
+   * `inherit` takes the colour around it, for an indicator inside something
+   * that already has one, such as a button, where primary would be the fill.
+   * @default 'primary'
+   */
+  tone?: ProgressIndicatorTone
   /**
    * The line the page draws, or the ring: `linear` fills the width it is
    * given, `circular` is 40dp across.
@@ -427,6 +459,8 @@ type ProgressIndicatorProps = {
    */
   variant?: ProgressIndicatorVariant
 } & Omit<RACProgressBarProps, 'children' | 'className' | 'style'>
+
+type ProgressIndicatorTone = 'inherit' | 'primary'
 
 type ProgressIndicatorVariant = 'circular' | 'linear'
 
@@ -475,10 +509,15 @@ function bufferShare(
 function CircularTrack({
   isIndeterminate,
   percentage,
+  size,
+  tone,
 }: {
   isIndeterminate: boolean
   percentage: number | undefined
+  size: string
+  tone: ProgressIndicatorTone
 }) {
+  const inherit = tone === 'inherit'
   const arcs = arcsFor(percentage)
 
   return (
@@ -487,6 +526,7 @@ function CircularTrack({
       viewBox={`0 0 ${CIRCULAR_SIZE} ${CIRCULAR_SIZE}`}
       {...stylex.props(
         styles.circular,
+        styles.circularSize(size),
         isIndeterminate && styles.circularIndeterminate,
       )}
     >
@@ -500,7 +540,7 @@ function CircularTrack({
           strokeDashoffset={arcs.track.strokeDashoffset}
           strokeLinecap="round"
           strokeWidth={THICKNESS}
-          {...stylex.props(styles.arcTrack)}
+          {...stylex.props(styles.arcTrack, inherit && styles.inheritTrack)}
         />
       )}
       <circle
@@ -519,6 +559,7 @@ function CircularTrack({
         strokeWidth={THICKNESS}
         {...stylex.props(
           isIndeterminate ? styles.arcIndeterminate : styles.arcActive,
+          inherit && styles.inheritActive,
         )}
       />
     </svg>
@@ -536,6 +577,8 @@ function indicatorContent(
   buffer: number | undefined,
   minValue: number,
   maxValue: number,
+  size: string,
+  tone: ProgressIndicatorTone,
 ) {
   return (state: ProgressBarRenderProps) => (
     <>
@@ -553,12 +596,15 @@ function indicatorContent(
         <CircularTrack
           isIndeterminate={state.isIndeterminate}
           percentage={state.percentage}
+          size={size}
+          tone={tone}
         />
       ) : (
         <LinearTrack
           buffer={bufferShare(buffer, state.percentage, minValue, maxValue)}
           isIndeterminate={state.isIndeterminate}
           percentage={state.percentage}
+          tone={tone}
         />
       )}
     </>
@@ -569,20 +615,29 @@ function LinearTrack({
   buffer,
   isIndeterminate,
   percentage,
+  tone,
 }: {
   buffer: number | undefined
   isIndeterminate: boolean
   percentage: number | undefined
+  tone: ProgressIndicatorTone
 }) {
+  const inherit = tone === 'inherit'
   if (isIndeterminate) {
     return (
       <div {...stylex.props(styles.indeterminateRow)}>
-        <span {...stylex.props(styles.indeterminateTrack)} />
+        <span
+          {...stylex.props(
+            styles.indeterminateTrack,
+            inherit && styles.inheritTrack,
+          )}
+        />
         <span {...stylex.props(styles.indeterminateBar, styles.primaryBar)}>
           <span
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.primaryBarInner,
+              inherit && styles.inheritActive,
             )}
           />
         </span>
@@ -591,6 +646,7 @@ function LinearTrack({
             {...stylex.props(
               styles.indeterminateBarInner,
               styles.secondaryBarInner,
+              inherit && styles.inheritActive,
             )}
           />
         </span>
@@ -601,12 +657,17 @@ function LinearTrack({
   return (
     <div {...stylex.props(styles.linear)}>
       <span
-        {...stylex.props(styles.active, styles.activeAt(percentage ?? 0))}
+        {...stylex.props(
+          styles.active,
+          styles.activeAt(percentage ?? 0),
+          inherit && styles.inheritActive,
+        )}
       />
       <span
         {...stylex.props(
           styles.track,
           buffer === undefined && styles.trackSolid,
+          buffer === undefined && inherit && styles.inheritTrack,
         )}
       >
         {buffer === undefined ? null : (
@@ -621,7 +682,7 @@ function LinearTrack({
           </>
         )}
       </span>
-      <span {...stylex.props(styles.stop)} />
+      <span {...stylex.props(styles.stop, inherit && styles.inheritActive)} />
     </div>
   )
 }
@@ -642,6 +703,8 @@ function ProgressIndicator({
   maxValue = 100,
   minValue = 0,
   showValue = false,
+  size = `${CIRCULAR_SIZE}px`,
+  tone = 'primary',
   variant = 'linear',
   ...props
 }: ProgressIndicatorProps) {
@@ -658,11 +721,24 @@ function ProgressIndicator({
         props,
       )}
     >
-      {indicatorContent(label, showValue, variant, buffer, minValue, maxValue)}
+      {indicatorContent(
+        label,
+        showValue,
+        variant,
+        buffer,
+        minValue,
+        maxValue,
+        size,
+        tone,
+      )}
     </ProgressBar>
   )
 }
 
-export type { ProgressIndicatorProps, ProgressIndicatorVariant }
+export type {
+  ProgressIndicatorProps,
+  ProgressIndicatorTone,
+  ProgressIndicatorVariant,
+}
 
 export default ProgressIndicator
