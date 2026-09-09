@@ -4,7 +4,11 @@ import * as stylex from '@stylexjs/stylex'
 import { TextField as RACTextField } from 'react-aria-components'
 
 import { FieldBox, FieldInput, FieldMessage } from '../../field'
-import { FIELD_VALIDATION_BEHAVIOR, fieldStyles } from '../../field/root'
+import {
+  fieldStyles,
+  invalidFrom,
+  useFieldValidationBehavior,
+} from '../../field/root'
 import { mergeStatefulStyles } from '../../styles/merge'
 
 type TextFieldProps = {
@@ -59,11 +63,13 @@ function TextField({
   numeric = false,
   ...props
 }: TextFieldProps) {
+  const validationBehavior = useFieldValidationBehavior()
+
   return (
     <RACTextField
       isDisabled={isDisabled}
-      isInvalid={error !== undefined}
-      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      isInvalid={invalidFrom(error)}
+      validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >

@@ -11,7 +11,11 @@ import {
 } from 'react-aria-components'
 
 import { FieldInput, FieldMessage } from '../../field'
-import { FIELD_VALIDATION_BEHAVIOR, fieldStyles } from '../../field/root'
+import {
+  fieldStyles,
+  invalidFrom,
+  useFieldValidationBehavior,
+} from '../../field/root'
 import { CloseGlyph, SearchGlyph } from '../../glyphs'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -196,11 +200,13 @@ function SearchField({
   placeholder,
   ...props
 }: SearchFieldProps) {
+  const validationBehavior = useFieldValidationBehavior()
+
   return (
     <RACSearchField
       isDisabled={isDisabled}
-      isInvalid={error !== undefined}
-      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      isInvalid={invalidFrom(error)}
+      validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >

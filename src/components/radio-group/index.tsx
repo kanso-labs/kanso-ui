@@ -14,7 +14,7 @@ import {
 } from 'react-aria-components'
 
 import { FieldLabel, FieldMessage } from '../../field'
-import { FIELD_VALIDATION_BEHAVIOR } from '../../field/root'
+import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { useRipple } from '../../hooks/useRipple'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -351,11 +351,13 @@ function RadioGroup({
   orientation = 'vertical',
   ...props
 }: RadioGroupProps) {
+  const validationBehavior = useFieldValidationBehavior()
+
   return (
     <RACRadioGroup
-      isInvalid={error !== undefined}
+      isInvalid={invalidFrom(error)}
       orientation={orientation}
-      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(groupStyles.root), props)}
     >

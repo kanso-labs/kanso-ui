@@ -15,6 +15,7 @@ import {
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
   Feed as ComponentsFeed,
+  Form as ComponentsForm,
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
   Link as ComponentsLink,
@@ -59,6 +60,7 @@ describe('package entry point', () => {
       'DIRECTORY_DRAG_TYPE',
       'Feed',
       'Focusable',
+      'Form',
       'GridLayout',
       'I18nProvider',
       'IconButton',
@@ -240,6 +242,10 @@ describe('package entry point', () => {
 
   it('forwards TextArea as the same reference as the components barrel', () => {
     expect(publicApi.TextArea).toBe(ComponentsTextArea)
+  })
+
+  it('forwards Form as the same reference as the components barrel', () => {
+    expect(publicApi.Form).toBe(ComponentsForm)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

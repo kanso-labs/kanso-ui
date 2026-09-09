@@ -26,6 +26,7 @@ import Container from '../components/container'
 import CopyField from '../components/copy-field'
 import Currency from '../components/currency'
 import Feed from '../components/feed'
+import Form from '../components/form'
 import IconButton from '../components/icon-button'
 import Keycap from '../components/keycap'
 import Link from '../components/link'
@@ -516,29 +517,31 @@ function Showcase({ name }: ShowcaseProps) {
                 there is a message.
               </Text>
             </div>
-            <Stack gap="md">
-              <TextField defaultValue="" label="Label" />
-              <TextField defaultValue="Label" label="Label" />
-              <TextField
-                defaultValue="01"
-                description="Supporting line"
-                label="Label"
-                numeric
-              />
-              <TextField
-                defaultValue="Label"
-                error="Supporting line"
-                label="Label"
-              />
-              <TextArea
-                defaultValue={'First line.\nSecond line.\nThird line.'}
-                label="Label"
-              />
-              <CopyField value="--kui-color-primary" />
-              <NumberField defaultValue={1234.5} label="Label" />
-              <SearchField label="Label" placeholder="Supporting text" />
-              <Slider defaultValue={40} label="Label" />
-            </Stack>
+            <Form aria-label="Label">
+              <Stack gap="md">
+                <TextField defaultValue="" label="Label" />
+                <TextField defaultValue="Label" label="Label" />
+                <TextField
+                  defaultValue="01"
+                  description="Supporting line"
+                  label="Label"
+                  numeric
+                />
+                <TextField
+                  defaultValue="Label"
+                  error="Supporting line"
+                  label="Label"
+                />
+                <TextArea
+                  defaultValue={'First line.\nSecond line.\nThird line.'}
+                  label="Label"
+                />
+                <CopyField value="--kui-color-primary" />
+                <NumberField defaultValue={1234.5} label="Label" />
+                <SearchField label="Label" placeholder="Supporting text" />
+                <Slider defaultValue={40} label="Label" />
+              </Stack>
+            </Form>
           </section>
 
           <Separator />

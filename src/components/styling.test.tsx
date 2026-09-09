@@ -15,6 +15,7 @@ import {
   CopyField,
   Currency,
   Feed,
+  Form,
   IconButton,
   Keycap,
   Link,
@@ -81,6 +82,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'Feed',
   },
+  { element: <Form {...PROBE}>Label</Form>, name: 'Form' },
   {
     element: (
       <IconButton {...PROBE} aria-label="Label">

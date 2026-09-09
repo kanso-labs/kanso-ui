@@ -12,6 +12,7 @@ import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { FeedProps } from './feed'
+import type { FormProps } from './form'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
@@ -47,6 +48,7 @@ import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import FeedDefault from './feed'
+import FormDefault from './form'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
@@ -84,6 +86,7 @@ describe('components barrel', () => {
       'CopyField',
       'Currency',
       'Feed',
+      'Form',
       'IconButton',
       'Keycap',
       'Link',
@@ -243,6 +246,10 @@ describe('components barrel', () => {
 
   it('re-exports TextArea as the same reference as its own module', () => {
     expect(components.TextArea).toBe(TextAreaDefault)
+  })
+
+  it('re-exports Form as the same reference as its own module', () => {
+    expect(components.Form).toBe(FormDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -413,5 +420,10 @@ describe('components barrel', () => {
   it('re-exports the TextAreaProps type', () => {
     const props: TextAreaProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the FormProps type', () => {
+    const props: FormProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 })
