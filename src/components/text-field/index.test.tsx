@@ -35,6 +35,15 @@ const CLASSES = {
   mutedLabel: classesOf(stylex.props(probeStyles.mutedLabel)),
 }
 
+// The box the control sits in: the label's column is in it.
+function boxOf(label: HTMLElement) {
+  const box = label.parentElement?.parentElement
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the label to sit in a column in the box')
+  }
+  return box
+}
+
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -55,6 +64,13 @@ function setup(props: Partial<Parameters<typeof TextField>[0]> = {}) {
     label: view.getByText('Label'),
   }
 }
+
+// An icon a story or a call site would pass: sized in `em`, so it takes the
+// slot's 24.
+const ICON = <svg data-testid="icon" style={{ height: '1em', width: '1em' }} />
+const OTHER_ICON = (
+  <svg data-testid="other-icon" style={{ height: '1em', width: '1em' }} />
+)
 
 describe('text field', () => {
   describe('labelling', () => {
@@ -176,6 +192,168 @@ describe('text field', () => {
     it('stays small at the top with floatingLabel={false}', () => {
       const { label } = setup({ defaultValue: '', floatingLabel: false })
       expect(settled(label).fontSize).toBe('12px')
+    })
+  })
+
+  describe('icons', () => {
+    // The page's measurements: 24 icons, 12 from the box's edge, 16 from the
+    // text, centred in the 56.
+    it('draws the icons 12 from the edges and moves the text past the leading one', () => {
+      const { input, label } = setup({
+        leadingIcon: ICON,
+        trailingIcon: OTHER_ICON,
+      })
+      const box = boxOf(label).getBoundingClientRect()
+      const leading = document
+        .querySelector('[data-testid="icon"]')
+        ?.getBoundingClientRect()
+      const trailing = document
+        .querySelector('[data-testid="other-icon"]')
+        ?.getBoundingClientRect()
+      if (leading === undefined || trailing === undefined) {
+        throw new Error('expected both icons to render')
+      }
+      expect(leading.width).toBe(24)
+      expect(leading.left - box.left).toBe(12)
+      expect(leading.top - box.top).toBe(16)
+      expect(label.getBoundingClientRect().left - box.left).toBe(52)
+      expect(input.getBoundingClientRect().left - box.left).toBe(52)
+      expect(box.right - trailing.right).toBe(12)
+      expect(trailing.top - box.top).toBe(16)
+    })
+
+    it('keeps the text 16 in without icons', () => {
+      const { input, label } = setup()
+      const box = boxOf(label).getBoundingClientRect()
+      expect(label.getBoundingClientRect().left - box.left).toBe(16)
+      expect(input.getBoundingClientRect().left - box.left).toBe(16)
+    })
+
+    it('colours the icons in the muted role, and the trailing one with the error', () => {
+      const view = render(
+        <TextField
+          error="Enter a value."
+          label="Label"
+          leadingIcon={ICON}
+          trailingIcon={OTHER_ICON}
+        />,
+      )
+      const leading = view.getByTestId('icon').parentElement
+      const trailing = view.getByTestId('other-icon').parentElement
+      if (
+        !(leading instanceof HTMLElement) ||
+        !(trailing instanceof HTMLElement)
+      ) {
+        throw new Error('expected the icons to sit in their slots')
+      }
+      expect(hasClasses(leading, CLASSES.mutedLabel)).toBe(true)
+      expect(hasClasses(leading, CLASSES.errorText)).toBe(false)
+      expect(hasClasses(trailing, CLASSES.errorText)).toBe(true)
+    })
+  })
+
+  describe('prefix and suffix', () => {
+    it('places the prefix before the value and the suffix after it', () => {
+      const view = setup({
+        defaultValue: 'Value',
+        prefix: 'Prefix',
+        suffix: 'Suffix',
+      })
+      const prefix = view.getByText('Prefix').getBoundingClientRect()
+      const suffix = view.getByText('Suffix').getBoundingClientRect()
+      const input = view.input.getBoundingClientRect()
+      expect(input.left - prefix.right).toBe(2)
+      expect(suffix.left - input.right).toBe(2)
+      expect(prefix.top).toBe(input.top)
+    })
+
+    // Under a floating label the affixes show as the placeholder does: once
+    // the field is focused or holds a value, since at rest the label sits
+    // on their line.
+    it('shows the affixes only once the field is focused or holds a value', () => {
+      const view = setup({ defaultValue: '', prefix: 'Prefix' })
+      const prefix = view.getByText('Prefix')
+      expect(settled(prefix).color).toBe('rgba(0, 0, 0, 0)')
+
+      act(() => {
+        view.input.focus()
+      })
+      expect(settled(prefix).color).not.toBe('rgba(0, 0, 0, 0)')
+
+      act(() => {
+        view.input.blur()
+      })
+      expect(settled(prefix).color).toBe('rgba(0, 0, 0, 0)')
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'typed' } })
+      })
+      expect(settled(prefix).color).not.toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it('shows the affixes at rest under a fixed label', () => {
+      const view = setup({
+        defaultValue: '',
+        floatingLabel: false,
+        suffix: 'Suffix',
+      })
+      expect(settled(view.getByText('Suffix')).color).not.toBe(
+        'rgba(0, 0, 0, 0)',
+      )
+    })
+  })
+
+  describe('character count', () => {
+    it('counts the characters against the limit, and follows typing', () => {
+      const view = setup({
+        characterCount: true,
+        defaultValue: 'typed',
+        maxLength: 10,
+      })
+      expect(view.input.getAttribute('maxlength')).toBe('10')
+      expect(view.getByText('5/10')).not.toBeNull()
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'typed more' } })
+      })
+      expect(view.getByText('10/10')).not.toBeNull()
+    })
+
+    it('counts alone without a limit', () => {
+      const view = setup({ characterCount: true, defaultValue: 'typed' })
+      expect(view.getByText('5')).not.toBeNull()
+    })
+
+    // The page puts the counter opposite the supporting text, on one line,
+    // ending where the box's padding does.
+    it('sits at the end of the supporting line', () => {
+      const view = setup({
+        characterCount: true,
+        defaultValue: 'typed',
+        description: 'Supporting line',
+        maxLength: 10,
+      })
+      const box = boxOf(view.label).getBoundingClientRect()
+      const counter = view.getByText('5/10').getBoundingClientRect()
+      const description = view
+        .getByText('Supporting line')
+        .getBoundingClientRect()
+      expect(box.right - counter.right).toBe(16)
+      expect(counter.top).toBe(description.top)
+      expect(counter.top - box.bottom).toBe(4)
+    })
+
+    it('takes the error colour with the message', () => {
+      const view = setup({
+        characterCount: true,
+        defaultValue: 'typed',
+        error: 'Enter a value.',
+        maxLength: 10,
+      })
+      expect(hasClasses(view.getByText('5/10'), CLASSES.errorText)).toBe(true)
+      expect(view.getByText('5/10').getBoundingClientRect().top).toBe(
+        view.getByText('Enter a value.').getBoundingClientRect().top,
+      )
     })
   })
 

@@ -48,6 +48,7 @@ import Tag from '../components/tag'
 import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
+import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
 
@@ -138,6 +139,11 @@ function PlusIcon() {
 // element, and react-perf rejects one built inline on every render.
 
 const styles = stylex.create({
+  // Sized in `em`, so a glyph takes the slot's own size.
+  glyph: {
+    blockSize: '1em',
+    inlineSize: '1em',
+  },
   // Bottom-aligned so a row of mixed heights still sits on one line, and
   // wrapping so a set too wide for the measure runs onto a second row rather
   // than making the page scroll sideways.
@@ -531,6 +537,15 @@ function Showcase({ name }: ShowcaseProps) {
                   defaultValue="Label"
                   error="Supporting line"
                   label="Label"
+                />
+                <TextField
+                  characterCount
+                  defaultValue="Label"
+                  description="Supporting line"
+                  label="Label"
+                  leadingIcon={<SearchGlyph {...stylex.props(styles.glyph)} />}
+                  maxLength={20}
+                  suffix="Suffix"
                 />
                 <TextArea
                   defaultValue={'First line.\nSecond line.\nThird line.'}

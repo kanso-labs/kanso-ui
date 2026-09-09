@@ -137,6 +137,36 @@ const Overview: Story = {
           <TextArea defaultValue="" floatingLabel={false} label="Fixed label" />
         </div>
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Character counter
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The count of characters against maxLength, at the end of the
+            supporting line, which is where a limit on a note or a message is
+            read.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextArea
+            characterCount
+            defaultValue={THREE_LINES}
+            label="Counter"
+            maxLength={200}
+          />
+          <TextArea
+            characterCount
+            defaultValue={THREE_LINES}
+            description="Supporting line"
+            label="With a description"
+            maxLength={200}
+          />
+        </div>
+      </section>
     </div>
   ),
 }
@@ -174,12 +204,20 @@ const Disabled: Story = {
   },
 }
 
+const WithCharacterCount: Story = {
+  args: {
+    characterCount: true,
+    maxLength: 200,
+  },
+}
+
 export {
   Default,
   Disabled,
   Empty,
   FixedRows,
   Overview,
+  WithCharacterCount,
   WithDescription,
   WithError,
 }
