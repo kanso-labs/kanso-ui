@@ -37,6 +37,8 @@ const CLASSES = {
 }
 
 const SECOND = ['second']
+// Hoisted so the slot is not a new element on every render.
+const SEARCH = <input aria-label="Search" />
 const SHORTCUT = <Keycap>⌘X</Keycap>
 
 function hasClasses(element: Element, classes: string[]) {
@@ -130,6 +132,21 @@ describe('menu', () => {
         </>,
       )
       expect(view.getAllByRole('separator')).toHaveLength(1)
+    })
+
+    // A menu's children are a collection, so React Aria drops anything that
+    // is not an item. Content that has to sit above them goes in the
+    // surface's own slot instead.
+    it('draws the search slot above the items', () => {
+      const view = setup({ search: SEARCH })
+      const search = view.getByRole('textbox', { name: 'Search' })
+      const menu = view.getByRole('menu', { name: 'Open' })
+
+      expect(search).not.toBeNull()
+      expect(menu.contains(search)).toBe(false)
+      expect(
+        search.compareDocumentPosition(menu) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).not.toBe(0)
     })
 
     it('reports a disabled item as one', () => {

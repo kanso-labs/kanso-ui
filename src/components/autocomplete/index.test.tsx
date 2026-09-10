@@ -2,7 +2,9 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Autocomplete from '.'
+import Button from '../button'
 import ListBox from '../list-box'
+import Menu from '../menu'
 import SearchField from '../search-field'
 
 const OPTIONS = (
@@ -35,6 +37,10 @@ function setup(
   )
   return { ...view, input: inputOf(view) }
 }
+
+// Hoisted so the slot is not a new element on every render, which is what
+// react-perf's jsx-no-jsx-as-prop is after.
+const SEARCH = <SearchField label="Search" />
 
 // Matches from the start of the text rather than anywhere in it, which the
 // default contains filter does not.
@@ -155,6 +161,36 @@ describe('autocomplete', () => {
         expect(onInputChange).toHaveBeenCalledWith('Sec')
       })
       expect(view.input.value).toBe('First')
+    })
+  })
+
+  // The three shapes the wrapper is for differ only in what the page puts
+  // around the bar and the collection. A menu is the one that needs the
+  // surface's search slot, since its children are a collection.
+  describe('around a menu', () => {
+    it('narrows a menu from the surface search slot', async () => {
+      const view = render(
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Autocomplete>
+            <Menu.Content search={SEARCH}>
+              <Menu.Item id="open">Open file</Menu.Item>
+              <Menu.Item id="save">Save file</Menu.Item>
+              <Menu.Item id="close">Close file</Menu.Item>
+            </Menu.Content>
+          </Autocomplete>
+        </Menu>,
+      )
+      const input = view.getByRole('searchbox', { name: 'Search' })
+      expect(view.getAllByRole('menuitem')).toHaveLength(3)
+
+      act(() => {
+        fireEvent.change(input, { target: { value: 'Save' } })
+      })
+
+      await waitFor(() => {
+        expect(view.getAllByRole('menuitem')).toHaveLength(1)
+      })
     })
   })
 

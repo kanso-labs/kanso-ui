@@ -87,6 +87,10 @@ const PEOPLE = (
   </>
 )
 
+// A menu's children are a collection, so the bar goes in the surface's
+// search slot rather than beside the items — see Menu.Content's own note.
+const SEARCH = <SearchField label="Search commands" placeholder="Search" />
+
 const COMMANDS = (
   <>
     <Menu.Item id="open">Open file</Menu.Item>
@@ -147,19 +151,17 @@ const Overview: Story = {
             A filtered menu
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same wrapper inside a menu, with the bar above its items. A menu
-            long enough to need searching is the case this is for.
+            The same wrapper around a menu, with the bar in the surface&apos;s
+            search slot. A menu&apos;s children are a collection, so an input
+            written among them would be dropped — the slot is where it goes.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
           <Menu>
             <Button variant="outlined">Commands</Button>
-            <Menu.Content>
-              <Autocomplete>
-                <SearchField label="Search commands" placeholder="Search" />
-                {COMMANDS}
-              </Autocomplete>
-            </Menu.Content>
+            <Autocomplete>
+              <Menu.Content search={SEARCH}>{COMMANDS}</Menu.Content>
+            </Autocomplete>
           </Menu>
         </div>
       </section>
@@ -228,12 +230,9 @@ const InAMenu: Story = {
   render: (args) => (
     <Menu defaultOpen>
       <Button variant="outlined">Commands</Button>
-      <Menu.Content>
-        <Autocomplete {...args}>
-          <SearchField label="Search commands" placeholder="Search" />
-          {COMMANDS}
-        </Autocomplete>
-      </Menu.Content>
+      <Autocomplete {...args}>
+        <Menu.Content search={SEARCH}>{COMMANDS}</Menu.Content>
+      </Autocomplete>
     </Menu>
   ),
 }
