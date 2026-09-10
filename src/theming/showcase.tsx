@@ -35,6 +35,7 @@ import Form from '../components/form'
 import IconButton from '../components/icon-button'
 import Keycap from '../components/keycap'
 import Link from '../components/link'
+import List from '../components/list'
 import ListBox from '../components/list-box'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
@@ -616,7 +617,8 @@ function Showcase({ name }: ShowcaseProps) {
                 An outlined card with no padding of its own is the bordered list
                 container, so the rows keep their inset and the rules between
                 them still span the full width. The selectable list draws the
-                same row, with the selected one on primary container.
+                same row, with the selected one on primary container, and the
+                list that toggles draws a checkbox on every one.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
@@ -650,6 +652,23 @@ function Showcase({ name }: ShowcaseProps) {
                   Third item
                 </ListBox.Item>
               </ListBox>
+            </Card>
+            <Card padding="none" variant="outlined">
+              <List
+                aria-label="Label"
+                defaultSelectedKeys={SHOWCASE_SELECTION}
+                selectionMode="multiple"
+              >
+                <List.Item id="first" supporting="Supporting line">
+                  First item
+                </List.Item>
+                <List.Item id="second" supporting="Supporting line">
+                  Second item
+                </List.Item>
+                <List.Item id="third" supporting="Supporting line">
+                  Third item
+                </List.Item>
+              </List>
             </Card>
           </section>
 
