@@ -1,5 +1,9 @@
 import type { AriaAttributes, KeyboardEventHandler } from 'react'
-import type { ButtonProps, LinkProps } from 'react-aria-components'
+import type {
+  ButtonProps,
+  LinkProps,
+  ToggleButtonProps,
+} from 'react-aria-components'
 
 import { createElement } from 'react'
 
@@ -105,6 +109,26 @@ function linkRenderer(
   }
 }
 
+/**
+ * The same for a React Aria `ToggleButton`. Written out rather than made
+ * generic over `buttonRenderer`: React Aria hands a toggle button a render
+ * state of its own — no `isPending`, plus `isSelected` — and a function
+ * written against the plain button's state does not type-check where that
+ * one is expected.
+ */
+function toggleButtonRenderer(
+  element: ElementProps,
+  render: ToggleButtonProps['render'],
+): NonNullable<ToggleButtonProps['render']> {
+  return (domProps, state) => {
+    const merged = withElementProps(domProps, element)
+    if (render !== undefined) {
+      return render(merged, state)
+    }
+    return createElement('button', merged)
+  }
+}
+
 function withElementProps<Props extends object>(
   domProps: Props,
   element: ElementProps,
@@ -123,4 +147,4 @@ function withElementProps<Props extends object>(
 
 export type { ElementProps }
 
-export { ariaAttributesOf, buttonRenderer, linkRenderer }
+export { ariaAttributesOf, buttonRenderer, linkRenderer, toggleButtonRenderer }

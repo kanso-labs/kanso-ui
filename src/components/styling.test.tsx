@@ -153,6 +153,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'IconButton',
   },
+  {
+    element: (
+      <IconButton {...PROBE} aria-label="Label" defaultSelected>
+        {null}
+      </IconButton>
+    ),
+    name: 'IconButton (toggle)',
+  },
   { element: <Keycap {...PROBE}>Esc</Keycap>, name: 'Keycap' },
   { element: <Link {...PROBE}>Label</Link>, name: 'Link' },
   {

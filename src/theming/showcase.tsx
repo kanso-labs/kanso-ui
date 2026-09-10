@@ -357,7 +357,8 @@ function Showcase({ name }: ShowcaseProps) {
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 Every variant reads its container off a colour role and its
                 corner off the radius scale, so a scheme moves all of them at
-                once.
+                once. A chosen icon-button toggle takes a second pair of roles
+                and rests at the squarer corner.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -376,6 +377,12 @@ function Showcase({ name }: ShowcaseProps) {
                 <PlusIcon />
               </IconButton>
               <IconButton aria-label="Add" variant="filled">
+                <PlusIcon />
+              </IconButton>
+              <IconButton aria-label="Add" defaultSelected={false}>
+                <PlusIcon />
+              </IconButton>
+              <IconButton aria-label="Add" defaultSelected variant="tonal">
                 <PlusIcon />
               </IconButton>
               <Tooltip label="Supporting text">

@@ -17,8 +17,12 @@ const probeStyles = stylex.create({
   pressedMedium: { borderRadius: { ':active': radii.md, default: radii.full } },
   pressedSmall: { borderRadius: { ':active': radii.sm, default: radii.full } },
   primary: { backgroundColor: colors.primary },
+  primaryText: { color: colors.primary },
   radiusFull: { borderRadius: radii.full },
+  radiusSmall: { borderRadius: radii.sm },
+  secondary: { backgroundColor: colors.secondary },
   secondaryContainer: { backgroundColor: colors.secondaryContainer },
+  surfaceContainer: { backgroundColor: colors.surfaceContainer },
 })
 
 function probe(element: ReactElement) {
@@ -186,6 +190,188 @@ describe('icon button', () => {
       const { button } = setup()
       expect(getComputedStyle(button).borderTopLeftRadius).toBe(expected)
       expect(expected).not.toBe('0px')
+    })
+  })
+
+  // Given any of `isSelected`, `defaultSelected` or `onChange` the button is
+  // React Aria's ToggleButton instead of its Button, which reports the state
+  // through `aria-pressed` rather than a role of its own.
+  describe('toggle', () => {
+    it('reports no state until one of the three props makes it a toggle', () => {
+      const { button } = setup()
+      expect(button.hasAttribute('aria-pressed')).toBe(false)
+    })
+
+    it.each([
+      ['defaultSelected', { defaultSelected: true }],
+      ['isSelected', { isSelected: true }],
+    ])('reports its state when given %s', (_name, props) => {
+      const { button } = setup(props)
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('becomes a toggle from onChange alone', () => {
+      const { button } = setup({ onChange: () => {} })
+      expect(button.getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('keeps its own state from defaultSelected', () => {
+      const onChange = vi.fn<(isSelected: boolean) => void>()
+      const { button } = setup({ defaultSelected: false, onChange })
+
+      fireEvent.click(button)
+
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      expect(onChange).toHaveBeenCalledWith(true)
+    })
+
+    it('does not change on its own when controlled', () => {
+      const onChange = vi.fn<(isSelected: boolean) => void>()
+      const { button } = setup({ isSelected: false, onChange })
+
+      fireEvent.click(button)
+
+      expect(onChange).toHaveBeenCalledWith(true)
+      expect(button.getAttribute('aria-pressed')).toBe('false')
+    })
+
+    it('toggles from the keyboard', () => {
+      const { button } = setup({ defaultSelected: false })
+
+      fireEvent.keyDown(button, { key: ' ' })
+      fireEvent.keyUp(button, { key: ' ' })
+
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('stays a toggle while disabled, and stops responding', () => {
+      const onChange = vi.fn<(isSelected: boolean) => void>()
+      const { button } = setup({ isDisabled: true, isSelected: true, onChange })
+
+      fireEvent.click(button)
+
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+      expect(onChange).not.toHaveBeenCalled()
+    })
+
+    it('still renders a ripple surface', () => {
+      const view = setup({ defaultSelected: true })
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).not.toBeNull()
+    })
+
+    // The page gives each style a second pair of colour roles for its toggle,
+    // and they are not the plain button's: an unchosen filled toggle rests on
+    // surface container rather than primary, and a chosen tonal one takes
+    // secondary rather than the secondary container pair.
+    describe('colour', () => {
+      it('rests an unchosen filled toggle on surface container', () => {
+        const expected = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.surfaceContainer)}
+          />,
+        ).background
+        const plain = probe(
+          <div data-testid="probe" {...stylex.props(probeStyles.primary)} />,
+        ).background
+        expect(expected).not.toBe(plain)
+
+        const { button } = setup({ isSelected: false, variant: 'filled' })
+        expect(getComputedStyle(button).backgroundColor).toBe(expected)
+      })
+
+      it('gives a chosen filled toggle the plain filled container', () => {
+        const expected = probe(
+          <div data-testid="probe" {...stylex.props(probeStyles.primary)} />,
+        ).background
+        const { button } = setup({ isSelected: true, variant: 'filled' })
+        expect(getComputedStyle(button).backgroundColor).toBe(expected)
+      })
+
+      it('moves a chosen tonal toggle from the container to secondary', () => {
+        const expected = probe(
+          <div data-testid="probe" {...stylex.props(probeStyles.secondary)} />,
+        ).background
+        const unchosen = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.secondaryContainer)}
+          />,
+        ).background
+        expect(expected).not.toBe(unchosen)
+
+        const selected = setup({ isSelected: true, variant: 'tonal' })
+        expect(getComputedStyle(selected.button).backgroundColor).toBe(expected)
+        selected.unmount()
+
+        const { button } = setup({ isSelected: false, variant: 'tonal' })
+        expect(getComputedStyle(button).backgroundColor).toBe(unchosen)
+      })
+
+      it('moves a chosen standard toggle icon to primary, keeping no container', () => {
+        const expected = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.primaryText)}
+          />,
+        ).color
+        const muted = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.onSurfaceVariant)}
+          />,
+        ).color
+        expect(expected).not.toBe(muted)
+
+        const selected = setup({ isSelected: true })
+        expect(getComputedStyle(selected.button).color).toBe(expected)
+        expect(getComputedStyle(selected.button).backgroundColor).toBe(
+          'rgba(0, 0, 0, 0)',
+        )
+        selected.unmount()
+
+        const { button } = setup({ isSelected: false })
+        expect(getComputedStyle(button).color).toBe(muted)
+      })
+    })
+
+    // The page's shape morph: a toggle rests round while unchosen and square
+    // once chosen, at the corner its size otherwise presses to.
+    describe('shape', () => {
+      it('rests round while unchosen and square once chosen', () => {
+        const round = probe(
+          <div data-testid="probe" {...stylex.props(probeStyles.radiusFull)} />,
+        ).radius
+        const square = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.radiusSmall)}
+          />,
+        ).radius
+        expect(round).not.toBe(square)
+
+        const unchosen = setup({ isSelected: false })
+        expect(getComputedStyle(unchosen.button).borderTopLeftRadius).toBe(
+          round,
+        )
+        unchosen.unmount()
+
+        const { button } = setup({ isSelected: true })
+        expect(getComputedStyle(button).borderTopLeftRadius).toBe(square)
+      })
+
+      it('keeps the chosen shape while disabled', () => {
+        const square = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.radiusSmall)}
+          />,
+        ).radius
+        const { button } = setup({ isDisabled: true, isSelected: true })
+        expect(getComputedStyle(button).borderTopLeftRadius).toBe(square)
+      })
     })
   })
 
