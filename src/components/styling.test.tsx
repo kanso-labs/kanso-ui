@@ -19,6 +19,7 @@ import {
   Currency,
   Dialog,
   Disclosure,
+  DisclosureGroup,
   Feed,
   Form,
   IconButton,
@@ -176,6 +177,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Disclosure>
     ),
     name: 'Disclosure.Panel',
+  },
+  {
+    element: (
+      <DisclosureGroup {...PROBE}>
+        <Disclosure id="first">
+          <Disclosure.Header>Headline</Disclosure.Header>
+          <Disclosure.Panel>Supporting line</Disclosure.Panel>
+        </Disclosure>
+      </DisclosureGroup>
+    ),
+    name: 'DisclosureGroup',
   },
   {
     element: (
