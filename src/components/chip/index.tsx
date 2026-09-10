@@ -6,85 +6,13 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import { ToggleButton } from 'react-aria-components'
 
+import { chipStyles } from '../../chip/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import {
-  colors,
-  motion,
-  radii,
-  spacing,
-  stateLayerOpacity,
-  typography,
-} from '../../tokens/design.tokens.stylex'
 
-// Each state composites an 'on-color' over its own container at the
-// interaction state's opacity rather than swapping in a separate hover color.
-// calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
-// percentage color-mix() takes, and it is inlined at each property because
-// @stylexjs/babel-plugin only statically recognizes expressions written
-// directly as property values.
-//
-// The selected chip drops its border rather than recolouring it: it has a
-// container of its own to define its edge, and a border on top of that reads
-// as a second, competing outline. The roles and measurements are the chips
-// spec page's filter chip: a 32dp container with an 8dp corner and 16dp of
-// inline padding, an outline variant border while unselected, the secondary
-// container pair once selected.
-const styles = stylex.create({
-  base: {
-    alignItems: 'center',
-    blockSize: '32px',
-    borderRadius: radii.sm,
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    boxSizing: 'border-box',
-    cursor: { ':disabled': 'not-allowed', default: 'pointer' },
-    display: 'inline-flex',
-    flexShrink: 0,
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    gap: spacing.sm,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-    paddingBlock: 0,
-    paddingInline: spacing.lg,
-    transitionDuration: motion.durationShort2,
-    transitionProperty: 'background-color, border-color, color',
-    transitionTimingFunction: motion.easingStandard,
-  },
-  selected: {
-    backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
-    borderColor: 'transparent',
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.onSecondaryContainer,
-    },
-  },
-  unselected: {
-    backgroundColor: {
-      ':active:not(:disabled)': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover:not(:disabled)': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    borderColor: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-      default: colors.outlineVariant,
-    },
-    color: {
-      ':disabled': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      default: colors.onSurfaceVariant,
-    },
-  },
-})
+// The pill, its two containers and its disabled treatment are the chip
+// module's in `src/chip`, shared with the chips a ChipGroup draws; what is
+// here is React Aria's `ToggleButton` around them, which is what makes a
+// standalone chip a two-state button rather than one of a set.
 
 type ChipProps = ToggleButtonProps
 
@@ -112,8 +40,13 @@ function Chip({ children, ...props }: ChipProps) {
 // exactly that reason, and combines it with whatever the call site passed.
 function propsFor(state: ToggleButtonRenderProps) {
   return stylex.props(
-    styles.base,
-    state.isSelected ? styles.selected : styles.unselected,
+    chipStyles.base,
+    state.isSelected ? chipStyles.selected : chipStyles.unselected,
+    state.isDisabled && chipStyles.disabled,
+    state.isDisabled &&
+      (state.isSelected
+        ? chipStyles.disabledSelected
+        : chipStyles.disabledUnselected),
   )
 }
 

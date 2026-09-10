@@ -22,6 +22,7 @@ import Card from '../components/card'
 import Checkbox from '../components/checkbox'
 import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
+import ChipGroup from '../components/chip-group'
 import Code from '../components/code'
 import ComboBox from '../components/combo-box'
 import Container from '../components/container'
@@ -219,6 +220,10 @@ const SHOWCASE_MESSAGES = new Snackbar.Queue()
 
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-new-function-as-prop is after.
+// The page shows what a removable chip looks like rather than what removing
+// one does, so nothing is removed.
+function showcaseRemove() {}
+
 function showSnackbar() {
   SHOWCASE_MESSAGES.add('First item saved', {
     action: { label: 'Undo', onPress: () => {} },
@@ -474,6 +479,16 @@ function Showcase({ name }: ShowcaseProps) {
               <Chip defaultSelected>Second item</Chip>
               <Chip>Third item</Chip>
             </div>
+            <ChipGroup
+              defaultSelectedKeys={SHOWCASE_SELECTION}
+              label="Label"
+              onRemove={showcaseRemove}
+              selectionMode="multiple"
+            >
+              <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+              <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
+              <ChipGroup.Chip id="third">Third item</ChipGroup.Chip>
+            </ChipGroup>
             <CheckboxGroup defaultValue={SHOWCASE_SELECTION} label="Label">
               <Checkbox value="first">First item</Checkbox>
               <Checkbox value="second">Second item</Checkbox>

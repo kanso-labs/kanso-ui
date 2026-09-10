@@ -11,6 +11,7 @@ import {
   Checkbox,
   CheckboxGroup,
   Chip,
+  ChipGroup,
   Code,
   ComboBox,
   CopyField,
@@ -74,7 +75,6 @@ SNACKBARS.add('First item')
 // only the current tree is ever in it.
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
-
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
@@ -92,6 +92,24 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'CheckboxGroup',
   },
   { element: <Chip {...PROBE}>Label</Chip>, name: 'Chip' },
+  {
+    element: (
+      <ChipGroup {...PROBE} label="Label">
+        <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+      </ChipGroup>
+    ),
+    name: 'ChipGroup',
+  },
+  {
+    element: (
+      <ChipGroup label="Label">
+        <ChipGroup.Chip {...PROBE} id="first">
+          First item
+        </ChipGroup.Chip>
+      </ChipGroup>
+    ),
+    name: 'ChipGroup.Chip',
+  },
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },
   {
     element: (

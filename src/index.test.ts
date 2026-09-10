@@ -11,6 +11,7 @@ import {
   Checkbox as ComponentsCheckbox,
   CheckboxGroup as ComponentsCheckboxGroup,
   Chip as ComponentsChip,
+  ChipGroup as ComponentsChipGroup,
   Code as ComponentsCode,
   ComboBox as ComponentsComboBox,
   Container as ComponentsContainer,
@@ -63,6 +64,7 @@ describe('package entry point', () => {
       'Checkbox',
       'CheckboxGroup',
       'Chip',
+      'ChipGroup',
       'Code',
       'Collection',
       'ComboBox',
@@ -306,6 +308,10 @@ describe('package entry point', () => {
 
   it('forwards Autocomplete as the same reference as the components barrel', () => {
     expect(publicApi.Autocomplete).toBe(ComponentsAutocomplete)
+  })
+
+  it('forwards ChipGroup as the same reference as the components barrel', () => {
+    expect(publicApi.ChipGroup).toBe(ComponentsChipGroup)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
