@@ -51,6 +51,7 @@ import {
   TextArea as ComponentsTextArea,
   TextField as ComponentsTextField,
   TokenField as ComponentsTokenField,
+  Toolbar as ComponentsToolbar,
   Tooltip as ComponentsTooltip,
 } from './components'
 
@@ -117,6 +118,7 @@ describe('package entry point', () => {
       'TextField',
       'TokenField',
       'TokenFieldValue',
+      'Toolbar',
       'Tooltip',
       'Virtualizer',
       'VisuallyHidden',
@@ -283,6 +285,10 @@ describe('package entry point', () => {
 
   it('forwards Dialog as the same reference as the components barrel', () => {
     expect(publicApi.Dialog).toBe(ComponentsDialog)
+  })
+
+  it('forwards Toolbar as the same reference as the components barrel', () => {
+    expect(publicApi.Toolbar).toBe(ComponentsToolbar)
   })
 
   it('forwards Tooltip as the same reference as the components barrel', () => {

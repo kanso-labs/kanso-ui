@@ -47,6 +47,7 @@ import type { TextProps } from './text'
 import type { TextAreaProps } from './text-area'
 import type { TextFieldProps } from './text-field'
 import type { TokenFieldProps } from './token-field'
+import type { ToolbarProps } from './toolbar'
 import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
@@ -97,6 +98,7 @@ import TextDefault from './text'
 import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
 import TokenFieldDefault from './token-field'
+import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
 
 describe('components barrel', () => {
@@ -150,6 +152,7 @@ describe('components barrel', () => {
       'TextArea',
       'TextField',
       'TokenField',
+      'Toolbar',
       'Tooltip',
     ])
   })
@@ -300,6 +303,10 @@ describe('components barrel', () => {
 
   it('re-exports Dialog as the same reference as its own module', () => {
     expect(components.Dialog).toBe(DialogDefault)
+  })
+
+  it('re-exports Toolbar as the same reference as its own module', () => {
+    expect(components.Toolbar).toBe(ToolbarDefault)
   })
 
   it('re-exports Tooltip as the same reference as its own module', () => {
@@ -533,6 +540,11 @@ describe('components barrel', () => {
   it('re-exports the DialogProps type', () => {
     const props: DialogProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ToolbarProps type', () => {
+    const props: ToolbarProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
   })
 
   it('re-exports the TooltipProps type', () => {

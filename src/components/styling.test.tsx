@@ -49,6 +49,7 @@ import {
   TextArea,
   TextField,
   TokenField,
+  Toolbar,
   Tooltip,
 } from '.'
 
@@ -453,6 +454,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: <TokenField {...PROBE} label="Label" />,
     name: 'TokenField',
+  },
+  {
+    element: (
+      <Toolbar {...PROBE} aria-label="Label">
+        <Button>Label</Button>
+      </Toolbar>
+    ),
+    name: 'Toolbar',
   },
   {
     element: (

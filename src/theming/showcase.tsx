@@ -62,6 +62,7 @@ import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
 import TokenField from '../components/token-field'
+import Toolbar from '../components/toolbar'
 import Tooltip from '../components/tooltip'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
@@ -358,7 +359,8 @@ function Showcase({ name }: ShowcaseProps) {
                 Every variant reads its container off a colour role and its
                 corner off the radius scale, so a scheme moves all of them at
                 once. A chosen icon-button toggle takes a second pair of roles
-                and rests at the squarer corner.
+                and rests at the squarer corner, and a toolbar puts a row of
+                them on a surface of its own.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -385,6 +387,18 @@ function Showcase({ name }: ShowcaseProps) {
               <IconButton aria-label="Add" defaultSelected variant="tonal">
                 <PlusIcon />
               </IconButton>
+              <Toolbar aria-label="Label">
+                <IconButton aria-label="Add">
+                  <PlusIcon />
+                </IconButton>
+                <IconButton aria-label="Add">
+                  <PlusIcon />
+                </IconButton>
+                <Separator />
+                <IconButton aria-label="Close">
+                  <CloseIcon />
+                </IconButton>
+              </Toolbar>
               <Tooltip label="Supporting text">
                 <Button variant="outlined">Hover for a tooltip</Button>
               </Tooltip>
