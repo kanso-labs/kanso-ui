@@ -37,6 +37,12 @@ function setup(props: Parameters<typeof Separator>[0] = {}) {
   return { ...view, separator: view.getByRole('separator') }
 }
 
+// Hoisted so neither frame is a new object per render, which is what
+// react-perf's no-new-object-as-prop is after.
+const FRAME_WIDTH = 400
+const INSET_FRAME = { inlineSize: `${FRAME_WIDTH}px` }
+const INSET_COLUMN = { blockSize: '200px', display: 'flex' } as const
+
 describe('separator', () => {
   it('exposes itself to assistive technology as a separator', () => {
     const { separator } = setup()
@@ -77,6 +83,71 @@ describe('separator', () => {
   // rule is drawn on. Horizontal is an <hr>, whose role and orientation are
   // implicit; vertical has to be a <div> told both, since an <hr> is
   // horizontal by definition.
+  // The divider page's three forms: full width, inset 16dp at the leading
+  // end, and middle-inset 16dp at both. Measured rather than asserted on the
+  // margin alone, because a margin outside a `100%` box overflows the parent
+  // — the length has to give way with it.
+  describe('inset', () => {
+    function measure(inset?: 'both' | 'start') {
+      const view = render(
+        <div style={INSET_FRAME}>
+          <Separator data-testid="rule" inset={inset} />
+        </div>,
+      )
+      const rule = view.getByTestId('rule')
+      const box = rule.getBoundingClientRect()
+      const style = getComputedStyle(rule)
+      const read = {
+        end: style.marginInlineEnd,
+        start: style.marginInlineStart,
+        width: Math.round(box.width),
+      }
+      view.unmount()
+      return read
+    }
+
+    it('runs the full width by default', () => {
+      expect(measure()).toStrictEqual({
+        end: '0px',
+        start: '0px',
+        width: FRAME_WIDTH,
+      })
+    })
+
+    it('holds the rule off the leading end alone', () => {
+      expect(measure('start')).toStrictEqual({
+        end: '0px',
+        start: '16px',
+        width: FRAME_WIDTH - 16,
+      })
+    })
+
+    it('holds the rule off both ends', () => {
+      expect(measure('both')).toStrictEqual({
+        end: '16px',
+        start: '16px',
+        width: FRAME_WIDTH - 32,
+      })
+    })
+
+    // A vertical rule takes its length from the parent, so the inset goes on
+    // the block axis and shortens it rather than moving it sideways.
+    it('shortens a vertical rule rather than moving it', () => {
+      const view = render(
+        <div style={INSET_COLUMN}>
+          <Separator data-testid="rule" inset="both" orientation="vertical" />
+        </div>,
+      )
+      const rule = view.getByTestId('rule')
+      const style = getComputedStyle(rule)
+
+      expect(style.marginBlockStart).toBe('16px')
+      expect(style.marginBlockEnd).toBe('16px')
+      expect(style.marginInlineStart).toBe('0px')
+      expect(Math.round(rule.getBoundingClientRect().height)).toBe(200 - 32)
+    })
+  })
+
   describe('orientation', () => {
     it('renders a horizontal rule with the semantics an hr carries', () => {
       const { separator } = setup()
