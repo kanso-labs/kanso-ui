@@ -18,6 +18,7 @@ import type { DemoThemeName } from './themes'
 import AppBar from '../components/app-bar'
 import Autocomplete from '../components/autocomplete'
 import Avatar from '../components/avatar'
+import Breadcrumbs from '../components/breadcrumbs'
 import Button from '../components/button'
 import Card from '../components/card'
 import Checkbox from '../components/checkbox'
@@ -821,9 +822,16 @@ function Showcase({ name }: ShowcaseProps) {
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 The selected tab sits on a container of its own, and the
-                indicator under the strip takes the primary role.
+                indicator under the strip takes the primary role. A breadcrumb
+                trail leans on the muted role, with the page you are on at full
+                strength.
               </Text>
             </div>
+            <Breadcrumbs aria-label="Label">
+              <Breadcrumbs.Item href="#first">First item</Breadcrumbs.Item>
+              <Breadcrumbs.Item href="#second">Second item</Breadcrumbs.Item>
+              <Breadcrumbs.Item>Third item</Breadcrumbs.Item>
+            </Breadcrumbs>
             <Tabs defaultSelectedKey="First item">
               <Tabs.List>
                 {TABS.map((tab) => (

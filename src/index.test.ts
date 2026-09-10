@@ -6,6 +6,7 @@ import {
   AppBar as ComponentsAppBar,
   Autocomplete as ComponentsAutocomplete,
   Avatar as ComponentsAvatar,
+  Breadcrumbs as ComponentsBreadcrumbs,
   Button as ComponentsButton,
   Card as ComponentsCard,
   Checkbox as ComponentsCheckbox,
@@ -63,6 +64,7 @@ describe('package entry point', () => {
       'AppBar',
       'Autocomplete',
       'Avatar',
+      'Breadcrumbs',
       'Button',
       'Card',
       'Checkbox',
@@ -149,6 +151,10 @@ describe('package entry point', () => {
 
   it('forwards Tag as the same reference as the components barrel', () => {
     expect(publicApi.Tag).toBe(ComponentsTag)
+  })
+
+  it('forwards Breadcrumbs as the same reference as the components barrel', () => {
+    expect(publicApi.Breadcrumbs).toBe(ComponentsBreadcrumbs)
   })
 
   it('forwards Button as the same reference as the components barrel', () => {

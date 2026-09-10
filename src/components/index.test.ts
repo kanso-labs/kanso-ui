@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AppBarProps } from './app-bar'
 import type { AutocompleteProps } from './autocomplete'
 import type { AvatarProps } from './avatar'
+import type { BreadcrumbsProps } from './breadcrumbs'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
 import type { CheckboxProps } from './checkbox'
@@ -54,6 +55,7 @@ import * as components from '.'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
+import BreadcrumbsDefault from './breadcrumbs'
 import ButtonDefault from './button'
 import CardDefault from './card'
 import CheckboxDefault from './checkbox'
@@ -107,6 +109,7 @@ describe('components barrel', () => {
       'AppBar',
       'Autocomplete',
       'Avatar',
+      'Breadcrumbs',
       'Button',
       'Card',
       'Checkbox',
@@ -167,6 +170,10 @@ describe('components barrel', () => {
 
   it('re-exports Tag as the same reference as its own module', () => {
     expect(components.Tag).toBe(TagDefault)
+  })
+
+  it('re-exports Breadcrumbs as the same reference as its own module', () => {
+    expect(components.Breadcrumbs).toBe(BreadcrumbsDefault)
   })
 
   it('re-exports Button as the same reference as its own module', () => {
@@ -370,6 +377,11 @@ describe('components barrel', () => {
   it('re-exports the TagProps type', () => {
     const props: TagProps = { tone: 'positive' }
     expect(props.tone).toBe('positive')
+  })
+
+  it('re-exports the BreadcrumbsProps type', () => {
+    const props: BreadcrumbsProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
   })
 
   it('re-exports the ButtonProps type', () => {

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AppBar,
   Avatar,
+  Breadcrumbs,
   Button,
   Card,
   Checkbox,
@@ -80,6 +81,26 @@ SNACKBARS.add('First item')
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
+  {
+    element: (
+      <Breadcrumbs {...PROBE} aria-label="Label">
+        <Breadcrumbs.Item href="#first">First item</Breadcrumbs.Item>
+        <Breadcrumbs.Item>Second item</Breadcrumbs.Item>
+      </Breadcrumbs>
+    ),
+    name: 'Breadcrumbs',
+  },
+  {
+    element: (
+      <Breadcrumbs aria-label="Label">
+        <Breadcrumbs.Item {...PROBE} href="#first">
+          First item
+        </Breadcrumbs.Item>
+        <Breadcrumbs.Item>Second item</Breadcrumbs.Item>
+      </Breadcrumbs>
+    ),
+    name: 'Breadcrumbs.Item',
+  },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
   {
