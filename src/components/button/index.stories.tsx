@@ -97,7 +97,7 @@ const Overview: Story = {
           Button
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          The four emphasis levels of the design's button, at five control
+          The five emphasis levels of the design's button, at five control
           heights.
         </Text>
       </header>
@@ -112,7 +112,9 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Emphasis, high to low. Each sits on a different background, so the
             hover and pressed state layers are keyed by variant rather than
-            written once for all four.
+            written once for all five. Elevated is the one that rests on a
+            shadow: it lifts off a low surface rather than off the page, for a
+            button that has to separate from a busy background.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -126,6 +128,12 @@ const Overview: Story = {
             <Button variant="tonal">Button</Button>
             <Text tone="muted" variant="labelSmall">
               tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button variant="elevated">Button</Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
@@ -239,7 +247,9 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Disabled composites the same on-surface opacity over every variant,
-            so the four converge rather than each fading in its own colour.
+            so the five converge rather than each fading in its own colour.
+            Elevated drops its shadow with them: a raised control still reads as
+            available to press.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -257,6 +267,14 @@ const Overview: Story = {
             </Button>
             <Text tone="muted" variant="labelSmall">
               tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button isDisabled variant="elevated">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
@@ -338,6 +356,10 @@ const Pending: Story = {
   },
 }
 
-export { Default, Overview, Pending, Pressed }
+const Elevated: Story = {
+  args: { variant: 'elevated' },
+}
+
+export { Default, Elevated, Overview, Pending, Pressed }
 
 export default meta
