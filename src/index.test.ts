@@ -23,6 +23,7 @@ import {
   ListBox as ComponentsListBox,
   ListDetail as ComponentsListDetail,
   ListItem as ComponentsListItem,
+  Menu as ComponentsMenu,
   Meter as ComponentsMeter,
   NumberField as ComponentsNumberField,
   Popover as ComponentsPopover,
@@ -77,6 +78,7 @@ describe('package entry point', () => {
       'ListDetail',
       'ListItem',
       'ListLayout',
+      'Menu',
       'Meter',
       'NumberField',
       'Popover',
@@ -282,6 +284,10 @@ describe('package entry point', () => {
 
   it('forwards ListBox as the same reference as the components barrel', () => {
     expect(publicApi.ListBox).toBe(ComponentsListBox)
+  })
+
+  it('forwards Menu as the same reference as the components barrel', () => {
+    expect(publicApi.Menu).toBe(ComponentsMenu)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

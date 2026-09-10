@@ -8,10 +8,10 @@ import type { SVGProps } from 'react'
 // the slots that take a node, which is why nothing here is exported from
 // the package.
 //
-// The paths are the check, the horizontal rule, the plus, the search and
-// the close from Material Symbols on their 24-unit grid, which is what the
-// checkbox page draws at 18dp, the icon buttons page at 20 and the search
-// page at 24.
+// The paths are the check, the horizontal rule, the plus, the search, the
+// close and the right chevron from Material Symbols on their 24-unit grid,
+// which is what the checkbox page draws at 18dp, the icon buttons page at 20
+// and the search and menus pages at 24.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 
@@ -34,6 +34,18 @@ function MinusGlyph(props: GlyphProps) {
 }
 
 const IndeterminateGlyph = MinusGlyph
+
+// Points at the submenu a menu item opens. It says "further in" rather than
+// "to the right", so whatever renders it mirrors it under a right-to-left
+// writing mode — the glyph itself carries no direction of its own, since a
+// transform here would be an inline style.
+function ChevronEndGlyph(props: GlyphProps) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+    </svg>
+  )
+}
 
 function CloseGlyph(props: GlyphProps) {
   return (
@@ -63,6 +75,7 @@ export type { GlyphProps }
 
 export {
   CheckGlyph,
+  ChevronEndGlyph,
   CloseGlyph,
   IndeterminateGlyph,
   MinusGlyph,

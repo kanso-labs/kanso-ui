@@ -28,8 +28,10 @@ import {
   Text,
 } from 'react-aria-components'
 
+import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
+
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { overlay, popupOrigin } from '../../styles/overlay'
+import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 // The gap between the anchor and the panel, matching `spacing.sm`'s default.
@@ -99,9 +101,12 @@ const styles = stylex.create({
 const DEFAULT_HOVER_DELAY = 600
 const DEFAULT_HOVER_CLOSE_DELAY = 200
 
-type PopoverAlign = 'center' | 'end' | 'start'
+// The overlay module's, since which side a surface opens on is the same
+// question for every anchored overlay. Aliased rather than re-declared so
+// the names a call site imports stay this component's.
+type PopoverAlign = OverlayAlign
 
-type PopoverSide = 'bottom' | 'left' | 'right' | 'top'
+type PopoverSide = OverlaySide
 
 type PopoverSize = 'md' | 'sm'
 
@@ -168,16 +173,6 @@ type PopoverTrigger = 'hover' | 'press'
 // React Aria names a placement by the side and, along it, the end the panel
 // is aligned to — `bottom start`, or `left top` on the sides where the axis
 // runs the other way.
-function placementOf(side: PopoverSide, align: PopoverAlign) {
-  if (align === 'center') {
-    return side
-  }
-  if (side === 'top' || side === 'bottom') {
-    return `${side} ${align}` as const
-  }
-  return `${side} ${align === 'start' ? 'top' : 'bottom'}` as const
-}
-
 /**
  * A panel anchored to the control that opened it. Open state is React Aria's:
  * pass `isOpen` with `onOpenChange` to control it, or `defaultOpen` to let it

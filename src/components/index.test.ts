@@ -20,6 +20,7 @@ import type { LinkProps } from './link'
 import type { ListBoxProps } from './list-box'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
+import type { MenuProps } from './menu'
 import type { MeterProps } from './meter'
 import type { NumberFieldProps } from './number-field'
 import type { PopoverProps } from './popover'
@@ -62,6 +63,7 @@ import LinkDefault from './link'
 import ListBoxDefault from './list-box'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
+import MenuDefault from './menu'
 import MeterDefault from './meter'
 import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
@@ -106,6 +108,7 @@ describe('components barrel', () => {
       'ListBox',
       'ListDetail',
       'ListItem',
+      'Menu',
       'Meter',
       'NumberField',
       'Popover',
@@ -292,6 +295,10 @@ describe('components barrel', () => {
 
   it('re-exports ListBox as the same reference as its own module', () => {
     expect(components.ListBox).toBe(ListBoxDefault)
+  })
+
+  it('re-exports Menu as the same reference as its own module', () => {
+    expect(components.Menu).toBe(MenuDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -498,5 +505,10 @@ describe('components barrel', () => {
   it('re-exports the ListBoxProps type', () => {
     const props: ListBoxProps<object> = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the MenuProps type', () => {
+    const props: MenuProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 })

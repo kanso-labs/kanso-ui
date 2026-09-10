@@ -34,6 +34,7 @@ import Link from '../components/link'
 import ListBox from '../components/list-box'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
+import Menu from '../components/menu'
 import Meter from '../components/meter'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
@@ -405,6 +406,15 @@ function Showcase({ name }: ShowcaseProps) {
                   </Sheet.Footer>
                 </Sheet.Content>
               </Sheet>
+              <Menu>
+                <Button variant="outlined">Open a menu</Button>
+                <Menu.Content>
+                  <Menu.Item id="first">First item</Menu.Item>
+                  <Menu.Item id="second">Second item</Menu.Item>
+                  <Menu.Separator />
+                  <Menu.Item id="third">Third item</Menu.Item>
+                </Menu.Content>
+              </Menu>
               <Popover trigger="hover">
                 <Button variant="outlined">Hover for a popover</Button>
                 <Popover.Content>
