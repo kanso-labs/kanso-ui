@@ -20,6 +20,7 @@ import {
   Currency as ComponentsCurrency,
   Dialog as ComponentsDialog,
   Disclosure as ComponentsDisclosure,
+  DisclosureGroup as ComponentsDisclosureGroup,
   Feed as ComponentsFeed,
   Form as ComponentsForm,
   IconButton as ComponentsIconButton,
@@ -81,6 +82,7 @@ describe('package entry point', () => {
       'DIRECTORY_DRAG_TYPE',
       'Dialog',
       'Disclosure',
+      'DisclosureGroup',
       'Feed',
       'Focusable',
       'Form',
@@ -189,6 +191,10 @@ describe('package entry point', () => {
 
   it('forwards Disclosure as the same reference as the components barrel', () => {
     expect(publicApi.Disclosure).toBe(ComponentsDisclosure)
+  })
+
+  it('forwards DisclosureGroup as the same reference as the components barrel', () => {
+    expect(publicApi.DisclosureGroup).toBe(ComponentsDisclosureGroup)
   })
 
   it('forwards Feed as the same reference as the components barrel', () => {

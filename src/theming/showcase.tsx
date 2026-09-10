@@ -32,6 +32,7 @@ import CopyField from '../components/copy-field'
 import Currency from '../components/currency'
 import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
+import DisclosureGroup from '../components/disclosure-group'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -659,7 +660,8 @@ function Showcase({ name }: ShowcaseProps) {
                 them still span the full width. The selectable list draws the
                 same row, with the selected one on primary container, and the
                 list that toggles draws a checkbox on every one. A disclosure
-                draws the same row as its header.
+                draws the same row as its header, and a group of them puts a
+                rule between each pair.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
@@ -695,16 +697,28 @@ function Showcase({ name }: ShowcaseProps) {
               </ListBox>
             </Card>
             <Card padding="none" variant="outlined">
-              <Disclosure defaultExpanded>
-                <Disclosure.Header supporting="Supporting line">
-                  Headline
-                </Disclosure.Header>
-                <Disclosure.Panel>
-                  <Text tone="muted" variant="bodyMedium">
-                    Supporting line
-                  </Text>
-                </Disclosure.Panel>
-              </Disclosure>
+              <DisclosureGroup defaultExpandedKeys={SHOWCASE_SELECTION}>
+                <Disclosure id="first">
+                  <Disclosure.Header supporting="Supporting line">
+                    First item
+                  </Disclosure.Header>
+                  <Disclosure.Panel>
+                    <Text tone="muted" variant="bodyMedium">
+                      Supporting line
+                    </Text>
+                  </Disclosure.Panel>
+                </Disclosure>
+                <Disclosure id="second">
+                  <Disclosure.Header supporting="Supporting line">
+                    Second item
+                  </Disclosure.Header>
+                  <Disclosure.Panel>
+                    <Text tone="muted" variant="bodyMedium">
+                      Supporting line
+                    </Text>
+                  </Disclosure.Panel>
+                </Disclosure>
+              </DisclosureGroup>
             </Card>
             <Card padding="none" variant="outlined">
               <List

@@ -17,6 +17,7 @@ import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { DialogProps } from './dialog'
 import type { DisclosureProps } from './disclosure'
+import type { DisclosureGroupProps } from './disclosure-group'
 import type { FeedProps } from './feed'
 import type { FormProps } from './form'
 import type { IconButtonProps } from './icon-button'
@@ -70,6 +71,7 @@ import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import DialogDefault from './dialog'
 import DisclosureDefault from './disclosure'
+import DisclosureGroupDefault from './disclosure-group'
 import FeedDefault from './feed'
 import FormDefault from './form'
 import IconButtonDefault from './icon-button'
@@ -125,6 +127,7 @@ describe('components barrel', () => {
       'Currency',
       'Dialog',
       'Disclosure',
+      'DisclosureGroup',
       'Feed',
       'Form',
       'IconButton',
@@ -209,6 +212,10 @@ describe('components barrel', () => {
 
   it('re-exports Disclosure as the same reference as its own module', () => {
     expect(components.Disclosure).toBe(DisclosureDefault)
+  })
+
+  it('re-exports DisclosureGroup as the same reference as its own module', () => {
+    expect(components.DisclosureGroup).toBe(DisclosureGroupDefault)
   })
 
   it('re-exports Feed as the same reference as its own module', () => {
@@ -429,6 +436,11 @@ describe('components barrel', () => {
   it('re-exports the DisclosureProps type', () => {
     const props: DisclosureProps = { defaultExpanded: true }
     expect(props.defaultExpanded).toBe(true)
+  })
+
+  it('re-exports the DisclosureGroupProps type', () => {
+    const props: DisclosureGroupProps = { allowsMultipleExpanded: true }
+    expect(props.allowsMultipleExpanded).toBe(true)
   })
 
   it('re-exports the FeedProps type', () => {
