@@ -59,6 +59,7 @@ import Snackbar from '../components/snackbar'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Switch from '../components/switch'
+import Table from '../components/table'
 import Tabs from '../components/tabs'
 import Tag from '../components/tag'
 import Text from '../components/text'
@@ -261,6 +262,10 @@ const ROWS = [
   { amount: -86.2, name: 'Grace Hopper', tone: 'secondary' },
   { amount: 0, name: 'Alan Turing', tone: 'tertiary' },
 ] as const
+
+// The table keys its rows by name rather than by position, so its selected
+// row is named rather than taken from the list the other collections use.
+const SHOWCASE_TABLE_SELECTION = [ROWS[1].name]
 
 const TABS = ['First item', 'Second item', 'Third item'] as const
 
@@ -666,7 +671,16 @@ function Showcase({ name }: ShowcaseProps) {
                 card. The selectable list draws the same row, with the selected
                 one on primary container, and the list that toggles draws a
                 checkbox on every one. A disclosure draws the same row as its
-                header, and a group of them puts a rule between each pair.
+                header, and a group of them puts a rule between each pair. The
+                table is the one row here that is not the shared one — a run of
+                cells rather than a headline with slots — but its hover, pressed
+                and selected layers are written from the same tokens, so a
+                selected table row and a selected list row cannot come apart
+                under a scheme. Its value column is a plain sequence rather than
+                a Currency: an amount's own colour role over a selected row's
+                container is one colour family on top of another, and the pair
+                is not guaranteed to be readable — it fails AA outright on
+                Terminal and on Poster.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
@@ -741,6 +755,32 @@ function Showcase({ name }: ShowcaseProps) {
                   Third item
                 </List.Item>
               </List>
+            </Card>
+            <Card padding="none" variant="outlined">
+              <Table
+                aria-label="Label"
+                defaultSelectedKeys={SHOWCASE_TABLE_SELECTION}
+                selectionMode="multiple"
+              >
+                <Table.Header>
+                  <Table.Column id="colSelect" selection />
+                  <Table.Column id="colName" isRowHeader>
+                    Label
+                  </Table.Column>
+                  <Table.Column id="colValue">Value</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  {ROWS.map(({ name: person }, index) => (
+                    <Table.Row id={person} key={person}>
+                      <Table.Cell selection />
+                      <Table.Cell>{person}</Table.Cell>
+                      <Table.Cell>
+                        {String(index + 1).padStart(2, '0')}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
             </Card>
           </section>
 
