@@ -42,6 +42,7 @@ import ProductIcon from '../components/product-icon'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import SearchField from '../components/search-field'
+import Select from '../components/select'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
@@ -221,6 +222,14 @@ function showSnackbar() {
     action: { label: 'Undo', onPress: () => {} },
   })
 }
+
+const SHOWCASE_OPTIONS = (
+  <>
+    <ListBox.Item id="first">First item</ListBox.Item>
+    <ListBox.Item id="second">Second item</ListBox.Item>
+    <ListBox.Item id="third">Third item</ListBox.Item>
+  </>
+)
 
 const SHOWCASE_SELECTION = ['second']
 
@@ -637,6 +646,11 @@ function Showcase({ name }: ShowcaseProps) {
               <Stack gap="md">
                 <TextField defaultValue="" label="Label" />
                 <TextField defaultValue="Label" label="Label" />
+                <Select
+                  defaultValue="second"
+                  label="Label"
+                  options={SHOWCASE_OPTIONS}
+                />
                 <TextField
                   defaultValue="01"
                   description="Supporting line"
