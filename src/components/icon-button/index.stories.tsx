@@ -78,6 +78,25 @@ function PlusIcon() {
   )
 }
 
+// A second glyph for the toggle samples: a plus that turns on and off reads
+// as an odd thing to do, where a star is the shape a toggle usually carries.
+function StarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      {...stylex.props(styles.icon)}
+    >
+      <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
+    </svg>
+  )
+}
+
+// Hoisted so the list is not a new array on every render, which is what
+// react-perf's no-new-array-as-prop is after.
+const TOGGLE_VARIANTS = ['standard', 'filled', 'tonal'] as const
+
 const meta = {
   args: {
     'aria-label': 'Add',
@@ -208,6 +227,51 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Toggle
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Given `isSelected`, `defaultSelected` or `onChange` the button
+            reports a state instead of only firing. Each variant has a second
+            pair of colour roles for it, so an unchosen filled toggle rests on
+            surface container rather than primary, and a chosen one rests square
+            rather than round.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          {TOGGLE_VARIANTS.map((variant) => (
+            <div key={variant} {...stylex.props(styles.sample)}>
+              <IconButton
+                aria-label="Star"
+                defaultSelected={false}
+                variant={variant}
+              >
+                <StarIcon />
+              </IconButton>
+              <Text tone="muted" variant="labelSmall">
+                {variant}
+              </Text>
+            </div>
+          ))}
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          {TOGGLE_VARIANTS.map((variant) => (
+            <div key={variant} {...stylex.props(styles.sample)}>
+              <IconButton aria-label="Star" defaultSelected variant={variant}>
+                <StarIcon />
+              </IconButton>
+              <Text tone="muted" variant="labelSmall">
+                {variant}, chosen
+              </Text>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             As a link
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -288,6 +352,24 @@ const Pending: Story = {
   },
 }
 
-export { Default, Overview, Pending }
+const Toggle: Story = {
+  args: {
+    'aria-label': 'Star',
+    children: <StarIcon />,
+    defaultSelected: false,
+    variant: 'filled',
+  },
+}
+
+const ToggleSelected: Story = {
+  args: {
+    'aria-label': 'Star',
+    children: <StarIcon />,
+    defaultSelected: true,
+    variant: 'filled',
+  },
+}
+
+export { Default, Overview, Pending, Toggle, ToggleSelected }
 
 export default meta

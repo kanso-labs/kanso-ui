@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type {
   ButtonRenderProps,
   ClassNameOrFunction,
+  DOMRenderFunction,
   FocusableElement,
   StyleOrFunction,
 } from 'react-aria-components'
@@ -11,6 +12,7 @@ import {
   ButtonContext,
   Button as RACButton,
   Link as RACLink,
+  ToggleButton as RACToggleButton,
   useSlottedContext,
 } from 'react-aria-components'
 
@@ -21,6 +23,7 @@ import {
   ariaAttributesOf,
   buttonRenderer,
   linkRenderer,
+  toggleButtonRenderer,
 } from '../../render/aria'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -46,6 +49,22 @@ import ProgressIndicator from '../progress-indicator'
 // render state, the disabled styles replace each property whole, hover and
 // pressed branches included.
 //
+// **A toggle is the same button reporting a state.** Given `isSelected`,
+// `defaultSelected` or `onChange` it is React Aria's `ToggleButton` instead
+// of its `Button`, which announces the state through `aria-pressed` rather
+// than a role of its own — every variant and size still applies. The page
+// gives each style a second pair of colour roles for it, and they are not
+// the plain button's: a filled toggle rests on surface container with an
+// on-surface-variant icon and takes primary once chosen, a tonal one rests
+// on secondary container and takes secondary, and a standard one is
+// transparent throughout with the icon going from on-surface-variant to
+// primary. So a chosen filled toggle looks like a plain filled button, and
+// an unchosen one does not.
+//
+// A toggle is never a link and never pending. React Aria's `ToggleButton`
+// takes neither, and neither means anything for a control whose whole job is
+// to report which of two states it is in.
+//
 // The corner softens from a circle to a rounded square while pressed, which
 // is the shape morph the icon buttons spec page gives this control, at the
 // pressed corner its size token set names: 8 for the two small sizes, 12 at
@@ -54,6 +73,13 @@ import ProgressIndicator from '../progress-indicator'
 // different curves — the colour change is linear-ish and the shape change is
 // emphasized — so the timing functions are a matching comma list rather than
 // one value.
+//
+// A chosen toggle rests at that same pressed corner, which is the page's
+// shape morph: a toggle icon button moves from round while unchosen to
+// square once chosen. The square shape's own corner sits in a token set the
+// page keeps behind its size menu, but the page also says both shapes press
+// to the same radius — so the size's pressed corner is the value it already
+// assigns to that size, used here at rest rather than invented.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
 const styles = stylex.create({
@@ -97,6 +123,17 @@ const styles = stylex.create({
   filledDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // The filled toggle's unchosen container, which is not the plain filled
+  // button's: the page rests it on surface container with the muted icon and
+  // gives it primary only once it is chosen.
+  filledToggle: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainer})`,
+      default: colors.surfaceContainer,
+    },
+    color: colors.onSurfaceVariant,
   },
   // While pending, the label stays in the flow so the button keeps its
   // width, and is hidden — `display: contents` leaves the layout exactly as
@@ -148,6 +185,16 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  // A standard toggle keeps no container either way; what changes is the
+  // icon, which the page moves from the muted role to primary once chosen.
+  standardToggleSelected: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
+    },
+    color: colors.primary,
+  },
   tonal: {
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
@@ -159,6 +206,17 @@ const styles = stylex.create({
   tonalDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // The tonal toggle's chosen container: the page moves it from the
+  // secondary container pair to secondary itself, which is the one place a
+  // toggle's chosen state is darker than the plain button's.
+  tonalToggleSelected: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
+      default: colors.secondary,
+    },
+    color: colors.onSecondary,
   },
   xl: {
     blockSize: '96px',
@@ -180,6 +238,30 @@ const styles = stylex.create({
   },
 })
 
+// A chosen toggle rests at the corner its size presses to, which is the
+// page's round-to-square morph. A style per size rather than a value inside
+// each size style, since StyleX replaces the property whole and this one has
+// to beat both the size's `:active` branch and the disabled style's circle.
+const selectedShapes = stylex.create({
+  lg: { borderRadius: radii.md },
+  md: { borderRadius: radii.sm },
+  xl: { borderRadius: radii.lg },
+  xs: { borderRadius: radii.sm },
+  xxl: { borderRadius: radii.lg },
+})
+
+// Which container a toggle draws, chosen and not. Three of the six are the
+// plain button's own styles: a chosen filled toggle is the filled button, and
+// an unchosen tonal or standard one is the tonal or standard button.
+const toggleStyles = {
+  filled: { selected: styles.filled, unselected: styles.filledToggle },
+  standard: {
+    selected: styles.standardToggleSelected,
+    unselected: styles.standard,
+  },
+  tonal: { selected: styles.tonalToggleSelected, unselected: styles.tonal },
+}
+
 const disabledStyles = {
   filled: styles.filledDisabled,
   standard: styles.standardDisabled,
@@ -195,7 +277,12 @@ type IconButtonProps = {
   'aria-label': string
   children?: ReactNode
   /** A function may compute the class from the button's render state. */
-  className?: ClassNameOrFunction<ButtonState>
+  className?: ClassNameOrFunction<IconButtonState>
+  /**
+   * Whether a toggle starts chosen, when it keeps its own state. Passing
+   * this, `isSelected` or `onChange` is what makes the button a toggle.
+   */
+  defaultSelected?: boolean
   /**
    * Disables the press ripple. The hover and pressed state layers are
    * unaffected.
@@ -206,9 +293,20 @@ type IconButtonProps = {
    * Where the button leads. Given one, the button is rendered as a link —
    * an `<a>`, announced as the link it is — with the same styles and ripple.
    * `render`, `type`, and the form and pending props apply to the button
-   * form only.
+   * form only, and a toggle is never a link.
    */
   href?: string
+  /**
+   * Whether a toggle is chosen, when the call site holds the state. Pass it
+   * with `onChange`; passing this, `defaultSelected` or `onChange` is what
+   * makes the button a toggle.
+   */
+  isSelected?: boolean
+  /**
+   * Called with the new state when a toggle is pressed. Passing this,
+   * `isSelected` or `defaultSelected` is what makes the button a toggle.
+   */
+  onChange?: (isSelected: boolean) => void
   /**
    * The name of the ring shown while the button is pending, for a screen
    * reader. The label it replaces is hidden while it shows.
@@ -218,15 +316,21 @@ type IconButtonProps = {
   /** The link's `rel`, when `href` is set. */
   rel?: string
   /**
+   * The element to render, given the props it would have carried. React
+   * Aria's own form: it has to return the element the component would have
+   * rendered itself.
+   */
+  render?: DOMRenderFunction<'button', IconButtonState>
+  /**
    * Control size: `xs` 32px, `md` 40px, `lg` 56px, `xl` 96px, `xxl` 136px —
    * the icon buttons spec page's XS to XL, and the same heights `Button`
    * uses, so the two line up beside each other in a row. The icon is 20px,
    * 24px, 24px, 32px and 40px in turn.
    * @default 'md'
    */
-  size?: 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
+  size?: IconButtonSize
   /** A function may compute the style from the button's render state. */
-  style?: StyleOrFunction<ButtonState>
+  style?: StyleOrFunction<IconButtonState>
   /** The link's `target`, when `href` is set. */
   target?: string
   /**
@@ -234,8 +338,19 @@ type IconButtonProps = {
    * carry a container of their own.
    * @default 'standard'
    */
-  variant?: 'filled' | 'standard' | 'tonal'
-} & ButtonDOMProps
+  variant?: IconButtonVariant
+} & Omit<ButtonDOMProps, 'render'>
+
+type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
+
+// The render state a call site's `className`, `style` or `render` function is
+// handed. `isSelected` is optional because only the toggle form has one, and
+// one function has to be accepted by both: React Aria hands the plain button
+// a state without it and the toggle a state with it, and a parameter type
+// this wide accepts either.
+type IconButtonState = ButtonState & { isSelected?: boolean }
+
+type IconButtonVariant = 'filled' | 'standard' | 'tonal'
 
 // What the button draws: its label, hidden while the button is pending, with
 // the ring over it. The ring takes the button's own content colour rather
@@ -280,12 +395,26 @@ function buttonContent(
  * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
  * element; React Aria alone would keep only the labelling ones.
+ *
+ * Given `isSelected`, `defaultSelected` or `onChange` it is a toggle, which
+ * reports its state through `aria-pressed` and draws the page's second pair
+ * of colour roles for its variant. A toggle takes neither `href` nor the
+ * pending props.
+ *
+ * ```tsx
+ * <IconButton aria-label="Label" defaultSelected variant="tonal">
+ *   <StarIcon />
+ * </IconButton>
+ * ```
  */
 function IconButton({
   children,
+  defaultSelected,
   disableRipple = false,
   href,
   isDisabled,
+  isSelected,
+  onChange,
   onClick,
   onContextMenu,
   onKeyDown,
@@ -325,6 +454,33 @@ function IconButton({
     onPointerUp,
   })
 
+  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+
+  // The three props that make this a toggle. Read together rather than behind
+  // a `toggle` word of its own, the way `href` already turns the button into
+  // a link: a button given none of them has no state to report, and one given
+  // any of them has nothing else it could mean.
+  if (
+    defaultSelected !== undefined ||
+    isSelected !== undefined ||
+    onChange !== undefined
+  ) {
+    return (
+      <RACToggleButton
+        defaultSelected={defaultSelected}
+        isDisabled={disabled}
+        isSelected={isSelected}
+        onChange={onChange}
+        render={toggleButtonRenderer(element, render)}
+        {...ripple.handlers}
+        {...props}
+        {...mergeStatefulStyles(toggleStyleProps(size, variant), props)}
+      >
+        {toggleContent(children, ripple)}
+      </RACToggleButton>
+    )
+  }
+
   const styleProps = mergeStatefulStyles(
     (state: ButtonState) =>
       stylex.props(
@@ -336,8 +492,6 @@ function IconButton({
       ),
     props,
   )
-
-  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
 
   if (href !== undefined) {
     return (
@@ -370,6 +524,45 @@ function IconButton({
   )
 }
 
-export type { IconButtonProps }
+// What a toggle draws: its icon and the ripple. No pending ring — React
+// Aria's toggle button has no pending state, and a control reporting which of
+// two states it is in has nothing to be pending about.
+//
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after; the React Compiler memoises
+// the result on its inputs.
+function toggleContent(children: ReactNode, ripple: Ripple) {
+  return () => (
+    <>
+      {children}
+      {ripple.surface}
+    </>
+  )
+}
+
+// A toggle's styles, from React Aria's render state. The chosen shape is
+// applied after the disabled styles so it survives them: which of the two
+// states a disabled toggle is in should still be readable, and the disabled
+// style otherwise forces the circle back.
+function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
+  return (state: IconButtonState) =>
+    stylex.props(
+      styles.base,
+      state.isSelected === true
+        ? toggleStyles[variant].selected
+        : toggleStyles[variant].unselected,
+      styles[size],
+      state.isDisabled && styles.disabled,
+      state.isDisabled && disabledStyles[variant],
+      state.isSelected === true && selectedShapes[size],
+    )
+}
+
+export type {
+  IconButtonProps,
+  IconButtonSize,
+  IconButtonState,
+  IconButtonVariant,
+}
 
 export default IconButton
