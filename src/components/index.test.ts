@@ -8,6 +8,7 @@ import type { CheckboxProps } from './checkbox'
 import type { CheckboxGroupProps } from './checkbox-group'
 import type { ChipProps } from './chip'
 import type { CodeProps } from './code'
+import type { ComboBoxProps } from './combo-box'
 import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
@@ -52,6 +53,7 @@ import CheckboxDefault from './checkbox'
 import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
 import CodeDefault from './code'
+import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
@@ -98,6 +100,7 @@ describe('components barrel', () => {
       'CheckboxGroup',
       'Chip',
       'Code',
+      'ComboBox',
       'Container',
       'CopyField',
       'Currency',
@@ -306,6 +309,10 @@ describe('components barrel', () => {
 
   it('re-exports Select as the same reference as its own module', () => {
     expect(components.Select).toBe(SelectDefault)
+  })
+
+  it('re-exports ComboBox as the same reference as its own module', () => {
+    expect(components.ComboBox).toBe(ComboBoxDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -521,6 +528,11 @@ describe('components barrel', () => {
 
   it('re-exports the SelectProps type', () => {
     const props: SelectProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the ComboBoxProps type', () => {
+    const props: ComboBoxProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })

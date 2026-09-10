@@ -11,6 +11,7 @@ import {
   CheckboxGroup as ComponentsCheckboxGroup,
   Chip as ComponentsChip,
   Code as ComponentsCode,
+  ComboBox as ComponentsComboBox,
   Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
@@ -62,6 +63,7 @@ describe('package entry point', () => {
       'Chip',
       'Code',
       'Collection',
+      'ComboBox',
       'Container',
       'CopyField',
       'Currency',
@@ -294,6 +296,10 @@ describe('package entry point', () => {
 
   it('forwards Select as the same reference as the components barrel', () => {
     expect(publicApi.Select).toBe(ComponentsSelect)
+  })
+
+  it('forwards ComboBox as the same reference as the components barrel', () => {
+    expect(publicApi.ComboBox).toBe(ComponentsComboBox)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

@@ -98,6 +98,24 @@ describe('list box', () => {
       expect(second.getAttribute('aria-disabled')).toBe('true')
     })
 
+    // React Aria reads an option's text off its children, and an option here
+    // always wraps its headline in the row — so without passing a
+    // plain-string headline through as the text value, every option is worth
+    // nothing as text. Typeahead finds none of them, a combo box filters
+    // them all away, and a select shows a blank where its value should be.
+    it('is worth its headline as text, which typeahead finds it by', () => {
+      const view = setup()
+      const [first, , third] = view.getAllByRole('option')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'T' })
+      fireEvent.keyUp(first, { key: 'T' })
+
+      expect(document.activeElement).toBe(third)
+    })
+
     // The option's slots are the shared row's, so a supporting line and the
     // two content slots all read as part of the same option.
     it('draws the row slots inside the option', () => {

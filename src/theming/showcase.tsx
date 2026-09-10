@@ -22,6 +22,7 @@ import Checkbox from '../components/checkbox'
 import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import Code from '../components/code'
+import ComboBox from '../components/combo-box'
 import Container from '../components/container'
 import CopyField from '../components/copy-field'
 import Currency from '../components/currency'
@@ -651,6 +652,7 @@ function Showcase({ name }: ShowcaseProps) {
                   label="Label"
                   options={SHOWCASE_OPTIONS}
                 />
+                <ComboBox label="Label" options={SHOWCASE_OPTIONS} />
                 <TextField
                   defaultValue="01"
                   description="Supporting line"

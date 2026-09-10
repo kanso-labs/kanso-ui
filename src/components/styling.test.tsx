@@ -12,6 +12,7 @@ import {
   CheckboxGroup,
   Chip,
   Code,
+  ComboBox,
   CopyField,
   Currency,
   Dialog,
@@ -86,6 +87,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <Chip {...PROBE}>Label</Chip>, name: 'Chip' },
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },
+  {
+    element: (
+      <ComboBox
+        {...PROBE}
+        label="Label"
+        options={<ListBox.Item id="first">First item</ListBox.Item>}
+      />
+    ),
+    name: 'ComboBox',
+  },
   { element: <CopyField {...PROBE} value="Label" />, name: 'CopyField' },
   { element: <Currency {...PROBE} value={1} />, name: 'Currency' },
   {

@@ -234,11 +234,16 @@ function ListBoxItem<T extends object = object>({
   children,
   leading,
   supporting,
+  textValue,
   trailing,
   ...props
 }: ListBoxItemProps<T>) {
   return (
-    <RACListBoxItem {...props} {...mergeStatefulStyles(itemStyles, props)}>
+    <RACListBoxItem
+      textValue={textValue ?? textOf(children)}
+      {...props}
+      {...mergeStatefulStyles(itemStyles, props)}
+    >
       {itemContent(children, leading, supporting, trailing)}
     </RACListBoxItem>
   )
@@ -288,6 +293,17 @@ function ListBoxSection<T extends object = object>({
       {children}
     </RACListBoxSection>
   )
+}
+
+// What the option is worth as text, for the things React Aria does with an
+// option's words rather than its element: typeahead, a combo box's filter,
+// and the value a select shows once it is chosen. React Aria reads it off
+// the children when they are a string and finds nothing when they are not —
+// and an option here is always an element, since the row wraps its headline.
+// So a plain-string headline becomes the text value, and anything else has
+// to say what it is worth through `textValue`.
+function textOf(children: ReactNode) {
+  return typeof children === 'string' ? children : undefined
 }
 
 ListBox.Item = ListBoxItem
