@@ -37,7 +37,8 @@ import ProgressIndicator from '../progress-indicator'
 // Each variant composites an 'on-color' over its own container at the
 // interaction state's opacity, rather than swapping in a separate hover
 // color. The pairs are the icon buttons spec page's: filled on primary,
-// tonal on secondary container, standard on surface variant over nothing. calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
+// tonal on secondary container, outlined with an outline variant border and
+// an on-surface-variant icon, standard on surface variant over nothing. calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
 // percentage color-mix() takes. Inlined at each property rather than factored
 // into a helper: @stylexjs/babel-plugin only statically recognizes
 // expressions written directly as property values.
@@ -49,6 +50,12 @@ import ProgressIndicator from '../progress-indicator'
 // render state, the disabled styles replace each property whole, hover and
 // pressed branches included.
 //
+// **The outlined border thickens with the size, and the widths are Button's
+// rather than this page's.** The icon buttons page keeps them in a size token
+// set its widget will not open to a script, and the two components already
+// share their five heights on purpose — a 96dp icon button beside a 96dp
+// outlined button with a different border weight would read as a mistake.
+//
 // **A toggle is the same button reporting a state.** Given `isSelected`,
 // `defaultSelected` or `onChange` it is React Aria's `ToggleButton` instead
 // of its `Button`, which announces the state through `aria-pressed` rather
@@ -58,8 +65,9 @@ import ProgressIndicator from '../progress-indicator'
 // on-surface-variant icon and takes primary once chosen, a tonal one rests
 // on secondary container and takes secondary, and a standard one is
 // transparent throughout with the icon going from on-surface-variant to
-// primary. So a chosen filled toggle looks like a plain filled button, and
-// an unchosen one does not.
+// primary, and an outlined one swaps its border for the inverse surface
+// pair. So a chosen filled toggle looks like a plain filled button, and an
+// unchosen one does not.
 //
 // A toggle is never a link and never pending. React Aria's `ToggleButton`
 // takes neither, and neither means anything for a control whose whole job is
@@ -163,6 +171,36 @@ const styles = stylex.create({
     fontSize: '24px',
     inlineSize: '40px',
   },
+  // Transparent with a rule around it: the page's outlined icon button. The
+  // border width comes from the size, since the page thickens it as the
+  // control grows.
+  outlined: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
+    },
+    borderColor: colors.outlineVariant,
+    borderStyle: 'solid',
+    color: colors.onSurfaceVariant,
+  },
+  outlinedDisabled: {
+    backgroundColor: 'transparent',
+    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // A chosen outlined toggle drops its rule for a container: the page moves
+  // it to the inverse surface pair, which is the one place a toggle here
+  // inverts rather than tints.
+  outlinedToggleSelected: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
+      ':hover': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
+      default: colors.inverseSurface,
+    },
+    borderColor: 'transparent',
+    color: colors.inverseOnSurface,
+  },
   // The ring sits over the hidden label, centred in the button.
   pending: {
     alignItems: 'center',
@@ -238,6 +276,17 @@ const styles = stylex.create({
   },
 })
 
+// The outlined border thickens with the size, as Button's does: 1dp up to M,
+// 2dp at XL, 3dp at XXL. A style per size rather than a value in the size
+// style, since a border on a filled button would draw in the icon's colour.
+const outlineWidths = stylex.create({
+  lg: { borderWidth: '1px' },
+  md: { borderWidth: '1px' },
+  xl: { borderWidth: '2px' },
+  xs: { borderWidth: '1px' },
+  xxl: { borderWidth: '3px' },
+})
+
 // A chosen toggle rests at the corner its size presses to, which is the
 // page's round-to-square morph. A style per size rather than a value inside
 // each size style, since StyleX replaces the property whole and this one has
@@ -255,6 +304,10 @@ const selectedShapes = stylex.create({
 // an unchosen tonal or standard one is the tonal or standard button.
 const toggleStyles = {
   filled: { selected: styles.filled, unselected: styles.filledToggle },
+  outlined: {
+    selected: styles.outlinedToggleSelected,
+    unselected: styles.outlined,
+  },
   standard: {
     selected: styles.standardToggleSelected,
     unselected: styles.standard,
@@ -264,6 +317,7 @@ const toggleStyles = {
 
 const disabledStyles = {
   filled: styles.filledDisabled,
+  outlined: styles.outlinedDisabled,
   standard: styles.standardDisabled,
   tonal: styles.tonalDisabled,
 }
@@ -334,8 +388,9 @@ type IconButtonProps = {
   /** The link's `target`, when `href` is set. */
   target?: string
   /**
-   * `standard` is transparent and tints what it sits on; `filled` and `tonal`
-   * carry a container of their own.
+   * `standard` is transparent and tints what it sits on; `outlined` is
+   * transparent with a rule around it; `filled` and `tonal` carry a container
+   * of their own.
    * @default 'standard'
    */
   variant?: IconButtonVariant
@@ -350,7 +405,7 @@ type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 // this wide accepts either.
 type IconButtonState = ButtonState & { isSelected?: boolean }
 
-type IconButtonVariant = 'filled' | 'standard' | 'tonal'
+type IconButtonVariant = 'filled' | 'outlined' | 'standard' | 'tonal'
 
 // What the button draws: its label, hidden while the button is pending, with
 // the ring over it. The ring takes the button's own content colour rather
@@ -487,6 +542,7 @@ function IconButton({
         styles.base,
         styles[variant],
         styles[size],
+        variant === 'outlined' && outlineWidths[size],
         state.isDisabled && styles.disabled,
         state.isDisabled && disabledStyles[variant],
       ),
@@ -552,6 +608,11 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
         ? toggleStyles[variant].selected
         : toggleStyles[variant].unselected,
       styles[size],
+      // A chosen outlined toggle has a container rather than a rule, so the
+      // width goes on only while it is unchosen.
+      variant === 'outlined' &&
+        state.isSelected !== true &&
+        outlineWidths[size],
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
