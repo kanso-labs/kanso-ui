@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
 import type {
   ColumnRenderProps,
+  ColumnResizerRenderProps,
   CellProps as RACCellProps,
   ColumnProps as RACColumnProps,
   RowProps as RACRowProps,
   TableBodyProps as RACTableBodyProps,
   TableFooterProps as RACTableFooterProps,
   TableHeaderProps as RACTableHeaderProps,
+  TableLoadMoreItemProps as RACTableLoadMoreItemProps,
   TableProps as RACTableProps,
+  ResizableTableContainerProps,
   RowRenderProps,
   TableBodyRenderProps,
 } from 'react-aria-components'
@@ -17,11 +20,14 @@ import { createContext, useContext } from 'react'
 import {
   Cell as RACCell,
   Column as RACColumn,
+  ColumnResizer as RACColumnResizer,
+  ResizableTableContainer as RACResizableTableContainer,
   Row as RACRow,
   Table as RACTable,
   TableBody as RACTableBody,
   TableFooter as RACTableFooter,
   TableHeader as RACTableHeader,
+  TableLoadMoreItem as RACTableLoadMoreItem,
 } from 'react-aria-components'
 
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
@@ -33,6 +39,7 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
+import ProgressIndicator from '../progress-indicator'
 
 // A grid of rows and columns, with sorting and selection. The design system
 // carries no data table page — it was dropped after Material Design 2 — so
@@ -77,6 +84,19 @@ import Checkbox from '../checkbox'
 // **The header sticks only when asked.** A sticky header needs an opaque
 // background to scroll rows under, and that colour is only right when the
 // table is in something that scrolls. `stickyHeader` is what says so.
+//
+// **Resizing is asked for twice, and both are needed.** React Aria puts the
+// resize state on a container around the table and the handle inside a
+// column, so `resizable` on the table is what brings the container and
+// `resizable` on a column is what draws its handle. The archived page has no
+// resizer to take a treatment from — it predates the feature — so the handle
+// is the divider's own rule, thickening and taking the primary role while it
+// is dragged.
+//
+// **A resizable table stops filling its width.** The container sets
+// `table-layout: fixed` and `width: min-content` on the table as inline
+// styles, which no rule here can outrank; the container fills the width
+// instead and scrolls when the columns together are wider than it.
 //
 // One thing about React Aria's collection is worth knowing before writing a
 // call site. **A column's `id` and a row's `id` share one namespace**, and a
@@ -150,6 +170,8 @@ const styles = stylex.create({
     fontWeight: typography.labelLargeWeight,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    // The resize handle is positioned against this cell's trailing edge.
+    position: 'relative',
   },
   // The name and its arrow, on one line, with the arrow after the name as
   // the page puts it.
@@ -174,6 +196,49 @@ const styles = stylex.create({
       default: 'transparent',
     },
     cursor: 'pointer',
+  },
+  // The ring shown while more rows are being fetched, centred across the
+  // width. React Aria's cell carries no padding of its own, so the box drawn
+  // inside it is what does the centring — the same reason the empty state's
+  // is a block rather than an inline span.
+  loading: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  // The row that ring sits in, at a body row's own height so the list does
+  // not jump as the fetched rows replace it.
+  loadingRow: {
+    blockSize: '52px',
+  },
+  // The container React Aria needs around a resizable table. It fills the
+  // width the table has given up and scrolls when the columns outgrow it,
+  // which is also what a sticky header inside it sticks to.
+  resizableContainer: {
+    boxSizing: 'border-box',
+    inlineSize: '100%',
+    overflowX: 'auto',
+  },
+  // The handle at a column's trailing edge, drawn as the divider's own rule
+  // so a column boundary is one line whether or not it can be dragged. It is
+  // positioned against the header cell, which is why that cell is relative.
+  resizer: {
+    backgroundColor: colors.outlineVariant,
+    blockSize: '100%',
+    boxSizing: 'border-box',
+    cursor: 'col-resize',
+    inlineSize: '1px',
+    insetBlockStart: 0,
+    insetInlineEnd: 0,
+    position: 'absolute',
+    touchAction: 'none',
+  },
+  // Thickened and in the primary role while it is being dragged or focused,
+  // so the boundary being moved is the one that stands out.
+  resizerActive: {
+    backgroundColor: colors.primary,
+    inlineSize: '2px',
   },
   // The page's 52dp row, and the rule above it — dropped on the first row of
   // a group, where the header's own rule or the table's edge already is.
@@ -292,14 +357,19 @@ type TableCellProps = Omit<RACCellProps, 'children' | 'className' | 'style'> & {
   style?: RACCellProps['style']
 }
 
-type TableColumnProps = Omit<
-  RACColumnProps,
-  'children' | 'className' | 'style'
-> & {
+type TableColumnProps = {
   /** The column's name. */
   children?: ReactNode
   /** A function may compute the class from the column's render state. */
   className?: RACColumnProps['className']
+  /**
+   * Draws a handle at the column's trailing edge that drags its width. Needs
+   * the table's own `resizable` as well — React Aria keeps the resize state
+   * on a container around the table, and without it there is nothing for a
+   * handle to change. `defaultWidth`, `minWidth` and `maxWidth` are React
+   * Aria's and apply only inside that container.
+   */
+  resizable?: boolean
   /**
    * Draws the select-all checkbox instead of `children`, for the column the
    * rows put their own checkboxes in.
@@ -307,15 +377,41 @@ type TableColumnProps = Omit<
   selection?: boolean
   /** A function may compute the style from the column's render state. */
   style?: RACColumnProps['style']
-}
+} & Omit<RACColumnProps, 'children' | 'className' | 'style'>
 
 type TableFooterProps<T extends object = object> = RACTableFooterProps<T>
 
 type TableHeaderProps<T extends object = object> = RACTableHeaderProps<T>
 
+type TableLoadMoreProps = Omit<RACTableLoadMoreItemProps, 'children'> & {
+  /**
+   * What the row says while it is loading. Read by a screen reader; the ring
+   * itself carries no text.
+   * @default 'Loading more'
+   */
+  label?: string
+}
+
 type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
   /** A function may compute the class from the table's render state. */
   className?: RACTableProps['className']
+  /** Called as a column is dragged, with every column's width. */
+  onResize?: ResizableTableContainerProps['onResize']
+  /** Called once a drag ends, with every column's width. */
+  onResizeEnd?: ResizableTableContainerProps['onResizeEnd']
+  /**
+   * Lets columns marked `resizable` be dragged, by putting the table in the
+   * container React Aria keeps the resize state on. A resizable table sizes
+   * to its columns rather than to its parent, and that container is what
+   * fills the width and scrolls instead.
+   */
+  resizable?: boolean
+  /**
+   * What the resize handle is called, for a screen reader. React Aria
+   * composes it with the column's own name.
+   * @default 'Resize column'
+   */
+  resizeLabel?: string
   /**
    * What the select-all checkbox is called, for a screen reader.
    * @default 'Select all'
@@ -347,6 +443,18 @@ type TableRowProps<T extends object = object> = Omit<
   style?: RACRowProps<T>['style']
 }
 
+// What the resize handles are called, for the same reason the selection
+// labels travel this way: it is the table's decision, and repeating it per
+// column is how the two drift.
+const ResizeLabelContext = createContext('Resize column')
+
+// Whether the table brought the container. React Aria's resizer throws
+// outright without one — "Wrap your <Table> in a <ResizableTableContainer>",
+// naming a component a consumer of this library never writes — so a column
+// asking to resize inside a table that does not would take the whole page
+// down. It draws no handle instead.
+const ResizableContext = createContext(false)
+
 // Whether the header sticks, so a column reaches it without every call site
 // repeating the table's own decision on each one.
 const StickyHeaderContext = createContext(false)
@@ -373,15 +481,32 @@ function cellStyles(selection: boolean) {
   return stylex.props(styles.cell, styles.focus, selection && styles.selection)
 }
 
-function columnContent(children: ReactNode, selection: boolean, label: string) {
+function columnContent(
+  children: ReactNode,
+  selection: boolean,
+  label: string,
+  resizable: boolean,
+  resizeLabel: string,
+): RACColumnProps['children'] {
   if (selection) {
     return <Checkbox aria-label={label} slot="selection" />
   }
-  return (state: ColumnRenderProps) => (
-    <span {...stylex.props(styles.headerContent)}>
-      {children}
-      {sortArrowFor(state.sortDirection)}
-    </span>
+  // The handle is a sibling of the name rather than part of it: React Aria
+  // renders it as its own element, positioned against the cell's trailing
+  // edge, which the name's own box does not reach.
+  return (state: ColumnRenderProps): ReactNode => (
+    <>
+      <span {...stylex.props(styles.headerContent)}>
+        {children}
+        {sortArrowFor(state.sortDirection)}
+      </span>
+      {resizable ? (
+        <RACColumnResizer
+          aria-label={resizeLabel}
+          className={resizerClassName}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -397,6 +522,23 @@ function columnStyles(selection: boolean, sticky: boolean) {
     )
 }
 
+// React Aria puts `aria-level` on the load-more row, and `aria-level` is only
+// valid on a row inside a `treegrid` — a grid's rows have no level. axe flags
+// it as `aria-conditional-attr`, and this library's stories run axe as an
+// error, so a table with a load-more row would fail on an attribute nothing
+// here asks for.
+//
+// It cannot be turned off through props: React Aria writes it after spreading
+// what the call site passed, so `aria-level={undefined}` is overwritten. The
+// attribute is taken off the element instead. React writes an attribute only
+// when its prop changes between renders, and this one is always 1, so the
+// removal holds rather than being undone by the next render. `load more` in
+// index.test.tsx pins that it is gone, which is what would notice if React
+// Aria stopped setting it or started varying it.
+function dropAriaLevel(node: HTMLTableRowElement | null) {
+  node?.removeAttribute('aria-level')
+}
+
 // What the body draws in place of rows. A call rather than a function
 // written at the prop, for the same reason the others are.
 function emptyContent(emptyState: ReactNode) {
@@ -405,6 +547,24 @@ function emptyContent(emptyState: ReactNode) {
   // has to be `async`.
   return (_state: TableBodyRenderProps): ReactNode => (
     <span {...stylex.props(styles.empty)}>{emptyState}</span>
+  )
+}
+
+// The container's class. React Aria takes a plain string here rather than a
+// function of render state, since the container reports none — so this is a
+// call rather than the function form the other parts pass.
+function resizableContainerClassName() {
+  return stylex.props(styles.resizableContainer).className ?? ''
+}
+
+// The handle's classes, from React Aria's own render state — it reports the
+// drag and the keyboard focus separately, and the two get one treatment.
+function resizerClassName(state: ColumnResizerRenderProps) {
+  return (
+    stylex.props(
+      styles.resizer,
+      (state.isResizing || state.isFocusVisible) && styles.resizerActive,
+    ).className ?? ''
   )
 }
 
@@ -467,20 +627,42 @@ function sortArrowFor(direction: 'ascending' | 'descending' | undefined) {
  * element a layout positions.
  */
 function Table({
+  onResize,
+  onResizeEnd,
+  resizable = false,
+  resizeLabel = 'Resize column',
   selectAllLabel = 'Select all',
   selectLabel = 'Select',
   stickyHeader = false,
   ...props
 }: TableProps) {
+  const table = (
+    <RACTable
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.table), props)}
+    />
+  )
+
   return (
     <SelectAllLabelContext value={selectAllLabel}>
       <SelectLabelContext value={selectLabel}>
-        <StickyHeaderContext value={stickyHeader}>
-          <RACTable
-            {...props}
-            {...mergeStatefulStyles(stylex.props(styles.table), props)}
-          />
-        </StickyHeaderContext>
+        <ResizeLabelContext value={resizeLabel}>
+          <ResizableContext value={resizable}>
+            <StickyHeaderContext value={stickyHeader}>
+              {resizable ? (
+                <RACResizableTableContainer
+                  className={resizableContainerClassName()}
+                  onResize={onResize}
+                  onResizeEnd={onResizeEnd}
+                >
+                  {table}
+                </RACResizableTableContainer>
+              ) : (
+                table
+              )}
+            </StickyHeaderContext>
+          </ResizableContext>
+        </ResizeLabelContext>
       </SelectLabelContext>
     </SelectAllLabelContext>
   )
@@ -535,10 +717,13 @@ function TableCell({ children, selection = false, ...props }: TableCellProps) {
  */
 function TableColumn({
   children,
+  resizable = false,
   selection = false,
   ...props
 }: TableColumnProps) {
   const label = useContext(SelectAllLabelContext)
+  const resizeLabel = useContext(ResizeLabelContext)
+  const resizableTable = useContext(ResizableContext)
   const sticky = useContext(StickyHeaderContext)
 
   return (
@@ -546,7 +731,13 @@ function TableColumn({
       {...props}
       {...mergeStatefulStyles(columnStyles(selection, sticky), props)}
     >
-      {columnContent(children, selection, label)}
+      {columnContent(
+        children,
+        selection,
+        label,
+        resizable && resizableTable,
+        resizeLabel,
+      )}
     </RACColumn>
   )
 }
@@ -584,6 +775,33 @@ function TableHeader<T extends object = object>(props: TableHeaderProps<T>) {
 }
 
 /**
+ * The row the table shows while it is fetching more. React Aria calls
+ * `onLoadMore` when this comes into view, and draws it only while
+ * `isLoading`. It goes inside `Table.Body`, after the rows.
+ */
+function TableLoadMore({
+  label = 'Loading more',
+  ...props
+}: TableLoadMoreProps) {
+  return (
+    <RACTableLoadMoreItem
+      {...props}
+      {...mergeStyles(stylex.props(styles.loadingRow), props)}
+      ref={dropAriaLevel}
+    >
+      <span {...stylex.props(styles.loading)}>
+        <ProgressIndicator
+          aria-label={label}
+          isIndeterminate
+          size="24px"
+          variant="circular"
+        />
+      </span>
+    </RACTableLoadMoreItem>
+  )
+}
+
+/**
  * One row. Give every row an `id` — that is the key selection is reported
  * by, and it has to differ from every column's. `onAction` runs when the
  * row is pressed.
@@ -597,6 +815,7 @@ Table.Cell = TableCell
 Table.Column = TableColumn
 Table.Footer = TableFooter
 Table.Header = TableHeader
+Table.LoadMore = TableLoadMore
 Table.Row = TableRow
 
 export type {
@@ -605,6 +824,7 @@ export type {
   TableColumnProps,
   TableFooterProps,
   TableHeaderProps,
+  TableLoadMoreProps,
   TableProps,
   TableRowProps,
 }

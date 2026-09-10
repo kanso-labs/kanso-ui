@@ -13,7 +13,7 @@
 // oxlint-disable react-perf/jsx-no-new-function-as-prop
 // oxlint-disable react-perf/jsx-no-new-object-as-prop
 
-import type { ReactElement } from 'react'
+import type { Key, ReactElement } from 'react'
 import type { Selection, SortDescriptor } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -37,10 +37,23 @@ const probeStyles = stylex.create({
 // a value used by both leaves the table with no columns at all.
 const COLUMNS = ['colName', 'colValue'] as const
 
+// React Aria drives a resize off the pointer rather than off the hidden range
+// input's own keyboard handling — `focus()` on that input does not take, since
+// React Aria manages where focus goes.
+const DRAG_FROM = { button: 0, clientX: 200, pointerId: 1 }
+const DRAG_TO = { button: 0, clientX: 120, pointerId: 1 }
+
 // A plain table with two columns and two rows, which is what most of the
 // cases below need before they change one thing about it.
 function Basic(props: {
   emptyState?: ReactElement | string
+  loadMore?: boolean
+  loadMoreLabel?: string
+  loadMoreLoading?: boolean
+  onResize?: (widths: Map<Key, unknown>) => void
+  resizable?: boolean
+  resizableColumns?: boolean
+  resizeLabel?: string
   rows?: ReadonlyArray<readonly [string, string, string]>
   selectionMode?: 'multiple' | 'none' | 'single'
   stickyHeader?: boolean
@@ -55,6 +68,9 @@ function Basic(props: {
   return (
     <Table
       aria-label="Label"
+      onResize={props.onResize}
+      resizable={props.resizable}
+      resizeLabel={props.resizeLabel}
       selectionMode={props.selectionMode}
       stickyHeader={props.stickyHeader}
     >
@@ -62,7 +78,11 @@ function Basic(props: {
         {props.selectionMode === undefined ? null : (
           <Table.Column id="colSelect" selection />
         )}
-        <Table.Column id={COLUMNS[0]} isRowHeader>
+        <Table.Column
+          id={COLUMNS[0]}
+          isRowHeader
+          resizable={props.resizableColumns}
+        >
           Label
         </Table.Column>
         <Table.Column id={COLUMNS[1]}>Value</Table.Column>
@@ -77,9 +97,21 @@ function Basic(props: {
             <Table.Cell>{value}</Table.Cell>
           </Table.Row>
         ))}
+        {props.loadMore === true ? (
+          <Table.LoadMore
+            isLoading={props.loadMoreLoading ?? true}
+            label={props.loadMoreLabel}
+          />
+        ) : null}
       </Table.Body>
     </Table>
   )
+}
+
+function drag(resizer: HTMLElement) {
+  fireEvent.pointerDown(resizer, DRAG_FROM)
+  fireEvent.pointerMove(resizer, DRAG_TO)
+  fireEvent.pointerUp(resizer, DRAG_TO)
 }
 
 function probe(style: stylex.StyleXStyles) {
@@ -92,6 +124,16 @@ function probe(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return read
+}
+
+// The handle React Aria renders is a visually hidden range input inside the
+// element that is actually dragged.
+function resizerOf(handle: HTMLElement) {
+  const resizer = handle.parentElement
+  if (!(resizer instanceof HTMLElement)) {
+    throw new Error('expected the handle to sit inside a resizer')
+  }
+  return resizer
 }
 
 describe('table', () => {
@@ -491,6 +533,174 @@ describe('table', () => {
       expect(
         getComputedStyle(view.getAllByRole('columnheader')[0]).position,
       ).not.toBe('sticky')
+    })
+  })
+
+  describe('resizing', () => {
+    it('brings the container React Aria keeps the resize state on', () => {
+      const view = render(<Basic resizable />)
+      const table = view.getByRole('grid')
+
+      // The container is the element that fills the width and scrolls, since
+      // React Aria sizes a resizable table to its columns instead.
+      const container = table.closest('div')
+      if (!(container instanceof HTMLElement)) {
+        throw new Error('expected the table to be wrapped in a container')
+      }
+
+      expect(getComputedStyle(container).overflowX).toBe('auto')
+    })
+
+    it('leaves the table unwrapped when it does not resize', () => {
+      const view = render(<Basic />)
+      const container = view.getByRole('grid').closest('div')
+
+      // The render container itself is a div, so what is checked is that it
+      // carries none of the scrolling the resizable one does.
+      expect(
+        container === null ? '' : getComputedStyle(container).overflowX,
+      ).not.toBe('auto')
+    })
+
+    it('draws a handle on the columns that asked for one, and no others', () => {
+      const view = render(<Basic resizable resizableColumns />)
+
+      // React Aria draws the handle as a range input, so a slider is what a
+      // reader finds — one per resizable column.
+      expect(view.getAllByRole('slider')).toHaveLength(1)
+    })
+
+    it('draws none when the table does not resize', () => {
+      const view = render(<Basic resizableColumns />)
+
+      expect(view.queryByRole('slider')).toBeNull()
+    })
+
+    it('names the handle with the table label composed with the column', () => {
+      const view = render(<Basic resizable resizableColumns />)
+
+      // React Aria points the handle's `aria-labelledby` at itself and at the
+      // column, so the name is the label plus the column's own text.
+      expect(
+        view.getByRole('slider', { name: 'Resize column Label' }),
+      ).not.toBeNull()
+    })
+
+    it('takes the label the table was given', () => {
+      const view = render(
+        <Basic resizable resizableColumns resizeLabel="Drag to size" />,
+      )
+
+      expect(
+        view.getByRole('slider', { name: 'Drag to size Label' }),
+      ).not.toBeNull()
+    })
+
+    it('reports every column width once a handle is dragged', () => {
+      const onResize = vi.fn<(widths: Map<Key, unknown>) => void>()
+      const view = render(
+        <Basic onResize={onResize} resizable resizableColumns />,
+      )
+
+      drag(resizerOf(view.getByRole('slider')))
+
+      expect(onResize).toHaveBeenCalled()
+      // Every column is reported, not only the one dragged: under the fixed
+      // layout the container imposes, moving one boundary moves the rest.
+      expect([...onResize.mock.calls[0][0].keys()]).toEqual([
+        COLUMNS[0],
+        COLUMNS[1],
+      ])
+    })
+
+    it('narrows the column it was dragged across', () => {
+      const view = render(<Basic resizable resizableColumns />)
+      const column = view.getAllByRole('columnheader')[0]
+      const before = column.getBoundingClientRect().width
+
+      drag(resizerOf(view.getByRole('slider')))
+
+      expect(column.getBoundingClientRect().width).toBeLessThan(before)
+    })
+
+    it('marks the handle while it is being dragged, and lets go after', () => {
+      const view = render(<Basic resizable resizableColumns />)
+      const resizer = resizerOf(view.getByRole('slider'))
+      const resting = getComputedStyle(resizer).inlineSize
+
+      fireEvent.pointerDown(resizer, DRAG_FROM)
+      fireEvent.pointerMove(resizer, DRAG_TO)
+
+      // Thickened while it is the boundary being moved, so the one under the
+      // pointer is the one that stands out.
+      const dragging = getComputedStyle(resizer).inlineSize
+
+      fireEvent.pointerUp(resizer, DRAG_TO)
+
+      expect(dragging).not.toBe(resting)
+      expect(getComputedStyle(resizer).inlineSize).toBe(resting)
+    })
+  })
+
+  describe('load more', () => {
+    it('shows the ring while it is fetching, named for a reader', () => {
+      const view = render(<Basic loadMore />)
+
+      expect(
+        view.getByRole('progressbar', { name: 'Loading more' }),
+      ).not.toBeNull()
+    })
+
+    it('takes the label it was given', () => {
+      const view = render(<Basic loadMore loadMoreLabel="Fetching" />)
+
+      expect(view.getByRole('progressbar', { name: 'Fetching' })).not.toBeNull()
+    })
+
+    it('shows nothing while it is not fetching', () => {
+      const view = render(<Basic loadMore loadMoreLoading={false} />)
+
+      expect(view.queryByRole('progressbar')).toBeNull()
+    })
+
+    it('holds a body row height, so the list does not jump as rows arrive', () => {
+      const view = render(<Basic loadMore />)
+      const row = view
+        .getByRole('progressbar', { name: 'Loading more' })
+        .closest('tr')
+      if (!(row instanceof HTMLTableRowElement)) {
+        throw new Error('expected the ring to sit in a row')
+      }
+
+      expect(row.getBoundingClientRect().height).toBe(52)
+    })
+
+    it('carries no aria-level, which a grid row may not have', () => {
+      const view = render(<Basic loadMore />)
+      const row = view
+        .getByRole('progressbar', { name: 'Loading more' })
+        .closest('tr')
+      if (!(row instanceof HTMLTableRowElement)) {
+        throw new Error('expected the ring to sit in a row')
+      }
+
+      // React Aria sets it, and `aria-level` belongs to a treegrid's rows
+      // rather than a grid's — axe fails the page on it, and the stories run
+      // axe as an error. It is taken off the element, since React Aria writes
+      // it after the call site's own props.
+      expect(row.getAttribute('aria-level')).toBeNull()
+    })
+
+    it('spans every column rather than sitting in the first', () => {
+      const view = render(<Basic loadMore />)
+      const cell = view
+        .getByRole('progressbar', { name: 'Loading more' })
+        .closest('td')
+      if (!(cell instanceof HTMLTableCellElement)) {
+        throw new Error('expected the ring to sit in a cell')
+      }
+
+      expect(cell.colSpan).toBe(2)
     })
   })
 

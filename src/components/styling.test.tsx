@@ -583,6 +583,24 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   {
     element: (
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+          <Table.LoadMore {...PROBE} isLoading />
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table.LoadMore',
+  },
+  {
+    element: (
       <Tabs defaultSelectedKey="first">
         <Tabs.List {...PROBE}>
           <Tabs.Tab id="first">Label</Tabs.Tab>
