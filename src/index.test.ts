@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import * as publicApi from '.'
 import {
   AppBar as ComponentsAppBar,
+  Autocomplete as ComponentsAutocomplete,
   Avatar as ComponentsAvatar,
   Button as ComponentsButton,
   Card as ComponentsCard,
@@ -55,6 +56,7 @@ describe('package entry point', () => {
   it('exposes exactly the documented public API', () => {
     expect(Object.keys(publicApi)).toEqual([
       'AppBar',
+      'Autocomplete',
       'Avatar',
       'Button',
       'Card',
@@ -300,6 +302,10 @@ describe('package entry point', () => {
 
   it('forwards ComboBox as the same reference as the components barrel', () => {
     expect(publicApi.ComboBox).toBe(ComponentsComboBox)
+  })
+
+  it('forwards Autocomplete as the same reference as the components barrel', () => {
+    expect(publicApi.Autocomplete).toBe(ComponentsAutocomplete)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

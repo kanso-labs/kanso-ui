@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AppBarProps } from './app-bar'
+import type { AutocompleteProps } from './autocomplete'
 import type { AvatarProps } from './avatar'
 import type { ButtonProps } from './button'
 import type { CardProps } from './card'
@@ -46,6 +47,7 @@ import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
 import AppBarDefault from './app-bar'
+import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
 import ButtonDefault from './button'
 import CardDefault from './card'
@@ -93,6 +95,7 @@ describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
     expect(Object.keys(components)).toEqual([
       'AppBar',
+      'Autocomplete',
       'Avatar',
       'Button',
       'Card',
@@ -315,6 +318,10 @@ describe('components barrel', () => {
     expect(components.ComboBox).toBe(ComboBoxDefault)
   })
 
+  it('re-exports Autocomplete as the same reference as its own module', () => {
+    expect(components.Autocomplete).toBe(AutocompleteDefault)
+  })
+
   it('re-exports the AppBarProps type', () => {
     const props: AppBarProps = { size: 'large' }
     expect(props.size).toBe('large')
@@ -534,5 +541,10 @@ describe('components barrel', () => {
   it('re-exports the ComboBoxProps type', () => {
     const props: ComboBoxProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the AutocompleteProps type', () => {
+    const props: AutocompleteProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 })

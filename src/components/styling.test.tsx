@@ -64,11 +64,17 @@ const PROBE = { className: 'probe', style: { zIndex: 42 } }
 const SNACKBARS = new Snackbar.Queue()
 SNACKBARS.add('First item')
 
+// Autocomplete has no case: it renders no element of its own, so there is
+// nothing for a className or a style to land on. Sheet, Menu, Dialog and
+// Popover are absent for the same reason — each is a trigger whose parts are
+// listed instead.
+//
 // Portalled parts land outside the render container, so every case is found
 // from the document. `cleanup` in vitest.setup.ts unmounts between tests, so
 // only the current tree is ever in it.
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
+
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
