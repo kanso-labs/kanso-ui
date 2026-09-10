@@ -580,7 +580,7 @@ interface BoxControl {
 // below.
 type BoxLabel = 'fixed' | 'floating' | 'none'
 
-type FieldBoxProps = Omit<GroupProps, 'children'> & {
+type FieldBoxProps = {
   children?: ReactNode
   /**
    * Whether the label sits in the empty box and floats to the top once the
@@ -589,6 +589,13 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
    * @default true
    */
   floatingLabel?: boolean
+  /**
+   * Whether the control is holding anything, for a field whose control the
+   * chrome cannot ask. It reads an input, a text area and a select's own
+   * state; a control that is none of those — a token field's editable area,
+   * say — says so here, and the floating label floats on it.
+   */
+  isPopulated?: boolean
   /** What the field is for. */
   label: string
   /** An icon at the start of the box, before the label and the control. */
@@ -621,7 +628,7 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
    * @default 'filled'
    */
   variant?: FieldVariant
-}
+} & Omit<GroupProps, 'children'>
 
 // `prefix` is also an HTML attribute — the RDFa one, which nothing here
 // wants — and React's element types carry it as a string, so it is left out
@@ -737,6 +744,7 @@ function boxContent(
   label: string,
   children: ReactNode,
   floatingLabel: boolean,
+  isPopulated: boolean | undefined,
   leading: ReactNode,
   trailing: ReactNode,
   trigger: ReactNode,
@@ -745,6 +753,7 @@ function boxContent(
   return (state: GroupRenderProps) => (
     <BoxContent
       floatingLabel={floatingLabel}
+      isPopulated={isPopulated}
       label={label}
       leading={leading}
       state={state}
@@ -767,6 +776,7 @@ function boxContent(
 function BoxContent({
   children,
   floatingLabel,
+  isPopulated,
   label,
   leading,
   state,
@@ -776,6 +786,7 @@ function BoxContent({
 }: {
   children: ReactNode
   floatingLabel: boolean
+  isPopulated: boolean | undefined
   label: string
   leading: ReactNode
   state: GroupRenderProps
@@ -783,7 +794,8 @@ function BoxContent({
   trigger: ReactNode
   variant: FieldVariant
 }) {
-  const populated = useFieldPopulated()
+  const read = useFieldPopulated()
+  const populated = isPopulated ?? read
   const outlined = variant === 'outlined'
   const floated = !floatingLabel || state.isFocusWithin || populated
 
@@ -894,6 +906,7 @@ function boxStyles(
 function FieldBox({
   children,
   floatingLabel = true,
+  isPopulated,
   label,
   leading,
   multiline = false,
@@ -920,6 +933,7 @@ function FieldBox({
         label,
         children,
         floatingLabel,
+        isPopulated,
         leading,
         trailing,
         trigger,
