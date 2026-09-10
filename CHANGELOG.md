@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.19.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.18.0...kanso-ui-v0.19.0) (2026-09-10)
+
+
+### Features
+
+* **list-box:** add ListBox component ([#673](https://github.com/kanso-labs/kanso-ui/issues/673)) ([eb4078c](https://github.com/kanso-labs/kanso-ui/commit/eb4078ce402ca88214920167ef1da206bc9dbf28))
+* **menu:** add Menu component ([#676](https://github.com/kanso-labs/kanso-ui/issues/676)) ([99252ca](https://github.com/kanso-labs/kanso-ui/commit/99252cae32a4326f30fb183f23c7a0d7b3f7de8d))
+
+
+### Bug Fixes
+
+* **progress-indicator:** animate the line and the ring the way Material does ([#671](https://github.com/kanso-labs/kanso-ui/issues/671)) ([74a1a76](https://github.com/kanso-labs/kanso-ui/commit/74a1a763fb430f09fd15593533fc4eb879918f99))
+
+
+### Dependencies
+
+* update dependency lint-staged to v17.5.1 ([#674](https://github.com/kanso-labs/kanso-ui/issues/674)) ([a3d68d4](https://github.com/kanso-labs/kanso-ui/commit/a3d68d441a0bbb229a54a45f07dc94549fb6df8f))
+* update dependency vite to v8.3.0 ([#675](https://github.com/kanso-labs/kanso-ui/issues/675)) ([f84f1b4](https://github.com/kanso-labs/kanso-ui/commit/f84f1b4050071eefda82dc90e6be23311337d41c))
+
 ## [0.18.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.17.0...kanso-ui-v0.18.0) (2026-09-09)
 
 
