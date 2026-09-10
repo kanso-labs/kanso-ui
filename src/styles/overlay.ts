@@ -116,6 +116,31 @@ const origins = {
   top: overlay.fromBottom,
 }
 
+/** Where along that side it lines up with the anchor. */
+type OverlayAlign = 'center' | 'end' | 'start'
+
+/** Which side of the anchor a surface opens on. */
+type OverlaySide = 'bottom' | 'left' | 'right' | 'top'
+
+/**
+ * React Aria's placement, from the side and the alignment a call site names.
+ * Its own vocabulary pairs a side with `top`/`bottom` on the inline sides and
+ * `start`/`end` on the block ones; a call site should not have to know which
+ * of the two it is asking for, so this maps one onto the other.
+ *
+ * Shared by every anchored overlay rather than kept in one, since which side
+ * a surface opens on is the same question for a popover and a menu.
+ */
+function placementOf(side: OverlaySide, align: OverlayAlign) {
+  if (align === 'center') {
+    return side
+  }
+  if (side === 'top' || side === 'bottom') {
+    return `${side} ${align}` as const
+  }
+  return `${side} ${align === 'start' ? 'top' : 'bottom'}` as const
+}
+
 /**
  * The origin an anchored surface grows from, for the placement React Aria
  * reports through its render state. `null`, before the surface has been
@@ -125,4 +150,6 @@ function popupOrigin(placement: PopoverRenderProps['placement']) {
   return origins[placement ?? 'bottom']
 }
 
-export { overlay, popupOrigin }
+export type { OverlayAlign, OverlaySide }
+
+export { overlay, placementOf, popupOrigin }

@@ -23,6 +23,7 @@ import {
   ListBox,
   ListDetail,
   ListItem,
+  Menu,
   Meter,
   NumberField,
   Popover,
@@ -155,6 +156,42 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </ListItem>
     ),
     name: 'ListItem (interactive)',
+  },
+  {
+    element: (
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content {...PROBE}>
+          <Menu.Item id="first">First item</Menu.Item>
+        </Menu.Content>
+      </Menu>
+    ),
+    name: 'Menu.Content',
+  },
+  {
+    element: (
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content>
+          <Menu.Item {...PROBE} id="first">
+            First item
+          </Menu.Item>
+        </Menu.Content>
+      </Menu>
+    ),
+    name: 'Menu.Item',
+  },
+  {
+    element: (
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content>
+          <Menu.Item id="first">First item</Menu.Item>
+          <Menu.Separator {...PROBE} />
+        </Menu.Content>
+      </Menu>
+    ),
+    name: 'Menu.Separator',
   },
   { element: <Meter {...PROBE} label="Label" value={40} />, name: 'Meter' },
   { element: <NumberField {...PROBE} label="Label" />, name: 'NumberField' },
