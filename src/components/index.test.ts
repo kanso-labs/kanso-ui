@@ -28,6 +28,7 @@ import type { ProductIconProps } from './product-icon'
 import type { ProgressIndicatorProps } from './progress-indicator'
 import type { RadioGroupProps, RadioProps } from './radio-group'
 import type { SearchFieldProps } from './search-field'
+import type { SelectProps } from './select'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
 import type { SliderProps } from './slider'
@@ -71,6 +72,7 @@ import ProductIconDefault from './product-icon'
 import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
 import SearchFieldDefault from './search-field'
+import SelectDefault from './select'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
 import SliderDefault from './slider'
@@ -117,6 +119,7 @@ describe('components barrel', () => {
       'Radio',
       'RadioGroup',
       'SearchField',
+      'Select',
       'Separator',
       'Sheet',
       'Slider',
@@ -299,6 +302,10 @@ describe('components barrel', () => {
 
   it('re-exports Menu as the same reference as its own module', () => {
     expect(components.Menu).toBe(MenuDefault)
+  })
+
+  it('re-exports Select as the same reference as its own module', () => {
+    expect(components.Select).toBe(SelectDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -510,5 +517,10 @@ describe('components barrel', () => {
   it('re-exports the MenuProps type', () => {
     const props: MenuProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SelectProps type', () => {
+    const props: SelectProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })

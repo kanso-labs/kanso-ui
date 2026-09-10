@@ -32,6 +32,7 @@ import {
   Radio,
   RadioGroup,
   SearchField,
+  Select,
   Separator,
   Sheet,
   Slider,
@@ -240,6 +241,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <RadioGroup {...PROBE} label="Label" />, name: 'RadioGroup' },
   { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
+  {
+    element: (
+      <Select
+        {...PROBE}
+        label="Label"
+        options={<ListBox.Item id="first">First item</ListBox.Item>}
+      />
+    ),
+    name: 'Select',
+  },
   { element: <Separator {...PROBE} />, name: 'Separator' },
   {
     element: (

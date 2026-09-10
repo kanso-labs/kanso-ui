@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode, Ref } from 'react'
 import type {
+  ButtonProps,
   GroupProps,
   GroupRenderProps,
   InputProps,
@@ -17,6 +18,8 @@ import {
   Input,
   InputContext,
   Label,
+  Button as RACButton,
+  SelectStateContext,
   Text,
   TextArea,
   TextAreaContext,
@@ -159,6 +162,10 @@ const styles = stylex.create({
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,
+    // What `trigger` is positioned against: a box whose whole surface opens
+    // something covers itself with one press target rather than leaving its
+    // padding dead.
+    position: 'relative',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'box-shadow',
     transitionTimingFunction: motion.easingStandard,
@@ -225,6 +232,20 @@ const styles = stylex.create({
     insetBlockStart: 0,
     insetInlineStart: 0,
     position: 'absolute',
+  },
+  // The floated label's type, for a field whose control CSS cannot ask
+  // about. `boxFloating` shrinks the label by keying the box on
+  // `:focus-within` or on an input that is not showing its placeholder, and
+  // a select has no input to ask — so where React knows the field holds
+  // something, it says so here. The properties are the same five, and StyleX
+  // replaces each whole, so this wins over the box's conditional value
+  // without the two having to agree on the condition.
+  boxLabelFloated: {
+    fontFamily: typography.bodySmallFont,
+    fontSize: typography.bodySmallSize,
+    fontWeight: typography.bodySmallWeight,
+    letterSpacing: typography.bodySmallTracking,
+    lineHeight: typography.bodySmallLineHeight,
   },
   // Outlined, the label rests on the value's line and moves up onto the
   // outline, with the page's 4dp beside it — which the notch has too, so
@@ -513,6 +534,37 @@ const styles = stylex.create({
   textAreaAutosize: {
     overflow: 'hidden',
   },
+  // The press target over a box whose whole surface opens something. Drawn
+  // as nothing: the box already carries the fill, the underline and the
+  // focus indicator, so a second treatment here would be two for one press.
+  trigger: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    inset: 0,
+    outlineStyle: 'none',
+    padding: 0,
+    position: 'absolute',
+  },
+  // A value that was chosen rather than typed. The input's type and its
+  // place on the line, laid out as a row so it does not stretch to the box's
+  // height, and truncating rather than wrapping — the box is one line tall.
+  value: {
+    alignItems: 'center',
+    display: 'flex',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  // Nothing chosen yet: the placeholder's muted role, and hidden under a
+  // floating label until the field is focused, exactly as an input's is.
+  valuePlaceholder: {
+    color: colors.onSurfaceVariant,
+  },
+  valuePlaceholderHidden: {
+    color: 'transparent',
+  },
 })
 
 // What a control needs to know about the box around it: how the label is
@@ -547,8 +599,21 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
    * @default false
    */
   multiline?: boolean
+  /**
+   * The box's own element. A field whose box is what something else is
+   * anchored to needs it — a select's list is positioned against the box and
+   * takes its width from it, which is what makes the two the same width.
+   */
+  ref?: Ref<HTMLDivElement>
   /** An icon at the end of the box, after the control. */
   trailing?: ReactNode
+  /**
+   * A press target covering the whole box, for a field whose box opens
+   * something rather than taking a keystroke — {@link FieldTrigger}. Drawn
+   * in the box itself rather than in the column the label and the control
+   * share, so the padding and the icons open it too.
+   */
+  trigger?: ReactNode
   /**
    * The filled box, or the outlined one: no fill, an outline that thickens
    * and takes the primary role while focused, and the label cutting it once
@@ -627,6 +692,23 @@ type FieldTextAreaProps = TextAreaProps & {
   autosize?: boolean
 }
 
+type FieldTriggerProps = ButtonProps
+
+type FieldValueProps = HTMLAttributes<HTMLElement> & {
+  /**
+   * Whether the field has focus. A hidden placeholder appears while it does,
+   * the way an input's does.
+   * @default false
+   */
+  isFocused?: boolean
+  /**
+   * Whether nothing has been chosen yet, so what is drawn is the placeholder
+   * rather than a value.
+   * @default false
+   */
+  isPlaceholder?: boolean
+}
+
 type FieldVariant = 'filled' | 'outlined'
 
 // A control under a floating label carries a placeholder so the box can
@@ -657,6 +739,7 @@ function boxContent(
   floatingLabel: boolean,
   leading: ReactNode,
   trailing: ReactNode,
+  trigger: ReactNode,
   variant: FieldVariant,
 ) {
   return (state: GroupRenderProps) => (
@@ -666,6 +749,7 @@ function boxContent(
       leading={leading}
       state={state}
       trailing={trailing}
+      trigger={trigger}
       variant={variant}
     >
       {children}
@@ -687,6 +771,7 @@ function BoxContent({
   leading,
   state,
   trailing,
+  trigger,
   variant,
 }: {
   children: ReactNode
@@ -695,6 +780,7 @@ function BoxContent({
   leading: ReactNode
   state: GroupRenderProps
   trailing: ReactNode
+  trigger: ReactNode
   variant: FieldVariant
 }) {
   const populated = useFieldPopulated()
@@ -724,6 +810,7 @@ function BoxContent({
           </legend>
         </fieldset>
       ) : null}
+      {trigger}
       {leading === undefined ? null : (
         <span
           {...stylex.props(
@@ -748,6 +835,7 @@ function BoxContent({
           state={state}
           {...stylex.props(
             styles.boxLabel,
+            floatingLabel && floated && styles.boxLabelFloated,
             outlined && styles.boxLabelOutlined,
             outlined && floated && styles.boxLabelOutlinedFloated,
           )}
@@ -810,6 +898,7 @@ function FieldBox({
   leading,
   multiline = false,
   trailing,
+  trigger,
   variant = 'filled',
   ...props
 }: FieldBoxProps) {
@@ -827,7 +916,15 @@ function FieldBox({
         props,
       )}
     >
-      {boxContent(label, children, floatingLabel, leading, trailing, variant)}
+      {boxContent(
+        label,
+        children,
+        floatingLabel,
+        leading,
+        trailing,
+        trigger,
+        variant,
+      )}
     </Group>
   )
 }
@@ -967,18 +1064,84 @@ function FieldTextArea({
 }
 
 /**
+ * The press target over a {@link FieldBox} whose whole surface opens
+ * something — a select's list, a picker's calendar. React Aria's `Button`,
+ * which takes the trigger's props from the field around it through context.
+ *
+ * It covers the box rather than sitting on its value's line, so the box's
+ * own padding opens the field too. It draws nothing: the box already carries
+ * the fill, the underline and the focus indicator, and it lights up while
+ * this has focus because the indicator follows focus within.
+ */
+function FieldTrigger(props: FieldTriggerProps) {
+  return (
+    <RACButton
+      {...props}
+      {...mergeStatefulStyles(stylex.props(styles.trigger), props)}
+    />
+  )
+}
+
+/**
+ * A field's value where it was chosen rather than typed, in a
+ * {@link FieldBox}. Put React Aria's own element inside it — a select's
+ * `SelectValue`, a picker's display — and this is what carries the input's
+ * type and its place on the line, clearing the label at the top and
+ * truncating rather than wrapping.
+ *
+ * The wrapper is the styled one rather than React Aria's element, because
+ * this is the box's flex item: styling the element inside instead left it
+ * sizing itself against a parent that had already shrink-wrapped to it.
+ *
+ * `isPlaceholder` says nothing has been chosen, which takes the muted role;
+ * under a floating label it is hidden until the field is focused, exactly as
+ * an input's placeholder is.
+ */
+function FieldValue({
+  isFocused = false,
+  isPlaceholder = false,
+  ...props
+}: FieldValueProps) {
+  const box = useContext(BoxContext)
+  const hidden = isPlaceholder && box.label === 'floating' && !isFocused
+
+  return (
+    <span
+      {...props}
+      {...mergeStyles(
+        stylex.props(
+          styles.input,
+          styles.value,
+          box.underLabel && styles.inputUnderLabel,
+          isPlaceholder && styles.valuePlaceholder,
+          hidden && styles.valuePlaceholderHidden,
+        ),
+        props,
+      )}
+    />
+  )
+}
+
+function useFieldPopulated() {
+  const input = useSlottedContext(InputContext)
+  const textArea = useSlottedContext(TextAreaContext)
+  // A field whose value is chosen rather than typed holds no input at all,
+  // so being populated is a question for its own state — without this a
+  // select's floating label never floats, however much is chosen.
+  const select = useContext(SelectStateContext)
+  if (select !== null) {
+    return select.selectionManager.selectedKeys.size > 0
+  }
+  const value = input?.value ?? textArea?.value ?? ''
+  return String(value).length > 0
+}
+
+/**
  * Whether the control in this box is holding anything, read off React
  * Aria's context for whichever control the field renders. The filled box
  * reads the same thing in CSS through `:placeholder-shown`; this is for
  * what CSS cannot express — see the outlined variant's note above.
  */
-function useFieldPopulated() {
-  const input = useSlottedContext(InputContext)
-  const textArea = useSlottedContext(TextAreaContext)
-  const value = input?.value ?? textArea?.value ?? ''
-  return String(value).length > 0
-}
-
 /**
  * A field's label: the colour alone, positioned and given its type by whatever
  * renders it. React Aria's `Label`, which the field around it associates with
@@ -1082,4 +1245,12 @@ export type {
   FieldVariant,
 }
 
-export { FieldBox, FieldInput, FieldLabel, FieldMessage, FieldTextArea }
+export {
+  FieldBox,
+  FieldInput,
+  FieldLabel,
+  FieldMessage,
+  FieldTextArea,
+  FieldTrigger,
+  FieldValue,
+}

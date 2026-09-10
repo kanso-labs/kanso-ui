@@ -32,6 +32,7 @@ import {
   Radio as ComponentsRadio,
   RadioGroup as ComponentsRadioGroup,
   SearchField as ComponentsSearchField,
+  Select as ComponentsSelect,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
   Slider as ComponentsSlider,
@@ -89,6 +90,7 @@ describe('package entry point', () => {
       'RadioGroup',
       'RouterProvider',
       'SearchField',
+      'Select',
       'Separator',
       'Sheet',
       'Slider',
@@ -288,6 +290,10 @@ describe('package entry point', () => {
 
   it('forwards Menu as the same reference as the components barrel', () => {
     expect(publicApi.Menu).toBe(ComponentsMenu)
+  })
+
+  it('forwards Select as the same reference as the components barrel', () => {
+    expect(publicApi.Select).toBe(ComponentsSelect)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
