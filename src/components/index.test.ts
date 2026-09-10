@@ -155,6 +155,7 @@ describe('components barrel', () => {
       'Stack',
       'SupportingPane',
       'Switch',
+      'Table',
       'Tabs',
       'Tag',
       'Text',

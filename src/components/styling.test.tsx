@@ -46,6 +46,7 @@ import {
   Snackbar,
   SupportingPane,
   Switch,
+  Table,
   Tabs,
   Tag,
   Text,
@@ -76,6 +77,12 @@ SNACKBARS.add('First item')
 // nothing for a className or a style to land on. Sheet, Menu, Dialog and
 // Popover are absent for the same reason — each is a trigger whose parts are
 // listed instead.
+//
+// Table.Body is absent for a different one: it renders a `<tbody>`, but every
+// rule a body needs is drawn by the rows inside it, so it contributes no
+// compiled class and the second assertion below would have nothing to find. A
+// className passed to it still reaches the element, through React Aria rather
+// than through a merge.
 //
 // Portalled parts land outside the render container, so every case is found
 // from the document. `cleanup` in vitest.setup.ts unmounts between tests, so
@@ -467,6 +474,113 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'SupportingPane',
   },
   { element: <Switch {...PROBE}>Label</Switch>, name: 'Switch' },
+  {
+    element: (
+      <Table {...PROBE} aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table',
+  },
+  {
+    element: (
+      <Table aria-label="Label">
+        <Table.Header {...PROBE}>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table.Header',
+  },
+  {
+    element: (
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column {...PROBE} id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table.Column',
+  },
+  {
+    element: (
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row {...PROBE} id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table.Row',
+  },
+  {
+    element: (
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell {...PROBE}>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    ),
+    name: 'Table.Cell',
+  },
+  {
+    element: (
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+        <Table.Footer {...PROBE}>
+          <Table.Row id="total">
+            <Table.Cell>Second item</Table.Cell>
+          </Table.Row>
+        </Table.Footer>
+      </Table>
+    ),
+    name: 'Table.Footer',
+  },
   {
     element: (
       <Tabs defaultSelectedKey="first">

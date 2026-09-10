@@ -89,6 +89,16 @@ export type { SupportingPaneProps } from './supporting-pane'
 export { default as SupportingPane } from './supporting-pane'
 export type { SwitchProps } from './switch'
 export { default as Switch } from './switch'
+export type {
+  TableBodyProps,
+  TableCellProps,
+  TableColumnProps,
+  TableFooterProps,
+  TableHeaderProps,
+  TableProps,
+  TableRowProps,
+} from './table'
+export { default as Table } from './table'
 export type { TabsProps } from './tabs'
 export { default as Tabs } from './tabs'
 export type { TagProps } from './tag'

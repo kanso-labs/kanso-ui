@@ -116,6 +116,7 @@ describe('package entry point', () => {
       'Stack',
       'SupportingPane',
       'Switch',
+      'Table',
       'TableLayout',
       'Tabs',
       'Tag',

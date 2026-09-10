@@ -9,11 +9,31 @@ import type { SVGProps } from 'react'
 // the package.
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
-// close and the right chevron from Material Symbols on their 24-unit grid,
-// which is what the checkbox page draws at 18dp, the icon buttons page at 20
-// and the search and menus pages at 24.
+// close, the right chevron and the two sort arrows from Material Symbols on
+// their 24-unit grid, which is what the checkbox page draws at 18dp, the icon
+// buttons page at 20 and the search and menus pages at 24.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
+
+// Which way a sorted column is ordered. Up is ascending and down is
+// descending, which is the direction the data tables page puts beside a
+// column header's name. Neither mirrors under a right-to-left writing mode:
+// they say "up" and "down" rather than "onward", and those do not flip.
+function ArrowDownwardGlyph(props: GlyphProps) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
+    </svg>
+  )
+}
+
+function ArrowUpwardGlyph(props: GlyphProps) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
+    </svg>
+  )
+}
 
 function CheckGlyph(props: GlyphProps) {
   return (
@@ -74,6 +94,8 @@ function SearchGlyph(props: GlyphProps) {
 export type { GlyphProps }
 
 export {
+  ArrowDownwardGlyph,
+  ArrowUpwardGlyph,
   CheckGlyph,
   ChevronEndGlyph,
   CloseGlyph,
