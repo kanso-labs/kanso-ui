@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.20.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.19.0...kanso-ui-v0.20.0) (2026-09-10)
+
+
+### Features
+
+* **autocomplete:** add Autocomplete component ([#680](https://github.com/kanso-labs/kanso-ui/issues/680)) ([0e0af8f](https://github.com/kanso-labs/kanso-ui/commit/0e0af8f989263920ddd0419ed9c800c779762636))
+* **breadcrumbs:** add Breadcrumbs component ([#689](https://github.com/kanso-labs/kanso-ui/issues/689)) ([21f329e](https://github.com/kanso-labs/kanso-ui/commit/21f329e7a6dfcab4c7acb4273a75dea76a9728a0))
+* **button:** add the elevated variant ([#692](https://github.com/kanso-labs/kanso-ui/issues/692)) ([8454199](https://github.com/kanso-labs/kanso-ui/commit/84541994c6c51119bb3e485f8015d7d538bee8a6))
+* **chip-group:** add ChipGroup component ([#681](https://github.com/kanso-labs/kanso-ui/issues/681)) ([36e53e4](https://github.com/kanso-labs/kanso-ui/commit/36e53e40fd397e02a1b3c4be41a9ea9abe9e817a))
+* **combo-box:** add ComboBox component ([#679](https://github.com/kanso-labs/kanso-ui/issues/679)) ([2b7167a](https://github.com/kanso-labs/kanso-ui/commit/2b7167a90fbbc5a0637d1e904973cee6453ae195))
+* **disclosure-group:** add DisclosureGroup component ([#691](https://github.com/kanso-labs/kanso-ui/issues/691)) ([c8b1e0a](https://github.com/kanso-labs/kanso-ui/commit/c8b1e0a3a90d93647038578a3bdfb7785a978c6c))
+* **disclosure:** add Disclosure component ([#690](https://github.com/kanso-labs/kanso-ui/issues/690)) ([ebbc9b2](https://github.com/kanso-labs/kanso-ui/commit/ebbc9b24f396f4271efe5dbd7a143c0d8d9d21dc))
+* **icon-button:** add a toggle mode ([#687](https://github.com/kanso-labs/kanso-ui/issues/687)) ([74ad8c1](https://github.com/kanso-labs/kanso-ui/commit/74ad8c120ea8c3c7132f1bbbcf4d53ca2115b937))
+* **list:** add List component ([#683](https://github.com/kanso-labs/kanso-ui/issues/683)) ([a267eee](https://github.com/kanso-labs/kanso-ui/commit/a267eeec27e892510cf0968ccdd5109031ab0280))
+* **segmented-button:** add SegmentedButton component ([#686](https://github.com/kanso-labs/kanso-ui/issues/686)) ([2fc8da2](https://github.com/kanso-labs/kanso-ui/commit/2fc8da20c7e9b89bc231e03e201e86a00a793b11))
+* **select:** add Select component ([#677](https://github.com/kanso-labs/kanso-ui/issues/677)) ([6854611](https://github.com/kanso-labs/kanso-ui/commit/685461149cc54c822c21886c8f041d6c1811c49b))
+* **token-field:** add TokenField component ([#682](https://github.com/kanso-labs/kanso-ui/issues/682)) ([3b72bc7](https://github.com/kanso-labs/kanso-ui/commit/3b72bc76bee033a60e1bf8f9a7846ce35a5db44b))
+* **toolbar:** add Toolbar component ([#688](https://github.com/kanso-labs/kanso-ui/issues/688)) ([8a31e27](https://github.com/kanso-labs/kanso-ui/commit/8a31e27c2035cc737d0b12dabbfcaf457d23af4c))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.8.0 ([#685](https://github.com/kanso-labs/kanso-ui/issues/685)) ([5ab0d84](https://github.com/kanso-labs/kanso-ui/commit/5ab0d84364beb0aa4a6aca73e2d1ce6a1da380bf))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.24 ([#684](https://github.com/kanso-labs/kanso-ui/issues/684)) ([27d7abf](https://github.com/kanso-labs/kanso-ui/commit/27d7abfa0996a7971e0a338a84826d303adf4b86))
+
 ## [0.19.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.18.0...kanso-ui-v0.19.0) (2026-09-10)
 
 
