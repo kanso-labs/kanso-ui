@@ -48,6 +48,7 @@ import {
   Text as ComponentsText,
   TextArea as ComponentsTextArea,
   TextField as ComponentsTextField,
+  TokenField as ComponentsTokenField,
   Tooltip as ComponentsTooltip,
 } from './components'
 
@@ -110,6 +111,8 @@ describe('package entry point', () => {
       'Text',
       'TextArea',
       'TextField',
+      'TokenField',
+      'TokenFieldValue',
       'Tooltip',
       'Virtualizer',
       'VisuallyHidden',
@@ -312,6 +315,10 @@ describe('package entry point', () => {
 
   it('forwards ChipGroup as the same reference as the components barrel', () => {
     expect(publicApi.ChipGroup).toBe(ComponentsChipGroup)
+  })
+
+  it('forwards TokenField as the same reference as the components barrel', () => {
+    expect(publicApi.TokenField).toBe(ComponentsTokenField)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

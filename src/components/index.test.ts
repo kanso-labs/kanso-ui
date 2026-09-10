@@ -44,6 +44,7 @@ import type { TagProps } from './tag'
 import type { TextProps } from './text'
 import type { TextAreaProps } from './text-area'
 import type { TextFieldProps } from './text-field'
+import type { TokenFieldProps } from './token-field'
 import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
@@ -91,6 +92,7 @@ import TagDefault from './tag'
 import TextDefault from './text'
 import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
+import TokenFieldDefault from './token-field'
 import TooltipDefault from './tooltip'
 
 describe('components barrel', () => {
@@ -141,6 +143,7 @@ describe('components barrel', () => {
       'Text',
       'TextArea',
       'TextField',
+      'TokenField',
       'Tooltip',
     ])
   })
@@ -327,6 +330,10 @@ describe('components barrel', () => {
 
   it('re-exports ChipGroup as the same reference as its own module', () => {
     expect(components.ChipGroup).toBe(ChipGroupDefault)
+  })
+
+  it('re-exports TokenField as the same reference as its own module', () => {
+    expect(components.TokenField).toBe(TokenFieldDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -557,6 +564,11 @@ describe('components barrel', () => {
 
   it('re-exports the ChipGroupProps type', () => {
     const props: ChipGroupProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the TokenFieldProps type', () => {
+    const props: TokenFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })

@@ -11,6 +11,7 @@
 // oxlint-disable react-perf/jsx-no-jsx-as-prop
 
 import * as stylex from '@stylexjs/stylex'
+import { TokenFieldValue } from 'react-aria-components'
 
 import type { DemoThemeName } from './themes'
 
@@ -58,6 +59,7 @@ import Tag from '../components/tag'
 import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
+import TokenField from '../components/token-field'
 import Tooltip from '../components/tooltip'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
@@ -237,6 +239,12 @@ const SHOWCASE_OPTIONS = (
     <ListBox.Item id="third">Third item</ListBox.Item>
   </>
 )
+
+const SHOWCASE_TOKENS = new TokenFieldValue([
+  { text: 'First item', type: 'token' },
+  { text: ' and ', type: 'text' },
+  { text: 'Second item', type: 'token' },
+])
 
 const SHOWCASE_SELECTION = ['second']
 
@@ -669,6 +677,7 @@ function Showcase({ name }: ShowcaseProps) {
                   options={SHOWCASE_OPTIONS}
                 />
                 <ComboBox label="Label" options={SHOWCASE_OPTIONS} />
+                <TokenField defaultValue={SHOWCASE_TOKENS} label="Label" />
                 <Autocomplete>
                   <SearchField label="Label" placeholder="Search" />
                   <ListBox aria-label="Label" selectionMode="single">
