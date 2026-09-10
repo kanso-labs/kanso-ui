@@ -139,6 +139,23 @@ const rowStyles = stylex.create({
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
   },
+  // A supporting line takes on surface variant only while the row is drawn
+  // on the surface. The page's muted role is a second colour family over a
+  // selected row's own container, and the pair is not guaranteed to be
+  // readable — it fails AA outright on the Terminal scheme, where the
+  // primary container is a strong green. On a disabled row it is worse than
+  // unreadable: the muted role is at full strength while the headline above
+  // it has faded, so the line the row is least about is the one that stands
+  // out. Both cases take the row's own colour instead.
+  supportingInherit: {
+    color: 'inherit',
+  },
+  supportingSelectedList: {
+    color: colors.onPrimaryContainer,
+  },
+  supportingSelectedMenu: {
+    color: colors.onTertiaryContainer,
+  },
 })
 
 export { rowStyles }

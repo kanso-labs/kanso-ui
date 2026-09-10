@@ -31,6 +31,7 @@ import Form from '../components/form'
 import IconButton from '../components/icon-button'
 import Keycap from '../components/keycap'
 import Link from '../components/link'
+import ListBox from '../components/list-box'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
 import Meter from '../components/meter'
@@ -570,7 +571,8 @@ function Showcase({ name }: ShowcaseProps) {
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 An outlined card with no padding of its own is the bordered list
                 container, so the rows keep their inset and the rules between
-                them still span the full width.
+                them still span the full width. The selectable list draws the
+                same row, with the selected one on primary container.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
@@ -587,6 +589,23 @@ function Showcase({ name }: ShowcaseProps) {
                   </ListItem>
                 </div>
               ))}
+            </Card>
+            <Card padding="none" variant="outlined">
+              <ListBox
+                aria-label="Label"
+                defaultSelectedKeys={SHOWCASE_SELECTION}
+                selectionMode="single"
+              >
+                <ListBox.Item id="first" supporting="Supporting line">
+                  First item
+                </ListBox.Item>
+                <ListBox.Item id="second" supporting="Supporting line">
+                  Second item
+                </ListBox.Item>
+                <ListBox.Item id="third" supporting="Supporting line">
+                  Third item
+                </ListBox.Item>
+              </ListBox>
             </Card>
           </section>
 
