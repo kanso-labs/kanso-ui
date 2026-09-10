@@ -18,6 +18,7 @@ import {
   CopyField,
   Currency,
   Dialog,
+  Disclosure,
   Feed,
   Form,
   IconButton,
@@ -157,6 +158,24 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Dialog>
     ),
     name: 'Dialog.Body',
+  },
+  {
+    element: (
+      <Disclosure {...PROBE}>
+        <Disclosure.Header>Headline</Disclosure.Header>
+        <Disclosure.Panel>Supporting line</Disclosure.Panel>
+      </Disclosure>
+    ),
+    name: 'Disclosure',
+  },
+  {
+    element: (
+      <Disclosure defaultExpanded>
+        <Disclosure.Header>Headline</Disclosure.Header>
+        <Disclosure.Panel {...PROBE}>Supporting line</Disclosure.Panel>
+      </Disclosure>
+    ),
+    name: 'Disclosure.Panel',
   },
   {
     element: (

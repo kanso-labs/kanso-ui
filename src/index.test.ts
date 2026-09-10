@@ -19,6 +19,7 @@ import {
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
   Dialog as ComponentsDialog,
+  Disclosure as ComponentsDisclosure,
   Feed as ComponentsFeed,
   Form as ComponentsForm,
   IconButton as ComponentsIconButton,
@@ -79,6 +80,7 @@ describe('package entry point', () => {
       'Currency',
       'DIRECTORY_DRAG_TYPE',
       'Dialog',
+      'Disclosure',
       'Feed',
       'Focusable',
       'Form',
@@ -183,6 +185,10 @@ describe('package entry point', () => {
 
   it('forwards Currency as the same reference as the components barrel', () => {
     expect(publicApi.Currency).toBe(ComponentsCurrency)
+  })
+
+  it('forwards Disclosure as the same reference as the components barrel', () => {
+    expect(publicApi.Disclosure).toBe(ComponentsDisclosure)
   })
 
   it('forwards Feed as the same reference as the components barrel', () => {
