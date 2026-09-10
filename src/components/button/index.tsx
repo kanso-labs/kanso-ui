@@ -30,10 +30,17 @@ import ProgressIndicator from '../progress-indicator'
 // Each variant composites its label colour over its container at the
 // interaction state's opacity, rather than swapping in a separate
 // hover/pressed color: filled and tonal paint the 'on-color' over the
-// container, outlined and text paint the label colour over a transparent
-// one. The pairs are the buttons spec page's newer values: tonal on
+// container, outlined, text and elevated paint the label colour over their
+// own. The pairs are the buttons spec page's newer values: tonal on
 // secondary container, outlined with an outline variant border and an
-// on-surface-variant label, text on primary.
+// on-surface-variant label, text on primary, elevated on surface container
+// low with a primary label.
+//
+// **Elevated is the one variant whose shadow is part of its identity.** The
+// page rests it at elevation 1 rather than flat, raises it on hover and
+// returns it to 1 while pressed — where filled and tonal rest flat and lift
+// only on hover. Disabled drops it to none, since a shadow says a control is
+// available to press.
 // calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
 // percentage color-mix() takes. Inlined rather than factored into a helper:
 // @stylexjs/babel-plugin only statically recognizes expressions written
@@ -85,6 +92,25 @@ const styles = stylex.create({
   },
   disabled: {
     cursor: 'not-allowed',
+  },
+  elevated: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
+      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainerLow})`,
+      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+      default: colors.surfaceContainerLow,
+    },
+    boxShadow: {
+      ':active': shadows.elevation1,
+      ':hover': shadows.elevation2,
+      default: shadows.elevation1,
+    },
+    color: colors.primary,
+  },
+  elevatedDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    boxShadow: 'none',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   filled: {
     backgroundColor: {
@@ -232,6 +258,7 @@ const outlineWidths = stylex.create({
 })
 
 const disabledStyles = {
+  elevated: styles.elevatedDisabled,
   filled: styles.filledDisabled,
   outlined: styles.outlinedDisabled,
   text: styles.textDisabled,
@@ -280,7 +307,13 @@ type ButtonProps = {
   style?: StyleOrFunction<ButtonState>
   /** The link's `target`, when `href` is set. */
   target?: string
-  /** @default 'filled' */
+  /**
+   * How much weight the button pulls. `filled` and `tonal` carry a container
+   * of their own; `outlined` and `text` sit on the page; `elevated` sits on
+   * a low surface and lifts off it with a shadow, for a button that has to
+   * separate from a busy background rather than from the page.
+   * @default 'filled'
+   */
   variant?: ButtonVariant
 } & ButtonDOMProps
 
@@ -297,7 +330,7 @@ type ButtonState = Pick<
   'isDisabled' | 'isFocused' | 'isFocusVisible' | 'isHovered' | 'isPressed'
 >
 
-type ButtonVariant = 'filled' | 'outlined' | 'text' | 'tonal'
+type ButtonVariant = 'elevated' | 'filled' | 'outlined' | 'text' | 'tonal'
 
 // React Aria types the global DOM events — pointer, mouse, touch, wheel and
 // the rest — against the element each component renders, and a handler
@@ -311,7 +344,7 @@ type GlobalEventKey = Exclude<
 >
 
 /**
- * The design's button, at four emphasis levels and five control heights.
+ * The design's button, at five emphasis levels and five control heights.
  * Given `href` it is a link with the same appearance. Every `aria-*` prop is
  * forwarded to the element; React Aria alone would keep only the labelling
  * ones.

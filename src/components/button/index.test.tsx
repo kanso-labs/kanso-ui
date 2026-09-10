@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { colors, shadows, typography } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
 // The variant assertions compare against an element styled straight from
@@ -39,6 +39,11 @@ const typeProbeStyles = stylex.create({
 })
 
 const tokenProbeStyles = stylex.create({
+  elevatedPair: {
+    backgroundColor: colors.surfaceContainerLow,
+    color: colors.primary,
+  },
+  liftOne: { boxShadow: shadows.elevation1 },
   outlinedPair: {
     borderColor: colors.outlineVariant,
     color: colors.onSurfaceVariant,
@@ -234,6 +239,54 @@ describe('appearance', () => {
       expect(actual.fontFamily).toBe(fontFamily)
       unmount()
     }
+  })
+
+  // The elevated pair is the page's own, and not the tonal one: a low
+  // surface with a primary label. It is the only variant whose shadow is part
+  // of its identity, so the resting lift is asserted beside the colours.
+  it('paints the elevated variant with a low surface and a primary label', () => {
+    const probe = render(
+      <div
+        data-testid="probe"
+        {...stylex.props(tokenProbeStyles.elevatedPair)}
+      />,
+    )
+    const expected = getComputedStyle(probe.getByTestId('probe'))
+    const { backgroundColor, color } = {
+      backgroundColor: expected.backgroundColor,
+      color: expected.color,
+    }
+    probe.unmount()
+
+    const { button } = setup({ variant: 'elevated' })
+    const actual = getComputedStyle(button)
+
+    expect(actual.backgroundColor).toBe(backgroundColor)
+    expect(actual.color).toBe(color)
+    // Guards the comparison itself: a transparent container would satisfy the
+    // first assertion on any variant that happens to share it.
+    expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
+  it('rests the elevated variant on a shadow, where filled rests flat', () => {
+    const probe = render(
+      <div data-testid="probe" {...stylex.props(tokenProbeStyles.liftOne)} />,
+    )
+    const lift = getComputedStyle(probe.getByTestId('probe')).boxShadow
+    probe.unmount()
+
+    const elevated = setup({ variant: 'elevated' })
+    expect(getComputedStyle(elevated.button).boxShadow).toBe(lift)
+    elevated.unmount()
+
+    const { button } = setup({ variant: 'filled' })
+    expect(getComputedStyle(button).boxShadow).toBe('none')
+    expect(lift).not.toBe('none')
+  })
+
+  it('drops the elevated shadow while disabled', () => {
+    const { button } = setup({ isDisabled: true, variant: 'elevated' })
+    expect(getComputedStyle(button).boxShadow).toBe('none')
   })
 
   it('paints the tonal variant with the secondary container pair', () => {

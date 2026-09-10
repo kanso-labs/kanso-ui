@@ -361,14 +361,16 @@ function Showcase({ name }: ShowcaseProps) {
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 Every variant reads its container off a colour role and its
                 corner off the radius scale, so a scheme moves all of them at
-                once. A chosen icon-button toggle takes a second pair of roles
-                and rests at the squarer corner, and a toolbar puts a row of
-                them on a surface of its own.
+                once — the elevated button off its shadow scale as well. A
+                chosen icon-button toggle takes a second pair of roles and rests
+                at the squarer corner, and a toolbar puts a row of them on a
+                surface of its own.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
               <Button>Label</Button>
               <Button variant="tonal">Label</Button>
+              <Button variant="elevated">Label</Button>
               <Button variant="outlined">Label</Button>
               <Button variant="text">Label</Button>
               <Button isDisabled>Label</Button>
