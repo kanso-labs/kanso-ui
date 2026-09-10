@@ -62,6 +62,11 @@ export type { RadioGroupProps, RadioProps } from './radio-group'
 export { Radio, default as RadioGroup } from './radio-group'
 export type { SearchFieldProps } from './search-field'
 export { default as SearchField } from './search-field'
+export type {
+  SegmentedButtonProps,
+  SegmentedButtonSegmentProps,
+} from './segmented-button'
+export { default as SegmentedButton } from './segmented-button'
 export type { SelectProps } from './select'
 export { default as Select } from './select'
 export type { SeparatorProps } from './separator'
