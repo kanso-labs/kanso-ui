@@ -242,9 +242,36 @@ describe('list box', () => {
     })
 
     it('draws a disabled option in the disabled role', () => {
-      const view = setup({ disabledKeys: ['second'] })
+      const view = setup({ disabledKeys: SECOND })
       const [, second] = view.getAllByRole('option')
       expect(hasClasses(second, CLASSES.disabled)).toBe(true)
+    })
+
+    // The muted role is at full strength, so a disabled option whose
+    // supporting line kept it drew the line the option is least about as the
+    // only part that had not faded.
+    it('fades a disabled supporting line with the rest of the option', () => {
+      const view = setup(
+        { disabledKeys: SECOND },
+        <>
+          <ListBox.Item id="first" supporting="Supporting line">
+            First item
+          </ListBox.Item>
+          <ListBox.Item id="second" supporting="Supporting line">
+            Second item
+          </ListBox.Item>
+        </>,
+      )
+      const [enabled, disabled] = view.getAllByText('Supporting line')
+
+      // Compared against the headline beside it rather than against a
+      // literal, since what is being pinned is that the two agree.
+      expect(getComputedStyle(disabled).color).toBe(
+        getComputedStyle(view.getByText('Second item')).color,
+      )
+      expect(getComputedStyle(enabled).color).not.toBe(
+        getComputedStyle(view.getByText('First item')).color,
+      )
     })
 
     it('draws a section heading in the muted role', () => {

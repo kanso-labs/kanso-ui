@@ -76,7 +76,9 @@ const styles = stylex.create({
     paddingBlock: spacing.sm,
   },
   // A section's heading, at the row's own inline padding so it lines up with
-  // the headlines under it.
+  // the headlines under it. More room above than below, so it reads as
+  // belonging to the options after it rather than sitting evenly between two
+  // groups — a row's own 56dp floor otherwise swallows the difference.
   header: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -85,7 +87,8 @@ const styles = stylex.create({
     fontWeight: typography.titleSmallWeight,
     letterSpacing: typography.titleSmallTracking,
     lineHeight: typography.titleSmallLineHeight,
-    paddingBlock: spacing.sm,
+    paddingBlockEnd: spacing.xxs,
+    paddingBlockStart: spacing.lg,
     paddingInline: spacing.lg,
   },
   // The row the list shows while it is fetching more: the ring on its own,
@@ -160,10 +163,11 @@ type ListBoxSectionProps<T extends object = object> = Omit<
 // no-new-function-as-prop is after; the React Compiler memoises the result
 // on its inputs.
 //
-// It reads the render state for one thing: a selected row's supporting line
-// takes the selected container's own content role, since the muted role it
-// draws on the surface is a second colour family over that container and
-// the pair is not guaranteed to be readable.
+// It reads the render state for one thing: which colour the supporting line
+// takes. The muted role the page gives it holds only on the surface — over a
+// selected row's container it is a second colour family, and on a disabled
+// row it stays at full strength while the headline above it fades. The row
+// module decides; this hands it the two flags.
 function itemContent(
   children: ReactNode,
   leading: ReactNode,
@@ -172,6 +176,7 @@ function itemContent(
 ) {
   return (state: ListBoxItemRenderProps) => (
     <RowContent
+      isDisabled={state.isDisabled}
       isSelected={state.isSelected}
       leading={leading}
       supporting={supporting}

@@ -8,6 +8,13 @@ interface RowContentProps {
   /** The row's headline — the one thing it is mostly about. */
   children?: ReactNode
   /**
+   * Whether the row is disabled. The supporting line takes the row's own
+   * faded colour when it is, rather than staying at full strength in the
+   * muted role.
+   * @default false
+   */
+  isDisabled?: boolean
+  /**
    * Whether the row is selected. The supporting line takes the selected
    * container's own content role when it is, rather than staying in the
    * muted role it draws on the surface.
@@ -44,6 +51,7 @@ type RowVariant = 'list' | 'menu'
  */
 function RowContent({
   children,
+  isDisabled = false,
   isSelected = false,
   leading,
   supporting,
@@ -51,6 +59,14 @@ function RowContent({
   variant = 'list',
 }: RowContentProps) {
   const menu = variant === 'menu'
+  // Disabled first: a disabled row's own colour is already the faded one, so
+  // it wins over the selected container's content role.
+  const supportingTone = isDisabled
+    ? rowStyles.supportingInherit
+    : isSelected &&
+      (menu
+        ? rowStyles.supportingSelectedMenu
+        : rowStyles.supportingSelectedList)
   return (
     <>
       {leading === undefined ? null : (
@@ -65,15 +81,7 @@ function RowContent({
           {children}
         </span>
         {supporting === undefined ? null : (
-          <span
-            {...stylex.props(
-              rowStyles.supporting,
-              isSelected &&
-                (menu
-                  ? rowStyles.supportingSelectedMenu
-                  : rowStyles.supportingSelectedList),
-            )}
-          >
+          <span {...stylex.props(rowStyles.supporting, supportingTone)}>
             {supporting}
           </span>
         )}
