@@ -680,7 +680,10 @@ function Showcase({ name }: ShowcaseProps) {
                 a Currency: an amount's own colour role over a selected row's
                 container is one colour family on top of another, and the pair
                 is not guaranteed to be readable — it fails AA outright on
-                Terminal and on Poster.
+                Terminal and on Poster. Its first column takes a resize handle,
+                which is the divider&apos;s own rule rather than a treatment of
+                its own, so a scheme that moves the divider moves the handle
+                with it.
               </Text>
             </div>
             <Card padding="none" variant="outlined">

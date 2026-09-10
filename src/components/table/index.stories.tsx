@@ -128,6 +128,75 @@ function Basic() {
   )
 }
 
+// Drawn mid-fetch rather than wired to a real one: the ring is the state
+// worth looking at, and a story that actually fetches has loaded its next
+// page by the time anything captures it. What the sentinel does is in the
+// prose beside it and pinned in index.test.tsx.
+function LoadingMore() {
+  return (
+    <Card padding="none" variant="outlined">
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id={COLUMNS.name} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {ROWS.map((row) => (
+            <Table.Row id={row.id} key={row.id}>
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>
+                <span {...stylex.props(styles.value)}>{row.value}</span>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+          <Table.LoadMore isLoading />
+        </Table.Body>
+      </Table>
+    </Card>
+  )
+}
+
+// Resizing is React Aria's: the container holds the widths and the handle
+// drags them. What a call site decides is which columns take a handle, and
+// what each one starts at.
+function Resizable() {
+  return (
+    <Card padding="none" variant="outlined">
+      <Table aria-label="Label" resizable>
+        <Table.Header>
+          <Table.Column
+            defaultWidth="2fr"
+            id={COLUMNS.name}
+            isRowHeader
+            resizable
+          >
+            Label
+          </Table.Column>
+          <Table.Column defaultWidth="1fr" id={COLUMNS.status} resizable>
+            Status
+          </Table.Column>
+          <Table.Column defaultWidth="1fr" id={COLUMNS.value}>
+            Value
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {ROWS.map((row) => (
+            <Table.Row id={row.id} key={row.id}>
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>{row.status}</Table.Cell>
+              <Table.Cell>
+                <span {...stylex.props(styles.value)}>{row.value}</span>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
+    </Card>
+  )
+}
+
 // Sorting is the call site's to do: React Aria reports which column and which
 // direction, and the rows it is handed are the rows it draws.
 function Sortable() {
@@ -277,6 +346,48 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Resizing
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A column marked `resizable` inside a table marked `resizable` takes
+            a handle at its trailing edge — both are needed, because React Aria
+            keeps the widths on a container around the table and the handle only
+            changes what that container holds. The handle is the divider&apos;s
+            own rule, so a column boundary looks the same whether or not it can
+            be dragged; it thickens and takes the primary role while it is
+            moving.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A resizable table sizes to its columns rather than to its parent,
+            and the container fills the width and scrolls instead.
+          </Text>
+        </div>
+        <Resizable />
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Loading more
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `Table.LoadMore` goes after the rows and draws a ring across the
+            width while more are being fetched. React Aria calls its
+            `onLoadMore` when the sentinel it draws scrolls into view, and shows
+            the row only while `isLoading` — so a page that has finished
+            fetching draws nothing here at all.
+          </Text>
+        </div>
+        <LoadingMore />
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Footer and empty state
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -342,6 +453,12 @@ const Sorting: Story = {
   render: () => <Sortable />,
 }
 
+// Its own story because dragging a handle is the thing to look at, and a
+// snapshot of the resting state is what a reviewer compares against.
+const Resizing: Story = {
+  render: () => <Resizable />,
+}
+
 // The header holds its place while the rows scroll under it, which needs the
 // table inside something that scrolls — so the story brings the box as well.
 const StickyHeader: Story = {
@@ -371,6 +488,6 @@ const StickyHeader: Story = {
   ),
 }
 
-export { Default, Overview, Sorting, StickyHeader }
+export { Default, Overview, Resizing, Sorting, StickyHeader }
 
 export default meta
