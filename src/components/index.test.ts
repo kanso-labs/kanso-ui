@@ -20,6 +20,7 @@ import type { FormProps } from './form'
 import type { IconButtonProps } from './icon-button'
 import type { KeycapProps } from './keycap'
 import type { LinkProps } from './link'
+import type { ListProps } from './list'
 import type { ListBoxProps } from './list-box'
 import type { ListDetailProps } from './list-detail'
 import type { ListItemProps } from './list-item'
@@ -68,6 +69,7 @@ import FormDefault from './form'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
+import ListDefault from './list'
 import ListBoxDefault from './list-box'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
@@ -118,6 +120,7 @@ describe('components barrel', () => {
       'IconButton',
       'Keycap',
       'Link',
+      'List',
       'ListBox',
       'ListDetail',
       'ListItem',
@@ -334,6 +337,10 @@ describe('components barrel', () => {
 
   it('re-exports TokenField as the same reference as its own module', () => {
     expect(components.TokenField).toBe(TokenFieldDefault)
+  })
+
+  it('re-exports List as the same reference as its own module', () => {
+    expect(components.List).toBe(ListDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -570,5 +577,10 @@ describe('components barrel', () => {
   it('re-exports the TokenFieldProps type', () => {
     const props: TokenFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the ListProps type', () => {
+    const props: ListProps<object> = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
   })
 })

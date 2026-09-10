@@ -22,6 +22,7 @@ import {
   IconButton,
   Keycap,
   Link,
+  List,
   ListBox,
   ListDetail,
   ListItem,
@@ -153,6 +154,34 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <Keycap {...PROBE}>Esc</Keycap>, name: 'Keycap' },
   { element: <Link {...PROBE}>Label</Link>, name: 'Link' },
+  {
+    element: (
+      <List {...PROBE} aria-label="Label">
+        <List.Item id="first">First item</List.Item>
+      </List>
+    ),
+    name: 'List',
+  },
+  {
+    element: (
+      <List aria-label="Label">
+        <List.Item {...PROBE} id="first">
+          First item
+        </List.Item>
+      </List>
+    ),
+    name: 'List.Item',
+  },
+  {
+    element: (
+      <List aria-label="Label">
+        <List.Section {...PROBE} header="First group">
+          <List.Item id="first">First item</List.Item>
+        </List.Section>
+      </List>
+    ),
+    name: 'List.Section',
+  },
   {
     element: (
       <ListBox {...PROBE} aria-label="Label">
