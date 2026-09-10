@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import Select from '.'
+import ComboBox from '.'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
@@ -14,7 +14,6 @@ import ListBox from '../list-box'
 const probeStyles = stylex.create({
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
-  placeholder: { color: colors.onSurfaceVariant },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -30,7 +29,6 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   error: classesOf(stylex.props(probeStyles.error)),
   floated: classesOf(stylex.props(probeStyles.floated)),
-  placeholder: classesOf(stylex.props(probeStyles.placeholder)),
 }
 
 const OPTIONS = (
@@ -41,44 +39,50 @@ const OPTIONS = (
   </>
 )
 
+// The field fills what it is given, and React Aria clamps a popover to the
+// viewport — so a field as wide as the runner's window would open a list
+// narrower than itself for reasons that are the window's rather than the
+// component's.
+const WIDTH = { width: '320px' }
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
-// The field fills what it is given, and React Aria clamps a popover to the
-// viewport — so a field as wide as the runner's window would open a list
-// narrower than itself for reasons that are the window's rather than the
-// component's. A fixed width keeps the two comparable.
-const WIDTH = { width: '320px' }
+/** The field's own input, typed so its value can be read. */
+function inputOf(view: ReturnType<typeof render>) {
+  const input = view.getByRole('combobox', { name: 'Label' })
+  if (!(input instanceof HTMLInputElement)) {
+    throw new Error('expected the field to draw an input')
+  }
+  return input
+}
 
-function setup(props: Partial<Parameters<typeof Select<object>>[0]> = {}) {
+function setup(props: Partial<Parameters<typeof ComboBox<object>>[0]> = {}) {
   const view = render(
     <div style={WIDTH}>
-      <Select label="Label" options={OPTIONS} {...props} />
+      <ComboBox label="Label" options={OPTIONS} {...props} />
     </div>,
   )
-  return { ...view, trigger: view.getByRole('button', { name: /Label/ }) }
-}
-
-/** The element React Aria draws the value in, styled by the field chrome. */
-function valueOf(view: ReturnType<typeof render>) {
-  // The box holds the press target, then the column the label and the value
-  // share, then the trailing icon. The value is the column's last child.
-  const box = view.container.querySelector('[role="group"]')
-  const value =
-    box?.querySelector('button')?.nextElementSibling?.lastElementChild
-  if (!(value instanceof HTMLElement)) {
-    throw new Error('expected the box to draw a value')
+  return {
+    ...view,
+    input: inputOf(view),
+    toggle: view.getByRole('button'),
   }
-  return value
 }
 
-describe('select', () => {
+// Matches from the start of the text rather than anywhere in it, which the
+// default contains filter does not.
+function startsWith(textValue: string, inputValue: string) {
+  return textValue.toLowerCase().startsWith(inputValue.toLowerCase())
+}
+
+describe('combo box', () => {
   describe('semantics', () => {
-    it('renders a button named by its label', () => {
-      const { trigger } = setup()
-      expect(trigger.getAttribute('aria-haspopup')).toBe('listbox')
-      expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    it('renders a combo box named by its label', () => {
+      const { input } = setup()
+      expect(input.getAttribute('aria-expanded')).toBe('false')
+      expect(input.tagName).toBe('INPUT')
     })
 
     it('renders no list until it is opened', () => {
@@ -86,9 +90,9 @@ describe('select', () => {
       expect(view.queryByRole('listbox')).toBeNull()
     })
 
-    it('opens the list from the field', async () => {
+    it('opens the list from the chevron', async () => {
       const view = setup()
-      fireEvent.click(view.trigger)
+      fireEvent.click(view.toggle)
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
@@ -96,12 +100,10 @@ describe('select', () => {
     })
 
     it('reports its disabled state', () => {
-      const { trigger } = setup({ isDisabled: true })
-      expect(trigger.getAttribute('disabled')).not.toBeNull()
+      const { input } = setup({ isDisabled: true })
+      expect(input.getAttribute('disabled')).not.toBeNull()
     })
 
-    // The error is what puts the field in its error state — the message,
-    // the underline and aria-invalid all follow from it.
     it('reports an error on the field and shows it once', () => {
       const view = setup({
         description: 'Supporting line',
@@ -110,17 +112,51 @@ describe('select', () => {
       expect(view.getByText('Choose an item')).not.toBeNull()
       expect(view.queryByText('Supporting line')).toBeNull()
     })
+  })
 
-    it('shows the description when there is no error', () => {
-      const view = setup({ description: 'Supporting line' })
-      expect(view.getByText('Supporting line')).not.toBeNull()
+  describe('filtering', () => {
+    // The whole point of the component: the list narrows as it is typed.
+    it('narrows the list to what was typed', async () => {
+      const view = setup()
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'Sec' } })
+      })
+
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(1)
+      })
+      expect(view.getByRole('option', { name: 'Second item' })).not.toBeNull()
+    })
+
+    it('takes a filter of its own', async () => {
+      const view = setup({ defaultFilter: startsWith })
+
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+
+      // 'item' is in every option's text and at the start of none, so the
+      // default contains filter would keep all three.
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'item' } })
+      })
+
+      await waitFor(() => {
+        expect(view.queryAllByRole('option')).toHaveLength(0)
+      })
     })
   })
 
   describe('choosing', () => {
     it('chooses an option and closes the list', async () => {
       const view = setup()
-      fireEvent.click(view.trigger)
+      fireEvent.click(view.toggle)
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
@@ -130,38 +166,54 @@ describe('select', () => {
       await waitFor(() => {
         expect(view.queryByRole('listbox')).toBeNull()
       })
-      expect(valueOf(view).textContent).toBe('Second item')
+      expect(view.input.value).toBe('Second item')
     })
 
-    // The value is what the option is worth as text, which React Aria reads
-    // off an option's children. An option here always wraps its headline in
-    // the row, so ListBox.Item passes a plain-string headline through as the
-    // option's text value; without that the field showed nothing at all.
-    it('keeps its own choice from defaultValue', () => {
+    it('keeps its own choice from defaultSelectedKey', () => {
       const view = setup({ defaultValue: 'third' })
-      expect(valueOf(view).textContent).toBe('Third item')
+      expect(view.input.value).toBe('Third item')
     })
 
     it('does not change on its own when controlled', async () => {
       const onChange = vi.fn<(key: unknown) => void>()
       const view = setup({ onChange, value: 'first' })
-      fireEvent.click(view.trigger)
+
+      fireEvent.click(view.toggle)
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
-
       fireEvent.click(view.getByRole('option', { name: 'Second item' }))
 
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith('second')
       })
-      // The value is still the one it was told to show, not the one pressed.
-      expect(valueOf(view).textContent).toBe('First item')
+      expect(view.input.value).toBe('First item')
     })
 
-    it('shows the placeholder while nothing is chosen', () => {
-      const view = setup({ placeholder: 'Pick one' })
-      expect(view.getByText('Pick one')).not.toBeNull()
+    // Without allowsCustomValue the field cannot end up holding text that
+    // means nothing: React Aria puts the last chosen option back on blur.
+    it('keeps text that matches nothing only when allowed', async () => {
+      const view = setup({ allowsCustomValue: true })
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'Anything' } })
+      })
+      fireEvent.blur(view.input)
+
+      await waitFor(() => {
+        expect(view.input.value).toBe('Anything')
+      })
+    })
+
+    it('reverts text that matches nothing by default', async () => {
+      const view = setup({ defaultValue: 'first' })
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'Anything' } })
+      })
+      fireEvent.blur(view.input)
+
+      await waitFor(() => {
+        expect(view.input.value).toBe('First item')
+      })
     })
   })
 
@@ -169,10 +221,10 @@ describe('select', () => {
     it('opens the list from the keyboard', async () => {
       const view = setup()
       act(() => {
-        view.trigger.focus()
+        view.input.focus()
       })
-      fireEvent.keyDown(view.trigger, { key: 'ArrowDown' })
-      fireEvent.keyUp(view.trigger, { key: 'ArrowDown' })
+      fireEvent.keyDown(view.input, { key: 'ArrowDown' })
+      fireEvent.keyUp(view.input, { key: 'ArrowDown' })
 
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
@@ -181,12 +233,12 @@ describe('select', () => {
 
     it('closes on Escape', async () => {
       const view = setup()
-      fireEvent.click(view.trigger)
+      fireEvent.click(view.toggle)
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
 
-      fireEvent.keyDown(view.getByRole('listbox'), { key: 'Escape' })
+      fireEvent.keyDown(view.input, { key: 'Escape' })
 
       await waitFor(() => {
         expect(view.queryByRole('listbox')).toBeNull()
@@ -194,12 +246,8 @@ describe('select', () => {
     })
   })
 
-  describe('the label', () => {
-    // The box shrinks its label through CSS keyed on an input that is not
-    // showing its placeholder. A select has no input to ask, so the chrome
-    // reads the select's own state instead — without that the label never
-    // floats, however much is chosen, and sits over the value.
-    it('floats once something is chosen', () => {
+  describe('appearance', () => {
+    it('floats the label once the field holds text', () => {
       const empty = setup()
       expect(hasClasses(empty.getByText('Label'), CLASSES.floated)).toBe(false)
       empty.unmount()
@@ -208,54 +256,28 @@ describe('select', () => {
       expect(hasClasses(chosen.getByText('Label'), CLASSES.floated)).toBe(true)
     })
 
-    it('stays floated when it was told not to float at all', () => {
-      const view = setup({ floatingLabel: false })
-      expect(hasClasses(view.getByText('Label'), CLASSES.floated)).toBe(false)
-    })
-
     it('takes the error role when there is an error', () => {
       const view = setup({ error: 'Choose an item' })
       expect(hasClasses(view.getByText('Label'), CLASSES.error)).toBe(true)
     })
-  })
 
-  describe('appearance', () => {
-    // With no floating label there is nothing for the placeholder to hide
-    // behind, so it shows in the muted role from the start.
-    it('draws the placeholder in the muted role', () => {
-      const view = setup({ floatingLabel: false, placeholder: 'Pick one' })
-      expect(hasClasses(valueOf(view), CLASSES.placeholder)).toBe(true)
-      expect(valueOf(view).textContent).toBe('Pick one')
-    })
-
-    // Under a floating label the placeholder waits until the field is
-    // focused, exactly as an input's does — otherwise it and the label sit
-    // on top of each other in the empty box.
-    it('hides the placeholder under a floating label', () => {
-      const view = setup({ placeholder: 'Pick one' })
-      expect(getComputedStyle(valueOf(view)).color).toBe('rgba(0, 0, 0, 0)')
-    })
-
-    // The press target covers the box rather than the value's line, so the
-    // padding, the label and the icons all open the list.
-    it('covers the whole box with the press target', () => {
+    // The control is an input, so the box is not a press target — only the
+    // chevron opens the list, and it is the page's 24dp trailing icon.
+    it('draws the chevron as the only press target in the box', () => {
       const view = setup()
       const box = view.container.querySelector('[role="group"]')
       if (box === null) {
         throw new Error('expected the field to draw a box')
       }
 
-      expect(box.getBoundingClientRect().width).toBe(
-        view.trigger.getBoundingClientRect().width,
-      )
-      expect(box.getBoundingClientRect().height).toBe(
-        view.trigger.getBoundingClientRect().height,
-      )
+      expect(box.querySelectorAll('button')).toHaveLength(1)
+      expect(view.toggle.getBoundingClientRect().width).toBe(24)
+      expect(view.toggle.getBoundingClientRect().height).toBe(24)
     })
 
     // The page draws the list under the field and as wide as it, which only
     // holds because the popover is anchored to the box rather than to the
-    // button inside it.
+    // 24dp button inside it.
     it('opens the list at the width of the field', async () => {
       const view = setup()
       const box = view.container.querySelector('[role="group"]')
@@ -263,16 +285,11 @@ describe('select', () => {
         throw new Error('expected the field to draw a box')
       }
 
-      fireEvent.click(view.trigger)
+      fireEvent.click(view.toggle)
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
 
-      // React Aria reports the anchor's width to the surface as a custom
-      // property, and clamps the surface itself to the viewport — so what is
-      // pinned here is what it was anchored to, which is the whole point:
-      // anchored to the button inside the box, the list came out narrower
-      // than the field by the icons either side of it.
       const surface = view.getByRole('listbox').parentElement
       expect(surface?.style.getPropertyValue('--trigger-width')).toBe(
         `${box.getBoundingClientRect().width}px`,

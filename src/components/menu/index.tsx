@@ -357,11 +357,16 @@ function MenuItem<T extends object = object>({
   children,
   leading,
   shortcut,
+  textValue,
   trailing,
   ...props
 }: MenuItemProps<T>) {
   return (
-    <RACMenuItem {...props} {...mergeStatefulStyles(itemStyles, props)}>
+    <RACMenuItem
+      textValue={textValue ?? textOf(children)}
+      {...props}
+      {...mergeStatefulStyles(itemStyles, props)}
+    >
       {itemContent(children, leading, shortcut, trailing)}
     </RACMenuItem>
   )
@@ -437,6 +442,16 @@ function surfaceStyles(state: PopoverRenderProps) {
     styles.content,
     popupOrigin(state.placement),
   )
+}
+
+// What the item is worth as text, for the typeahead React Aria drives from
+// an item's words rather than its element. It reads it off the children when
+// they are a string and finds nothing when they are not — and an item here
+// is always an element, since the row wraps its label. So a plain-string
+// label becomes the text value, and anything else has to say what it is
+// worth through `textValue`.
+function textOf(children: ReactNode) {
+  return typeof children === 'string' ? children : undefined
 }
 
 /** What sits after the label: the call site's content, then the shortcut or
