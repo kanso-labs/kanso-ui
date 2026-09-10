@@ -62,7 +62,7 @@
     "react-aria-components": "1.21.1"
   },
   "devDependencies": {
-    "@babel/core": "8.0.1",
+    "@babel/core": "8.0.5",
     "@chromatic-com/storybook": "5.3.1",
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
