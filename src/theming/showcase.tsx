@@ -662,17 +662,17 @@ function Showcase({ name }: ShowcaseProps) {
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 An outlined card with no padding of its own is the bordered list
                 container, so the rows keep their inset and the rules between
-                them still span the full width. The selectable list draws the
-                same row, with the selected one on primary container, and the
-                list that toggles draws a checkbox on every one. A disclosure
-                draws the same row as its header, and a group of them puts a
-                rule between each pair.
+                them are inset to the leading edge of the text rather than the
+                card. The selectable list draws the same row, with the selected
+                one on primary container, and the list that toggles draws a
+                checkbox on every one. A disclosure draws the same row as its
+                header, and a group of them puts a rule between each pair.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
               {ROWS.map(({ amount, name: person, tone }, index) => (
                 <div key={person}>
-                  {index === 0 ? null : <Separator />}
+                  {index === 0 ? null : <Separator inset="start" />}
                   <ListItem
                     interactive
                     leading={<Avatar name={person} size="sm" tone={tone} />}

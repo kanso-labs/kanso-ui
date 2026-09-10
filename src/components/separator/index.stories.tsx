@@ -170,6 +170,60 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Inset
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The divider page's other two forms. `start` holds the rule 16dp off
+            the leading end, which lines it up with a row&apos;s text rather
+            than the container&apos;s edge; `both` holds it off each end. The
+            inset follows the writing mode rather than a fixed side.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.demoStack)}>
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">First item</Text>
+              </div>
+              <Separator inset="start" />
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">Second item</Text>
+              </div>
+              <Separator inset="start" />
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">Third item</Text>
+              </div>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              inset=&quot;start&quot;
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <div {...stylex.props(styles.demoStack)}>
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">First item</Text>
+              </div>
+              <Separator inset="both" />
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">Second item</Text>
+              </div>
+              <Separator inset="both" />
+              <div {...stylex.props(styles.row)}>
+                <Text variant="bodyMedium">Third item</Text>
+              </div>
+            </div>
+            <Text tone="muted" variant="labelSmall">
+              inset=&quot;both&quot;
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Vertical
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -203,6 +257,16 @@ const Default: Story = {
   decorators: [Framed],
 }
 
-export { Default, Overview }
+const Inset: Story = {
+  args: { inset: 'start' },
+  decorators: [Framed],
+}
+
+const MiddleInset: Story = {
+  args: { inset: 'both' },
+  decorators: [Framed],
+}
+
+export { Default, Inset, MiddleInset, Overview }
 
 export default meta
