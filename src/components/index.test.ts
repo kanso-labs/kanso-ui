@@ -32,6 +32,7 @@ import type { ProductIconProps } from './product-icon'
 import type { ProgressIndicatorProps } from './progress-indicator'
 import type { RadioGroupProps, RadioProps } from './radio-group'
 import type { SearchFieldProps } from './search-field'
+import type { SegmentedButtonProps } from './segmented-button'
 import type { SelectProps } from './select'
 import type { SeparatorProps } from './separator'
 import type { SheetProps } from './sheet'
@@ -81,6 +82,7 @@ import ProductIconDefault from './product-icon'
 import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
 import SearchFieldDefault from './search-field'
+import SegmentedButtonDefault from './segmented-button'
 import SelectDefault from './select'
 import SeparatorDefault from './separator'
 import SheetDefault from './sheet'
@@ -133,6 +135,7 @@ describe('components barrel', () => {
       'Radio',
       'RadioGroup',
       'SearchField',
+      'SegmentedButton',
       'Select',
       'Separator',
       'Sheet',
@@ -281,6 +284,10 @@ describe('components barrel', () => {
 
   it('re-exports SearchField as the same reference as its own module', () => {
     expect(components.SearchField).toBe(SearchFieldDefault)
+  })
+
+  it('re-exports SegmentedButton as the same reference as its own module', () => {
+    expect(components.SegmentedButton).toBe(SegmentedButtonDefault)
   })
 
   it('re-exports TextArea as the same reference as its own module', () => {
@@ -506,6 +513,11 @@ describe('components barrel', () => {
   it('re-exports the SearchFieldProps type', () => {
     const props: SearchFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the SegmentedButtonProps type', () => {
+    const props: SegmentedButtonProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
   })
 
   it('re-exports the TextAreaProps type', () => {

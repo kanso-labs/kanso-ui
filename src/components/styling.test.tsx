@@ -35,6 +35,7 @@ import {
   Radio,
   RadioGroup,
   SearchField,
+  SegmentedButton,
   Select,
   Separator,
   Sheet,
@@ -306,6 +307,24 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <RadioGroup {...PROBE} label="Label" />, name: 'RadioGroup' },
   { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
+  {
+    element: (
+      <SegmentedButton {...PROBE} aria-label="Label">
+        <SegmentedButton.Segment id="first">First item</SegmentedButton.Segment>
+      </SegmentedButton>
+    ),
+    name: 'SegmentedButton',
+  },
+  {
+    element: (
+      <SegmentedButton aria-label="Label">
+        <SegmentedButton.Segment {...PROBE} id="first">
+          First item
+        </SegmentedButton.Segment>
+      </SegmentedButton>
+    ),
+    name: 'SegmentedButton.Segment',
+  },
   {
     element: (
       <Select

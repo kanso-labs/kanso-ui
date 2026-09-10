@@ -36,6 +36,7 @@ import {
   Radio as ComponentsRadio,
   RadioGroup as ComponentsRadioGroup,
   SearchField as ComponentsSearchField,
+  SegmentedButton as ComponentsSegmentedButton,
   Select as ComponentsSelect,
   Separator as ComponentsSeparator,
   Sheet as ComponentsSheet,
@@ -99,6 +100,7 @@ describe('package entry point', () => {
       'RadioGroup',
       'RouterProvider',
       'SearchField',
+      'SegmentedButton',
       'Select',
       'Separator',
       'Sheet',
@@ -265,6 +267,10 @@ describe('package entry point', () => {
 
   it('forwards SearchField as the same reference as the components barrel', () => {
     expect(publicApi.SearchField).toBe(ComponentsSearchField)
+  })
+
+  it('forwards SegmentedButton as the same reference as the components barrel', () => {
+    expect(publicApi.SegmentedButton).toBe(ComponentsSegmentedButton)
   })
 
   it('forwards TextArea as the same reference as the components barrel', () => {

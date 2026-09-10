@@ -47,6 +47,7 @@ import ProductIcon from '../components/product-icon'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import SearchField from '../components/search-field'
+import SegmentedButton from '../components/segmented-button'
 import Select from '../components/select'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
@@ -478,9 +479,9 @@ function Showcase({ name }: ShowcaseProps) {
                 Selection and status
               </Text>
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-                Chips and tags lean on the container roles, which is where a
-                scheme's secondary and tertiary families show up; a checkbox and
-                a radio button take primary once selected.
+                Chips, tags and a segmented button lean on the container roles,
+                which is where a scheme's secondary and tertiary families show
+                up; a checkbox and a radio button take primary once selected.
               </Text>
             </div>
             <div {...stylex.props(styles.row)}>
@@ -498,6 +499,22 @@ function Showcase({ name }: ShowcaseProps) {
               <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
               <ChipGroup.Chip id="third">Third item</ChipGroup.Chip>
             </ChipGroup>
+            <div {...stylex.props(styles.row)}>
+              <SegmentedButton
+                aria-label="Label"
+                defaultSelectedKeys={SHOWCASE_SELECTION}
+              >
+                <SegmentedButton.Segment id="first">
+                  First item
+                </SegmentedButton.Segment>
+                <SegmentedButton.Segment id="second">
+                  Second item
+                </SegmentedButton.Segment>
+                <SegmentedButton.Segment id="third">
+                  Third item
+                </SegmentedButton.Segment>
+              </SegmentedButton>
+            </div>
             <CheckboxGroup defaultValue={SHOWCASE_SELECTION} label="Label">
               <Checkbox value="first">First item</Checkbox>
               <Checkbox value="second">Second item</Checkbox>
