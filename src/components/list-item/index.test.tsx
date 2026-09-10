@@ -17,6 +17,7 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
   bodyMedium: { fontSize: typography.bodyMediumSize },
+  labelSmall: { fontSize: typography.labelSmallSize },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
 })
 
@@ -135,6 +136,95 @@ describe('list item', () => {
         .getByTestId('trailing')
         .getBoundingClientRect().right
       expect(trailingRight).toBeLessThanOrEqual(rowRight)
+    })
+  })
+
+  // The lists page's overline: a line above the headline in label-small,
+  // taking the same muted role the supporting line does.
+  describe('overline', () => {
+    it('draws it above the headline', () => {
+      const view = render(<ListItem overline="Overline">Headline</ListItem>)
+      const main = view.getByText('Headline').parentElement
+
+      expect(main?.textContent).toBe('OverlineHeadline')
+      expect(main?.firstElementChild?.textContent).toBe('Overline')
+    })
+
+    it('sets it in the page label-small role', () => {
+      const expected = probeFontSize(
+        <span data-testid="probe" {...stylex.props(probeStyles.labelSmall)} />,
+      )
+      const view = render(<ListItem overline="Overline">Headline</ListItem>)
+
+      expect(getComputedStyle(view.getByText('Overline')).fontSize).toBe(
+        expected,
+      )
+      expect(expected).not.toBe(
+        getComputedStyle(view.getByText('Headline')).fontSize,
+      )
+    })
+
+    it('draws it in the muted role', () => {
+      const expected = probeColor(
+        <span
+          data-testid="probe"
+          {...stylex.props(probeStyles.onSurfaceVariant)}
+        />,
+      )
+      const view = render(<ListItem overline="Overline">Headline</ListItem>)
+
+      expect(getComputedStyle(view.getByText('Overline')).color).toBe(expected)
+    })
+
+    it('draws nothing when it is not given', () => {
+      const view = render(<ListItem>Headline</ListItem>)
+      expect(view.queryByText('Overline')).toBeNull()
+    })
+  })
+
+  // The page's three-line item, which is the only row whose slots move: an
+  // overline, a headline and a supporting line together take an 88dp floor
+  // with the leading and trailing slots held at the top.
+  describe('three lines', () => {
+    it('takes the page floor and holds its slots at the top', () => {
+      const view = render(
+        <ListItem overline="Overline" supporting="Supporting line">
+          Headline
+        </ListItem>,
+      )
+      const style = getComputedStyle(rowIn(view.container))
+
+      expect(style.minHeight).toBe('88px')
+      expect(style.alignItems).toBe('flex-start')
+    })
+
+    it('stays a centred two-line row with an overline alone', () => {
+      const view = render(<ListItem overline="Overline">Headline</ListItem>)
+      const style = getComputedStyle(rowIn(view.container))
+
+      expect(style.minHeight).toBe('56px')
+      expect(style.alignItems).toBe('center')
+    })
+
+    it('stays a centred two-line row with a supporting line alone', () => {
+      const view = render(
+        <ListItem supporting="Supporting line">Headline</ListItem>,
+      )
+      const style = getComputedStyle(rowIn(view.container))
+
+      expect(style.minHeight).toBe('56px')
+      expect(style.alignItems).toBe('center')
+    })
+
+    it('holds its slots at the top while interactive too', () => {
+      const view = render(
+        <ListItem interactive overline="Overline" supporting="Supporting line">
+          Headline
+        </ListItem>,
+      )
+      expect(getComputedStyle(rowIn(view.container)).alignItems).toBe(
+        'flex-start',
+      )
     })
   })
 

@@ -23,6 +23,11 @@ interface RowContentProps {
   isSelected?: boolean
   /** Content before the headline: an avatar, an icon, a checkbox. */
   leading?: ReactNode
+  /**
+   * A line above the headline, in the page's label-small and the same muted
+   * role the supporting line takes.
+   */
+  overline?: ReactNode
   /** A second line under the headline, in the muted role. */
   supporting?: ReactNode
   /** Content after the headline, such as an amount or a control. */
@@ -54,6 +59,7 @@ function RowContent({
   isDisabled = false,
   isSelected = false,
   leading,
+  overline,
   supporting,
   trailing,
   variant = 'list',
@@ -73,6 +79,11 @@ function RowContent({
         <span {...stylex.props(rowStyles.slot)}>{leading}</span>
       )}
       <span {...stylex.props(rowStyles.main)}>
+        {overline === undefined ? null : (
+          <span {...stylex.props(rowStyles.overline, supportingTone)}>
+            {overline}
+          </span>
+        )}
         <span
           {...stylex.props(
             menu ? rowStyles.headlineMenu : rowStyles.headlineList,

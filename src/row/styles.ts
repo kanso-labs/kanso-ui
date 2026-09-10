@@ -110,6 +110,18 @@ const rowStyles = stylex.create({
   menu: {
     minBlockSize: '48px',
   },
+  // A line above the headline, in the page's label-small and the same muted
+  // role the supporting line takes. Its colour follows the supporting line's
+  // rules exactly — inherit while disabled, the container's own on-colour
+  // while selected — so the three `supporting*` styles below serve both.
+  overline: {
+    color: colors.onSurfaceVariant,
+    fontFamily: typography.labelSmallFont,
+    fontSize: typography.labelSmallSize,
+    fontWeight: typography.labelSmallWeight,
+    letterSpacing: typography.labelSmallTracking,
+    lineHeight: typography.labelSmallLineHeight,
+  },
   selectedList: {
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
@@ -155,6 +167,15 @@ const rowStyles = stylex.create({
   },
   supportingSelectedMenu: {
     color: colors.onTertiaryContainer,
+  },
+  // The lists page's three-line item: an 88dp floor, with the leading and
+  // trailing slots held at the top rather than centred. Three lines of text
+  // beside a centred avatar reads as though the avatar has drifted, which is
+  // why the page moves it — the row's `alignItems` is what does both slots
+  // at once.
+  threeLine: {
+    alignItems: 'flex-start',
+    minBlockSize: '88px',
   },
 })
 

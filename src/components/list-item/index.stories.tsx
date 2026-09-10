@@ -135,7 +135,7 @@ const Overview: Story = {
           ListItem
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          One row of a list: a headline, an optional second line, and a slot at
+          One row of a list: a headline, a line above or below it, and a slot at
           each end.
         </Text>
       </header>
@@ -219,7 +219,13 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             A row with no supporting line still holds its 56px floor, which is
-            what keeps a list of mixed rows from looking ragged.
+            what keeps a list of mixed rows from looking ragged. An overline
+            adds a line above the headline without changing that floor, since
+            the two together are what the 56px was sized for. All three lines at
+            once is the page&apos;s three-line item: an 88px floor, with the
+            leading and trailing slots held at the top rather than centred, so
+            an avatar sits beside the text it belongs to rather than halfway
+            down the row.
           </Text>
         </div>
         <div {...stylex.props(styles.rows)}>
@@ -241,6 +247,33 @@ const Overview: Story = {
             </div>
             <div {...stylex.props(styles.width)}>
               <ListItem supporting="Supporting line · Metadata · Detail">
+                Headline
+              </ListItem>
+            </div>
+          </div>
+          <div {...stylex.props(styles.row)}>
+            <div {...stylex.props(styles.rowLabel)}>
+              <Text tone="muted" variant="labelSmall">
+                overline
+              </Text>
+            </div>
+            <div {...stylex.props(styles.width)}>
+              <ListItem overline="Overline">Headline</ListItem>
+            </div>
+          </div>
+          <div {...stylex.props(styles.row)}>
+            <div {...stylex.props(styles.rowLabel)}>
+              <Text tone="muted" variant="labelSmall">
+                three lines
+              </Text>
+            </div>
+            <div {...stylex.props(styles.width)}>
+              <ListItem
+                leading={<Avatar name="Ada Lovelace" size="md" />}
+                overline="Overline"
+                supporting="Supporting line · Metadata · Detail"
+                trailing={<span {...stylex.props(styles.value)}>01</span>}
+              >
                 Headline
               </ListItem>
             </div>
@@ -372,6 +405,21 @@ const Interactive: Story = {
   decorators: [Constrained],
 }
 
-export { Default, Interactive, Overview }
+// Its own story because it is a different layout, not a different line: the
+// leading and trailing slots move to the top of the row with the third line,
+// which is why this sample fills both of them. An overline on its own changes
+// nothing but the type, and the overview covers it.
+const ThreeLine: Story = {
+  args: {
+    children: 'Headline',
+    leading: <Avatar name="Ada Lovelace" size="md" />,
+    overline: 'Overline',
+    supporting: 'Supporting line · Metadata · Detail',
+    trailing: <span {...stylex.props(styles.value)}>01</span>,
+  },
+  decorators: [Constrained],
+}
+
+export { Default, Interactive, Overview, ThreeLine }
 
 export default meta
