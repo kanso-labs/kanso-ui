@@ -95,7 +95,7 @@ function StarIcon() {
 
 // Hoisted so the list is not a new array on every render, which is what
 // react-perf's no-new-array-as-prop is after.
-const TOGGLE_VARIANTS = ['standard', 'filled', 'tonal'] as const
+const TOGGLE_VARIANTS = ['standard', 'outlined', 'filled', 'tonal'] as const
 
 const meta = {
   args: {
@@ -132,8 +132,9 @@ const Overview: Story = {
             Variants
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `standard` is transparent and tints whatever it sits on; `filled`
-            and `tonal` carry a container of their own.
+            `standard` is transparent and tints whatever it sits on; `outlined`
+            is transparent with a rule around it, which thickens with the size;
+            `filled` and `tonal` carry a container of their own.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -143,6 +144,14 @@ const Overview: Story = {
             </IconButton>
             <Text tone="muted" variant="labelSmall">
               standard
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" variant="outlined">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              outlined
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
@@ -309,7 +318,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The same on-surface opacity composites over every variant, so the
-            three converge rather than each fading in its own colour.
+            four converge rather than each fading in its own colour — the
+            outlined rule fades with them rather than staying at full strength.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>
@@ -319,6 +329,14 @@ const Overview: Story = {
             </IconButton>
             <Text tone="muted" variant="labelSmall">
               standard
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <IconButton aria-label="Add" isDisabled variant="outlined">
+              <PlusIcon />
+            </IconButton>
+            <Text tone="muted" variant="labelSmall">
+              outlined
             </Text>
           </div>
           <div {...stylex.props(styles.sample)}>
@@ -370,6 +388,10 @@ const ToggleSelected: Story = {
   },
 }
 
-export { Default, Overview, Pending, Toggle, ToggleSelected }
+const Outlined: Story = {
+  args: { variant: 'outlined' },
+}
+
+export { Default, Outlined, Overview, Pending, Toggle, ToggleSelected }
 
 export default meta

@@ -12,7 +12,12 @@ import { colors, radii } from '../../tokens/design.tokens.stylex'
 // literals, so the assertions pin which role each variant reaches for without
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  inversePair: {
+    backgroundColor: colors.inverseSurface,
+    color: colors.inverseOnSurface,
+  },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
+  outlineVariant: { borderColor: colors.outlineVariant },
   pressedLarge: { borderRadius: { ':active': radii.lg, default: radii.full } },
   pressedMedium: { borderRadius: { ':active': radii.md, default: radii.full } },
   pressedSmall: { borderRadius: { ':active': radii.sm, default: radii.full } },
@@ -183,6 +188,52 @@ describe('icon button', () => {
       expect(getComputedStyle(button).color).toBe(expected)
     })
 
+    // The page's outlined icon button: transparent with a rule around it and
+    // the muted icon, where filled and tonal carry a container.
+    it('draws the outlined variant as a rule with no container', () => {
+      const reference = render(
+        <div
+          data-testid="probe"
+          {...stylex.props(probeStyles.outlineVariant)}
+        />,
+      )
+      const expected = getComputedStyle(
+        reference.getByTestId('probe'),
+      ).borderTopColor
+      reference.unmount()
+
+      const { button } = setup({ variant: 'outlined' })
+      const style = getComputedStyle(button)
+
+      expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+      expect(style.borderTopColor).toBe(expected)
+      expect(style.borderTopStyle).toBe('solid')
+      expect(style.borderTopWidth).toBe('1px')
+    })
+
+    // The border thickens with the size the way Button's does, so the two
+    // line up beside each other at every height.
+    it('thickens the outlined border with the size', () => {
+      const widths = [
+        ['xs', '1px'],
+        ['md', '1px'],
+        ['lg', '1px'],
+        ['xl', '2px'],
+        ['xxl', '3px'],
+      ] as const
+
+      for (const [size, width] of widths) {
+        const { button, unmount } = setup({ size, variant: 'outlined' })
+        expect(getComputedStyle(button).borderTopWidth).toBe(width)
+        unmount()
+      }
+    })
+
+    it('draws no border on a variant that carries a container', () => {
+      const { button } = setup({ size: 'xl', variant: 'filled' })
+      expect(getComputedStyle(button).borderTopWidth).toBe('0px')
+    })
+
     it('is a circle at rest', () => {
       const expected = probe(
         <div data-testid="probe" {...stylex.props(probeStyles.radiusFull)} />,
@@ -308,6 +359,37 @@ describe('icon button', () => {
 
         const { button } = setup({ isSelected: false, variant: 'tonal' })
         expect(getComputedStyle(button).backgroundColor).toBe(unchosen)
+      })
+
+      // The one place a toggle here inverts rather than tints: the page
+      // swaps the outlined rule for the inverse surface pair.
+      it('swaps a chosen outlined toggle for the inverse surface pair', () => {
+        const reference = render(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.inversePair)}
+          />,
+        )
+        const expected = getComputedStyle(reference.getByTestId('probe'))
+        const { background, color } = {
+          background: expected.backgroundColor,
+          color: expected.color,
+        }
+        reference.unmount()
+
+        const selected = setup({ isSelected: true, variant: 'outlined' })
+        const style = getComputedStyle(selected.button)
+        expect(style.backgroundColor).toBe(background)
+        expect(style.color).toBe(color)
+        // The rule goes when the container arrives, or the two compete.
+        expect(style.borderTopWidth).toBe('0px')
+        expect(background).not.toBe('rgba(0, 0, 0, 0)')
+        selected.unmount()
+
+        const { button } = setup({ isSelected: false, variant: 'outlined' })
+        const unchosen = getComputedStyle(button)
+        expect(unchosen.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+        expect(unchosen.borderTopWidth).toBe('1px')
       })
 
       it('moves a chosen standard toggle icon to primary, keeping no container', () => {

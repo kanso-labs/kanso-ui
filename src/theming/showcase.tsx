@@ -380,6 +380,9 @@ function Showcase({ name }: ShowcaseProps) {
               <IconButton aria-label="Add">
                 <PlusIcon />
               </IconButton>
+              <IconButton aria-label="Add" variant="outlined">
+                <PlusIcon />
+              </IconButton>
               <IconButton aria-label="Add" variant="tonal">
                 <PlusIcon />
               </IconButton>
