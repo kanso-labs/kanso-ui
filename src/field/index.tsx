@@ -1212,9 +1212,19 @@ function FieldMessage({
         inset && styles.messageInset,
       )}
     >
-      <FieldError {...stylex.props(styles.message, styles.messageError)}>
-        {error}
-      </FieldError>
+      {validation === null && error !== undefined ? (
+        // Outside a field that validates there is nothing to hand React
+        // Aria's `FieldError`, and it draws nothing without it — a group of
+        // chips is a group rather than a form control, so the error it was
+        // given is written out instead.
+        <span {...stylex.props(styles.message, styles.messageError)}>
+          {error}
+        </span>
+      ) : (
+        <FieldError {...stylex.props(styles.message, styles.messageError)}>
+          {error}
+        </FieldError>
+      )}
       {!invalid && description !== undefined ? (
         <Text slot="description" {...stylex.props(styles.message)}>
           {description}

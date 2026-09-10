@@ -8,6 +8,7 @@ import type { CardProps } from './card'
 import type { CheckboxProps } from './checkbox'
 import type { CheckboxGroupProps } from './checkbox-group'
 import type { ChipProps } from './chip'
+import type { ChipGroupProps } from './chip-group'
 import type { CodeProps } from './code'
 import type { ComboBoxProps } from './combo-box'
 import type { ContainerProps } from './container'
@@ -54,6 +55,7 @@ import CardDefault from './card'
 import CheckboxDefault from './checkbox'
 import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
+import ChipGroupDefault from './chip-group'
 import CodeDefault from './code'
 import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
@@ -102,6 +104,7 @@ describe('components barrel', () => {
       'Checkbox',
       'CheckboxGroup',
       'Chip',
+      'ChipGroup',
       'Code',
       'ComboBox',
       'Container',
@@ -320,6 +323,10 @@ describe('components barrel', () => {
 
   it('re-exports Autocomplete as the same reference as its own module', () => {
     expect(components.Autocomplete).toBe(AutocompleteDefault)
+  })
+
+  it('re-exports ChipGroup as the same reference as its own module', () => {
+    expect(components.ChipGroup).toBe(ChipGroupDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -546,5 +553,10 @@ describe('components barrel', () => {
   it('re-exports the AutocompleteProps type', () => {
     const props: AutocompleteProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ChipGroupProps type', () => {
+    const props: ChipGroupProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })
