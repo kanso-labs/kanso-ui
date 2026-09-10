@@ -1,5 +1,7 @@
 export type { AppBarProps } from './app-bar'
 export { default as AppBar } from './app-bar'
+export type { AutocompleteProps } from './autocomplete'
+export { default as Autocomplete } from './autocomplete'
 export type { AvatarProps } from './avatar'
 export { default as Avatar } from './avatar'
 export type { ButtonProps } from './button'

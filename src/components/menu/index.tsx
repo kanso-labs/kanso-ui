@@ -76,6 +76,12 @@ import Separator from '../separator'
 // glyph carries no direction of its own, so the style mirrors it under a
 // right-to-left writing mode.
 //
+// **A menu's children are a collection**, so anything that is not an item is
+// dropped: React Aria walks them looking for items and finds a search input
+// no place to be. `Menu.Content` therefore takes a `search` slot, drawn on
+// the surface above the items — which is also what puts the bar and the
+// items inside one `Autocomplete` when the menu is filtered.
+//
 // **A separator needs no slot from the call site.** React Aria's menu
 // provides the separator context, which is what `Menu.Separator` picks up —
 // that is why Separator moved onto React Aria in Phase 0. What is added here
@@ -100,6 +106,11 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     maxInlineSize: MENU_MAX,
     minInlineSize: MENU_MIN,
+    // The surface takes focus when it opens and there is nothing inside to
+    // take it instead — a menu with a search bar above its items, where the
+    // bar has focus and the panel behind it would otherwise draw the
+    // browser's own ring around the whole thing.
+    outlineStyle: 'none',
     paddingBlock: spacing.sm,
   },
   // A section's heading, at the item's own inline padding so it lines up
@@ -135,6 +146,13 @@ const styles = stylex.create({
     flexDirection: 'column',
     outlineStyle: 'none',
   },
+  // What sits above the items: a search bar, inset to the items' own inline
+  // padding so the two line up, with the page's 8dp under it.
+  search: {
+    boxSizing: 'border-box',
+    paddingBlockEnd: spacing.sm,
+    paddingInline: spacing.sm,
+  },
   // The menus page's divider: the rule with 8dp either side of it.
   separator: {
     marginBlock: spacing.sm,
@@ -147,10 +165,7 @@ const styles = stylex.create({
 
 type MenuAlign = OverlayAlign
 
-type MenuContentProps<T extends object = object> = Omit<
-  RACMenuProps<T>,
-  'className' | 'style'
-> & {
+type MenuContentProps<T extends object = object> = {
   /** Where the menu lines up along that side. @default 'start' */
   align?: MenuAlign
   /** Moves the menu along that side, in pixels. */
@@ -165,13 +180,23 @@ type MenuContentProps<T extends object = object> = Omit<
    * `prefers-color-scheme` default.
    */
   container?: Element
+  /**
+   * Content drawn on the surface above the items — a search bar that filters
+   * them, usually. It goes here rather than among the children because a
+   * menu's children are a collection: React Aria walks them for items and
+   * drops anything else, so an input written beside them disappears.
+   *
+   * To filter with it, wrap this whole part in `Autocomplete`, which puts
+   * the bar and the items inside one wrapper.
+   */
+  search?: ReactNode
   /** Which side of the trigger the menu opens on. @default 'bottom' */
   side?: MenuSide
   /** How far the menu sits from the trigger, in pixels. @default 8 */
   sideOffset?: number
   /** A function may compute the style from the menu's render state. */
   style?: RACMenuProps<T>['style']
-}
+} & Omit<RACMenuProps<T>, 'className' | 'style'>
 
 type MenuItemProps<T extends object = object> = {
   /** The item's label — what it does. */
@@ -323,6 +348,7 @@ function MenuContent<T extends object = object>({
   alignOffset,
   className,
   container,
+  search,
   side = 'bottom',
   sideOffset = 8,
   style,
@@ -337,6 +363,9 @@ function MenuContent<T extends object = object>({
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(surfaceStyles, {})}
     >
+      {search === undefined ? null : (
+        <div {...stylex.props(styles.search)}>{search}</div>
+      )}
       <RACMenu<T>
         {...props}
         {...mergeStatefulStyles(stylex.props(styles.menu), {

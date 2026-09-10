@@ -15,6 +15,7 @@ import * as stylex from '@stylexjs/stylex'
 import type { DemoThemeName } from './themes'
 
 import AppBar from '../components/app-bar'
+import Autocomplete from '../components/autocomplete'
 import Avatar from '../components/avatar'
 import Button from '../components/button'
 import Card from '../components/card'
@@ -653,6 +654,12 @@ function Showcase({ name }: ShowcaseProps) {
                   options={SHOWCASE_OPTIONS}
                 />
                 <ComboBox label="Label" options={SHOWCASE_OPTIONS} />
+                <Autocomplete>
+                  <SearchField label="Label" placeholder="Search" />
+                  <ListBox aria-label="Label" selectionMode="single">
+                    {SHOWCASE_OPTIONS}
+                  </ListBox>
+                </Autocomplete>
                 <TextField
                   defaultValue="01"
                   description="Supporting line"
