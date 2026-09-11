@@ -6,7 +6,7 @@ sourced from a single
 [W3C Design Tokens (DTCG)](https://design-tokens.github.io/community-group/format/)
 file and compiled via [Style Dictionary](https://styledictionary.com).
 
-Every component is documented in Storybook, published from `main` at
+Every component is documented in Storybook, published from the latest release at
 **[kanso-ui.kansolabs.org](https://kanso-ui.kansolabs.org/)**.
 
 ## Installation
