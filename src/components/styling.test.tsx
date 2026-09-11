@@ -733,6 +733,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Tabs defaultSelectedKey="first">
+        <Tabs.Panels {...PROBE}>
+          <Tabs.Panel id="first">First item</Tabs.Panel>
+        </Tabs.Panels>
+      </Tabs>
+    ),
+    name: 'Tabs.Panels',
+  },
+  {
+    element: (
+      <Tabs defaultSelectedKey="first">
         <Tabs.List>
           <Tabs.Tab {...PROBE} id="first">
             Label

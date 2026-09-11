@@ -61,6 +61,9 @@ function indicatorOf(tab: HTMLElement) {
   return found instanceof HTMLElement ? found : null
 }
 
+// Hoisted, which is what react-perf's no-new-object-as-prop is after.
+const TALL = { blockSize: '200px' }
+
 // Every indicator the bar is drawing, which is two while one is sliding.
 function indicatorsIn(view: ReturnType<typeof setup>) {
   return [
@@ -354,4 +357,85 @@ describe('tabs', () => {
   // keyDown does not drive — a test written against it reports on the test
   // harness rather than on the component. It is verified in a real browser
   // instead, and the result is recorded in the pull request.
+
+  describe('the panel box', () => {
+    function withPanels() {
+      return render(
+        <Tabs defaultSelectedKey="first">
+          <Tabs.List aria-label="Label">
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab id="second">Second item</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panels data-testid="panels">
+            <Tabs.Panel id="first">First item</Tabs.Panel>
+            <Tabs.Panel id="second">
+              <div style={TALL}>Second item</div>
+            </Tabs.Panel>
+          </Tabs.Panels>
+        </Tabs>,
+      )
+    }
+
+    it('takes its height from the variable React Aria measures', () => {
+      const view = withPanels()
+      const box = view.getByTestId('panels')
+      const natural = getComputedStyle(box).blockSize
+
+      // Set by hand rather than by a change of panel: what is under test is
+      // that the box reads the variable at all, and a computed height is a
+      // pixel value either way — so comparing it to `auto` proves nothing.
+      box.style.setProperty('--tab-panel-height', '321px')
+
+      expect(getComputedStyle(box).blockSize).toBe('321px')
+      expect(getComputedStyle(box).blockSize).not.toBe(natural)
+      expect(getComputedStyle(box).overflow).toBe('hidden')
+    })
+
+    // The line that makes it animate, and the one most easily lost: React
+    // Aria reads the box's computed transition once and does none of the
+    // measuring unless it names a size. Without it the panels still swap
+    // and the box still resizes — it just jumps.
+    it('names a size to transition, which is what animates it', () => {
+      const view = withPanels()
+      const box = getComputedStyle(view.getByTestId('panels'))
+
+      expect(box.transitionProperty).toContain('block-size')
+      expect(box.transitionDuration).not.toBe('0s')
+    })
+
+    it('measures the new panel and animates the box to it', () => {
+      const view = withPanels()
+      const box = view.getByTestId('panels')
+
+      expect(box.style.getPropertyValue('--tab-panel-height')).toBe('')
+
+      fireEvent.click(view.getByRole('tab', { name: 'Second item' }))
+
+      // React Aria puts the old height back and then sets the new one, so
+      // the transition carries the box between them.
+      const height = Number.parseFloat(
+        box.style.getPropertyValue('--tab-panel-height'),
+      )
+      expect(Number.isFinite(height)).toBe(true)
+      expect(height).toBeGreaterThan(200)
+    })
+
+    it('stops animating for a reader who asked for less motion', async () => {
+      await reducedMotion('reduce')
+      const view = withPanels()
+      const box = getComputedStyle(view.getByTestId('panels'))
+
+      // The size stays named, so React Aria still measures and the box
+      // still ends the right height — it just gets there in no time.
+      expect(box.transitionDuration).toBe('0s')
+      expect(box.transitionProperty).toContain('block-size')
+    })
+
+    it('is optional, and panels work without it', () => {
+      const view = setup()
+
+      expect(view.queryByTestId('panels')).toBeNull()
+      expect(view.getByRole('tabpanel')).not.toBeNull()
+    })
+  })
 })
