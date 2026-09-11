@@ -1,13 +1,13 @@
 # Changelog
 
-## [0.23.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.22.0...kanso-ui-v0.23.0) (2026-09-11)
+## [0.23.0](https://github.com/kanso-labs/kanso-ui/compare/v0.22.0...v0.23.0) (2026-09-11)
 
 
 ### Features
 
 * **color-wheel:** add ColorWheel component ([#718](https://github.com/kanso-labs/kanso-ui/issues/718)) ([95771ef](https://github.com/kanso-labs/kanso-ui/commit/95771efd3754f5e719265db4a0cdd8e60132667b))
 
-## [0.22.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.21.0...kanso-ui-v0.22.0) (2026-09-11)
+## [0.22.0](https://github.com/kanso-labs/kanso-ui/compare/v0.21.0...v0.22.0) (2026-09-11)
 
 
 ### Features
@@ -19,7 +19,7 @@
 
 * **row:** draw a two-line list row at the page's 72px container height ([#714](https://github.com/kanso-labs/kanso-ui/issues/714)) ([59be1ba](https://github.com/kanso-labs/kanso-ui/commit/59be1ba7794fde9f86b9cd569c85f2881ef17e41))
 
-## [0.21.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.20.0...kanso-ui-v0.21.0) (2026-09-11)
+## [0.21.0](https://github.com/kanso-labs/kanso-ui/compare/v0.20.0...v0.21.0) (2026-09-11)
 
 
 ### Features
@@ -49,7 +49,7 @@
 
 * update dependency @babel/core to v8.0.5 ([#697](https://github.com/kanso-labs/kanso-ui/issues/697)) ([494747c](https://github.com/kanso-labs/kanso-ui/commit/494747c2e1a4ded05581abec312816450636d107))
 
-## [0.20.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.19.0...kanso-ui-v0.20.0) (2026-09-10)
+## [0.20.0](https://github.com/kanso-labs/kanso-ui/compare/v0.19.0...v0.20.0) (2026-09-10)
 
 
 ### Features
@@ -74,7 +74,7 @@
 * update chromaui/action action to v18.8.0 ([#685](https://github.com/kanso-labs/kanso-ui/issues/685)) ([5ab0d84](https://github.com/kanso-labs/kanso-ui/commit/5ab0d84364beb0aa4a6aca73e2d1ce6a1da380bf))
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.24 ([#684](https://github.com/kanso-labs/kanso-ui/issues/684)) ([27d7abf](https://github.com/kanso-labs/kanso-ui/commit/27d7abfa0996a7971e0a338a84826d303adf4b86))
 
-## [0.19.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.18.0...kanso-ui-v0.19.0) (2026-09-10)
+## [0.19.0](https://github.com/kanso-labs/kanso-ui/compare/v0.18.0...v0.19.0) (2026-09-10)
 
 
 ### Features
@@ -93,7 +93,7 @@
 * update dependency lint-staged to v17.5.1 ([#674](https://github.com/kanso-labs/kanso-ui/issues/674)) ([a3d68d4](https://github.com/kanso-labs/kanso-ui/commit/a3d68d441a0bbb229a54a45f07dc94549fb6df8f))
 * update dependency vite to v8.3.0 ([#675](https://github.com/kanso-labs/kanso-ui/issues/675)) ([f84f1b4](https://github.com/kanso-labs/kanso-ui/commit/f84f1b4050071eefda82dc90e6be23311337d41c))
 
-## [0.18.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.17.0...kanso-ui-v0.18.0) (2026-09-09)
+## [0.18.0](https://github.com/kanso-labs/kanso-ui/compare/v0.17.0...v0.18.0) (2026-09-09)
 
 
 ### Features
@@ -118,7 +118,7 @@
 * update chromaui/action action to v18.7.4 ([#667](https://github.com/kanso-labs/kanso-ui/issues/667)) ([8786367](https://github.com/kanso-labs/kanso-ui/commit/878636707cc6ca6506e80db300f5160c32953db4))
 * update react to v19.3.0 ([#668](https://github.com/kanso-labs/kanso-ui/issues/668)) ([736cbf8](https://github.com/kanso-labs/kanso-ui/commit/736cbf82e57f7a94b5640f9d3560514e8f042417))
 
-## [0.17.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.16.0...kanso-ui-v0.17.0) (2026-09-09)
+## [0.17.0](https://github.com/kanso-labs/kanso-ui/compare/v0.16.0...v0.17.0) (2026-09-09)
 
 
 ### Features
@@ -145,7 +145,7 @@
 * update kanso-labs/github-actions action to v3.2.2 ([#646](https://github.com/kanso-labs/kanso-ui/issues/646)) ([79c8d02](https://github.com/kanso-labs/kanso-ui/commit/79c8d0200854ecf81f29ea7b86458f7edfca7546))
 * update react to v19.3.0 ([#655](https://github.com/kanso-labs/kanso-ui/issues/655)) ([ace5a99](https://github.com/kanso-labs/kanso-ui/commit/ace5a9912a368c801f6dad68fd42aa50e2f6a563))
 
-## [0.16.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.15.0...kanso-ui-v0.16.0) (2026-09-09)
+## [0.16.0](https://github.com/kanso-labs/kanso-ui/compare/v0.15.0...v0.16.0) (2026-09-09)
 
 
 ### ⚠ BREAKING CHANGES
@@ -180,7 +180,7 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.22 ([#633](https://github.com/kanso-labs/kanso-ui/issues/633)) ([d281091](https://github.com/kanso-labs/kanso-ui/commit/d281091922f2bbe0b316a50069f98f2f008338d3))
 * update node.js to v24.21.0 ([#637](https://github.com/kanso-labs/kanso-ui/issues/637)) ([89d7ff0](https://github.com/kanso-labs/kanso-ui/commit/89d7ff04894f5b7dabcd42fb08b1559e0f28e3f5))
 
-## [0.15.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.1...kanso-ui-v0.15.0) (2026-09-08)
+## [0.15.0](https://github.com/kanso-labs/kanso-ui/compare/v0.14.1...v0.15.0) (2026-09-08)
 
 
 ### ⚠ BREAKING CHANGES
@@ -191,14 +191,14 @@
 
 * **list-item:** the spec's type roles and selected colours ([#616](https://github.com/kanso-labs/kanso-ui/issues/616)) ([65bca42](https://github.com/kanso-labs/kanso-ui/commit/65bca42609c4cb98415d4765a33e36a9d2ef3842))
 
-## [0.14.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.14.0...kanso-ui-v0.14.1) (2026-09-08)
+## [0.14.1](https://github.com/kanso-labs/kanso-ui/compare/v0.14.0...v0.14.1) (2026-09-08)
 
 
 ### Bug Fixes
 
 * **chip:** outline variant border and 16dp padding ([#614](https://github.com/kanso-labs/kanso-ui/issues/614)) ([d1f30e3](https://github.com/kanso-labs/kanso-ui/commit/d1f30e353f093ca2d3fddf61a8cd792756367cb0))
 
-## [0.14.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.13.0...kanso-ui-v0.14.0) (2026-09-08)
+## [0.14.0](https://github.com/kanso-labs/kanso-ui/compare/v0.13.0...v0.14.0) (2026-09-08)
 
 
 ### ⚠ BREAKING CHANGES
@@ -220,7 +220,7 @@
 * update dependency typescript-eslint to v8.70.0 ([#583](https://github.com/kanso-labs/kanso-ui/issues/583)) ([1666c28](https://github.com/kanso-labs/kanso-ui/commit/1666c28980f4900583efc570874ac815c135d965))
 * update oxlint to v1.82.0 ([#585](https://github.com/kanso-labs/kanso-ui/issues/585)) ([1d7e3f0](https://github.com/kanso-labs/kanso-ui/commit/1d7e3f0853d8672b1eb4ca8195262b70858f5250))
 
-## [0.13.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.4...kanso-ui-v0.13.0) (2026-09-07)
+## [0.13.0](https://github.com/kanso-labs/kanso-ui/compare/v0.12.4...v0.13.0) (2026-09-07)
 
 
 ### ⚠ BREAKING CHANGES
@@ -231,14 +231,14 @@
 
 * move Link and Separator to React Aria ([#577](https://github.com/kanso-labs/kanso-ui/issues/577)) ([a82808a](https://github.com/kanso-labs/kanso-ui/commit/a82808a59fda71ef8b4514f684328211cade2ab3))
 
-## [0.12.4](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.3...kanso-ui-v0.12.4) (2026-09-07)
+## [0.12.4](https://github.com/kanso-labs/kanso-ui/compare/v0.12.3...v0.12.4) (2026-09-07)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.21 ([#518](https://github.com/kanso-labs/kanso-ui/issues/518)) ([139cc99](https://github.com/kanso-labs/kanso-ui/commit/139cc9984aadee01f2d8357a58edfaa98861f5af))
 
-## [0.12.3](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.2...kanso-ui-v0.12.3) (2026-09-07)
+## [0.12.3](https://github.com/kanso-labs/kanso-ui/compare/v0.12.2...v0.12.3) (2026-09-07)
 
 
 ### Dependencies
@@ -248,14 +248,14 @@
 * update dependency playwright to v1.63.0 ([#510](https://github.com/kanso-labs/kanso-ui/issues/510)) ([989c4a4](https://github.com/kanso-labs/kanso-ui/commit/989c4a41083b9bf81e9baa2c1baa2df76ba07ed4))
 * update dependency style-dictionary to v5.5.3 ([#514](https://github.com/kanso-labs/kanso-ui/issues/514)) ([7bfa378](https://github.com/kanso-labs/kanso-ui/commit/7bfa3782c198fa7e02b3bb9b582de2490c52b001))
 
-## [0.12.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.1...kanso-ui-v0.12.2) (2026-09-06)
+## [0.12.2](https://github.com/kanso-labs/kanso-ui/compare/v0.12.1...v0.12.2) (2026-09-06)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.19 ([#512](https://github.com/kanso-labs/kanso-ui/issues/512)) ([ad6b155](https://github.com/kanso-labs/kanso-ui/commit/ad6b1552a096aeccaa5cf22427c4f9853b521c94))
 
-## [0.12.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.12.0...kanso-ui-v0.12.1) (2026-09-05)
+## [0.12.1](https://github.com/kanso-labs/kanso-ui/compare/v0.12.0...v0.12.1) (2026-09-05)
 
 
 ### Dependencies
@@ -265,7 +265,7 @@
 * update dependency lint-staged to v17.5.0 ([#511](https://github.com/kanso-labs/kanso-ui/issues/511)) ([d260227](https://github.com/kanso-labs/kanso-ui/commit/d26022799a51a33c916ad02076544881c3f17a16))
 * update dependency react-aria-components to v1.21.1 ([#507](https://github.com/kanso-labs/kanso-ui/issues/507)) ([ace5392](https://github.com/kanso-labs/kanso-ui/commit/ace53920a864606af5ef4c10c8a8444f18bd82ef))
 
-## [0.12.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.21...kanso-ui-v0.12.0) (2026-09-04)
+## [0.12.0](https://github.com/kanso-labs/kanso-ui/compare/v0.11.21...v0.12.0) (2026-09-04)
 
 
 ### ⚠ BREAKING CHANGES
@@ -292,14 +292,14 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.18 ([#496](https://github.com/kanso-labs/kanso-ui/issues/496)) ([045afb2](https://github.com/kanso-labs/kanso-ui/commit/045afb29ca8e45f2768d381d4e8ff9278d4e45f7))
 * update dependency eslint to v10.10.0 ([#498](https://github.com/kanso-labs/kanso-ui/issues/498)) ([a5092b2](https://github.com/kanso-labs/kanso-ui/commit/a5092b222612702601bda8524c68596feaa9b8ef))
 
-## [0.11.21](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.20...kanso-ui-v0.11.21) (2026-09-04)
+## [0.11.21](https://github.com/kanso-labs/kanso-ui/compare/v0.11.20...v0.11.21) (2026-09-04)
 
 
 ### Dependencies
 
 * update dependency tsdown to v0.23.0 ([#491](https://github.com/kanso-labs/kanso-ui/issues/491)) ([639031e](https://github.com/kanso-labs/kanso-ui/commit/639031ed9e628cdf2be582b5f166fd23be7941b9))
 
-## [0.11.20](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.19...kanso-ui-v0.11.20) (2026-09-03)
+## [0.11.20](https://github.com/kanso-labs/kanso-ui/compare/v0.11.19...v0.11.20) (2026-09-03)
 
 
 ### Dependencies
@@ -310,7 +310,7 @@
 * update kanso-labs/github-actions action to v3.2.1 ([#488](https://github.com/kanso-labs/kanso-ui/issues/488)) ([590ef33](https://github.com/kanso-labs/kanso-ui/commit/590ef3349866fd2c7b8f3f3cb69b334789377df0))
 * update storybook to v10.6.0 ([#486](https://github.com/kanso-labs/kanso-ui/issues/486)) ([1974a4b](https://github.com/kanso-labs/kanso-ui/commit/1974a4b931e32c5b779ed56bc41995354f989d1b))
 
-## [0.11.19](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.18...kanso-ui-v0.11.19) (2026-09-02)
+## [0.11.19](https://github.com/kanso-labs/kanso-ui/compare/v0.11.18...v0.11.19) (2026-09-02)
 
 
 ### Dependencies
@@ -321,7 +321,7 @@
 * update dependency oxfmt to v0.66.0 ([#476](https://github.com/kanso-labs/kanso-ui/issues/476)) ([3c6f6c7](https://github.com/kanso-labs/kanso-ui/commit/3c6f6c7d90b3f1266e91b415f3da90e7a31cdb06))
 * update oxlint to v1.81.0 ([#477](https://github.com/kanso-labs/kanso-ui/issues/477)) ([382ab9b](https://github.com/kanso-labs/kanso-ui/commit/382ab9bff6fb3b8d5b9a33249dda66180b823a10))
 
-## [0.11.18](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.17...kanso-ui-v0.11.18) (2026-09-01)
+## [0.11.18](https://github.com/kanso-labs/kanso-ui/compare/v0.11.17...v0.11.18) (2026-09-01)
 
 
 ### Dependencies
@@ -331,7 +331,7 @@
 * update dependency globals to v17.12.0 ([#474](https://github.com/kanso-labs/kanso-ui/issues/474)) ([94b46e2](https://github.com/kanso-labs/kanso-ui/commit/94b46e264c1551710402d04318a9f699ac9e10cf))
 * update dependency typescript-eslint to v8.69.0 ([#472](https://github.com/kanso-labs/kanso-ui/issues/472)) ([3591ac6](https://github.com/kanso-labs/kanso-ui/commit/3591ac6a4fae24d34c8abdd14d31bd878f074748))
 
-## [0.11.17](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.16...kanso-ui-v0.11.17) (2026-08-31)
+## [0.11.17](https://github.com/kanso-labs/kanso-ui/compare/v0.11.16...v0.11.17) (2026-08-31)
 
 
 ### Dependencies
@@ -339,7 +339,7 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.14 ([#468](https://github.com/kanso-labs/kanso-ui/issues/468)) ([01491cb](https://github.com/kanso-labs/kanso-ui/commit/01491cb216b89b2ca6f32f5a1b6a219c743faf41))
 * update dependency eslint-plugin-perfectionist to v5.11.0 ([#466](https://github.com/kanso-labs/kanso-ui/issues/466)) ([addf93e](https://github.com/kanso-labs/kanso-ui/commit/addf93e670876c96c3712d700f5e0ec0b3bdaf68))
 
-## [0.11.16](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.15...kanso-ui-v0.11.16) (2026-08-29)
+## [0.11.16](https://github.com/kanso-labs/kanso-ui/compare/v0.11.15...v0.11.16) (2026-08-29)
 
 
 ### Dependencies
@@ -347,7 +347,7 @@
 * update chromaui/action action to v18.7.1 ([#464](https://github.com/kanso-labs/kanso-ui/issues/464)) ([4dc4d1c](https://github.com/kanso-labs/kanso-ui/commit/4dc4d1c61ed0e0cae6c31975bb92f0c75346e52c))
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.13 ([#463](https://github.com/kanso-labs/kanso-ui/issues/463)) ([2a1d81d](https://github.com/kanso-labs/kanso-ui/commit/2a1d81d943597bef8677f128d8b127c828d2c814))
 
-## [0.11.15](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.14...kanso-ui-v0.11.15) (2026-08-28)
+## [0.11.15](https://github.com/kanso-labs/kanso-ui/compare/v0.11.14...v0.11.15) (2026-08-28)
 
 
 ### Dependencies
@@ -357,7 +357,7 @@
 * update dependency @testing-library/react to v16.3.3 ([#459](https://github.com/kanso-labs/kanso-ui/issues/459)) ([708d013](https://github.com/kanso-labs/kanso-ui/commit/708d013e98a63e6a9629054af0bea0b97d0adb1f))
 * update dependency @vitejs/plugin-react to v6.1.1 ([#462](https://github.com/kanso-labs/kanso-ui/issues/462)) ([9f61689](https://github.com/kanso-labs/kanso-ui/commit/9f616899be138fe21fd6ce9bb1a3af577ea3a646))
 
-## [0.11.14](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.13...kanso-ui-v0.11.14) (2026-08-27)
+## [0.11.14](https://github.com/kanso-labs/kanso-ui/compare/v0.11.13...v0.11.14) (2026-08-27)
 
 
 ### Bug Fixes
@@ -370,7 +370,7 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.11 ([#454](https://github.com/kanso-labs/kanso-ui/issues/454)) ([14ef76c](https://github.com/kanso-labs/kanso-ui/commit/14ef76cb69798d42ca22e635434f0ad95080e66a))
 * update kanso-labs/github-actions action to v3.2.0 ([#455](https://github.com/kanso-labs/kanso-ui/issues/455)) ([5dc5d5b](https://github.com/kanso-labs/kanso-ui/commit/5dc5d5b2feef3611714206b0b5da7ff0e356fd0e))
 
-## [0.11.13](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.12...kanso-ui-v0.11.13) (2026-08-27)
+## [0.11.13](https://github.com/kanso-labs/kanso-ui/compare/v0.11.12...v0.11.13) (2026-08-27)
 
 
 ### Dependencies
@@ -378,70 +378,70 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.10 ([#450](https://github.com/kanso-labs/kanso-ui/issues/450)) ([320b594](https://github.com/kanso-labs/kanso-ui/commit/320b594fdc93c6398d36f9cbce62042ee897723b))
 * update dependency lint-staged to v17.4.1 ([#451](https://github.com/kanso-labs/kanso-ui/issues/451)) ([69a42d0](https://github.com/kanso-labs/kanso-ui/commit/69a42d006cbfc602abbbfaf2f7940a7a77cfcdd9))
 
-## [0.11.12](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.11...kanso-ui-v0.11.12) (2026-08-27)
+## [0.11.12](https://github.com/kanso-labs/kanso-ui/compare/v0.11.11...v0.11.12) (2026-08-27)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.9 ([#448](https://github.com/kanso-labs/kanso-ui/issues/448)) ([9aac1f0](https://github.com/kanso-labs/kanso-ui/commit/9aac1f05826868b6d8b5d550a8911587b8263a79))
 
-## [0.11.11](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.10...kanso-ui-v0.11.11) (2026-08-26)
+## [0.11.11](https://github.com/kanso-labs/kanso-ui/compare/v0.11.10...v0.11.11) (2026-08-26)
 
 
 ### Dependencies
 
 * update kanso-labs/github-actions action to v3.1.2 ([#445](https://github.com/kanso-labs/kanso-ui/issues/445)) ([ab37f00](https://github.com/kanso-labs/kanso-ui/commit/ab37f009752fbea938dfeb38f1d13e0eca8f0eb4))
 
-## [0.11.10](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.9...kanso-ui-v0.11.10) (2026-08-26)
+## [0.11.10](https://github.com/kanso-labs/kanso-ui/compare/v0.11.9...v0.11.10) (2026-08-26)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.8 ([#444](https://github.com/kanso-labs/kanso-ui/issues/444)) ([bee2473](https://github.com/kanso-labs/kanso-ui/commit/bee247326d5f3f0608381f025be432a0b6e5a679))
 
-## [0.11.9](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.8...kanso-ui-v0.11.9) (2026-08-26)
+## [0.11.9](https://github.com/kanso-labs/kanso-ui/compare/v0.11.8...v0.11.9) (2026-08-26)
 
 
 ### Dependencies
 
 * update node.js to v24.20.0 ([#442](https://github.com/kanso-labs/kanso-ui/issues/442)) ([3389ade](https://github.com/kanso-labs/kanso-ui/commit/3389adea8b09b231d3d487de3a3ce4b2a7c552be))
 
-## [0.11.8](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.7...kanso-ui-v0.11.8) (2026-08-26)
+## [0.11.8](https://github.com/kanso-labs/kanso-ui/compare/v0.11.7...v0.11.8) (2026-08-26)
 
 
 ### Dependencies
 
 * update dependency eslint-plugin-react-refresh to v0.5.5 ([#440](https://github.com/kanso-labs/kanso-ui/issues/440)) ([101445a](https://github.com/kanso-labs/kanso-ui/commit/101445adff6077222ba28920e720fd0dd0639447))
 
-## [0.11.7](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.6...kanso-ui-v0.11.7) (2026-08-25)
+## [0.11.7](https://github.com/kanso-labs/kanso-ui/compare/v0.11.6...v0.11.7) (2026-08-25)
 
 
 ### Dependencies
 
 * update chromaui/action action to v18.6.0 ([#438](https://github.com/kanso-labs/kanso-ui/issues/438)) ([6320950](https://github.com/kanso-labs/kanso-ui/commit/632095014612de9cfe735291b5e5d838b0aaf00a))
 
-## [0.11.6](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.5...kanso-ui-v0.11.6) (2026-08-25)
+## [0.11.6](https://github.com/kanso-labs/kanso-ui/compare/v0.11.5...v0.11.6) (2026-08-25)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.7 ([#436](https://github.com/kanso-labs/kanso-ui/issues/436)) ([6febfb8](https://github.com/kanso-labs/kanso-ui/commit/6febfb863893d444938c8a6f11a9d96864b58022))
 
-## [0.11.5](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.4...kanso-ui-v0.11.5) (2026-08-25)
+## [0.11.5](https://github.com/kanso-labs/kanso-ui/compare/v0.11.4...v0.11.5) (2026-08-25)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.6 ([#434](https://github.com/kanso-labs/kanso-ui/issues/434)) ([b5a0d13](https://github.com/kanso-labs/kanso-ui/commit/b5a0d13f0c559a9c68758251faf74c3bb0ad9382))
 
-## [0.11.4](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.3...kanso-ui-v0.11.4) (2026-08-24)
+## [0.11.4](https://github.com/kanso-labs/kanso-ui/compare/v0.11.3...v0.11.4) (2026-08-24)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.5 ([#432](https://github.com/kanso-labs/kanso-ui/issues/432)) ([71d3ec5](https://github.com/kanso-labs/kanso-ui/commit/71d3ec5b57bbdcba11b06f4e17c45c88becd20d0))
 
-## [0.11.3](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.2...kanso-ui-v0.11.3) (2026-08-24)
+## [0.11.3](https://github.com/kanso-labs/kanso-ui/compare/v0.11.2...v0.11.3) (2026-08-24)
 
 
 ### Dependencies
@@ -449,28 +449,28 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.4 ([#429](https://github.com/kanso-labs/kanso-ui/issues/429)) ([fcf464b](https://github.com/kanso-labs/kanso-ui/commit/fcf464b225bef8d1daf1010cad0f90b9f4c6a5c5))
 * update eslint ([#430](https://github.com/kanso-labs/kanso-ui/issues/430)) ([04e850a](https://github.com/kanso-labs/kanso-ui/commit/04e850a11e6b5f4b44128bcbad7ad35436615524))
 
-## [0.11.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.1...kanso-ui-v0.11.2) (2026-08-24)
+## [0.11.2](https://github.com/kanso-labs/kanso-ui/compare/v0.11.1...v0.11.2) (2026-08-24)
 
 
 ### Bug Fixes
 
 * **app-bar:** stop the collapse flickering mid-scroll ([#427](https://github.com/kanso-labs/kanso-ui/issues/427)) ([2021845](https://github.com/kanso-labs/kanso-ui/commit/202184522cb998a98f33b38c07f1cc2380a78c12))
 
-## [0.11.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.11.0...kanso-ui-v0.11.1) (2026-08-24)
+## [0.11.1](https://github.com/kanso-labs/kanso-ui/compare/v0.11.0...v0.11.1) (2026-08-24)
 
 
 ### Dependencies
 
 * update dependency oxlint to v1.80.0 ([#419](https://github.com/kanso-labs/kanso-ui/issues/419)) ([f784f29](https://github.com/kanso-labs/kanso-ui/commit/f784f298036e75569d3d82d7a930019debff1c43))
 
-## [0.11.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.10.0...kanso-ui-v0.11.0) (2026-08-24)
+## [0.11.0](https://github.com/kanso-labs/kanso-ui/compare/v0.10.0...v0.11.0) (2026-08-24)
 
 
 ### Features
 
 * **app-bar:** collapse a flexible bar to small on scroll ([#422](https://github.com/kanso-labs/kanso-ui/issues/422)) ([22c9acd](https://github.com/kanso-labs/kanso-ui/commit/22c9acd35ad3087733a096dd59d6a6b18a49d5cb))
 
-## [0.10.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.1...kanso-ui-v0.10.0) (2026-08-24)
+## [0.10.0](https://github.com/kanso-labs/kanso-ui/compare/v0.9.1...v0.10.0) (2026-08-24)
 
 
 ### Features
@@ -478,63 +478,63 @@
 * **app-bar:** let the content follow a page's measure and gutter ([#423](https://github.com/kanso-labs/kanso-ui/issues/423)) ([36da933](https://github.com/kanso-labs/kanso-ui/commit/36da933b34e7b10bb246c334ce4d0d2422dec695))
 * **text:** add a block variant for prose ([#420](https://github.com/kanso-labs/kanso-ui/issues/420)) ([5783633](https://github.com/kanso-labs/kanso-ui/commit/57836332a72702ddd465e5bb2ad5f0444ef8498f))
 
-## [0.9.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.9.0...kanso-ui-v0.9.1) (2026-08-24)
+## [0.9.1](https://github.com/kanso-labs/kanso-ui/compare/v0.9.0...v0.9.1) (2026-08-24)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.3 ([#418](https://github.com/kanso-labs/kanso-ui/issues/418)) ([1da9f6d](https://github.com/kanso-labs/kanso-ui/commit/1da9f6d491e7472037e29b1ebe55d21427d67946))
 
-## [0.9.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.2...kanso-ui-v0.9.0) (2026-08-24)
+## [0.9.0](https://github.com/kanso-labs/kanso-ui/compare/v0.8.2...v0.9.0) (2026-08-24)
 
 
 ### Features
 
 * add Container and Stack layout primitives ([#416](https://github.com/kanso-labs/kanso-ui/issues/416)) ([a5b10a9](https://github.com/kanso-labs/kanso-ui/commit/a5b10a9fc5f38356ca2cb1c2705941cfbf4d5465))
 
-## [0.8.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.1...kanso-ui-v0.8.2) (2026-08-24)
+## [0.8.2](https://github.com/kanso-labs/kanso-ui/compare/v0.8.1...v0.8.2) (2026-08-24)
 
 
 ### Bug Fixes
 
 * deliver the compiled CSS, keep className and style, and set box-sizing ([#410](https://github.com/kanso-labs/kanso-ui/issues/410)) ([bdd4895](https://github.com/kanso-labs/kanso-ui/commit/bdd4895253527231e2e31d8d358303b8945f64f0))
 
-## [0.8.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.8.0...kanso-ui-v0.8.1) (2026-08-24)
+## [0.8.1](https://github.com/kanso-labs/kanso-ui/compare/v0.8.0...v0.8.1) (2026-08-24)
 
 
 ### Dependencies
 
 * update dependency oxfmt to v0.65.0 ([#408](https://github.com/kanso-labs/kanso-ui/issues/408)) ([2a91e40](https://github.com/kanso-labs/kanso-ui/commit/2a91e40e28ffab90d3f2f1050fd90e0d8f83e5a4))
 
-## [0.8.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.1...kanso-ui-v0.8.0) (2026-08-24)
+## [0.8.0](https://github.com/kanso-labs/kanso-ui/compare/v0.7.1...v0.8.0) (2026-08-24)
 
 
 ### Features
 
 * **app-bar:** add Material Design's app bar ([#400](https://github.com/kanso-labs/kanso-ui/issues/400)) ([e7ea96a](https://github.com/kanso-labs/kanso-ui/commit/e7ea96af72b6b32bb5f4c1aa04f697ce7369a5da))
 
-## [0.7.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.7.0...kanso-ui-v0.7.1) (2026-08-23)
+## [0.7.1](https://github.com/kanso-labs/kanso-ui/compare/v0.7.0...v0.7.1) (2026-08-23)
 
 
 ### Dependencies
 
 * update dependency @types/react-dom to v19.2.5 ([#401](https://github.com/kanso-labs/kanso-ui/issues/401)) ([4615440](https://github.com/kanso-labs/kanso-ui/commit/46154406024fea69c5fbb778e9f11b0ab97e41c1))
 
-## [0.7.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.2...kanso-ui-v0.7.0) (2026-08-23)
+## [0.7.0](https://github.com/kanso-labs/kanso-ui/compare/v0.6.2...v0.7.0) (2026-08-23)
 
 
 ### Features
 
 * **feed:** add Material Design's feed layout ([#397](https://github.com/kanso-labs/kanso-ui/issues/397)) ([6acad91](https://github.com/kanso-labs/kanso-ui/commit/6acad91a2f4a6869bf3225cb1d53c2c187025dee))
 
-## [0.6.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.1...kanso-ui-v0.6.2) (2026-08-22)
+## [0.6.2](https://github.com/kanso-labs/kanso-ui/compare/v0.6.1...v0.6.2) (2026-08-22)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.2 ([#393](https://github.com/kanso-labs/kanso-ui/issues/393)) ([5be29a0](https://github.com/kanso-labs/kanso-ui/commit/5be29a0eddcd3e1c895179d15753a3527f8c51df))
 
-## [0.6.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.6.0...kanso-ui-v0.6.1) (2026-08-21)
+## [0.6.1](https://github.com/kanso-labs/kanso-ui/compare/v0.6.0...v0.6.1) (2026-08-21)
 
 
 ### Dependencies
@@ -542,21 +542,21 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.4.1 ([#390](https://github.com/kanso-labs/kanso-ui/issues/390)) ([45d3c70](https://github.com/kanso-labs/kanso-ui/commit/45d3c705175806232512f2205782c9a407b660bb))
 * update kanso-labs/github-actions action to v3.1.1 ([#391](https://github.com/kanso-labs/kanso-ui/issues/391)) ([2ff8802](https://github.com/kanso-labs/kanso-ui/commit/2ff8802897beb64e6043708f0555e5919889e543))
 
-## [0.6.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.5.1...kanso-ui-v0.6.0) (2026-08-21)
+## [0.6.0](https://github.com/kanso-labs/kanso-ui/compare/v0.5.1...v0.6.0) (2026-08-21)
 
 
 ### Features
 
 * **product-icon:** add a square mark for things that are not people ([#387](https://github.com/kanso-labs/kanso-ui/issues/387)) ([42fbf8c](https://github.com/kanso-labs/kanso-ui/commit/42fbf8c5634f8e30e1e38fe56fd256477a4832aa))
 
-## [0.5.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.5.0...kanso-ui-v0.5.1) (2026-08-21)
+## [0.5.1](https://github.com/kanso-labs/kanso-ui/compare/v0.5.0...v0.5.1) (2026-08-21)
 
 
 ### Dependencies
 
 * update oxlint to v1.79.0 ([#334](https://github.com/kanso-labs/kanso-ui/issues/334)) ([fa431af](https://github.com/kanso-labs/kanso-ui/commit/fa431af98f08ce2a9cee5a6face71450e2e2a2b8))
 
-## [0.5.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.6...kanso-ui-v0.5.0) (2026-08-21)
+## [0.5.0](https://github.com/kanso-labs/kanso-ui/compare/v0.4.6...v0.5.0) (2026-08-21)
 
 
 ### ⚠ BREAKING CHANGES
@@ -584,14 +584,14 @@
 
 * drop the CommonJS build and ship ESM only ([#382](https://github.com/kanso-labs/kanso-ui/issues/382)) ([d5bc09e](https://github.com/kanso-labs/kanso-ui/commit/d5bc09e104d99ca0c5cd1283a3f43acd2233f86e))
 
-## [0.4.6](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.5...kanso-ui-v0.4.6) (2026-08-21)
+## [0.4.6](https://github.com/kanso-labs/kanso-ui/compare/v0.4.5...v0.4.6) (2026-08-21)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.2.6 ([#375](https://github.com/kanso-labs/kanso-ui/issues/375)) ([61f7628](https://github.com/kanso-labs/kanso-ui/commit/61f7628ba0fe20ad5dc096c1039619a2fa152f84))
 
-## [0.4.5](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.4...kanso-ui-v0.4.5) (2026-08-21)
+## [0.4.5](https://github.com/kanso-labs/kanso-ui/compare/v0.4.4...v0.4.5) (2026-08-21)
 
 
 ### Dependencies
@@ -599,21 +599,21 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.2.5 ([#372](https://github.com/kanso-labs/kanso-ui/issues/372)) ([067baed](https://github.com/kanso-labs/kanso-ui/commit/067baede5a9cb0433b45edb2d71c1e949ca14a9f))
 * update kanso-labs/github-actions action to v3.0.2 ([#373](https://github.com/kanso-labs/kanso-ui/issues/373)) ([f0657e9](https://github.com/kanso-labs/kanso-ui/commit/f0657e9dad668aaecabc45b554ae288e528f3695))
 
-## [0.4.4](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.3...kanso-ui-v0.4.4) (2026-08-21)
+## [0.4.4](https://github.com/kanso-labs/kanso-ui/compare/v0.4.3...v0.4.4) (2026-08-21)
 
 
 ### Dependencies
 
 * update kanso-labs/github-actions action to v3 ([#370](https://github.com/kanso-labs/kanso-ui/issues/370)) ([d4ea4f0](https://github.com/kanso-labs/kanso-ui/commit/d4ea4f06538a2f2f1fc50b78f3a6e0bd4bba8033))
 
-## [0.4.3](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.2...kanso-ui-v0.4.3) (2026-08-21)
+## [0.4.3](https://github.com/kanso-labs/kanso-ui/compare/v0.4.2...v0.4.3) (2026-08-21)
 
 
 ### Dependencies
 
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.2.4 ([#368](https://github.com/kanso-labs/kanso-ui/issues/368)) ([7976bfe](https://github.com/kanso-labs/kanso-ui/commit/7976bfe5b274676b8c851bf3dcaf63e485b82ffa))
 
-## [0.4.2](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.1...kanso-ui-v0.4.2) (2026-08-21)
+## [0.4.2](https://github.com/kanso-labs/kanso-ui/compare/v0.4.1...v0.4.2) (2026-08-21)
 
 
 ### Dependencies
@@ -621,14 +621,14 @@
 * update dependency @kanso-labs/unplugin-style-dictionary to v0.2.3 ([#365](https://github.com/kanso-labs/kanso-ui/issues/365)) ([a8596ab](https://github.com/kanso-labs/kanso-ui/commit/a8596ab4f3d56d2ca7558eaab7561f6e1c07c69b))
 * update dependency eslint to v10.9.0 ([#366](https://github.com/kanso-labs/kanso-ui/issues/366)) ([8ef48d5](https://github.com/kanso-labs/kanso-ui/commit/8ef48d589f8e579374ed257a208abb9edcfe3ee2))
 
-## [0.4.1](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.4.0...kanso-ui-v0.4.1) (2026-08-21)
+## [0.4.1](https://github.com/kanso-labs/kanso-ui/compare/v0.4.0...v0.4.1) (2026-08-21)
 
 
 ### Dependencies
 
 * update js-yaml, brace-expansion and nanoid to patched versions ([#356](https://github.com/kanso-labs/kanso-ui/issues/356)) ([60991bf](https://github.com/kanso-labs/kanso-ui/commit/60991bf505ba4bfbac73de09e0cf0ff02d19566b))
 
-## [0.4.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.3.0...kanso-ui-v0.4.0) (2026-08-20)
+## [0.4.0](https://github.com/kanso-labs/kanso-ui/compare/v0.3.0...v0.4.0) (2026-08-20)
 
 
 ### Features
@@ -636,7 +636,7 @@
 * **copy-field:** add CopyField component ([#348](https://github.com/kanso-labs/kanso-ui/issues/348)) ([446b289](https://github.com/kanso-labs/kanso-ui/commit/446b289262e1ecb3b2aab8961b30bc0d0d57b0a7))
 * publish the package to npm on release ([#349](https://github.com/kanso-labs/kanso-ui/issues/349)) ([c5e21f5](https://github.com/kanso-labs/kanso-ui/commit/c5e21f526a3bc57abd801940a9bcbe47a8fc065f))
 
-## [0.3.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.2.0...kanso-ui-v0.3.0) (2026-08-20)
+## [0.3.0](https://github.com/kanso-labs/kanso-ui/compare/v0.2.0...v0.3.0) (2026-08-20)
 
 
 ### Features
@@ -644,7 +644,7 @@
 * **code:** add Code component ([#345](https://github.com/kanso-labs/kanso-ui/issues/345)) ([e355199](https://github.com/kanso-labs/kanso-ui/commit/e355199bb6bb708c3eba9a427e9ec9a9c4827a72))
 * **keycap:** add Keycap component ([#347](https://github.com/kanso-labs/kanso-ui/issues/347)) ([d841b87](https://github.com/kanso-labs/kanso-ui/commit/d841b877dac69e14668c23d5ff86fbe91fc30f92))
 
-## [0.2.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.1.0...kanso-ui-v0.2.0) (2026-08-20)
+## [0.2.0](https://github.com/kanso-labs/kanso-ui/compare/v0.1.0...v0.2.0) (2026-08-20)
 
 
 ### Features
@@ -652,7 +652,7 @@
 * **badge:** add Badge component ([#342](https://github.com/kanso-labs/kanso-ui/issues/342)) ([56a90dd](https://github.com/kanso-labs/kanso-ui/commit/56a90dd7511e4d64ed9f681c18db9ccb2b8b8884))
 * **link:** add Link component ([#344](https://github.com/kanso-labs/kanso-ui/issues/344)) ([0dcd9f0](https://github.com/kanso-labs/kanso-ui/commit/0dcd9f02c1f4a9111661921d3347d84a699ccf1c))
 
-## [0.1.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.0.1...kanso-ui-v0.1.0) (2026-08-14)
+## [0.1.0](https://github.com/kanso-labs/kanso-ui/compare/v0.0.1...v0.1.0) (2026-08-14)
 
 
 ### ⚠ BREAKING CHANGES
