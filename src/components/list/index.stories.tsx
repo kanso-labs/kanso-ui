@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
-import { useListData } from 'react-aria-components'
+import { ListLayout, useListData, Virtualizer } from 'react-aria-components'
 
 import List from '.'
 import { useDragAndDrop } from '../../drag/hooks'
+import { collectionSizes } from '../../layout'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Avatar from '../avatar'
 import Currency from '../currency'
@@ -60,6 +61,12 @@ const styles = stylex.create({
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.xl,
+  },
+  // A virtualized list needs a box it can be taller than, which is what makes
+  // it render only the rows in view.
+  scroller: {
+    blockSize: '320px',
+    overflowY: 'auto',
   },
   section: {
     display: 'flex',
@@ -316,6 +323,44 @@ const Reorderable: Story = {
   },
 }
 
+// Hoisted so the identity is stable across renders, which is what react-perf's
+// jsx-no-new-object-as-prop is after.
+const LIST_LAYOUT = { rowSize: collectionSizes.listRowTwoLine }
+
+// Its own story because a virtualized list is a different thing at the DOM
+// level — only the rows in view are rendered — which a snapshot of the top of
+// the list cannot show, but which is exactly what a reviewer would want to
+// look at against the same list drawn whole.
+//
+// `collectionSizes` is what the layout is told, rather than a number written
+// here: src/layout.test.tsx measures the real row, so the two cannot drift.
+const Virtualized: Story = {
+  render: function Virtualized() {
+    // Enough rows to be worth virtualizing, and no more: under `NODE_ENV=test`
+    // React Aria renders every one of them rather than the window, so a story
+    // with thousands would cost the suite and Chromatic real time for no
+    // extra information.
+    const rows = Array.from({ length: 200 }, (_unused, index) => ({
+      id: `row${index}`,
+      name: `Item ${String(index + 1).padStart(4, '0')}`,
+    }))
+
+    return (
+      <div {...stylex.props(styles.surface, styles.scroller)}>
+        <Virtualizer layout={ListLayout} layoutOptions={LIST_LAYOUT}>
+          <List aria-label="Label" items={rows}>
+            {(row) => (
+              <List.Item id={row.id} supporting="Supporting line">
+                {row.name}
+              </List.Item>
+            )}
+          </List>
+        </Virtualizer>
+      </div>
+    )
+  },
+}
+
 export {
   Default,
   Disabled,
@@ -325,6 +370,7 @@ export {
   Sections,
   Selected,
   SingleSelection,
+  Virtualized,
   WithoutSelection,
 }
 

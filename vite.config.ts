@@ -14,6 +14,29 @@ import {
 } from './scripts/build-tokens.mjs'
 
 export default defineConfig(({ command }) => ({
+  // React Aria's virtualizer reads `process.env.NODE_ENV` and
+  // `process.env.VIRT_ON` at runtime rather than behind a build-time
+  // replacement, so a browser with no `process` throws `process is not
+  // defined` the moment a `Virtualizer` renders — in Storybook and in both
+  // test projects alike. Naming the two here is what replaces them with
+  // literals before the code reaches the browser.
+  //
+  // Node's own value is passed through rather than a value chosen here.
+  // `NODE_ENV` is `test` under vitest, and the field tests read it: inventing
+  // `development` there changed what they were asserting on and failed five
+  // of them. It is also what the virtualizer is asking about — under `test`
+  // it renders every row rather than the window, which is what makes a
+  // virtualized collection assertable at all.
+  //
+  // The whole of `process.env` is deliberately not shimmed: an empty object
+  // would leave a consumer's own bundler doing the same thing in a way this
+  // repo never exercises, and these are the two the virtualizer reads.
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.NODE_ENV ?? 'development',
+    ),
+    'process.env.VIRT_ON': 'undefined',
+  },
   plugins: [
     // @kanso-labs/unplugin-style-dictionary@^0.2.1+ only — 0.2.0's
     // watchChange had no filtering, so it reacted to design.tokens.stylex.ts
