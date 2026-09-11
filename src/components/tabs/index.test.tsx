@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, waitFor } from '@testing-library/react'
+import { cdp } from '@vitest/browser/context'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
 import {
@@ -51,12 +52,47 @@ function hasClasses(element: HTMLElement, classes: string[]) {
 // The active indicator is the label span's `::after`, so it is read as the
 // browser resolved it rather than as a class: a tab without one has no
 // generated box, and its height reads as `auto`.
+// The indicator is an element React Aria renders inside the selected tab
+// alone, so an unselected tab has none at all. While it slides, the tab it
+// came from keeps its own marked `data-exiting` until the transition ends —
+// so "the indicator" is the one that is not on its way out.
 function indicatorOf(tab: HTMLElement) {
-  const label = tab.firstElementChild
-  if (!(label instanceof HTMLElement)) {
-    throw new Error('expected the tab to wrap its label')
+  const found = tab.querySelector('[data-rac]:not([data-exiting])')
+  return found instanceof HTMLElement ? found : null
+}
+
+// Every indicator the bar is drawing, which is two while one is sliding.
+function indicatorsIn(view: ReturnType<typeof setup>) {
+  return [
+    ...view.getByRole('tablist').querySelectorAll('[role="tab"] > span > div'),
+  ]
+}
+
+function indicatorStyleOf(tab: HTMLElement) {
+  const indicator = indicatorOf(tab)
+  if (indicator === null) {
+    throw new Error('expected the tab to carry an indicator')
   }
-  return getComputedStyle(label, '::after')
+  return getComputedStyle(indicator)
+}
+
+// Chromium's own media emulation, which is the only way to put the page in
+// the state a reduced-motion reader is in — nothing in the suite sets it,
+// and `matchMedia` cannot be written to.
+async function reducedMotion(value: 'no-preference' | 'reduce') {
+  // Vitest declares `CDPSession` as an empty interface, so the method it
+  // does have at runtime is not on the type. Narrowed to the one call this
+  // needs rather than left as `any`.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- CDPSession is an empty upstream stub
+  const session = cdp() as unknown as {
+    send: (
+      method: string,
+      params: { features: { name: string; value: string }[] },
+    ) => Promise<unknown>
+  }
+  await session.send('Emulation.setEmulatedMedia', {
+    features: [{ name: 'prefers-reduced-motion', value }],
+  })
 }
 
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
@@ -80,6 +116,12 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
 }
 
 describe('tabs', () => {
+  // The emulation is the page's, not the render's, so it outlives the test
+  // that set it unless this puts it back.
+  afterEach(async () => {
+    await reducedMotion('no-preference')
+  })
+
   describe('semantics', () => {
     // The roles are the reason this wraps React Aria rather than styling a row
     // of buttons: a tab announces that it selects a panel, and a button does
@@ -182,26 +224,80 @@ describe('tabs', () => {
     // which is the same role.
     it('draws the indicator under the active label alone', () => {
       const { first, second } = setup()
-      const indicator = indicatorOf(first)
+      const indicator = indicatorStyleOf(first)
 
       expect(indicator.height).toBe('3px')
       expect(indicator.minWidth).toBe('24px')
       expect(indicator.backgroundColor).toBe(getComputedStyle(first).color)
       expect(indicator.borderTopLeftRadius).not.toBe('0px')
       expect(indicator.borderBottomLeftRadius).toBe('0px')
-      expect(indicatorOf(second).height).toBe('auto')
+      expect(indicatorOf(second)).toBeNull()
     })
 
-    // Styling comes from React Aria's state callback rather than a CSS selector,
-    // so this is what proves the callback re-runs on selection.
     it('moves the indicator when the selection changes', () => {
       const { first, second } = setup()
       fireEvent.click(second)
 
-      expect(indicatorOf(second).height).toBe('3px')
-      expect(indicatorOf(first).height).toBe('auto')
+      expect(indicatorStyleOf(second).height).toBe('3px')
       expect(hasClasses(second, CLASSES.activeColor)).toBe(true)
       expect(hasClasses(first, CLASSES.inactiveColor)).toBe(true)
+    })
+
+    // What makes it a slide rather than a switch: for as long as it is
+    // moving, the tab it came from still holds an indicator, and only once
+    // the animation has finished is that one taken away. A switch would put
+    // one tab's indicator down and the next tab's up in the same frame.
+    it('slides from one tab to the next rather than switching', async () => {
+      const view = setup()
+      const [first, second] = view.getAllByRole('tab')
+
+      expect(indicatorsIn(view)).toHaveLength(1)
+
+      fireEvent.click(second)
+
+      // React Aria puts the new indicator where the old one was — an inline
+      // translate of the gap between them — and takes it off a frame later
+      // so the transition carries it home. That offset is the slide: a
+      // switch would draw it in its final place from the first frame.
+      const arriving = indicatorOf(second)
+      const offset = Number.parseFloat(arriving?.style.translate ?? '')
+      // Finite first: an unset `translate` parses to NaN, and NaN is not 0,
+      // so the plain inequality passes on an indicator that never moved.
+      expect(Number.isFinite(offset)).toBe(true)
+      expect(offset).not.toBe(0)
+
+      // And for as long as it is moving, the tab it came from keeps its own.
+      expect(indicatorsIn(view)).toHaveLength(2)
+
+      await waitFor(() => {
+        expect(indicatorsIn(view)).toHaveLength(1)
+      })
+      expect(indicatorOf(second)).not.toBeNull()
+      expect(indicatorOf(first)).toBeNull()
+    })
+
+    // The line that makes it slide, and the one most easily lost: React
+    // Aria's shared element snapshots only the properties a transition
+    // names, and reads `none` as an element that does not animate. Without
+    // it the indicator still draws in the right place and never moves.
+    it('names the properties it slides on, which is what animates it', () => {
+      const { first } = setup()
+      const indicator = indicatorStyleOf(first)
+
+      expect(indicator.transitionProperty).toContain('translate')
+      expect(indicator.transitionProperty).toContain('inline-size')
+      expect(indicator.transitionDuration).not.toBe('0s')
+    })
+
+    it('stops sliding for a reader who asked for less motion', async () => {
+      await reducedMotion('reduce')
+      const { first } = setup()
+
+      // The properties stay named, so the indicator still lands in the
+      // right place — it just gets there in no time at all.
+      const indicator = indicatorStyleOf(first)
+      expect(indicator.transitionDuration).toBe('0s')
+      expect(indicator.transitionProperty).toContain('translate')
     })
 
     // The page's bar: 48 tall with the divider inside it, divided into equal
