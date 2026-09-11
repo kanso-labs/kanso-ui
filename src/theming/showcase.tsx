@@ -31,6 +31,7 @@ import ColorArea from '../components/color-area'
 import ColorSlider from '../components/color-slider'
 import ColorSwatch from '../components/color-swatch'
 import ColorSwatchPicker from '../components/color-swatch-picker'
+import ColorWheel from '../components/color-wheel'
 import ComboBox from '../components/combo-box'
 import Container from '../components/container'
 import CopyField from '../components/copy-field'
@@ -656,6 +657,7 @@ function Showcase({ name }: ShowcaseProps) {
               defaultValue={SHOWCASE_TRANSPARENT}
               label="Label"
             />
+            <ColorWheel defaultValue={SHOWCASE_TRANSPARENT} outerRadius={60} />
             <div {...stylex.props(styles.swatchPlane)}>
               <ColorArea
                 aria-label="Label"

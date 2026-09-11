@@ -16,6 +16,7 @@ import type { ColorAreaProps } from './color-area'
 import type { ColorSliderProps } from './color-slider'
 import type { ColorSwatchProps } from './color-swatch'
 import type { ColorSwatchPickerProps } from './color-swatch-picker'
+import type { ColorWheelProps } from './color-wheel'
 import type { ComboBoxProps } from './combo-box'
 import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
@@ -81,6 +82,7 @@ import ColorAreaDefault from './color-area'
 import ColorSliderDefault from './color-slider'
 import ColorSwatchDefault from './color-swatch'
 import ColorSwatchPickerDefault from './color-swatch-picker'
+import ColorWheelDefault from './color-wheel'
 import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
@@ -147,6 +149,7 @@ describe('components barrel', () => {
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
+      'ColorWheel',
       'ComboBox',
       'Container',
       'CopyField',
@@ -452,6 +455,10 @@ describe('components barrel', () => {
 
   it('re-exports ColorArea as the same reference as its own module', () => {
     expect(components.ColorArea).toBe(ColorAreaDefault)
+  })
+
+  it('re-exports ColorWheel as the same reference as its own module', () => {
+    expect(components.ColorWheel).toBe(ColorWheelDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -768,5 +775,10 @@ describe('components barrel', () => {
   it('re-exports the ColorAreaProps type', () => {
     const props: ColorAreaProps = { xChannel: 'saturation' }
     expect(props.xChannel).toBe('saturation')
+  })
+
+  it('re-exports the ColorWheelProps type', () => {
+    const props: ColorWheelProps = { outerRadius: 100 }
+    expect(props.outerRadius).toBe(100)
   })
 })
