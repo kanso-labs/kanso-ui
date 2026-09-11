@@ -55,6 +55,7 @@ import {
   TokenField,
   Toolbar,
   Tooltip,
+  Tree,
 } from '.'
 
 // Every element the library renders that a call site can reach, rendered with
@@ -654,6 +655,41 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Tooltip>
     ),
     name: 'Tooltip',
+  },
+  {
+    element: (
+      <Tree {...PROBE} aria-label="Label">
+        <Tree.Item headline="First item" id="first" />
+      </Tree>
+    ),
+    name: 'Tree',
+  },
+  {
+    element: (
+      <Tree aria-label="Label">
+        <Tree.Item {...PROBE} headline="First item" id="first" />
+      </Tree>
+    ),
+    name: 'Tree.Item',
+  },
+  {
+    element: (
+      <Tree aria-label="Label">
+        <Tree.Section {...PROBE} header="Headline" id="section">
+          <Tree.Item headline="First item" id="first" />
+        </Tree.Section>
+      </Tree>
+    ),
+    name: 'Tree.Section',
+  },
+  {
+    element: (
+      <Tree aria-label="Label">
+        <Tree.Item headline="First item" id="first" />
+        <Tree.LoadMore {...PROBE} isLoading />
+      </Tree>
+    ),
+    name: 'Tree.LoadMore',
   },
 ]
 

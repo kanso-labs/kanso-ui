@@ -68,6 +68,7 @@ import TextField from '../components/text-field'
 import TokenField from '../components/token-field'
 import Toolbar from '../components/toolbar'
 import Tooltip from '../components/tooltip'
+import Tree from '../components/tree'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
@@ -683,7 +684,9 @@ function Showcase({ name }: ShowcaseProps) {
                 Terminal and on Poster. Its first column takes a resize handle,
                 which is the divider&apos;s own rule rather than a treatment of
                 its own, so a scheme that moves the divider moves the handle
-                with it.
+                with it. The tree draws the same row again at two depths, with a
+                caret on the row that opens and the caret's own width of indent
+                under it.
               </Text>
             </div>
             <Card padding="none" variant="outlined">
@@ -784,6 +787,19 @@ function Showcase({ name }: ShowcaseProps) {
                   ))}
                 </Table.Body>
               </Table>
+            </Card>
+            <Card padding="none" variant="outlined">
+              <Tree
+                aria-label="Label"
+                defaultExpandedKeys={SHOWCASE_SELECTION}
+                defaultSelectedKeys={SHOWCASE_SELECTION}
+                selectionMode="multiple"
+              >
+                <Tree.Item headline="First item" id="first" />
+                <Tree.Item headline="Second item" id="second">
+                  <Tree.Item headline="Third item" id="third" />
+                </Tree.Item>
+              </Tree>
             </Card>
           </section>
 

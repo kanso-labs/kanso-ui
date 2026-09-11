@@ -115,3 +115,11 @@ export type { ToolbarProps } from './toolbar'
 export { default as Toolbar } from './toolbar'
 export type { TooltipProps } from './tooltip'
 export { default as Tooltip } from './tooltip'
+export type {
+  TreeHeaderProps,
+  TreeItemProps,
+  TreeLoadMoreProps,
+  TreeProps,
+  TreeSectionProps,
+} from './tree'
+export { default as Tree } from './tree'

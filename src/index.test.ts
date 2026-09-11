@@ -127,6 +127,7 @@ describe('package entry point', () => {
       'TokenFieldValue',
       'Toolbar',
       'Tooltip',
+      'Tree',
       'Virtualizer',
       'VisuallyHidden',
       'WaterfallLayout',

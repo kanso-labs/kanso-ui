@@ -164,6 +164,7 @@ describe('components barrel', () => {
       'TokenField',
       'Toolbar',
       'Tooltip',
+      'Tree',
     ])
   })
 
