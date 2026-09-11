@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.24.0](https://github.com/kanso-labs/kanso-ui/compare/v0.23.0...v0.24.0) (2026-09-11)
+
+
+### Features
+
+* **color-picker:** add ColorField and ColorPicker components ([#723](https://github.com/kanso-labs/kanso-ui/issues/723)) ([1a72cda](https://github.com/kanso-labs/kanso-ui/commit/1a72cdab3914f440dfb237bc6193d7ab2f5a1765))
+* **tabs:** animate selection with SelectionIndicator ([#726](https://github.com/kanso-labs/kanso-ui/issues/726)) ([1b25900](https://github.com/kanso-labs/kanso-ui/commit/1b25900121bde91f861617b2be77404a21db3c44))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.8.1 ([#725](https://github.com/kanso-labs/kanso-ui/issues/725)) ([76df777](https://github.com/kanso-labs/kanso-ui/commit/76df777d31519df9854e1c40d0a0adc4123826b8))
+
 ## [0.23.0](https://github.com/kanso-labs/kanso-ui/compare/v0.22.0...v0.23.0) (2026-09-11)
 
 
