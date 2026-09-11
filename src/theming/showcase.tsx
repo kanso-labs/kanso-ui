@@ -20,6 +20,7 @@ import Autocomplete from '../components/autocomplete'
 import Avatar from '../components/avatar'
 import Breadcrumbs from '../components/breadcrumbs'
 import Button from '../components/button'
+import Calendar from '../components/calendar'
 import Card from '../components/card'
 import Checkbox from '../components/checkbox'
 import CheckboxGroup from '../components/checkbox-group'
@@ -71,6 +72,7 @@ import TokenField from '../components/token-field'
 import Toolbar from '../components/toolbar'
 import Tooltip from '../components/tooltip'
 import Tree from '../components/tree'
+import { CalendarDate } from '../date'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
@@ -269,6 +271,10 @@ const ROWS = [
 // The table keys its rows by name rather than by position, so its selected
 // row is named rather than taken from the list the other collections use.
 const SHOWCASE_TABLE_SELECTION = [ROWS[1].name]
+
+// A fixed date, so every scheme's snapshot reads the same whenever it is
+// taken.
+const SHOWCASE_DATE = new CalendarDate(2026, 9, 15)
 
 const TABS = ['First item', 'Second item', 'Third item'] as const
 
@@ -878,6 +884,7 @@ function Showcase({ name }: ShowcaseProps) {
                 <Slider defaultValue={40} label="Label" />
               </Stack>
             </Form>
+            <Calendar aria-label="Label" defaultValue={SHOWCASE_DATE} />
           </section>
 
           <Separator />

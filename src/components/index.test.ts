@@ -5,6 +5,7 @@ import type { AutocompleteProps } from './autocomplete'
 import type { AvatarProps } from './avatar'
 import type { BreadcrumbsProps } from './breadcrumbs'
 import type { ButtonProps } from './button'
+import type { CalendarProps } from './calendar'
 import type { CardProps } from './card'
 import type { CheckboxProps } from './checkbox'
 import type { CheckboxGroupProps } from './checkbox-group'
@@ -54,11 +55,13 @@ import type { ToolbarProps } from './toolbar'
 import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
+import { CalendarDate } from '../date'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
 import BreadcrumbsDefault from './breadcrumbs'
 import ButtonDefault from './button'
+import CalendarDefault from './calendar'
 import CardDefault from './card'
 import CheckboxDefault from './checkbox'
 import CheckboxGroupDefault from './checkbox-group'
@@ -115,6 +118,7 @@ describe('components barrel', () => {
       'Avatar',
       'Breadcrumbs',
       'Button',
+      'Calendar',
       'Card',
       'Checkbox',
       'CheckboxGroup',
@@ -383,6 +387,10 @@ describe('components barrel', () => {
     expect(components.List).toBe(ListDefault)
   })
 
+  it('re-exports Calendar as the same reference as its own module', () => {
+    expect(components.Calendar).toBe(CalendarDefault)
+  })
+
   it('re-exports the AppBarProps type', () => {
     const props: AppBarProps = { size: 'large' }
     expect(props.size).toBe('large')
@@ -646,6 +654,11 @@ describe('components barrel', () => {
 
   it('re-exports the ListProps type', () => {
     const props: ListProps<object> = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the CalendarProps type', () => {
+    const props: CalendarProps<CalendarDate> = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 })

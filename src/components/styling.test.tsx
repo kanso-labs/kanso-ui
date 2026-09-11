@@ -8,6 +8,7 @@ import {
   Avatar,
   Breadcrumbs,
   Button,
+  Calendar,
   Card,
   Checkbox,
   CheckboxGroup,
@@ -118,6 +119,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Breadcrumbs.Item',
   },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
+  { element: <Calendar {...PROBE} aria-label="Label" />, name: 'Calendar' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
   {
     element: (
