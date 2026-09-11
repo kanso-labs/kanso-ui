@@ -70,11 +70,12 @@ import Tag from '../components/tag'
 import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
+import TimeField from '../components/time-field'
 import TokenField from '../components/token-field'
 import Toolbar from '../components/toolbar'
 import Tooltip from '../components/tooltip'
 import Tree from '../components/tree'
-import { CalendarDate } from '../date'
+import { CalendarDate, Time } from '../date'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
@@ -277,6 +278,7 @@ const SHOWCASE_TABLE_SELECTION = [ROWS[1].name]
 // A fixed date, so every scheme's snapshot reads the same whenever it is
 // taken.
 const SHOWCASE_DATE = new CalendarDate(2026, 9, 15)
+const SHOWCASE_TIME = new Time(9, 30)
 const SHOWCASE_RANGE = {
   end: new CalendarDate(2026, 9, 15),
   start: new CalendarDate(2026, 9, 8),
@@ -891,6 +893,7 @@ function Showcase({ name }: ShowcaseProps) {
               </Stack>
             </Form>
             <DateField defaultValue={SHOWCASE_DATE} label="Label" />
+            <TimeField defaultValue={SHOWCASE_TIME} label="Label" />
             <Calendar aria-label="Label" defaultValue={SHOWCASE_DATE} />
             <RangeCalendar aria-label="Label" defaultValue={SHOWCASE_RANGE} />
           </section>

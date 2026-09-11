@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type {
   DateValue,
   DateFieldProps as RACDateFieldProps,
@@ -8,7 +8,6 @@ import * as stylex from '@stylexjs/stylex'
 import {
   DateField as RACDateField,
   DateInput as RACDateInput,
-  DateSegment as RACDateSegment,
 } from 'react-aria-components'
 
 import { FieldBox, FieldMessage, FieldValue } from '../../field'
@@ -17,13 +16,9 @@ import {
   invalidFrom,
   useFieldValidationBehavior,
 } from '../../field/root'
+import { renderSegment } from '../../segments'
+import { segmentStyles } from '../../segments/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import {
-  colors,
-  radii,
-  spacing,
-  stateLayerOpacity,
-} from '../../tokens/design.tokens.stylex'
 
 // A date typed a segment at a time, rather than picked from a calendar. The
 // box, label and message are the field chrome in `src/field`, shared with
@@ -47,51 +42,6 @@ import {
 // **A focused segment is a filled shape rather than a ring.** A caret cannot
 // show which of three spinbuttons has focus, since React Aria hides it — the
 // segment is what has to say so, and it does it the way a selected row does.
-
-const styles = stylex.create({
-  // The segments on one line. `FieldValue` around it is what gives the line
-  // its place in the box — including the room a floated label needs — so
-  // what is left here is only how the segments sit next to each other.
-  input: {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    outlineStyle: 'none',
-  },
-  // One segment. Its own focus stop, so it carries the focus treatment
-  // rather than the box around it.
-  segment: {
-    borderRadius: radii.xs,
-    boxSizing: 'border-box',
-    caretColor: 'transparent',
-    color: colors.onSurface,
-    outlineStyle: 'none',
-    paddingInline: spacing.xxs,
-    textAlign: 'end',
-  },
-  // Faded with the rest of the field, and the same 38% every disabled
-  // control here takes.
-  segmentDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-  },
-  // The one being typed. React Aria hides the caret, so a ring around a
-  // segment would be the only sign of focus and a thin one at that — the
-  // filled shape is what a selected row uses, and it reads at a glance.
-  segmentFocused: {
-    backgroundColor: colors.primary,
-    color: colors.onPrimary,
-  },
-  // A literal between two segments — the slash or the colon the locale puts
-  // there. Not a focus stop, and not something a reader tabs through.
-  segmentLiteral: {
-    color: colors.onSurfaceVariant,
-    paddingInline: 0,
-  },
-  // A segment with nothing in it yet, showing its own placeholder.
-  segmentPlaceholder: {
-    color: colors.onSurfaceVariant,
-  },
-})
 
 type DateFieldProps<T extends DateValue> = Omit<
   RACDateFieldProps<T>,
@@ -123,13 +73,6 @@ type DateFieldProps<T extends DateValue> = Omit<
    */
   variant?: 'filled' | 'outlined'
 }
-
-// What React Aria hands the input for each part of the date. Taken off the
-// component rather than imported, since the segment type is not on the
-// package's public surface.
-type Segment = Parameters<
-  NonNullable<Parameters<typeof RACDateInput>[0]['children']>
->[0]
 
 /**
  * A date typed rather than picked: one segment per part, each its own focus
@@ -186,49 +129,13 @@ function DateField<T extends DateValue>({
         variant={variant}
       >
         <FieldValue>
-          <RACDateInput {...stylex.props(styles.input)}>
+          <RACDateInput {...stylex.props(segmentStyles.input)}>
             {renderSegment}
           </RACDateInput>
         </FieldValue>
       </FieldBox>
       <FieldMessage description={description} error={error} />
     </RACDateField>
-  )
-}
-
-// What each segment draws. A literal — the slash or colon between two
-// segments — takes a style of its own, since it is punctuation rather than
-// something a reader types into.
-function renderSegment(segment: Segment): ReactElement {
-  if (segment.type === 'literal') {
-    return (
-      <RACDateSegment
-        {...stylex.props(styles.segment, styles.segmentLiteral)}
-        segment={segment}
-      />
-    )
-  }
-  return <RACDateSegment className={segmentClassName} segment={segment} />
-}
-
-// A segment's classes, from React Aria's render state. StyleX cannot target
-// `[data-placeholder]` on the element it is styling, so the state comes from
-// what React Aria hands the className.
-//
-// The order matters: `disabled` is last, and StyleX replaces a property
-// whole, so it wins over both the placeholder and the focused branches.
-function segmentClassName(state: {
-  isDisabled: boolean
-  isFocused: boolean
-  isPlaceholder: boolean
-}) {
-  return (
-    stylex.props(
-      styles.segment,
-      state.isPlaceholder && styles.segmentPlaceholder,
-      state.isFocused && styles.segmentFocused,
-      state.isDisabled && styles.segmentDisabled,
-    ).className ?? ''
   )
 }
 

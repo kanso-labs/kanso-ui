@@ -57,6 +57,7 @@ import {
   Text,
   TextArea,
   TextField,
+  TimeField,
   TokenField,
   Toolbar,
   Tooltip,
@@ -686,6 +687,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <Text {...PROBE}>Headline</Text>, name: 'Text' },
   { element: <TextArea {...PROBE} label="Label" />, name: 'TextArea' },
   { element: <TextField {...PROBE} label="Label" />, name: 'TextField' },
+  { element: <TimeField {...PROBE} label="Label" />, name: 'TimeField' },
   {
     element: <TokenField {...PROBE} label="Label" />,
     name: 'TokenField',

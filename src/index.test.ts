@@ -56,6 +56,7 @@ import {
   Text as ComponentsText,
   TextArea as ComponentsTextArea,
   TextField as ComponentsTextField,
+  TimeField as ComponentsTimeField,
   TokenField as ComponentsTokenField,
   Toolbar as ComponentsToolbar,
   Tooltip as ComponentsTooltip,
@@ -132,6 +133,7 @@ describe('package entry point', () => {
       'Text',
       'TextArea',
       'TextField',
+      'TimeField',
       'TokenField',
       'TokenFieldValue',
       'Toolbar',
@@ -379,6 +381,10 @@ describe('package entry point', () => {
 
   it('forwards DateField as the same reference as the components barrel', () => {
     expect(publicApi.DateField).toBe(ComponentsDateField)
+  })
+
+  it('forwards TimeField as the same reference as the components barrel', () => {
+    expect(publicApi.TimeField).toBe(ComponentsTimeField)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
