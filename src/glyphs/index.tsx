@@ -9,9 +9,10 @@ import type { SVGProps } from 'react'
 // the package.
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
-// close, the right chevron and the two sort arrows from Material Symbols on
-// their 24-unit grid, which is what the checkbox page draws at 18dp, the icon
-// buttons page at 20 and the search and menus pages at 24.
+// close, the right chevron, the two sort arrows and the calendar from
+// Material Symbols on their 24-unit grid, which is what the checkbox page
+// draws at 18dp, the icon buttons page at 20 and the search, menus and date
+// picker pages at 24.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 
@@ -31,6 +32,15 @@ function ArrowUpwardGlyph(props: GlyphProps) {
   return (
     <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
       <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
+    </svg>
+  )
+}
+
+// What the date picker's trigger draws: the calendar a date is picked from.
+function CalendarGlyph(props: GlyphProps) {
+  return (
+    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+      <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
     </svg>
   )
 }
@@ -96,6 +106,7 @@ export type { GlyphProps }
 export {
   ArrowDownwardGlyph,
   ArrowUpwardGlyph,
+  CalendarGlyph,
   CheckGlyph,
   ChevronEndGlyph,
   CloseGlyph,

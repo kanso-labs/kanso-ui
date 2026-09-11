@@ -19,6 +19,7 @@ import {
   CopyField,
   Currency,
   DateField,
+  DatePicker,
   Dialog,
   Disclosure,
   DisclosureGroup,
@@ -170,6 +171,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <CopyField {...PROBE} value="Label" />, name: 'CopyField' },
   { element: <Currency {...PROBE} value={1} />, name: 'Currency' },
   { element: <DateField {...PROBE} label="Label" />, name: 'DateField' },
+  { element: <DatePicker {...PROBE} label="Label" />, name: 'DatePicker' },
   {
     element: (
       <Dialog defaultOpen>

@@ -20,6 +20,7 @@ import {
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
   DateField as ComponentsDateField,
+  DatePicker as ComponentsDatePicker,
   Dialog as ComponentsDialog,
   Disclosure as ComponentsDisclosure,
   DisclosureGroup as ComponentsDisclosureGroup,
@@ -86,6 +87,7 @@ describe('package entry point', () => {
       'Currency',
       'DIRECTORY_DRAG_TYPE',
       'DateField',
+      'DatePicker',
       'Dialog',
       'Disclosure',
       'DisclosureGroup',
@@ -385,6 +387,10 @@ describe('package entry point', () => {
 
   it('forwards TimeField as the same reference as the components barrel', () => {
     expect(publicApi.TimeField).toBe(ComponentsTimeField)
+  })
+
+  it('forwards DatePicker as the same reference as the components barrel', () => {
+    expect(publicApi.DatePicker).toBe(ComponentsDatePicker)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
