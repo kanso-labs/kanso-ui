@@ -106,8 +106,8 @@ const rowStyles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
   },
-  // The lists page's one-line floor. A row with a supporting line grows past
-  // it to the page's 72, and one that wraps grows further; nothing truncates.
+  // The lists page's one-line container height. A row whose headline wraps
+  // grows past it; nothing truncates.
   list: {
     minBlockSize: '56px',
   },
@@ -199,7 +199,7 @@ const rowStyles = stylex.create({
   supportingSelectedMenu: {
     color: colors.onTertiaryContainer,
   },
-  // The lists page's three-line item: an 88dp floor, with the leading and
+  // The lists page's three-line container height, with the leading and
   // trailing slots held at the top rather than centred. Three lines of text
   // beside a centred avatar reads as though the avatar has drifted, which is
   // why the page moves it — the row's `alignItems` is what does both slots
@@ -207,6 +207,24 @@ const rowStyles = stylex.create({
   threeLine: {
     alignItems: 'flex-start',
     minBlockSize: '88px',
+  },
+  // The lists page's two-line container height, for a row drawing two of its
+  // three lines: a headline with a supporting line, or with an overline.
+  //
+  // Stated as a floor, which is what the other two heights are as well. The
+  // page names 56, 72 and 88 as container heights rather than deriving them,
+  // and only the three-line one happens to equal what the row's own box adds
+  // up to — 16 + 24 + 20 of line height, two `main` gaps and the block
+  // padding come to exactly 88. The same arithmetic leaves a headline and a
+  // supporting line at 70, and a headline under an overline at 66, so the
+  // page's middle height is the one a row reaches only by being told it.
+  //
+  // No padding or gap closes that on its own: holding 88 while lifting 70 to
+  // 72 needs the gap at 0 and the block padding at 14, and 14 is not on the
+  // spacing scale. The floor keeps the page's number where the page puts it,
+  // next to the other two, and leaves the row centring its lines inside it.
+  twoLine: {
+    minBlockSize: '72px',
   },
 })
 

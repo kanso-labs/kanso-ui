@@ -311,15 +311,24 @@ function itemContent(
 // The order matters: `disabled` is applied last so it wins over both the
 // interactive and the selected branches, and StyleX replaces a property
 // whole, so it takes their hover states with it.
-function itemStyles(state: TreeItemRenderProps) {
-  return stylex.props(
-    rowStyles.base,
-    rowStyles.list,
-    rowStyles.interactive,
-    styles.indent,
-    state.isSelected && rowStyles.selectedList,
-    state.isDisabled && rowStyles.disabled,
-  )
+//
+// A supporting line moves the row from the page's one-line container height
+// to its two-line one, which is a floor rather than something the row's own
+// box arrives at — see `twoLine` in `src/row/styles.ts`. Taken as an
+// argument rather than read from the render state, since React Aria reports
+// what a row is doing and not what it holds; the row is built by a call for
+// the same reason `itemContent` is.
+function itemStyles(supporting: ReactNode) {
+  return (state: TreeItemRenderProps) =>
+    stylex.props(
+      rowStyles.base,
+      rowStyles.list,
+      rowStyles.interactive,
+      styles.indent,
+      supporting !== undefined && rowStyles.twoLine,
+      state.isSelected && rowStyles.selectedList,
+      state.isDisabled && rowStyles.disabled,
+    )
 }
 
 /**
@@ -425,7 +434,7 @@ function TreeItem<T extends object = object>({
     <RACTreeItem<T>
       textValue={textValueFor(textValue, headline)}
       {...props}
-      {...mergeStatefulStyles(itemStyles, props)}
+      {...mergeStatefulStyles(itemStyles(supporting), props)}
     >
       <RACTreeItemContent>
         {itemContent(headline, leading, supporting, trailing, selectLabel)}

@@ -192,14 +192,23 @@ function itemContent(
 // The order matters: `disabled` is applied last so it wins over both the
 // interactive and the selected branches, and StyleX replaces a property
 // whole, so it takes their hover states with it.
-function itemStyles(state: ListBoxItemRenderProps) {
-  return stylex.props(
-    rowStyles.base,
-    rowStyles.list,
-    rowStyles.interactive,
-    state.isSelected && rowStyles.selectedList,
-    state.isDisabled && rowStyles.disabled,
-  )
+//
+// A supporting line moves the option from the page's one-line container
+// height to its two-line one, which is a floor rather than something the
+// row's own box arrives at — see `twoLine` in `src/row/styles.ts`. Taken as
+// an argument rather than read from the render state, since React Aria
+// reports what an option is doing and not what it holds; the row is built by
+// a call for the same reason `itemContent` is.
+function itemStyles(supporting: ReactNode) {
+  return (state: ListBoxItemRenderProps) =>
+    stylex.props(
+      rowStyles.base,
+      rowStyles.list,
+      rowStyles.interactive,
+      supporting !== undefined && rowStyles.twoLine,
+      state.isSelected && rowStyles.selectedList,
+      state.isDisabled && rowStyles.disabled,
+    )
 }
 
 /**
@@ -242,7 +251,7 @@ function ListBoxItem<T extends object = object>({
     <RACListBoxItem
       textValue={textValue ?? textOf(children)}
       {...props}
-      {...mergeStatefulStyles(itemStyles, props)}
+      {...mergeStatefulStyles(itemStyles(supporting), props)}
     >
       {itemContent(children, leading, supporting, trailing)}
     </RACListBoxItem>

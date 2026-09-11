@@ -122,6 +122,22 @@ describe('row', () => {
       ).toBe('48px')
     })
 
+    // The lists page's other two container heights, each applied over the
+    // one-line floor rather than instead of it — which is the order every
+    // caller uses, so the assertion is on what a row actually resolves to.
+    it('lifts a list row to 72 for two lines and 88 for three', () => {
+      expect(
+        getComputedStyle(
+          rowWith([rowStyles.base, rowStyles.list, rowStyles.twoLine]),
+        ).minHeight,
+      ).toBe('72px')
+      expect(
+        getComputedStyle(
+          rowWith([rowStyles.base, rowStyles.list, rowStyles.threeLine]),
+        ).minHeight,
+      ).toBe('88px')
+    })
+
     it('selects a list row on primary container, as the lists page gives it', () => {
       const row = rowWith([
         rowStyles.base,

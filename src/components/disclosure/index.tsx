@@ -212,7 +212,7 @@ function DisclosureHeader({
 
   return (
     <RACHeading level={headingLevel} {...stylex.props(styles.heading)}>
-      <RACButton className={headerClassName} slot="trigger">
+      <RACButton className={headerClassName(supporting)} slot="trigger">
         {headerContent(
           children,
           leading,
@@ -257,16 +257,23 @@ function DisclosurePanel({ children, ...props }: DisclosurePanelProps) {
 // among them — a disclosure's button reports `aria-expanded` rather than a
 // selection — so the row draws unselected throughout and only its disabled
 // state changes.
-function headerClassName(state: { isDisabled: boolean }) {
-  return (
+//
+// A supporting line moves the header from the page's one-line container
+// height to its two-line one, which is a floor rather than something the
+// row's own box arrives at — see `twoLine` in `src/row/styles.ts`. Taken as
+// an argument rather than read from the render state, since React Aria
+// reports what the trigger is doing and not what it holds; the classes are
+// built by a call for the same reason `headerContent` is.
+function headerClassName(supporting: ReactNode) {
+  return (state: { isDisabled: boolean }) =>
     stylex.props(
       rowStyles.base,
       rowStyles.list,
       rowStyles.interactive,
       styles.header,
+      supporting !== undefined && rowStyles.twoLine,
       state.isDisabled && rowStyles.disabled,
     ).className ?? ''
-  )
 }
 
 // What the header row draws. Built by a call rather than written inline at

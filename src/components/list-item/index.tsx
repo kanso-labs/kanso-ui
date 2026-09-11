@@ -32,14 +32,15 @@ type ListItemProps = {
 
 /**
  * A static row: the row every list draws, on its own, as the lists spec page
- * gives it — a 56px floor, a body-large headline and a body-medium
- * supporting line. An `overline` puts a line above the headline instead of
- * below it, and an overline with a supporting line makes the page's
- * three-line item: an 88px floor, with the leading and trailing slots held
- * at the top rather than centred. The layout and the states are the row
- * module's in `src/row`, shared with every collection item; what is here is
- * the element around them — a `<div>` that presents, or a `<button>` that
- * ripples — and the props that fill the slots.
+ * gives it — a 56px one-line container, a body-large headline and a
+ * body-medium supporting line. A second line takes it to the page's 72px
+ * two-line container; an `overline` puts that second line above the headline
+ * instead of below it, and an overline with a supporting line makes the
+ * page's three-line item, an 88px container with the leading and trailing
+ * slots held at the top rather than centred. The layout and the states are
+ * the row module's in `src/row`, shared with every collection item; what is
+ * here is the element around them — a `<div>` that presents, or a `<button>`
+ * that ripples — and the props that fill the slots.
  */
 function ListItem({
   children,
@@ -52,14 +53,19 @@ function ListItem({
 }: ListItemProps) {
   const ripple = useRipple<HTMLButtonElement>(interactive)
 
-  // The page's three-line item is an overline, a headline and a supporting
-  // line, and it is the only row whose slots move. Read from the content
-  // rather than taken as a prop: a row holding all three lines already says
-  // it is three lines, and a word for it would be a second place to get it
-  // wrong. A supporting line that wraps grows the row past 88 on its own and
-  // keeps its slots centred, which is the page's two-line item made taller
-  // rather than a three-line one.
-  const threeLine = overline !== undefined && supporting !== undefined
+  // Which of the page's three items this row is, read from the content rather
+  // than taken as a prop: a row holding all three lines already says it is
+  // three lines, and a word for it would be a second place to get it wrong.
+  // A line that wraps grows the row past its container height on its own and
+  // keeps its slots centred, which is the shorter item made taller rather
+  // than the next one along.
+  //
+  // The three-line item is the only row whose slots move, which is why it
+  // alone carries an alignment as well as a height.
+  const extraLines =
+    (overline === undefined ? 0 : 1) + (supporting === undefined ? 0 : 1)
+  const twoLine = extraLines === 1
+  const threeLine = extraLines === 2
 
   const content = (
     <RowContent
@@ -80,6 +86,7 @@ function ListItem({
           stylex.props(
             rowStyles.base,
             rowStyles.list,
+            twoLine && rowStyles.twoLine,
             threeLine && rowStyles.threeLine,
           ),
           props,
@@ -100,6 +107,7 @@ function ListItem({
           rowStyles.base,
           rowStyles.list,
           rowStyles.interactive,
+          twoLine && rowStyles.twoLine,
           threeLine && rowStyles.threeLine,
         ),
         props,

@@ -167,14 +167,30 @@ describe('disclosure', () => {
 
   describe('appearance', () => {
     // The header is the row every list here draws, so a section above a list
-    // of rows lines up with them: the lists page's 56dp floor and 16dp inset.
+    // of rows lines up with them: the lists page's container heights and its
+    // 16dp inset. `setup` gives the header a supporting line, which is the
+    // page's two-line row at 72; a header with a headline alone is its
+    // one-line row at 56.
     it('draws the header as the shared row', () => {
       const view = setup()
       const style = getComputedStyle(view.trigger)
 
-      expect(style.minBlockSize).toBe('56px')
+      expect(style.minBlockSize).toBe('72px')
       expect(style.paddingLeft).toBe('16px')
       expect(style.paddingRight).toBe('16px')
+    })
+
+    it('draws a header with no supporting line at the one-line height', () => {
+      const view = render(
+        <Disclosure>
+          <Disclosure.Header>Headline</Disclosure.Header>
+          <Disclosure.Panel>Panel body</Disclosure.Panel>
+        </Disclosure>,
+      )
+
+      expect(getComputedStyle(view.getByRole('button')).minBlockSize).toBe(
+        '56px',
+      )
     })
 
     it('fades the header while disabled', () => {
