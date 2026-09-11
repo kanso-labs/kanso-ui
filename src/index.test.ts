@@ -138,6 +138,8 @@ describe('package entry point', () => {
       'SegmentedButton',
       'Select',
       'Separator',
+      'SharedElement',
+      'SharedElementTransition',
       'Sheet',
       'Slider',
       'Snackbar',

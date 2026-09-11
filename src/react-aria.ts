@@ -15,6 +15,15 @@ export { useDragAndDrop } from './drag/hooks'
 // token is decided by subclassing it and overriding `tokenize`. A consumer
 // cannot write that against a second copy of the library.
 //
+// `SharedElement` and `SharedElementTransition` are here for the context
+// reason above rather than for a wrapper of our own. The scope is a React
+// context, so a `SharedElement` from a second copy of the package cannot
+// find a scope opened by this one. Nothing is added to them: the motion is
+// a plain CSS transition on the element, which is what puts the motion
+// tokens in reach of a call site without this package mediating. See
+// `src/shared-element.stories.tsx` for the two things that are easy to get
+// wrong, neither of which reports anything when you do.
+//
 // `useDragAndDrop` is the one name here that is not React Aria's own. This
 // package's version defaults the drop indicator and the drag preview to the
 // styled ones in `src/drag`, so a call site gets a line and a preview that
@@ -44,6 +53,8 @@ export {
   parseColor,
   Pressable,
   RouterProvider,
+  SharedElement,
+  SharedElementTransition,
   TableLayout,
   TokenFieldValue,
   useAsyncList,
