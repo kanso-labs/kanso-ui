@@ -52,6 +52,7 @@ import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
+import RangeCalendar from '../components/range-calendar'
 import SearchField from '../components/search-field'
 import SegmentedButton from '../components/segmented-button'
 import Select from '../components/select'
@@ -275,6 +276,10 @@ const SHOWCASE_TABLE_SELECTION = [ROWS[1].name]
 // A fixed date, so every scheme's snapshot reads the same whenever it is
 // taken.
 const SHOWCASE_DATE = new CalendarDate(2026, 9, 15)
+const SHOWCASE_RANGE = {
+  end: new CalendarDate(2026, 9, 15),
+  start: new CalendarDate(2026, 9, 8),
+}
 
 const TABS = ['First item', 'Second item', 'Third item'] as const
 
@@ -885,6 +890,7 @@ function Showcase({ name }: ShowcaseProps) {
               </Stack>
             </Form>
             <Calendar aria-label="Label" defaultValue={SHOWCASE_DATE} />
+            <RangeCalendar aria-label="Label" defaultValue={SHOWCASE_RANGE} />
           </section>
 
           <Separator />

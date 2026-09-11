@@ -39,6 +39,7 @@ import {
   ProgressIndicator as ComponentsProgressIndicator,
   Radio as ComponentsRadio,
   RadioGroup as ComponentsRadioGroup,
+  RangeCalendar as ComponentsRangeCalendar,
   SearchField as ComponentsSearchField,
   SegmentedButton as ComponentsSegmentedButton,
   Select as ComponentsSelect,
@@ -110,6 +111,7 @@ describe('package entry point', () => {
       'ProgressIndicator',
       'Radio',
       'RadioGroup',
+      'RangeCalendar',
       'RouterProvider',
       'SearchField',
       'SegmentedButton',
@@ -367,6 +369,10 @@ describe('package entry point', () => {
 
   it('forwards Calendar as the same reference as the components barrel', () => {
     expect(publicApi.Calendar).toBe(ComponentsCalendar)
+  })
+
+  it('forwards RangeCalendar as the same reference as the components barrel', () => {
+    expect(publicApi.RangeCalendar).toBe(ComponentsRangeCalendar)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
