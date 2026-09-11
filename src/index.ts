@@ -7,4 +7,5 @@
 import './styles.css'
 
 export * from './components'
+export * from './layout'
 export * from './react-aria'

@@ -134,6 +134,7 @@ describe('package entry point', () => {
       'Virtualizer',
       'VisuallyHidden',
       'WaterfallLayout',
+      'collectionSizes',
       'getColorChannels',
       'isDirectoryDropItem',
       'isFileDropItem',
