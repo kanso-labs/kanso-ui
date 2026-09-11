@@ -4,6 +4,7 @@ import type { ColorSwatchProps as RACColorSwatchProps } from 'react-aria-compone
 import * as stylex from '@stylexjs/stylex'
 import { ColorSwatch as RACColorSwatch } from 'react-aria-components'
 
+import { chequer } from '../../styles/chequer'
 import { mergeStyles } from '../../styles/merge'
 import { colors, radii } from '../../tokens/design.tokens.stylex'
 
@@ -31,26 +32,10 @@ import { colors, radii } from '../../tokens/design.tokens.stylex'
 // cover the colour it is there to reveal.
 
 const SQUARE = '40px'
-// 8px squares, which reads as a chequer at a swatch's size without turning
-// into a texture. Four gradients draw the two dark squares of a tile, and
-// each has to be offset by *half* a tile — at a whole tile the four line up
-// and the chequer comes out as diamonds, which is a pattern rather than the
-// absence of one.
-const TILE = '16px'
-const HALF = '8px'
-const CHEQUER = `linear-gradient(45deg, ${colors.surfaceContainerHighest} 25%, transparent 25%),
-linear-gradient(-45deg, ${colors.surfaceContainerHighest} 25%, transparent 25%),
-linear-gradient(45deg, transparent 75%, ${colors.surfaceContainerHighest} 75%),
-linear-gradient(-45deg, transparent 75%, ${colors.surfaceContainerHighest} 75%)`
-
 const styles = stylex.create({
   // The layer the chequer is painted on. The swatch sits on top of it, so a
   // colour with alpha shows it through and an opaque one hides it.
   ground: {
-    backgroundColor: colors.surfaceContainerLowest,
-    backgroundImage: CHEQUER,
-    backgroundPosition: `0 0, 0 ${HALF}, ${HALF} -${HALF}, -${HALF} 0`,
-    backgroundSize: `${TILE} ${TILE}`,
     blockSize: SQUARE,
     borderRadius: radii.xs,
     boxSizing: 'border-box',
@@ -103,7 +88,12 @@ type ColorSwatchProps = Omit<RACColorSwatchProps, 'className' | 'style'> & {
  */
 function ColorSwatch({ className, style, ...props }: ColorSwatchProps) {
   return (
-    <span {...mergeStyles(stylex.props(styles.ground), { className, style })}>
+    <span
+      {...mergeStyles(stylex.props(chequer.ground, styles.ground), {
+        className,
+        style,
+      })}
+    >
       <RACColorSwatch {...props} {...stylex.props(styles.swatch)} />
     </span>
   )
