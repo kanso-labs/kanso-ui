@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { cdp } from '@vitest/browser/context'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
@@ -11,13 +12,19 @@ import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
+  chosenContainer: { backgroundColor: colors.secondaryContainer },
   disabledContainer: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
   },
   disabledContent: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  focusLayer: { opacity: stateLayerOpacity.focus },
+  hidden: { opacity: 0 },
+  hoverLayer: { opacity: stateLayerOpacity.hover },
+  pressedLayer: { opacity: stateLayerOpacity.pressed },
   selected: { color: colors.onSecondaryContainer },
+  stateLayer: { backgroundColor: 'currentColor' },
   unselected: { color: colors.onSurface },
 })
 
@@ -32,20 +39,83 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  chosenContainer: classesOf(stylex.props(probeStyles.chosenContainer)),
   disabledContainer: classesOf(stylex.props(probeStyles.disabledContainer)),
   disabledContent: classesOf(stylex.props(probeStyles.disabledContent)),
+  focusLayer: classesOf(stylex.props(probeStyles.focusLayer)),
+  hidden: classesOf(stylex.props(probeStyles.hidden)),
+  hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
+  pressedLayer: classesOf(stylex.props(probeStyles.pressedLayer)),
   selected: classesOf(stylex.props(probeStyles.selected)),
+  stateLayer: classesOf(stylex.props(probeStyles.stateLayer)),
   unselected: classesOf(stylex.props(probeStyles.unselected)),
 }
 
 const FIRST = ['first']
 const SECOND = ['second']
+const THIRD = ['third']
 const FIRST_AND_THIRD = ['first', 'third']
 
 const ICON = <svg aria-hidden="true" data-testid="icon" viewBox="0 0 24 24" />
 
+// The chosen container is an element React Aria renders inside the chosen
+// segment alone, so an unchosen segment has none at all. It is the segment's
+// only child element that is a div — the state layer, the glyph, the label
+// and the ripple are all spans.
+//
+// Throws rather than returning null, so its callers read straight through;
+// `hasContainer` is the one for asking whether a segment has one.
+function containerOf(segment: Element) {
+  const found = segment.querySelector(':scope > div')
+  if (!(found instanceof HTMLElement)) {
+    throw new Error('expected the segment to carry a chosen container')
+  }
+  return found
+}
+
+// Every container the track is drawing, which is two while one is sliding.
+function containersIn(view: ReturnType<typeof setup>) {
+  return [...view.container.querySelectorAll('button > div')]
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+function hasContainer(segment: Element) {
+  return segment.querySelector(':scope > div') !== null
+}
+
+// The state layer, above the container and below the label. `currentColor`
+// is what nothing else in the segment is painted with.
+function layerOf(segment: Element) {
+  const found = [...segment.children].find((child) =>
+    hasClasses(child, CLASSES.stateLayer),
+  )
+  if (!(found instanceof HTMLElement)) {
+    throw new Error('expected the segment to carry a state layer')
+  }
+  return found
+}
+
+// Chromium's own media emulation, which is the only way to put the page in
+// the state a reduced-motion reader is in — nothing in the suite sets it,
+// and `matchMedia` cannot be written to. See tabs/index.test.tsx, where the
+// same helper first appeared.
+async function reducedMotion(value: 'no-preference' | 'reduce') {
+  // Vitest declares `CDPSession` as an empty interface, so the method it
+  // does have at runtime is not on the type. Narrowed to the one call this
+  // needs rather than left as `any`.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- CDPSession is an empty upstream stub
+  const session = cdp() as unknown as {
+    send: (
+      method: string,
+      params: { features: { name: string; value: string }[] },
+    ) => Promise<unknown>
+  }
+  await session.send('Emulation.setEmulatedMedia', {
+    features: [{ name: 'prefers-reduced-motion', value }],
+  })
 }
 
 function setup(
@@ -72,6 +142,12 @@ function setup(
 }
 
 describe('segmented button', () => {
+  // The emulation is the page's, not the render's, so it outlives the test
+  // that set it unless this puts it back.
+  afterEach(async () => {
+    await reducedMotion('no-preference')
+  })
+
   // React Aria maps the selection mode onto two different sets of roles, and
   // both are the right ones: one of several is a radio group, any of several
   // is a toolbar of two-state buttons. Pinned here because the mapping is
@@ -291,12 +367,14 @@ describe('segmented button', () => {
     it('fades a disabled segment and keeps its chosen container', () => {
       const view = setup({ defaultSelectedKeys: FIRST, isDisabled: true })
       const [first, second] = view.getAllByRole('radio')
+      const container = containerOf(first)
 
       expect(hasClasses(first as Element, CLASSES.disabledContent)).toBe(true)
-      expect(hasClasses(first as Element, CLASSES.disabledContainer)).toBe(true)
-      expect(hasClasses(second as Element, CLASSES.disabledContainer)).toBe(
-        false,
-      )
+      expect(hasClasses(container, CLASSES.disabledContainer)).toBe(true)
+      // The chosen role would read as enabled, so it has to be gone rather
+      // than merely covered.
+      expect(hasClasses(container, CLASSES.chosenContainer)).toBe(false)
+      expect(hasContainer(second)).toBe(false)
     })
 
     // The page's track: 40dp tall, a 1dp outline, and the outer ends fully
@@ -353,6 +431,265 @@ describe('segmented button', () => {
       expect(widths[0]).toBeGreaterThan(0)
       expect(widths[1]).toBeCloseTo(widths[0], 1)
       expect(widths[2]).toBeCloseTo(widths[0], 1)
+    })
+  })
+
+  // The chosen container is drawn as an element of its own rather than as
+  // the segment's background, which is what lets it move between segments.
+  // The component's comment says why the two selection modes move it
+  // differently.
+  describe('the chosen container', () => {
+    it('draws it in the chosen segment alone, covering it', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first, second] = view.getAllByRole('radio')
+      const container = containerOf(first)
+
+      expect(hasContainer(second)).toBe(false)
+      expect(hasClasses(container, CLASSES.chosenContainer)).toBe(true)
+
+      // The whole segment, outline included, since that is the box a
+      // background would have painted and it has to look the same standing
+      // still.
+      const box = container.getBoundingClientRect()
+      const segment = first.getBoundingClientRect()
+      expect(box.height).toBeCloseTo(segment.height, 0)
+      expect(box.width).toBeCloseTo(segment.width, 0)
+    })
+
+    // Behind the segments rather than inside one, which is what lets the
+    // labels and the track's rules draw over a container crossing them. The
+    // state layer is behind with it and written after it, so of the two it
+    // is the one on top.
+    it('draws it behind the segment, under the state layer', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const segment = view.getAllByRole('radio')[0]
+      const children = [...segment.children]
+
+      expect(getComputedStyle(containerOf(segment)).zIndex).toBe('-1')
+      expect(getComputedStyle(layerOf(segment)).zIndex).toBe('-1')
+      expect(children.indexOf(containerOf(segment))).toBe(0)
+      expect(children.indexOf(layerOf(segment))).toBe(1)
+      // And the track is a stacking context, or "behind" would reach past it.
+      expect(getComputedStyle(view.getByRole('radiogroup')).isolation).toBe(
+        'isolate',
+      )
+    })
+
+    // The ends of the track are round and the joins square, so a container
+    // carries the shape of whichever segment it is in. The value is the
+    // token taken down to what the browser draws it at, since the token's
+    // own 9999px is clamped and a clamped value cannot be interpolated.
+    it('takes the corners of the segment it is in', () => {
+      const cornersFor = (keys: string[], index: number) => {
+        const view = setup({ defaultSelectedKeys: keys })
+        const style = getComputedStyle(
+          containerOf(view.getAllByRole('radio')[index]),
+        )
+        const corners = [
+          style.borderStartStartRadius,
+          style.borderStartEndRadius,
+        ]
+        view.unmount()
+        return corners
+      }
+
+      expect(cornersFor(FIRST, 0)).toStrictEqual(['20px', '0px'])
+      expect(cornersFor(SECOND, 1)).toStrictEqual(['0px', '0px'])
+      expect(cornersFor(THIRD, 2)).toStrictEqual(['0px', '20px'])
+    })
+
+    // What makes it a slide rather than a switch: React Aria puts the
+    // arriving container where the departing one was — an inline translate
+    // of the gap between them, and the departing one's corners with it — and
+    // takes both off a frame later so the transition carries it home. For as
+    // long as it is moving, two containers exist.
+    it('slides from one segment to the next while one is chosen', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first, second] = view.getAllByRole('radio')
+
+      expect(containersIn(view)).toHaveLength(1)
+
+      fireEvent.click(second)
+
+      const arriving = containerOf(second)
+      const offset = Number.parseFloat(arriving.style.translate)
+      // Finite first: an unset `translate` parses to NaN, and NaN is not 0,
+      // so the plain inequality passes on a container that never moved.
+      expect(Number.isFinite(offset)).toBe(true)
+      expect(offset).not.toBe(0)
+      // The first segment's rounded end, replayed on a container whose own
+      // corners are square: the shape is animated as well as the place.
+      expect(arriving.style.borderRadius).toContain('20px')
+      expect(containersIn(view)).toHaveLength(2)
+
+      await waitFor(() => {
+        expect(containersIn(view)).toHaveLength(1)
+      })
+      expect(hasContainer(second)).toBe(true)
+      expect(hasContainer(first)).toBe(false)
+    })
+
+    // The line that makes it slide, and the one most easily lost: React
+    // Aria's shared element snapshots only the properties a transition
+    // names, and reads `none` as an element that does not animate. Without
+    // it the container still draws in the right place and never moves.
+    it('names the properties it slides on, which is what animates it', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const style = getComputedStyle(containerOf(view.getAllByRole('radio')[0]))
+
+      expect(style.transitionProperty).toContain('translate')
+      expect(style.transitionProperty).toContain('border-radius')
+      expect(style.transitionDuration).not.toBe('0s')
+    })
+
+    // A shared element is one element, and with several chosen there is no
+    // single segment for it to be at. Naming `opacity` alone is what keeps
+    // each container where it is: with nothing positional snapshotted there
+    // is no position for the next one to arrive from.
+    it('stays where it is while several may be chosen', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const [first, second] = view.getAllByRole('button')
+      const style = getComputedStyle(containerOf(first))
+
+      expect(style.transitionProperty).toBe('opacity')
+      expect(style.transitionDuration).not.toBe('0s')
+
+      fireEvent.click(second)
+
+      const arriving = containerOf(second)
+      expect(arriving.style.translate).toBe('')
+      expect(arriving.style.borderRadius).toBe('')
+      // The container already chosen is left alone, which is the difference
+      // from the sliding mode — there the two segments are one change.
+      expect(hasContainer(first)).toBe(true)
+      expect(containersIn(view)).toHaveLength(2)
+    })
+
+    it('fades a newly chosen container in where it is', async () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const second = view.getAllByRole('button')[1]
+      // React Aria marks the entering state in a microtask and clears it on
+      // the next frame, so the frame is held to look at the state at all.
+      const frames = vi
+        .spyOn(window, 'requestAnimationFrame')
+        .mockReturnValue(0)
+
+      try {
+        fireEvent.click(second)
+        await act(async () => {
+          await Promise.resolve()
+        })
+
+        const arriving = containerOf(second)
+        expect(arriving.hasAttribute('data-entering')).toBe(true)
+        expect(hasClasses(arriving, CLASSES.hidden)).toBe(true)
+      } finally {
+        frames.mockRestore()
+      }
+    })
+
+    // Dropping the transition would take the snapshot with it, and the
+    // container would stop being positioned correctly — a worse outcome than
+    // the motion it was meant to avoid.
+    it('stops sliding for a reader who asked for less motion', async () => {
+      await reducedMotion('reduce')
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const style = getComputedStyle(containerOf(view.getAllByRole('radio')[0]))
+
+      expect(style.transitionDuration).toBe('0s')
+      expect(style.transitionProperty).toContain('translate')
+    })
+  })
+
+  // The state layers sit on a layer of their own above the container, since
+  // one mixed into a container that slides away would take the hover off the
+  // segment under the pointer. The layer is `currentColor` at the state's
+  // opacity, and the segment's own label colour is already the right role in
+  // every state.
+  describe('the state layers', () => {
+    // React derives `onPointerEnter` from the bubbling `pointerover`, which
+    // is what React Aria's hover tracking listens for.
+    it('lays the chosen segment over while hovered', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const first = view.getAllByRole('radio')[0]
+      const layer = layerOf(first)
+
+      expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(true)
+      expect(hasClasses(first, CLASSES.selected)).toBe(true)
+
+      act(() => {
+        fireEvent.pointerOut(first, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+    })
+
+    it('lays an unchosen segment over the same way', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const second = view.getAllByRole('radio')[1]
+
+      act(() => {
+        fireEvent.pointerOver(second, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(layerOf(second), CLASSES.hoverLayer)).toBe(true)
+      expect(hasClasses(second, CLASSES.unselected)).toBe(true)
+    })
+
+    // The press layer is drawn over the hover one, which is the order the
+    // three are applied in.
+    it('takes the press opacity over the hover one', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const first = view.getAllByRole('radio')[0]
+      const layer = layerOf(first)
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+        fireEvent.pointerDown(first, { button: 0, pointerId: 1 })
+      })
+      expect(hasClasses(layer, CLASSES.pressedLayer)).toBe(true)
+      expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+    })
+
+    it('lays the segment over while focused from the keyboard', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first, second] = view.getAllByRole('radio')
+
+      expect(hasClasses(layerOf(second), CLASSES.focusLayer)).toBe(false)
+
+      // Focus becomes visible off a keyboard interaction, which is what the
+      // arrow key is here for as much as the move it makes.
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'ArrowRight' })
+      fireEvent.keyUp(first, { key: 'ArrowRight' })
+
+      expect(second.getAttribute('data-focus-visible')).toBe('true')
+      expect(hasClasses(layerOf(second), CLASSES.focusLayer)).toBe(true)
+      expect(hasClasses(layerOf(first), CLASSES.focusLayer)).toBe(false)
+    })
+
+    // React Aria reports none of the three for a control that cannot be
+    // pressed, which is what leaves the layer inert without a rule of its
+    // own — where a `:hover` would have matched a disabled segment.
+    it('shows none while the segment is disabled', () => {
+      const view = setup({ defaultSelectedKeys: FIRST, isDisabled: true })
+      const first = view.getAllByRole('radio')[0]
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(layerOf(first), CLASSES.hoverLayer)).toBe(false)
     })
   })
 })
