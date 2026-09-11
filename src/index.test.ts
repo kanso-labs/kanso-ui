@@ -19,6 +19,7 @@ import {
   ColorSlider as ComponentsColorSlider,
   ColorSwatch as ComponentsColorSwatch,
   ColorSwatchPicker as ComponentsColorSwatchPicker,
+  ColorWheel as ComponentsColorWheel,
   ComboBox as ComponentsComboBox,
   Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
@@ -90,6 +91,7 @@ describe('package entry point', () => {
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
+      'ColorWheel',
       'ComboBox',
       'Container',
       'CopyField',
@@ -421,6 +423,10 @@ describe('package entry point', () => {
 
   it('forwards ColorArea as the same reference as the components barrel', () => {
     expect(publicApi.ColorArea).toBe(ComponentsColorArea)
+  })
+
+  it('forwards ColorWheel as the same reference as the components barrel', () => {
+    expect(publicApi.ColorWheel).toBe(ComponentsColorWheel)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

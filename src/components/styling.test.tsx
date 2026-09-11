@@ -19,6 +19,7 @@ import {
   ColorSlider,
   ColorSwatch,
   ColorSwatchPicker,
+  ColorWheel,
   ComboBox,
   CopyField,
   Currency,
@@ -195,6 +196,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </ColorSwatchPicker>
     ),
     name: 'ColorSwatchPicker',
+  },
+  {
+    element: <ColorWheel {...PROBE} defaultValue="hsl(200, 100%, 50%)" />,
+    name: 'ColorWheel',
   },
   {
     element: (
