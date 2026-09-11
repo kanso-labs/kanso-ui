@@ -12,6 +12,8 @@ import type { CheckboxGroupProps } from './checkbox-group'
 import type { ChipProps } from './chip'
 import type { ChipGroupProps } from './chip-group'
 import type { CodeProps } from './code'
+import type { ColorSwatchProps } from './color-swatch'
+import type { ColorSwatchPickerProps } from './color-swatch-picker'
 import type { ComboBoxProps } from './combo-box'
 import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
@@ -73,6 +75,8 @@ import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
 import ChipGroupDefault from './chip-group'
 import CodeDefault from './code'
+import ColorSwatchDefault from './color-swatch'
+import ColorSwatchPickerDefault from './color-swatch-picker'
 import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
@@ -135,6 +139,8 @@ describe('components barrel', () => {
       'Chip',
       'ChipGroup',
       'Code',
+      'ColorSwatch',
+      'ColorSwatchPicker',
       'ComboBox',
       'Container',
       'CopyField',
@@ -424,6 +430,14 @@ describe('components barrel', () => {
 
   it('re-exports DateRangePicker as the same reference as its own module', () => {
     expect(components.DateRangePicker).toBe(DateRangePickerDefault)
+  })
+
+  it('re-exports ColorSwatch as the same reference as its own module', () => {
+    expect(components.ColorSwatch).toBe(ColorSwatchDefault)
+  })
+
+  it('re-exports ColorSwatchPicker as the same reference as its own module', () => {
+    expect(components.ColorSwatchPicker).toBe(ColorSwatchPickerDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -720,5 +734,15 @@ describe('components barrel', () => {
   it('re-exports the DateRangePickerProps type', () => {
     const props: DateRangePickerProps<CalendarDate> = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the ColorSwatchProps type', () => {
+    const props: ColorSwatchProps = { color: '#6750A4' }
+    expect(props.color).toBe('#6750A4')
+  })
+
+  it('re-exports the ColorSwatchPickerProps type', () => {
+    const props: ColorSwatchPickerProps = { defaultValue: '#6750A4' }
+    expect(props.defaultValue).toBe('#6750A4')
   })
 })
