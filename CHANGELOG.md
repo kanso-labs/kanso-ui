@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.21.0...kanso-ui-v0.22.0) (2026-09-11)
+
+
+### Features
+
+* **color-area:** add ColorArea component ([#717](https://github.com/kanso-labs/kanso-ui/issues/717)) ([b8bd3bb](https://github.com/kanso-labs/kanso-ui/commit/b8bd3bbf489793810cc7fc70811c55f82c553443))
+
+
+### Bug Fixes
+
+* **row:** draw a two-line list row at the page's 72px container height ([#714](https://github.com/kanso-labs/kanso-ui/issues/714)) ([59be1ba](https://github.com/kanso-labs/kanso-ui/commit/59be1ba7794fde9f86b9cd569c85f2881ef17e41))
+
 ## [0.21.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.20.0...kanso-ui-v0.21.0) (2026-09-11)
 
 
