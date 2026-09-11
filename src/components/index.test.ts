@@ -52,12 +52,13 @@ import type { TagProps } from './tag'
 import type { TextProps } from './text'
 import type { TextAreaProps } from './text-area'
 import type { TextFieldProps } from './text-field'
+import type { TimeFieldProps } from './time-field'
 import type { TokenFieldProps } from './token-field'
 import type { ToolbarProps } from './toolbar'
 import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
-import { CalendarDate } from '../date'
+import { CalendarDate, Time } from '../date'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
@@ -110,6 +111,7 @@ import TagDefault from './tag'
 import TextDefault from './text'
 import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
+import TimeFieldDefault from './time-field'
 import TokenFieldDefault from './token-field'
 import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
@@ -174,6 +176,7 @@ describe('components barrel', () => {
       'Text',
       'TextArea',
       'TextField',
+      'TimeField',
       'TokenField',
       'Toolbar',
       'Tooltip',
@@ -403,6 +406,10 @@ describe('components barrel', () => {
 
   it('re-exports DateField as the same reference as its own module', () => {
     expect(components.DateField).toBe(DateFieldDefault)
+  })
+
+  it('re-exports TimeField as the same reference as its own module', () => {
+    expect(components.TimeField).toBe(TimeFieldDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -683,6 +690,11 @@ describe('components barrel', () => {
 
   it('re-exports the DateFieldProps type', () => {
     const props: DateFieldProps<CalendarDate> = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the TimeFieldProps type', () => {
+    const props: TimeFieldProps<Time> = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })
