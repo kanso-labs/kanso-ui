@@ -98,6 +98,7 @@ describe('package entry point', () => {
       'ListLayout',
       'Menu',
       'Meter',
+      'NavigationTree',
       'NumberField',
       'Popover',
       'Pressable',

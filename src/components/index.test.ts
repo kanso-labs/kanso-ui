@@ -139,6 +139,7 @@ describe('components barrel', () => {
       'ListItem',
       'Menu',
       'Meter',
+      'NavigationTree',
       'NumberField',
       'Popover',
       'ProductIcon',

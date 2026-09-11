@@ -31,6 +31,7 @@ import {
   ListItem,
   Menu,
   Meter,
+  NavigationTree,
   NumberField,
   Popover,
   ProductIcon,
@@ -330,6 +331,37 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Menu.Separator',
   },
   { element: <Meter {...PROBE} label="Label" value={40} />, name: 'Meter' },
+  {
+    element: (
+      <NavigationTree {...PROBE} aria-label="Label">
+        <NavigationTree.Item href="#first" id="first" label="First item" />
+      </NavigationTree>
+    ),
+    name: 'NavigationTree',
+  },
+  {
+    element: (
+      <NavigationTree aria-label="Label">
+        <NavigationTree.Item
+          {...PROBE}
+          href="#first"
+          id="first"
+          label="First item"
+        />
+      </NavigationTree>
+    ),
+    name: 'NavigationTree.Item',
+  },
+  {
+    element: (
+      <NavigationTree aria-label="Label">
+        <NavigationTree.Section {...PROBE} header="Headline" id="section">
+          <NavigationTree.Item href="#first" id="first" label="First item" />
+        </NavigationTree.Section>
+      </NavigationTree>
+    ),
+    name: 'NavigationTree.Section',
+  },
   { element: <NumberField {...PROBE} label="Label" />, name: 'NumberField' },
   {
     element: (

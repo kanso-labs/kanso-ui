@@ -44,6 +44,7 @@ import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
+import NavigationTree from '../components/navigation-tree'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
 import ProductIcon from '../components/product-icon'
@@ -919,6 +920,26 @@ function Showcase({ name }: ShowcaseProps) {
                 strength.
               </Text>
             </div>
+            <Card padding="none" variant="outlined">
+              <NavigationTree aria-label="Label" selectedRoute="#second">
+                <NavigationTree.Item
+                  href="#first"
+                  id="first"
+                  label="First item"
+                >
+                  <NavigationTree.Item
+                    href="#second"
+                    id="second"
+                    label="Second item"
+                  />
+                </NavigationTree.Item>
+                <NavigationTree.Item
+                  href="#third"
+                  id="third"
+                  label="Third item"
+                />
+              </NavigationTree>
+            </Card>
             <Breadcrumbs aria-label="Label">
               <Breadcrumbs.Item href="#first">First item</Breadcrumbs.Item>
               <Breadcrumbs.Item href="#second">Second item</Breadcrumbs.Item>
