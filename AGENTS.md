@@ -636,6 +636,19 @@ extends the `type-enum` rule from `@commitlint/config-conventional` to admit it
 alongside the standard eleven. A plain `chore:` still publishes nothing, which
 is the point — housekeeping should not cut a release.
 
+**Tags are `v0.23.0`, and `include-component-in-tag: false` is what makes them
+so.** release-please's manifest mode names a tag after the package it releases,
+`kanso-ui-v0.23.0`, which is what a monorepo needs to tell its packages apart
+and what a repository publishing one package only pays for nothing. That key
+turns three things off together: the prefix on the tag, the `kanso-ui: ` on the
+GitHub release's title, and the same prefix inside the compare links every
+changelog entry opens with. The 62 tags cut before it was set were rewritten to
+match, their releases repointed, and the links in `CHANGELOG.md` rewritten with
+them, so the format is uniform rather than split at a date — which is why the
+changelog carries an edit that release-please did not write, against the rule
+above. Setting the key back would tag the next release alone differently from
+every release before it.
+
 The names themselves follow five rules:
 
 1. A workflow's filename is the kebab-case of its `name:` field, with the
