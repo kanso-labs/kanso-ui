@@ -230,5 +230,17 @@ describe('date field', () => {
         probe(probeStyles.onSurface),
       )
     })
+
+    it('opens the outlined notch over segments that already show', () => {
+      const view = render(<DateField label="Label" variant="outlined" />)
+      // The notch is the one thing the box cannot work out for itself here:
+      // it reads React Aria's input context, which a date field does not
+      // provide, and the label's own type comes off CSS instead. An empty
+      // legend is a closed notch drawn straight through `mm/dd/yyyy`.
+      const legend = view.container.querySelector('legend')
+
+      expect(legend?.textContent).toBe('Label')
+      expect(legend?.getBoundingClientRect().width).toBeGreaterThan(0)
+    })
   })
 })
