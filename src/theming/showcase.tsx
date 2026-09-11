@@ -42,6 +42,8 @@ import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import Code from '../components/code'
 import ColorArea from '../components/color-area'
+import ColorField from '../components/color-field'
+import ColorPicker from '../components/color-picker'
 import ColorSlider from '../components/color-slider'
 import ColorSwatch from '../components/color-swatch'
 import ColorSwatchPicker from '../components/color-swatch-picker'
@@ -293,6 +295,8 @@ const SHOWCASE_SELECTION = ['second']
 // follows the theme.
 const SHOWCASE_SWATCHES = ['#6750A4', '#625B71', '#7D5260', '#386A20']
 const SHOWCASE_TRANSPARENT = 'hsla(200, 100%, 50%, 0.4)'
+// Hoisted, which is what react-perf's no-jsx-as-prop is after.
+const SHOWCASE_FIELD_SWATCH = <ColorSwatch color={SHOWCASE_SWATCHES[0]} />
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
 
@@ -610,6 +614,26 @@ function Showcase({ name }: ShowcaseProps) {
                 xChannel="saturation"
                 yChannel="lightness"
               />
+            </div>
+          </Section>
+
+          <Section
+            description="The text fields page's box holding a colour, so what a scheme reaches is the field chrome — the swatch beside it is the value rather than a role."
+            title="ColorField"
+          >
+            <ColorField
+              defaultValue={SHOWCASE_SWATCHES[0]}
+              label="Label"
+              leadingIcon={SHOWCASE_FIELD_SWATCH}
+            />
+          </Section>
+
+          <Section
+            description="The trigger is the one part a scheme reaches: its container and its label take the surface roles, while everything on the surface it opens carries a colour rather than a role."
+            title="ColorPicker"
+          >
+            <div {...stylex.props(styles.row)}>
+              <ColorPicker defaultValue={SHOWCASE_SWATCHES[0]} label="Label" />
             </div>
           </Section>
 

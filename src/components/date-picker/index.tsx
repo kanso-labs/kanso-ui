@@ -152,7 +152,7 @@ function DatePicker<T extends DateValue>({
       </FieldBox>
       <FieldMessage description={description} error={error} />
       <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
-        <RACDialog>
+        <RACDialog {...stylex.props(overlay.popupDialog)}>
           <Calendar aria-label={label} />
         </RACDialog>
       </RACPopover>
