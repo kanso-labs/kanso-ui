@@ -8,6 +8,7 @@ import {
   Avatar as ComponentsAvatar,
   Breadcrumbs as ComponentsBreadcrumbs,
   Button as ComponentsButton,
+  Calendar as ComponentsCalendar,
   Card as ComponentsCard,
   Checkbox as ComponentsCheckbox,
   CheckboxGroup as ComponentsCheckboxGroup,
@@ -68,6 +69,7 @@ describe('package entry point', () => {
       'Avatar',
       'Breadcrumbs',
       'Button',
+      'Calendar',
       'Card',
       'Checkbox',
       'CheckboxGroup',
@@ -361,6 +363,10 @@ describe('package entry point', () => {
 
   it('forwards List as the same reference as the components barrel', () => {
     expect(publicApi.List).toBe(ComponentsList)
+  })
+
+  it('forwards Calendar as the same reference as the components barrel', () => {
+    expect(publicApi.Calendar).toBe(ComponentsCalendar)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
