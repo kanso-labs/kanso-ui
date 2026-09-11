@@ -9,9 +9,10 @@
 // runs the linters' fixers over what it touched so the import order and the
 // formatting come out the way a commit would leave them.
 //
-// The one thing it cannot do is place the component in
-// `src/theming/showcase.tsx`, which is a judgement about which section it
-// belongs to; it prints the reminder instead. See AGENTS.md, "Previewing".
+// The one thing it cannot do is write the component's section in
+// `src/theming/showcase.tsx`. Its place there is alphabetical, but what the
+// section shows and the sentence under its headline are judgements a stub
+// cannot make; it prints the reminder instead. See AGENTS.md, "Previewing".
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -462,7 +463,7 @@ function main() {
     `Scaffolded ${name.component}:\n${relative.map((path) => `  ${path}`).join('\n')}`,
   )
   console.log(
-    `\nStill yours:\n  place ${name.component} in its section of src/theming/showcase.tsx\n  replace the stub with the component, naming its Material Design spec page in the comment\n  give it stories for the states a consumer looks at, and a test per behaviour`,
+    `\nStill yours:\n  give ${name.component} a Section of its own, in its alphabetical place in src/theming/showcase.tsx\n  replace the stub with the component, naming its Material Design spec page in the comment\n  give it stories for the states a consumer looks at, and a test per behaviour`,
   )
 }
 
