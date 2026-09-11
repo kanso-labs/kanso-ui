@@ -1,3 +1,4 @@
+export { useDragAndDrop } from './drag/hooks'
 // The React Aria utilities a consumer reaches for around the components:
 // the providers that give them a locale and a router, the collection and
 // data hooks a list or table is fed from, the drag and drop hooks and their
@@ -13,6 +14,12 @@
 // value is a list of segments rather than a string, and what counts as a
 // token is decided by subclassing it and overriding `tokenize`. A consumer
 // cannot write that against a second copy of the library.
+//
+// `useDragAndDrop` is the one name here that is not React Aria's own. This
+// package's version defaults the drop indicator and the drag preview to the
+// styled ones in `src/drag`, so a call site gets a line and a preview that
+// look like the rest of the library without wiring either. Everything it
+// takes is React Aria's, and passing either renderer replaces the default.
 //
 // A curated list rather than `export *`, so the public surface stays the one
 // `src/index.test.ts` pins and a React Aria release adding an export does not
@@ -41,7 +48,6 @@ export {
   TokenFieldValue,
   useAsyncList,
   useDrag,
-  useDragAndDrop,
   useDrop,
   useFilter,
   useListData,

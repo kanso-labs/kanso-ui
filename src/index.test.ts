@@ -390,7 +390,6 @@ describe('package entry point', () => {
     TableLayout: [publicApi.TableLayout, reactAria.TableLayout],
     useAsyncList: [publicApi.useAsyncList, reactAria.useAsyncList],
     useDrag: [publicApi.useDrag, reactAria.useDrag],
-    useDragAndDrop: [publicApi.useDragAndDrop, reactAria.useDragAndDrop],
     useDrop: [publicApi.useDrop, reactAria.useDrop],
     useFilter: [publicApi.useFilter, reactAria.useFilter],
     useListData: [publicApi.useListData, reactAria.useListData],
@@ -400,6 +399,15 @@ describe('package entry point', () => {
     VisuallyHidden: [publicApi.VisuallyHidden, reactAria.VisuallyHidden],
     WaterfallLayout: [publicApi.WaterfallLayout, reactAria.WaterfallLayout],
   }
+
+  // `useDragAndDrop` is deliberately not in that list. It is the one name the
+  // package does not forward: its own version wraps React Aria's to default
+  // the drop indicator and the drag preview to the styled ones, so asserting
+  // reference equality would pin the opposite of what it is for.
+  it('wraps useDragAndDrop rather than forwarding it', () => {
+    expect(publicApi.useDragAndDrop).not.toBe(reactAria.useDragAndDrop)
+    expect(typeof publicApi.useDragAndDrop).toBe('function')
+  })
 
   it.each(Object.entries(REACT_ARIA_UTILITIES))(
     'forwards %s as the same reference as react-aria-components',

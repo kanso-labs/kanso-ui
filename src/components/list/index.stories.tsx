@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useListData } from 'react-aria-components'
 
 import List from '.'
+import { useDragAndDrop } from '../../drag/hooks'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Avatar from '../avatar'
 import Currency from '../currency'
@@ -266,11 +268,60 @@ const Loading: Story = {
   ),
 }
 
+// Its own story because reordering is a behaviour rather than a state: the
+// line between two rows is drawn only while a drag is in flight, so a
+// snapshot shows the list at rest and the drag itself has to be tried.
+//
+// The hooks come from this package rather than from React Aria, which is what
+// gives the drag its styled line and preview without wiring either.
+const Reorderable: Story = {
+  render: function Reorderable() {
+    const rows = useListData({
+      initialItems: [
+        { id: 'first', name: 'First item' },
+        { id: 'second', name: 'Second item' },
+        { id: 'third', name: 'Third item' },
+      ],
+    })
+
+    const { dragAndDropHooks } = useDragAndDrop({
+      getItems: (keys) =>
+        [...keys].map((key) => ({
+          'text/plain': rows.getItem(key)?.name ?? String(key),
+        })),
+      onReorder: (event) => {
+        if (event.target.dropPosition === 'before') {
+          rows.moveBefore(event.target.key, event.keys)
+          return
+        }
+        rows.moveAfter(event.target.key, event.keys)
+      },
+    })
+
+    return (
+      <div {...stylex.props(styles.surface)}>
+        <List
+          aria-label="Label"
+          dragAndDropHooks={dragAndDropHooks}
+          items={rows.items}
+        >
+          {(row) => (
+            <List.Item id={row.id} supporting="Supporting line">
+              {row.name}
+            </List.Item>
+          )}
+        </List>
+      </div>
+    )
+  },
+}
+
 export {
   Default,
   Disabled,
   Loading,
   Overview,
+  Reorderable,
   Sections,
   Selected,
   SingleSelection,
