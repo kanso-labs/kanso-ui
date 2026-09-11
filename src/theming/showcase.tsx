@@ -27,6 +27,7 @@ import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import Code from '../components/code'
+import ColorArea from '../components/color-area'
 import ColorSlider from '../components/color-slider'
 import ColorSwatch from '../components/color-swatch'
 import ColorSwatchPicker from '../components/color-swatch-picker'
@@ -221,6 +222,10 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
+  },
+  // The plane takes the width it is given, so the page has to give it one.
+  swatchPlane: {
+    inlineSize: '200px',
   },
 })
 
@@ -651,6 +656,14 @@ function Showcase({ name }: ShowcaseProps) {
               defaultValue={SHOWCASE_TRANSPARENT}
               label="Label"
             />
+            <div {...stylex.props(styles.swatchPlane)}>
+              <ColorArea
+                aria-label="Label"
+                defaultValue={SHOWCASE_TRANSPARENT}
+                xChannel="saturation"
+                yChannel="lightness"
+              />
+            </div>
           </section>
 
           <Separator />

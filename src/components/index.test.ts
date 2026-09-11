@@ -12,6 +12,7 @@ import type { CheckboxGroupProps } from './checkbox-group'
 import type { ChipProps } from './chip'
 import type { ChipGroupProps } from './chip-group'
 import type { CodeProps } from './code'
+import type { ColorAreaProps } from './color-area'
 import type { ColorSliderProps } from './color-slider'
 import type { ColorSwatchProps } from './color-swatch'
 import type { ColorSwatchPickerProps } from './color-swatch-picker'
@@ -76,6 +77,7 @@ import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
 import ChipGroupDefault from './chip-group'
 import CodeDefault from './code'
+import ColorAreaDefault from './color-area'
 import ColorSliderDefault from './color-slider'
 import ColorSwatchDefault from './color-swatch'
 import ColorSwatchPickerDefault from './color-swatch-picker'
@@ -141,6 +143,7 @@ describe('components barrel', () => {
       'Chip',
       'ChipGroup',
       'Code',
+      'ColorArea',
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
@@ -445,6 +448,10 @@ describe('components barrel', () => {
 
   it('re-exports ColorSlider as the same reference as its own module', () => {
     expect(components.ColorSlider).toBe(ColorSliderDefault)
+  })
+
+  it('re-exports ColorArea as the same reference as its own module', () => {
+    expect(components.ColorArea).toBe(ColorAreaDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -756,5 +763,10 @@ describe('components barrel', () => {
   it('re-exports the ColorSliderProps type', () => {
     const props: ColorSliderProps = { channel: 'hue' }
     expect(props.channel).toBe('hue')
+  })
+
+  it('re-exports the ColorAreaProps type', () => {
+    const props: ColorAreaProps = { xChannel: 'saturation' }
+    expect(props.xChannel).toBe('saturation')
   })
 })
