@@ -1,5 +1,5 @@
 import type { CalendarDate } from '@internationalized/date'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import type {
   DateValue,
   CalendarProps as RACCalendarProps,
@@ -7,25 +7,16 @@ import type {
 
 import * as stylex from '@stylexjs/stylex'
 import {
-  Button as RACButton,
   Calendar as RACCalendar,
   CalendarCell as RACCalendarCell,
   CalendarGrid as RACCalendarGrid,
   CalendarGridBody as RACCalendarGridBody,
-  CalendarGridHeader as RACCalendarGridHeader,
-  CalendarHeaderCell as RACCalendarHeaderCell,
-  Heading as RACHeading,
 } from 'react-aria-components'
 
-import { ChevronEndGlyph } from '../../glyphs'
+import { CalendarGridHeader, CalendarHeader } from '../../calendar'
+import { monthOffsets } from '../../calendar/months'
+import { calendarStyles } from '../../calendar/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import {
-  colors,
-  radii,
-  spacing,
-  stateLayerOpacity,
-  typography,
-} from '../../tokens/design.tokens.stylex'
 
 // The date pickers page's docked calendar: a month grid with a circle on the
 // selected date and an outline on today. Its values are that page's — a
@@ -63,159 +54,6 @@ import {
 // the slot would put two buttons where the page draws one. The chevrons take
 // the standard icon button's 40dp square and its state layer instead.
 
-const styles = stylex.create({
-  // The date itself: the page's 40dp state layer, which is the circle a
-  // selected date fills and the shape a hover tints.
-  cell: {
-    alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    blockSize: '40px',
-    borderRadius: radii.full,
-    boxSizing: 'border-box',
-    color: colors.onSurface,
-    cursor: 'pointer',
-    display: 'flex',
-    fontFamily: typography.bodyLargeFont,
-    fontSize: typography.bodyLargeSize,
-    fontWeight: typography.bodyLargeWeight,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    letterSpacing: typography.bodyLargeTracking,
-    lineHeight: typography.bodyLargeLineHeight,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-  },
-  // A date the calendar will not take: outside the range, or ruled out by
-  // `isDateUnavailable`. The page's own 38% on the content role, which is the
-  // same fade every disabled control here takes.
-  cellDisabled: {
-    backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
-    cursor: 'not-allowed',
-  },
-  // The date the calendar holds. A filled circle in the primary role, which
-  // is what the page gives it.
-  cellSelected: {
-    backgroundColor: {
-      ':active': colors.primary,
-      ':hover': colors.primary,
-      default: colors.primary,
-    },
-    color: colors.onPrimary,
-  },
-  // Today, when it is not the date held: the page's 1dp outline in the
-  // primary role, with the label to match.
-  cellToday: {
-    borderColor: colors.primary,
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    color: colors.primary,
-  },
-  // The chevrons that move the month. The icon buttons page's 40dp square
-  // and its state layer, drawn here rather than through IconButton, since
-  // React Aria's own Button is what carries the slot.
-  chevron: {
-    alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    blockSize: '40px',
-    borderRadius: radii.full,
-    borderWidth: 0,
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    cursor: 'pointer',
-    display: 'flex',
-    flexShrink: 0,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-    padding: 0,
-  },
-  // The one that goes back, which is the forward chevron turned around. It
-  // says "back" rather than "to the left", so it mirrors with the writing
-  // mode like every other chevron here.
-  chevronGlyph: {
-    blockSize: '24px',
-    inlineSize: '24px',
-    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
-  },
-  chevronGlyphPrevious: {
-    transform: { ':dir(rtl)': 'scaleX(1)', default: 'scaleX(-1)' },
-  },
-  // The grid. `border-spacing` is what puts the page's 48dp pitch between
-  // 40dp circles, rather than a 48dp box drawn around each one.
-  grid: {
-    borderCollapse: 'separate',
-    borderSpacing: spacing.xs,
-    inlineSize: '100%',
-  },
-  // The row the chevrons and the month sit in, at the page's 40dp button
-  // height. A `<div>` rather than a `<header>`: a header is a banner
-  // landmark, landmarks may not nest, and React Aria puts the calendar in
-  // `role="application"` — axe fails the page on it, and the stories run axe
-  // as an error.
-  header: {
-    alignItems: 'center',
-    display: 'flex',
-    gap: spacing.sm,
-    justifyContent: 'space-between',
-    minBlockSize: '40px',
-  },
-  // The weekday row. The page gives it the same body-large the dates take,
-  // in the full content role rather than a muted one.
-  headerCell: {
-    blockSize: '40px',
-    color: colors.onSurface,
-    fontFamily: typography.bodyLargeFont,
-    fontSize: typography.bodyLargeSize,
-    fontWeight: typography.bodyLargeWeight,
-    letterSpacing: typography.bodyLargeTracking,
-    lineHeight: typography.bodyLargeLineHeight,
-  },
-  // The month and year, between the two chevrons.
-  heading: {
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-    margin: 0,
-    textAlign: 'center',
-  },
-  // Two months side by side, for a `visibleDuration` of more than one.
-  months: {
-    display: 'flex',
-    gap: spacing.xl,
-  },
-  // The page's docked container: 360dp on the high surface container. Its
-  // height is the grid's own, for the reason in the comment above.
-  root: {
-    backgroundColor: colors.surfaceContainerHigh,
-    borderRadius: radii.lg,
-    boxSizing: 'border-box',
-    color: colors.onSurface,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.md,
-    inlineSize: 'fit-content',
-    minInlineSize: '360px',
-    padding: spacing.md,
-  },
-})
-
 type CalendarProps<T extends DateValue> = Omit<
   RACCalendarProps<T>,
   'children' | 'className' | 'style'
@@ -250,17 +88,17 @@ function Calendar<T extends DateValue>(props: CalendarProps<T>) {
   return (
     <RACCalendar<T>
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.root), props)}
+      {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      {header()}
-      <div {...stylex.props(styles.months)}>
+      <CalendarHeader />
+      <div {...stylex.props(calendarStyles.months)}>
         {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
           <RACCalendarGrid
             key={offset.months}
             offset={offset}
-            {...stylex.props(styles.grid)}
+            {...stylex.props(calendarStyles.grid)}
           >
-            <RACCalendarGridHeader>{headerCell}</RACCalendarGridHeader>
+            <CalendarGridHeader />
             <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
           </RACCalendarGrid>
         ))}
@@ -284,57 +122,16 @@ function cellClassName(state: {
 }) {
   return (
     stylex.props(
-      styles.cell,
-      state.isToday && styles.cellToday,
-      state.isSelected && styles.cellSelected,
-      state.isDisabled && styles.cellDisabled,
+      calendarStyles.cell,
+      state.isToday && calendarStyles.cellToday,
+      state.isSelected && calendarStyles.cellSelected,
+      state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
   )
 }
 
-function chevronClassName() {
-  return stylex.props(styles.chevron).className ?? ''
-}
-
 function gridCell(date: CalendarDate): ReactElement {
   return <RACCalendarCell className={cellClassName} date={date} />
-}
-
-// The chevrons and the month between them. Written as a call rather than
-// inline at the prop, which is what react-perf's jsx-no-jsx-as-prop is after;
-// the React Compiler memoises the result on its inputs.
-function header(): ReactNode {
-  return (
-    <div {...stylex.props(styles.header)}>
-      <RACButton className={chevronClassName} slot="previous">
-        <ChevronEndGlyph
-          {...stylex.props(styles.chevronGlyph, styles.chevronGlyphPrevious)}
-        />
-      </RACButton>
-      <RACHeading {...stylex.props(styles.heading)} />
-      <RACButton className={chevronClassName} slot="next">
-        <ChevronEndGlyph {...stylex.props(styles.chevronGlyph)} />
-      </RACButton>
-    </div>
-  )
-}
-
-function headerCell(day: string): ReactElement {
-  return (
-    <RACCalendarHeaderCell {...stylex.props(styles.headerCell)}>
-      {day}
-    </RACCalendarHeaderCell>
-  )
-}
-
-// One offset per visible month, so `visibleDuration` of more than one draws
-// the months side by side rather than one grid that scrolls between them.
-// React Aria positions each grid from its own offset; the heading names the
-// first, which is what its own `Heading` renders.
-function monthOffsets(months: number) {
-  return Array.from({ length: Math.max(1, months) }, (_unused, index) => ({
-    months: index,
-  }))
 }
 
 export type { CalendarProps }

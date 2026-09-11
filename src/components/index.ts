@@ -77,6 +77,8 @@ export type { ProgressIndicatorProps } from './progress-indicator'
 export { default as ProgressIndicator } from './progress-indicator'
 export type { RadioGroupProps, RadioProps } from './radio-group'
 export { Radio, default as RadioGroup } from './radio-group'
+export type { RangeCalendarProps } from './range-calendar'
+export { default as RangeCalendar } from './range-calendar'
 export type { SearchFieldProps } from './search-field'
 export { default as SearchField } from './search-field'
 export type {

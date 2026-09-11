@@ -99,10 +99,21 @@ describe('calendar', () => {
       )
       const cell = cellFor(view, 'Tuesday, September 15, 2026')
 
-      // The page's 40dp state layer. Its 48dp container comes from the grid's
-      // own spacing rather than from a box around this one.
+      // The page's 40dp state layer, inside the 48dp container it gives a
+      // date: 4dp either side, which the cell carries as its own margin so a
+      // range's band can fill the whole 48.
       expect(cell.getBoundingClientRect().width).toBe(40)
       expect(cell.getBoundingClientRect().height).toBe(40)
+    })
+
+    it('puts the page 48px between one date and the next', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const first = cellFor(view, 'September 8, 2026').getBoundingClientRect()
+      const second = cellFor(view, 'September 9, 2026').getBoundingClientRect()
+
+      expect(second.left - first.left).toBe(48)
     })
   })
 

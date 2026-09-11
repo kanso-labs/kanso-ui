@@ -40,6 +40,7 @@ import {
   ProgressIndicator,
   Radio,
   RadioGroup,
+  RangeCalendar,
   SearchField,
   SegmentedButton,
   Select,
@@ -418,6 +419,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Radio',
   },
   { element: <RadioGroup {...PROBE} label="Label" />, name: 'RadioGroup' },
+  {
+    element: <RangeCalendar {...PROBE} aria-label="Label" />,
+    name: 'RangeCalendar',
+  },
   { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
   {
     element: (

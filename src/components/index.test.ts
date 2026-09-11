@@ -35,6 +35,7 @@ import type { PopoverProps } from './popover'
 import type { ProductIconProps } from './product-icon'
 import type { ProgressIndicatorProps } from './progress-indicator'
 import type { RadioGroupProps, RadioProps } from './radio-group'
+import type { RangeCalendarProps } from './range-calendar'
 import type { SearchFieldProps } from './search-field'
 import type { SegmentedButtonProps } from './segmented-button'
 import type { SelectProps } from './select'
@@ -91,6 +92,7 @@ import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
 import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
+import RangeCalendarDefault from './range-calendar'
 import SearchFieldDefault from './search-field'
 import SegmentedButtonDefault from './segmented-button'
 import SelectDefault from './select'
@@ -152,6 +154,7 @@ describe('components barrel', () => {
       'ProgressIndicator',
       'Radio',
       'RadioGroup',
+      'RangeCalendar',
       'SearchField',
       'SegmentedButton',
       'Select',
@@ -389,6 +392,10 @@ describe('components barrel', () => {
 
   it('re-exports Calendar as the same reference as its own module', () => {
     expect(components.Calendar).toBe(CalendarDefault)
+  })
+
+  it('re-exports RangeCalendar as the same reference as its own module', () => {
+    expect(components.RangeCalendar).toBe(RangeCalendarDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -659,6 +666,11 @@ describe('components barrel', () => {
 
   it('re-exports the CalendarProps type', () => {
     const props: CalendarProps<CalendarDate> = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the RangeCalendarProps type', () => {
+    const props: RangeCalendarProps<CalendarDate> = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 })
