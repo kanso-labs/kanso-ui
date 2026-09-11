@@ -20,6 +20,7 @@ import {
   Currency,
   DateField,
   DatePicker,
+  DateRangePicker,
   Dialog,
   Disclosure,
   DisclosureGroup,
@@ -172,6 +173,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <Currency {...PROBE} value={1} />, name: 'Currency' },
   { element: <DateField {...PROBE} label="Label" />, name: 'DateField' },
   { element: <DatePicker {...PROBE} label="Label" />, name: 'DatePicker' },
+  {
+    element: <DateRangePicker {...PROBE} label="Label" />,
+    name: 'DateRangePicker',
+  },
   {
     element: (
       <Dialog defaultOpen>

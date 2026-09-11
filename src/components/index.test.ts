@@ -18,6 +18,7 @@ import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { DateFieldProps } from './date-field'
 import type { DatePickerProps } from './date-picker'
+import type { DateRangePickerProps } from './date-range-picker'
 import type { DialogProps } from './dialog'
 import type { DisclosureProps } from './disclosure'
 import type { DisclosureGroupProps } from './disclosure-group'
@@ -78,6 +79,7 @@ import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import DateFieldDefault from './date-field'
 import DatePickerDefault from './date-picker'
+import DateRangePickerDefault from './date-range-picker'
 import DialogDefault from './dialog'
 import DisclosureDefault from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
@@ -139,6 +141,7 @@ describe('components barrel', () => {
       'Currency',
       'DateField',
       'DatePicker',
+      'DateRangePicker',
       'Dialog',
       'Disclosure',
       'DisclosureGroup',
@@ -417,6 +420,10 @@ describe('components barrel', () => {
 
   it('re-exports DatePicker as the same reference as its own module', () => {
     expect(components.DatePicker).toBe(DatePickerDefault)
+  })
+
+  it('re-exports DateRangePicker as the same reference as its own module', () => {
+    expect(components.DateRangePicker).toBe(DateRangePickerDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -707,6 +714,11 @@ describe('components barrel', () => {
 
   it('re-exports the DatePickerProps type', () => {
     const props: DatePickerProps<CalendarDate> = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the DateRangePickerProps type', () => {
+    const props: DateRangePickerProps<CalendarDate> = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })

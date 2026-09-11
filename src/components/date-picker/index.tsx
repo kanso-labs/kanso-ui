@@ -25,13 +25,7 @@ import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
-import {
-  colors,
-  media,
-  radii,
-  spacing,
-  stateLayerOpacity,
-} from '../../tokens/design.tokens.stylex'
+import { picker, triggerClassName } from '../../styles/picker'
 import Calendar from '../calendar'
 
 // The date pickers page's picker: the date field a date is typed into, with
@@ -53,65 +47,6 @@ import Calendar from '../calendar'
 // to a field is unreachable at 375px, and a modal that stayed centred on a
 // desktop would cover a form for no reason. `Sheet` settles this the same
 // way, and doing it twice in two different ways is how the two would drift.
-
-const styles = stylex.create({
-  // The segments and the trigger on one line, which is what makes the two
-  // read as a single field.
-  group: {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    gap: spacing.sm,
-    inlineSize: '100%',
-    outlineStyle: 'none',
-  },
-  // The calendar's surface. Docked to the field above the breakpoint; below
-  // it, centred in the viewport with room around it, which is what the
-  // page's modal picker is.
-  popover: {
-    insetBlockStart: { default: 'auto', [media.belowMedium]: '50%' },
-    insetInlineStart: { default: 'auto', [media.belowMedium]: '50%' },
-    maxInlineSize: {
-      default: 'none',
-      [media.belowMedium]: 'calc(100vw - 32px)',
-    },
-    position: { default: 'absolute', [media.belowMedium]: 'fixed' },
-    transform: {
-      default: 'none',
-      [media.belowMedium]: 'translate(-50%, -50%)',
-    },
-  },
-  // The button that opens the calendar. The icon buttons page's 40dp square
-  // and its state layer, drawn here rather than through IconButton because
-  // React Aria carries the picker's trigger on its own `Button`.
-  trigger: {
-    alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    blockSize: '40px',
-    borderRadius: radii.full,
-    borderWidth: 0,
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    cursor: 'pointer',
-    display: 'flex',
-    flexShrink: 0,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
-    padding: 0,
-  },
-  triggerGlyph: {
-    blockSize: '24px',
-    inlineSize: '24px',
-  },
-})
 
 type DatePickerProps<T extends DateValue> = Omit<
   RACDatePickerProps<T>,
@@ -205,28 +140,24 @@ function DatePicker<T extends DateValue>({
         variant={variant}
       >
         <FieldValue>
-          <RACGroup {...stylex.props(styles.group)}>
+          <RACGroup {...stylex.props(picker.group)}>
             <RACDateInput {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
             <RACButton aria-label={triggerLabel} className={triggerClassName}>
-              <CalendarGlyph {...stylex.props(styles.triggerGlyph)} />
+              <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
             </RACButton>
           </RACGroup>
         </FieldValue>
       </FieldBox>
       <FieldMessage description={description} error={error} />
-      <RACPopover {...stylex.props(overlay.popup, styles.popover)}>
+      <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
         <RACDialog>
           <Calendar aria-label={label} />
         </RACDialog>
       </RACPopover>
     </RACDatePicker>
   )
-}
-
-function triggerClassName() {
-  return stylex.props(styles.trigger).className ?? ''
 }
 
 export type { DatePickerProps }
