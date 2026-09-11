@@ -104,7 +104,9 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The mode is a word on the set, and it decides what a screen reader
             hears: choosing one is a radio group, choosing several a toolbar of
-            two-state buttons. A chosen segment draws a check.
+            two-state buttons. It decides how the chosen container moves as well
+            — it slides from one segment to the next while one is chosen, and
+            fades in place while several may be. A chosen segment draws a check.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
