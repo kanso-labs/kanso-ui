@@ -56,6 +56,13 @@ export type { MenuProps } from './menu'
 export { default as Menu } from './menu'
 export type { MeterProps } from './meter'
 export { default as Meter } from './meter'
+export type {
+  NavigationTreeHeaderProps,
+  NavigationTreeItemProps,
+  NavigationTreeProps,
+  NavigationTreeSectionProps,
+} from './navigation-tree'
+export { default as NavigationTree } from './navigation-tree'
 export type { NumberFieldProps } from './number-field'
 export { default as NumberField } from './number-field'
 export type { PopoverProps } from './popover'

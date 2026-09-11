@@ -34,22 +34,23 @@ interface RowContentProps {
   trailing?: ReactNode
   /**
    * Which spec page's row this is. A list item's headline is body-large; a
-   * menu item's label is label-large. The element around the content applies
-   * the matching `rowStyles.list` or `rowStyles.menu` beside `rowStyles.base`.
+   * menu item's label and a navigation drawer row's are label-large. The
+   * element around the content applies the matching `rowStyles.list`,
+   * `rowStyles.menu` or `rowStyles.drawer` beside `rowStyles.base`.
    * @default 'list'
    */
   variant?: RowVariant
 }
 
-type RowVariant = 'list' | 'menu'
+type RowVariant = 'drawer' | 'list' | 'menu'
 
 /**
  * The inside of a row: the leading slot, the headline with its supporting
  * line, and the trailing slot, each rendered only when given. The element
  * around it is the caller's — ListItem's div or button, a collection's item —
- * and takes `rowStyles.base`, the variant's `rowStyles.list` or
- * `rowStyles.menu`, and whichever states apply; this is what every one of
- * them puts inside it, so a list, a menu and a tree draw the same row.
+ * and takes `rowStyles.base`, the variant's own style, and whichever states
+ * apply; this is what every one of them puts inside it, so a list, a menu, a
+ * tree and a drawer draw the same row.
  *
  * Not a component of the library's own and not exported; see `src/field` for
  * the same arrangement around a field.
@@ -64,15 +65,15 @@ function RowContent({
   trailing,
   variant = 'list',
 }: RowContentProps) {
-  const menu = variant === 'menu'
+  // The drawer's label is the menu's, so the two share the headline style;
+  // what they do not share is the container a selected row brings, which is
+  // why the tone below still asks which variant this is.
+  const label = variant === 'drawer' || variant === 'menu'
   // Disabled first: a disabled row's own colour is already the faded one, so
   // it wins over the selected container's content role.
   const supportingTone = isDisabled
     ? rowStyles.supportingInherit
-    : isSelected &&
-      (menu
-        ? rowStyles.supportingSelectedMenu
-        : rowStyles.supportingSelectedList)
+    : isSelected && selectedSupportingTone(variant)
   return (
     <>
       {leading === undefined ? null : (
@@ -86,7 +87,7 @@ function RowContent({
         )}
         <span
           {...stylex.props(
-            menu ? rowStyles.headlineMenu : rowStyles.headlineList,
+            label ? rowStyles.headlineMenu : rowStyles.headlineList,
           )}
         >
           {children}
@@ -102,6 +103,19 @@ function RowContent({
       )}
     </>
   )
+}
+
+// Which on-colour a supporting line takes over a selected row's own
+// container. Each variant's container is a different colour family, and the
+// muted role is not guaranteed to be readable over any of them.
+function selectedSupportingTone(variant: RowVariant) {
+  if (variant === 'drawer') {
+    return rowStyles.supportingSelectedDrawer
+  }
+  if (variant === 'menu') {
+    return rowStyles.supportingSelectedMenu
+  }
+  return rowStyles.supportingSelectedList
 }
 
 export type { RowContentProps, RowVariant }

@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import {
   colors,
+  radii,
   spacing,
   stateLayerOpacity,
   typography,
@@ -13,12 +14,16 @@ import {
 // so that file exports components alone, which is what keeps fast refresh
 // working for it.
 //
-// Two variants, because two spec pages draw two rows. The lists page gives a
-// list item a 56dp floor, a body-large headline and a body-medium supporting
-// line, and primary container when selected. The menus page gives a menu
-// item 48dp, a label-large label, and tertiary container when selected. The
-// layout, the padding, the state layers and the disabled treatment are one
-// row; `list` and `menu` carry only what the two pages disagree on, and a
+// Three variants, because three spec pages draw three rows. The lists page
+// gives a list item a 56dp floor, a body-large headline and a body-medium
+// supporting line, and primary container when selected. The menus page gives
+// a menu item 48dp, a label-large label, and tertiary container when
+// selected. The navigation drawer page gives its row 56dp too, with a
+// label-large label like a menu's, and marks the current one with a
+// secondary-container pill held 12dp off each edge — 336dp of indicator in a
+// 360dp container, which is what that inset comes to. The layout, the
+// padding, the state layers and the disabled treatment are one row; `list`,
+// `menu` and `drawer` carry only what the three pages disagree on, and a
 // consumer applies one of them beside `base`.
 //
 // Laid out with flex rather than the grid the design draws. The design's
@@ -58,6 +63,18 @@ const rowStyles = stylex.create({
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+  },
+  // The navigation drawer page's row: the lists page's floor, a menu's label,
+  // and a pill rather than a rectangle, since what marks the current row
+  // there is a shape as much as a colour.
+  drawer: {
+    borderRadius: radii.full,
+    // `auto` replaces the `100%` in `base`: a margin sits outside the box, so
+    // a full-width row with one overflows its container by exactly the inset
+    // — the same trap Separator's own insets document.
+    inlineSize: 'auto',
+    marginInline: spacing.md,
+    minBlockSize: '56px',
   },
   headlineList: {
     fontFamily: typography.bodyLargeFont,
@@ -122,6 +139,17 @@ const rowStyles = stylex.create({
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,
   },
+  // The drawer page's active row. Secondary container rather than the lists
+  // page's primary one, which is what keeps a drawer's current row distinct
+  // from a selected row in the list beside it.
+  selectedDrawer: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: colors.secondaryContainer,
+    },
+    color: colors.onSecondaryContainer,
+  },
   selectedList: {
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
@@ -161,6 +189,9 @@ const rowStyles = stylex.create({
   // out. Both cases take the row's own colour instead.
   supportingInherit: {
     color: 'inherit',
+  },
+  supportingSelectedDrawer: {
+    color: colors.onSecondaryContainer,
   },
   supportingSelectedList: {
     color: colors.onPrimaryContainer,
