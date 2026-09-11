@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.21.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.20.0...kanso-ui-v0.21.0) (2026-09-11)
+
+
+### Features
+
+* add @internationalized/date behind a ./date subpath ([#705](https://github.com/kanso-labs/kanso-ui/issues/705)) ([cfe6db1](https://github.com/kanso-labs/kanso-ui/commit/cfe6db1a75af505628940f1ee4eb410fc8577694))
+* **calendar:** add Calendar component ([#706](https://github.com/kanso-labs/kanso-ui/issues/706)) ([dd808fa](https://github.com/kanso-labs/kanso-ui/commit/dd808fa10e1b198aef3da2315d6a36bcd72036e9))
+* **color-slider:** add ColorSlider component ([#713](https://github.com/kanso-labs/kanso-ui/issues/713)) ([2698195](https://github.com/kanso-labs/kanso-ui/commit/26981953c21b4aad9b29427b351bc9ce0c0acbd3))
+* **color-swatch:** add ColorSwatch and ColorSwatchPicker components ([#712](https://github.com/kanso-labs/kanso-ui/issues/712)) ([b5ec2f0](https://github.com/kanso-labs/kanso-ui/commit/b5ec2f0e1f7074281619b4292fde374bddae6cb7))
+* **date-field:** add DateField component ([#708](https://github.com/kanso-labs/kanso-ui/issues/708)) ([0fc980a](https://github.com/kanso-labs/kanso-ui/commit/0fc980a9b498f28b8f98e56f6dc68555fe90b150))
+* **date-picker:** add DatePicker component ([#710](https://github.com/kanso-labs/kanso-ui/issues/710)) ([0852b7a](https://github.com/kanso-labs/kanso-ui/commit/0852b7ac0e82ef3794e29f44f4f09f50d87d2ec1))
+* **date-range-picker:** add DateRangePicker component ([#711](https://github.com/kanso-labs/kanso-ui/issues/711)) ([6b5365c](https://github.com/kanso-labs/kanso-ui/commit/6b5365ce0828b88a9cd409f8b2ed77b1ee1281f3))
+* **drop-zone:** add DropZone and FileTrigger components ([#702](https://github.com/kanso-labs/kanso-ui/issues/702)) ([9ba2f24](https://github.com/kanso-labs/kanso-ui/commit/9ba2f24bf0ac18a1cc8a1fee022350b05bdc7fdf))
+* **icon-button:** add the outlined variant ([#693](https://github.com/kanso-labs/kanso-ui/issues/693)) ([684e0bc](https://github.com/kanso-labs/kanso-ui/commit/684e0bcdb489165c8d19f110c44add07e302615c))
+* **list-item:** add the overline and three-line items ([#696](https://github.com/kanso-labs/kanso-ui/issues/696)) ([9ae6105](https://github.com/kanso-labs/kanso-ui/commit/9ae6105d5d50023ebc6814452bede506b617fecb))
+* **navigation-tree:** add NavigationTree component ([#701](https://github.com/kanso-labs/kanso-ui/issues/701)) ([7bdbbe0](https://github.com/kanso-labs/kanso-ui/commit/7bdbbe06f5cc6a43f73ee20cae01b7ebc0bae42f))
+* **range-calendar:** add RangeCalendar component ([#707](https://github.com/kanso-labs/kanso-ui/issues/707)) ([80d5311](https://github.com/kanso-labs/kanso-ui/commit/80d5311cece8e4742e4b89203b520f821d0746f0))
+* **separator:** add inset and middle-inset ([#695](https://github.com/kanso-labs/kanso-ui/issues/695)) ([61e95cb](https://github.com/kanso-labs/kanso-ui/commit/61e95cb5e68d633be1bd7b69ee98d8499ea49522))
+* support drag and drop across List, ListBox, Table and Tree ([#703](https://github.com/kanso-labs/kanso-ui/issues/703)) ([82d67a7](https://github.com/kanso-labs/kanso-ui/commit/82d67a7262b468c0dac9d4b0354fb91cc0b0b915))
+* support Virtualizer in List, ListBox, Table and Tree ([#704](https://github.com/kanso-labs/kanso-ui/issues/704)) ([6b2bedd](https://github.com/kanso-labs/kanso-ui/commit/6b2bedd3f199ecb98d203bd8968568e64f49fac6))
+* **table:** add column resizing and load-more ([#699](https://github.com/kanso-labs/kanso-ui/issues/699)) ([4582567](https://github.com/kanso-labs/kanso-ui/commit/4582567bb2b15ee3cbcd5b801ae2e1a52938f322))
+* **table:** add Table component ([#698](https://github.com/kanso-labs/kanso-ui/issues/698)) ([8ceb99b](https://github.com/kanso-labs/kanso-ui/commit/8ceb99b01fdbb3f9dc5122bbdd36a417d1f602c8))
+* **time-field:** add TimeField component ([#709](https://github.com/kanso-labs/kanso-ui/issues/709)) ([7ea83b5](https://github.com/kanso-labs/kanso-ui/commit/7ea83b5c642080bc1f250a46f88ca2eb0b83d25e))
+* **tree:** add Tree component ([#700](https://github.com/kanso-labs/kanso-ui/issues/700)) ([b90fc31](https://github.com/kanso-labs/kanso-ui/commit/b90fc312d9e4cf6a2649dcbc21a0eb7850fd09c8))
+
+
+### Dependencies
+
+* update dependency @babel/core to v8.0.5 ([#697](https://github.com/kanso-labs/kanso-ui/issues/697)) ([494747c](https://github.com/kanso-labs/kanso-ui/commit/494747c2e1a4ded05581abec312816450636d107))
+
 ## [0.20.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.19.0...kanso-ui-v0.20.0) (2026-09-10)
 
 
