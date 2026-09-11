@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.25.0](https://github.com/kanso-labs/kanso-ui/compare/v0.24.0...v0.25.0) (2026-09-11)
+
+
+### Features
+
+* **react-aria:** re-export the shared element primitives ([#730](https://github.com/kanso-labs/kanso-ui/issues/730)) ([4c97737](https://github.com/kanso-labs/kanso-ui/commit/4c97737cd861f76577c74fe38970f530f03b61c1))
+* **segmented-button:** animate the chosen container between segments ([#727](https://github.com/kanso-labs/kanso-ui/issues/727)) ([77976dd](https://github.com/kanso-labs/kanso-ui/commit/77976dd8a8f7dea4148ec47e537b9682b6d53d6c))
+* **tabs:** add animated panels through TabPanels ([#729](https://github.com/kanso-labs/kanso-ui/issues/729)) ([f0616fe](https://github.com/kanso-labs/kanso-ui/commit/f0616feb18bbb70cdaa41144370eb43e669de5e7))
+
 ## [0.24.0](https://github.com/kanso-labs/kanso-ui/compare/v0.23.0...v0.24.0) (2026-09-11)
 
 
