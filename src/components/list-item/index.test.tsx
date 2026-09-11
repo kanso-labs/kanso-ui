@@ -183,10 +183,10 @@ describe('list item', () => {
   })
 
   // The page's three-line item, which is the only row whose slots move: an
-  // overline, a headline and a supporting line together take an 88dp floor
-  // with the leading and trailing slots held at the top.
+  // overline, a headline and a supporting line together take an 88dp
+  // container with the leading and trailing slots held at the top.
   describe('three lines', () => {
-    it('takes the page floor and holds its slots at the top', () => {
+    it('takes the page container height and holds its slots at the top', () => {
       const view = render(
         <ListItem overline="Overline" supporting="Supporting line">
           Headline
@@ -202,7 +202,7 @@ describe('list item', () => {
       const view = render(<ListItem overline="Overline">Headline</ListItem>)
       const style = getComputedStyle(rowIn(view.container))
 
-      expect(style.minHeight).toBe('56px')
+      expect(style.minHeight).toBe('72px')
       expect(style.alignItems).toBe('center')
     })
 
@@ -212,8 +212,34 @@ describe('list item', () => {
       )
       const style = getComputedStyle(rowIn(view.container))
 
-      expect(style.minHeight).toBe('56px')
+      expect(style.minHeight).toBe('72px')
       expect(style.alignItems).toBe('center')
+    })
+
+    // Measured rather than read off `min-height`, since the container height
+    // is the point: the row's own box comes to 66 with an overline and 70
+    // with a supporting line, so only a rendered height proves the floor is
+    // what decides a two-line row. Three lines add up to the page's 88 on
+    // their own, and are here so a change to the padding or the gap that
+    // moved them would be caught in the same place.
+    it('renders the three container heights the page names', () => {
+      const oneLine = render(<ListItem>Headline</ListItem>)
+      const withOverline = render(
+        <ListItem overline="Overline">Headline</ListItem>,
+      )
+      const withSupporting = render(
+        <ListItem supporting="Supporting line">Headline</ListItem>,
+      )
+      const threeLine = render(
+        <ListItem overline="Overline" supporting="Supporting line">
+          Headline
+        </ListItem>,
+      )
+
+      expect(rowIn(oneLine.container).offsetHeight).toBe(56)
+      expect(rowIn(withOverline.container).offsetHeight).toBe(72)
+      expect(rowIn(withSupporting.container).offsetHeight).toBe(72)
+      expect(rowIn(threeLine.container).offsetHeight).toBe(88)
     })
 
     it('holds its slots at the top while interactive too', () => {

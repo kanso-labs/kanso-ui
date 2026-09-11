@@ -218,14 +218,14 @@ const Overview: Story = {
             Height
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A row with no supporting line still holds its 56px floor, which is
-            what keeps a list of mixed rows from looking ragged. An overline
-            adds a line above the headline without changing that floor, since
-            the two together are what the 56px was sized for. All three lines at
-            once is the page&apos;s three-line item: an 88px floor, with the
-            leading and trailing slots held at the top rather than centred, so
-            an avatar sits beside the text it belongs to rather than halfway
-            down the row.
+            The page names a container height per line count, and a row takes
+            the one that matches what it holds: 56px for a headline alone, which
+            is what keeps a list of mixed rows from looking ragged, and 72px for
+            two lines, whether the second is a supporting line under the
+            headline or an overline above it. All three lines at once is the
+            page&apos;s three-line item: an 88px container, with the leading and
+            trailing slots held at the top rather than centred, so an avatar
+            sits beside the text it belongs to rather than halfway down the row.
           </Text>
         </div>
         <div {...stylex.props(styles.rows)}>
@@ -290,9 +290,10 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Nothing truncates: a headline that needs two lines takes two and the
-            row grows past its 56px floor. What matters is that the middle
-            column gives way rather than shoving the trailing slot off the end —
-            including when the content cannot wrap at all.
+            row grows past whichever container height it started from. What
+            matters is that the middle column gives way rather than shoving the
+            trailing slot off the end — including when the content cannot wrap
+            at all.
           </Text>
         </div>
         <div {...stylex.props(styles.rows)}>

@@ -8,12 +8,8 @@
 // These are that number, and `src/layout.test.ts` renders each collection and
 // measures it, so a constant here cannot drift from what the component draws.
 //
-// They are the heights as rendered, which is not always the height the spec
-// page names. `listRowTwoLine` is the one that differs today: the lists page
-// gives a two-line item 72dp and the row comes to 70, since its floor is a
-// minimum and the two lines plus the row's own padding are what decide the
-// rest. A virtualizer needs what is drawn rather than what is specified, so
-// the measured number is the one here.
+// They are the heights as rendered, which is what a virtualizer needs — not
+// what a spec page names, where the two can differ. They agree today.
 
 /**
  * The heights the collections draw, in pixels, for a virtualized one's
@@ -40,12 +36,8 @@ const collectionSizes = {
   dropIndicator: 2,
   /** A `List`, `ListBox` or `Tree` row with a headline alone. */
   listRow: 56,
-  /**
-   * A row with a headline and a supporting line. The lists page names 72dp
-   * for its two-line item; what the row comes to is 70, since its floor is a
-   * minimum and the two lines plus the row's own padding decide the rest.
-   */
-  listRowTwoLine: 70,
+  /** A `List`, `ListBox` or `Tree` row with a headline and a supporting line. */
+  listRowTwoLine: 72,
   /** A `Menu` item, which the menus page gives a shorter floor than a list's. */
   menuRow: 48,
   /** A `List.Section` or `Tree.Section` heading. */
