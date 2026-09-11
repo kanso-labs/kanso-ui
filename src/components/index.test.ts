@@ -13,6 +13,8 @@ import type { ChipProps } from './chip'
 import type { ChipGroupProps } from './chip-group'
 import type { CodeProps } from './code'
 import type { ColorAreaProps } from './color-area'
+import type { ColorFieldProps } from './color-field'
+import type { ColorPickerProps } from './color-picker'
 import type { ColorSliderProps } from './color-slider'
 import type { ColorSwatchProps } from './color-swatch'
 import type { ColorSwatchPickerProps } from './color-swatch-picker'
@@ -79,6 +81,8 @@ import ChipDefault from './chip'
 import ChipGroupDefault from './chip-group'
 import CodeDefault from './code'
 import ColorAreaDefault from './color-area'
+import ColorFieldDefault from './color-field'
+import ColorPickerDefault from './color-picker'
 import ColorSliderDefault from './color-slider'
 import ColorSwatchDefault from './color-swatch'
 import ColorSwatchPickerDefault from './color-swatch-picker'
@@ -146,6 +150,8 @@ describe('components barrel', () => {
       'ChipGroup',
       'Code',
       'ColorArea',
+      'ColorField',
+      'ColorPicker',
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
@@ -459,6 +465,14 @@ describe('components barrel', () => {
 
   it('re-exports ColorWheel as the same reference as its own module', () => {
     expect(components.ColorWheel).toBe(ColorWheelDefault)
+  })
+
+  it('re-exports ColorField as the same reference as its own module', () => {
+    expect(components.ColorField).toBe(ColorFieldDefault)
+  })
+
+  it('re-exports ColorPicker as the same reference as its own module', () => {
+    expect(components.ColorPicker).toBe(ColorPickerDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -780,5 +794,15 @@ describe('components barrel', () => {
   it('re-exports the ColorWheelProps type', () => {
     const props: ColorWheelProps = { outerRadius: 100 }
     expect(props.outerRadius).toBe(100)
+  })
+
+  it('re-exports the ColorFieldProps type', () => {
+    const props: ColorFieldProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the ColorPickerProps type', () => {
+    const props: ColorPickerProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })

@@ -16,6 +16,8 @@ import {
   ChipGroup,
   Code,
   ColorArea,
+  ColorField,
+  ColorPicker,
   ColorSlider,
   ColorSwatch,
   ColorSwatchPicker,
@@ -174,6 +176,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       />
     ),
     name: 'ColorArea',
+  },
+  {
+    element: <ColorField {...PROBE} defaultValue="#6750A4" label="Label" />,
+    name: 'ColorField',
+  },
+  {
+    element: <ColorPicker {...PROBE} defaultValue="#6750A4" label="Label" />,
+    name: 'ColorPicker',
   },
   {
     element: (
