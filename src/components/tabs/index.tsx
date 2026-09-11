@@ -4,6 +4,7 @@ import type {
   TabsProps as RACTabsProps,
   TabListProps,
   TabPanelProps,
+  TabPanelsProps,
   TabProps,
   TabRenderProps,
 } from 'react-aria-components'
@@ -18,13 +19,14 @@ import {
 } from 'react'
 import {
   SelectionIndicator as RACSelectionIndicator,
+  TabPanels as RACTabPanels,
   Tabs as RACTabs,
   Tab,
   TabList,
   TabPanel,
 } from 'react-aria-components'
 
-import { mergeStatefulStyles } from '../../styles/merge'
+import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -110,6 +112,32 @@ const styles = stylex.create({
     outlineOffset: '2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
+  },
+  // The box the panels share, which is what gives a change of panel a size
+  // to animate between. React Aria measures the new panel, puts the old
+  // size back, and then sets the new one on `--tab-panel-height`, so the
+  // transition below is what carries the box from one to the other.
+  //
+  // `transitionProperty` is load-bearing, and quietly: React Aria reads the
+  // element's computed `transition` once and does none of the measuring at
+  // all unless it names a size. Drop the line and the panels still swap,
+  // and the box still resizes — it just jumps.
+  //
+  // Only the height is taken. The width of a tab panel is its column's,
+  // which does not change with the panel, and reading the variable for it
+  // would pin a width the layout never asked for.
+  panels: {
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
+    },
+    blockSize: 'var(--tab-panel-height, auto)',
+    boxSizing: 'border-box',
+    // While the box is smaller than the panel inside it, which is half of
+    // every change, the overflow has to go somewhere.
+    overflow: 'hidden',
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'block-size',
+    transitionTimingFunction: motion.easingEmphasized,
   },
   tab: {
     alignItems: 'center',
@@ -310,6 +338,20 @@ function TabsPanel(props: TabsPanelProps) {
   )
 }
 
+/**
+ * An optional box around the panels, which animates its height as one panel
+ * gives way to the next. Without it the panels still work; the box around
+ * them simply jumps from one height to the other.
+ */
+function TabsPanels(props: TabsPanelsProps) {
+  return (
+    <RACTabPanels
+      {...props}
+      {...mergeStyles(stylex.props(styles.panels), props)}
+    />
+  )
+}
+
 function TabsTab({ children, render, ...props }: TabsTabProps) {
   const panels = useContext(PanelsContext)
   const hasPanel = props.id !== undefined && panels.has(props.id)
@@ -340,14 +382,25 @@ function tabStyles(state: TabRenderProps) {
 
 Tabs.List = TabsList
 Tabs.Panel = TabsPanel
+Tabs.Panels = TabsPanels
 Tabs.Tab = TabsTab
 
 type TabsListProps = TabListProps<object>
 
 type TabsPanelProps = TabPanelProps
 
+type TabsPanelsProps = Omit<TabPanelsProps<object>, 'children'> & {
+  children?: ReactNode
+}
+
 type TabsTabProps = TabProps
 
-export type { TabsListProps, TabsPanelProps, TabsProps, TabsTabProps }
+export type {
+  TabsListProps,
+  TabsPanelProps,
+  TabsPanelsProps,
+  TabsProps,
+  TabsTabProps,
+}
 
 export default Tabs

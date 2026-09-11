@@ -43,6 +43,12 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.lg,
   },
+  // Enough lines that the box has somewhere to grow to.
+  tall: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.sm,
+  },
 })
 
 const meta = {
@@ -174,6 +180,45 @@ const WithoutPanels: Story = {
   ),
 }
 
-export { Default, Overview, WithoutPanels }
+// Its own story because the box around the panels is what animates, and it
+// only shows when the panels are different heights.
+const AnimatedPanels: Story = {
+  render: (args) => (
+    <Tabs {...args}>
+      <Tabs.List>
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+        <Tabs.Tab id="third">Third item</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panels>
+        <Tabs.Panel id="first">
+          <Text render={PARAGRAPH} variant="bodyMedium">
+            One line.
+          </Text>
+        </Tabs.Panel>
+        <Tabs.Panel id="second">
+          <div {...stylex.props(styles.tall)}>
+            <Text render={PARAGRAPH} variant="bodyMedium">
+              Several lines, so the box has somewhere to grow to.
+            </Text>
+            <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+              Supporting line.
+            </Text>
+            <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+              Supporting line.
+            </Text>
+          </div>
+        </Tabs.Panel>
+        <Tabs.Panel id="third">
+          <Text render={PARAGRAPH} variant="bodyMedium">
+            One line again.
+          </Text>
+        </Tabs.Panel>
+      </Tabs.Panels>
+    </Tabs>
+  ),
+}
+
+export { AnimatedPanels, Default, Overview, WithoutPanels }
 
 export default meta
