@@ -64,13 +64,16 @@ import {
 // wraps its children in one already — worth saying, since the primitive
 // throws outside a scope wherever else it is used.
 //
-// It is the page's chosen container rather than a smaller pill: it fills the
-// segment, so the fill travels and the track's outline stays where it is.
-// Two things follow. Its corners have to match whichever segment it is in,
-// which the segment hands down as a custom property, because a child cannot
-// read its own parent's place in the track. And the state layers move onto a
-// layer of their own above it, since a container that slides away would
-// otherwise take the hover off the segment under the pointer.
+// It is the page's chosen container rather than a smaller pill: it covers
+// the segment, which is the box a background painted, so the fill is all
+// that travels. Three things follow. It is drawn behind the segments rather
+// than inside one, or a container crossing a neighbour would pass over that
+// neighbour's label and the rule beside it. Its corners have to match
+// whichever segment it is in, which the segment hands down as a custom
+// property, because a child cannot read its own parent's place in the track.
+// And the state layers move onto a layer of their own above it, since a
+// container that slides away would otherwise take the hover with it and off
+// the segment under the pointer.
 //
 // **Choosing several animates differently, rather than the same way twice.**
 // A shared element is one element: it can move between segments, but with
@@ -280,8 +283,9 @@ const styles = stylex.create({
     outlineWidth: '2px',
     paddingBlock: 0,
     paddingInline: spacing.md,
-    // The container, the state layer and the ripple all fill and clip to
-    // this, so it only has to be a positioning context.
+    // The ripple fills and clips to this, and the chosen container and the
+    // state layer are placed against it, so it only has to be a positioning
+    // context.
     position: 'relative',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'color',
