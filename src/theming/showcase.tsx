@@ -27,6 +27,7 @@ import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import Code from '../components/code'
+import ColorSlider from '../components/color-slider'
 import ColorSwatch from '../components/color-swatch'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import ComboBox from '../components/combo-box'
@@ -639,6 +640,17 @@ function Showcase({ name }: ShowcaseProps) {
               <ColorSwatch color={SHOWCASE_SWATCHES[0]} />
               <ColorSwatch color={SHOWCASE_TRANSPARENT} />
             </div>
+            <ColorSlider
+              channel="hue"
+              colorSpace="hsl"
+              defaultValue={SHOWCASE_SWATCHES[0]}
+              label="Label"
+            />
+            <ColorSlider
+              channel="alpha"
+              defaultValue={SHOWCASE_TRANSPARENT}
+              label="Label"
+            />
           </section>
 
           <Separator />
