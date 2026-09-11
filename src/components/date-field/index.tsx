@@ -117,11 +117,14 @@ function DateField<T extends DateValue>({
     >
       <FieldBox
         floatingLabel={floatingLabel}
-        // Always populated, which is not a shortcut. The box works out for
-        // itself whether an `<input>` holds anything; a date field has no
-        // input to read, and its segments occupy the value's line from the
-        // first render — showing `mm/dd/yyyy` when there is no value at all.
-        // A label that stayed down would print on top of them.
+        // Always populated, which buys the outlined notch. The box decides
+        // populated twice over — in CSS for the label's type, and in React
+        // for the notch, since CSS cannot cut an outline to a width it has
+        // no way to measure. React Aria renders a hidden
+        // `<input type="date">` carrying no placeholder, so the CSS half
+        // reads as populated on its own; the React half reads React Aria's
+        // input context, which a date field does not provide. Without this
+        // the notch stays shut across segments already showing `mm/dd/yyyy`.
         isPopulated
         label={label}
         leading={leadingIcon}

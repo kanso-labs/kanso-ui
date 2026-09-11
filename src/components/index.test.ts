@@ -17,6 +17,7 @@ import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
 import type { DateFieldProps } from './date-field'
+import type { DatePickerProps } from './date-picker'
 import type { DialogProps } from './dialog'
 import type { DisclosureProps } from './disclosure'
 import type { DisclosureGroupProps } from './disclosure-group'
@@ -76,6 +77,7 @@ import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
 import DateFieldDefault from './date-field'
+import DatePickerDefault from './date-picker'
 import DialogDefault from './dialog'
 import DisclosureDefault from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
@@ -136,6 +138,7 @@ describe('components barrel', () => {
       'CopyField',
       'Currency',
       'DateField',
+      'DatePicker',
       'Dialog',
       'Disclosure',
       'DisclosureGroup',
@@ -410,6 +413,10 @@ describe('components barrel', () => {
 
   it('re-exports TimeField as the same reference as its own module', () => {
     expect(components.TimeField).toBe(TimeFieldDefault)
+  })
+
+  it('re-exports DatePicker as the same reference as its own module', () => {
+    expect(components.DatePicker).toBe(DatePickerDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -695,6 +702,11 @@ describe('components barrel', () => {
 
   it('re-exports the TimeFieldProps type', () => {
     const props: TimeFieldProps<Time> = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the DatePickerProps type', () => {
+    const props: DatePickerProps<CalendarDate> = { label: 'Label' }
     expect(props.label).toBe('Label')
   })
 })
