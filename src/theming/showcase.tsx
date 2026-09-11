@@ -27,6 +27,8 @@ import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import Code from '../components/code'
+import ColorSwatch from '../components/color-swatch'
+import ColorSwatchPicker from '../components/color-swatch-picker'
 import ComboBox from '../components/combo-box'
 import Container from '../components/container'
 import CopyField from '../components/copy-field'
@@ -264,6 +266,12 @@ const SHOWCASE_TOKENS = new TokenFieldValue([
 ])
 
 const SHOWCASE_SELECTION = ['second']
+// A palette that is the scheme's own roles rather than five fixed hexes
+// would show nothing: a swatch's colour is its content, so these stay
+// literal on purpose, and the chequer behind the transparent one is what
+// follows the theme.
+const SHOWCASE_SWATCHES = ['#6750A4', '#625B71', '#7D5260', '#386A20']
+const SHOWCASE_TRANSPARENT = 'hsla(200, 100%, 50%, 0.4)'
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
 
@@ -618,6 +626,18 @@ function Showcase({ name }: ShowcaseProps) {
                   Label
                 </Tag>
               ))}
+            </div>
+            <ColorSwatchPicker
+              aria-label="Label"
+              defaultValue={SHOWCASE_SWATCHES[0]}
+            >
+              {SHOWCASE_SWATCHES.map((color) => (
+                <ColorSwatchPicker.Item color={color} key={color} />
+              ))}
+            </ColorSwatchPicker>
+            <div {...stylex.props(styles.row)}>
+              <ColorSwatch color={SHOWCASE_SWATCHES[0]} />
+              <ColorSwatch color={SHOWCASE_TRANSPARENT} />
             </div>
           </section>
 

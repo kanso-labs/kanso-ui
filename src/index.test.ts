@@ -15,6 +15,8 @@ import {
   Chip as ComponentsChip,
   ChipGroup as ComponentsChipGroup,
   Code as ComponentsCode,
+  ColorSwatch as ComponentsColorSwatch,
+  ColorSwatchPicker as ComponentsColorSwatchPicker,
   ComboBox as ComponentsComboBox,
   Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
@@ -82,6 +84,8 @@ describe('package entry point', () => {
       'ChipGroup',
       'Code',
       'Collection',
+      'ColorSwatch',
+      'ColorSwatchPicker',
       'ComboBox',
       'Container',
       'CopyField',
@@ -397,6 +401,14 @@ describe('package entry point', () => {
 
   it('forwards DateRangePicker as the same reference as the components barrel', () => {
     expect(publicApi.DateRangePicker).toBe(ComponentsDateRangePicker)
+  })
+
+  it('forwards ColorSwatch as the same reference as the components barrel', () => {
+    expect(publicApi.ColorSwatch).toBe(ComponentsColorSwatch)
+  })
+
+  it('forwards ColorSwatchPicker as the same reference as the components barrel', () => {
+    expect(publicApi.ColorSwatchPicker).toBe(ComponentsColorSwatchPicker)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

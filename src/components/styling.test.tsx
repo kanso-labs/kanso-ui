@@ -15,6 +15,8 @@ import {
   Chip,
   ChipGroup,
   Code,
+  ColorSwatch,
+  ColorSwatchPicker,
   ComboBox,
   CopyField,
   Currency,
@@ -159,6 +161,18 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'ChipGroup.Chip',
   },
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },
+  {
+    element: <ColorSwatch {...PROBE} color="#6750A4" />,
+    name: 'ColorSwatch',
+  },
+  {
+    element: (
+      <ColorSwatchPicker {...PROBE} defaultValue="#6750A4">
+        <ColorSwatchPicker.Item color="#6750A4" />
+      </ColorSwatchPicker>
+    ),
+    name: 'ColorSwatchPicker',
+  },
   {
     element: (
       <ComboBox
