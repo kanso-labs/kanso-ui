@@ -72,8 +72,9 @@ Specific to this repository:
   catches that its own stories cannot. `npm run component:new -- <name>` writes
   the directory with its three stubs and the four entries the next two bullets
   and `styling.test.tsx` ask for, in their sorted places, and leaves the
-  showcase placement to you: it is a judgement about which section the component
-  belongs to, which is why the script prints the reminder rather than guessing.
+  showcase section to you: its place there is alphabetical, but what it shows
+  and the sentence under its headline are judgements, which is why the script
+  prints the reminder rather than guessing.
 - Public API is exported from `src/index.ts`: the components barrel, and the
   curated React Aria utilities in `src/react-aria.ts`. **`react-aria-components`
   stays a pinned dependency, never a peer**, and that module is why. A consumer
@@ -480,11 +481,16 @@ else it is drawn under the default tokens, where a literal and the token it
 should have been look exactly alike. On Poster's yellow ground, or with
 Terminal's square corners, the two come apart.
 
-Add it to the section it belongs to — actions, selection, identity, surfaces,
-rows, fields, type, navigation, layouts — rather than appending a row at the
-end, and give it the same placeholder copy the rest of the page uses, since the
-sample-copy rule applies there as everywhere. The page is shared verbatim by all
-five schemes, so one edit reaches every one of them.
+The page is one section per component, headed by the component's own name and
+ordered by it, so a new component is a new `Section` in its alphabetical place
+rather than a row appended to a group. Give it the sentence under the headline
+that says what a scheme reaches in it, and the same placeholder copy the rest of
+the page uses, since the sample-copy rule applies there as everywhere. The page
+is shared verbatim by all five schemes, so one edit reaches every one of them.
+
+`AppBar` is the one component with no section of its own: its headline is the
+page's only `<h1>`, so the bar is drawn at the top of the page and its entry in
+the list is a headline and a sentence pointing at it.
 
 **Nothing fails if you forget**, which is why this is written down rather than
 tested: the page still renders, all five snapshots still pass, and the new
