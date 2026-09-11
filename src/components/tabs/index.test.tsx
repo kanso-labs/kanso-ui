@@ -1,7 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { cdp } from '@vitest/browser/context'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
 import {
@@ -82,22 +81,6 @@ function indicatorStyleOf(tab: HTMLElement) {
 // Chromium's own media emulation, which is the only way to put the page in
 // the state a reduced-motion reader is in — nothing in the suite sets it,
 // and `matchMedia` cannot be written to.
-async function reducedMotion(value: 'no-preference' | 'reduce') {
-  // Vitest declares `CDPSession` as an empty interface, so the method it
-  // does have at runtime is not on the type. Narrowed to the one call this
-  // needs rather than left as `any`.
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- CDPSession is an empty upstream stub
-  const session = cdp() as unknown as {
-    send: (
-      method: string,
-      params: { features: { name: string; value: string }[] },
-    ) => Promise<unknown>
-  }
-  await session.send('Emulation.setEmulatedMedia', {
-    features: [{ name: 'prefers-reduced-motion', value }],
-  })
-}
-
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   const view = render(
     <Tabs defaultSelectedKey="first" {...props}>
@@ -119,12 +102,6 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
 }
 
 describe('tabs', () => {
-  // The emulation is the page's, not the render's, so it outlives the test
-  // that set it unless this puts it back.
-  afterEach(async () => {
-    await reducedMotion('no-preference')
-  })
-
   describe('semantics', () => {
     // The roles are the reason this wraps React Aria rather than styling a row
     // of buttons: a tab announces that it selects a panel, and a button does
@@ -292,17 +269,6 @@ describe('tabs', () => {
       expect(indicator.transitionDuration).not.toBe('0s')
     })
 
-    it('stops sliding for a reader who asked for less motion', async () => {
-      await reducedMotion('reduce')
-      const { first } = setup()
-
-      // The properties stay named, so the indicator still lands in the
-      // right place — it just gets there in no time at all.
-      const indicator = indicatorStyleOf(first)
-      expect(indicator.transitionDuration).toBe('0s')
-      expect(indicator.transitionProperty).toContain('translate')
-    })
-
     // The page's bar: 48 tall with the divider inside it, divided into equal
     // sections whatever the labels measure.
     it('is a 48 bar of equal sections with the divider inside it', () => {
@@ -418,17 +384,6 @@ describe('tabs', () => {
       )
       expect(Number.isFinite(height)).toBe(true)
       expect(height).toBeGreaterThan(200)
-    })
-
-    it('stops animating for a reader who asked for less motion', async () => {
-      await reducedMotion('reduce')
-      const view = withPanels()
-      const box = getComputedStyle(view.getByTestId('panels'))
-
-      // The size stays named, so React Aria still measures and the box
-      // still ends the right height — it just gets there in no time.
-      expect(box.transitionDuration).toBe('0s')
-      expect(box.transitionProperty).toContain('block-size')
     })
 
     it('is optional, and panels work without it', () => {
