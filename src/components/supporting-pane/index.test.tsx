@@ -134,6 +134,80 @@ describe('panes', () => {
   })
 })
 
+describe('placement', () => {
+  afterAll(async () => {
+    await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+  })
+
+  // Read off the boxes rather than the tracks: which column each pane lands
+  // in is the whole question, and a track list says nothing about that.
+  async function panesAt(width: number, placement?: 'leading' | 'trailing') {
+    await page.viewport(width, 900)
+    const view = render(<SupportingPane {...PANES} placement={placement} />)
+    const root = view.container.firstElementChild
+    if (!(root instanceof HTMLElement)) {
+      throw new Error('expected the layout to render an element')
+    }
+    const [main, supporting] = [...root.children].map((pane) =>
+      pane.getBoundingClientRect(),
+    )
+    return { main, supporting }
+  }
+
+  it('puts the supporting pane after the main one by default', async () => {
+    const { main, supporting } = await panesAt(EXPANDED)
+
+    expect(supporting.left).toBeGreaterThan(main.left)
+    expect(supporting.top).toBe(main.top)
+    // The side it takes does not change what it measures: the page fixes
+    // the supporting pane and leaves the main one the rest either way.
+    expect(supporting.width).toBe(SUPPORTING_WIDTH)
+    expect(main.width).toBeGreaterThan(SUPPORTING_WIDTH)
+  })
+
+  it('puts the supporting pane before the main one when leading', async () => {
+    const { main, supporting } = await panesAt(EXPANDED, 'leading')
+
+    expect(supporting.left).toBeLessThan(main.left)
+    expect(supporting.top).toBe(main.top)
+    expect(supporting.width).toBe(SUPPORTING_WIDTH)
+    expect(main.width).toBeGreaterThan(SUPPORTING_WIDTH)
+  })
+
+  // The page gives leading and trailing as an expanded-window choice and says
+  // the supporting pane appears below the focus pane in medium windows and
+  // under, so the stacked shape is the same either way.
+  it('stacks the supporting pane under the main one when trailing', async () => {
+    const { main, supporting } = await panesAt(MEDIUM, 'trailing')
+
+    expect(supporting.top).toBeGreaterThan(main.top)
+    expect(supporting.left).toBe(main.left)
+  })
+
+  it('stacks the supporting pane under the main one when leading too', async () => {
+    const { main, supporting } = await panesAt(MEDIUM, 'leading')
+
+    expect(supporting.top).toBeGreaterThan(main.top)
+    expect(supporting.left).toBe(main.left)
+  })
+
+  // The departure this component records: no DOM order satisfies both of the
+  // page's rules, so a leading pane is placed with grid columns and the main
+  // pane stays written first. Moving it would put the supporting pane above
+  // the main one on a phone, which is the case the page rules on.
+  it('keeps the main pane written first whichever side it takes', async () => {
+    await page.viewport(EXPANDED, 900)
+
+    for (const placement of ['leading', 'trailing'] as const) {
+      const view = render(<SupportingPane {...PANES} placement={placement} />)
+
+      expect(view.container.firstElementChild?.textContent).toBe(
+        'Main paneSupporting pane',
+      )
+    }
+  })
+})
+
 describe('element', () => {
   it('renders a div by default', () => {
     const view = render(<SupportingPane {...PANES} />)

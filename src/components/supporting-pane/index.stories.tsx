@@ -179,6 +179,15 @@ const Overview: Story = {
 
 const Default: Story = {}
 
-export { Default, Overview }
+// Its own story because which side the supporting pane takes only shows from
+// expanded up — below that the layout stacks the same way either way, which
+// is what the canonical layout page asks for.
+const Leading: Story = {
+  args: {
+    placement: 'leading',
+  },
+}
+
+export { Default, Leading, Overview }
 
 export default meta
