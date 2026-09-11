@@ -16,7 +16,13 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { Tabs as RACTabs, Tab, TabList, TabPanel } from 'react-aria-components'
+import {
+  SelectionIndicator as RACSelectionIndicator,
+  Tabs as RACTabs,
+  Tab,
+  TabList,
+  TabPanel,
+} from 'react-aria-components'
 
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -35,6 +41,14 @@ import {
 // tab, inset 2dp from the label's ends and never shorter than 24dp, which is
 // what the page draws.
 //
+// The indicator is React Aria's `SelectionIndicator`, which is a shared
+// element: it is rendered inside every tab but drawn in the selected one,
+// and on a change it keeps the old one until it has finished moving to the
+// new one's place. No `SharedElementTransition` is rendered here — `Tab`
+// scopes its own, and one added around the list changes nothing, which is
+// worth knowing because the primitive throws outside a scope when it is put
+// anywhere else.
+//
 // The label is wrapped in a span of its own so the indicator has the label's
 // width to follow: it is the span's `::after`, and the span is as tall as the
 // tab so the indicator reaches the bottom of the bar. Which tab carries it
@@ -44,20 +58,34 @@ const styles = stylex.create({
   // The active indicator. Centred with auto margins between two zero insets,
   // so the 24dp floor still centres it under a label narrower than that. The
   // full radius on a 3dp box resolves to the page's 3, 3, 0, 0.
+  //
+  // `transitionProperty` is what makes it slide rather than jump, and it is
+  // load-bearing in a way nothing here shows: React Aria's shared element
+  // snapshots only the properties a transition names, and takes `none` as
+  // "this element does not animate". Drop the line and the indicator still
+  // draws, in the right place, without ever moving.
+  //
+  // `translate` is the one React Aria computes itself, from the gap between
+  // where the indicator was and where it now is; `inline-size` is the plain
+  // kind, for two tabs whose labels are different widths.
   indicator: {
-    '::after': {
-      backgroundColor: colors.primary,
-      blockSize: '3px',
-      borderStartEndRadius: radii.full,
-      borderStartStartRadius: radii.full,
-      content: '""',
-      inlineSize: `calc(100% - 2 * ${spacing.xxs})`,
-      insetBlockEnd: 0,
-      insetInline: 0,
-      marginInline: 'auto',
-      minInlineSize: '24px',
-      position: 'absolute',
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
     },
+    backgroundColor: colors.primary,
+    blockSize: '3px',
+    borderStartEndRadius: radii.full,
+    borderStartStartRadius: radii.full,
+    boxSizing: 'border-box',
+    inlineSize: `calc(100% - 2 * ${spacing.xxs})`,
+    insetBlockEnd: 0,
+    insetInline: 0,
+    marginInline: 'auto',
+    minInlineSize: '24px',
+    position: 'absolute',
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'translate, inline-size',
+    transitionTimingFunction: motion.easingEmphasized,
   },
   label: {
     alignItems: 'center',
@@ -179,8 +207,9 @@ type TabsProps = Omit<RACTabsProps, 'children'> & {
 // function too.
 function tabContent(children: TabProps['children']) {
   return (state: TabRenderProps & { defaultChildren: ReactNode }) => (
-    <span {...stylex.props(styles.label, state.isSelected && styles.indicator)}>
+    <span {...stylex.props(styles.label)}>
       {typeof children === 'function' ? children(state) : children}
+      <RACSelectionIndicator {...stylex.props(styles.indicator)} />
     </span>
   )
 }
