@@ -19,6 +19,7 @@ import {
   Container as ComponentsContainer,
   CopyField as ComponentsCopyField,
   Currency as ComponentsCurrency,
+  DateField as ComponentsDateField,
   Dialog as ComponentsDialog,
   Disclosure as ComponentsDisclosure,
   DisclosureGroup as ComponentsDisclosureGroup,
@@ -83,6 +84,7 @@ describe('package entry point', () => {
       'CopyField',
       'Currency',
       'DIRECTORY_DRAG_TYPE',
+      'DateField',
       'Dialog',
       'Disclosure',
       'DisclosureGroup',
@@ -373,6 +375,10 @@ describe('package entry point', () => {
 
   it('forwards RangeCalendar as the same reference as the components barrel', () => {
     expect(publicApi.RangeCalendar).toBe(ComponentsRangeCalendar)
+  })
+
+  it('forwards DateField as the same reference as the components barrel', () => {
+    expect(publicApi.DateField).toBe(ComponentsDateField)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
