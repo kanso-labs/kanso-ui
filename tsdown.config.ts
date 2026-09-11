@@ -28,7 +28,10 @@ export default defineConfig({
   // written by the `emit-stylex-css` plugin below.
   deps: { neverBundle: [/^\.\/styles\.css$/] },
   dts: true,
-  entry: 'src/index.ts',
+  // Two entries, not one. `./date` is published as a subpath of its own so a
+  // consumer with no date component never pulls `@internationalized/date` in,
+  // and a second entry is what gives that subpath a file to point at.
+  entry: ['src/index.ts', 'src/date.ts'],
   format: ['esm'],
   platform: 'neutral',
   plugins: [

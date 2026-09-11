@@ -31,6 +31,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./date": {
+      "types": "./dist/date.d.ts",
+      "default": "./dist/date.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
     "./package.json": "./package.json"
@@ -59,6 +63,7 @@
     "tokens:build": "node scripts/build-tokens.mjs"
   },
   "dependencies": {
+    "@internationalized/date": "3.12.4",
     "react-aria-components": "1.21.1"
   },
   "devDependencies": {
