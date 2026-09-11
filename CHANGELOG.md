@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.22.0...kanso-ui-v0.23.0) (2026-09-11)
+
+
+### Features
+
+* **color-wheel:** add ColorWheel component ([#718](https://github.com/kanso-labs/kanso-ui/issues/718)) ([95771ef](https://github.com/kanso-labs/kanso-ui/commit/95771efd3754f5e719265db4a0cdd8e60132667b))
+
 ## [0.22.0](https://github.com/kanso-labs/kanso-ui/compare/kanso-ui-v0.21.0...kanso-ui-v0.22.0) (2026-09-11)
 
 
