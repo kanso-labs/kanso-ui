@@ -419,10 +419,13 @@ the sidebar. Its story is then exported as `Introduction` rather than
 same name into one sidebar leaf — call it `Overview` and the first page anyone
 opens acquires a disclosure triangle with one child.
 
-`main` is published to GitHub Pages at <https://kanso-ui.kansolabs.org/>, which
-is the copy to link someone who only wants to look. It lags a local server by
-however long the deploy takes and never shows uncommitted work, so it is not a
-substitute for running one while developing.
+**The published Storybook is the latest release, not the latest merge.** It is
+at <https://kanso-ui.kansolabs.org/>, and it is the copy to link someone who
+only wants to look, since it documents the version they would install. That
+makes it lag `main` by however long it is until the next release rather than by
+however long a deploy takes, so it is not a substitute for running a server
+while developing — a component merged this morning is not there yet. Chromatic
+publishes a Storybook per commit, which is where to look at unreleased work.
 
 The port is 6006 unless `PORT` says otherwise, which is what lets two agents
 preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
@@ -529,11 +532,17 @@ than from the origin, so the same artifact serves correctly from the domain root
 and from a project subpath. That is what makes dropping the custom domain a
 settings change rather than a rebuild.
 
-The workflow runs on `main` only, so neither of its jobs posts a pull request
-check and neither belongs in the ruleset above — the site follows what has
-already merged rather than gating what reaches it. Chromatic publishes its own
-Storybook per commit, which is what the `Storybook Publish` context reports on;
-the two are independent, and the Pages copy is the one at a stable URL.
+The workflow runs on a published release only, so neither of its jobs posts a
+pull request check and neither belongs in the ruleset above — the site follows
+what has already shipped rather than gating what reaches it. That trigger works
+because release-please publishes the release with an application token: a
+release published by `GITHUB_TOKEN` starts no workflow at all, so swapping that
+job back to the default token would stop the site updating with no error
+anywhere to say so. `workflow_dispatch` is the manual lever, and it has to be
+run from the release's tag — it builds the ref it is given, and main's tip is
+ahead of what was released. Chromatic publishes its own Storybook per commit,
+which is what the `Storybook Publish` context reports on; the two are
+independent, and the Pages copy is the one at a stable URL.
 
 **Most of CI is shared, not configured here.**
 [`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)

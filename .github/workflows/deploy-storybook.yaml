@@ -1,13 +1,23 @@
 name: Deploy Storybook
 
 on:
-  push:
-    branches:
-      - main
+  # Releases only, not every merge to main. The published site is the
+  # documentation for the version on npm, so a component whose story has landed
+  # but whose release has not is not yet documentation — it is a preview of the
+  # next version, and Chromatic already publishes one of those per commit.
+  # release-please cuts the release with an application token rather than
+  # GITHUB_TOKEN, which is what lets the release it publishes start this run at
+  # all: GITHUB_TOKEN's own events deliberately start nothing.
+  release:
+    types:
+      - published
   # Pages keeps serving whatever the last successful run uploaded, so a
   # deployment that failed on something outside this repository — a Pages
   # outage, a revoked token — leaves the site stale with nothing left to
-  # re-trigger it. This is the lever to redeploy main without an empty commit.
+  # re-trigger it. This is the lever to redeploy without waiting for the next
+  # release. Run it from the tag of the release to republish, not from main:
+  # the ref the dispatch is given is the tree that gets built, and main's tip
+  # is by then ahead of what was released.
   workflow_dispatch:
 
 # The site is replaced wholesale, so two runs deploying at once race over which
@@ -29,8 +39,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Pinned to the tag rather than left to default. On a release event the
+      # default ref is already the released commit, but a dispatch defaults to
+      # whatever branch it was started from, and github.ref_name is the tag
+      # there too — so naming it makes both paths build the released tree.
       - name: Check out repository
         uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.ref_name }}
 
       # Skips the prepare script, which downloads Playwright's browsers. Only
       # the Test job needs those; here they are a few hundred megabytes to
