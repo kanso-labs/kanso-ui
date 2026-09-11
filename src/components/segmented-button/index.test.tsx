@@ -439,7 +439,7 @@ describe('segmented button', () => {
   // The component's comment says why the two selection modes move it
   // differently.
   describe('the chosen container', () => {
-    it('draws it in the chosen segment alone, filling it inside the outline', () => {
+    it('draws it in the chosen segment alone, covering it', () => {
       const view = setup({ defaultSelectedKeys: FIRST })
       const [first, second] = view.getAllByRole('radio')
       const container = containerOf(first)
@@ -447,24 +447,32 @@ describe('segmented button', () => {
       expect(hasContainer(second)).toBe(false)
       expect(hasClasses(container, CLASSES.chosenContainer)).toBe(true)
 
-      // Inside the 1dp outline rather than under it, so the track's rule
-      // stays where it is and only the fill travels.
+      // The whole segment, outline included, since that is the box a
+      // background would have painted and it has to look the same standing
+      // still.
       const box = container.getBoundingClientRect()
       const segment = first.getBoundingClientRect()
-      expect(box.height).toBeCloseTo(segment.height - 2, 0)
-      expect(box.width).toBeCloseTo(segment.width - 2, 0)
+      expect(box.height).toBeCloseTo(segment.height, 0)
+      expect(box.width).toBeCloseTo(segment.width, 0)
     })
 
-    // Nothing in the segment carries a `zIndex`, so the order the children
-    // are written in is the order they are drawn.
-    it('draws it under the state layer, and the ripple over both', () => {
+    // Behind the segments rather than inside one, which is what lets the
+    // labels and the track's rules draw over a container crossing them. The
+    // state layer is behind with it and written after it, so of the two it
+    // is the one on top.
+    it('draws it behind the segment, under the state layer', () => {
       const view = setup({ defaultSelectedKeys: FIRST })
-      const first = view.getAllByRole('radio')[0]
-      const children = [...first.children]
+      const segment = view.getAllByRole('radio')[0]
+      const children = [...segment.children]
 
-      expect(children.indexOf(containerOf(first))).toBe(0)
-      expect(children.indexOf(layerOf(first))).toBe(1)
-      expect(children.at(-1)?.getAttribute('aria-hidden')).toBe('true')
+      expect(getComputedStyle(containerOf(segment)).zIndex).toBe('-1')
+      expect(getComputedStyle(layerOf(segment)).zIndex).toBe('-1')
+      expect(children.indexOf(containerOf(segment))).toBe(0)
+      expect(children.indexOf(layerOf(segment))).toBe(1)
+      // And the track is a stacking context, or "behind" would reach past it.
+      expect(getComputedStyle(view.getByRole('radiogroup')).isolation).toBe(
+        'isolate',
+      )
     })
 
     // The ends of the track are round and the joins square, so a container

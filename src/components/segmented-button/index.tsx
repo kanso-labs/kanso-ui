@@ -116,8 +116,6 @@ const styles = stylex.create({
   // `fontSize` as well as the box, so a glyph drawn in `em` or an icon font
   // lands at the same size an SVG does, exactly as the field chrome sizes
   // the icons it is handed.
-  //
-  // Positioned for the same reason the label is: see `label`.
   glyph: {
     alignItems: 'center',
     blockSize: '18px',
@@ -126,16 +124,22 @@ const styles = stylex.create({
     fontSize: '18px',
     inlineSize: '18px',
     justifyContent: 'center',
-    position: 'relative',
   },
   glyphSvg: {
     blockSize: '100%',
     inlineSize: '100%',
   },
   // The chosen container, drawn as an element rather than as the segment's
-  // own background so that it can move between segments. It fills the
-  // segment's padding box, which leaves the track's 1dp outline where it is
-  // and sends only the fill travelling.
+  // own background so that it can move between segments.
+  //
+  // `inset` is negative by the segment's border width, so the element covers
+  // the border box — where a background paints, and so where this one has to
+  // paint to look the same standing still. `zIndex` then puts it behind the
+  // segments rather than inside one, which is what the negative inset needs
+  // and what a slide needs too: the labels and the track's rules are drawn
+  // over it, so a container crossing a neighbour passes behind its label
+  // instead of over it, and the rules stay unbroken. See `root` for the one
+  // line that keeps "behind" inside the track.
   //
   // The corners come from the segment through custom properties rather than
   // `inherit`, and the difference is the whole reason they exist: `inherit`
@@ -151,10 +155,11 @@ const styles = stylex.create({
     borderStartEndRadius: 'var(--segment-indicator-radius-end)',
     borderStartStartRadius: 'var(--segment-indicator-radius-start)',
     boxSizing: 'border-box',
-    inset: 0,
+    inset: '-1px',
     // Neither this nor the state layer is a press target; the segment is.
     pointerEvents: 'none',
     position: 'absolute',
+    zIndex: -1,
   },
   // The container a chosen segment keeps while disabled. The page names no
   // disabled container of its own, and dropping this one to transparent
@@ -207,16 +212,9 @@ const styles = stylex.create({
   },
   // The label truncates rather than wrapping: the track is one row 40dp
   // tall, and a second line would push its neighbours out of shape.
-  //
-  // It is positioned so that it paints above the container and the state
-  // layer, which are absolutely positioned and would otherwise cover it.
-  // Nothing in the segment carries a `zIndex`: everything that stacks is
-  // positioned, so the order they are written in is the order they are
-  // drawn, and the ripple stays on top by being written last.
   label: {
     minInlineSize: 0,
     overflow: 'hidden',
-    position: 'relative',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
@@ -224,11 +222,19 @@ const styles = stylex.create({
   // which is the page's segment width of the container over their number.
   // A grid rather than a flex row because `1fr` columns are equal where
   // `flex: 1` only shares out what is left over.
+  //
+  // `isolation` is what keeps the chosen container and the state layer
+  // inside the track. Both are drawn behind the segments with a negative
+  // `zIndex`, and a segment is a positioning context rather than a stacking
+  // one, so without a stacking context here "behind" would mean behind
+  // whatever the page happens to provide — and the two would disappear under
+  // it.
   root: {
     boxSizing: 'border-box',
     display: 'inline-grid',
     gridAutoColumns: '1fr',
     gridAutoFlow: 'column',
+    isolation: 'isolate',
   },
   // One segment. The leading edge is dropped on all but the first so two
   // neighbours share one rule, and the outer ends carry the page's fully
@@ -295,9 +301,10 @@ const styles = stylex.create({
   segmentUnselected: {
     color: colors.onSurface,
   },
-  // The hover, focus and press layers, above the chosen container and below
-  // the label, so that a container which has slid off to another segment
-  // leaves them behind.
+  // The hover, focus and press layers. Behind the segments with the chosen
+  // container, and written after it so it is drawn over it, which is what
+  // leaves a hover on the segment under the pointer when the container has
+  // slid off to another one.
   //
   // A state layer is the content's own colour at the state's opacity, and
   // the segment's `color` is already that colour in every state — chosen or
@@ -312,13 +319,14 @@ const styles = stylex.create({
     backgroundColor: 'currentColor',
     borderRadius: 'inherit',
     boxSizing: 'border-box',
-    inset: 0,
+    inset: '-1px',
     opacity: 0,
     pointerEvents: 'none',
     position: 'absolute',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'opacity',
     transitionTimingFunction: motion.easingStandard,
+    zIndex: -1,
   },
   stateLayerFocus: {
     opacity: stateLayerOpacity.focus,
