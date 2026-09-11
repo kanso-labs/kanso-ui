@@ -16,6 +16,7 @@ import type { ComboBoxProps } from './combo-box'
 import type { ContainerProps } from './container'
 import type { CopyFieldProps } from './copy-field'
 import type { CurrencyProps } from './currency'
+import type { DateFieldProps } from './date-field'
 import type { DialogProps } from './dialog'
 import type { DisclosureProps } from './disclosure'
 import type { DisclosureGroupProps } from './disclosure-group'
@@ -73,6 +74,7 @@ import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
 import CopyFieldDefault from './copy-field'
 import CurrencyDefault from './currency'
+import DateFieldDefault from './date-field'
 import DialogDefault from './dialog'
 import DisclosureDefault from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
@@ -131,6 +133,7 @@ describe('components barrel', () => {
       'Container',
       'CopyField',
       'Currency',
+      'DateField',
       'Dialog',
       'Disclosure',
       'DisclosureGroup',
@@ -396,6 +399,10 @@ describe('components barrel', () => {
 
   it('re-exports RangeCalendar as the same reference as its own module', () => {
     expect(components.RangeCalendar).toBe(RangeCalendarDefault)
+  })
+
+  it('re-exports DateField as the same reference as its own module', () => {
+    expect(components.DateField).toBe(DateFieldDefault)
   })
 
   it('re-exports the AppBarProps type', () => {
@@ -672,5 +679,10 @@ describe('components barrel', () => {
   it('re-exports the RangeCalendarProps type', () => {
     const props: RangeCalendarProps<CalendarDate> = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the DateFieldProps type', () => {
+    const props: DateFieldProps<CalendarDate> = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })

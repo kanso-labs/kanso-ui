@@ -31,6 +31,7 @@ import ComboBox from '../components/combo-box'
 import Container from '../components/container'
 import CopyField from '../components/copy-field'
 import Currency from '../components/currency'
+import DateField from '../components/date-field'
 import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
@@ -889,6 +890,7 @@ function Showcase({ name }: ShowcaseProps) {
                 <Slider defaultValue={40} label="Label" />
               </Stack>
             </Form>
+            <DateField defaultValue={SHOWCASE_DATE} label="Label" />
             <Calendar aria-label="Label" defaultValue={SHOWCASE_DATE} />
             <RangeCalendar aria-label="Label" defaultValue={SHOWCASE_RANGE} />
           </section>
