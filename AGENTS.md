@@ -23,11 +23,11 @@ are developed and documented in Storybook.
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
 
-**Install with the Node version in `.tool-versions` (24.19.0).** CI resolves it
+**Install with the Node version in `.tool-versions` (24.21.0).** CI resolves it
 from that file, and an older npm silently drops the platform entries the
 lockfile carries for Linux builds — a rewrite with no visible symptom until a
 Linux runner installs the wrong native binary. If `node --version` disagrees,
-prefix the command: `mise exec node@24.19.0 -- npm install`.
+prefix the command: `mise exec node@24.21.0 -- npm install`.
 
 ## Conventions
 
@@ -51,7 +51,7 @@ Shared with the other `kanso-labs` repositories:
   exception: they state what the consumer's own installed copy must satisfy, so
   ranges are correct there and stay.
 - **`.tool-versions` pins a fully-specified version on every line**,
-  `nodejs 24.19.0`, never `nodejs 24` or `nodejs lts`.
+  `nodejs 24.21.0`, never `nodejs 24` or `nodejs lts`.
 
 Two of those bullets have a local consequence. `react` is the `peerDependencies`
 exception in practice — pinned in `devDependencies` and a range in
