@@ -33,6 +33,7 @@ import Currency from '../components/currency'
 import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
+import DropZone, { FileTrigger } from '../components/drop-zone'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -638,7 +639,9 @@ function Showcase({ name }: ShowcaseProps) {
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 The three cards separate themselves by shadow, by a darker
                 surface, and by a rule — one axis per variant, and a scheme can
-                move any of them.
+                move any of them. The drop target is the outlined card again
+                with a dashed rule, so a scheme that moves the card's own rule
+                moves it too.
               </Text>
             </div>
             <Feed minItemWidth="260px">
@@ -657,6 +660,11 @@ function Showcase({ name }: ShowcaseProps) {
                 </Card>
               ))}
             </Feed>
+            <DropZone label="Drop a file here">
+              <FileTrigger>
+                <Button variant="outlined">Label</Button>
+              </FileTrigger>
+            </DropZone>
           </section>
 
           <Separator />

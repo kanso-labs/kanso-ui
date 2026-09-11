@@ -20,6 +20,7 @@ import {
   Dialog,
   Disclosure,
   DisclosureGroup,
+  DropZone,
   Feed,
   Form,
   IconButton,
@@ -79,6 +80,10 @@ SNACKBARS.add('First item')
 // nothing for a className or a style to land on. Sheet, Menu, Dialog and
 // Popover are absent for the same reason — each is a trigger whose parts are
 // listed instead.
+//
+// FileTrigger is absent for the first reason too: it renders a hidden file
+// input and takes no `className` or `style` at all — whatever it wraps is
+// what a call site styles.
 //
 // Table.Body is absent for a different one: it renders a `<tbody>`, but every
 // rule a body needs is drawn by the rows inside it, so it contributes no
@@ -197,6 +202,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </DisclosureGroup>
     ),
     name: 'DisclosureGroup',
+  },
+  {
+    element: <DropZone {...PROBE} label="Drop here" />,
+    name: 'DropZone',
   },
   {
     element: (
