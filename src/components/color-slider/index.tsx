@@ -1,7 +1,4 @@
-import type {
-  ColorThumbRenderProps,
-  ColorSliderProps as RACColorSliderProps,
-} from 'react-aria-components'
+import type { ColorSliderProps as RACColorSliderProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import {
@@ -13,12 +10,11 @@ import {
 
 import { FieldLabel } from '../../field'
 import { chequer } from '../../styles/chequer'
+import { thumbClassName } from '../../styles/color'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
-  motion,
   radii,
-  shadows,
   spacing,
   stateLayerOpacity,
   typography,
@@ -84,35 +80,6 @@ const styles = stylex.create({
     alignItems: 'baseline',
     display: 'flex',
     gap: spacing.sm,
-  },
-  // The handle. React Aria places it along the track by percent and paints
-  // its fill with the colour at that point, so everything here is the ring
-  // around that fill.
-  thumb: {
-    blockSize: '20px',
-    borderRadius: radii.full,
-    boxShadow: `0 0 0 2px ${colors.surface}, 0 0 0 3px ${colors.outline}`,
-    boxSizing: 'border-box',
-    cursor: 'grab',
-    inlineSize: '20px',
-    insetBlockStart: '50%',
-    outlineColor: colors.primary,
-    outlineOffset: '4px',
-    outlineStyle: 'none',
-    outlineWidth: '2px',
-    transitionDuration: motion.durationShort2,
-    transitionProperty: 'box-shadow',
-    transitionTimingFunction: motion.easingStandard,
-  },
-  thumbDisabled: {
-    cursor: 'not-allowed',
-  },
-  thumbDragging: {
-    boxShadow: `0 0 0 2px ${colors.surface}, 0 0 0 3px ${colors.outline}, ${shadows.elevation2}`,
-    cursor: 'grabbing',
-  },
-  thumbFocused: {
-    outlineStyle: 'solid',
   },
   // The strip React Aria paints the channel across, filling the shape
   // around it. The `::before` is what keeps the page's 44dp press target
@@ -228,24 +195,6 @@ function ColorSlider({
         </RACSliderTrack>
       </div>
     </RACColorSlider>
-  )
-}
-
-// The handle's classes, from React Aria's render state. StyleX cannot target
-// `[data-dragging]` on the element it is styling, so the state comes from
-// what React Aria hands the className.
-//
-// `dragging` is applied after `focused`, and StyleX replaces a property
-// whole, so a handle being dragged takes the lifted shadow rather than
-// keeping the resting ring under it.
-function thumbClassName(state: ColorThumbRenderProps) {
-  return (
-    stylex.props(
-      styles.thumb,
-      state.isFocusVisible && styles.thumbFocused,
-      state.isDragging && styles.thumbDragging,
-      state.isDisabled && styles.thumbDisabled,
-    ).className ?? ''
   )
 }
 

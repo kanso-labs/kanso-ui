@@ -15,6 +15,7 @@ import {
   Chip as ComponentsChip,
   ChipGroup as ComponentsChipGroup,
   Code as ComponentsCode,
+  ColorArea as ComponentsColorArea,
   ColorSlider as ComponentsColorSlider,
   ColorSwatch as ComponentsColorSwatch,
   ColorSwatchPicker as ComponentsColorSwatchPicker,
@@ -85,6 +86,7 @@ describe('package entry point', () => {
       'ChipGroup',
       'Code',
       'Collection',
+      'ColorArea',
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
@@ -415,6 +417,10 @@ describe('package entry point', () => {
 
   it('forwards ColorSlider as the same reference as the components barrel', () => {
     expect(publicApi.ColorSlider).toBe(ComponentsColorSlider)
+  })
+
+  it('forwards ColorArea as the same reference as the components barrel', () => {
+    expect(publicApi.ColorArea).toBe(ComponentsColorArea)
   })
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's

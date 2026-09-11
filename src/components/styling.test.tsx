@@ -15,6 +15,7 @@ import {
   Chip,
   ChipGroup,
   Code,
+  ColorArea,
   ColorSlider,
   ColorSwatch,
   ColorSwatchPicker,
@@ -162,6 +163,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'ChipGroup.Chip',
   },
   { element: <Code {...PROBE}>Label</Code>, name: 'Code' },
+  {
+    element: (
+      <ColorArea
+        {...PROBE}
+        defaultValue="hsl(200, 100%, 50%)"
+        xChannel="saturation"
+        yChannel="lightness"
+      />
+    ),
+    name: 'ColorArea',
+  },
   {
     element: (
       <ColorSlider
