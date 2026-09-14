@@ -208,9 +208,16 @@ function useRender({
   // Both refs, when there are two, have to land on one node. The merged
   // callback is memoised so React does not detach and re-attach it on every
   // render — a new identity each time would.
-  const ownRef = refOf(props.ref)
-  const elementRef = refOf(element?.props.ref)
-  const ref = useMemo(() => mergeRefs(ownRef, elementRef), [ownRef, elementRef])
+  //
+  // The dependencies are the props the refs are read from rather than the
+  // refs themselves. React writes through a ref object, so the compiler reads
+  // one as a value that may be modified later and declines to preserve a
+  // memoisation keyed on it — which, under the panic threshold this lands
+  // beside, fails the build. A prop it can prove holds still.
+  const ref = useMemo(
+    () => mergeRefs(refOf(props.ref), refOf(element?.props.ref)),
+    [props.ref, element?.props.ref],
+  )
 
   if (element !== undefined) {
     return cloneElement(element, {

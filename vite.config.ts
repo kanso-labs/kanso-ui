@@ -75,7 +75,11 @@ export default defineConfig(({ command }) => ({
       runtimeInjection: false,
       useCSSLayers: true,
     }),
-    react({ compiler: true }),
+    // The same panic threshold the package build runs under, so a function
+    // the compiler cannot compile fails here too — at the story or the test
+    // that renders it, rather than only at `npm run build`. See the comment
+    // beside it in tsdown.config.ts for why it is `all_errors`.
+    react({ compiler: { panicThreshold: 'all_errors' } }),
   ],
   test: {
     coverage: {

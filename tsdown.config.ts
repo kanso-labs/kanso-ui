@@ -17,6 +17,8 @@ import {
   styleDictionaryConfig,
 } from './scripts/build-tokens.mjs'
 
+let writtenOutput = false
+
 export default defineConfig({
   // src/index.ts imports './styles.css' for its side effect, and the point of
   // that import is to survive into dist/index.js. Never bundling it is what
@@ -46,8 +48,20 @@ export default defineConfig({
       runtimeInjection: false,
       useCSSLayers: true,
     }),
+    // The threshold is `all_errors` rather than the default. Left to itself
+    // the compiler skips a function it cannot compile and says nothing, so a
+    // component stops being memoised on an edit nobody reads as a performance
+    // change — which is how most of this library came to be shipping
+    // unmemoised under a Babel major the compiler does not support, for as
+    // long as it took someone to read the built output. The pin in
+    // package.json is what put it back, and this is what would have said so.
+    //
+    // Both errors this tree has hit sit below `critical_errors`: an
+    // expression the compiler cannot reorder yet, and a memoisation it
+    // declines to preserve. Only `all_errors` sees either, which makes it
+    // the only setting that would have caught them.
     babel({
-      presets: [reactCompilerPreset()],
+      presets: [reactCompilerPreset({ panicThreshold: 'all_errors' })],
     }),
     // design.tokens.css (the public CSS-custom-property override contract —
     // see build-tokens.mjs) is written straight to src/tokens/ by Style
@@ -79,8 +93,20 @@ export default defineConfig({
     // parallel, so ours could read the file before the StyleX plugin's own
     // writeBundle had finished writing it. closeBundle is only reached once
     // every writeBundle has settled.
+    //
+    // The check speaks only for a build that got as far as writing its
+    // output. closeBundle is reached whether or not that happened, so a run
+    // that failed earlier — a transform the React Compiler refused, under the
+    // panic threshold above — arrives here with no assets at all, and an
+    // unconditional check would bury the compiler's own error under one
+    // about CSS that is not what went wrong. writtenOutput is what tells the
+    // two apart.
     {
       closeBundle() {
+        if (!writtenOutput) {
+          return
+        }
+
         const compiled = 'dist/assets/stylex.css'
 
         if (!existsSync(compiled)) {
@@ -96,6 +122,9 @@ export default defineConfig({
         }
       },
       name: 'emit-stylex-css',
+      writeBundle() {
+        writtenOutput = true
+      },
     },
   ],
   sourcemap: true,
