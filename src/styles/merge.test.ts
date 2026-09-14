@@ -16,6 +16,14 @@ const compiledFor = (state: { pressed: boolean }) => ({
   className: state.pressed ? 'kui-on' : 'kui-off',
 })
 
+// The same, for the half of a compiled result that is an object rather than a
+// class: a dynamic StyleX style resolves per state, so the compiled `style`
+// changes with it the way the class name does above.
+const compiledStyleFor = (state: { pressed: boolean }) => ({
+  className: 'kui',
+  style: { marginTop: state.pressed ? 1 : 2 },
+})
+
 describe('mergeStyles', () => {
   it('joins both class names', () => {
     expect(mergeStyles(COMPILED, { className: 'probe' }).className).toBe(
@@ -72,11 +80,31 @@ describe('mergeStatefulStyles', () => {
     expect(merged.className({})).toBe('kui probe')
   })
 
+  // The compiled side carries a key the call site does not set, which is what
+  // makes the assertion able to fail. With both sides on `zIndex` alone the
+  // expected object is also what dropping the compiled style produces, so the
+  // case passed whether or not the two were merged at all.
   it('applies the call site style over the compiled one', () => {
-    const merged = mergeStatefulStyles(COMPILED, {
+    const merged = mergeStatefulStyles(
+      { className: 'kui', style: { marginTop: 1, zIndex: 1 } },
+      { style: () => ({ zIndex: 2 }) },
+    )
+
+    expect(merged.style({})).toEqual({ marginTop: 1, zIndex: 2 })
+  })
+
+  // The compiled style is resolved on every call, and no component passes a
+  // compiled function carrying one yet, so this is the only thing exercising
+  // that branch.
+  it('resolves a compiled style function against the state', () => {
+    const merged = mergeStatefulStyles(compiledStyleFor, {
       style: () => ({ zIndex: 2 }),
     })
 
-    expect(merged.style({})).toEqual({ zIndex: 2 })
+    expect(merged.style({ pressed: true })).toEqual({ marginTop: 1, zIndex: 2 })
+    expect(merged.style({ pressed: false })).toEqual({
+      marginTop: 2,
+      zIndex: 2,
+    })
   })
 })
