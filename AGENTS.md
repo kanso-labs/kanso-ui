@@ -717,8 +717,9 @@ The [Kanso Labs project](https://github.com/orgs/kanso-labs/projects/1) holds
 the plan to give the library a component for every React Aria Components export:
 one issue per pull request, from #520 on, and a draft item per decision the plan
 rested on, each of which records the choice taken. Every item carries a Phase, a
-Kind, an Area and a Size; the Roadmap view is the board by phase, and each issue
-names what it depends on.
+Kind, an Area, a Size and a Status, and every issue carries the `v1.0.0`
+milestone, a type, a pair of labels, a priority and an effort besides; the
+Roadmap view is the board by phase, and each issue names what it depends on.
 
 Items are worked in phase order, and the project is kept current as they are:
 
@@ -737,6 +738,121 @@ Items are worked in phase order, and the project is kept current as they are:
 Phase 0 is serial, since each refactor feeds the next; from Phase 1 on, items
 within a phase are independent unless an issue says otherwise, so they can run
 in parallel worktrees.
+
+### Every item carries ten fields, and none of them is optional
+
+They come from three different places, which is the whole difficulty: five are
+the project's own, three are set on the issue or the pull request, and two are
+GitHub's native issue fields, which live in the issue's sidebar and nowhere
+else. Nothing joins them up, so each is set in its own place.
+
+| Field     | Set on         | Values                                                                                                                         |
+| --------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Status    | Project item   | Todo, In Progress, Done                                                                                                        |
+| Phase     | Project item   | `0 · Foundations` through `14 · CI hygiene`, and `Decisions`                                                                   |
+| Kind      | Project item   | Component, Variant, Fix, Refactor, Integration, Tooling, Docs, Decision                                                        |
+| Area      | Project item   | Foundations, Buttons, Collections, Colour, Date and time, Drag and drop, Forms, Navigation, Overlays, Pickers, Status, Content |
+| Size      | Project item   | S, M, L                                                                                                                        |
+| Milestone | Issue, PR      | `v1.0.0`                                                                                                                       |
+| Type      | Issue, PR      | Feature, Bug, Task                                                                                                             |
+| Labels    | Issue, PR      | one `kind:`, one `area:`                                                                                                       |
+| Priority  | Issue (native) | Urgent, High, Medium, Low                                                                                                      |
+| Effort    | Issue (native) | High, Medium, Low                                                                                                              |
+
+**Priority and Effort are native issue fields, not project columns.** They are
+the set GitHub gives every repository, alongside Start date and Target date, and
+they appear in the issue's own sidebar. A native issue field cannot be shown as
+a project column and a project field cannot be shown in the sidebar, so there is
+no syncing between them and no point adding a project field that duplicates one
+— a board once carried its own P0/P1/P2 Priority beside this, and all two fields
+named Priority ever did was make it unclear which one a reader had just set.
+They are also issues-only: passing a pull request's node id to `updateIssue`
+fails with _Could not resolve to Issue node_.
+
+**Four of the ten are derived rather than judged**, so read them off the field
+they follow rather than forming a second opinion:
+
+- **Priority follows Phase.** `0 · Foundations` and `0 · Material alignment` are
+  Urgent, phases 1 through 4 are High, 5 through 9 are Medium, and 10 through 14
+  with the Decisions are Low. Items are already worked in phase order, so a
+  priority disagreeing with the phase would describe an order nobody follows.
+  What it buys is a sort that survives being grouped by something other than
+  Phase, in a place the board is not.
+- **Effort follows Size** — `L` is High, `M` is Medium, `S` is Low. The two ask
+  the same question in different vocabularies, and only Size is ever argued.
+- **Type follows Kind.** Component and Variant are a Feature, Fix is a Bug, and
+  Refactor, Integration, Tooling, Docs and Decision are a Task.
+- **The two labels mirror Kind and Area**, one of each, kebab-cased —
+  `kind:component` for Kind `Component`, `area:date-and-time` for Area
+  `Date and time`. A project field is only legible inside the project, and the
+  labels are what carry the same two facts out to the issue list, to search, and
+  into a notification mail, so `label:area:forms` answers from outside the board
+  what the Area field answers within it. They are also why `kind:` and `area:`
+  are the only label prefixes the plan owns: a label outside those two is
+  nobody's mirror, and is left alone by anything editing them in bulk.
+
+Phase, Kind, Area and Size are the judgements, and the issue is where they are
+argued rather than the board.
+
+**Start date and Target date are left empty on purpose.** GitHub offers them on
+every issue, but the plan schedules nothing by date — it is ordered by Phase and
+worked in that order. Filling them would mean inventing dates that nothing
+checks and nothing honours.
+
+**A pull request takes the three issue-side fields, and is not a project item.**
+The board is the plan, and the plan is made of issues; a board holding every
+merged pull request would bury the hundred-odd items it exists to order under
+several hundred pieces of history. What connects the two is already there —
+`Linked pull requests` is a column on the board, so the pull request that closes
+an item shows against it without being an item itself. The labels, the type and
+the milestone are what make a pull request findable from outside the board,
+which is all it needed.
+
+Where its two labels come from depends on whether an issue stands behind it:
+
+- **A pull request that closes a plan issue inherits that issue's Kind and
+  Area**, so it carries the same two labels and the same type. It is the work
+  the issue describes, and giving it a second opinion would only split one thing
+  across two answers.
+- **A pull request with nothing behind it reads its Kind off its Conventional
+  Commit type** — `feat` is a Component, `fix` a Fix, `docs` Docs, `refactor` a
+  Refactor, and `chore`, `ci`, `build`, `deps` and `test` are all Tooling. Its
+  Area is the component its scope names, `fix(number-field)` being `area:forms`,
+  and Foundations when the scope is infrastructure rather than a component.
+
+**A dependency bump carries the labels and the type but not the milestone**, and
+it is the one exception worth spelling out. A bump is a pull request whose
+Conventional Commit type is `deps`, or whose scope is `deps` or `deps-dev`, plus
+the handful a bot writes as `chore: update dependency …` or
+`chore: lock file maintenance`. They outnumber the plan's own pull requests, and
+on the milestone they drown the only question it answers: a `v1.0.0` progress
+bar counting several hundred merged bumps says nothing about whether v1.0.0 is
+ready. Note what is _not_ a bump — `chore(main): release …` is release-please
+cutting a release, and a pull request that merely mentions a dependency
+(`ci: cache npm dependencies`) is ordinary work. Both keep the milestone.
+
+**A draft item takes the project's five fields and nothing else.** A GitHub
+draft issue is not an issue: it has no labels, no type, no milestone and none of
+the native fields, and no mutation will give it one — its type exposes `title`,
+`body`, `assignees` and little else. The decision drafts therefore carry Status,
+Phase, Kind, Area and Size alone, and that is complete for them rather than five
+fields short. `convertProjectV2DraftIssueItemToIssue` is what would earn a draft
+the rest, and turning a recorded decision into a tracked issue is a change to
+the plan rather than a tidy-up.
+
+**An archived item is read-only.** Writing a field to one fails with _The item
+is archived and cannot be updated_, so setting one means unarchiving, writing,
+and archiving again. Worth knowing before a bulk edit over the whole board
+reports twenty failures that are not failures of the edit.
+
+**Project fields are GraphQL-only, and that budget is small.** There is no REST
+route to a project item, and GraphQL allows 5,000 points an hour against a limit
+that is separate from REST's — so a bulk edit over the board is the one thing
+here that can run out of road halfway. Set every field an item needs in **one
+mutation with aliased `updateProjectV2ItemFieldValue` calls** rather than one
+per field; it is the difference between six points an item and one, and the
+limit, once hit, locks out every GraphQL call including the reads that would
+tell you what landed.
 
 ## Traps
 
