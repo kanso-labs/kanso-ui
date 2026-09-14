@@ -1,13 +1,15 @@
+// vitest.setup.ts runs in the browser the suite runs in, so it reads `document`
+// and `fetch` and needs the DOM lib that tsconfig.node.json does not carry. It
+// is not library source either, so it does not belong in tsconfig.lib.json,
+// whose `include` is what tsdown builds the published package from.
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
-    "target": "ES2023",
-    "lib": ["ES2023"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": [],
     "skipLibCheck": true,
-    "allowJs": true,
-    "checkJs": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -24,5 +26,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["scripts", "tsdown.config.ts", "vite.config.ts"]
+  "include": ["vitest.setup.ts"]
 }
