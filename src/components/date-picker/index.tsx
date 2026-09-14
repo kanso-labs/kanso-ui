@@ -23,6 +23,7 @@ import {
 import { CalendarGlyph } from '../../glyphs'
 import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import { picker, triggerClassName } from '../../styles/picker'
@@ -152,7 +153,7 @@ function DatePicker<T extends DateValue>({
       </FieldBox>
       <FieldMessage description={description} error={error} />
       <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
-        <RACDialog {...stylex.props(overlay.popupDialog)}>
+        <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
           <Calendar aria-label={label} />
         </RACDialog>
       </RACPopover>

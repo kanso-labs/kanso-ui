@@ -43,10 +43,6 @@ const calendarStyles = stylex.create({
     lineHeight: typography.bodyLargeLineHeight,
     // The page's 48dp date container: this 40dp layer with 4dp either side.
     marginInline: spacing.xs,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
   },
   // A date the calendar will not take: outside the range, or ruled out by
   // `isDateUnavailable`. The page's own 38% on the content role, which is the
@@ -132,10 +128,6 @@ const calendarStyles = stylex.create({
     justifyContent: 'center',
     // The page's 48dp date container: this 40dp layer with 4dp either side.
     marginInline: spacing.xs,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     padding: 0,
   },
   // The one that goes back, which is the forward chevron turned around. It

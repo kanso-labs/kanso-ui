@@ -13,6 +13,7 @@ import {
   Popover as RACPopover,
 } from 'react-aria-components'
 
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import { picker } from '../../styles/picker'
@@ -104,10 +105,6 @@ const triggerStyles = stylex.create({
     gap: spacing.sm,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     paddingBlock: spacing.sm,
     paddingInline: spacing.md,
   },
@@ -192,6 +189,7 @@ function ColorPicker({
             (state: ButtonRenderProps) =>
               stylex.props(
                 triggerStyles.base,
+                focus.ring,
                 state.isDisabled && triggerStyles.disabled,
               ),
             { className, style },
@@ -201,7 +199,7 @@ function ColorPicker({
           {label}
         </RACButton>
         <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
-          <RACDialog {...stylex.props(overlay.popupDialog)}>
+          <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
             {children ?? (
               <div {...stylex.props(styles.body)}>
                 <ColorArea

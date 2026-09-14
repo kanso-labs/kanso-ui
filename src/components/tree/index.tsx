@@ -21,6 +21,7 @@ import {
 import { ChevronEndGlyph } from '../../glyphs'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -94,10 +95,6 @@ const styles = stylex.create({
     display: 'flex',
     flexShrink: 0,
     justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     padding: 0,
   },
   chevronExpanded: {
@@ -257,7 +254,7 @@ type TreeSectionProps<T extends object = object> = Omit<
 // The button itself never turns — the glyph inside it does, so the press
 // target stays a square whichever way the row is pointing.
 function chevronClassName() {
-  return stylex.props(styles.chevron).className ?? ''
+  return stylex.props(styles.chevron, focus.ring).className ?? ''
 }
 
 // The caret, or the space it would have taken. Written as a call rather than

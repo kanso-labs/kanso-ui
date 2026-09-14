@@ -10,6 +10,7 @@ import * as stylex from '@stylexjs/stylex'
 import { Link as RACLink } from 'react-aria-components'
 
 import { ariaAttributesOf, linkRenderer } from '../../render/aria'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -23,10 +24,6 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     boxSizing: 'border-box',
     cursor: 'pointer',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     textDecorationThickness: '1px',
     textUnderlineOffset: '0.2em',
     transitionDuration: motion.durationShort2,
@@ -148,6 +145,7 @@ function Link({
         (state: LinkRenderProps) =>
           stylex.props(
             styles.base,
+            focus.ring,
             tones[tone],
             underlines[underline],
             state.isDisabled && styles.disabled,

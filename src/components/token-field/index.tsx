@@ -17,6 +17,7 @@ import type { FieldVariant } from '../../field'
 import { chipStyles } from '../../chip/styles'
 import { FieldBox, FieldMessage } from '../../field'
 import { fieldStyles, invalidFrom } from '../../field/root'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
@@ -166,7 +167,12 @@ function isPopulated(value: TokenFieldValue | undefined) {
 function tokenContent(renderToken: TokenFieldProps['renderToken']) {
   return (segment: TokenSegment) => (
     <RACToken
-      {...stylex.props(chipStyles.base, chipStyles.unselected, styles.token)}
+      {...stylex.props(
+        chipStyles.base,
+        focus.ring,
+        chipStyles.unselected,
+        styles.token,
+      )}
     >
       {renderToken === undefined ? segment.text : renderToken(segment)}
     </RACToken>

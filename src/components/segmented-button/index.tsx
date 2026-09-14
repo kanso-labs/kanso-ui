@@ -17,6 +17,7 @@ import {
 
 import { CheckGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -277,10 +278,6 @@ const styles = stylex.create({
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
     minInlineSize: 0,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     paddingBlock: 0,
     paddingInline: spacing.md,
     // The ripple fills and clips to this, and the chosen container and the
@@ -534,6 +531,7 @@ function SegmentedButtonSegment({
 function segmentStyles(state: ToggleButtonRenderProps) {
   return stylex.props(
     styles.segment,
+    focus.ring,
     state.isSelected ? styles.segmentSelected : styles.segmentUnselected,
     state.isDisabled && styles.segmentDisabled,
   )

@@ -87,10 +87,6 @@ const overlay = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.sm,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
   },
   // Material Design's scrim is the scrim role at 32%, not a colour of its own.
   scrim: {

@@ -7,6 +7,7 @@ import * as stylex from '@stylexjs/stylex'
 import { ToggleButton } from 'react-aria-components'
 
 import { chipStyles } from '../../chip/styles'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
 // The pill, its two containers and its disabled treatment are the chip
@@ -41,6 +42,7 @@ function Chip({ children, ...props }: ChipProps) {
 function propsFor(state: ToggleButtonRenderProps) {
   return stylex.props(
     chipStyles.base,
+    focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
     state.isDisabled && chipStyles.disabled,
     state.isDisabled &&

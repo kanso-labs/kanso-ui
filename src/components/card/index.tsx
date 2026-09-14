@@ -4,6 +4,7 @@ import type { RenderComponentProps } from '../../render/useRender'
 
 import { useRipple } from '../../hooks/useRipple'
 import { useRender } from '../../render/useRender'
+import { focus } from '../../styles/focus'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -69,10 +70,6 @@ const styles = stylex.create({
     cursor: 'pointer',
     font: 'inherit',
     inlineSize: '100%',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     textAlign: 'start',
   },
   outlined: {
@@ -215,6 +212,7 @@ function Card({
           styles[variant],
           padded,
           interactive && styles.interactive,
+          interactive && focus.ring,
           interactive && interactionStyles[variant],
         ),
         props,
