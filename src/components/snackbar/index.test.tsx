@@ -82,23 +82,24 @@ describe('snackbar', () => {
 
     it('shows the message it replaced once the newer one closes', async () => {
       const { queue, view } = setup()
-      let first = ''
+      let second = ''
       act(() => {
-        first = queue.add('First item')
-        queue.add('Second item')
+        queue.add('First item')
+        second = queue.add('Second item')
       })
       await waitFor(() => {
         expect(view.getByText('Second item')).not.toBeNull()
       })
 
+      // Closed by the key add returned rather than through the React Aria
+      // queue underneath, which the component documents as not its API.
       act(() => {
-        queue.close(queue.rac.visibleToasts[0]?.key ?? '')
+        queue.close(second)
       })
 
       await waitFor(() => {
         expect(view.getByText('First item')).not.toBeNull()
       })
-      expect(first).not.toBe('')
     })
 
     it('closes a message by the key add returned', async () => {
