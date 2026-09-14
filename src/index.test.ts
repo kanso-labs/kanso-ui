@@ -2,6 +2,7 @@ import * as reactAria from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import * as publicApi from '.'
+import packageJson from '../package.json'
 import {
   AppBar as ComponentsAppBar,
   Autocomplete as ComponentsAutocomplete,
@@ -496,4 +497,36 @@ describe('package entry point', () => {
       expect(ours).toBe(theirs)
     },
   )
+})
+
+// The ./date subpath has its own copy of this in src/date.test.ts. The main
+// entry had none, which left the condition every consumer resolves through
+// the one part of the exports map nothing pinned.
+describe('the main entry', () => {
+  it('is published with the shape the exports map promises', () => {
+    expect(packageJson.exports['.']).toEqual({
+      default: './dist/index.js',
+      types: './dist/index.d.ts',
+    })
+  })
+
+  it('resolves under require() too, which is what `default` buys', () => {
+    // Under `import` alone the same call fails with
+    // ERR_PACKAGE_PATH_NOT_EXPORTED and every CommonJS consumer is dropped,
+    // while the package still builds and publint still reports no problem.
+    // The suite runs in a browser and cannot call `require`, so what is
+    // pinned here is the condition that decides it; scripts/check-package.mjs
+    // resolves it for real against the built package.
+    const entry = packageJson.exports['.']
+
+    expect(Object.keys(entry)).not.toContain('import')
+    expect(Object.keys(entry)).not.toContain('require')
+    expect(entry).toHaveProperty('default')
+  })
+
+  it('publishes the compiled stylesheet a consumer has to reach', () => {
+    // src/index.ts imports it for its side effect, and this is the entry that
+    // makes the specifier resolve in the published package.
+    expect(packageJson.exports['./styles.css']).toBe('./dist/styles.css')
+  })
 })
