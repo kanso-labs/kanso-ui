@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.26.3](https://github.com/kanso-labs/kanso-ui/compare/v0.26.2...v0.26.3) (2026-09-14)
+
+
+### Bug Fixes
+
+* **build:** pin @babel/core to the 7 line so the React Compiler runs ([#781](https://github.com/kanso-labs/kanso-ui/issues/781)) ([546cd39](https://github.com/kanso-labs/kanso-ui/commit/546cd39a7645447a3796d7577574c3c6d72a87d6))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.27 ([#789](https://github.com/kanso-labs/kanso-ui/issues/789)) ([6d01a7a](https://github.com/kanso-labs/kanso-ui/commit/6d01a7ac6ac6cabd58714ad5e3fee263581f4b5e))
+* update dependency eslint-plugin-react-refresh to v0.5.7 ([#790](https://github.com/kanso-labs/kanso-ui/issues/790)) ([ebad40c](https://github.com/kanso-labs/kanso-ui/commit/ebad40ca4e5cadc3db998011dfeb4f3540abe075))
+* update dependency oxlint to v1.83.0 ([#740](https://github.com/kanso-labs/kanso-ui/issues/740)) ([f97e930](https://github.com/kanso-labs/kanso-ui/commit/f97e93042b7b3f28ef7c48090eca4c6dd30863ea))
+
 ## [0.26.2](https://github.com/kanso-labs/kanso-ui/compare/v0.26.1...v0.26.2) (2026-09-14)
 
 
