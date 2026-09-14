@@ -28,3 +28,10 @@ jobs:
 
       - name: Run build
         run: npm run build
+
+      # publint reads package.json and the packed file list, so it catches an
+      # exports target that points at a file the tarball does not carry.
+      # check-package.mjs covers the two failures it reports as "All good!" —
+      # the comment at the top of that script says which and why.
+      - name: Verify the published package shape
+        run: npm run package:check
