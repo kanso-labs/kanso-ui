@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import * as components from '.'
 import {
   AppBar,
   Avatar,
@@ -23,6 +24,7 @@ import {
   ColorSwatchPicker,
   ColorWheel,
   ComboBox,
+  Container,
   CopyField,
   Currency,
   DateField,
@@ -58,6 +60,7 @@ import {
   Sheet,
   Slider,
   Snackbar,
+  Stack,
   SupportingPane,
   Switch,
   Table,
@@ -221,6 +224,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'ComboBox',
   },
+  { element: <Container {...PROBE}>First item</Container>, name: 'Container' },
   { element: <CopyField {...PROBE} value="Label" />, name: 'CopyField' },
   { element: <Currency {...PROBE} value={1} />, name: 'Currency' },
   { element: <DateField {...PROBE} label="Label" />, name: 'DateField' },
@@ -578,6 +582,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Slider',
   },
   { element: <Snackbar {...PROBE} queue={SNACKBARS} />, name: 'Snackbar' },
+  { element: <Stack {...PROBE}>First item</Stack>, name: 'Stack' },
   {
     element: (
       <SupportingPane {...PROBE} main="First item" supporting="Second item" />
@@ -843,5 +848,37 @@ describe.each(CASES)('$name', ({ element }) => {
     const classes = [...probed().classList].filter((name) => name !== 'probe')
 
     expect(classes.length).toBeGreaterThan(0)
+  })
+})
+
+// The list above is the guard. This is the guard on it.
+//
+// AGENTS.md says this file renders every exported component and fails if a new
+// one forgets to merge. Container and Stack were absent from it for as long as
+// they had existed, and nothing went red, because the claim was prose rather
+// than an assertion. Reading the barrel at runtime is what makes the two names
+// below the only way out of the list.
+//
+// Both are already explained above: Autocomplete renders no element of its
+// own, and FileTrigger renders a hidden input that takes neither prop. The
+// other absences named up there — Sheet, Menu, Dialog and Popover — need no
+// entry here, because each is covered by the parts listed under it.
+const EXEMPT: ReadonlySet<string> = new Set(['Autocomplete', 'FileTrigger'])
+
+describe('the case list', () => {
+  it('covers every component the barrel exports', () => {
+    // A case name is the component it probes, followed by a part
+    // (`Sheet.Content`) or a variant (`Card (interactive)`) where it needs
+    // one. The component is the text before either, so a trigger that carries
+    // nothing itself is covered by the parts that do.
+    const covered = new Set(
+      CASES.map((testCase) => testCase.name.split(/[. ]/)[0]),
+    )
+
+    const uncovered = Object.keys(components).filter(
+      (name) => !covered.has(name) && !EXEMPT.has(name),
+    )
+
+    expect(uncovered).toEqual([])
   })
 })
