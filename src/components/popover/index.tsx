@@ -30,6 +30,7 @@ import {
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
@@ -281,7 +282,7 @@ function PopoverContent({
       <Dialog
         aria-describedby={described ? descriptionId : undefined}
         {...props}
-        {...stylex.props(overlay.popupDialog)}
+        {...stylex.props(overlay.popupDialog, focus.ring)}
       >
         <DescriptionContext value={description}>{children}</DescriptionContext>
       </Dialog>

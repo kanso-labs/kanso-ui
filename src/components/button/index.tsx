@@ -16,6 +16,7 @@ import {
   buttonRenderer,
   linkRenderer,
 } from '../../render/aria'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -78,10 +79,6 @@ const styles = stylex.create({
     gap: spacing.sm,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     position: 'relative',
     // `href` makes a button an <a>, and an <a> arrives underlined. Reset
     // here rather than per variant, since every variant sets a colour of
@@ -390,6 +387,7 @@ function Button({
     (state: ButtonState) =>
       stylex.props(
         styles.base,
+        focus.ring,
         styles[variant],
         styles[size],
         variant === 'outlined' && outlineWidths[size],

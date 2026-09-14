@@ -19,6 +19,7 @@ import { chipStyles } from '../../chip/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
 import { CloseGlyph } from '../../glyphs'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { spacing, typography } from '../../tokens/design.tokens.stylex'
 
@@ -237,6 +238,7 @@ function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
 function chipPropsFor(state: TagRenderProps) {
   return stylex.props(
     chipStyles.base,
+    focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
     state.isDisabled && chipStyles.disabled,
     state.isDisabled &&

@@ -7,6 +7,7 @@ import {
   spacing,
   stateLayerOpacity,
 } from '../tokens/design.tokens.stylex'
+import { focus } from './focus'
 
 // What a date picker and a date range picker draw in common: the line the
 // segments and the trigger share, the trigger itself, and the surface the
@@ -67,10 +68,6 @@ const picker = stylex.create({
     flexShrink: 0,
     inlineSize: '40px',
     justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     padding: 0,
   },
   // The disabled trigger takes the same 38% the segments beside it take, so
@@ -93,8 +90,11 @@ const picker = stylex.create({
 // own, so the fade comes off the state React Aria hands the className.
 function triggerClassName(state: { isDisabled: boolean }) {
   return (
-    stylex.props(picker.trigger, state.isDisabled && picker.triggerDisabled)
-      .className ?? ''
+    stylex.props(
+      picker.trigger,
+      focus.ring,
+      state.isDisabled && picker.triggerDisabled,
+    ).className ?? ''
   )
 }
 

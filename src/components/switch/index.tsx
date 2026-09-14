@@ -21,6 +21,7 @@ import { FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { CheckGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -223,12 +224,7 @@ const styles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
-  trackFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: 'solid',
-    outlineWidth: '2px',
-  },
+  trackFocused: {},
   trackOn: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
@@ -328,6 +324,7 @@ function buttonContent(
               state.isDisabled &&
                 (on ? styles.trackOnDisabled : styles.trackDisabled),
               state.isFocusVisible && styles.trackFocused,
+              state.isFocusVisible && focus.ringVisible,
             )}
           >
             <span

@@ -26,6 +26,7 @@ import {
   TabPanel,
 } from 'react-aria-components'
 
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -108,10 +109,6 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     // The panel is focusable so keyboard users can reach its content after
     // the tab strip, which is what React Aria's roving focus hands off to.
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
   },
   // The box the panels share, which is what gives a change of panel a size
   // to animate between. React Aria measures the new panel, puts the old
@@ -333,7 +330,7 @@ function TabsPanel(props: TabsPanelProps) {
   return (
     <TabPanel
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.panel), props)}
+      {...mergeStatefulStyles(stylex.props(styles.panel, focus.ring), props)}
     />
   )
 }

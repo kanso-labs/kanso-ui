@@ -20,6 +20,7 @@ import {
   useFieldValidationBehavior,
 } from '../../field/root'
 import { ChevronEndGlyph } from '../../glyphs'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
@@ -96,10 +97,6 @@ const styles = stylex.create({
     display: 'inline-flex',
     inlineSize: '24px',
     justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     padding: 0,
   },
   toggleGlyph: {
@@ -296,7 +293,7 @@ function ComboToggle() {
   const state = useContext(ComboBoxStateContext)
 
   return (
-    <RACButton {...stylex.props(styles.toggle)}>
+    <RACButton {...stylex.props(styles.toggle, focus.ring)}>
       <ChevronEndGlyph
         {...stylex.props(
           styles.toggleGlyph,

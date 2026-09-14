@@ -25,6 +25,7 @@ import {
   linkRenderer,
   toggleButtonRenderer,
 } from '../../render/aria'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -100,10 +101,6 @@ const styles = stylex.create({
     display: 'inline-flex',
     flexShrink: 0,
     justifyContent: 'center',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
     padding: 0,
     position: 'relative',
     // `href` makes a button an <a>, and an <a> arrives underlined. Reset
@@ -540,6 +537,7 @@ function IconButton({
     (state: ButtonState) =>
       stylex.props(
         styles.base,
+        focus.ring,
         styles[variant],
         styles[size],
         variant === 'outlined' && outlineWidths[size],
@@ -604,6 +602,7 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
   return (state: IconButtonState) =>
     stylex.props(
       styles.base,
+      focus.ring,
       state.isSelected === true
         ? toggleStyles[variant].selected
         : toggleStyles[variant].unselected,

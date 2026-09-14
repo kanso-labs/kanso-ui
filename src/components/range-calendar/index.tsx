@@ -16,6 +16,7 @@ import {
 import { CalendarGridHeader, CalendarHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
 import { calendarStyles } from '../../calendar/styles'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
 // The date pickers page's calendar again, picking two dates rather than one.
@@ -73,6 +74,7 @@ function cellClassName(state: {
   return (
     stylex.props(
       calendarStyles.cell,
+      focus.ring,
       state.isToday && calendarStyles.cellToday,
       state.isSelected && calendarStyles.cellInRange,
       state.isSelected &&

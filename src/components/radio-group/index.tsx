@@ -16,6 +16,7 @@ import {
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { useRipple } from '../../hooks/useRipple'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -74,12 +75,7 @@ const styles = stylex.create({
   controlDisabled: {
     cursor: 'not-allowed',
   },
-  controlFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: 'solid',
-    outlineWidth: '2px',
-  },
+  controlFocused: {},
   controlReadOnly: {
     cursor: 'default',
   },
@@ -258,6 +254,7 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
             interactive && state.isHovered && hoverLayers[tone],
             interactive && state.isPressed && pressedLayers[tone],
             state.isFocusVisible && styles.controlFocused,
+            state.isFocusVisible && focus.ringVisible,
           )}
         >
           <span {...stylex.props(styles.ring)}>
