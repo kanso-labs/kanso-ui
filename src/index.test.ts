@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import * as publicApi from '.'
 import packageJson from '../package.json'
+import * as componentsBarrel from './components'
 import {
   AppBar as ComponentsAppBar,
   Autocomplete as ComponentsAutocomplete,
@@ -33,7 +34,9 @@ import {
   Dialog as ComponentsDialog,
   Disclosure as ComponentsDisclosure,
   DisclosureGroup as ComponentsDisclosureGroup,
+  DropZone as ComponentsDropZone,
   Feed as ComponentsFeed,
+  FileTrigger as ComponentsFileTrigger,
   Form as ComponentsForm,
   IconButton as ComponentsIconButton,
   Keycap as ComponentsKeycap,
@@ -44,6 +47,7 @@ import {
   ListItem as ComponentsListItem,
   Menu as ComponentsMenu,
   Meter as ComponentsMeter,
+  NavigationTree as ComponentsNavigationTree,
   NumberField as ComponentsNumberField,
   Popover as ComponentsPopover,
   ProductIcon as ComponentsProductIcon,
@@ -61,6 +65,7 @@ import {
   Stack as ComponentsStack,
   SupportingPane as ComponentsSupportingPane,
   Switch as ComponentsSwitch,
+  Table as ComponentsTable,
   Tabs as ComponentsTabs,
   Tag as ComponentsTag,
   Text as ComponentsText,
@@ -70,7 +75,9 @@ import {
   TokenField as ComponentsTokenField,
   Toolbar as ComponentsToolbar,
   Tooltip as ComponentsTooltip,
+  Tree as ComponentsTree,
 } from './components'
+import * as reactAriaModule from './react-aria'
 
 describe('package entry point', () => {
   // Deliberately exact rather than a `toContain`, so an internal helper
@@ -180,269 +187,108 @@ describe('package entry point', () => {
     ])
   })
 
-  it('forwards AppBar as the same reference as the components barrel', () => {
-    expect(publicApi.AppBar).toBe(ComponentsAppBar)
-  })
-
-  it('forwards Avatar as the same reference as the components barrel', () => {
-    expect(publicApi.Avatar).toBe(ComponentsAvatar)
-  })
-
-  it('forwards Tag as the same reference as the components barrel', () => {
-    expect(publicApi.Tag).toBe(ComponentsTag)
-  })
-
-  it('forwards Breadcrumbs as the same reference as the components barrel', () => {
-    expect(publicApi.Breadcrumbs).toBe(ComponentsBreadcrumbs)
-  })
-
-  it('forwards Button as the same reference as the components barrel', () => {
-    expect(publicApi.Button).toBe(ComponentsButton)
-  })
-
-  it('forwards Card as the same reference as the components barrel', () => {
-    expect(publicApi.Card).toBe(ComponentsCard)
-  })
-
-  it('forwards Chip as the same reference as the components barrel', () => {
-    expect(publicApi.Chip).toBe(ComponentsChip)
-  })
-
-  it('forwards Code as the same reference as the components barrel', () => {
-    expect(publicApi.Code).toBe(ComponentsCode)
-  })
-
-  it('forwards Container as the same reference as the components barrel', () => {
-    expect(publicApi.Container).toBe(ComponentsContainer)
-  })
-
-  it('forwards CopyField as the same reference as the components barrel', () => {
-    expect(publicApi.CopyField).toBe(ComponentsCopyField)
-  })
-
-  it('forwards Currency as the same reference as the components barrel', () => {
-    expect(publicApi.Currency).toBe(ComponentsCurrency)
-  })
-
-  it('forwards Disclosure as the same reference as the components barrel', () => {
-    expect(publicApi.Disclosure).toBe(ComponentsDisclosure)
-  })
-
-  it('forwards DisclosureGroup as the same reference as the components barrel', () => {
-    expect(publicApi.DisclosureGroup).toBe(ComponentsDisclosureGroup)
-  })
-
-  it('forwards Feed as the same reference as the components barrel', () => {
-    expect(publicApi.Feed).toBe(ComponentsFeed)
-  })
-
-  it('forwards IconButton as the same reference as the components barrel', () => {
-    expect(publicApi.IconButton).toBe(ComponentsIconButton)
-  })
-
-  it('forwards Keycap as the same reference as the components barrel', () => {
-    expect(publicApi.Keycap).toBe(ComponentsKeycap)
-  })
-
-  it('forwards Link as the same reference as the components barrel', () => {
-    expect(publicApi.Link).toBe(ComponentsLink)
-  })
-
-  it('forwards ListDetail as the same reference as the components barrel', () => {
-    expect(publicApi.ListDetail).toBe(ComponentsListDetail)
-  })
-
-  it('forwards ListItem as the same reference as the components barrel', () => {
-    expect(publicApi.ListItem).toBe(ComponentsListItem)
-  })
-
-  it('forwards Popover as the same reference as the components barrel', () => {
-    expect(publicApi.Popover).toBe(ComponentsPopover)
-  })
-
-  it('forwards ProductIcon as the same reference as the components barrel', () => {
-    expect(publicApi.ProductIcon).toBe(ComponentsProductIcon)
-  })
-
-  it('forwards Separator as the same reference as the components barrel', () => {
-    expect(publicApi.Separator).toBe(ComponentsSeparator)
-  })
-
-  it('forwards Sheet as the same reference as the components barrel', () => {
-    expect(publicApi.Sheet).toBe(ComponentsSheet)
-  })
-
-  it('forwards Stack as the same reference as the components barrel', () => {
-    expect(publicApi.Stack).toBe(ComponentsStack)
-  })
-
-  it('forwards SupportingPane as the same reference as the components barrel', () => {
-    expect(publicApi.SupportingPane).toBe(ComponentsSupportingPane)
-  })
-
-  it('forwards Tabs as the same reference as the components barrel', () => {
-    expect(publicApi.Tabs).toBe(ComponentsTabs)
-  })
-
-  it('forwards Text as the same reference as the components barrel', () => {
-    expect(publicApi.Text).toBe(ComponentsText)
-  })
-
-  it('forwards TextField as the same reference as the components barrel', () => {
-    expect(publicApi.TextField).toBe(ComponentsTextField)
-  })
-
-  it('forwards Checkbox as the same reference as the components barrel', () => {
-    expect(publicApi.Checkbox).toBe(ComponentsCheckbox)
-  })
-
-  it('forwards CheckboxGroup as the same reference as the components barrel', () => {
-    expect(publicApi.CheckboxGroup).toBe(ComponentsCheckboxGroup)
-  })
-
-  it('forwards RadioGroup as the same reference as the components barrel', () => {
-    expect(publicApi.RadioGroup).toBe(ComponentsRadioGroup)
-  })
-
-  it('forwards Radio as the same reference as the components barrel', () => {
-    expect(publicApi.Radio).toBe(ComponentsRadio)
-  })
-
-  it('forwards Switch as the same reference as the components barrel', () => {
-    expect(publicApi.Switch).toBe(ComponentsSwitch)
-  })
-
-  it('forwards Slider as the same reference as the components barrel', () => {
-    expect(publicApi.Slider).toBe(ComponentsSlider)
-  })
-
-  it('forwards NumberField as the same reference as the components barrel', () => {
-    expect(publicApi.NumberField).toBe(ComponentsNumberField)
-  })
-
-  it('forwards SearchField as the same reference as the components barrel', () => {
-    expect(publicApi.SearchField).toBe(ComponentsSearchField)
-  })
-
-  it('forwards SegmentedButton as the same reference as the components barrel', () => {
-    expect(publicApi.SegmentedButton).toBe(ComponentsSegmentedButton)
-  })
-
-  it('forwards TextArea as the same reference as the components barrel', () => {
-    expect(publicApi.TextArea).toBe(ComponentsTextArea)
-  })
-
-  it('forwards Form as the same reference as the components barrel', () => {
-    expect(publicApi.Form).toBe(ComponentsForm)
-  })
-
-  it('forwards Dialog as the same reference as the components barrel', () => {
-    expect(publicApi.Dialog).toBe(ComponentsDialog)
-  })
-
-  it('forwards Toolbar as the same reference as the components barrel', () => {
-    expect(publicApi.Toolbar).toBe(ComponentsToolbar)
-  })
-
-  it('forwards Tooltip as the same reference as the components barrel', () => {
-    expect(publicApi.Tooltip).toBe(ComponentsTooltip)
-  })
-
-  it('forwards ProgressIndicator as the same reference as the components barrel', () => {
-    expect(publicApi.ProgressIndicator).toBe(ComponentsProgressIndicator)
-  })
-
-  it('forwards Meter as the same reference as the components barrel', () => {
-    expect(publicApi.Meter).toBe(ComponentsMeter)
-  })
-
-  it('forwards Snackbar as the same reference as the components barrel', () => {
-    expect(publicApi.Snackbar).toBe(ComponentsSnackbar)
-  })
-
-  it('forwards ListBox as the same reference as the components barrel', () => {
-    expect(publicApi.ListBox).toBe(ComponentsListBox)
-  })
-
-  it('forwards Menu as the same reference as the components barrel', () => {
-    expect(publicApi.Menu).toBe(ComponentsMenu)
-  })
-
-  it('forwards Select as the same reference as the components barrel', () => {
-    expect(publicApi.Select).toBe(ComponentsSelect)
-  })
-
-  it('forwards ComboBox as the same reference as the components barrel', () => {
-    expect(publicApi.ComboBox).toBe(ComponentsComboBox)
-  })
-
-  it('forwards Autocomplete as the same reference as the components barrel', () => {
-    expect(publicApi.Autocomplete).toBe(ComponentsAutocomplete)
-  })
-
-  it('forwards ChipGroup as the same reference as the components barrel', () => {
-    expect(publicApi.ChipGroup).toBe(ComponentsChipGroup)
-  })
-
-  it('forwards TokenField as the same reference as the components barrel', () => {
-    expect(publicApi.TokenField).toBe(ComponentsTokenField)
-  })
-
-  it('forwards List as the same reference as the components barrel', () => {
-    expect(publicApi.List).toBe(ComponentsList)
-  })
-
-  it('forwards Calendar as the same reference as the components barrel', () => {
-    expect(publicApi.Calendar).toBe(ComponentsCalendar)
-  })
-
-  it('forwards RangeCalendar as the same reference as the components barrel', () => {
-    expect(publicApi.RangeCalendar).toBe(ComponentsRangeCalendar)
-  })
-
-  it('forwards DateField as the same reference as the components barrel', () => {
-    expect(publicApi.DateField).toBe(ComponentsDateField)
-  })
-
-  it('forwards TimeField as the same reference as the components barrel', () => {
-    expect(publicApi.TimeField).toBe(ComponentsTimeField)
-  })
-
-  it('forwards DatePicker as the same reference as the components barrel', () => {
-    expect(publicApi.DatePicker).toBe(ComponentsDatePicker)
-  })
-
-  it('forwards DateRangePicker as the same reference as the components barrel', () => {
-    expect(publicApi.DateRangePicker).toBe(ComponentsDateRangePicker)
-  })
-
-  it('forwards ColorSwatch as the same reference as the components barrel', () => {
-    expect(publicApi.ColorSwatch).toBe(ComponentsColorSwatch)
-  })
-
-  it('forwards ColorSwatchPicker as the same reference as the components barrel', () => {
-    expect(publicApi.ColorSwatchPicker).toBe(ComponentsColorSwatchPicker)
-  })
-
-  it('forwards ColorSlider as the same reference as the components barrel', () => {
-    expect(publicApi.ColorSlider).toBe(ComponentsColorSlider)
-  })
-
-  it('forwards ColorArea as the same reference as the components barrel', () => {
-    expect(publicApi.ColorArea).toBe(ComponentsColorArea)
-  })
-
-  it('forwards ColorWheel as the same reference as the components barrel', () => {
-    expect(publicApi.ColorWheel).toBe(ComponentsColorWheel)
-  })
-
-  it('forwards ColorField as the same reference as the components barrel', () => {
-    expect(publicApi.ColorField).toBe(ComponentsColorField)
-  })
-
-  it('forwards ColorPicker as the same reference as the components barrel', () => {
-    expect(publicApi.ColorPicker).toBe(ComponentsColorPicker)
-  })
+  // Every component the entry point forwards is the components barrel's own
+  // object rather than a re-wrapped one. Written as static property reads, so
+  // a name missing from either side fails to compile rather than comparing
+  // two undefineds, and kept as one map rather than seventy near-identical
+  // cases — which is how five of them came to be missing at once.
+  const COMPONENT_FORWARDS = {
+    AppBar: [publicApi.AppBar, ComponentsAppBar],
+    Autocomplete: [publicApi.Autocomplete, ComponentsAutocomplete],
+    Avatar: [publicApi.Avatar, ComponentsAvatar],
+    Breadcrumbs: [publicApi.Breadcrumbs, ComponentsBreadcrumbs],
+    Button: [publicApi.Button, ComponentsButton],
+    Calendar: [publicApi.Calendar, ComponentsCalendar],
+    Card: [publicApi.Card, ComponentsCard],
+    Checkbox: [publicApi.Checkbox, ComponentsCheckbox],
+    CheckboxGroup: [publicApi.CheckboxGroup, ComponentsCheckboxGroup],
+    Chip: [publicApi.Chip, ComponentsChip],
+    ChipGroup: [publicApi.ChipGroup, ComponentsChipGroup],
+    Code: [publicApi.Code, ComponentsCode],
+    ColorArea: [publicApi.ColorArea, ComponentsColorArea],
+    ColorField: [publicApi.ColorField, ComponentsColorField],
+    ColorPicker: [publicApi.ColorPicker, ComponentsColorPicker],
+    ColorSlider: [publicApi.ColorSlider, ComponentsColorSlider],
+    ColorSwatch: [publicApi.ColorSwatch, ComponentsColorSwatch],
+    ColorSwatchPicker: [
+      publicApi.ColorSwatchPicker,
+      ComponentsColorSwatchPicker,
+    ],
+    ColorWheel: [publicApi.ColorWheel, ComponentsColorWheel],
+    ComboBox: [publicApi.ComboBox, ComponentsComboBox],
+    Container: [publicApi.Container, ComponentsContainer],
+    CopyField: [publicApi.CopyField, ComponentsCopyField],
+    Currency: [publicApi.Currency, ComponentsCurrency],
+    DateField: [publicApi.DateField, ComponentsDateField],
+    DatePicker: [publicApi.DatePicker, ComponentsDatePicker],
+    DateRangePicker: [publicApi.DateRangePicker, ComponentsDateRangePicker],
+    Dialog: [publicApi.Dialog, ComponentsDialog],
+    Disclosure: [publicApi.Disclosure, ComponentsDisclosure],
+    DisclosureGroup: [publicApi.DisclosureGroup, ComponentsDisclosureGroup],
+    DropZone: [publicApi.DropZone, ComponentsDropZone],
+    Feed: [publicApi.Feed, ComponentsFeed],
+    FileTrigger: [publicApi.FileTrigger, ComponentsFileTrigger],
+    Form: [publicApi.Form, ComponentsForm],
+    IconButton: [publicApi.IconButton, ComponentsIconButton],
+    Keycap: [publicApi.Keycap, ComponentsKeycap],
+    Link: [publicApi.Link, ComponentsLink],
+    List: [publicApi.List, ComponentsList],
+    ListBox: [publicApi.ListBox, ComponentsListBox],
+    ListDetail: [publicApi.ListDetail, ComponentsListDetail],
+    ListItem: [publicApi.ListItem, ComponentsListItem],
+    Menu: [publicApi.Menu, ComponentsMenu],
+    Meter: [publicApi.Meter, ComponentsMeter],
+    NavigationTree: [publicApi.NavigationTree, ComponentsNavigationTree],
+    NumberField: [publicApi.NumberField, ComponentsNumberField],
+    Popover: [publicApi.Popover, ComponentsPopover],
+    ProductIcon: [publicApi.ProductIcon, ComponentsProductIcon],
+    ProgressIndicator: [
+      publicApi.ProgressIndicator,
+      ComponentsProgressIndicator,
+    ],
+    Radio: [publicApi.Radio, ComponentsRadio],
+    RadioGroup: [publicApi.RadioGroup, ComponentsRadioGroup],
+    RangeCalendar: [publicApi.RangeCalendar, ComponentsRangeCalendar],
+    SearchField: [publicApi.SearchField, ComponentsSearchField],
+    SegmentedButton: [publicApi.SegmentedButton, ComponentsSegmentedButton],
+    Select: [publicApi.Select, ComponentsSelect],
+    Separator: [publicApi.Separator, ComponentsSeparator],
+    Sheet: [publicApi.Sheet, ComponentsSheet],
+    Slider: [publicApi.Slider, ComponentsSlider],
+    Snackbar: [publicApi.Snackbar, ComponentsSnackbar],
+    Stack: [publicApi.Stack, ComponentsStack],
+    SupportingPane: [publicApi.SupportingPane, ComponentsSupportingPane],
+    Switch: [publicApi.Switch, ComponentsSwitch],
+    Table: [publicApi.Table, ComponentsTable],
+    Tabs: [publicApi.Tabs, ComponentsTabs],
+    Tag: [publicApi.Tag, ComponentsTag],
+    Text: [publicApi.Text, ComponentsText],
+    TextArea: [publicApi.TextArea, ComponentsTextArea],
+    TextField: [publicApi.TextField, ComponentsTextField],
+    TimeField: [publicApi.TimeField, ComponentsTimeField],
+    TokenField: [publicApi.TokenField, ComponentsTokenField],
+    Toolbar: [publicApi.Toolbar, ComponentsToolbar],
+    Tooltip: [publicApi.Tooltip, ComponentsTooltip],
+    Tree: [publicApi.Tree, ComponentsTree],
+  }
+
+  // The map has to cover the same surface the exact-name case pins, or it
+  // drifts the way it already had. Reading the barrel at runtime is what
+  // makes adding a component to it and not to this list fail.
+  it('forwards every component the components barrel exports', () => {
+    const mapped = new Set(Object.keys(COMPONENT_FORWARDS))
+    const exported = Object.keys(componentsBarrel)
+
+    expect(exported.filter((name) => !mapped.has(name))).toEqual([])
+    expect(mapped.size).toBe(exported.length)
+  })
+
+  it.each(Object.entries(COMPONENT_FORWARDS))(
+    'forwards %s as the same reference as the components barrel',
+    (_name, [fromEntry, fromBarrel]) => {
+      expect(fromEntry).toBe(fromBarrel)
+    },
+  )
 
   // Every utility is React Aria's own object, not a wrapper: a consumer's
   // `I18nProvider` from here has to be the one the components read, or the
@@ -469,7 +315,13 @@ describe('package entry point', () => {
     parseColor: [publicApi.parseColor, reactAria.parseColor],
     Pressable: [publicApi.Pressable, reactAria.Pressable],
     RouterProvider: [publicApi.RouterProvider, reactAria.RouterProvider],
+    SharedElement: [publicApi.SharedElement, reactAria.SharedElement],
+    SharedElementTransition: [
+      publicApi.SharedElementTransition,
+      reactAria.SharedElementTransition,
+    ],
     TableLayout: [publicApi.TableLayout, reactAria.TableLayout],
+    TokenFieldValue: [publicApi.TokenFieldValue, reactAria.TokenFieldValue],
     useAsyncList: [publicApi.useAsyncList, reactAria.useAsyncList],
     useDrag: [publicApi.useDrag, reactAria.useDrag],
     useDrop: [publicApi.useDrop, reactAria.useDrop],
@@ -489,6 +341,29 @@ describe('package entry point', () => {
   it('wraps useDragAndDrop rather than forwarding it', () => {
     expect(publicApi.useDragAndDrop).not.toBe(reactAria.useDragAndDrop)
     expect(typeof publicApi.useDragAndDrop).toBe('function')
+  })
+
+  // The same completeness check the forwards get, and the same reason: this
+  // map lost three names as they were added to src/react-aria.ts, while the
+  // exact-name case above kept passing because it pins the surface rather
+  // than where each name comes from.
+  //
+  // useDragAndDrop is the single exemption, and the one the comment above
+  // already names: the package wraps React Aria's to default the drop
+  // indicator and the drag preview, so it is deliberately not the same
+  // reference.
+  it('maps every utility it re-exports', () => {
+    const mapped = new Set([
+      ...Object.keys(REACT_ARIA_UTILITIES),
+      'useDragAndDrop',
+    ])
+    const exported = Object.keys(reactAriaModule)
+
+    // Named rather than compared as two lists, so the failure says which
+    // utility went unmapped instead of eliding both to a count. The size
+    // after it is what catches a name mapped but no longer re-exported.
+    expect(exported.filter((name) => !mapped.has(name))).toEqual([])
+    expect(mapped.size).toBe(exported.length)
   })
 
   it.each(Object.entries(REACT_ARIA_UTILITIES))(

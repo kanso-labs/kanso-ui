@@ -97,6 +97,7 @@ import DateRangePickerDefault from './date-range-picker'
 import DialogDefault from './dialog'
 import DisclosureDefault from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
+import DropZoneDefault, { FileTrigger as FileTriggerNamed } from './drop-zone'
 import FeedDefault from './feed'
 import FormDefault from './form'
 import IconButtonDefault from './icon-button'
@@ -108,6 +109,7 @@ import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
 import MenuDefault from './menu'
 import MeterDefault from './meter'
+import NavigationTreeDefault from './navigation-tree'
 import NumberFieldDefault from './number-field'
 import PopoverDefault from './popover'
 import ProductIconDefault from './product-icon'
@@ -124,6 +126,7 @@ import SnackbarDefault from './snackbar'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import SwitchDefault from './switch'
+import TableDefault from './table'
 import TabsDefault from './tabs'
 import TagDefault from './tag'
 import TextDefault from './text'
@@ -133,6 +136,7 @@ import TimeFieldDefault from './time-field'
 import TokenFieldDefault from './token-field'
 import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
+import TreeDefault from './tree'
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
@@ -211,269 +215,105 @@ describe('components barrel', () => {
     ])
   })
 
-  it('re-exports AppBar as the same reference as its own module', () => {
-    expect(components.AppBar).toBe(AppBarDefault)
-  })
-
-  it('re-exports Avatar as the same reference as its own module', () => {
-    expect(components.Avatar).toBe(AvatarDefault)
-  })
-
-  it('re-exports Tag as the same reference as its own module', () => {
-    expect(components.Tag).toBe(TagDefault)
-  })
-
-  it('re-exports Breadcrumbs as the same reference as its own module', () => {
-    expect(components.Breadcrumbs).toBe(BreadcrumbsDefault)
-  })
-
-  it('re-exports Button as the same reference as its own module', () => {
-    expect(components.Button).toBe(ButtonDefault)
-  })
-
-  it('re-exports Card as the same reference as its own module', () => {
-    expect(components.Card).toBe(CardDefault)
-  })
-
-  it('re-exports Chip as the same reference as its own module', () => {
-    expect(components.Chip).toBe(ChipDefault)
-  })
-
-  it('re-exports Code as the same reference as its own module', () => {
-    expect(components.Code).toBe(CodeDefault)
-  })
-
-  it('re-exports Container as the same reference as its own module', () => {
-    expect(components.Container).toBe(ContainerDefault)
-  })
-
-  it('re-exports CopyField as the same reference as its own module', () => {
-    expect(components.CopyField).toBe(CopyFieldDefault)
-  })
-
-  it('re-exports Currency as the same reference as its own module', () => {
-    expect(components.Currency).toBe(CurrencyDefault)
-  })
-
-  it('re-exports Disclosure as the same reference as its own module', () => {
-    expect(components.Disclosure).toBe(DisclosureDefault)
-  })
-
-  it('re-exports DisclosureGroup as the same reference as its own module', () => {
-    expect(components.DisclosureGroup).toBe(DisclosureGroupDefault)
-  })
-
-  it('re-exports Feed as the same reference as its own module', () => {
-    expect(components.Feed).toBe(FeedDefault)
-  })
-
-  it('re-exports IconButton as the same reference as its own module', () => {
-    expect(components.IconButton).toBe(IconButtonDefault)
-  })
-
-  it('re-exports Keycap as the same reference as its own module', () => {
-    expect(components.Keycap).toBe(KeycapDefault)
-  })
-
-  it('re-exports Link as the same reference as its own module', () => {
-    expect(components.Link).toBe(LinkDefault)
-  })
-
-  it('re-exports ListDetail as the same reference as its own module', () => {
-    expect(components.ListDetail).toBe(ListDetailDefault)
-  })
-
-  it('re-exports ListItem as the same reference as its own module', () => {
-    expect(components.ListItem).toBe(ListItemDefault)
-  })
-
-  it('re-exports Popover as the same reference as its own module', () => {
-    expect(components.Popover).toBe(PopoverDefault)
-  })
-
-  it('re-exports ProductIcon as the same reference as its own module', () => {
-    expect(components.ProductIcon).toBe(ProductIconDefault)
-  })
-
-  it('re-exports Separator as the same reference as its own module', () => {
-    expect(components.Separator).toBe(SeparatorDefault)
-  })
-
-  it('re-exports Sheet as the same reference as its own module', () => {
-    expect(components.Sheet).toBe(SheetDefault)
-  })
-
-  it('re-exports Stack as the same reference as its own module', () => {
-    expect(components.Stack).toBe(StackDefault)
-  })
-
-  it('re-exports SupportingPane as the same reference as its own module', () => {
-    expect(components.SupportingPane).toBe(SupportingPaneDefault)
-  })
-
-  it('re-exports Tabs as the same reference as its own module', () => {
-    expect(components.Tabs).toBe(TabsDefault)
-  })
-
-  it('re-exports Text as the same reference as its own module', () => {
-    expect(components.Text).toBe(TextDefault)
-  })
-
-  it('re-exports TextField as the same reference as its own module', () => {
-    expect(components.TextField).toBe(TextFieldDefault)
-  })
-
-  it('re-exports Checkbox as the same reference as its own module', () => {
-    expect(components.Checkbox).toBe(CheckboxDefault)
-  })
-
-  it('re-exports CheckboxGroup as the same reference as its own module', () => {
-    expect(components.CheckboxGroup).toBe(CheckboxGroupDefault)
-  })
-
-  it('re-exports RadioGroup as the same reference as its own module', () => {
-    expect(components.RadioGroup).toBe(RadioGroupDefault)
-  })
-
-  it('re-exports Radio as the same reference as its own module', () => {
-    expect(components.Radio).toBe(Radio)
-  })
-
-  it('re-exports Switch as the same reference as its own module', () => {
-    expect(components.Switch).toBe(SwitchDefault)
-  })
-
-  it('re-exports Slider as the same reference as its own module', () => {
-    expect(components.Slider).toBe(SliderDefault)
-  })
-
-  it('re-exports NumberField as the same reference as its own module', () => {
-    expect(components.NumberField).toBe(NumberFieldDefault)
-  })
-
-  it('re-exports SearchField as the same reference as its own module', () => {
-    expect(components.SearchField).toBe(SearchFieldDefault)
-  })
-
-  it('re-exports SegmentedButton as the same reference as its own module', () => {
-    expect(components.SegmentedButton).toBe(SegmentedButtonDefault)
-  })
-
-  it('re-exports TextArea as the same reference as its own module', () => {
-    expect(components.TextArea).toBe(TextAreaDefault)
-  })
-
-  it('re-exports Form as the same reference as its own module', () => {
-    expect(components.Form).toBe(FormDefault)
-  })
-
-  it('re-exports Dialog as the same reference as its own module', () => {
-    expect(components.Dialog).toBe(DialogDefault)
-  })
-
-  it('re-exports Toolbar as the same reference as its own module', () => {
-    expect(components.Toolbar).toBe(ToolbarDefault)
-  })
-
-  it('re-exports Tooltip as the same reference as its own module', () => {
-    expect(components.Tooltip).toBe(TooltipDefault)
-  })
-
-  it('re-exports ProgressIndicator as the same reference as its own module', () => {
-    expect(components.ProgressIndicator).toBe(ProgressIndicatorDefault)
-  })
-
-  it('re-exports Meter as the same reference as its own module', () => {
-    expect(components.Meter).toBe(MeterDefault)
-  })
-
-  it('re-exports Snackbar as the same reference as its own module', () => {
-    expect(components.Snackbar).toBe(SnackbarDefault)
-  })
-
-  it('re-exports ListBox as the same reference as its own module', () => {
-    expect(components.ListBox).toBe(ListBoxDefault)
-  })
-
-  it('re-exports Menu as the same reference as its own module', () => {
-    expect(components.Menu).toBe(MenuDefault)
-  })
-
-  it('re-exports Select as the same reference as its own module', () => {
-    expect(components.Select).toBe(SelectDefault)
-  })
-
-  it('re-exports ComboBox as the same reference as its own module', () => {
-    expect(components.ComboBox).toBe(ComboBoxDefault)
-  })
-
-  it('re-exports Autocomplete as the same reference as its own module', () => {
-    expect(components.Autocomplete).toBe(AutocompleteDefault)
-  })
-
-  it('re-exports ChipGroup as the same reference as its own module', () => {
-    expect(components.ChipGroup).toBe(ChipGroupDefault)
-  })
-
-  it('re-exports TokenField as the same reference as its own module', () => {
-    expect(components.TokenField).toBe(TokenFieldDefault)
-  })
-
-  it('re-exports List as the same reference as its own module', () => {
-    expect(components.List).toBe(ListDefault)
-  })
-
-  it('re-exports Calendar as the same reference as its own module', () => {
-    expect(components.Calendar).toBe(CalendarDefault)
-  })
-
-  it('re-exports RangeCalendar as the same reference as its own module', () => {
-    expect(components.RangeCalendar).toBe(RangeCalendarDefault)
-  })
-
-  it('re-exports DateField as the same reference as its own module', () => {
-    expect(components.DateField).toBe(DateFieldDefault)
-  })
-
-  it('re-exports TimeField as the same reference as its own module', () => {
-    expect(components.TimeField).toBe(TimeFieldDefault)
-  })
-
-  it('re-exports DatePicker as the same reference as its own module', () => {
-    expect(components.DatePicker).toBe(DatePickerDefault)
-  })
-
-  it('re-exports DateRangePicker as the same reference as its own module', () => {
-    expect(components.DateRangePicker).toBe(DateRangePickerDefault)
-  })
-
-  it('re-exports ColorSwatch as the same reference as its own module', () => {
-    expect(components.ColorSwatch).toBe(ColorSwatchDefault)
-  })
-
-  it('re-exports ColorSwatchPicker as the same reference as its own module', () => {
-    expect(components.ColorSwatchPicker).toBe(ColorSwatchPickerDefault)
-  })
-
-  it('re-exports ColorSlider as the same reference as its own module', () => {
-    expect(components.ColorSlider).toBe(ColorSliderDefault)
-  })
-
-  it('re-exports ColorArea as the same reference as its own module', () => {
-    expect(components.ColorArea).toBe(ColorAreaDefault)
-  })
-
-  it('re-exports ColorWheel as the same reference as its own module', () => {
-    expect(components.ColorWheel).toBe(ColorWheelDefault)
-  })
-
-  it('re-exports ColorField as the same reference as its own module', () => {
-    expect(components.ColorField).toBe(ColorFieldDefault)
-  })
-
-  it('re-exports ColorPicker as the same reference as its own module', () => {
-    expect(components.ColorPicker).toBe(ColorPickerDefault)
-  })
+  // Every name the barrel exports is its own module's object rather than a
+  // re-wrapped one, so a barrel entry pointed at the wrong module fails here.
+  // Written as static property reads, so a name missing from either side
+  // fails to compile, and kept as one map rather than seventy near-identical
+  // cases — which is how five of them came to be missing at once.
+  //
+  // FileTrigger is the one that is not a module's default: drop-zone exports
+  // it alongside one, which is why it is aliased rather than suffixed.
+  const OWN_MODULE = {
+    AppBar: [components.AppBar, AppBarDefault],
+    Autocomplete: [components.Autocomplete, AutocompleteDefault],
+    Avatar: [components.Avatar, AvatarDefault],
+    Breadcrumbs: [components.Breadcrumbs, BreadcrumbsDefault],
+    Button: [components.Button, ButtonDefault],
+    Calendar: [components.Calendar, CalendarDefault],
+    Card: [components.Card, CardDefault],
+    Checkbox: [components.Checkbox, CheckboxDefault],
+    CheckboxGroup: [components.CheckboxGroup, CheckboxGroupDefault],
+    Chip: [components.Chip, ChipDefault],
+    ChipGroup: [components.ChipGroup, ChipGroupDefault],
+    Code: [components.Code, CodeDefault],
+    ColorArea: [components.ColorArea, ColorAreaDefault],
+    ColorField: [components.ColorField, ColorFieldDefault],
+    ColorPicker: [components.ColorPicker, ColorPickerDefault],
+    ColorSlider: [components.ColorSlider, ColorSliderDefault],
+    ColorSwatch: [components.ColorSwatch, ColorSwatchDefault],
+    ColorSwatchPicker: [components.ColorSwatchPicker, ColorSwatchPickerDefault],
+    ColorWheel: [components.ColorWheel, ColorWheelDefault],
+    ComboBox: [components.ComboBox, ComboBoxDefault],
+    Container: [components.Container, ContainerDefault],
+    CopyField: [components.CopyField, CopyFieldDefault],
+    Currency: [components.Currency, CurrencyDefault],
+    DateField: [components.DateField, DateFieldDefault],
+    DatePicker: [components.DatePicker, DatePickerDefault],
+    DateRangePicker: [components.DateRangePicker, DateRangePickerDefault],
+    Dialog: [components.Dialog, DialogDefault],
+    Disclosure: [components.Disclosure, DisclosureDefault],
+    DisclosureGroup: [components.DisclosureGroup, DisclosureGroupDefault],
+    DropZone: [components.DropZone, DropZoneDefault],
+    Feed: [components.Feed, FeedDefault],
+    FileTrigger: [components.FileTrigger, FileTriggerNamed],
+    Form: [components.Form, FormDefault],
+    IconButton: [components.IconButton, IconButtonDefault],
+    Keycap: [components.Keycap, KeycapDefault],
+    Link: [components.Link, LinkDefault],
+    List: [components.List, ListDefault],
+    ListBox: [components.ListBox, ListBoxDefault],
+    ListDetail: [components.ListDetail, ListDetailDefault],
+    ListItem: [components.ListItem, ListItemDefault],
+    Menu: [components.Menu, MenuDefault],
+    Meter: [components.Meter, MeterDefault],
+    NavigationTree: [components.NavigationTree, NavigationTreeDefault],
+    NumberField: [components.NumberField, NumberFieldDefault],
+    Popover: [components.Popover, PopoverDefault],
+    ProductIcon: [components.ProductIcon, ProductIconDefault],
+    ProgressIndicator: [components.ProgressIndicator, ProgressIndicatorDefault],
+    Radio: [components.Radio, Radio],
+    RadioGroup: [components.RadioGroup, RadioGroupDefault],
+    RangeCalendar: [components.RangeCalendar, RangeCalendarDefault],
+    SearchField: [components.SearchField, SearchFieldDefault],
+    SegmentedButton: [components.SegmentedButton, SegmentedButtonDefault],
+    Select: [components.Select, SelectDefault],
+    Separator: [components.Separator, SeparatorDefault],
+    Sheet: [components.Sheet, SheetDefault],
+    Slider: [components.Slider, SliderDefault],
+    Snackbar: [components.Snackbar, SnackbarDefault],
+    Stack: [components.Stack, StackDefault],
+    SupportingPane: [components.SupportingPane, SupportingPaneDefault],
+    Switch: [components.Switch, SwitchDefault],
+    Table: [components.Table, TableDefault],
+    Tabs: [components.Tabs, TabsDefault],
+    Tag: [components.Tag, TagDefault],
+    Text: [components.Text, TextDefault],
+    TextArea: [components.TextArea, TextAreaDefault],
+    TextField: [components.TextField, TextFieldDefault],
+    TimeField: [components.TimeField, TimeFieldDefault],
+    TokenField: [components.TokenField, TokenFieldDefault],
+    Toolbar: [components.Toolbar, ToolbarDefault],
+    Tooltip: [components.Tooltip, TooltipDefault],
+    Tree: [components.Tree, TreeDefault],
+  }
+
+  // The map has to cover the same surface the exact-name case pins, or it
+  // drifts the way it already had. Reading the barrel at runtime is what
+  // makes adding an export and not a case here fail.
+  it('re-exports every name it exports from its own module', () => {
+    const mapped = new Set(Object.keys(OWN_MODULE))
+    const exported = Object.keys(components)
+
+    expect(exported.filter((name) => !mapped.has(name))).toEqual([])
+    expect(mapped.size).toBe(exported.length)
+  })
+
+  it.each(Object.entries(OWN_MODULE))(
+    're-exports %s as the same reference as its own module',
+    (_name, [fromBarrel, fromModule]) => {
+      expect(fromBarrel).toBe(fromModule)
+    },
+  )
 
   it('re-exports the AppBarProps type', () => {
     const props: AppBarProps = { size: 'large' }
