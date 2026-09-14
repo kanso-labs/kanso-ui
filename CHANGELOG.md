@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.2](https://github.com/kanso-labs/kanso-ui/compare/v0.26.1...v0.26.2) (2026-09-14)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.26 ([#737](https://github.com/kanso-labs/kanso-ui/issues/737)) ([515d9ae](https://github.com/kanso-labs/kanso-ui/commit/515d9ae880c25764be39465cdc6801810f9a0648))
+* update dependency oxfmt to v0.68.0 ([#739](https://github.com/kanso-labs/kanso-ui/issues/739)) ([de0416e](https://github.com/kanso-labs/kanso-ui/commit/de0416eb5cb552352a9bcb50c9356433d88c5882))
+
 ## [0.26.1](https://github.com/kanso-labs/kanso-ui/compare/v0.26.0...v0.26.1) (2026-09-12)
 
 
