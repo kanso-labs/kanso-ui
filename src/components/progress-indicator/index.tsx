@@ -70,6 +70,11 @@ import { colors, radii } from '../../tokens/design.tokens.stylex'
 // compiles, and will not follow an import to a module that is not a theme
 // to reach one — an imported constant fails the transform outright.
 const CIRCULAR_SIZE = 40
+// The same value as a length, hoisted rather than built at the parameter.
+// The compiler has no safe reordering for a template literal, so one written
+// as a default parameter skips the whole component around it — which the
+// panic threshold this lands beside turns into a build failure.
+const CIRCULAR_SIZE_PX = `${CIRCULAR_SIZE}px`
 const THICKNESS = 4
 const GAP = 4
 const RADIUS = (CIRCULAR_SIZE - THICKNESS) / 2
@@ -643,7 +648,7 @@ function ProgressIndicator({
   maxValue = 100,
   minValue = 0,
   showValue = false,
-  size = `${CIRCULAR_SIZE}px`,
+  size = CIRCULAR_SIZE_PX,
   tone = 'primary',
   variant = 'linear',
   ...props
