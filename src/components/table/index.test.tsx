@@ -554,12 +554,19 @@ describe('table', () => {
     it('leaves the table unwrapped when it does not resize', () => {
       const view = render(<Basic />)
       const container = view.getByRole('grid').closest('div')
+      if (!(container instanceof HTMLElement)) {
+        throw new Error('expected the grid to sit inside the render container')
+      }
 
-      // The render container itself is a div, so what is checked is that it
-      // carries none of the scrolling the resizable one does.
-      expect(
-        container === null ? '' : getComputedStyle(container).overflowX,
-      ).not.toBe('auto')
+      // Narrowed by throwing rather than by a fallback value: a null here
+      // used to read as a string that is not 'auto', which passed while
+      // measuring nothing at all.
+      //
+      // The nearest div being the render container is what "unwrapped" means,
+      // and it is what the title claims — reading overflowX alone is also
+      // satisfied by a wrapper that simply does not scroll.
+      expect(container).toBe(view.container)
+      expect(getComputedStyle(container).overflowX).not.toBe('auto')
     })
 
     it('draws a handle on the columns that asked for one, and no others', () => {
