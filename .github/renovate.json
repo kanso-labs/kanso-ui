@@ -16,6 +16,11 @@
       "semanticCommitType": "deps"
     },
     {
+      "allowedVersions": "<8",
+      "description": "babel-plugin-react-compiler declares @babel/types ^7, and Babel 8 removed AssignmentPattern from the LVal alias. Under Babel 8 the compiler raises (BuildHIR::lowerAssignment) Expected object property value to be an LVal on every component with a defaulted destructured prop, and panicThreshold defaults to none, so it skips them silently. Lift this once a babel-plugin-react-compiler release declares Babel 8 support.",
+      "matchPackageNames": ["@babel/core", "@babel/traverse", "@babel/types"]
+    },
+    {
       "automerge": true,
       "matchUpdateTypes": ["minor", "patch"]
     },
