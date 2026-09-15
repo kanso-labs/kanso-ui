@@ -17,6 +17,8 @@ import * as stylex from '@stylexjs/stylex'
 import { useCallback, useRef, useState } from 'react'
 import { SwitchButton, SwitchField } from 'react-aria-components'
 
+import { ControlLabel } from '../../control'
+import { controlStyles } from '../../control/styles'
 import { FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { CheckGlyph } from '../../glyphs'
@@ -27,9 +29,7 @@ import {
   colors,
   motion,
   radii,
-  spacing,
   stateLayerOpacity,
-  typography,
 } from '../../tokens/design.tokens.stylex'
 
 // The switch page: a 52 by 32dp track with a 2dp outline and a full corner,
@@ -80,19 +80,6 @@ const styles = stylex.create({
     inlineSize: '52px',
     justifyContent: 'center',
   },
-  controlDisabled: {
-    cursor: 'not-allowed',
-  },
-  controlReadOnly: {
-    cursor: 'default',
-  },
-  field: {
-    alignItems: 'start',
-    boxSizing: 'border-box',
-    columnGap: spacing.sm,
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr',
-  },
   glyph: {
     blockSize: '16px',
     display: 'block',
@@ -135,26 +122,6 @@ const styles = stylex.create({
     blockSize: '28px',
     inlineSize: '28px',
   },
-  label: {
-    boxSizing: 'border-box',
-    color: colors.onSurface,
-    cursor: 'pointer',
-    fontFamily: typography.bodyLargeFont,
-    fontSize: typography.bodyLargeSize,
-    fontWeight: typography.bodyLargeWeight,
-    letterSpacing: typography.bodyLargeTracking,
-    lineHeight: typography.bodyLargeLineHeight,
-    // Centres a one-line label on the 40dp control, and keeps a longer one
-    // starting on that line.
-    paddingBlock: spacing.sm,
-  },
-  labelDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-    cursor: 'not-allowed',
-  },
-  labelReadOnly: {
-    cursor: 'default',
-  },
   // The 40dp state layer, centred on the handle: the ripple's host, and
   // where hover and press are painted.
   layer: {
@@ -170,9 +137,6 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
   },
   // The description and error sit under the text, in the second column.
-  messages: {
-    gridColumnStart: 2,
-  },
   seat: {
     alignItems: 'center',
     blockSize: '28px',
@@ -224,7 +188,6 @@ const styles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
-  trackFocused: {},
   trackOn: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
@@ -313,8 +276,8 @@ function buttonContent(
         <span
           {...stylex.props(
             styles.control,
-            state.isReadOnly && styles.controlReadOnly,
-            state.isDisabled && styles.controlDisabled,
+            state.isReadOnly && controlStyles.controlReadOnly,
+            state.isDisabled && controlStyles.controlDisabled,
           )}
         >
           <span
@@ -323,7 +286,6 @@ function buttonContent(
               on && styles.trackOn,
               state.isDisabled &&
                 (on ? styles.trackOnDisabled : styles.trackDisabled),
-              state.isFocusVisible && styles.trackFocused,
               state.isFocusVisible && focus.ringVisible,
             )}
           >
@@ -368,17 +330,7 @@ function buttonContent(
             </span>
           </span>
         </span>
-        {children === undefined ? null : (
-          <span
-            {...stylex.props(
-              styles.label,
-              state.isReadOnly && styles.labelReadOnly,
-              state.isDisabled && styles.labelDisabled,
-            )}
-          >
-            {children}
-          </span>
-        )}
+        <ControlLabel state={state}>{children}</ControlLabel>
       </>
     )
   }
@@ -411,12 +363,12 @@ function Switch({
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.field), props)}
+      {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
       <SwitchButton {...stylex.props(styles.button)}>
         {buttonContent(children, icon, ripple, drag)}
       </SwitchButton>
-      <div {...stylex.props(styles.messages)}>
+      <div {...stylex.props(controlStyles.messages)}>
         <FieldMessage description={description} error={error} inset={false} />
       </div>
     </SwitchField>
