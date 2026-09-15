@@ -1,10 +1,13 @@
 /// <reference types="vitest/config" />
 
+import type { Plugin, ServerHook } from 'vite'
+
 import styleDictionary from '@kanso-labs/unplugin-style-dictionary'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import stylex from '@stylexjs/unplugin'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
+import { Server } from 'node:http'
 import path from 'node:path'
 import { defineConfig } from 'vite'
 
@@ -12,6 +15,73 @@ import {
   registerFormats,
   styleDictionaryConfig,
 } from './scripts/build-tokens.mjs'
+
+// `@stylexjs/unplugin` declares every framework entry as returning `any`, so
+// the plugin each one does return is named once here rather than asserted at
+// the call below.
+const stylexVite: (options?: Parameters<typeof stylex.vite>[0]) => Plugin =
+  stylex.vite
+
+// The StyleX plugin, with the timer it leaks under Vitest cleared.
+//
+// Its `configureServer` starts a 150ms `setInterval` that polls the plugin's
+// shared store and sends a `stylex:css-update` over the websocket whenever the
+// rules it has collected change, and it clears that interval from
+// `server.httpServer?.once('close')`. Vitest builds two Vite servers: the
+// browser one, which owns an `httpServer`, and the root one, which runs in
+// middleware mode and has none — so there the optional chain does nothing,
+// nothing ever clears the interval, and a timer nobody unrefs keeps the event
+// loop alive once the run is over. `close timed out after 10000ms` and `Tests
+// closed successfully but something prevents the main process from exiting` on
+// stderr at the end of every run is that timer, and so are the ten seconds
+// Vitest waits before giving up and exiting anyway. Raising `teardownTimeout`
+// only lengthens the wait: at 60s it still times out.
+//
+// Standing an unstarted `http.Server` in while the plugin's hook runs is what
+// gives it a listener to register on — one that has called neither `listen`
+// nor anything else, so it holds no handle of its own — and wrapping
+// `server.close` is what fires the event. `httpServer` is put straight back
+// afterwards, so Vite and every other plugin see the server they expect, and
+// the browser server, which has a real one, is left alone.
+//
+// Upstream, in @stylexjs/unplugin: the interval wants clearing from somewhere
+// that runs whether or not the server owns an HTTP listener. Drop this once a
+// release does that.
+function stylexPlugin(options?: Parameters<typeof stylex.vite>[0]): Plugin {
+  const plugin = stylexVite(options)
+  const { configureServer } = plugin
+
+  // The hook may also be given as `{ handler, order }`, which this does not
+  // unwrap — the plugin gives a plain function, and a release that changed
+  // that should be read before being wrapped.
+  if (typeof configureServer !== 'function') {
+    return plugin
+  }
+
+  const hook: ServerHook = configureServer
+
+  return {
+    ...plugin,
+    configureServer(server): ReturnType<ServerHook> {
+      if (server.httpServer) {
+        return hook.call(this, server)
+      }
+
+      const stand = new Server()
+      server.httpServer = stand
+      const result = hook.call(this, server)
+      server.httpServer = null
+
+      const close = server.close.bind(server)
+      server.close = async () => {
+        stand.emit('close')
+        await close()
+      }
+
+      return result
+    },
+  }
+}
 
 export default defineConfig(({ command }) => ({
   // React Aria's virtualizer reads `process.env.NODE_ENV` and
@@ -49,7 +119,7 @@ export default defineConfig(({ command }) => ({
         return styleDictionaryConfig
       },
     }),
-    stylex.vite({
+    stylexPlugin({
       dev: process.env.NODE_ENV === 'development',
       // The dev server answers `/virtual:stylex.css` from whatever modules
       // the plugin has transformed so far. The `media` queries the pane

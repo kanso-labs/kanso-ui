@@ -206,9 +206,16 @@ const Overview: Story = {
 }
 
 // Open on load, since a closed sheet renders nothing for Chromatic to compare.
+//
+// The trigger is here rather than left out, even though the panel is what the
+// story is for. React Aria's DialogTrigger wraps its children in one
+// PressResponder and warns when nothing inside it is pressable, so a Sheet
+// written without a button is a shape no call site should copy — and the
+// scrim over the page behind is part of what a modal sheet looks like.
 const Default: Story = {
   render: (args) => (
     <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
       <Sheet.Content>
         <PanelContents />
       </Sheet.Content>
@@ -245,6 +252,7 @@ const BottomSheet: Story = {
   },
   render: (args) => (
     <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
       <Sheet.Content>
         <PanelContents />
       </Sheet.Content>

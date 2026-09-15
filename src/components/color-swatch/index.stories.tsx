@@ -57,6 +57,15 @@ const meta = {
   args: {
     color: '#6750A4',
   },
+  // `color` takes a CSS string or a parsed `Color`, and Storybook infers an
+  // arg's type from the story's own value where no type is declared — so
+  // Transparent, which passes a `Color`, infers `object`, which the colour
+  // matcher in .storybook/preview.tsx then warns it cannot build a colour
+  // control from. Declaring the type is what stops that inference. The panel
+  // edits a CSS string either way, which is what the control accepts.
+  argTypes: {
+    color: { control: 'color', type: 'string' },
+  },
   component: ColorSwatch,
   title: 'Components/ColorSwatch',
 } satisfies Meta<typeof ColorSwatch>

@@ -16,6 +16,7 @@ import * as stylex from '@stylexjs/stylex'
 import { render, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import Button from '../components/button'
 import List from '../components/list'
 import ListBox from '../components/list-box'
 import Table from '../components/table'
@@ -26,6 +27,11 @@ import { dragStyles } from './styles'
 
 // Hoisted so the identity is stable, which is what the case below compares.
 const OURS = () => <span />
+
+// Every draggable row in a grid list, table or tree carries one: React Aria
+// starts a drag from the pointer on its own, and this is what gives a
+// keyboard or screen reader user the same move.
+const DRAG = <Button slot="drag">Drag</Button>
 
 const probeStyles = stylex.create({
   primary: { color: colors.primary },
@@ -57,7 +63,9 @@ describe('drag and drop', () => {
         <Draggable>
           {(hooks) => (
             <List aria-label="Label" dragAndDropHooks={hooks}>
-              <List.Item id="first">First item</List.Item>
+              <List.Item id="first" leading={DRAG}>
+                First item
+              </List.Item>
             </List>
           )}
         </Draggable>,
@@ -96,7 +104,10 @@ describe('drag and drop', () => {
               </Table.Header>
               <Table.Body>
                 <Table.Row id="first">
-                  <Table.Cell>First item</Table.Cell>
+                  <Table.Cell>
+                    {DRAG}
+                    First item
+                  </Table.Cell>
                 </Table.Row>
               </Table.Body>
             </Table>
@@ -114,7 +125,7 @@ describe('drag and drop', () => {
         <Draggable>
           {(hooks) => (
             <Tree aria-label="Label" dragAndDropHooks={hooks}>
-              <Tree.Item headline="First item" id="first" />
+              <Tree.Item headline="First item" id="first" leading={DRAG} />
             </Tree>
           )}
         </Draggable>,
@@ -160,8 +171,12 @@ describe('drag and drop', () => {
         <Draggable>
           {(hooks) => (
             <List aria-label="Label" dragAndDropHooks={hooks}>
-              <List.Item id="first">First item</List.Item>
-              <List.Item id="second">Second item</List.Item>
+              <List.Item id="first" leading={DRAG}>
+                First item
+              </List.Item>
+              <List.Item id="second" leading={DRAG}>
+                Second item
+              </List.Item>
             </List>
           )}
         </Draggable>,

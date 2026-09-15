@@ -9,6 +9,7 @@ import { collectionSizes } from '../../layout'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Avatar from '../avatar'
 import Currency from '../currency'
+import IconButton from '../icon-button'
 import Separator from '../separator'
 import Text from '../text'
 
@@ -29,6 +30,34 @@ const ADA = <Avatar name="Ada Lovelace" size="sm" />
 const GRACE = <Avatar name="Grace Hopper" size="sm" />
 const AMOUNT_ONE = <Currency value={1250} />
 const AMOUNT_TWO = <Currency value={480} />
+
+// The grip, drawn inline the way the other stories draw their glyphs.
+const DragIcon = () => (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="20"
+    viewBox="0 0 24 24"
+    width="20"
+  >
+    <circle cx="9" cy="6" r="1.5" />
+    <circle cx="15" cy="6" r="1.5" />
+    <circle cx="9" cy="12" r="1.5" />
+    <circle cx="15" cy="12" r="1.5" />
+    <circle cx="9" cy="18" r="1.5" />
+    <circle cx="15" cy="18" r="1.5" />
+  </svg>
+)
+
+// Every draggable row carries one. React Aria starts a drag from the pointer
+// on its own, and a button in the row's `drag` slot is what gives a keyboard
+// or screen reader user the same move — it is the collections' requirement
+// rather than this story's decoration, and a draggable row without one warns.
+const DRAG_HANDLE = (
+  <IconButton aria-label="Reorder" size="xs" slot="drag">
+    <DragIcon />
+  </IconButton>
+)
 
 const ROWS = (
   <>
@@ -313,7 +342,11 @@ const Reorderable: Story = {
           items={rows.items}
         >
           {(row) => (
-            <List.Item id={row.id} supporting="Supporting line">
+            <List.Item
+              id={row.id}
+              leading={DRAG_HANDLE}
+              supporting="Supporting line"
+            >
               {row.name}
             </List.Item>
           )}

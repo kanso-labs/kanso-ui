@@ -236,6 +236,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Dialog defaultOpen>
+        <Button>Open</Button>
         <Dialog.Content>
           <Dialog.Body {...PROBE}>First item</Dialog.Body>
         </Dialog.Content>
@@ -444,6 +445,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Popover defaultOpen>
+        <Button>Open</Button>
         <Popover.Content {...PROBE}>First item</Popover.Content>
       </Popover>
     ),
@@ -452,6 +454,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Popover defaultOpen>
+        <Button>Open</Button>
         <Popover.Content>
           <Popover.Description {...PROBE}>Supporting line</Popover.Description>
         </Popover.Content>
@@ -462,6 +465,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Popover defaultOpen>
+        <Button>Open</Button>
         <Popover.Content>
           <Popover.Title {...PROBE}>Headline</Popover.Title>
         </Popover.Content>
@@ -522,6 +526,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content>
           <Sheet.Body {...PROBE}>First item</Sheet.Body>
         </Sheet.Content>
@@ -532,6 +537,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content {...PROBE}>First item</Sheet.Content>
       </Sheet>
     ),
@@ -540,6 +546,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content>
           <Sheet.Footer {...PROBE}>First item</Sheet.Footer>
         </Sheet.Content>
@@ -550,6 +557,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content>
           <Sheet.Handle {...PROBE} />
         </Sheet.Content>
@@ -560,6 +568,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content>
           <Sheet.Header {...PROBE}>First item</Sheet.Header>
         </Sheet.Content>
@@ -570,6 +579,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Sheet defaultOpen>
+        <Button>Open</Button>
         <Sheet.Content>
           <Sheet.Title {...PROBE}>Headline</Sheet.Title>
         </Sheet.Content>
@@ -728,6 +738,9 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Tabs defaultSelectedKey="first">
+        <Tabs.List>
+          <Tabs.Tab id="first">Label</Tabs.Tab>
+        </Tabs.List>
         <Tabs.Panel {...PROBE} id="first">
           First item
         </Tabs.Panel>
@@ -738,6 +751,9 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <Tabs defaultSelectedKey="first">
+        <Tabs.List>
+          <Tabs.Tab id="first">Label</Tabs.Tab>
+        </Tabs.List>
         <Tabs.Panels {...PROBE}>
           <Tabs.Panel id="first">First item</Tabs.Panel>
         </Tabs.Panels>
