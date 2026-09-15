@@ -237,9 +237,15 @@ const InAMenu: Story = {
   ),
 }
 
+// The palette open on load, since a closed dialog renders nothing for
+// Chromatic to compare. The trigger is kept: React Aria's DialogTrigger wraps
+// its children in one PressResponder and warns when nothing inside it is
+// pressable, so a Dialog written without a button is a shape no call site
+// should copy.
 const CommandPalette: Story = {
   render: (args) => (
     <Dialog defaultOpen>
+      <Button variant="outlined">Open the palette</Button>
       <Dialog.Content aria-label="Commands">
         <Dialog.Body>
           <div {...stylex.props(styles.palette)}>

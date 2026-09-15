@@ -157,6 +157,7 @@ describe('dialog', () => {
     it('takes the alert dialog role when asked', () => {
       const view = render(
         <Dialog defaultOpen>
+          <Button>Open</Button>
           <Dialog.Content role="alertdialog">
             <Dialog.Title>Headline</Dialog.Title>
           </Dialog.Content>

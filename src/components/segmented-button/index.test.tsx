@@ -1,7 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
-import { cdp } from '@vitest/browser/context'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cdp } from 'vitest/browser'
 
 import SegmentedButton from '.'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
