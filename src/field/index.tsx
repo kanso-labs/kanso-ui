@@ -28,7 +28,7 @@ import {
 
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import { useInsideForm } from './root'
-import { fieldChromeStyles } from './styles'
+import { fieldChromeStyles, groupStyles } from './styles'
 
 // The chrome every field shares: the filled box with its label at the top, the
 // control inside it, and the line of supporting text under it. TextField drew
@@ -142,12 +142,21 @@ type FieldLabelProps = LabelProps & {
    * focus, so a focused invalid field keeps its error colour.
    */
   state?: Partial<FieldLabelState>
+  /**
+   * Where the label sits. `field` is inside a box, positioned and typed by
+   * whatever renders it. `group` is above a group of controls, which has no
+   * box to float a label in, so this one carries its type itself.
+   * @default 'field'
+   */
+  variant?: FieldLabelVariant
 }
 
 type FieldLabelState = Pick<
   GroupRenderProps,
   'isDisabled' | 'isFocusWithin' | 'isInvalid'
 >
+
+type FieldLabelVariant = 'field' | 'group'
 
 interface FieldMessageProps {
   /**
@@ -658,7 +667,11 @@ function useFieldPopulated() {
 // new object on every render.
 const NO_STATE: Partial<FieldLabelState> = {}
 
-function FieldLabel({ state = NO_STATE, ...props }: FieldLabelProps) {
+function FieldLabel({
+  state = NO_STATE,
+  variant = 'field',
+  ...props
+}: FieldLabelProps) {
   const { isDisabled = false, isFocusWithin = false, isInvalid = false } = state
 
   return (
@@ -667,6 +680,7 @@ function FieldLabel({ state = NO_STATE, ...props }: FieldLabelProps) {
       {...mergeStyles(
         stylex.props(
           fieldChromeStyles.label,
+          variant === 'group' && groupStyles.label,
           isDisabled && fieldChromeStyles.labelDisabled,
           isInvalid && fieldChromeStyles.labelError,
           !isDisabled &&
@@ -770,6 +784,7 @@ export type {
   FieldInputProps,
   FieldLabelProps,
   FieldLabelState,
+  FieldLabelVariant,
   FieldMessageProps,
   FieldTextAreaProps,
   FieldVariant,

@@ -13,6 +13,7 @@ import {
 } from 'react-aria-components'
 
 import { FieldLabel } from '../../field'
+import { groupStyles } from '../../field/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -105,18 +106,7 @@ const styles = stylex.create({
     borderEndStartRadius: '2px',
     borderStartStartRadius: '2px',
   },
-  label: {
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
   root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
     inlineSize: '100%',
   },
   // A vertical slider needs a height to run along; this is the one a call
@@ -292,12 +282,16 @@ function Slider({
       orientation={orientation}
       {...props}
       {...mergeStatefulStyles(
-        stylex.props(styles.root, vertical && styles.rootVertical),
+        stylex.props(
+          groupStyles.root,
+          styles.root,
+          vertical && styles.rootVertical,
+        ),
         props,
       )}
     >
       {label === undefined ? null : (
-        <FieldLabel {...stylex.props(styles.label)}>{label}</FieldLabel>
+        <FieldLabel variant="group">{label}</FieldLabel>
       )}
       <SliderTrack
         {...mergeStatefulStyles(

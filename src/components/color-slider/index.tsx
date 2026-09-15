@@ -9,6 +9,7 @@ import {
 } from 'react-aria-components'
 
 import { FieldLabel } from '../../field'
+import { groupStyles } from '../../field/styles'
 import { chequer } from '../../styles/chequer'
 import { thumbClassName } from '../../styles/color'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -50,13 +51,6 @@ import {
 // surface and one fading to white are the same pixels without it.
 
 const styles = stylex.create({
-  label: {
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
   // The value React Aria announces, shown. Body-small in the muted role, so
   // it reads as a readout beside the label rather than as a second label.
   output: {
@@ -68,10 +62,6 @@ const styles = stylex.create({
     marginInlineStart: 'auto',
   },
   root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
     inlineSize: '100%',
   },
   // The label and the readout on one line, which is what puts the value at
@@ -171,11 +161,14 @@ function ColorSlider({
     <RACColorSlider
       isDisabled={isDisabled}
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.root), props)}
+      {...mergeStatefulStyles(
+        stylex.props(groupStyles.root, styles.root),
+        props,
+      )}
     >
       <div {...stylex.props(styles.row)}>
         {label === undefined ? null : (
-          <FieldLabel {...stylex.props(styles.label)}>{label}</FieldLabel>
+          <FieldLabel variant="group">{label}</FieldLabel>
         )}
         {showValue ? (
           <RACSliderOutput {...stylex.props(styles.output)} />
