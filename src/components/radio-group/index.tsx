@@ -13,6 +13,8 @@ import {
   RadioField,
 } from 'react-aria-components'
 
+import { ControlLabel } from '../../control'
+import { controlStyles } from '../../control/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { useRipple } from '../../hooks/useRipple'
@@ -55,29 +57,9 @@ const styles = stylex.create({
     display: 'contents',
   },
   // The 40dp state layer, and the host of the ripple.
+  // The disc is shared; its content colour is this component's own.
   control: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    blockSize: '40px',
-    borderRadius: radii.full,
-    boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
-    cursor: 'pointer',
-    display: 'flex',
-    flexShrink: 0,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    position: 'relative',
-    transitionDuration: motion.durationShort2,
-    transitionProperty: 'background-color',
-    transitionTimingFunction: motion.easingStandard,
-  },
-  controlDisabled: {
-    cursor: 'not-allowed',
-  },
-  controlFocused: {},
-  controlReadOnly: {
-    cursor: 'default',
   },
   // The dot, drawn in the ring's colour so the two never disagree.
   dot: {
@@ -85,13 +67,6 @@ const styles = stylex.create({
     blockSize: '10px',
     borderRadius: radii.full,
     inlineSize: '10px',
-  },
-  field: {
-    alignItems: 'start',
-    boxSizing: 'border-box',
-    columnGap: spacing.sm,
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr',
   },
   // The group's buttons: one under another, or along a line when the group
   // is horizontal.
@@ -104,30 +79,7 @@ const styles = stylex.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  label: {
-    boxSizing: 'border-box',
-    color: colors.onSurface,
-    cursor: 'pointer',
-    fontFamily: typography.bodyLargeFont,
-    fontSize: typography.bodyLargeSize,
-    fontWeight: typography.bodyLargeWeight,
-    letterSpacing: typography.bodyLargeTracking,
-    lineHeight: typography.bodyLargeLineHeight,
-    // Centres a one-line label on the 40dp control, and keeps a longer one
-    // starting on that line.
-    paddingBlock: spacing.sm,
-  },
-  labelDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-    cursor: 'not-allowed',
-  },
-  labelReadOnly: {
-    cursor: 'default',
-  },
   // The description sits under the text, in the second column.
-  messages: {
-    gridColumnStart: 2,
-  },
   // The ring. Its colour is the control's, which the dot inherits.
   ring: {
     alignItems: 'center',
@@ -245,15 +197,15 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
         <span
           {...(interactive ? ripple.handlers : {})}
           {...stylex.props(
+            controlStyles.disc,
             styles.control,
             state.isSelected && styles.toneSelected,
             !state.isSelected && interactive && active && styles.toneActive,
             state.isDisabled && styles.toneDisabled,
-            state.isReadOnly && styles.controlReadOnly,
-            state.isDisabled && styles.controlDisabled,
+            state.isReadOnly && controlStyles.controlReadOnly,
+            state.isDisabled && controlStyles.controlDisabled,
             interactive && state.isHovered && hoverLayers[tone],
             interactive && state.isPressed && pressedLayers[tone],
-            state.isFocusVisible && styles.controlFocused,
             state.isFocusVisible && focus.ringVisible,
           )}
         >
@@ -262,17 +214,7 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
           </span>
           {interactive ? ripple.surface : null}
         </span>
-        {children === undefined ? null : (
-          <span
-            {...stylex.props(
-              styles.label,
-              state.isReadOnly && styles.labelReadOnly,
-              state.isDisabled && styles.labelDisabled,
-            )}
-          >
-            {children}
-          </span>
-        )}
+        <ControlLabel state={state}>{children}</ControlLabel>
       </>
     )
   }
@@ -317,12 +259,12 @@ function Radio({ children, description, ...props }: RadioProps) {
   return (
     <RadioField
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.field), props)}
+      {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
       <RadioButton {...stylex.props(styles.button)}>
         {buttonContent(children, ripple)}
       </RadioButton>
-      <div {...stylex.props(styles.messages)}>
+      <div {...stylex.props(controlStyles.messages)}>
         <FieldMessage description={description} inset={false} />
       </div>
     </RadioField>
