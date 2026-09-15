@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.5](https://github.com/kanso-labs/kanso-ui/compare/v0.26.4...v0.26.5) (2026-09-15)
+
+
+### Dependencies
+
+* update dependency eslint-plugin-perfectionist to v5.11.1 ([#806](https://github.com/kanso-labs/kanso-ui/issues/806)) ([6a17370](https://github.com/kanso-labs/kanso-ui/commit/6a17370e57711a5a82f9272aa551ae7cb8379cd3))
+
 ## [0.26.4](https://github.com/kanso-labs/kanso-ui/compare/v0.26.3...v0.26.4) (2026-09-14)
 
 
