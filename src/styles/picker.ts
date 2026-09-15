@@ -3,11 +3,11 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   media,
-  radii,
   spacing,
   stateLayerOpacity,
 } from '../tokens/design.tokens.stylex'
 import { focus } from './focus'
+import { iconButton } from './icon-button'
 
 // What a date picker and a date range picker draw in common: the line the
 // segments and the trigger share, the trigger itself, and the surface the
@@ -48,28 +48,6 @@ const picker = stylex.create({
       [media.belowMedium]: 'translate(-50%, -50%)',
     },
   },
-  // The button that opens the calendar. The icon buttons page's 40dp square
-  // and its state layer, drawn here rather than through IconButton because
-  // React Aria carries a picker's trigger on its own `Button`.
-  trigger: {
-    alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    blockSize: '40px',
-    borderRadius: radii.full,
-    borderWidth: 0,
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    cursor: 'pointer',
-    display: 'flex',
-    flexShrink: 0,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    padding: 0,
-  },
   // The disabled trigger takes the same 38% the segments beside it take, so
   // one disabled field fades as a whole. StyleX replaces a property whole,
   // which is what lets this drop the hover and pressed branches rather than
@@ -91,7 +69,7 @@ const picker = stylex.create({
 function triggerClassName(state: { isDisabled: boolean }) {
   return (
     stylex.props(
-      picker.trigger,
+      iconButton.chrome,
       focus.ring,
       state.isDisabled && picker.triggerDisabled,
     ).className ?? ''
