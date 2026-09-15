@@ -17,12 +17,11 @@ import {
   GridListSection as RACGridListSection,
 } from 'react-aria-components'
 
+import { CollectionLoadMore } from '../../collection'
+import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { RowContent } from '../../row'
-import { rowStyles } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
-import ProgressIndicator from '../progress-indicator'
 
 // The lists page's interactive list. Each row is the row every list here
 // draws — `src/row`, shared with ListItem and ListBox — so the 56dp floor,
@@ -61,49 +60,6 @@ import ProgressIndicator from '../progress-indicator'
 // on the row, since it is the list's decision and repeating it on every row
 // is how the two drift.
 const SelectLabelContext = createContext('Select')
-
-const styles = stylex.create({
-  // The container: the page's 8dp above and below the rows, and no colour of
-  // its own so the same list draws correctly on a page and on a surface.
-  container: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    // React Aria moves focus to the row rather than the container, and the
-    // row draws its own ring inside its edges.
-    outlineStyle: 'none',
-    paddingBlock: spacing.sm,
-  },
-  // A section's heading, at the row's own inline padding so it lines up with
-  // the headlines under it, with more room above than below so it reads as
-  // belonging to the rows after it.
-  header: {
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.titleSmallFont,
-    fontSize: typography.titleSmallSize,
-    fontWeight: typography.titleSmallWeight,
-    letterSpacing: typography.titleSmallTracking,
-    lineHeight: typography.titleSmallLineHeight,
-    paddingBlockEnd: spacing.xxs,
-    paddingBlockStart: spacing.lg,
-    paddingInline: spacing.lg,
-  },
-  // The row the list shows while it is fetching more: the ring on its own,
-  // centred, in a row the height of an item.
-  loading: {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    justifyContent: 'center',
-    minBlockSize: '56px',
-  },
-  section: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-})
 
 type ListItemProps<T extends object = object> = {
   /** The row's headline — the one thing it is mostly about. */
@@ -202,18 +158,6 @@ function itemContent(
 // argument rather than read from the render state, since React Aria reports
 // what a row is doing and not what it holds; the row is built by a call for
 // the same reason `itemContent` is.
-function itemStyles(supporting: ReactNode) {
-  return (state: GridListItemRenderProps) =>
-    stylex.props(
-      rowStyles.base,
-      rowStyles.list,
-      rowStyles.interactive,
-      supporting !== undefined && rowStyles.twoLine,
-      state.isSelected && rowStyles.selectedList,
-      state.isDisabled && rowStyles.disabled,
-    )
-}
-
 /**
  * The selection checkbox, then whatever the row was given. Its return type is
  * written out rather than inferred: `ReactNode` is a union that includes a
@@ -261,7 +205,10 @@ function List<T extends object>({
     <SelectLabelContext value={selectLabel}>
       <RACGridList
         {...props}
-        {...mergeStatefulStyles(stylex.props(styles.container), props)}
+        {...mergeStatefulStyles(
+          stylex.props(collectionStyles.container),
+          props,
+        )}
       />
     </SelectLabelContext>
   )
@@ -289,7 +236,7 @@ function ListItem<T extends object = object>({
     <RACGridListItem
       textValue={textValue ?? textOf(children)}
       {...props}
-      {...mergeStatefulStyles(itemStyles(supporting), props)}
+      {...mergeStatefulStyles(rowItemStyles(supporting), props)}
     >
       {itemContent(children, leading, supporting, trailing, selectLabel)}
     </RACGridListItem>
@@ -305,14 +252,9 @@ function ListLoadMore({ label = 'Loading more', ...props }: ListLoadMoreProps) {
   return (
     <RACGridListLoadMoreItem
       {...props}
-      {...mergeStyles(stylex.props(styles.loading), props)}
+      {...mergeStyles(stylex.props(collectionStyles.loading), props)}
     >
-      <ProgressIndicator
-        aria-label={label}
-        isIndeterminate
-        size="24px"
-        variant="circular"
-      />
+      <CollectionLoadMore label={label} size="24px" />
     </RACGridListLoadMoreItem>
   )
 }
@@ -329,10 +271,10 @@ function ListSection<T extends object = object>({
   return (
     <RACGridListSection
       {...props}
-      {...mergeStyles(stylex.props(styles.section), props)}
+      {...mergeStyles(stylex.props(collectionStyles.section), props)}
     >
       {header === undefined ? null : (
-        <RACGridListHeader {...stylex.props(styles.header)}>
+        <RACGridListHeader {...stylex.props(collectionStyles.header)}>
           {header}
         </RACGridListHeader>
       )}
