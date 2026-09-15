@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.7](https://github.com/kanso-labs/kanso-ui/compare/v0.26.6...v0.26.7) (2026-09-15)
+
+
+### Dependencies
+
+* update dependency @stylexjs/unplugin to v0.19.1 ([#820](https://github.com/kanso-labs/kanso-ui/issues/820)) ([deb1058](https://github.com/kanso-labs/kanso-ui/commit/deb10589b9cb34919c8d01000dec2f8ae338ec66))
+
 ## [0.26.6](https://github.com/kanso-labs/kanso-ui/compare/v0.26.5...v0.26.6) (2026-09-15)
 
 
