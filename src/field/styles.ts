@@ -9,6 +9,14 @@ import {
   typography,
 } from '../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Declared
+// here rather than imported from src/styles/ripple.ts, which spells the same
+// query: the StyleX compiler resolves a constant across files only out of a
+// `.stylex.ts` module, and the one this repository has is generated from the
+// design tokens, where a user-preference query does not belong beside the
+// window size classes.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // The chrome's styles. Apart from the parts in ./index.tsx so that file
 // exports components alone, which is what keeps fast refresh working for it —
 // the same reason ./root.ts gives for the root style beside it.
@@ -101,6 +109,22 @@ const fieldChromeStyles = stylex.create({
     alignItems: 'flex-start',
     backgroundColor: colors.surfaceContainerHighest,
     blockSize: '56px',
+    // What the box draws under forced colours, where the `boxShadow` below
+    // is gone. A UA in that mode drops box shadows outright and paints the
+    // background in a system colour, so the resting underline and the focus
+    // indicator — one shadow in two states — disappear together. The control
+    // inside suppresses its own ring, see `input`, so a focused Select or
+    // picker, whose control is a button with no caret to fall back on, is
+    // left showing nothing at all.
+    //
+    // A border and an outline are two properties that mode keeps, so they
+    // take the shadow's two jobs apart: the border is the boundary, the
+    // outline is focus. Naming the system colours is what holds them apart —
+    // left alone both are forced to `CanvasText`, and the ring then reads as
+    // the boundary thickening rather than as focus. Neither is drawn while
+    // forced colours are off.
+    borderBlockEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockEndWidth: { default: null, [FORCED_COLORS]: '1px' },
     // Square at the bottom, where the focus indicator is drawn — a rounded
     // corner there would cut the ends off the underline.
     borderEndEndRadius: 0,
@@ -114,6 +138,17 @@ const fieldChromeStyles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     gap: spacing.lg,
+    // The ring's offset and width are the library's own, from
+    // src/styles/focus.ts, so a field's focus is the size every other
+    // component's is. Its colour is the keyword a forced palette gives the
+    // thing it marks as active.
+    outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '2px' },
+    outlineStyle: {
+      default: null,
+      [FORCED_COLORS]: { ':focus-within': 'solid', default: null },
+    },
+    outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,
@@ -127,8 +162,21 @@ const fieldChromeStyles = stylex.create({
   },
   boxDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    // Forced colours has one keyword for disabled, and a box is where it has
+    // to be said: the control inside is a real disabled input or button, so a
+    // UA greys that itself, while the box is a `Group` — a div, which it has
+    // no reason to treat as disabled at all. Without this the boundary a
+    // disabled field draws is the one an editable field draws.
+    borderBlockEndColor: { default: null, [FORCED_COLORS]: 'GrayText' },
     boxShadow: `inset 0 -1px 0 0 color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
+  // Error is the one state with nothing to add here. Forced colours takes the
+  // colour and leaves the shape, and colour is all this changes — the
+  // boundary and the ring are `box`'s, unchanged by an error. What says so
+  // instead is the message under the box, which is text rather than a colour
+  // and so survives, and `aria-invalid` on the control for anything reading
+  // rather than looking. Restoring the red would mean inventing a second
+  // shape that the spec's error state does not have.
   boxError: {
     boxShadow: {
       ':focus-within': `inset 0 -2px 0 0 ${colors.error}`,
@@ -233,6 +281,12 @@ const fieldChromeStyles = stylex.create({
   // underline for a bottom corner to cut.
   boxOutlined: {
     backgroundColor: 'transparent',
+    // The fieldset laid over the box draws a border of its own, which forced
+    // colours keeps, so the boundary `box` restores there would be a second
+    // one under the first. The ring is not cancelled: outlined expresses
+    // focus as a colour change plus one more pixel of border, and forced
+    // colours takes the colour, which leaves the pixel saying it alone.
+    borderBlockEndStyle: { default: null, [FORCED_COLORS]: 'none' },
     borderEndEndRadius: radii.xs,
     borderEndStartRadius: radii.xs,
     boxShadow: 'none',
@@ -248,7 +302,13 @@ const fieldChromeStyles = stylex.create({
   boxOutlinedDisabled: {
     backgroundColor: 'transparent',
     boxShadow: 'none',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    // The fieldset's border is `currentColor`, so this is where a disabled
+    // outlined field is greyed — the same keyword `boxDisabled` uses, said on
+    // the colour the border follows rather than on the border.
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   boxOutlinedError: {
     color: {
