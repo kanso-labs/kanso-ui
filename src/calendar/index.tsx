@@ -10,6 +10,7 @@ import {
 
 import { ChevronEndGlyph } from '../glyphs'
 import { focus } from '../styles/focus'
+import { iconButton } from '../styles/icon-button'
 import { calendarStyles } from './styles'
 
 // The parts Calendar and RangeCalendar both render: the row that moves the
@@ -61,7 +62,10 @@ function calendarHeaderCell(day: string): ReactElement {
 }
 
 function chevronClassName() {
-  return stylex.props(calendarStyles.chevron, focus.ring).className ?? ''
+  return (
+    stylex.props(iconButton.chrome, calendarStyles.chevron, focus.ring)
+      .className ?? ''
+  )
 }
 
 export { CalendarGridHeader, CalendarHeader }

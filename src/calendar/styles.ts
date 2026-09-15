@@ -106,29 +106,12 @@ const calendarStyles = stylex.create({
     borderWidth: '1px',
     color: colors.primary,
   },
-  // The chevrons that move the month. The icon buttons page's 40dp square
-  // and its state layer, drawn here rather than through IconButton, since
-  // React Aria's own Button is what carries the slot.
+  // What the chevrons that move the month add to the shared icon-button
+  // chrome in src/styles/icon-button.ts, which is where the reason for
+  // drawing that square by hand is recorded.
   chevron: {
-    alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    blockSize: '40px',
-    borderRadius: radii.full,
-    borderWidth: 0,
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    cursor: 'pointer',
-    display: 'flex',
-    flexShrink: 0,
-    inlineSize: '40px',
-    justifyContent: 'center',
-    // The page's 48dp date container: this 40dp layer with 4dp either side.
+    // The page's 48dp column: the shared 40dp square with 4dp either side.
     marginInline: spacing.xs,
-    padding: 0,
   },
   // The one that goes back, which is the forward chevron turned around. It
   // says "back" rather than "to the left", so it mirrors with the writing
