@@ -157,6 +157,17 @@ Specific to this repository:
   overflowed its own grid cell by exactly its padding and border, with no
   consumer CSS involved. A rule the whole library follows is also what keeps two
   of its own components from disagreeing.
+- **A focus indicator and an interactive boundary are never drawn in
+  `box-shadow` alone.** A UA in forced-colours mode — Windows High Contrast and
+  its kin — drops box shadows outright and paints backgrounds in a system
+  colour, so a component drawing either of those that way has neither in the
+  mode where a boundary matters most. Use a `border` or an `outline`, which that
+  mode keeps, whether alone or under a `'@media (forced-colors: active)'` branch
+  beside the shadow — `box` in `src/field/styles.ts` takes the second form, and
+  names `Highlight` and `GrayText` so the ring, the boundary and a disabled
+  field stay apart under a forced palette. Decoration is exempt and stays a
+  shadow: a `Card`'s elevation and the rule under a `Tabs` flatten in that mode,
+  which loses no focus and no boundary.
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.
