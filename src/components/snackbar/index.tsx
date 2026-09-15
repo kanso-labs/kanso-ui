@@ -183,7 +183,15 @@ const styles = stylex.create({
   // since what sets the height is the message and the close button.
   toast: {
     alignItems: 'center',
-    animationDuration: motion.durationMedium1,
+    // Reduced motion zeroes the duration, so the strip arrives in its settled
+    // place with the rise never drawn. See `popup` in src/styles/overlay.ts for
+    // why all four overlays zero the duration rather than fading. This is the
+    // one with no scrim behind it to fade instead, which is the cost of
+    // answering the preference the same way in all four.
+    animationDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: motion.durationMedium1,
+    },
     animationName: rise,
     animationTimingFunction: motion.easingEmphasizedDecelerate,
     backgroundColor: colors.inverseSurface,

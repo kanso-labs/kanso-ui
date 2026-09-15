@@ -67,7 +67,22 @@ const overlay = stylex.create({
   // viewport and sets it as the max height inline, so the surface scrolls
   // rather than running off the screen.
   popup: {
-    animationDuration: motion.durationShort3,
+    // Reduced motion zeroes the duration, which lands the surface in its
+    // settled state with the scale never drawn. What it cannot do is swap the
+    // keyframes for a fade, which is the kinder answer and the one a sheet
+    // and a dialog would want more than this does: StyleX rejects the same
+    // at-rule twice in one property, so an `animationName` already keyed
+    // the breakpoint — as theirs are — has nowhere to put the preference,
+    // and keyed flat the preference loses, since StyleX sorts a width query
+    // into a later layer than this one. Four overlays answering the
+    // preference the same way is worth more than this one answering it
+    // better, and the scrim behind a sheet or a dialog still fades, so the
+    // arrival is not silent. A popup needs less: it opens under the thing
+    // that was just pressed.
+    animationDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: motion.durationShort3,
+    },
     animationName: scaleIn,
     // Decelerating, so the surface arrives quickly and settles.
     animationTimingFunction: motion.easingEmphasizedDecelerate,
