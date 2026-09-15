@@ -39,6 +39,14 @@ type TextAreaProps = {
    */
   characterCount?: boolean
   /**
+   * How the limit is said to a screen reader, where there is a `maxLength`.
+   * Read with the field on focus rather than as the value changes, so it
+   * names the limit and not what is left of it. The visible count is hidden
+   * from the tree, which is what this replaces.
+   * @default `Up to ${maxLength} characters`
+   */
+  characterLimitLabel?: string
+  /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
    */
@@ -90,6 +98,7 @@ type TextAreaProps = {
 function TextArea({
   autosize = true,
   characterCount = false,
+  characterLimitLabel,
   description,
   error,
   floatingLabel = true,
@@ -119,6 +128,7 @@ function TextArea({
       </FieldBox>
       <FieldMessage
         characterCount={characterCount}
+        characterLimitLabel={characterLimitLabel}
         description={description}
         error={error}
         maxLength={props.maxLength}
