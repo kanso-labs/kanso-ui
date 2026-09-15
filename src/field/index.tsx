@@ -24,6 +24,7 @@ import {
   TextArea,
   TextAreaContext,
   useSlottedContext,
+  VisuallyHidden,
 } from 'react-aria-components'
 
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
@@ -166,6 +167,13 @@ interface FieldMessageProps {
    * @default false
    */
   characterCount?: boolean
+  /**
+   * How the limit is said to a screen reader, where there is a `maxLength`.
+   * It is read with the field on focus rather than as the value changes, so
+   * it names the limit and not what is left of it.
+   * @default `Up to ${maxLength} characters`
+   */
+  characterLimitLabel?: string | undefined
   /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
@@ -705,6 +713,7 @@ function FieldLabel({
  */
 function FieldMessage({
   characterCount = false,
+  characterLimitLabel,
   description,
   error,
   inset = true,
@@ -716,17 +725,65 @@ function FieldMessage({
   const textArea = useSlottedContext(TextAreaContext)
   const insideForm = useInsideForm()
 
+  // The limit, in words, for the description React Aria reads out with the
+  // field. `maxLength` alone reaches the control as the native attribute,
+  // which is not reliably announced, and the count beside the message is
+  // hidden — so without this a reader is never told there is a limit.
+  const limit =
+    maxLength === undefined
+      ? undefined
+      : (characterLimitLabel ??
+        `Up to ${maxLength} character${maxLength === 1 ? '' : 's'}`)
+
+  const hidden =
+    limit === undefined ? null : (
+      <VisuallyHidden elementType="span">
+        <Text slot="description">{limit}</Text>
+      </VisuallyHidden>
+    )
+
   // Nothing to say, and nowhere a message could arrive from: the field ends
   // at its control. Inside a form the line is drawn anyway, empty, since a
   // form is where a message appears after the fact — a server's answer, or
   // the browser's own on submit — and every field below this one would
   // otherwise move by the line's height when it does.
+  //
+  // A limit to announce leaves on its own rather than bringing the line with
+  // it. The line is one line of type plus the 4dp above it, so drawing it
+  // for something nobody can see would make a field with a limit taller than
+  // the same field without one.
   if (!invalid && description === undefined && !characterCount && !insideForm) {
-    return null
+    return hidden
   }
 
   const value = input?.value ?? textArea?.value ?? ''
   const length = String(value).length
+
+  const hint = invalid ? undefined : description
+
+  // One slotted description, never two. React Aria hands every element in
+  // its description slot the same generated id, so a second one puts a
+  // duplicate id in the document and axe fails the story. The limit rides
+  // inside the hint where there is one, and carries the whole slot where
+  // there is not — hidden either way, since the count already draws it.
+  //
+  // Hidden by clipping rather than by leaving it out of the row, and the
+  // difference is a gap: the row is a flex line with 16dp between its parts,
+  // and an element with no width is still a part. Clipping takes it out of
+  // flow, so a field with a limit and no hint has the line it had before.
+  const described =
+    hint === undefined ? (
+      hidden
+    ) : (
+      <Text slot="description" {...stylex.props(fieldChromeStyles.message)}>
+        {hint}
+        {limit === undefined ? null : (
+          // The space is load-bearing: a description is read as the text
+          // content of one element, and two spans run together without it.
+          <VisuallyHidden elementType="span">{` ${limit}`}</VisuallyHidden>
+        )}
+      </Text>
+    )
 
   return (
     <div
@@ -759,13 +816,15 @@ function FieldMessage({
           {error}
         </FieldError>
       )}
-      {!invalid && description !== undefined ? (
-        <Text slot="description" {...stylex.props(fieldChromeStyles.message)}>
-          {description}
-        </Text>
-      ) : null}
+      {described}
       {characterCount ? (
+        // Hidden from the tree, and the limit above is why. A count is the
+        // one piece of supporting text that changes on every keystroke, and
+        // a screen reader reading it back at that rate is worse than not
+        // hearing it — the limit said once on focus is what a reader needs,
+        // and this is the same fact drawn for whoever is looking.
         <span
+          aria-hidden="true"
           {...stylex.props(
             fieldChromeStyles.message,
             fieldChromeStyles.counter,
