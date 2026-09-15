@@ -15,6 +15,7 @@ import {
   NavigationTreeSection as RACNavigationTreeSection,
 } from 'react-aria-components'
 
+import { collectionStyles } from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
@@ -93,17 +94,6 @@ const styles = stylex.create({
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
   },
-  // The container: the page's 8dp above and below the rows, and no colour of
-  // its own so the same drawer draws correctly on a page and on a surface.
-  container: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    // React Aria moves focus to the row rather than the container, and the
-    // row draws its own ring inside its edges.
-    outlineStyle: 'none',
-    paddingBlock: spacing.sm,
-  },
   // The row on the way to the current one. The page gives the current row a
   // weight of its own, and this is the lighter half of that pair — enough to
   // say the trail passes through here without claiming to be the end of it.
@@ -132,11 +122,6 @@ const styles = stylex.create({
   // declaration cover every level rather than a style per depth.
   indent: {
     paddingInlineStart: `calc(${spacing.lg} + (var(--tree-item-level, 1) - 1) * ${spacing.xl})`,
-  },
-  section: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
   },
   // Where a caret would be on a row that has none, so a leaf's label lines
   // up with the label of a row that opens rather than sliding left.
@@ -330,7 +315,7 @@ function NavigationTree<T extends object>(props: NavigationTreeProps<T>) {
   return (
     <RACNavigationTree<T>
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.container), props)}
+      {...mergeStatefulStyles(stylex.props(collectionStyles.container), props)}
     />
   )
 }
@@ -389,7 +374,7 @@ function NavigationTreeSection<T extends object = object>({
   return (
     <RACNavigationTreeSection<T>
       {...props}
-      {...mergeStyles(stylex.props(styles.section), props)}
+      {...mergeStyles(stylex.props(collectionStyles.section), props)}
     >
       {header === undefined ? null : (
         <NavigationTreeHeader>{header}</NavigationTreeHeader>

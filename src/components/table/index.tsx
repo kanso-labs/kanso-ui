@@ -30,6 +30,7 @@ import {
   TableLoadMoreItem as RACTableLoadMoreItem,
 } from 'react-aria-components'
 
+import { CollectionLoadMore } from '../../collection'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
@@ -39,7 +40,6 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
-import ProgressIndicator from '../progress-indicator'
 
 // A grid of rows and columns, with sorting and selection. The design system
 // carries no data table page — it was dropped after Material Design 2 — so
@@ -790,12 +790,7 @@ function TableLoadMore({
       ref={dropAriaLevel}
     >
       <span {...stylex.props(styles.loading)}>
-        <ProgressIndicator
-          aria-label={label}
-          isIndeterminate
-          size="24px"
-          variant="circular"
-        />
+        <CollectionLoadMore label={label} size="24px" />
       </span>
     </RACTableLoadMoreItem>
   )

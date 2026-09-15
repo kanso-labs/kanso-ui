@@ -16,11 +16,10 @@ import {
   ListBoxSection as RACListBoxSection,
 } from 'react-aria-components'
 
+import { CollectionLoadMore } from '../../collection'
+import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { RowContent } from '../../row'
-import { rowStyles } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
-import ProgressIndicator from '../progress-indicator'
 
 // The lists page's selectable list. Each option is the row every list here
 // draws — `src/row`, shared with ListItem and with every collection the
@@ -61,51 +60,6 @@ import ProgressIndicator from '../progress-indicator'
 // renders whatever it is given while `isLoading`; ours renders the ring, so
 // a list that fetches as it scrolls says so with the same indicator every
 // other pending state in the library uses.
-
-const styles = stylex.create({
-  // The container: the page's 8dp above and below the rows, and no colour of
-  // its own so the same list draws correctly on the page and on a popover's
-  // surface.
-  container: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    // React Aria moves focus to the option rather than the container, and
-    // the row draws its own ring inside its edges.
-    outlineStyle: 'none',
-    paddingBlock: spacing.sm,
-  },
-  // A section's heading, at the row's own inline padding so it lines up with
-  // the headlines under it. More room above than below, so it reads as
-  // belonging to the options after it rather than sitting evenly between two
-  // groups — a row's own 56dp floor otherwise swallows the difference.
-  header: {
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.titleSmallFont,
-    fontSize: typography.titleSmallSize,
-    fontWeight: typography.titleSmallWeight,
-    letterSpacing: typography.titleSmallTracking,
-    lineHeight: typography.titleSmallLineHeight,
-    paddingBlockEnd: spacing.xxs,
-    paddingBlockStart: spacing.lg,
-    paddingInline: spacing.lg,
-  },
-  // The row the list shows while it is fetching more: the ring on its own,
-  // centred, in a row the height of an option.
-  loading: {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    justifyContent: 'center',
-    minBlockSize: '56px',
-  },
-  section: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-})
 
 type ListBoxItemProps<T extends object = object> = {
   /** The option's headline — the one thing it is mostly about. */
@@ -199,18 +153,6 @@ function itemContent(
 // an argument rather than read from the render state, since React Aria
 // reports what an option is doing and not what it holds; the row is built by
 // a call for the same reason `itemContent` is.
-function itemStyles(supporting: ReactNode) {
-  return (state: ListBoxItemRenderProps) =>
-    stylex.props(
-      rowStyles.base,
-      rowStyles.list,
-      rowStyles.interactive,
-      supporting !== undefined && rowStyles.twoLine,
-      state.isSelected && rowStyles.selectedList,
-      state.isDisabled && rowStyles.disabled,
-    )
-}
-
 /**
  * A list of options one or more of which can be selected. Selection is React
  * Aria's: set `selectionMode` to `single` or `multiple`, and pass
@@ -229,7 +171,7 @@ function ListBox<T extends object>(props: ListBoxProps<T>) {
   return (
     <RACListBox
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.container), props)}
+      {...mergeStatefulStyles(stylex.props(collectionStyles.container), props)}
     />
   )
 }
@@ -251,7 +193,7 @@ function ListBoxItem<T extends object = object>({
     <RACListBoxItem
       textValue={textValue ?? textOf(children)}
       {...props}
-      {...mergeStatefulStyles(itemStyles(supporting), props)}
+      {...mergeStatefulStyles(rowItemStyles(supporting), props)}
     >
       {itemContent(children, leading, supporting, trailing)}
     </RACListBoxItem>
@@ -270,14 +212,9 @@ function ListBoxLoadMore({
   return (
     <RACListBoxLoadMoreItem
       {...props}
-      {...mergeStyles(stylex.props(styles.loading), props)}
+      {...mergeStyles(stylex.props(collectionStyles.loading), props)}
     >
-      <ProgressIndicator
-        aria-label={label}
-        isIndeterminate
-        size="24px"
-        variant="circular"
-      />
+      <CollectionLoadMore label={label} size="24px" />
     </RACListBoxLoadMoreItem>
   )
 }
@@ -294,10 +231,10 @@ function ListBoxSection<T extends object = object>({
   return (
     <RACListBoxSection
       {...props}
-      {...mergeStyles(stylex.props(styles.section), props)}
+      {...mergeStyles(stylex.props(collectionStyles.section), props)}
     >
       {header === undefined ? null : (
-        <Header {...stylex.props(styles.header)}>{header}</Header>
+        <Header {...stylex.props(collectionStyles.header)}>{header}</Header>
       )}
       {children}
     </RACListBoxSection>

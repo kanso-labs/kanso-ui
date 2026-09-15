@@ -18,9 +18,10 @@ import {
   TreeSection as RACTreeSection,
 } from 'react-aria-components'
 
+import { CollectionLoadMore } from '../../collection'
+import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
 import { RowContent } from '../../row'
-import { rowStyles } from '../../row/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
@@ -28,10 +29,8 @@ import {
   motion,
   radii,
   spacing,
-  typography,
 } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
-import ProgressIndicator from '../progress-indicator'
 
 // A list whose rows nest. Each row is the row every list here draws —
 // `src/row`, shared with ListItem, ListBox, List and Disclosure — so its
@@ -110,52 +109,11 @@ const styles = stylex.create({
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
   },
-  // The container: the page's 8dp above and below the rows, and no colour of
-  // its own so the same tree draws correctly on a page and on a surface.
-  container: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    // React Aria moves focus to the row rather than the container, and the
-    // row draws its own ring inside its edges.
-    outlineStyle: 'none',
-    paddingBlock: spacing.sm,
-  },
-  // A section's heading, at the row's own inline padding so it lines up with
-  // the headlines under it, with more room above than below so it reads as
-  // belonging to the rows after it.
-  header: {
-    boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
-    fontFamily: typography.titleSmallFont,
-    fontSize: typography.titleSmallSize,
-    fontWeight: typography.titleSmallWeight,
-    letterSpacing: typography.titleSmallTracking,
-    lineHeight: typography.titleSmallLineHeight,
-    paddingBlockEnd: spacing.xxs,
-    paddingBlockStart: spacing.lg,
-    paddingInline: spacing.lg,
-  },
   // The depth, as an inset on top of the row's own leading padding. React
   // Aria writes `--tree-item-level` on every row, which is what lets one
   // declaration cover every level rather than a style per depth.
   indent: {
     paddingInlineStart: `calc(${spacing.lg} + (var(--tree-item-level, 1) - 1) * ${spacing.xl})`,
-  },
-  // The row the tree shows while it is fetching more: the ring on its own,
-  // centred, in a row the height of an item.
-  loading: {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    justifyContent: 'center',
-    minBlockSize: '56px',
-  },
-  // A section, which lays its header and rows out in a column of their own.
-  section: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
   },
   // Where a caret would be on a row that has none, so a leaf's headline
   // lines up with the headline of a row that opens rather than sliding left.
@@ -315,19 +273,6 @@ function itemContent(
 // argument rather than read from the render state, since React Aria reports
 // what a row is doing and not what it holds; the row is built by a call for
 // the same reason `itemContent` is.
-function itemStyles(supporting: ReactNode) {
-  return (state: TreeItemRenderProps) =>
-    stylex.props(
-      rowStyles.base,
-      rowStyles.list,
-      rowStyles.interactive,
-      styles.indent,
-      supporting !== undefined && rowStyles.twoLine,
-      state.isSelected && rowStyles.selectedList,
-      state.isDisabled && rowStyles.disabled,
-    )
-}
-
 /**
  * The caret, the selection checkbox, then whatever the row was given. Its
  * return type is written out rather than inferred: `ReactNode` is a union
@@ -391,7 +336,10 @@ function Tree<T extends object>({
     <SelectLabelContext value={selectLabel}>
       <RACTree<T>
         {...props}
-        {...mergeStatefulStyles(stylex.props(styles.container), props)}
+        {...mergeStatefulStyles(
+          stylex.props(collectionStyles.container),
+          props,
+        )}
       />
     </SelectLabelContext>
   )
@@ -403,7 +351,9 @@ function Tree<T extends object>({
  */
 function TreeHeader({ children }: TreeHeaderProps) {
   return (
-    <RACTreeHeader {...stylex.props(styles.header)}>{children}</RACTreeHeader>
+    <RACTreeHeader {...stylex.props(collectionStyles.header)}>
+      {children}
+    </RACTreeHeader>
   )
 }
 
@@ -431,7 +381,7 @@ function TreeItem<T extends object = object>({
     <RACTreeItem<T>
       textValue={textValueFor(textValue, headline)}
       {...props}
-      {...mergeStatefulStyles(itemStyles(supporting), props)}
+      {...mergeStatefulStyles(rowItemStyles(supporting, styles.indent), props)}
     >
       <RACTreeItemContent>
         {itemContent(headline, leading, supporting, trailing, selectLabel)}
@@ -450,14 +400,9 @@ function TreeLoadMore({ label = 'Loading more', ...props }: TreeLoadMoreProps) {
   return (
     <RACTreeLoadMoreItem
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.loading), props)}
+      {...mergeStatefulStyles(stylex.props(collectionStyles.loading), props)}
     >
-      <ProgressIndicator
-        aria-label={label}
-        isIndeterminate
-        size="24px"
-        variant="circular"
-      />
+      <CollectionLoadMore label={label} size="24px" />
     </RACTreeLoadMoreItem>
   )
 }
@@ -473,7 +418,7 @@ function TreeSection<T extends object = object>({
   return (
     <RACTreeSection<T>
       {...props}
-      {...mergeStyles(stylex.props(styles.section), props)}
+      {...mergeStyles(stylex.props(collectionStyles.section), props)}
     >
       {header === undefined ? null : <TreeHeader>{header}</TreeHeader>}
       {children}

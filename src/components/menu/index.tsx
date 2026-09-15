@@ -25,6 +25,7 @@ import {
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
+import { CollectionLoadMore } from '../../collection'
 import { ChevronEndGlyph } from '../../glyphs'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
@@ -36,7 +37,6 @@ import {
   spacing,
   typography,
 } from '../../tokens/design.tokens.stylex'
-import ProgressIndicator from '../progress-indicator'
 import Separator from '../separator'
 
 // The menus page's menu: a surface between 112 and 280 wide with a 4dp
@@ -411,12 +411,7 @@ function MenuLoadMore({ label = 'Loading more', ...props }: MenuLoadMoreProps) {
       {...props}
       {...mergeStyles(stylex.props(styles.loading), props)}
     >
-      <ProgressIndicator
-        aria-label={label}
-        isIndeterminate
-        size="20px"
-        variant="circular"
-      />
+      <CollectionLoadMore label={label} size="20px" />
     </RACMenuLoadMoreItem>
   )
 }
