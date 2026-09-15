@@ -794,6 +794,13 @@ they follow rather than forming a second opinion:
 Phase, Kind, Area and Size are the judgements, and the issue is where they are
 argued rather than the board.
 
+**`React Aria parts` is the board's one optional field**, and the only project
+column not in the table above. It names the React Aria exports an item covers,
+which is worth recording for a component that wraps several and means nothing
+for a refactor or a CI item — so it stands at about two items in three, and a
+blank one is not a gap. It is also the reason the table is a list of what is
+required rather than a list of what the board has.
+
 **Start date and Target date are left empty on purpose.** GitHub offers them on
 every issue, but the plan schedules nothing by date — it is ordered by Phase and
 worked in that order. Filling them would mean inventing dates that nothing
@@ -850,7 +857,7 @@ route to a project item, and GraphQL allows 5,000 points an hour against a limit
 that is separate from REST's — so a bulk edit over the board is the one thing
 here that can run out of road halfway. Set every field an item needs in **one
 mutation with aliased `updateProjectV2ItemFieldValue` calls** rather than one
-per field; it is the difference between six points an item and one, and the
+per field; it is the difference between five points an item and one, and the
 limit, once hit, locks out every GraphQL call including the reads that would
 tell you what landed.
 
