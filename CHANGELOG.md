@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.26.6](https://github.com/kanso-labs/kanso-ui/compare/v0.26.5...v0.26.6) (2026-09-15)
+
+
+### Bug Fixes
+
+* **field:** announce a field's character limit once, and hide the live count ([#818](https://github.com/kanso-labs/kanso-ui/issues/818)) ([e2c66b9](https://github.com/kanso-labs/kanso-ui/commit/e2c66b9e4301c3c88fd38ccca69c1224815bec25))
+* **field:** keep the filled field's boundary and focus ring under forced colours ([#816](https://github.com/kanso-labs/kanso-ui/issues/816)) ([caa989f](https://github.com/kanso-labs/kanso-ui/commit/caa989fbb604223d24e8367edbc080a93ec5e6ef))
+* **overlay:** honour prefers-reduced-motion in the overlays that move ([#817](https://github.com/kanso-labs/kanso-ui/issues/817)) ([3980088](https://github.com/kanso-labs/kanso-ui/commit/3980088085c10a9e7e711ff2b9e727ffc143a1f8))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.9.0 ([#813](https://github.com/kanso-labs/kanso-ui/issues/813)) ([57a693c](https://github.com/kanso-labs/kanso-ui/commit/57a693cb38ef1a10172b0c28eaa878f009b797c0))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.4.29 ([#812](https://github.com/kanso-labs/kanso-ui/issues/812)) ([03dfd1f](https://github.com/kanso-labs/kanso-ui/commit/03dfd1f425c38ad2a7085fa4c2a1c3f2eb99bde9))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.5.0 ([#819](https://github.com/kanso-labs/kanso-ui/issues/819)) ([adb49ed](https://github.com/kanso-labs/kanso-ui/commit/adb49ed92f79d71bd104517931f3222d1e46bb65))
+
 ## [0.26.5](https://github.com/kanso-labs/kanso-ui/compare/v0.26.4...v0.26.5) (2026-09-15)
 
 
