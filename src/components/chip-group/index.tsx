@@ -18,10 +18,11 @@ import {
 import { chipStyles } from '../../chip/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
+import { groupStyles } from '../../field/styles'
 import { CloseGlyph } from '../../glyphs'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { spacing, typography } from '../../tokens/design.tokens.stylex'
+import { spacing } from '../../tokens/design.tokens.stylex'
 
 // The chips page's filter and input chips as a set: one or more chosen from a
 // row, each one removable. The pill is the chip module's in `src/chip`,
@@ -55,13 +56,6 @@ import { spacing, typography } from '../../tokens/design.tokens.stylex'
 // see ListBox.Item, where the same thing bit.
 
 const styles = stylex.create({
-  label: {
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
   // The chips wrap rather than scroll: a set is read all at once, and a row
   // that ran off the edge would hide the ones at the end.
   list: {
@@ -72,12 +66,6 @@ const styles = stylex.create({
     // The list is a collection React Aria focuses when it is empty, and the
     // chips inside draw their own rings.
     outlineStyle: 'none',
-  },
-  root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
   },
 })
 
@@ -189,13 +177,16 @@ function ChipGroup<T extends object = object>({
   const invalid = invalidFrom(error)
 
   return (
-    <RACTagGroup {...props} {...mergeStyles(stylex.props(styles.root), props)}>
+    <RACTagGroup
+      {...props}
+      {...mergeStyles(stylex.props(groupStyles.root), props)}
+    >
       {/* React Aria's tag group has no disabled state of its own — a chip is
           disabled through the group's `disabledKeys` — so the label follows
           validity alone. */}
       <FieldLabel
         state={invalid ? LABEL_STATE_INVALID : LABEL_STATE_VALID}
-        {...stylex.props(styles.label)}
+        variant="group"
       >
         {label}
       </FieldLabel>

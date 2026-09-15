@@ -17,6 +17,7 @@ import { ControlLabel } from '../../control'
 import { controlStyles } from '../../control/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
+import { groupStyles as fieldGroupStyles } from '../../field/styles'
 import { useRipple } from '../../hooks/useRipple'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -26,7 +27,6 @@ import {
   radii,
   spacing,
   stateLayerOpacity,
-  typography,
 } from '../../tokens/design.tokens.stylex'
 
 // The radio button page: a 20dp ring inside a 40dp state layer, with a 48dp
@@ -106,24 +106,6 @@ const styles = stylex.create({
   },
   toneSelected: {
     color: colors.primary,
-  },
-})
-
-// The group's label: label-large, the role a field's label takes at rest,
-// since a group has no box to float it in.
-const groupStyles = stylex.create({
-  label: {
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
-  root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
   },
 })
 
@@ -231,7 +213,7 @@ function groupContent(
 ) {
   return (state: RadioGroupRenderProps) => (
     <>
-      <FieldLabel state={state} {...stylex.props(groupStyles.label)}>
+      <FieldLabel state={state} variant="group">
         {label}
       </FieldLabel>
       <div
@@ -298,7 +280,7 @@ function RadioGroup({
       orientation={orientation}
       validationBehavior={validationBehavior}
       {...props}
-      {...mergeStatefulStyles(stylex.props(groupStyles.root), props)}
+      {...mergeStatefulStyles(stylex.props(fieldGroupStyles.root), props)}
     >
       {groupContent(
         label,

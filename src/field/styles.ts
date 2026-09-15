@@ -522,4 +522,30 @@ const fieldChromeStyles = stylex.create({
   },
 })
 
-export { fieldChromeStyles }
+// The chrome a label sitting above a group takes, rather than inside a box.
+// CheckboxGroup, ChipGroup, RadioGroup, Slider and ColorSlider each wrote both
+// of these out: the type override on the label, and the column its label and
+// control sit in.
+//
+// The label is label-large, the role a field's label takes at rest, since a
+// group has no box to float it in.
+//
+// The two sliders compose an inline size of their own on the root, since a
+// slider fills the width it is given where a group of controls does not.
+const groupStyles = stylex.create({
+  label: {
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+  },
+  root: {
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+})
+
+export { fieldChromeStyles, groupStyles }

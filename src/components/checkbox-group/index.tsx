@@ -9,8 +9,8 @@ import { CheckboxGroup as RACCheckboxGroup } from 'react-aria-components'
 
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
+import { groupStyles } from '../../field/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { spacing, typography } from '../../tokens/design.tokens.stylex'
 
 // A labelled set of checkboxes sharing one value. The checkbox page draws
 // the boxes; the group is what the ARIA pattern asks for around them — a
@@ -22,19 +22,6 @@ const styles = stylex.create({
   items: {
     display: 'flex',
     flexDirection: 'column',
-  },
-  label: {
-    fontFamily: typography.labelLargeFont,
-    fontSize: typography.labelLargeSize,
-    fontWeight: typography.labelLargeWeight,
-    letterSpacing: typography.labelLargeTracking,
-    lineHeight: typography.labelLargeLineHeight,
-  },
-  root: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
   },
 })
 
@@ -84,7 +71,7 @@ function CheckboxGroup({
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.root), props)}
+      {...mergeStatefulStyles(stylex.props(groupStyles.root), props)}
     >
       {groupContent(label, children, description, error)}
     </RACCheckboxGroup>
@@ -103,7 +90,7 @@ function groupContent(
 ) {
   return (state: CheckboxGroupRenderProps) => (
     <>
-      <FieldLabel state={state} {...stylex.props(styles.label)}>
+      <FieldLabel state={state} variant="group">
         {label}
       </FieldLabel>
       <div {...stylex.props(styles.items)}>{children}</div>
