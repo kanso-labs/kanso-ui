@@ -78,7 +78,14 @@ const styles = stylex.create({
     paddingInline: spacing.xl,
   },
   content: {
-    animationDuration: motion.durationMedium1,
+    // Reduced motion zeroes the duration, so the panel arrives in its settled
+    // place with the movement never drawn. See `popup` in src/styles/overlay.ts
+    // for why all four overlays zero the duration rather than fading, and why
+    // the scrim behind this one is what still says something arrived.
+    animationDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: motion.durationMedium1,
+    },
     animationName: {
       default: slideInFromEnd,
       [media.belowMedium]: slideInFromBottom,
