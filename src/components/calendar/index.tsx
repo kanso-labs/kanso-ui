@@ -55,7 +55,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // the slot would put two buttons where the page draws one. The chevrons take
 // the standard icon button's 40dp square and its state layer instead.
 
-type CalendarProps<T extends DateValue> = Omit<
+type CalendarProps<T extends DateValue = DateValue> = Omit<
   RACCalendarProps<T>,
   'children' | 'className' | 'style'
 > & {

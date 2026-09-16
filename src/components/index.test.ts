@@ -6,14 +6,19 @@ import { describe, expect, it } from 'vitest'
 // against './button' passes whether or not the barrel still exports it.
 import type {
   AppBarProps,
+  AutocompleteFilter,
   AutocompleteProps,
   AvatarProps,
+  BreadcrumbsItemProps,
   BreadcrumbsProps,
   ButtonProps,
+  ButtonSize,
+  ButtonVariant,
   CalendarProps,
   CardProps,
   CheckboxGroupProps,
   CheckboxProps,
+  ChipGroupChipProps,
   ChipGroupProps,
   ChipProps,
   CodeProps,
@@ -21,59 +26,110 @@ import type {
   ColorFieldProps,
   ColorPickerProps,
   ColorSliderProps,
+  ColorSwatchPickerItemProps,
   ColorSwatchPickerProps,
   ColorSwatchProps,
   ColorWheelProps,
   ComboBoxProps,
+  ComboBoxSelectionMode,
   ContainerProps,
   CopyFieldProps,
   CurrencyProps,
   DateFieldProps,
   DatePickerProps,
   DateRangePickerProps,
+  DialogContentProps,
   DialogProps,
+  DialogTitleProps,
   DisclosureGroupProps,
+  DisclosureHeaderProps,
+  DisclosurePanelProps,
   DisclosureProps,
   FeedProps,
+  FieldVariant,
   FormProps,
   IconButtonProps,
+  IconButtonSize,
+  IconButtonVariant,
   KeycapProps,
   LinkProps,
+  LinkTone,
+  LinkUnderline,
+  ListBoxItemProps,
+  ListBoxLoadMoreProps,
   ListBoxProps,
+  ListBoxSectionProps,
   ListDetailProps,
   ListItemProps,
   ListLoadMoreProps,
   ListProps,
   ListRowProps,
   ListSectionProps,
+  MenuAlign,
+  MenuContentProps,
+  MenuItemProps,
+  MenuLoadMoreProps,
   MenuProps,
+  MenuSectionProps,
+  MenuSeparatorProps,
+  MenuSide,
+  MenuSubmenuProps,
   MeterProps,
+  MeterTone,
+  NavigationTreeProps,
   NumberFieldProps,
+  PopoverAlign,
+  PopoverContentProps,
+  PopoverDescriptionProps,
   PopoverProps,
+  PopoverSide,
+  PopoverSize,
+  PopoverTitleProps,
+  PopoverTrigger,
   ProductIconProps,
   ProgressIndicatorProps,
+  ProgressIndicatorTone,
+  ProgressIndicatorVariant,
   RadioGroupProps,
   RadioProps,
   RangeCalendarProps,
   SearchFieldProps,
   SegmentedButtonProps,
   SelectProps,
+  SeparatorInset,
   SeparatorProps,
+  SheetContentProps,
   SheetProps,
+  SheetTitleProps,
   SliderProps,
+  SnackbarAction,
+  SnackbarMessage,
+  SnackbarOptions,
   SnackbarProps,
+  SnackbarQueue,
+  SnackbarRegionRenderProps,
   StackProps,
   SupportingPaneProps,
   SwitchProps,
+  TableLoadMoreProps,
+  TabsListProps,
+  TabsPanelProps,
+  TabsPanelsProps,
   TabsProps,
+  TabsTabProps,
   TagProps,
   TextAreaProps,
   TextFieldProps,
   TextProps,
   TimeFieldProps,
   TokenFieldProps,
+  TokenSegment,
   ToolbarProps,
+  ToolbarTone,
+  TooltipAlign,
   TooltipProps,
+  TooltipSide,
+  TreeProps,
 } from '.'
 
 import * as components from '.'
@@ -147,6 +203,11 @@ import TokenFieldDefault from './token-field'
 import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
 import TreeDefault from './tree'
+
+// Hoisted rather than written inside its case: a function declared in a test
+// that captures nothing is what `consistent-function-scoping` is after.
+const AUTOCOMPLETE_FILTER: AutocompleteFilter = (textValue, inputValue) =>
+  textValue.includes(inputValue)
 
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
@@ -570,7 +631,7 @@ describe('components barrel', () => {
   })
 
   it('re-exports the ListBoxProps type', () => {
-    const props: ListBoxProps<object> = { 'aria-label': 'Label' }
+    const props: ListBoxProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 
@@ -604,39 +665,67 @@ describe('components barrel', () => {
     expect(props.label).toBe('Label')
   })
 
+  // The bare name is the assertion in the four below and the second
+  // declaration in the six date and time ones. A generic prop type written
+  // without an argument is a compile error unless its parameter has a
+  // default, and ten of them had none — see the rule in AGENTS.md, under
+  // Conventions. Where the argument would be the default the lint rule
+  // forbids writing it, which is why only the date ones carry both forms.
+  it('re-exports the TreeProps type', () => {
+    const props: TreeProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the NavigationTreeProps type', () => {
+    const props: NavigationTreeProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
   it('re-exports the ListProps type', () => {
-    const props: ListProps<object> = { 'aria-label': 'Label' }
+    const props: ListProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 
   it('re-exports the CalendarProps type', () => {
     const props: CalendarProps<CalendarDate> = { 'aria-label': 'Label' }
+    const bare: CalendarProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the RangeCalendarProps type', () => {
     const props: RangeCalendarProps<CalendarDate> = { 'aria-label': 'Label' }
+    const bare: RangeCalendarProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DateFieldProps type', () => {
     const props: DateFieldProps<CalendarDate> = { label: 'Label' }
+    const bare: DateFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the TimeFieldProps type', () => {
     const props: TimeFieldProps<Time> = { label: 'Label' }
+    const bare: TimeFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DatePickerProps type', () => {
     const props: DatePickerProps<CalendarDate> = { label: 'Label' }
+    const bare: DatePickerProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DateRangePickerProps type', () => {
     const props: DateRangePickerProps<CalendarDate> = { label: 'Label' }
+    const bare: DateRangePickerProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the ColorSwatchProps type', () => {
@@ -672,5 +761,283 @@ describe('components barrel', () => {
   it('re-exports the ColorPickerProps type', () => {
     const props: ColorPickerProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the ButtonSize type', () => {
+    const value: ButtonSize = 'md'
+    expect(value).toBe('md')
+  })
+
+  it('re-exports the ButtonVariant type', () => {
+    const value: ButtonVariant = 'filled'
+    expect(value).toBe('filled')
+  })
+
+  it('re-exports the ComboBoxSelectionMode type', () => {
+    const value: ComboBoxSelectionMode = 'single'
+    expect(value).toBe('single')
+  })
+
+  it('re-exports the FieldVariant type', () => {
+    const value: FieldVariant = 'filled'
+    expect(value).toBe('filled')
+  })
+
+  it('re-exports the IconButtonSize type', () => {
+    const value: IconButtonSize = 'md'
+    expect(value).toBe('md')
+  })
+
+  it('re-exports the IconButtonVariant type', () => {
+    const value: IconButtonVariant = 'standard'
+    expect(value).toBe('standard')
+  })
+
+  it('re-exports the LinkTone type', () => {
+    const value: LinkTone = 'primary'
+    expect(value).toBe('primary')
+  })
+
+  it('re-exports the LinkUnderline type', () => {
+    const value: LinkUnderline = 'hover'
+    expect(value).toBe('hover')
+  })
+
+  it('re-exports the MenuAlign type', () => {
+    const value: MenuAlign = 'start'
+    expect(value).toBe('start')
+  })
+
+  it('re-exports the MenuSide type', () => {
+    const value: MenuSide = 'bottom'
+    expect(value).toBe('bottom')
+  })
+
+  it('re-exports the MeterTone type', () => {
+    const value: MeterTone = 'primary'
+    expect(value).toBe('primary')
+  })
+
+  it('re-exports the PopoverAlign type', () => {
+    const value: PopoverAlign = 'center'
+    expect(value).toBe('center')
+  })
+
+  it('re-exports the PopoverSide type', () => {
+    const value: PopoverSide = 'top'
+    expect(value).toBe('top')
+  })
+
+  it('re-exports the PopoverSize type', () => {
+    const value: PopoverSize = 'sm'
+    expect(value).toBe('sm')
+  })
+
+  it('re-exports the PopoverTrigger type', () => {
+    const value: PopoverTrigger = 'press'
+    expect(value).toBe('press')
+  })
+
+  it('re-exports the ProgressIndicatorTone type', () => {
+    const value: ProgressIndicatorTone = 'primary'
+    expect(value).toBe('primary')
+  })
+
+  it('re-exports the ProgressIndicatorVariant type', () => {
+    const value: ProgressIndicatorVariant = 'linear'
+    expect(value).toBe('linear')
+  })
+
+  it('re-exports the SeparatorInset type', () => {
+    const value: SeparatorInset = 'none'
+    expect(value).toBe('none')
+  })
+
+  it('re-exports the ToolbarTone type', () => {
+    const value: ToolbarTone = 'standard'
+    expect(value).toBe('standard')
+  })
+
+  it('re-exports the TooltipAlign type', () => {
+    const value: TooltipAlign = 'center'
+    expect(value).toBe('center')
+  })
+
+  it('re-exports the TooltipSide type', () => {
+    const value: TooltipSide = 'bottom'
+    expect(value).toBe('bottom')
+  })
+
+  it('re-exports the BreadcrumbsItemProps type', () => {
+    const props: BreadcrumbsItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ChipGroupChipProps type', () => {
+    const props: ChipGroupChipProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ColorSwatchPickerItemProps type', () => {
+    const props: ColorSwatchPickerItemProps = { color: '#2563eb' }
+    expect(props.color).toBe('#2563eb')
+  })
+
+  it('re-exports the DialogContentProps type', () => {
+    const props: DialogContentProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the DialogTitleProps type', () => {
+    const props: DialogTitleProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the DisclosureHeaderProps type', () => {
+    const props: DisclosureHeaderProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the DisclosurePanelProps type', () => {
+    const props: DisclosurePanelProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ListBoxItemProps type', () => {
+    const props: ListBoxItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ListBoxLoadMoreProps type', () => {
+    const props: ListBoxLoadMoreProps = { label: 'test' }
+    expect(props.label).toBe('test')
+  })
+
+  it('re-exports the ListBoxSectionProps type', () => {
+    const props: ListBoxSectionProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the MenuContentProps type', () => {
+    const props: MenuContentProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the MenuItemProps type', () => {
+    const props: MenuItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the MenuLoadMoreProps type', () => {
+    const props: MenuLoadMoreProps = { label: 'test' }
+    expect(props.label).toBe('test')
+  })
+
+  it('re-exports the MenuSectionProps type', () => {
+    const props: MenuSectionProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the MenuSeparatorProps type', () => {
+    const props: MenuSeparatorProps = { inset: 'none' }
+    expect(props.inset).toBe('none')
+  })
+
+  it('re-exports the MenuSubmenuProps type', () => {
+    const props: MenuSubmenuProps = { children: [], delay: 200 }
+    expect(props.delay).toBe(200)
+  })
+
+  it('re-exports the PopoverContentProps type', () => {
+    const props: PopoverContentProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the PopoverDescriptionProps type', () => {
+    const props: PopoverDescriptionProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the PopoverTitleProps type', () => {
+    const props: PopoverTitleProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SheetContentProps type', () => {
+    const props: SheetContentProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SheetTitleProps type', () => {
+    const props: SheetTitleProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TableLoadMoreProps type', () => {
+    const props: TableLoadMoreProps = { label: 'test' }
+    expect(props.label).toBe('test')
+  })
+
+  it('re-exports the TabsListProps type', () => {
+    const props: TabsListProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TabsPanelProps type', () => {
+    const props: TabsPanelProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TabsPanelsProps type', () => {
+    const props: TabsPanelsProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TabsTabProps type', () => {
+    const props: TabsTabProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the AutocompleteFilter type', () => {
+    expect(typeof AUTOCOMPLETE_FILTER).toBe('function')
+  })
+
+  it('re-exports the TokenSegment type', () => {
+    const segment: Pick<TokenSegment, 'text'> = { text: 'test' }
+    expect(segment.text).toBe('test')
+  })
+
+  it('re-exports the SnackbarAction type', () => {
+    const action: SnackbarAction = { label: 'Undo', onPress: () => {} }
+    expect(action.label).toBe('Undo')
+  })
+
+  it('re-exports the SnackbarMessage type', () => {
+    const message: SnackbarMessage = {
+      action: undefined,
+      isDismissable: false,
+      message: 'First item',
+    }
+    expect(message.message).toBe('First item')
+  })
+
+  it('re-exports the SnackbarOptions type', () => {
+    const options: SnackbarOptions = { isDismissable: true }
+    expect(options.isDismissable).toBe(true)
+  })
+
+  it('re-exports the SnackbarQueue type', () => {
+    const queue: SnackbarQueue = new SnackbarDefault.Queue()
+    expect(typeof queue.add).toBe('function')
+  })
+
+  it('re-exports the SnackbarRegionRenderProps type', () => {
+    const state: Pick<
+      SnackbarRegionRenderProps<SnackbarMessage>,
+      'isFocused'
+    > = {
+      isFocused: false,
+    }
+    expect(state.isFocused).toBe(false)
   })
 })

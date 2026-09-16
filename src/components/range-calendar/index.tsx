@@ -43,7 +43,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // the next without moving either. Without it the band arrives as a dashed run
 // of separate blocks.
 
-type RangeCalendarProps<T extends DateValue> = Omit<
+type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
   RACRangeCalendarProps<T>,
   'children' | 'className' | 'style'
 > & {

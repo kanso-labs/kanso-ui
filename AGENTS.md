@@ -168,6 +168,14 @@ Specific to this repository:
   field stay apart under a forced palette. Decoration is exempt and stays a
   shadow: a `Card`'s elevation and the rule under a `Tabs` flatten in that mode,
   which loses no focus and no boundary.
+- **A generic prop type gives its parameter a default**,
+  `<T extends object = object>`, matching whatever it already constrains.
+  Written without one the bare name is a compile error, `TS2314`, so a consumer
+  who does not care about the item type has to invent an argument to say so —
+  and the split is invisible from outside, since the two halves sit in the same
+  file: `TreeItemProps` took a default while `TreeProps` two hundred lines below
+  it did not. A default fills in only where no argument is written, so inference
+  at a call site is untouched.
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.
