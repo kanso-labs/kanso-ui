@@ -8,11 +8,13 @@
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ListItem from '.'
+import { rippleStyles } from '../../styles/ripple'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { motionDurationMs } from '../../tokens/values'
 
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
@@ -43,6 +45,91 @@ function rowIn(container: HTMLElement) {
     throw new Error('expected the row to render an element')
   }
   return row
+}
+
+// The floor the hook holds a short press open to, taken from the token it
+// spends rather than copied as a number.
+const MINIMUM_PRESS_MS = motionDurationMs.medium1
+
+// The ripple's inner span carries these classes only while the hook considers
+// itself pressed, so their presence reads its state off the DOM rather than
+// out of React.
+const pressedClassNames = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+/** Advances the fake clock and lets React flush what that triggered. */
+async function advance(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms)
+  })
+}
+
+function firePointer(
+  target: Element,
+  type: string,
+  init: PointerEventInit = {},
+) {
+  fireEvent(target, new PointerEvent(type, pointerInit(target, init)))
+}
+
+/**
+ * Stands in for the Web Animations API, whose document timeline fake timers do
+ * not drive — left alone `currentTime` stays at zero and the hook never sees a
+ * press reach its minimum. The pattern is Button's, in its own test file.
+ */
+function installFakeAnimate() {
+  const native = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')!
+
+  Object.defineProperty(Element.prototype, 'animate', {
+    configurable: true,
+    value(this: Element, _keyframes: unknown, options: { duration: number }) {
+      const startedAt = Date.now()
+      let cancelled = false
+      return {
+        cancel() {
+          cancelled = true
+        },
+        get currentTime() {
+          return cancelled
+            ? null
+            : Math.min(Date.now() - startedAt, options.duration)
+        },
+      }
+    },
+    writable: true,
+  })
+
+  return () => {
+    Object.defineProperty(Element.prototype, 'animate', native)
+  }
+}
+
+// The length check matters: `[].every()` is vacuously true, so an empty class
+// list would report "pressed" unconditionally.
+function isPressed(container: HTMLElement) {
+  const span = container.querySelector('span[aria-hidden="true"] > span')
+  if (!span) {
+    return false
+  }
+  return (
+    pressedClassNames.length > 0 &&
+    pressedClassNames.every((className) => span.classList.contains(className))
+  )
+}
+
+function pointerInit(target: Element, init: PointerEventInit = {}) {
+  const rect = target.getBoundingClientRect()
+  return {
+    bubbles: true,
+    cancelable: true,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+    isPrimary: true,
+    pointerId: 1,
+    pointerType: 'mouse',
+    ...init,
+  }
 }
 
 describe('list item', () => {
@@ -291,6 +378,81 @@ describe('list item', () => {
       expect(getComputedStyle(view.getByRole('button')).backgroundColor).toBe(
         'rgba(0, 0, 0, 0)',
       )
+    })
+  })
+
+  // The six handlers the ripple returns are the six a call site can pass, so
+  // a row that spread the consumer's over the hook's would lose whichever it
+  // was given — the handler still fires, which is why the case above passes
+  // either way, but the animation it drives is gone. Each case here presses
+  // the row with one of those props set and asserts the ripple's own half
+  // still ran.
+  describe('ripple handlers', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    // Losing onClick leaves the press with no path to its end, so the row
+    // stays visibly pressed however long is waited. Advancing past the floor
+    // is what separates that from the hook correctly holding a short press.
+    it('still ends the press when the call site passes an onClick', async () => {
+      const onClick = vi.fn<() => void>()
+      const view = render(
+        <ListItem interactive onClick={onClick}>
+          headline
+        </ListItem>,
+      )
+      const button = view.getByRole('button')
+
+      firePointer(button, 'pointerdown', { buttons: 1 })
+      expect(isPressed(view.container)).toBe(true)
+
+      firePointer(button, 'pointerup', { buttons: 0 })
+      fireEvent.click(button)
+      expect(onClick).toHaveBeenCalledTimes(1)
+
+      await advance(MINIMUM_PRESS_MS - 1)
+      expect(isPressed(view.container)).toBe(true)
+
+      await advance(1)
+      expect(isPressed(view.container)).toBe(false)
+    })
+
+    // Losing onPointerDown leaves nothing to start the animation, so the
+    // surface renders with the press never reaching it.
+    it('still starts the press when the call site passes an onPointerDown', () => {
+      const onPointerDown = vi.fn<() => void>()
+      const view = render(
+        <ListItem interactive onPointerDown={onPointerDown}>
+          headline
+        </ListItem>,
+      )
+      const button = view.getByRole('button')
+
+      firePointer(button, 'pointerdown', { buttons: 1 })
+
+      expect(onPointerDown).toHaveBeenCalledTimes(1)
+      expect(isPressed(view.container)).toBe(true)
+    })
+
+    // A presenting row has no ripple to merge with, so the hook hands the six
+    // back untouched — which is the only thing putting them on the <div>,
+    // since they are no longer in the rest it spreads.
+    it('keeps the handlers on a row that only presents', () => {
+      const onClick = vi.fn<() => void>()
+      const view = render(<ListItem onClick={onClick}>headline</ListItem>)
+
+      fireEvent.click(rowIn(view.container))
+
+      expect(onClick).toHaveBeenCalledTimes(1)
     })
   })
 })
