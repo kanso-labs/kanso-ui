@@ -82,7 +82,12 @@ Specific to this repository:
   `Sheet` stops opening it; re-exporting what they need is what makes installing
   it alongside unnecessary, and the README tells them not to. The list is
   explicit rather than `export *`, so `src/index.test.ts` keeps pinning the
-  exact surface — add a name there when adding one here.
+  exact surface — add a name there when adding one here. **Every type a
+  component module exports goes in the barrel**, not only its top-level
+  `<Name>Props`: a sub-component's props and a public prop's union are what a
+  consumer wrapping the component needs, and a name a module keeps to itself
+  belongs in the allowlist in `src/components/index.test.ts`, with the reason
+  beside it.
 - **Every component follows its Material Design spec page**, at
   `https://m3.material.io/components/<component>/specs`: the container heights
   and widths, corner shapes, paddings, icon sizes, type roles and colour roles

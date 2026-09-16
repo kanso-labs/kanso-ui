@@ -34,12 +34,12 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node
-        uses: kanso-labs/github-actions/actions/setup-node@v3.3.0
+        uses: kanso-labs/github-actions/actions/setup-node@v3.3.1
         with:
           ignore-scripts: true
 
       - name: Run Chromatic
-        uses: chromaui/action@v18.9.0
+        uses: chromaui/action@v18.9.1
         with:
           exitOnceUploaded: true
           onlyChanged: true

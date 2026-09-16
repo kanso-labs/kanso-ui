@@ -310,6 +310,10 @@ function directoryOf(line) {
  * @returns {string}
  */
 function addToBarrel({ component, directory }) {
+  // The top-level props type only, because that is all a new component has.
+  // A sub-component's props or a public prop's union added later goes in the
+  // barrel too — `src/components/index.test.ts` fails by name when one does
+  // not, so this is a starting point rather than the whole entry.
   const path = join(COMPONENTS, 'index.ts')
   const text = read(path)
   const entry = `export type { ${component}Props } from './${directory}'\nexport { default as ${component} } from './${directory}'\n`
