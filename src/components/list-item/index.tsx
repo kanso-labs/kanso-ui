@@ -46,12 +46,36 @@ function ListItem({
   children,
   interactive = false,
   leading,
+  onClick,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   overline,
   supporting,
   trailing,
   ...props
 }: ListItemProps) {
-  const ripple = useRipple<HTMLButtonElement>(interactive)
+  // The consumer's own pointer handlers are handed to useRipple to merge
+  // rather than left in `props` to be spread over its handlers afterwards,
+  // which is what Card and Button do and for the same reason: a plain spread
+  // means whichever object comes last silently wins, so an onClick on the
+  // call site would replace the one that ends the press and the row would
+  // stay visibly pressed. The hook runs its own handler first and the
+  // consumer's second, and hands them straight back when the ripple is off,
+  // which is what puts them on the presenting <div> below. The host is
+  // `HTMLElement` rather than the button: the same handlers now reach both
+  // elements, and only the type `ListItemProps` already declares is assignable
+  // to a <div>'s props as well as a <button>'s.
+  const ripple = useRipple<HTMLElement>(interactive, {
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
 
   // Which of the page's three items this row is, read from the content rather
   // than taken as a prop: a row holding all three lines already says it is
@@ -82,6 +106,7 @@ function ListItem({
     return (
       <div
         {...props}
+        {...ripple.handlers}
         {...mergeStyles(
           stylex.props(
             rowStyles.base,
