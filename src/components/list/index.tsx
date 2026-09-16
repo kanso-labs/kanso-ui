@@ -61,21 +61,6 @@ import Checkbox from '../checkbox'
 // is how the two drift.
 const SelectLabelContext = createContext('Select')
 
-type ListItemProps<T extends object = object> = {
-  /** The row's headline — the one thing it is mostly about. */
-  children?: ReactNode
-  /** A function may compute the class from the row's render state. */
-  className?: RACGridListItemProps<T>['className']
-  /** Content before the headline: an avatar, an icon. */
-  leading?: ReactNode
-  /** A function may compute the style from the row's render state. */
-  style?: RACGridListItemProps<T>['style']
-  /** A second line under the headline, in the muted role. */
-  supporting?: ReactNode
-  /** Content after the headline, such as an amount or a control. */
-  trailing?: ReactNode
-} & Omit<RACGridListItemProps<T>, 'children' | 'className' | 'style'>
-
 type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
@@ -100,6 +85,27 @@ type ListProps<T extends object> = Omit<
   /** A function may compute the style from the list's render state. */
   style?: RACGridListProps<T>['style']
 }
+
+// `Row` rather than `Item`, though the component is `List.Item`, because
+// `ListItemProps` is the standalone `ListItem` component's and both are
+// exported from the package. The two overlap on four props, so a call site
+// reaching for the obvious name got something that typechecked until it
+// passed `textValue`, and an error pointing at `onClick` rather than at the
+// name. `row` is what this file and `src/row` call the thing anyway.
+type ListRowProps<T extends object = object> = {
+  /** The row's headline — the one thing it is mostly about. */
+  children?: ReactNode
+  /** A function may compute the class from the row's render state. */
+  className?: RACGridListItemProps<T>['className']
+  /** Content before the headline: an avatar, an icon. */
+  leading?: ReactNode
+  /** A function may compute the style from the row's render state. */
+  style?: RACGridListItemProps<T>['style']
+  /** A second line under the headline, in the muted role. */
+  supporting?: ReactNode
+  /** Content after the headline, such as an amount or a control. */
+  trailing?: ReactNode
+} & Omit<RACGridListItemProps<T>, 'children' | 'className' | 'style'>
 
 type ListSectionProps<T extends object = object> = Omit<
   RACGridListSectionProps<T>,
@@ -229,7 +235,7 @@ function ListItem<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: ListItemProps<T>) {
+}: ListRowProps<T>) {
   const selectLabel = useContext(SelectLabelContext)
 
   return (
@@ -297,6 +303,6 @@ List.Item = ListItem
 List.LoadMore = ListLoadMore
 List.Section = ListSection
 
-export type { ListItemProps, ListLoadMoreProps, ListProps, ListSectionProps }
+export type { ListLoadMoreProps, ListProps, ListRowProps, ListSectionProps }
 
 export default List

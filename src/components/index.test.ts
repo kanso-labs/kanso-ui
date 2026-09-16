@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+// Taken from the barrel rather than from './list', which is what makes these
+// three pin the re-export: a type imported from its own module still resolves
+// when the barrel has dropped it.
+import type { ListLoadMoreProps, ListRowProps, ListSectionProps } from '.'
 import type { AppBarProps } from './app-bar'
 import type { AutocompleteProps } from './autocomplete'
 import type { AvatarProps } from './avatar'
@@ -408,6 +412,24 @@ describe('components barrel', () => {
   it('re-exports the ListItemProps type', () => {
     const props: ListItemProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  // `List.Item`'s own, which is a different type from the standalone row's
+  // above: `textValue` belongs to this one and compiles against neither the
+  // other nor the name a call site reaches for first.
+  it('re-exports the ListRowProps type', () => {
+    const props: ListRowProps = { children: 'test', textValue: 'test' }
+    expect(props.textValue).toBe('test')
+  })
+
+  it('re-exports the ListSectionProps type', () => {
+    const props: ListSectionProps = { header: 'test' }
+    expect(props.header).toBe('test')
+  })
+
+  it('re-exports the ListLoadMoreProps type', () => {
+    const props: ListLoadMoreProps = { label: 'test' }
+    expect(props.label).toBe('test')
   })
 
   it('re-exports the PopoverProps type', () => {
