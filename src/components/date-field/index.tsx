@@ -43,7 +43,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // show which of three spinbuttons has focus, since React Aria hides it — the
 // segment is what has to say so, and it does it the way a selected row does.
 
-type DateFieldProps<T extends DateValue> = Omit<
+type DateFieldProps<T extends DateValue = DateValue> = Omit<
   RACDateFieldProps<T>,
   'children' | 'className' | 'style'
 > & {

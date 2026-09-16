@@ -68,7 +68,7 @@ const styles = stylex.create({
   },
 })
 
-type DateRangePickerProps<T extends DateValue> = {
+type DateRangePickerProps<T extends DateValue = DateValue> = {
   /** A function may compute the class from the picker's render state. */
   className?: RACDateRangePickerProps<T>['className']
   /** Supporting text under the field. */

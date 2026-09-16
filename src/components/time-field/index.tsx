@@ -36,7 +36,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // same field under `en-US` shows AM and PM. Nothing here overrides it, and
 // `hourCycle` is React Aria's own for a page that has to.
 
-type TimeFieldProps<T extends TimeValue> = Omit<
+type TimeFieldProps<T extends TimeValue = TimeValue> = Omit<
   RACTimeFieldProps<T>,
   'children' | 'className' | 'style'
 > & {

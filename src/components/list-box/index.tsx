@@ -85,7 +85,7 @@ type ListBoxLoadMoreProps = Omit<RACListBoxLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type ListBoxProps<T extends object> = Omit<
+type ListBoxProps<T extends object = object> = Omit<
   RACListBoxProps<T>,
   'className' | 'style'
 > & {

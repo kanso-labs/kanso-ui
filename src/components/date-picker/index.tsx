@@ -49,7 +49,7 @@ import Calendar from '../calendar'
 // desktop would cover a form for no reason. `Sheet` settles this the same
 // way, and doing it twice in two different ways is how the two would drift.
 
-type DatePickerProps<T extends DateValue> = Omit<
+type DatePickerProps<T extends DateValue = DateValue> = Omit<
   RACDatePickerProps<T>,
   'children' | 'className' | 'style'
 > & {
