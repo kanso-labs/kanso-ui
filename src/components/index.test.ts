@@ -35,6 +35,7 @@ import type {
   MenuSide,
   MenuSubmenuProps,
   MeterTone,
+  NavigationTreeProps,
   PopoverAlign,
   PopoverContentProps,
   PopoverDescriptionProps,
@@ -61,6 +62,7 @@ import type {
   ToolbarTone,
   TooltipAlign,
   TooltipSide,
+  TreeProps,
 } from '.'
 import type { AppBarProps } from './app-bar'
 import type { AutocompleteProps } from './autocomplete'
@@ -627,7 +629,7 @@ describe('components barrel', () => {
   })
 
   it('re-exports the ListBoxProps type', () => {
-    const props: ListBoxProps<object> = { 'aria-label': 'Label' }
+    const props: ListBoxProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 
@@ -661,39 +663,67 @@ describe('components barrel', () => {
     expect(props.label).toBe('Label')
   })
 
+  // The bare name is the assertion in the four below and the second
+  // declaration in the six date and time ones. A generic prop type written
+  // without an argument is a compile error unless its parameter has a
+  // default, and ten of them had none — see the rule in AGENTS.md, under
+  // Conventions. Where the argument would be the default the lint rule
+  // forbids writing it, which is why only the date ones carry both forms.
+  it('re-exports the TreeProps type', () => {
+    const props: TreeProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
+  it('re-exports the NavigationTreeProps type', () => {
+    const props: NavigationTreeProps = { 'aria-label': 'Label' }
+    expect(props['aria-label']).toBe('Label')
+  })
+
   it('re-exports the ListProps type', () => {
-    const props: ListProps<object> = { 'aria-label': 'Label' }
+    const props: ListProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
   })
 
   it('re-exports the CalendarProps type', () => {
     const props: CalendarProps<CalendarDate> = { 'aria-label': 'Label' }
+    const bare: CalendarProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the RangeCalendarProps type', () => {
     const props: RangeCalendarProps<CalendarDate> = { 'aria-label': 'Label' }
+    const bare: RangeCalendarProps = { 'aria-label': 'Label' }
     expect(props['aria-label']).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DateFieldProps type', () => {
     const props: DateFieldProps<CalendarDate> = { label: 'Label' }
+    const bare: DateFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the TimeFieldProps type', () => {
     const props: TimeFieldProps<Time> = { label: 'Label' }
+    const bare: TimeFieldProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DatePickerProps type', () => {
     const props: DatePickerProps<CalendarDate> = { label: 'Label' }
+    const bare: DatePickerProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the DateRangePickerProps type', () => {
     const props: DateRangePickerProps<CalendarDate> = { label: 'Label' }
+    const bare: DateRangePickerProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+    expect(bare).toEqual(props)
   })
 
   it('re-exports the ColorSwatchProps type', () => {

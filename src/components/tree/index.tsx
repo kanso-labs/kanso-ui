@@ -176,7 +176,7 @@ type TreeLoadMoreProps = Omit<RACTreeLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type TreeProps<T extends object> = Omit<
+type TreeProps<T extends object = object> = Omit<
   RACTreeProps<T>,
   'className' | 'style'
 > & {

@@ -176,7 +176,7 @@ type NavigationTreeItemText =
       textValue: string
     }
 
-type NavigationTreeProps<T extends object> = Omit<
+type NavigationTreeProps<T extends object = object> = Omit<
   RACNavigationTreeProps<T>,
   'className' | 'style'
 > & {

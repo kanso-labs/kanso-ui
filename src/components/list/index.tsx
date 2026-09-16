@@ -70,7 +70,7 @@ type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type ListProps<T extends object> = Omit<
+type ListProps<T extends object = object> = Omit<
   RACGridListProps<T>,
   'className' | 'style'
 > & {
