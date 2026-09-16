@@ -14,6 +14,8 @@ import {
   Popover as RACPopover,
 } from 'react-aria-components'
 
+import type { FieldVariant } from '../../field'
+
 import { FieldBox, FieldMessage, FieldValue } from '../../field'
 import {
   fieldStyles,
@@ -88,7 +90,7 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
    * Which of the text fields page's two boxes to draw.
    * @default 'filled'
    */
-  variant?: 'filled' | 'outlined'
+  variant?: FieldVariant
 }
 
 /**

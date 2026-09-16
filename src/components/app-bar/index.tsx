@@ -259,6 +259,11 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /**
    * Height and headline size. `medium` and `large` are Material Design's
    * flexible bars, which hug their text.
+   *
+   * Spelled out rather than the `sm`/`md`/`lg` the rest of the library takes
+   * — see AGENTS.md, under Prop vocabularies. It predates that rule, and
+   * renaming a public prop's values is a breaking change of its own rather
+   * than something to fold into other work.
    * @default 'small'
    */
   size?: 'large' | 'medium' | 'small'

@@ -4,6 +4,8 @@ import type { ColorFieldProps as RACColorFieldProps } from 'react-aria-component
 import * as stylex from '@stylexjs/stylex'
 import { ColorField as RACColorField } from 'react-aria-components'
 
+import type { FieldVariant } from '../../field'
+
 import { FieldBox, FieldInput, FieldMessage } from '../../field'
 import {
   fieldStyles,
@@ -59,7 +61,7 @@ type ColorFieldProps = Omit<
    * Which of the text fields page's two boxes to draw.
    * @default 'filled'
    */
-  variant?: 'filled' | 'outlined'
+  variant?: FieldVariant
 }
 
 /**
