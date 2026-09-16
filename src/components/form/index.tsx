@@ -26,7 +26,7 @@ const styles = stylex.create({
   },
 })
 
-type FormProps = Omit<RACFormProps, 'className' | 'style'> & {
+type FormProps = {
   className?: string
   style?: CSSProperties
   /**
@@ -35,10 +35,17 @@ type FormProps = Omit<RACFormProps, 'className' | 'style'> & {
    * regardless. `native` hands validation to the browser: a required or
    * malformed field blocks submission, and its message is the browser's
    * own, shown once submission is tried.
+   *
+   * Under `aria`, moving focus after a server answers is the call site's.
+   * The errors are associated — `aria-invalid` on each control, the message
+   * in its `aria-describedby` — but nothing moves and nothing is read out,
+   * because no part of the form knows a round trip happened. `validationErrors`
+   * is a prop rather than an event, so a form cannot tell a submission coming
+   * back from a first render that was given errors to begin with.
    * @default 'aria'
    */
   validationBehavior?: 'aria' | 'native'
-}
+} & Omit<RACFormProps, 'className' | 'style'>
 
 /**
  * A form: the fields inside it and what they are told about validation. Pass
@@ -47,6 +54,10 @@ type FormProps = Omit<RACFormProps, 'className' | 'style'> & {
  * browser's own constraint validation block submission. `onSubmit` is handed
  * the submit event; call `preventDefault` on it to handle the submission
  * yourself, and read the values from `new FormData(event.currentTarget)`.
+ *
+ * Handing `validationErrors` back from a submission is where a reader has to
+ * be told something arrived: see `validationBehavior` for what the form does
+ * and what it leaves to the call site.
  *
  * The call site's `className` and `style` land on the form element, which is
  * the element a layout positions.

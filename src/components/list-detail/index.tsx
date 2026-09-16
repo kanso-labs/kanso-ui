@@ -31,6 +31,12 @@ const styles = stylex.create({
   // Removed rather than visually hidden: `display: none` takes the pane out
   // of the accessibility tree along with the layout, which is what stops a
   // screen reader walking into a pane the window has no room to show.
+  //
+  // It takes focus with it. The pane stays in the document, but a focused
+  // element inside one that has just been hidden is blurred, and focus is on
+  // the body by the next frame — so the Tab after a swap starts from the top
+  // of the page. Moving it belongs to whoever flipped `showing`; see the
+  // prop.
   hiddenUntilExpanded: {
     display: { default: 'none', [media.expanded]: 'block' },
   },
@@ -79,6 +85,15 @@ type ListDetailProps = {
    * Controlled, with no uncontrolled fallback: the layout cannot know that an
    * item was selected or that the reader went back, so holding that state
    * here would only ever be wrong.
+   *
+   * **Moving focus into the revealed pane comes with flipping this.** The
+   * pane being left is hidden outright, so a keyboard or screen reader inside
+   * it lands on the body and the next Tab starts from the top of the page.
+   * The same reason this prop is controlled is why the move is not made here:
+   * only the call site knows whether a key, a pointer or the history put it
+   * in that state, and what inside the pane to send focus to. Both panes hold
+   * nodes it supplied, so it has something to aim at — a heading given
+   * `tabIndex={-1}`, or a ref it already holds.
    * @default 'list'
    */
   showing?: 'detail' | 'list'
@@ -95,6 +110,11 @@ type ListDetailProps = {
  * The panes are written to the DOM in the order they are shown, which is what
  * Material Design asks of co-planar panes: focus order has to match the
  * arrangement on screen.
+ *
+ * Below the expanded breakpoint the pane that is not showing is hidden
+ * outright, so focus inside it is dropped when `showing` changes. The call
+ * site that changed it is what puts focus in the pane it revealed — see the
+ * prop.
  */
 function ListDetail({
   detail,
