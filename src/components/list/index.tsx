@@ -99,6 +99,12 @@ type ListRowProps<T extends object = object> = {
   className?: RACGridListItemProps<T>['className']
   /** Content before the headline: an avatar, an icon. */
   leading?: ReactNode
+  /**
+   * A line above the headline, in the page's label-small and the same muted
+   * role the supporting line takes — a category, a date, a status. Given
+   * alongside `supporting` it makes the row the page's three-line item.
+   */
+  overline?: ReactNode
   /** A function may compute the style from the row's render state. */
   style?: RACGridListItemProps<T>['style']
   /** A second line under the headline, in the muted role. */
@@ -135,6 +141,7 @@ type ListSectionProps<T extends object = object> = Omit<
 function itemContent(
   children: ReactNode,
   leading: ReactNode,
+  overline: ReactNode,
   supporting: ReactNode,
   trailing: ReactNode,
   selectLabel: string,
@@ -144,6 +151,7 @@ function itemContent(
       isDisabled={state.isDisabled}
       isSelected={state.isSelected}
       leading={leadingFor(state, leading, selectLabel)}
+      overline={overline}
       supporting={supporting}
       trailing={trailing}
     >
@@ -231,6 +239,7 @@ function List<T extends object>({
 function ListItem<T extends object = object>({
   children,
   leading,
+  overline,
   supporting,
   textValue,
   trailing,
@@ -242,9 +251,16 @@ function ListItem<T extends object = object>({
     <RACGridListItem
       textValue={textValue ?? textOf(children)}
       {...props}
-      {...mergeStatefulStyles(rowItemStyles(supporting), props)}
+      {...mergeStatefulStyles(rowItemStyles(supporting, overline), props)}
     >
-      {itemContent(children, leading, supporting, trailing, selectLabel)}
+      {itemContent(
+        children,
+        leading,
+        overline,
+        supporting,
+        trailing,
+        selectLabel,
+      )}
     </RACGridListItem>
   )
 }

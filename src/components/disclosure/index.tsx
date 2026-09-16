@@ -264,6 +264,11 @@ function DisclosurePanel({ children, ...props }: DisclosurePanelProps) {
 // an argument rather than read from the render state, since React Aria
 // reports what the trigger is doing and not what it holds; the classes are
 // built by a call for the same reason `headerContent` is.
+// No overline, and so no three-line header. The row takes the list
+// variant's metrics because a header looks like a list row, but what it
+// follows is its own page, and that page gives a headline and a supporting
+// line — the three-line item belongs to the lists page, which `List.Item`
+// and `ListBox.Item` draw.
 function headerClassName(supporting: ReactNode) {
   return (state: { isDisabled: boolean }) =>
     stylex.props(
