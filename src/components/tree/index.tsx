@@ -381,7 +381,14 @@ function TreeItem<T extends object = object>({
     <RACTreeItem<T>
       textValue={textValueFor(textValue, headline)}
       {...props}
-      {...mergeStatefulStyles(rowItemStyles(supporting, styles.indent), props)}
+      {...mergeStatefulStyles(
+        // No overline: a tree row takes the list variant's metrics because it
+        // looks like a list row, but it follows its own page, and that page
+        // gives a headline and a supporting line. The three-line item belongs
+        // to the lists page, which `List.Item` and `ListBox.Item` draw.
+        rowItemStyles(supporting, undefined, styles.indent),
+        props,
+      )}
     >
       <RACTreeItemContent>
         {itemContent(headline, leading, supporting, trailing, selectLabel)}

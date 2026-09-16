@@ -257,6 +257,25 @@ const Selected: Story = {
   render: Default.render,
 }
 
+const ThreeLine: Story = {
+  args: {
+    children: (
+      <>
+        <List.Item id="first" overline="Overline" supporting="Supporting line">
+          First item
+        </List.Item>
+        <List.Item id="second" overline="Overline">
+          Second item
+        </List.Item>
+        <List.Item id="third" supporting="Supporting line">
+          Third item
+        </List.Item>
+      </>
+    ),
+  },
+  render: Default.render,
+}
+
 const SingleSelection: Story = {
   args: {
     defaultSelectedKeys: SECOND,
@@ -403,6 +422,7 @@ export {
   Sections,
   Selected,
   SingleSelection,
+  ThreeLine,
   Virtualized,
   WithoutSelection,
 }

@@ -303,6 +303,10 @@ function itemContent(
 // The order matters: `disabled` is applied last so it wins over both the
 // interactive and the selected branches, and StyleX replaces a property
 // whole, so it takes their hover states with it.
+// No overline, and so no three-line row: the menus page gives one item
+// height and one line of text. `List.Item` and `ListBox.Item` take the prop
+// because the lists page is what they draw, and this row is 48dp rather than
+// that page's 56.
 function itemStyles(state: MenuItemRenderProps) {
   return stylex.props(
     rowStyles.base,

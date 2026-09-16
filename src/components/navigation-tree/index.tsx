@@ -260,6 +260,10 @@ function itemContent(
 // The order matters: `disabled` is applied last so it wins over both the
 // interactive and the current branches, and StyleX replaces a property
 // whole, so it takes their hover states with it.
+// No overline, and so no three-line row: the navigation drawer page gives
+// one item height and one line of text. `List.Item` and `ListBox.Item` take
+// the prop because the lists page is what they draw; this row follows the
+// drawer's own metrics.
 function itemStyles(state: NavigationTreeItemRenderProps) {
   return stylex.props(
     rowStyles.base,

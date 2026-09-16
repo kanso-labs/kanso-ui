@@ -74,20 +74,37 @@ type CollectionItemState = {
  * The styles a selectable row in a list takes, as the function React Aria's
  * `className` prop wants.
  *
+ * Which of the lists page's three items the row is, read from the content
+ * rather than taken as a prop: a row holding all three lines already says it
+ * is three lines, and a word for it would be a second place to get it wrong.
+ * `ListItem` does the same arithmetic for the static row, and this is where
+ * the collection forms share it.
+ *
+ * The three-line item is the only row whose slots move, which is why it alone
+ * carries an alignment as well as a height.
+ *
  * `extra` is the one difference between the three callers — Tree passes its
  * indent, which is why it sits where Tree already had it rather than at the
  * end. NavigationTree is not a caller: it draws the drawer variant, branches
  * on an ancestor being current, and reads `isCurrent` where these read
  * `isSelected`.
  */
-function rowItemStyles(supporting: ReactNode, extra?: stylex.StyleXStyles) {
+function rowItemStyles(
+  supporting: ReactNode,
+  overline: ReactNode,
+  extra?: stylex.StyleXStyles,
+) {
+  const lines =
+    (overline === undefined ? 0 : 1) + (supporting === undefined ? 0 : 1)
+
   return (state: CollectionItemState) =>
     stylex.props(
       rowStyles.base,
       rowStyles.list,
       rowStyles.interactive,
       extra,
-      supporting !== undefined && rowStyles.twoLine,
+      lines === 1 && rowStyles.twoLine,
+      lines === 2 && rowStyles.threeLine,
       state.isSelected && rowStyles.selectedList,
       state.isDisabled && rowStyles.disabled,
     )

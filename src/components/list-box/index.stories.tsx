@@ -244,6 +244,28 @@ const Selected: Story = {
   render: Default.render,
 }
 
+const ThreeLine: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.surface)}>
+      <ListBox {...args}>
+        <ListBox.Item
+          id="first"
+          overline="Overline"
+          supporting="Supporting line"
+        >
+          First item
+        </ListBox.Item>
+        <ListBox.Item id="second" overline="Overline">
+          Second item
+        </ListBox.Item>
+        <ListBox.Item id="third" supporting="Supporting line">
+          Third item
+        </ListBox.Item>
+      </ListBox>
+    </div>
+  ),
+}
+
 const MultipleSelection: Story = {
   args: {
     defaultSelectedKeys: FIRST_AND_THIRD,
@@ -310,6 +332,7 @@ export {
   Overview,
   Sections,
   Selected,
+  ThreeLine,
 }
 
 export default meta
