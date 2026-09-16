@@ -12,6 +12,15 @@ import { FormContext, useSlottedContext } from 'react-aria-components'
  * marks the control rather than surfacing the browser's own constraint UI.
  * One constant rather than a literal in each field, so the decision has one
  * place to be changed.
+ *
+ * **It leaves announcing and focusing to the app**, and that is the half of
+ * the browser's behaviour this gives up. An error under `aria` is associated
+ * the way it should be — `aria-invalid` on the control, the message in its
+ * `aria-describedby` — so a reader who moves to the field is told. What does
+ * not happen is the move: after a server answers, focus is still wherever
+ * the submit left it and nothing has been read out. Nothing here knows a
+ * round trip happened, so the call site that made it is what moves focus to
+ * the first field that came back invalid.
  */
 const FIELD_VALIDATION_BEHAVIOR = 'aria'
 
