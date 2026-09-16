@@ -55,6 +55,14 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
 > & {
   /** A function may compute the class from the picker's render state. */
   className?: RACDatePickerProps<T>['className']
+  /**
+   * Where to portal the calendar. Defaults to the end of `<body>`, which is
+   * right for an app that sets its StyleX theme on `:root`. An app that
+   * scopes the theme to a subtree has to point this at an element inside it,
+   * or the calendar renders outside the theme and falls back to the tokens'
+   * `prefers-color-scheme` default.
+   */
+  container?: Element
   /** Supporting text under the field. */
   description?: string
   /** The message shown instead of the description, which also marks the field invalid. */
@@ -104,6 +112,7 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
  * which is the element a layout positions.
  */
 function DatePicker<T extends DateValue>({
+  container,
   description,
   error,
   floatingLabel = true,
@@ -152,7 +161,11 @@ function DatePicker<T extends DateValue>({
         </FieldValue>
       </FieldBox>
       <FieldMessage description={description} error={error} />
-      <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
+      <RACPopover
+        // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+        UNSTABLE_portalContainer={container}
+        {...stylex.props(overlay.popup, picker.popover)}
+      >
         <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
           <Calendar aria-label={label} />
         </RACDialog>

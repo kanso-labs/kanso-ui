@@ -122,6 +122,14 @@ type ColorPickerProps = Omit<RACColorPickerProps, 'children'> & {
   children?: ReactNode
   /** Lands on the trigger, which is the element a layout positions. */
   className?: string
+  /**
+   * Where to portal the surface. Defaults to the end of `<body>`, which is
+   * right for an app that sets its StyleX theme on `:root`. An app that
+   * scopes the theme to a subtree has to point this at an element inside it,
+   * or the surface renders outside the theme and falls back to the tokens'
+   * `prefers-color-scheme` default.
+   */
+  container?: Element
   /** Whether the surface starts open. Uncontrolled; pair `isOpen` with `onOpenChange` instead. */
   defaultOpen?: boolean
   /** Whether the whole picker is inert. @default false */
@@ -164,6 +172,7 @@ function ColorPicker({
   alpha = false,
   children,
   className,
+  container,
   defaultOpen,
   isDisabled = false,
   isOpen,
@@ -198,7 +207,11 @@ function ColorPicker({
           <ColorSwatch {...stylex.props(styles.triggerSwatch)} />
           {label}
         </RACButton>
-        <RACPopover {...stylex.props(overlay.popup, picker.popover)}>
+        <RACPopover
+          // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+          UNSTABLE_portalContainer={container}
+          {...stylex.props(overlay.popup, picker.popover)}
+        >
           <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
             {children ?? (
               <div {...stylex.props(styles.body)}>

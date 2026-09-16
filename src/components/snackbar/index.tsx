@@ -65,7 +65,8 @@ import {
 // `currentColor` so each takes the colour the snackbar gives it.
 //
 // **There is no `container` prop.** Every other overlay here takes one,
-// because React Aria's `Modal` and `Popover` accept a portal container.
+// because React Aria's `Modal` and `Popover` accept a portal container, and
+// `src/components/portal-container.test.tsx` is what keeps that true.
 // Its toast region does not: it reads a portal provider that
 // `react-aria-components` does not export, so the region always lands at the
 // end of `<body>`. An app that scopes its StyleX theme to a subtree has to
