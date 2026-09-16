@@ -165,6 +165,38 @@ describe('headline', () => {
 
     expect(view.queryByRole('heading')).toBeNull()
   })
+
+  // A bar drawn beside another bar, or under a page heading of its own, needs
+  // to sit below it in the outline rather than beside it.
+  it('takes the level the call site asks for', () => {
+    const view = render(<AppBar headingLevel={2} headline="Headline" />)
+
+    expect(view.getByRole('heading', { level: 2 }).textContent).toBe('Headline')
+    expect(view.queryByRole('heading', { level: 1 })).toBeNull()
+  })
+
+  // The headline is the only heading the bar draws, at every level. It is the
+  // heading's children rather than the heading, so a call site handing it one
+  // of its own nests that inside this one instead of replacing it.
+  it('draws one heading and no more', () => {
+    for (const level of [1, 2, 3, 4, 5, 6]) {
+      const view = render(
+        <AppBar headingLevel={level} headline="Headline" size="large" />,
+      )
+
+      expect(view.getAllByRole('heading')).toHaveLength(1)
+      expect(view.getByRole('heading', { level })).not.toBeNull()
+      view.unmount()
+    }
+  })
+
+  // `h7` is a custom element as far as React is concerned, so it would render
+  // silently and leave the outline worse than the default.
+  it('draws a real heading for a level outside the six', () => {
+    const view = render(<AppBar headingLevel={9} headline="Headline" />)
+
+    expect(view.getByRole('heading', { level: 6 }).textContent).toBe('Headline')
+  })
 })
 
 describe('scrolled', () => {
