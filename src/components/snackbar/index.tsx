@@ -265,6 +265,13 @@ type SnackbarProps = Omit<
   'aria-label'?: string
   /** A function may compute the class from the region's render state. */
   className?: RACToastRegionProps<SnackbarMessage>['className']
+  /**
+   * What a screen reader calls the button that dismisses a snackbar. It sits
+   * here rather than on a message's own options because it does not vary by
+   * message, so putting it there would make every `add` call repeat it.
+   * @default 'Close'
+   */
+  closeLabel?: string
   /** The queue the region shows messages from. */
   queue: SnackbarQueue
   /** A function may compute the style from the region's render state. */
@@ -363,14 +370,14 @@ function closeToast(queue: SnackbarQueue, key: string) {
  * The call site's `className` and `style` land on that region, which is the
  * element a layout positions.
  */
-function Snackbar({ queue, ...props }: SnackbarProps) {
+function Snackbar({ closeLabel = 'Close', queue, ...props }: SnackbarProps) {
   return (
     <RACToastRegion<SnackbarMessage>
       queue={queue.rac}
       {...props}
       {...mergeStatefulStyles(stylex.props(styles.region), props)}
     >
-      {snackbarContent(queue)}
+      {snackbarContent(queue, closeLabel)}
     </RACToastRegion>
   )
 }
@@ -406,9 +413,13 @@ function SnackbarButton({
   )
 }
 
-function snackbarContent(queue: SnackbarQueue) {
+function snackbarContent(queue: SnackbarQueue, closeLabel: string) {
   return ({ toast }: { toast: SnackbarToastItem }) => (
-    <SnackbarToast close={closeToast(queue, toast.key)} toast={toast} />
+    <SnackbarToast
+      close={closeToast(queue, toast.key)}
+      closeLabel={closeLabel}
+      toast={toast}
+    />
   )
 }
 
@@ -416,10 +427,12 @@ function snackbarContent(queue: SnackbarQueue) {
 function SnackbarControls({
   action,
   close,
+  closeLabel,
   isDismissable,
 }: {
   action: SnackbarAction | undefined
   close: () => void
+  closeLabel: string
   isDismissable: boolean
 }) {
   return (
@@ -433,7 +446,11 @@ function SnackbarControls({
         </SnackbarButton>
       )}
       {isDismissable ? (
-        <SnackbarButton aria-label="Close" slot="close" style={styles.close}>
+        <SnackbarButton
+          aria-label={closeLabel}
+          slot="close"
+          style={styles.close}
+        >
           <CloseGlyph {...stylex.props(styles.closeGlyph)} />
         </SnackbarButton>
       ) : null}
@@ -444,9 +461,11 @@ function SnackbarControls({
 /** One snackbar: its message, then whatever sits after it. */
 function SnackbarToast({
   close,
+  closeLabel,
   toast,
 }: {
   close: () => void
+  closeLabel: string
   toast: SnackbarToastItem
 }) {
   const { action, isDismissable, message } = toast.content
@@ -459,6 +478,7 @@ function SnackbarToast({
       <SnackbarControls
         action={action}
         close={close}
+        closeLabel={closeLabel}
         isDismissable={isDismissable}
       />
     </RACToast>
