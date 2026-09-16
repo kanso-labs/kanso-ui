@@ -68,7 +68,12 @@ export type { KeycapProps } from './keycap'
 export { default as Keycap } from './keycap'
 export type { LinkProps } from './link'
 export { default as Link } from './link'
-export type { ListProps } from './list'
+export type {
+  ListLoadMoreProps,
+  ListProps,
+  ListRowProps,
+  ListSectionProps,
+} from './list'
 export { default as List } from './list'
 export type { ListBoxProps } from './list-box'
 export { default as ListBox } from './list-box'
