@@ -207,6 +207,59 @@ import TreeDefault from './tree'
 const AUTOCOMPLETE_FILTER: AutocompleteFilter = (textValue, inputValue) =>
   textValue.includes(inputValue)
 
+// Read as source rather than as modules, because a type export leaves nothing
+// behind at runtime: `Object.keys` over the barrel sees the components and
+// none of their types. Both guards above run over names the barrel already
+// lists, so they catch a type that stops resolving and never one a module
+// exports that the barrel never picked up — which is how every name #827
+// added came to be missing in the first place.
+const MODULE_SOURCES = import.meta.glob('./*/index.tsx', {
+  eager: true,
+  import: 'default',
+  query: '?raw',
+})
+
+const BARREL_SOURCE = Object.values(
+  import.meta.glob('./index.ts', {
+    eager: true,
+    import: 'default',
+    query: '?raw',
+  }),
+)[0]
+
+/** Every name inside an `export type { … }` block of `source`. */
+function typeExportsIn(source: string) {
+  const names = new Set<string>()
+
+  for (const [, block] of source.matchAll(/export type \{([^}]*)\}/g)) {
+    for (const entry of block.split(/[,\n]/)) {
+      const name = entry.trim().split(' as ').at(-1)?.trim()
+
+      if (name !== undefined && name !== '') {
+        names.add(name)
+      }
+    }
+  }
+
+  return names
+}
+
+// What a module keeps to itself on purpose. Each of these is the type of
+// nothing public: the two DOM props are an `Omit<…> & Pick<…>` that exists
+// only to build ButtonProps and LinkProps, and the two states are the
+// parameter a `className` function is handed rather than the value of a prop
+// — `Tree`, whose whole set is exported, has no equivalent of either.
+//
+// The list is load-bearing rather than an escape hatch. A name added here
+// without a reason beside it turns the case below into a snapshot of
+// whatever the barrel happens to export today.
+const KEPT_INTERNAL = new Set([
+  'ButtonDOMProps',
+  'ButtonState',
+  'IconButtonState',
+  'LinkDOMProps',
+])
+
 describe('components barrel', () => {
   it('exposes exactly the documented public components', () => {
     expect(Object.keys(components)).toEqual([
@@ -369,6 +422,28 @@ describe('components barrel', () => {
   // The map has to cover the same surface the exact-name case pins, or it
   // drifts the way it already had. Reading the barrel at runtime is what
   // makes adding an export and not a case here fail.
+  // The other half of the two guards above: they read the barrel, this reads
+  // the modules. A type exported by a component and absent from the barrel
+  // fails here by name, which is what the suite could not say before.
+  it('re-exports every type its modules export', () => {
+    const exported = typeExportsIn(BARREL_SOURCE)
+    const missing = Object.entries(MODULE_SOURCES)
+      .flatMap(([path, source]) =>
+        [...typeExportsIn(source)].map((name) => [path, name] as const),
+      )
+      .filter(([, name]) => !exported.has(name) && !KEPT_INTERNAL.has(name))
+      .map(([path, name]) => `${name} (${path})`)
+
+    expect(missing).toEqual([])
+  })
+
+  it('reads some module sources to check', () => {
+    // A glob that matched nothing would make the case above pass over an
+    // empty list.
+    expect(Object.keys(MODULE_SOURCES).length).toBeGreaterThan(0)
+    expect(typeExportsIn(BARREL_SOURCE).size).toBeGreaterThan(0)
+  })
+
   it('re-exports every name it exports from its own module', () => {
     const mapped = new Set(Object.keys(OWN_MODULE))
     const exported = Object.keys(components)
