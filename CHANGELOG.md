@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.27.0](https://github.com/kanso-labs/kanso-ui/compare/v0.26.6...v0.27.0) (2026-09-16)
+
+
+### Features
+
+* **app-bar:** let the headline take a heading level ([#823](https://github.com/kanso-labs/kanso-ui/issues/823)) ([83112f0](https://github.com/kanso-labs/kanso-ui/commit/83112f0820633421035e96443f75e81162ffd1a8))
+* **components:** export List's own sub-component prop types ([#825](https://github.com/kanso-labs/kanso-ui/issues/825)) ([2adfe7e](https://github.com/kanso-labs/kanso-ui/commit/2adfe7e959f69d0c4363e03f77350683ce93b3f3))
+* **snackbar:** let the close button's label be set ([#822](https://github.com/kanso-labs/kanso-ui/issues/822)) ([28f1403](https://github.com/kanso-labs/kanso-ui/commit/28f1403f7ead5231bf545f37e344dd9f2dcba13d))
+
+
+### Dependencies
+
+* update dependency @stylexjs/unplugin to v0.19.1 ([#820](https://github.com/kanso-labs/kanso-ui/issues/820)) ([deb1058](https://github.com/kanso-labs/kanso-ui/commit/deb10589b9cb34919c8d01000dec2f8ae338ec66))
+
 ## [0.26.6](https://github.com/kanso-labs/kanso-ui/compare/v0.26.5...v0.26.6) (2026-09-15)
 
 
