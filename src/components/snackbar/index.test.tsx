@@ -37,9 +37,9 @@ function hasClasses(element: Element, classes: string[]) {
 }
 
 /** A fresh queue and a mounted region, since the queue outlives React. */
-function setup() {
+function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
   const queue = new Snackbar.Queue()
-  const view = render(<Snackbar queue={queue} />)
+  const view = render(<Snackbar queue={queue} {...props} />)
   return { queue, view }
 }
 
@@ -273,6 +273,21 @@ describe('snackbar', () => {
       await waitFor(() => {
         expect(view.queryByText('First item')).toBeNull()
       })
+    })
+
+    // The region's own name is React Aria's, and localized in some thirty
+    // languages. Without this the button inside it was announced in English
+    // whatever the locale around it, with no API to say otherwise.
+    it('lets the close button be named by the call site', async () => {
+      const { queue, view } = setup({ closeLabel: 'Fermer' })
+      act(() => {
+        queue.add('First item', { isDismissable: true })
+      })
+
+      await waitFor(() => {
+        expect(view.getByRole('button', { name: 'Fermer' })).not.toBeNull()
+      })
+      expect(view.queryByRole('button', { name: 'Close' })).toBeNull()
     })
   })
 
