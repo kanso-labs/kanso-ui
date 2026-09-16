@@ -147,7 +147,7 @@ const tones = stylex.create({
   primary: { color: colors.primary },
 })
 
-type TextProps = RenderComponentProps<'span'> & {
+type TextProps = {
   /**
    * Renders a `<p>` rather than the default `<span>`, for a block of prose
    * rather than a run of text inside one.
@@ -164,6 +164,11 @@ type TextProps = RenderComponentProps<'span'> & {
   /**
    * The color role to render in. `inherit` takes the color of the nearest
    * colored ancestor instead of setting one.
+   *
+   * `default` is the on-surface role `Currency` and `Tag` call `neutral` —
+   * see AGENTS.md, under Prop vocabularies, which settles on that word. This
+   * one predates the rule, and renaming a public prop's value is a breaking
+   * change of its own.
    * @default 'default'
    */
   tone?:
@@ -194,7 +199,7 @@ type TextProps = RenderComponentProps<'span'> & {
     | 'titleLarge'
     | 'titleMedium'
     | 'titleSmall'
-}
+} & RenderComponentProps<'span'>
 
 function Text({
   block = false,

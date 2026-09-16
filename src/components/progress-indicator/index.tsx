@@ -396,6 +396,12 @@ type ProgressIndicatorProps = {
    * How wide the ring is drawn, as a CSS length. Everything inside scales
    * with it, so `1em` gives a ring the size of the type around it. Ignored
    * by the line, which fills the width it is given.
+   *
+   * A length rather than a step of the `sm`/`md`/`lg` scale every other
+   * `size` here takes — see AGENTS.md, under Prop vocabularies. A ring sized
+   * to the type around it is what the prop is for, which no fixed scale
+   * gives; the name predates that rule, and changing it is a breaking change
+   * of its own.
    * @default '40px'
    */
   size?: string
