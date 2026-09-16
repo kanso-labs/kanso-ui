@@ -1,134 +1,136 @@
 import { describe, expect, it } from 'vitest'
 
-// Taken from the barrel rather than from each component's own module, which
-// is what makes these pin the re-export: a type imported from its own module
-// still resolves when the barrel has dropped it.
+// Taken from the barrel rather than from each component's own module, which is
+// what makes these cases pin the re-export: a type imported from its own module
+// still resolves when the barrel has dropped the name, so the same case written
+// against './button' passes whether or not the barrel still exports it.
 import type {
+  AppBarProps,
   AutocompleteFilter,
+  AutocompleteProps,
+  AvatarProps,
   BreadcrumbsItemProps,
+  BreadcrumbsProps,
+  ButtonProps,
   ButtonSize,
   ButtonVariant,
+  CalendarProps,
+  CardProps,
+  CheckboxGroupProps,
+  CheckboxProps,
   ChipGroupChipProps,
+  ChipGroupProps,
+  ChipProps,
+  CodeProps,
+  ColorAreaProps,
+  ColorFieldProps,
+  ColorPickerProps,
+  ColorSliderProps,
   ColorSwatchPickerItemProps,
+  ColorSwatchPickerProps,
+  ColorSwatchProps,
+  ColorWheelProps,
+  ComboBoxProps,
   ComboBoxSelectionMode,
+  ContainerProps,
+  CopyFieldProps,
+  CurrencyProps,
+  DateFieldProps,
+  DatePickerProps,
+  DateRangePickerProps,
   DialogContentProps,
+  DialogProps,
   DialogTitleProps,
+  DisclosureGroupProps,
   DisclosureHeaderProps,
   DisclosurePanelProps,
+  DisclosureProps,
+  FeedProps,
   FieldVariant,
+  FormProps,
+  IconButtonProps,
   IconButtonSize,
   IconButtonVariant,
+  KeycapProps,
+  LinkProps,
   LinkTone,
   LinkUnderline,
   ListBoxItemProps,
   ListBoxLoadMoreProps,
+  ListBoxProps,
   ListBoxSectionProps,
+  ListDetailProps,
+  ListItemProps,
   ListLoadMoreProps,
+  ListProps,
   ListRowProps,
   ListSectionProps,
   MenuAlign,
   MenuContentProps,
   MenuItemProps,
   MenuLoadMoreProps,
+  MenuProps,
   MenuSectionProps,
   MenuSeparatorProps,
   MenuSide,
   MenuSubmenuProps,
+  MeterProps,
   MeterTone,
   NavigationTreeProps,
+  NumberFieldProps,
   PopoverAlign,
   PopoverContentProps,
   PopoverDescriptionProps,
+  PopoverProps,
   PopoverSide,
   PopoverSize,
   PopoverTitleProps,
   PopoverTrigger,
+  ProductIconProps,
+  ProgressIndicatorProps,
   ProgressIndicatorTone,
   ProgressIndicatorVariant,
+  RadioGroupProps,
+  RadioProps,
+  RangeCalendarProps,
+  SearchFieldProps,
+  SegmentedButtonProps,
+  SelectProps,
   SeparatorInset,
+  SeparatorProps,
   SheetContentProps,
+  SheetProps,
   SheetTitleProps,
+  SliderProps,
   SnackbarAction,
   SnackbarMessage,
   SnackbarOptions,
+  SnackbarProps,
   SnackbarQueue,
   SnackbarRegionRenderProps,
+  StackProps,
+  SupportingPaneProps,
+  SwitchProps,
   TableLoadMoreProps,
   TabsListProps,
   TabsPanelProps,
   TabsPanelsProps,
+  TabsProps,
   TabsTabProps,
+  TagProps,
+  TextAreaProps,
+  TextFieldProps,
+  TextProps,
+  TimeFieldProps,
+  TokenFieldProps,
   TokenSegment,
+  ToolbarProps,
   ToolbarTone,
   TooltipAlign,
+  TooltipProps,
   TooltipSide,
   TreeProps,
 } from '.'
-import type { AppBarProps } from './app-bar'
-import type { AutocompleteProps } from './autocomplete'
-import type { AvatarProps } from './avatar'
-import type { BreadcrumbsProps } from './breadcrumbs'
-import type { ButtonProps } from './button'
-import type { CalendarProps } from './calendar'
-import type { CardProps } from './card'
-import type { CheckboxProps } from './checkbox'
-import type { CheckboxGroupProps } from './checkbox-group'
-import type { ChipProps } from './chip'
-import type { ChipGroupProps } from './chip-group'
-import type { CodeProps } from './code'
-import type { ColorAreaProps } from './color-area'
-import type { ColorFieldProps } from './color-field'
-import type { ColorPickerProps } from './color-picker'
-import type { ColorSliderProps } from './color-slider'
-import type { ColorSwatchProps } from './color-swatch'
-import type { ColorSwatchPickerProps } from './color-swatch-picker'
-import type { ColorWheelProps } from './color-wheel'
-import type { ComboBoxProps } from './combo-box'
-import type { ContainerProps } from './container'
-import type { CopyFieldProps } from './copy-field'
-import type { CurrencyProps } from './currency'
-import type { DateFieldProps } from './date-field'
-import type { DatePickerProps } from './date-picker'
-import type { DateRangePickerProps } from './date-range-picker'
-import type { DialogProps } from './dialog'
-import type { DisclosureProps } from './disclosure'
-import type { DisclosureGroupProps } from './disclosure-group'
-import type { FeedProps } from './feed'
-import type { FormProps } from './form'
-import type { IconButtonProps } from './icon-button'
-import type { KeycapProps } from './keycap'
-import type { LinkProps } from './link'
-import type { ListProps } from './list'
-import type { ListBoxProps } from './list-box'
-import type { ListDetailProps } from './list-detail'
-import type { ListItemProps } from './list-item'
-import type { MenuProps } from './menu'
-import type { MeterProps } from './meter'
-import type { NumberFieldProps } from './number-field'
-import type { PopoverProps } from './popover'
-import type { ProductIconProps } from './product-icon'
-import type { ProgressIndicatorProps } from './progress-indicator'
-import type { RadioGroupProps, RadioProps } from './radio-group'
-import type { RangeCalendarProps } from './range-calendar'
-import type { SearchFieldProps } from './search-field'
-import type { SegmentedButtonProps } from './segmented-button'
-import type { SelectProps } from './select'
-import type { SeparatorProps } from './separator'
-import type { SheetProps } from './sheet'
-import type { SliderProps } from './slider'
-import type { SnackbarProps } from './snackbar'
-import type { StackProps } from './stack'
-import type { SupportingPaneProps } from './supporting-pane'
-import type { SwitchProps } from './switch'
-import type { TabsProps } from './tabs'
-import type { TagProps } from './tag'
-import type { TextProps } from './text'
-import type { TextAreaProps } from './text-area'
-import type { TextFieldProps } from './text-field'
-import type { TimeFieldProps } from './time-field'
-import type { TokenFieldProps } from './token-field'
-import type { ToolbarProps } from './toolbar'
-import type { TooltipProps } from './tooltip'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
