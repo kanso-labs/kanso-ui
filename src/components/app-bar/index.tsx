@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { createElement } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -128,10 +129,28 @@ const HEADLINE_VARIANT = {
 } as const
 
 // The headline is the page's title in Material Design's model, so it is the
-// page's <h1>. A bar nested somewhere that already has one can pass its own
-// heading as `headline` instead.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
+// page's <h1> unless the call site says otherwise. `headingLevel` is what says
+// otherwise, and a bar drawn beside another bar — one per pane in a
+// `ListDetail` or a `SupportingPane` — or under a page heading of its own
+// should lower it.
+//
+// Built here rather than kept as a constant per level: `headline` becomes the
+// heading's children, so a call site cannot demote the heading by passing one
+// of its own. `headline={<h2>…</h2>}` renders an h2 inside the h1 — two
+// headings where one was wanted, which React does not warn about.
+//
+// The level is looked up rather than interpolated into a tag name. `h7` is a
+// custom element as far as React is concerned, so it renders without a word
+// said and leaves the outline worse than the default would have. Disclosure's
+// own `headingLevel` hands the number to React Aria, which is why that one
+// needs no equivalent.
+const HEADINGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
+
+function heading(level: number) {
+  const index = Math.min(Math.max(Math.round(level), 1), HEADINGS.length) - 1
+  return createElement(HEADINGS[index])
+}
+
 const PARAGRAPH = <p />
 
 // Height is the one value the call site does not choose, and it depends on two
@@ -215,6 +234,13 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * gutter. Unset, the row is as wide as the bar.
    */
   contentMaxInlineSize?: string
+  /**
+   * Where the headline sits in the page's outline. A screen reader moves
+   * between headings, so a bar drawn beside another bar, or under a page
+   * heading of its own, should lower it.
+   * @default 1
+   */
+  headingLevel?: number
   /** The page's title. Wraps rather than truncating, and grows the bar with it. */
   headline?: ReactNode
   /** Usually a back or menu icon button. Sits before the text. */
@@ -260,6 +286,7 @@ function AppBar({
   collapsed = false,
   contentInset = DEFAULT_CONTENT_INSET,
   contentMaxInlineSize = 'none',
+  headingLevel = 1,
   headline,
   leading,
   render,
@@ -302,7 +329,7 @@ function AppBar({
             {headline === undefined ? null : (
               <Text
                 {...stylex.props(styles.headline)}
-                render={HEADING_1}
+                render={heading(headingLevel)}
                 variant={
                   collapse ? HEADLINE_VARIANT.small : HEADLINE_VARIANT[size]
                 }
