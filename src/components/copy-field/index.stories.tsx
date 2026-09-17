@@ -163,18 +163,21 @@ const Copied: Story = {
       value: { writeText: async () => {} },
     })
 
+    // Found by name rather than read off `textContent`: both labels sit in
+    // the DOM so the button keeps its width, and only the accessible name
+    // tells the one on show from the one holding the room.
     const button = canvas.getByRole('button')
-    await expect(button.textContent).toBe('Copy')
+    await expect(canvas.getByRole('button', { name: 'Copy' })).toBe(button)
 
     await userEvent.click(button)
     await waitFor(async () => {
-      await expect(button.textContent).toBe('Copied')
+      await expect(canvas.getByRole('button', { name: 'Copied' })).toBe(button)
     })
 
     // No timer is advanced. This waits out the real dwell.
     await waitFor(
       async () => {
-        await expect(button.textContent).toBe('Copy')
+        await expect(canvas.getByRole('button', { name: 'Copy' })).toBe(button)
       },
       { timeout: 5000 },
     )
