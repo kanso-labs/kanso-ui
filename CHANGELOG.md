@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.28.4](https://github.com/kanso-labs/kanso-ui/compare/v0.28.3...v0.28.4) (2026-09-17)
+
+
+### Bug Fixes
+
+* **button:** correct the comment describing the padding cascade ([#880](https://github.com/kanso-labs/kanso-ui/issues/880)) ([a4761e2](https://github.com/kanso-labs/kanso-ui/commit/a4761e216425b2978b6d56449f4eb632a7864a67))
+* **control:** centre the label on the 40dp disc under any body line height ([#863](https://github.com/kanso-labs/kanso-ui/issues/863)) ([86dbdce](https://github.com/kanso-labs/kanso-ui/commit/86dbdce2cc923381185480bf0a29569fea6f3e91))
+* **date-picker,date-range-picker:** put the calendar button in the box's trailing slot ([#866](https://github.com/kanso-labs/kanso-ui/issues/866)) ([2ead7c3](https://github.com/kanso-labs/kanso-ui/commit/2ead7c3167e88aa56ce00b540a1584d591b55de9))
+* **slider:** write the 6dp beside the handle as the page's number rather than a spacing step ([#873](https://github.com/kanso-labs/kanso-ui/issues/873)) ([1e2b95f](https://github.com/kanso-labs/kanso-ui/commit/1e2b95f6ae208334d7c0952532438f98b06fc52a))
+* **token-field:** drop the second padding under the tokens ([#870](https://github.com/kanso-labs/kanso-ui/issues/870)) ([8e3b830](https://github.com/kanso-labs/kanso-ui/commit/8e3b830f4a5896aee5f0c216962c310c2d9452f2))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.9.3 ([#867](https://github.com/kanso-labs/kanso-ui/issues/867)) ([0414e6f](https://github.com/kanso-labs/kanso-ui/commit/0414e6fb1874b3209cecfa8412f7a3a8f6f037dd))
+* update chromaui/action action to v18.9.4 ([#871](https://github.com/kanso-labs/kanso-ui/issues/871)) ([79393b2](https://github.com/kanso-labs/kanso-ui/commit/79393b2d6a0a3c12c00d11dac709da585e51e3eb))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.7.0 ([#868](https://github.com/kanso-labs/kanso-ui/issues/868)) ([b0ab27d](https://github.com/kanso-labs/kanso-ui/commit/b0ab27df15155076f6f926c6948b1ba63626f2bf))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.8.0 ([#872](https://github.com/kanso-labs/kanso-ui/issues/872)) ([29af72f](https://github.com/kanso-labs/kanso-ui/commit/29af72f6096df656f47ff7290b6fcbac2006652c))
+
 ## [0.28.3](https://github.com/kanso-labs/kanso-ui/compare/v0.28.2...v0.28.3) (2026-09-17)
 
 
