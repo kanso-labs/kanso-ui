@@ -49,6 +49,15 @@ import {
 //
 // Vertical, the same parts run along the block axis, with the active part
 // rising from the bottom and the indicator to the start side of the handle.
+// The sliders page's own measurements, which are constants of the component
+// rather than steps of the consumer's spacing scale. `clearOf` below read the
+// gap off `spacing.sm` — true at its default 8, since 6 plus half the handle
+// comes to the same — so a theme moving that step opened the gap beside the
+// handle while the stop, written as the literal it is, stayed where the page
+// puts it.
+const HANDLE_GAP = '6px'
+const HANDLE_WIDTH = '4px'
+
 const styles = stylex.create({
   active: {
     backgroundColor: colors.primary,
@@ -132,24 +141,26 @@ const styles = stylex.create({
     insetBlockStart: 'auto',
     insetInlineStart: '14px',
   },
-  // The stop at the inactive end: 4dp, 6dp in from that end and centred
-  // across the strip, which is the same 6dp on both axes.
+  // The stop at the inactive end: 4dp, the page's gap in from that end and
+  // centred across the strip, which is that same gap on both axes. Its own
+  // 4dp is the dot's size rather than the handle's width, which happens to
+  // match.
   stop: {
     backgroundColor: colors.onSecondaryContainer,
     blockSize: '4px',
     borderRadius: radii.full,
     inlineSize: '4px',
-    insetBlockStart: '6px',
-    insetInlineEnd: '6px',
+    insetBlockStart: HANDLE_GAP,
+    insetInlineEnd: HANDLE_GAP,
     position: 'absolute',
   },
   stopDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
   },
   stopVertical: {
-    insetBlockStart: '6px',
+    insetBlockStart: HANDLE_GAP,
     insetInlineEnd: 'auto',
-    insetInlineStart: '6px',
+    insetInlineStart: HANDLE_GAP,
   },
   // The handle. React Aria places it by percent along the track and centres
   // it on that point; the 50% across the track is this side's, since React
@@ -161,7 +172,7 @@ const styles = stylex.create({
     borderRadius: radii.full,
     boxSizing: 'border-box',
     cursor: 'grab',
-    inlineSize: '4px',
+    inlineSize: HANDLE_WIDTH,
     insetBlockStart: '50%',
     outlineColor: colors.primary,
     outlineOffset: '2px',
@@ -250,11 +261,11 @@ type SliderProps = Omit<RACSliderProps, 'children' | 'orientation'> & {
 }
 
 // The inset of a part's end from the track's end, clear of the handle at
-// `percent` of the way along. `spacing.sm` is the 6dp of space plus half the
-// handle's 4dp, which is what the page measures between the two.
+// `percent` of the way along. The percentage lands on the handle's centre,
+// so half the handle's width joins the page's gap to reach its edge.
 function clearOf(percent: number, fromEnd: boolean) {
   const along = fromEnd ? 100 - percent : percent
-  return `calc(${along}% + ${spacing.sm})`
+  return `calc(${along}% + ${HANDLE_GAP} + ${HANDLE_WIDTH} / 2)`
 }
 
 /**

@@ -3,7 +3,11 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Slider from '.'
-import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  spacing,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -51,6 +55,11 @@ const THUMB_LABELS = ['Start', 'End']
  * The track's parts, in order, and the handle around `input`. React Aria
  * wraps the range input in a visually hidden element inside the handle.
  */
+// A scheme that moves the spacing scale's small step off its default 8, which
+// is the value the handle's clearance used to be read from. `Editorial` in
+// src/theming/themes.ts is the scheme this came from.
+const looseSpacing = stylex.createTheme(spacing, { sm: '10px' })
+
 function partsOf(input: HTMLElement) {
   const thumb = input.parentElement?.parentElement
   const track = thumb?.parentElement
@@ -218,6 +227,31 @@ describe('slider', () => {
       expect(getComputedStyle(thumb).height).toBe('44px')
       expect(centre - active.right).toBeCloseTo(8, 0)
       expect(inactive.left - centre).toBeCloseTo(8, 0)
+    })
+
+    // The clearance is the page's 6dp plus half the handle, both constants of
+    // the component. Read off the spacing scale it came to the same 8 under
+    // the default tokens and opened up under a scheme that moves that step,
+    // leaving the parts further from the handle than the stop is from the end.
+    it("keeps the parts 8 clear when the spacing scale's small step moves", () => {
+      const view = render(
+        <div {...stylex.props(looseSpacing)}>
+          <Slider defaultValue={40} label="Label" />
+        </div>,
+      )
+      const input = view.getByRole('slider', { name: 'Label' })
+      const { segments, thumb } = partsOf(input)
+      const thumbBox = thumb.getBoundingClientRect()
+      const centre = thumbBox.x + thumbBox.width / 2
+
+      expect(centre - segments[0].getBoundingClientRect().right).toBeCloseTo(
+        8,
+        0,
+      )
+      expect(segments[1].getBoundingClientRect().left - centre).toBeCloseTo(
+        8,
+        0,
+      )
     })
   })
 })
