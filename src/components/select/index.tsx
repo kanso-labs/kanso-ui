@@ -24,7 +24,12 @@ import {
 import { ChevronEndGlyph } from '../../glyphs'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
-import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  motion,
+  radii,
+  spacing,
+} from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
 // The menus page's exposed dropdown menu: a text field that opens a list
@@ -72,12 +77,19 @@ function chevronFor(isOpen: boolean) {
 const styles = stylex.create({
   // The page's trailing icon. It points down closed and up open, turned
   // rather than swapped, so the two states are one glyph.
+  //
+  // Turned on the same step as the surface it opens: the popup's entry
+  // animation is `durationShort3`, so the turn and the arrival settle
+  // together rather than the glyph finishing first. That is also the step
+  // every other chevron here takes — Disclosure's, Tree's and
+  // NavigationTree's — and the standard easing is theirs too.
   chevron: {
     blockSize: '24px',
     inlineSize: '24px',
     transform: 'rotate(90deg)',
-    transitionDuration: '150ms',
+    transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
+    transitionTimingFunction: motion.easingStandard,
   },
   chevronOpen: {
     transform: 'rotate(-90deg)',
