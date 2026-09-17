@@ -73,7 +73,7 @@ jobs:
       # reports a failed upload rather than failing Test. Nothing gates on
       # coverage, and an upload is not worth a red check on work that passed.
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5.5.5
+        uses: codecov/codecov-action@v7.1.1
         with:
           disable_search: true
           files: coverage/cobertura-coverage.xml
@@ -95,7 +95,7 @@ jobs:
       # tests to describe.
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5.5.5
+        uses: codecov/codecov-action@v7.1.1
         with:
           disable_search: true
           files: .vitest/test-results.junit.xml
