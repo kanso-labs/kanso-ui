@@ -1,5 +1,10 @@
 # Kanso UI
 
+[![npm version][npm-version-shield]][npm]
+[![npm downloads][npm-downloads-shield]][npm]
+[![License][license-shield]][license] [![Build][build-shield]][build-workflow]
+[![Test][test-shield]][test-workflow] [![Coverage][coverage-shield]][codecov]
+
 A React component library built on [StyleX](https://stylexjs.com) and
 [React Aria Components](https://react-aria.adobe.com), with design tokens
 sourced from a single
@@ -234,3 +239,20 @@ need them exported.
   `src/tokens/design.tokens.json`
 - `npm test` — Storybook story tests (vitest, headless Chromium)
 - `npm run build` — build the publishable package into `dist/`
+
+[build-shield]:
+  https://img.shields.io/github/actions/workflow/status/kanso-labs/kanso-ui/build.yaml?branch=main&label=Build
+[build-workflow]:
+  https://github.com/kanso-labs/kanso-ui/actions/workflows/build.yaml
+[codecov]: https://codecov.io/gh/kanso-labs/kanso-ui
+[coverage-shield]:
+  https://img.shields.io/codecov/c/github/kanso-labs/kanso-ui?label=Coverage
+[license]: ./LICENSE
+[license-shield]: https://img.shields.io/github/license/kanso-labs/kanso-ui
+[npm]: https://www.npmjs.com/package/@kanso-labs/kanso-ui
+[npm-downloads-shield]: https://img.shields.io/npm/dm/@kanso-labs/kanso-ui
+[npm-version-shield]: https://img.shields.io/npm/v/@kanso-labs/kanso-ui
+[test-shield]:
+  https://img.shields.io/github/actions/workflow/status/kanso-labs/kanso-ui/test.yaml?branch=main&label=Test
+[test-workflow]:
+  https://github.com/kanso-labs/kanso-ui/actions/workflows/test.yaml
