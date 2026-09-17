@@ -100,6 +100,25 @@ function Currency({
   })
 }
 
+// Constructing an Intl.NumberFormat resolves the locale, loads the currency's
+// data and builds the pattern; formatToParts on one already built skips all
+// three, which measures about ten times cheaper per value. An instance is
+// stateless once constructed, so one can be shared across every component
+// asking for the same three options.
+//
+// What this saves is a mount and a changing amount, not an idle re-render:
+// the React Compiler already memoises the call below on the four things it
+// reads, so a component re-rendered with the same props never reaches here.
+// That cache belongs to one component instance and counts `value` among its
+// keys, which leaves two cases it cannot cover — a column of rows, where every
+// instance has a cache of its own and each builds a formatter, and a single
+// amount that ticks, where each new value misses.
+//
+// Unbounded on purpose. The keys are the option sets an app actually uses —
+// its locales times its currencies times the three sign settings — so the map
+// settles at that size rather than growing with renders or with values.
+const formatters = new Map<string, Intl.NumberFormat>()
+
 // formatToParts rather than a replace over the formatted string, so only the
 // sign is substituted. A blind replace would also hit a hyphen inside a
 // locale's currency name or grouping, and locales that wrap negatives in
@@ -108,14 +127,33 @@ function formatCurrency(
   value: number,
   options: { currency: string; locale: string | undefined; sign: SignDisplay },
 ) {
-  return new Intl.NumberFormat(options.locale, {
-    currency: options.currency,
-    signDisplay: options.sign,
-    style: 'currency',
-  })
+  return formatterFor(options.locale, options.currency, options.sign)
     .formatToParts(value)
     .map((part) => (part.type === 'minusSign' ? MINUS_SIGN : part.value))
     .join('')
+}
+
+function formatterFor(
+  locale: string | undefined,
+  currency: string,
+  sign: SignDisplay,
+) {
+  // Neither a BCP 47 locale nor an ISO 4217 code can contain a vertical bar
+  // and `sign` is one of three known words, so joining on one cannot make two
+  // different option sets share a key.
+  const key = `${locale ?? ''}|${currency}|${sign}`
+  const cached = formatters.get(key)
+  if (cached) {
+    return cached
+  }
+
+  const formatter = new Intl.NumberFormat(locale, {
+    currency,
+    signDisplay: sign,
+    style: 'currency',
+  })
+  formatters.set(key, formatter)
+  return formatter
 }
 
 // Zero is neither owed nor owing, so it takes the neutral role rather than
