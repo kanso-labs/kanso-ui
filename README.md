@@ -61,10 +61,17 @@ The components are built on
 [React Aria Components](https://react-aria.adobe.com), and the utilities an app
 needs around them come from this package too: `I18nProvider` and
 `RouterProvider`, `Collection`, `VisuallyHidden`, `Focusable` and `Pressable`,
-`Virtualizer` with its layouts, the `useFilter`, `useListData`, `useTreeData`
-and `useAsyncList` hooks, `useDragAndDrop` with `useDrag`, `useDrop` and the
-drop item guards, `useLocale`, `parseColor` and `getColorChannels`, and the
-`Key`, `Selection`, `SortDescriptor` and `PressEvent` types.
+`SharedElement` and `SharedElementTransition`, `Virtualizer` with its layouts,
+the `useFilter`, `useListData`, `useTreeData` and `useAsyncList` hooks,
+`useDragAndDrop` with `useDrag`, `useDrop`, the drop item guards and
+`DIRECTORY_DRAG_TYPE`, `useLocale`, `parseColor` and `getColorChannels`,
+`TokenFieldValue`, and the `Key`, `Selection`, `SortDescriptor` and `PressEvent`
+types.
+
+A virtualized collection needs to be told how tall its rows are, and
+`collectionSizes` is what the collections here measure — `listRow`, `menuRow`,
+`tableRow` and the rest — so a `Virtualizer`'s `layoutOptions` take a number the
+components agree with rather than one guessed at the call site.
 
 ```tsx
 import { I18nProvider, useListData } from '@kanso-labs/kanso-ui'
@@ -75,6 +82,27 @@ of the library carries a second set of contexts, and the two never meet: a
 `Button` placed inside a `Sheet` from this package opens nothing when the
 trigger context it looks for belongs to your copy. Everything above is the same
 object the components use, which is what keeps them talking to each other.
+
+### Date values
+
+The date components — `DatePicker`, `DateField`, `Calendar`, `RangeCalendar`,
+`DateRangePicker` and `TimeField` — take the values
+[`@internationalized/date`](https://react-spectrum.adobe.com/internationalized/date/)
+builds, and this package publishes them at its own `./date` subpath:
+
+```ts
+import {
+  CalendarDate,
+  getLocalTimeZone,
+  today,
+} from '@kanso-labs/kanso-ui/date'
+```
+
+**Do not install `@internationalized/date` alongside this package.** A
+`CalendarDate` built from a second copy is a different class, and a `Calendar`'s
+`value` rejects it. The subpath is what makes installing it unnecessary, and it
+is a subpath rather than part of the main entry so an app with no date component
+pays nothing for it.
 
 ### Layout
 
@@ -162,9 +190,9 @@ with the same styles and ripple, announced as the link it is.
 <Button href="/items/1">Label</Button>
 ```
 
-The overlays — `Sheet` and `Popover` — are opened by a `Button` or `IconButton`
-placed directly inside them, and closed by any button inside their content given
-`slot="close"`:
+The overlays — `Sheet`, `Dialog` and `Popover` — are opened by a `Button` or
+`IconButton` placed directly inside them, and closed by any button inside their
+content given `slot="close"`:
 
 ```tsx
 <Sheet>
