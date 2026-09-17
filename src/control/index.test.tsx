@@ -87,6 +87,12 @@ function firstLineOf(label: Element) {
 // styles keeps one identity across renders.
 const WRAPPING_WIDTH = { width: '220px' }
 
+// A line box's height comes from the font's own metrics, which rasterise
+// differently between machines — the same assertion that read exactly 0 here
+// read -0.5 on CI. Half a pixel is the rounding, and the drifts this guards
+// against are 4px and 8px, so a sub-pixel tolerance separates them cleanly.
+const SUBPIXEL = 1
+
 function centringOf(container: HTMLElement, text: string) {
   const spans = [...container.querySelectorAll('span')]
   const disc = spans.find(
@@ -174,7 +180,7 @@ describe('the shared control row', () => {
     it('centres a one-line label on the disc under a longer body line', () => {
       const view = renderCheckbox(SHORT, true)
 
-      expect(centringOf(view.container, SHORT)).toBe(0)
+      expect(Math.abs(centringOf(view.container, SHORT))).toBeLessThan(SUBPIXEL)
     })
 
     // The label that wraps is what separates a first-line centring from one
@@ -184,7 +190,9 @@ describe('the shared control row', () => {
       for (const themed of [false, true]) {
         const view = renderCheckbox(WRAPPING, themed)
 
-        expect(centringOf(view.container, WRAPPING)).toBe(0)
+        expect(Math.abs(centringOf(view.container, WRAPPING))).toBeLessThan(
+          SUBPIXEL,
+        )
       }
     })
 
