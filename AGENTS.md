@@ -358,6 +358,34 @@ sentence case, the imperative CTAs, the things to avoid — lives in
 visual tokens, so it reaches anything handed the token file on its own. Both
 apply to a new component's stories, and neither is a subset of the other.
 
+### Media queries a test cannot set
+
+**Nothing drives Chromium's media emulation, and nothing should start.**
+`Emulation.setEmulatedMedia` over Vitest's `cdp()` is the direct way to put the
+page in the state a `prefers-reduced-motion` or `forced-colors` reader is in,
+and it is a page-level command while Vitest runs every test file as an iframe
+inside one shared page. That costs two ways. Two files driving it write one
+setting, so each corrupts the other's. And the send waits on whatever the whole
+page is doing: the same call measured 1ms with the file running alone and 1.5s,
+2.8s, 12.8s and 14.9s over a full run, while the other files were at peak
+concurrency. Half the 30s timeout is inside that noise, which is what timed out
+a different handful of `segmented-button/index.test.tsx` on every run — always
+as a timeout, never as an assertion, and never reproducible on the one file.
+
+Read the rule out of the compiled stylesheet instead, walking
+`document.styleSheets` for the declarations that reach the element's own
+classes. It is deterministic, it needs no restoring afterwards, and it asserts
+the thing that was actually written down.
+`src/styles/overlay-reduced-motion.test.tsx`,
+`src/components/segmented-button/index.test.tsx` and
+`src/field/forced-colors.test.tsx` each carry a walker of that shape; copy the
+nearest one rather than reaching for emulation.
+
+What this cannot prove is that the browser then applies the rule, which is the
+same limit `getComputedStyle` has against a query no test can turn on. Pin the
+resting value alongside the reduced one — a duration that is `0s` in both is a
+transition nobody wrote, not a media query doing its job.
+
 ### Controlling time
 
 Do not wait in real time for a component's own timers. An assertion can land

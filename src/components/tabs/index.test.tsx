@@ -78,9 +78,6 @@ function indicatorStyleOf(tab: HTMLElement) {
   return getComputedStyle(indicator)
 }
 
-// Chromium's own media emulation, which is the only way to put the page in
-// the state a reduced-motion reader is in — nothing in the suite sets it,
-// and `matchMedia` cannot be written to.
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   const view = render(
     <Tabs defaultSelectedKey="first" {...props}>
