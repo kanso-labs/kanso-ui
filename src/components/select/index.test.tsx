@@ -3,7 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Select from '.'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { colors, motion, typography } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -15,6 +15,10 @@ const probeStyles = stylex.create({
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
   placeholder: { color: colors.onSurfaceVariant },
+  // The curve the rest of the library turns a chevron on, read back through
+  // the browser so the assertion pins the role rather than the cubic-bezier
+  // it currently resolves to.
+  standardEasing: { transitionTimingFunction: motion.easingStandard },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -50,6 +54,17 @@ function hasClasses(element: Element, classes: string[]) {
 // narrower than itself for reasons that are the window's rather than the
 // component's. A fixed width keeps the two comparable.
 const WIDTH = { width: '320px' }
+
+// The chevron is the only svg either field draws. Narrowed here rather than
+// asserted at the call site, so a field that failed to draw one fails with
+// that sentence instead of further down on a null.
+function glyphOf(view: ReturnType<typeof render>) {
+  const glyph = view.container.querySelector('svg')
+  if (glyph === null) {
+    throw new Error('expected the field to draw a chevron')
+  }
+  return glyph
+}
 
 function setup(props: Partial<Parameters<typeof Select<object>>[0]> = {}) {
   const view = render(
@@ -276,6 +291,57 @@ describe('select', () => {
       const surface = view.getByRole('listbox').parentElement
       expect(surface?.style.getPropertyValue('--trigger-width')).toBe(
         `${box.getBoundingClientRect().width}px`,
+      )
+    })
+  })
+  // The turn is drawn from the motion tokens rather than written as literals,
+  // which is what lets an app retime it: redeclaring
+  // `--kui-motion-duration-short3` is the documented way to do that from
+  // outside the StyleX toolchain, and a hard-coded duration ignores it.
+  describe('the turn', () => {
+    // On the document element rather than on a wrapper: StyleX compiles a
+    // token into a variable of its own, declared once at the root as the
+    // `--kui-*` custom property with its default as the fallback. Resolving
+    // there is why an app sets these at the root too, and why setting one
+    // further down reaches nothing.
+    it('follows an override of the motion duration token', () => {
+      const root = document.documentElement
+      root.style.setProperty('--kui-motion-duration-short3', '640ms')
+
+      try {
+        const view = render(
+          <div style={WIDTH}>
+            <Select label="Label" options={OPTIONS} />
+          </div>,
+        )
+
+        expect(getComputedStyle(glyphOf(view)).transitionDuration).toBe('0.64s')
+      } finally {
+        root.style.removeProperty('--kui-motion-duration-short3')
+      }
+    })
+
+    // Named rather than left to fall to the CSS initial value, which is
+    // `ease` — not the curve every other chevron here turns on.
+    it('turns on the standard easing', () => {
+      const probe = render(
+        <div {...stylex.props(probeStyles.standardEasing)} />,
+      )
+      const swatch = probe.container.firstElementChild
+      if (swatch === null) {
+        throw new Error('expected the probe to render an element')
+      }
+      const expected = getComputedStyle(swatch).transitionTimingFunction
+      probe.unmount()
+
+      const view = render(
+        <div style={WIDTH}>
+          <Select label="Label" options={OPTIONS} />
+        </div>,
+      )
+
+      expect(getComputedStyle(glyphOf(view)).transitionTimingFunction).toBe(
+        expected,
       )
     })
   })
