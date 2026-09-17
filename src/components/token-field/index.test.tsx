@@ -63,6 +63,27 @@ function setup(props: Partial<Parameters<typeof TokenField>[0]> = {}) {
   return render(<TokenField defaultValue={TAGGED} label="Label" {...props} />)
 }
 
+// The room the box leaves above its label and below what the control draws.
+// Measured to the control's content edge rather than its border edge: a
+// padding on the control itself is room under the tokens as surely as the
+// box's own is, which is exactly what made the two add up.
+function spacingOf(view: ReturnType<typeof render>) {
+  const control = view.getByRole('textbox', { name: 'Label' })
+  const box = control.parentElement?.parentElement
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the control to sit in a column in the box')
+  }
+  const boxBox = box.getBoundingClientRect()
+  const controlBox = control.getBoundingClientRect()
+  const padBelow = parseFloat(getComputedStyle(control).paddingBlockEnd)
+
+  return {
+    above: view.getByText('Label').getBoundingClientRect().top - boxBox.top,
+    below: boxBox.bottom - (controlBox.bottom - padBelow),
+    height: boxBox.height,
+  }
+}
+
 describe('token field', () => {
   describe('semantics', () => {
     it('renders a text box named by its label', () => {
@@ -166,6 +187,38 @@ describe('token field', () => {
     it('shows the description when there is no error', () => {
       const view = setup({ description: 'Supporting line' })
       expect(view.getByText('Supporting line')).not.toBeNull()
+    })
+  })
+
+  // The box draws as much under the tokens as above the label, which is what
+  // the chrome's multiline box gives TextArea and what it gives this once the
+  // control stops adding room of its own on top of it.
+  describe('the room around the tokens', () => {
+    it('leaves as much under the tokens as above the label', () => {
+      const { above, below } = spacingOf(setup())
+
+      expect(below).toBe(above)
+    })
+
+    // The empty field is the case a margin above the control got wrong: the
+    // clearance sat outside the control's own height, so the box grew past
+    // what it drew and left the caret line high in it.
+    it('leaves the same room with nothing in the field', () => {
+      const { above, below } = spacingOf(setup({ defaultValue: EMPTY }))
+
+      expect(below).toBe(above)
+    })
+
+    // An empty field is no taller than one holding a line of tokens, which a
+    // box sized from something other than its content would not hold to.
+    // Measured one at a time: the queries reach the whole document, so two
+    // fields on screen at once would find each other's control.
+    it('is no taller empty than it is full', () => {
+      const emptyView = setup({ defaultValue: EMPTY })
+      const empty = spacingOf(emptyView).height
+      emptyView.unmount()
+
+      expect(empty).toBeLessThanOrEqual(spacingOf(setup()).height)
     })
   })
 })

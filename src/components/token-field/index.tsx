@@ -19,7 +19,7 @@ import { FieldBox, FieldMessage } from '../../field'
 import { fieldStyles, invalidFrom } from '../../field/root'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // The chips page's input chips inside a text field: a field whose value is
 // text with pills in it — a tag input, a mention field, a structured search
@@ -53,6 +53,12 @@ import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 // segment's own text. Either way the pill is the page's, so a token here and
 // a chip elsewhere cannot drift.
 
+// A token's pill is 32dp tall inside a body line of 24, so the control's
+// line makes room for it or the pills overlap once the value wraps. Stated
+// once because the control's floor and its line have to agree, and the
+// clearance under the label is measured from it.
+const TOKEN_LINE = '32px'
+
 const styles = stylex.create({
   // The editable area: the input's type, wrapping rather than scrolling, and
   // tall enough for one line before anything is typed.
@@ -71,22 +77,30 @@ const styles = stylex.create({
     fontWeight: typography.bodyLargeWeight,
     inlineSize: '100%',
     letterSpacing: typography.bodyLargeTracking,
-    // A token is 32dp tall inside a line of 24, so the line has to make room
-    // for it or the pills overlap once the value wraps.
-    lineHeight: '32px',
-    minBlockSize: '32px',
+    lineHeight: TOKEN_LINE,
+    minBlockSize: TOKEN_LINE,
     // The box around it draws the focus indicator, so a second ring on the
-    // control inside would be two treatments for one focus.
+    // control inside would be two treatments for one focus. It carries the
+    // room under the control too — `boxMultiline` in src/field/styles.ts —
+    // so a padding here as well left twice as much under the tokens as
+    // above the label, where TextArea on the same box reads even.
     outlineStyle: 'none',
-    paddingBlockEnd: spacing.sm,
     // Wrapped text keeps its spaces, which is what makes a caret between two
     // of them land where it looks like it should.
     whiteSpace: 'pre-wrap',
   },
   // Clears the label at the top of the box, the same way an input's value
   // does under a floating label.
+  //
+  // Padding inside the control rather than a margin above it, so the
+  // clearance is part of the control's own height. As a margin it was not,
+  // and an empty field then measured 16dp taller than the room it drew —
+  // the box sized itself to 80 where its content came to 64, leaving 24
+  // under the caret against 8 above the label. It also means a press just
+  // under the label lands in the field rather than on dead space.
   inputUnderLabel: {
-    marginBlockStart: typography.bodySmallLineHeight,
+    minBlockSize: `calc(${TOKEN_LINE} + ${typography.bodySmallLineHeight})`,
+    paddingBlockStart: typography.bodySmallLineHeight,
   },
   // A token's own pill sits on the value's line rather than filling it, and
   // the caret has to be able to land either side of it.
