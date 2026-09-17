@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.3](https://github.com/kanso-labs/kanso-ui/compare/v0.28.2...v0.28.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* **field:** size the box from the type scale rather than a fixed 56dp ([#861](https://github.com/kanso-labs/kanso-ui/issues/861)) ([2777c55](https://github.com/kanso-labs/kanso-ui/commit/2777c5554d71ba0d4147dfc6671e4af0ff3cd24e))
+* **select,combo-box:** take the chevron's timing from the motion tokens ([#858](https://github.com/kanso-labs/kanso-ui/issues/858)) ([02f28c6](https://github.com/kanso-labs/kanso-ui/commit/02f28c654a1e1ca5580da4ad198e5d4b1cd99ac5))
+
 ## [0.28.2](https://github.com/kanso-labs/kanso-ui/compare/v0.28.1...v0.28.2) (2026-09-17)
 
 
