@@ -82,9 +82,21 @@ const controlStyles = stylex.create({
     fontWeight: typography.bodyLargeWeight,
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
-    // Centres a one-line label on the 40dp control, and keeps a longer one
-    // starting on that line.
-    paddingBlock: spacing.sm,
+    // Centres the label's first line on the 40dp control, whether the label
+    // is one line or wraps to several. Half of whatever the disc has spare
+    // over the line it sits beside, rather than a step of the spacing scale:
+    // `sm` is that half only under the default tokens, where 8 + 24 + 8 is
+    // the disc's 40, and a scheme with a longer body line left the control
+    // sitting above the middle of its own label.
+    //
+    // A padding rather than a centred 40dp cell, which would centre the
+    // whole label instead of its first line and so drop a wrapping one's
+    // first line below the disc — by 8px under the default tokens, where
+    // nothing is meant to move.
+    //
+    // The disc is a fixed 40, so a body line taller than that has no room to
+    // centre in and the declaration falls away to nothing.
+    paddingBlock: `calc((40px - ${typography.bodyLargeLineHeight}) / 2)`,
   },
   labelDisabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
