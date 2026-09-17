@@ -410,6 +410,35 @@ can never run there. Raising the widget's number means writing a story, which is
 worth doing only when the check belongs in one anyway — do not port tests into
 stories to move it.
 
+**That report goes to two places from the same `Test` job.**
+`actions/upload-code-coverage` reports it under the `code-coverage/vitest`
+label, and `codecov/codecov-action` uploads the same Cobertura file to Codecov,
+which is what keeps the history the trend lines are drawn from. Neither gates:
+the action's `fail_ci_if_error` is left at its default of `false`, so a failed
+upload does not fail `Test`, and `.github/codecov.yml` marks both of Codecov's
+statuses informational — its default project status fails a pull request that
+lowers coverage by any amount, which is a threshold nobody agreed to. That file
+is `.yml` rather than the `.yaml` everything else here uses because Codecov
+recognises `codecov.yml` and `.codecov.yml` alone.
+
+**A third report goes up beside them, and it is not coverage.** A second
+`codecov/codecov-action` step, this one with `report_type: test_results`,
+uploads the JUnit XML `vite.config.ts` now writes under `.vitest/`, which
+Codecov reads for which tests failed and which are flaky rather than for a
+percentage. It is the same action as the coverage step on purpose:
+`codecov/test-results-action`, which Codecov's own docs still point at, prints a
+deprecation warning naming this one as its replacement.
+
+That step carries `if: ${{ !cancelled() }}`, which makes it the one step in the
+job that runs when the suite is red — the only time it has anything to say. The
+reporter is set at the root of `test` rather than inside a project, so both
+report into one file rather than the second overwriting the first.
+
+Both Codecov uploads want `CODECOV_TOKEN` in the repository's secrets. Without
+it they fall back to a tokenless upload, which this repository being public
+makes possible but rate-limited, so a report lands intermittently rather than
+not at all — which reads as a flaky uploader rather than as a missing secret.
+
 Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
 branches that no test can exercise, and attributes them to source lines holding
 no conditional. Treat an uncovered branch with no matching source conditional as

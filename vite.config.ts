@@ -183,6 +183,15 @@ export default defineConfig(({ command }) => ({
       provider: 'v8',
       reporter: ['text', 'cobertura'],
     },
+    // The file `Upload test results to Codecov` hands over. It goes under
+    // `.vitest/`, named for the tool that writes it the way `.vite/` beside it
+    // in `.gitignore` already is, so one ignored directory covers this report
+    // and anything Vitest writes next to it.
+    //
+    // Set here rather than inside a project, because both of them report into
+    // one file: a suite Codecov can read as a whole is the point, and a
+    // per-project setting would have the second overwrite the first.
+    outputFile: { junit: '.vitest/test-results.junit.xml' },
     projects: [
       {
         extends: true,
@@ -237,5 +246,9 @@ export default defineConfig(({ command }) => ({
         },
       },
     ],
+    // `default` stays in the list so the run still reads the same in a
+    // terminal — a `junit` reporter on its own replaces that output rather
+    // than adding to it. `outputFile` above says where the second one writes.
+    reporters: ['default', 'junit'],
   },
 }))
