@@ -36,6 +36,31 @@ const styles = stylex.create({
     position: 'absolute',
     whiteSpace: 'nowrap',
   },
+  // Hidden rather than absent: `visibility` keeps the box, which is what
+  // reserves the room, and takes the label out of the accessibility tree so
+  // the button's name is the one on show.
+  labelHidden: {
+    visibility: 'hidden',
+  },
+  // Both labels in one cell, so the button is as wide as the wider of them
+  // from the start and a press swaps which one shows rather than resizing
+  // the control. The button sits at the trailing end, so a width that grew
+  // on press moved leftwards under the pointer that had just pressed it.
+  //
+  // Button does this for its own pending state — see `label` and
+  // `labelPending` in src/components/button/index.tsx, and the comment there
+  // about a form jumping the moment it is submitted. This is the same jump
+  // one step over.
+  //
+  // A consumer passing labels of very different lengths gets a button sized
+  // to the longer one, which is the point rather than a cost.
+  labels: {
+    display: 'grid',
+    justifyItems: 'center',
+  },
+  labelSlot: {
+    gridArea: '1 / 1',
+  },
   root: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -140,7 +165,20 @@ function CopyField({
         <Code>{value}</Code>
       </span>
       <Button onClick={handleCopy} size="xs" variant="text">
-        {copied ? copiedLabel : copyLabel}
+        <span {...stylex.props(styles.labels)}>
+          <span
+            aria-hidden={copied || undefined}
+            {...stylex.props(styles.labelSlot, copied && styles.labelHidden)}
+          >
+            {copyLabel}
+          </span>
+          <span
+            aria-hidden={!copied || undefined}
+            {...stylex.props(styles.labelSlot, !copied && styles.labelHidden)}
+          >
+            {copiedLabel}
+          </span>
+        </span>
       </Button>
       {/* The button's own label changes, but a label changing under a screen
           reader is not reliably announced. This is. `<output>` carries an

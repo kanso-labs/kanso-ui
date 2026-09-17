@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react'
+import { act, render, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import CopyField from '.'
@@ -14,6 +14,15 @@ type WriteText = (text: string) => Promise<void>
 
 let writeText: ReturnType<typeof vi.fn<WriteText>>
 let original: PropertyDescriptor | undefined
+
+// The button if that is what it says, and null otherwise. Both labels sit in
+// the DOM so the control keeps its width when the state changes, which puts
+// the hidden one in `textContent` as well. A role query names the button
+// through the accessible-name algorithm instead, which accounts for the
+// hidden slot — and a name carrying both labels at once would match neither.
+function buttonNamed(button: HTMLElement, name: string) {
+  return within(button.ownerDocument.body).queryByRole('button', { name })
+}
 
 // The click handler awaits the clipboard promise before it sets any state, so
 // the microtask queue has to drain inside act for React to see the update.
@@ -70,12 +79,12 @@ describe('copyField', () => {
 
     it('offers the copy at rest', () => {
       const { button } = setup()
-      expect(button.textContent).toBe('Copy')
+      expect(buttonNamed(button, 'Copy')).toBe(button)
     })
 
     it('takes its labels from the call site', () => {
       const { button } = setup({ copyLabel: 'Take' })
-      expect(button.textContent).toBe('Take')
+      expect(buttonNamed(button, 'Take')).toBe(button)
     })
 
     it('passes attributes through to the root', () => {
@@ -94,9 +103,9 @@ describe('copyField', () => {
 
     it('confirms on the button once the write lands', async () => {
       const { button } = setup()
-      expect(button.textContent).toBe('Copy')
+      expect(buttonNamed(button, 'Copy')).toBe(button)
       await click(button)
-      expect(button.textContent).toBe('Copied')
+      expect(buttonNamed(button, 'Copied')).toBe(button)
     })
 
     it('reports the value to the call site', async () => {
@@ -113,12 +122,12 @@ describe('copyField', () => {
     it('returns to offering the copy after the dwell', async () => {
       const { button } = setup()
       await click(button)
-      expect(button.textContent).toBe('Copied')
+      expect(buttonNamed(button, 'Copied')).toBe(button)
 
       act(() => {
         vi.advanceTimersByTime(COPIED_RESET_MS)
       })
-      expect(button.textContent).toBe('Copy')
+      expect(buttonNamed(button, 'Copy')).toBe(button)
     })
 
     it('still confirms just before the dwell is up', async () => {
@@ -130,7 +139,7 @@ describe('copyField', () => {
       })
       // Guards the test above: an assertion that only ever ran after the full
       // dwell could not tell a working timer from one that never fired.
-      expect(button.textContent).toBe('Copied')
+      expect(buttonNamed(button, 'Copied')).toBe(button)
     })
 
     it('restarts the dwell when copied again', async () => {
@@ -144,7 +153,7 @@ describe('copyField', () => {
       act(() => {
         vi.advanceTimersByTime(COPIED_RESET_MS - 100)
       })
-      expect(button.textContent).toBe('Copied')
+      expect(buttonNamed(button, 'Copied')).toBe(button)
     })
 
     it('leaves no timer behind when unmounted mid-dwell', async () => {
@@ -173,7 +182,7 @@ describe('copyField', () => {
       })
       const { button } = setup()
       await click(button)
-      expect(button.textContent).toBe('Copy')
+      expect(buttonNamed(button, 'Copy')).toBe(button)
     })
 
     it('tells the call site nothing was copied', async () => {
@@ -208,6 +217,65 @@ describe('copyField', () => {
         vi.advanceTimersByTime(COPIED_RESET_MS)
       })
       expect(status.textContent).toBe('')
+    })
+  })
+
+  // The button sits at the trailing end of the field, so a width that grew
+  // on press moved leftwards under the pointer that had just pressed it, and
+  // snapped back when the dwell ended.
+  describe('the button’s width', () => {
+    it('does not change when the label does', async () => {
+      const { button } = setup()
+      const before = button.getBoundingClientRect().width
+
+      await click(button)
+
+      expect(button.getBoundingClientRect().width).toBe(before)
+    })
+
+    // Both labels are in the DOM to hold the width, so the one not on show
+    // has to be out of the accessibility tree — otherwise the button would
+    // be named for both at once.
+    it('is named for the label on show, not for both', async () => {
+      const { button, queryByRole } = setup()
+
+      expect(queryByRole('button', { name: 'Copy' })).toBe(button)
+      expect(queryByRole('button', { name: 'Copied' })).toBeNull()
+
+      await click(button)
+
+      expect(queryByRole('button', { name: 'Copied' })).toBe(button)
+      expect(queryByRole('button', { name: 'Copy' })).toBeNull()
+    })
+
+    // The room is held by a label that is present but not shown. Without the
+    // hiding both would draw at once, stacked in the one cell — which the
+    // width and the accessible name would both survive, so it takes a case
+    // of its own.
+    it('shows one label at a time', () => {
+      const { button } = setup()
+      const shown = [...button.querySelectorAll('span')].filter(
+        (span) =>
+          span.children.length === 0 &&
+          span.textContent !== '' &&
+          getComputedStyle(span).visibility !== 'hidden',
+      )
+
+      expect(shown.map((span) => span.textContent)).toEqual(['Copy'])
+    })
+
+    // A longer pair of labels sizes the button to the longer one, and still
+    // does not move when it is pressed.
+    it('holds a width the call site’s own labels ask for', async () => {
+      const { button } = setup({
+        copiedLabel: 'Copied to the clipboard',
+        copyLabel: 'Copy',
+      })
+      const before = button.getBoundingClientRect().width
+
+      await click(button)
+
+      expect(button.getBoundingClientRect().width).toBe(before)
     })
   })
 })
