@@ -195,7 +195,10 @@ describe('appearance', () => {
 
   // Padding belongs to the size, not the variant, so a text button and a
   // filled one agree at every size — including the default, where the text
-  // button used to be tighter.
+  // button used to be tighter. Every size rather than a couple of them: the
+  // arrangement this guards is the whole size axis carrying the geometry,
+  // and a variant reaching for a padding of its own would show up wherever
+  // it was declared.
   it('gives every variant the same inline padding at a size', () => {
     const inlinePadding = (props: Parameters<typeof setup>[0]) => {
       const { button, unmount } = setup(props)
@@ -204,10 +207,20 @@ describe('appearance', () => {
       return padding
     }
 
-    for (const size of ['md', 'lg'] as const) {
-      expect(inlinePadding({ size, variant: 'text' })).toBe(
-        inlinePadding({ size, variant: 'filled' }),
-      )
+    for (const size of ['xs', 'md', 'lg', 'xl', 'xxl'] as const) {
+      const filled = inlinePadding({ size, variant: 'filled' })
+
+      // A zero would make the comparisons below pass for the wrong reason.
+      expect(filled).not.toBe('0px')
+
+      for (const variant of [
+        'elevated',
+        'outlined',
+        'text',
+        'tonal',
+      ] as const) {
+        expect(inlinePadding({ size, variant })).toBe(filled)
+      }
     }
   })
 

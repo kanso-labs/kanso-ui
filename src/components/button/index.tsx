@@ -56,13 +56,24 @@ import ProgressIndicator from '../progress-indicator'
 // take the hover and pressed branches with them — which is what keeps a
 // hovered disabled button from lighting up.
 //
-// Two independent axes, applied base -> variant -> size. The order is what
-// lets `text` keep its tighter inline padding at the default size while the
-// other sizes still set their own: `md` deliberately declares no
-// paddingInline, so a medium button falls through to whatever its variant
-// asked for, and every other size overrides it. That mirrors the source
-// design's own cascade, where the size classes are declared after the
-// variant ones and win on padding for exactly the same reason.
+// Two independent axes, applied base -> variant -> size. The variant carries
+// colour and the size carries geometry, so the two never argue: inline
+// padding belongs to the size alone, and every size declares its own.
+//
+// That is deliberate rather than incidental. The buttons page gives padding
+// per size — its Small button padding is 16dp, the 24dp beside it being the
+// older value the page marks as not recommended — and gives the five colour
+// styles no padding of their own. A text button is therefore as wide as a
+// filled one at the same size, which is what the code draws.
+//
+// This did once read the other way, with `md` declaring no padding so a
+// medium button fell through to its variant's. `fix(button)!: the spec's
+// five sizes` replaced that when the component took the page's sizes, since
+// a per-variant padding had nowhere to sit once every size carried one. The
+// comment describing the old cascade outlived it by some months, which is
+// how it came to say `text` keeps a tighter padding it has never had — back
+// then `text` declared 16dp while a filled `md` declared none at all, so the
+// text button was the wider of the two.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
 const styles = stylex.create({
