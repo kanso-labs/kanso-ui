@@ -640,6 +640,29 @@ ahead of what was released. Chromatic publishes its own Storybook per commit,
 which is what the `Storybook Publish` context reports on; the two are
 independent, and the Pages copy is the one at a stable URL.
 
+**`Build` also uploads the bundle to Codecov**, through `@codecov/rollup-plugin`
+in `tsdown.config.ts`. Codecov's rollup plugin rather than its Vite one: tsdown
+is what builds the published package, `vite.config.ts` here configures Storybook
+and Vitest, and rolldown's plugin API is rollup's.
+
+`CODECOV_TOKEN` is what switches it on, and `enableBundleAnalysis` reads it
+directly. The token is an organisation secret, so it is undefined outside CI and
+a local `npm run build` neither writes the stats file nor uploads anything —
+which is also what a fork's pull request gets, rather than a failure for want of
+a secret it was never going to be given.
+
+**A failed upload does not fail the build**, which is worth knowing before
+trusting the absence of an error. An invalid token spends three retries and some
+seconds, logs `Failed to get pre-signed URL`, and lets `Run build` pass — so a
+bundle that stopped being reported looks exactly like one that is fine. Read the
+job log rather than the check mark.
+
+It reports the compiled stylesheet as `assets/stylex.css` rather than the
+`styles.css` a consumer imports, because that is its name while the plugin runs:
+the rename happens in `emit-stylex-css`'s `closeBundle`, which rollup reaches
+only after every `writeBundle` has settled. The bytes are the same, which is
+what the analysis measures.
+
 **Most of CI is shared, not configured here.**
 [`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)
 holds it, pinned by exact tag, and Renovate opens the bump pull requests:
