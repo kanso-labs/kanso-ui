@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.28.1](https://github.com/kanso-labs/kanso-ui/compare/v0.28.0...v0.28.1) (2026-09-17)
+
+
+### Dependencies
+
+* update codecov/codecov-action action to v7 ([#848](https://github.com/kanso-labs/kanso-ui/issues/848)) ([c2e2d44](https://github.com/kanso-labs/kanso-ui/commit/c2e2d4496a272f1f586e052e7ad8491803fd5fe5))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.6.1 ([#844](https://github.com/kanso-labs/kanso-ui/issues/844)) ([bd85607](https://github.com/kanso-labs/kanso-ui/commit/bd856072efdb5b11f5af6543783e63f40eabc73b))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.6.2 ([#847](https://github.com/kanso-labs/kanso-ui/issues/847)) ([755c25e](https://github.com/kanso-labs/kanso-ui/commit/755c25eb4885ef419072e2af51d732bd2d6fa0a3))
+
 ## [0.28.0](https://github.com/kanso-labs/kanso-ui/compare/v0.27.0...v0.28.0) (2026-09-17)
 
 
