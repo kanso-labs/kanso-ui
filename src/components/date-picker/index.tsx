@@ -93,6 +93,17 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
   variant?: FieldVariant
 }
 
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-jsx-as-prop is after — the same reason Select builds its
+// chevron this way.
+function calendarTrigger(triggerLabel: string) {
+  return (
+    <RACButton aria-label={triggerLabel} className={triggerClassName}>
+      <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
+    </RACButton>
+  )
+}
+
 /**
  * A date typed into a field, or picked from a calendar behind a button. The
  * value is React Aria's — pass `value` with `onChange` to control it, or
@@ -149,6 +160,17 @@ function DatePicker<T extends DateValue>({
         isPopulated
         label={label}
         leading={leadingIcon}
+        // In the chrome's trailing slot rather than on the segments' line,
+        // which is where Select and ComboBox put their chevron. The slot
+        // cancels the box's top padding and stretches to its full height, so
+        // it centres the 40dp trigger in the box; on the line the trigger
+        // was taller than the row that held it and hung past the underline,
+        // and the segments centred on it rather than on their own line.
+        //
+        // React Aria's `DatePicker` is what gives the trigger its press
+        // behaviour, through context, so the slot reaches it as well as the
+        // group did.
+        trailing={calendarTrigger(triggerLabel)}
         variant={variant}
       >
         <FieldValue>
@@ -156,9 +178,6 @@ function DatePicker<T extends DateValue>({
             <RACDateInput {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
-            <RACButton aria-label={triggerLabel} className={triggerClassName}>
-              <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
-            </RACButton>
           </RACGroup>
         </FieldValue>
       </FieldBox>
