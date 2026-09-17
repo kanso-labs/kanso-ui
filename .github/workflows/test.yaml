@@ -78,3 +78,26 @@ jobs:
           disable_search: true
           files: coverage/cobertura-coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      # The test results themselves, which is a different report from the
+      # coverage one above: Codecov reads it for which tests failed and which
+      # are flaky, not for a percentage. `report_type` is what says which of
+      # the two this upload is; the default is coverage.
+      #
+      # The same action as above rather than `codecov/test-results-action`,
+      # which Codecov's own docs still point at. That one prints "This action
+      # is being deprecated in favor of 'codecov-action'" on every run, and
+      # this is the replacement it names — so one pinned action covers both
+      # reports and Renovate has one bump to open rather than two.
+      #
+      # `!cancelled()` is what makes this the one step that runs when the suite
+      # fails, and it is the whole point — a run with nothing red has no failed
+      # tests to describe.
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5.5.5
+        with:
+          disable_search: true
+          files: .vitest/test-results.junit.xml
+          report_type: test_results
+          token: ${{ secrets.CODECOV_TOKEN }}
