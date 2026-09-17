@@ -410,6 +410,22 @@ can never run there. Raising the widget's number means writing a story, which is
 worth doing only when the check belongs in one anyway — do not port tests into
 stories to move it.
 
+**That report goes to two places from the same `Test` job.**
+`actions/upload-code-coverage` reports it under the `code-coverage/vitest`
+label, and `codecov/codecov-action` uploads the same Cobertura file to Codecov,
+which is what keeps the history the trend lines are drawn from. Neither gates:
+the action's `fail_ci_if_error` is left at its default of `false`, so a failed
+upload does not fail `Test`, and `.github/codecov.yml` marks both of Codecov's
+statuses informational — its default project status fails a pull request that
+lowers coverage by any amount, which is a threshold nobody agreed to. That file
+is `.yml` rather than the `.yaml` everything else here uses because Codecov
+recognises `codecov.yml` and `.codecov.yml` alone.
+
+The upload wants `CODECOV_TOKEN` in the repository's secrets. Without it the
+action falls back to a tokenless upload, which this repository being public
+makes possible but rate-limited, so the number lands intermittently rather than
+not at all — which reads as a flaky uploader rather than as a missing secret.
+
 Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
 branches that no test can exercise, and attributes them to source lines holding
 no conditional. Treat an uncovered branch with no matching source conditional as
