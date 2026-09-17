@@ -94,12 +94,13 @@ const WRAPPING_WIDTH = { width: '220px' }
 const SUBPIXEL = 1
 
 function centringOf(container: HTMLElement, text: string) {
-  const spans = [...container.querySelectorAll('span')]
-  const disc = spans.find(
-    (span) => Math.round(span.getBoundingClientRect().height) === 40,
+  // Found by the class the shared disc compiles to rather than by its
+  // height, so resizing the control does not quietly stop this finding it.
+  const disc = container.querySelector(`.${DISC[0]}`)
+  const label = [...container.querySelectorAll('span')].find(
+    (span) => span.textContent === text,
   )
-  const label = spans.find((span) => span.textContent === text)
-  if (disc === undefined || label === undefined) {
+  if (!(disc instanceof HTMLElement) || label === undefined) {
     throw new Error('expected the row to draw a disc beside its label')
   }
   const discBox = disc.getBoundingClientRect()
