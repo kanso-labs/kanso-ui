@@ -118,6 +118,22 @@ export default defineConfig(({ command }) => ({
         registerFormats()
         return styleDictionaryConfig
       },
+      // Quiet under Vitest only. Every Vite server in a process runs this
+      // plugin's `buildStart`, and a `vitest run` here stands up four of them
+      // — the root server, one per test project, and one more per browser-mode
+      // project once its HTTP server listens — so the compile banner, Style
+      // Dictionary's own per-platform lines and the size table all landed four
+      // times before a single test reported. `silent` rather than a lower
+      // level because 0.5.0 stopped forcing Style Dictionary's verbosity, and
+      // only this level maps through to it; a failed compile is still reported
+      // at every level, so nothing is hidden that matters.
+      //
+      // Scoped rather than set outright: under `storybook dev` the rebuild
+      // notice is how you know a token edit landed, and at build time the size
+      // table is worth having. Drop this once the plugin writes through the
+      // host's own logger (kanso-labs/unplugin-style-dictionary#210) — Vitest
+      // builds its Vite loggers at `warn`, so it will silence this itself.
+      logLevel: process.env.VITEST ? 'silent' : undefined,
     }),
     stylexPlugin({
       dev: process.env.NODE_ENV === 'development',
