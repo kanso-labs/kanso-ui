@@ -36,14 +36,16 @@ function animatedAncestor(from: Element): HTMLElement {
  * the one `@media (prefers-reduced-motion: reduce)` gives it — read out of
  * the stylesheet rather than off a page put into that state.
  *
- * Chromium's media emulation is the direct way to check this, and
- * `segmented-button/index.test.tsx` uses it — but a second file cannot.
- * `Emulation.setEmulatedMedia` is a page-level command, and Vitest runs each
- * test file as an iframe inside one shared page, so two files driving it in
- * parallel are writing one setting: assertions here failed in a full run and
- * passed on their own, in both directions and sometimes as a timed-out CDP
- * call. Reading the rule is deterministic, and it is the same thing
- * src/field/forced-colors.test.tsx does for the query it cannot emulate.
+ * Chromium's media emulation is the direct way to check this, and nothing in
+ * the suite uses it. `Emulation.setEmulatedMedia` is a page-level command and
+ * Vitest runs each test file as an iframe inside one shared page, which costs
+ * two ways: two files driving it write one setting, and the send waits on
+ * whatever the whole page is doing — 1ms on its own against 14.9s under a full
+ * run. Assertions here failed in a full run and passed alone, in both
+ * directions and sometimes as a timed-out CDP call. Reading the rule is
+ * deterministic, and it is what src/field/forced-colors.test.tsx does for the
+ * query it cannot emulate and segmented-button/index.test.tsx for the
+ * container that slides.
  */
 function animationDurations(element: Element): {
   reduced: string | undefined

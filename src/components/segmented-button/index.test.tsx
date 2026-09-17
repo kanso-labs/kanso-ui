@@ -1,7 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cdp } from 'vitest/browser'
+import { describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
@@ -98,25 +97,7 @@ function layerOf(segment: Element) {
   return found
 }
 
-// Chromium's own media emulation, which is the only way to put the page in
-// the state a reduced-motion reader is in — nothing in the suite sets it,
-// and `matchMedia` cannot be written to. See tabs/index.test.tsx, where the
-// same helper first appeared.
-async function reducedMotion(value: 'no-preference' | 'reduce') {
-  // Vitest declares `CDPSession` as an empty interface, so the method it
-  // does have at runtime is not on the type. Narrowed to the one call this
-  // needs rather than left as `any`.
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- CDPSession is an empty upstream stub
-  const session = cdp() as unknown as {
-    send: (
-      method: string,
-      params: { features: { name: string; value: string }[] },
-    ) => Promise<unknown>
-  }
-  await session.send('Emulation.setEmulatedMedia', {
-    features: [{ name: 'prefers-reduced-motion', value }],
-  })
-}
+const REDUCE = 'prefers-reduced-motion: reduce'
 
 function setup(
   props: Partial<Parameters<typeof SegmentedButton>[0]> = {},
@@ -141,13 +122,92 @@ function setup(
   )
 }
 
-describe('segmented button', () => {
-  // The emulation is the page's, not the render's, so it outlives the test
-  // that set it unless this puts it back.
-  afterEach(async () => {
-    await reducedMotion('no-preference')
-  })
+/**
+ * What the container's transition reaches `element` as — the duration it
+ * rests at, the duration `@media (prefers-reduced-motion: reduce)` gives it,
+ * and the properties it names — read out of the stylesheet rather than off a
+ * page put into that state.
+ *
+ * Chromium's media emulation is the direct way to ask this, and this file
+ * used to: `Emulation.setEmulatedMedia` over CDP, in an `afterEach` that put
+ * the page back after every test. But that command is page-level and Vitest
+ * runs each test file as an iframe inside one shared page, so its cost is
+ * whatever the whole page is doing — timed over a full run, the same send
+ * took 1.5s, then 2.1s, 2.8s, 7.4s, 12.8s and 14.9s while the other 171 files
+ * were at peak concurrency, and 1ms once they had drained. Half the 30s
+ * timeout is inside the noise, which is what failed a different handful of
+ * these tests on every run, always as a timeout and never as an assertion.
+ *
+ * Only one test here asks for reduced motion; the other 35 were paying that
+ * cost to restore a setting nothing had changed. Reading the rule is
+ * deterministic and needs no restoring, and it is what
+ * `src/styles/overlay-reduced-motion.test.tsx` already does for the overlays
+ * and `src/field/forced-colors.test.tsx` for the query it cannot emulate.
+ */
+function transitionRules(element: Element): {
+  properties: string | undefined
+  reduced: string | undefined
+  resting: string | undefined
+} {
+  let properties: string | undefined
+  let reduced: string | undefined
+  let resting: string | undefined
 
+  for (const sheet of document.styleSheets) {
+    walk([...sheet.cssRules], false)
+  }
+
+  return { properties, reduced, resting }
+
+  function walk(rules: CSSRule[], inReduce: boolean) {
+    for (const rule of rules) {
+      if (rule instanceof CSSMediaRule) {
+        walk(
+          [...rule.cssRules],
+          inReduce || rule.conditionText.includes(REDUCE),
+        )
+        continue
+      }
+
+      if (rule instanceof CSSGroupingRule) {
+        walk([...rule.cssRules], inReduce)
+        continue
+      }
+
+      if (!(rule instanceof CSSStyleRule)) {
+        continue
+      }
+
+      // StyleX writes one class per declaration and repeats it to raise
+      // specificity, so a selector is a run of the same class.
+      const className = rule.selectorText.split('.').find(Boolean)
+
+      if (className === undefined || !element.classList.contains(className)) {
+        continue
+      }
+
+      const property = rule.style.getPropertyValue('transition-property')
+
+      if (property !== '' && !inReduce) {
+        properties = property
+      }
+
+      const duration = rule.style.getPropertyValue('transition-duration')
+
+      if (duration === '') {
+        continue
+      }
+
+      if (inReduce) {
+        reduced = duration
+      } else {
+        resting = duration
+      }
+    }
+  }
+}
+
+describe('segmented button', () => {
   // React Aria maps the selection mode onto two different sets of roles, and
   // both are the right ones: one of several is a radio group, any of several
   // is a toolbar of two-state buttons. Pinned here because the mapping is
@@ -597,13 +657,21 @@ describe('segmented button', () => {
     // Dropping the transition would take the snapshot with it, and the
     // container would stop being positioned correctly — a worse outcome than
     // the motion it was meant to avoid.
-    it('stops sliding for a reader who asked for less motion', async () => {
-      await reducedMotion('reduce')
+    it('stops sliding for a reader who asked for less motion', () => {
       const view = setup({ defaultSelectedKeys: FIRST })
-      const style = getComputedStyle(containerOf(view.getAllByRole('radio')[0]))
+      const { properties, reduced, resting } = transitionRules(
+        containerOf(view.getAllByRole('radio')[0]),
+      )
 
-      expect(style.transitionDuration).toBe('0s')
-      expect(style.transitionProperty).toContain('translate')
+      // The container moves at all to begin with, so the zero below is the
+      // media query's doing rather than a transition that was never there.
+      expect(resting).toBeDefined()
+      expect(resting).not.toBe('0s')
+      expect(reduced).toBe('0s')
+
+      // The properties stay named, which is what keeps React Aria's snapshot
+      // and so the container's position — it just gets there in no time.
+      expect(properties).toContain('translate')
     })
   })
 
