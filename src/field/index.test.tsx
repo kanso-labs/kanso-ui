@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { FieldBox, FieldInput, FieldLabel, FieldMessage } from '.'
 import {
   colors,
+  spacing,
   stateLayerOpacity,
   typography,
 } from '../tokens/design.tokens.stylex'
@@ -40,6 +41,43 @@ const CLASSES = {
   focusedLabel: classesOf(stylex.props(probeStyles.focusedLabel)),
   mono: classesOf(stylex.props(probeStyles.mono)),
   mutedLabel: classesOf(stylex.props(probeStyles.mutedLabel)),
+}
+
+// A theme with longer body lines than the defaults, which is what tells a
+// derived box height apart from a stated one — under the default tokens the
+// two agree by construction, so a fixed 56 looks right there whatever it is
+// made of. The type is `Editorial`'s from src/theming/themes.ts, the scheme
+// the showcase drew the overflow on.
+//
+// Its `lg` is wider than Editorial's 20 on purpose. The filled box derives
+// from `sm` and both body lines, the outlined one from `lg` and the control's
+// line alone, and at Editorial's own values those two expressions happen to
+// come to the same 68 — so a box taking the wrong one of them would still
+// measure right. At 26 they come to 68 and 80, which tells them apart.
+const longLineType = stylex.createTheme(typography, {
+  bodyLargeLineHeight: '28px',
+  bodySmallLineHeight: '20px',
+})
+const longLineSpacing = stylex.createTheme(spacing, {
+  lg: '26px',
+  sm: '10px',
+})
+
+// The box the control sits in: the label's column is in it.
+function boxOf(container: HTMLElement) {
+  const box = container.querySelector('label')?.parentElement?.parentElement
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the label to sit in a column in the box')
+  }
+  return box
+}
+
+function controlIn(container: HTMLElement) {
+  const input = container.querySelector('input')
+  if (!(input instanceof HTMLElement)) {
+    throw new Error('expected the box to hold a control')
+  }
+  return input
 }
 
 // What a server sent back for the field named `first`, hoisted rather than
@@ -287,6 +325,60 @@ describe('field chrome', () => {
       expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(
         view.getByText('Taken.').id,
       )
+    })
+  })
+
+  // The box is as tall as what it holds rather than the 56dp the page draws
+  // it at. The page's number is the sum of the default tokens, so a stated
+  // one is right only under those: these render under a theme whose body
+  // lines are longer and check the control still fits.
+  describe('box height', () => {
+    function renderField(variant: 'filled' | 'outlined', themed: boolean) {
+      const field = (
+        <TextField validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+          <FieldBox label="Label" variant={variant}>
+            <FieldInput />
+          </FieldBox>
+        </TextField>
+      )
+      const view = render(
+        themed ? (
+          <div {...stylex.props(longLineType, longLineSpacing)}>{field}</div>
+        ) : (
+          <div>{field}</div>
+        ),
+      )
+      const box = boxOf(view.container).getBoundingClientRect()
+      const control = controlIn(view.container).getBoundingClientRect()
+      return {
+        box: box.height,
+        roomAbove: control.top - box.top,
+        roomBelow: box.bottom - control.bottom,
+      }
+    }
+
+    // A filled box's control line ran 2px past the underline under this
+    // theme, with nothing left beneath it, while the box stayed at 56.
+    it('keeps the control inside a filled box under a longer body line', () => {
+      const { box, roomBelow } = renderField('filled', true)
+
+      expect(box).toBeGreaterThan(56)
+      expect(roomBelow).toBeGreaterThan(0)
+    })
+
+    // The outlined box pads equally above and below, so the control is
+    // centred — at a fixed 56 it sat 20 from the top and 8 from the bottom.
+    it('centres the control in an outlined box under a longer body line', () => {
+      const { roomAbove, roomBelow } = renderField('outlined', true)
+
+      expect(roomAbove).toBe(roomBelow)
+    })
+
+    // The derivations come to the page's number under the default tokens,
+    // which is what leaves the default stories' snapshots where they are.
+    it('is the page 56dp under the default tokens', () => {
+      expect(renderField('filled', false).box).toBe(56)
+      expect(renderField('outlined', false).box).toBe(56)
     })
   })
 })

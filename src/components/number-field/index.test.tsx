@@ -3,7 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import NumberField from '.'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -36,6 +36,29 @@ const EURO = { currency: 'EUR', style: 'currency' } as const
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// A theme with longer body lines than the defaults, which is what tells the
+// stacked steppers' derived halves apart from a stated 28 — under the default
+// tokens the two agree. The type is `Editorial`'s, from src/theming/themes.ts.
+//
+// Its `lg` is wider than Editorial's 20 so that the filled and outlined boxes
+// come out at different heights: the two derive from different expressions
+// that happen to agree at Editorial's own values, and a stepper taking the
+// wrong one would still measure right there.
+const longLineType = stylex.createTheme(typography, {
+  bodyLargeLineHeight: '28px',
+  bodySmallLineHeight: '20px',
+})
+const longLineSpacing = stylex.createTheme(spacing, { lg: '26px', sm: '10px' })
+
+// The box the control sits in: the label's column is in it.
+function boxOf(container: HTMLElement) {
+  const box = container.querySelector('label')?.parentElement?.parentElement
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the label to sit in a column in the box')
+  }
+  return box
 }
 
 function setup(props: Partial<Parameters<typeof NumberField>[0]> = {}) {
@@ -244,5 +267,28 @@ describe('number field', () => {
       const glyph = increment.querySelector('svg')
       expect(glyph?.getBoundingClientRect().width).toBe(20)
     })
+
+    // The pair is flush with the box's top and bottom, so each is half of
+    // whatever the box comes to rather than half of the page's 56 — a theme
+    // with a longer body line makes the box taller and the halves follow.
+    it.each(['filled', 'outlined'] as const)(
+      'stacks two steppers over the whole height of a %s box',
+      (variant) => {
+        const view = render(
+          <div {...stylex.props(longLineType, longLineSpacing)}>
+            <NumberField label="Label" variant={variant} />
+          </div>,
+        )
+        const box = boxOf(view.container).getBoundingClientRect().height
+        const steppers = [...view.container.querySelectorAll('button')].map(
+          (button) => button.getBoundingClientRect().height,
+        )
+
+        expect(box).toBeGreaterThan(56)
+        expect(steppers).toHaveLength(2)
+        expect(steppers[0]).toBe(box / 2)
+        expect(steppers[0]).toBe(steppers[1])
+      },
+    )
   })
 })

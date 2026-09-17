@@ -17,6 +17,24 @@ import {
 // window size classes.
 const FORCED_COLORS = '@media (forced-colors: active)'
 
+// What the box is tall enough for, rather than the 56dp the text fields page
+// draws it at. The page's number is the sum of these under the default
+// tokens, and stating it instead made the box right only there: a theme with
+// a longer body line — `Editorial` in src/theming/themes.ts, at body-small
+// 20 and body-large 28 on a 10dp `sm` — needs 68, and in a fixed 56 the
+// value's line ran past the underline with nothing left beneath it.
+//
+// The filled box holds its padding twice over, the floated label's line and
+// the control's; the outlined box holds its own padding twice and the
+// control's line alone, since its label sits on the outline rather than
+// above the value. The two agree at 56 under the default tokens, which is
+// what keeps the default stories' snapshots where they are.
+//
+// The resting label's line is written against the same expressions below, so
+// one derivation feeds both the box and the label that centres in it.
+const BOX_BLOCK_SIZE = `calc(2 * ${spacing.sm} + ${typography.bodySmallLineHeight} + ${typography.bodyLargeLineHeight})`
+const BOX_OUTLINED_BLOCK_SIZE = `calc(2 * ${spacing.lg} + ${typography.bodyLargeLineHeight})`
+
 // The chrome's styles. Apart from the parts in ./index.tsx so that file
 // exports components alone, which is what keeps fast refresh working for it —
 // the same reason ./root.ts gives for the root style beside it.
@@ -108,7 +126,7 @@ const fieldChromeStyles = stylex.create({
   box: {
     alignItems: 'flex-start',
     backgroundColor: colors.surfaceContainerHighest,
-    blockSize: '56px',
+    blockSize: BOX_BLOCK_SIZE,
     // What the box draws under forced colours, where the `boxShadow` below
     // is gone. A UA in that mode drops box shadows outright and paints the
     // background in a system colour, so the resting underline and the focus
@@ -224,7 +242,7 @@ const fieldChromeStyles = stylex.create({
       ':focus-within': typography.bodySmallLineHeight,
       ':has(:is(input, textarea):not(:placeholder-shown))':
         typography.bodySmallLineHeight,
-      default: `calc(56px - 2 * ${spacing.sm})`,
+      default: `calc(${BOX_BLOCK_SIZE} - 2 * ${spacing.sm})`,
     },
   },
   // Where the box puts its label: at the top of the column the control is
@@ -271,7 +289,7 @@ const fieldChromeStyles = stylex.create({
   // page gives the box above it.
   boxMultiline: {
     blockSize: 'auto',
-    minBlockSize: '56px',
+    minBlockSize: BOX_BLOCK_SIZE,
     paddingBlockEnd: spacing.sm,
   },
   // Outlined: no fill and no underline, the value centred with 16dp above
@@ -281,6 +299,7 @@ const fieldChromeStyles = stylex.create({
   // underline for a bottom corner to cut.
   boxOutlined: {
     backgroundColor: 'transparent',
+    blockSize: BOX_OUTLINED_BLOCK_SIZE,
     // The fieldset laid over the box draws a border of its own, which forced
     // colours keeps, so the boundary `box` restores there would be a second
     // one under the first. The ring is not cancelled: outlined expresses
@@ -324,7 +343,7 @@ const fieldChromeStyles = stylex.create({
       ':focus-within': typography.bodySmallLineHeight,
       ':has(:is(input, textarea):not(:placeholder-shown))':
         typography.bodySmallLineHeight,
-      default: `calc(56px - 2 * ${spacing.lg})`,
+      default: `calc(${BOX_OUTLINED_BLOCK_SIZE} - 2 * ${spacing.lg})`,
     },
   },
   boxTrailing: {

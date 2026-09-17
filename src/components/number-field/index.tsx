@@ -26,6 +26,7 @@ import {
   radii,
   spacing,
   stateLayerOpacity,
+  typography,
 } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 
@@ -49,6 +50,19 @@ import IconButton from '../icon-button'
 // are its increment and decrement buttons through context, disabled at the
 // ends of the range and kept out of the tab order, and the formatting is its
 // `formatOptions`.
+// Half the box, spelled from the same tokens the box derives its height
+// from rather than as the 28 that half of 56 comes to. A theme with a longer
+// body line makes the box taller — `Editorial` in src/theming/themes.ts does
+// — and a stated half leaves the pair short of the bottom edge they are
+// flush with.
+//
+// Written here rather than imported from src/field/styles.ts, which spells
+// the same two expressions: the StyleX compiler resolves a constant across
+// files only out of a `.stylex.ts` module, the same reason that file gives
+// for re-declaring the forced-colours query. The two have to move together.
+const BOX_HALF = `calc((2 * ${spacing.sm} + ${typography.bodySmallLineHeight} + ${typography.bodyLargeLineHeight}) / 2)`
+const BOX_OUTLINED_HALF = `calc((2 * ${spacing.lg} + ${typography.bodyLargeLineHeight}) / 2)`
+
 const styles = stylex.create({
   // The input and the steppers on one line, the input taking the room. The
   // input keeps the 16 of margin that clears the label, so the row lines it
@@ -67,7 +81,7 @@ const styles = stylex.create({
   stepper: {
     alignItems: 'center',
     backgroundColor: 'transparent',
-    blockSize: '28px',
+    blockSize: BOX_HALF,
     borderRadius: 0,
     borderWidth: 0,
     boxSizing: 'border-box',
@@ -115,6 +129,11 @@ const styles = stylex.create({
   },
   stepperHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  // The outlined box holds its own padding twice and the control's line
+  // alone, so its halves come from that expression instead.
+  stepperOutlined: {
+    blockSize: BOX_OUTLINED_HALF,
   },
   stepperPressed: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
@@ -325,6 +344,7 @@ function stepperStyles(top: boolean, outlined: boolean) {
   return (state: ButtonRenderProps) =>
     stylex.props(
       styles.stepper,
+      outlined && styles.stepperOutlined,
       top && styles.stepperTop,
       !top && outlined && styles.stepperBottomOutlined,
       state.isHovered && !state.isDisabled && styles.stepperHovered,
