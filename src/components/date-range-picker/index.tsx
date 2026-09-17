@@ -115,6 +115,17 @@ type DateRangePickerProps<T extends DateValue = DateValue> = {
   variant?: FieldVariant
 } & Omit<RACDateRangePickerProps<T>, 'children' | 'className' | 'style'>
 
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-jsx-as-prop is after — the same reason Select builds its
+// chevron this way.
+function calendarTrigger(triggerLabel: string) {
+  return (
+    <RACButton aria-label={triggerLabel} className={triggerClassName}>
+      <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
+    </RACButton>
+  )
+}
+
 /**
  * A date range typed into a field, or picked from a calendar behind a
  * button. The value is React Aria's — pass `value` with `onChange` to
@@ -178,6 +189,10 @@ function DateRangePicker<T extends DateValue>({
         isPopulated
         label={label}
         leading={leadingIcon}
+        // In the chrome's trailing slot rather than on the segments' line —
+        // see the same prop on DatePicker for what that slot does and why
+        // the trigger still opens from there.
+        trailing={calendarTrigger(triggerLabel)}
         variant={variant}
       >
         <FieldValue>
@@ -191,9 +206,6 @@ function DateRangePicker<T extends DateValue>({
             <RACDateInput slot="end" {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
-            <RACButton aria-label={triggerLabel} className={triggerClassName}>
-              <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
-            </RACButton>
           </RACGroup>
         </FieldValue>
       </FieldBox>

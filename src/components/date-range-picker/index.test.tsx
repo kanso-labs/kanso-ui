@@ -23,6 +23,24 @@ const RANGE = {
   start: new CalendarDate(2026, 9, 15),
 }
 
+// Matched on a pattern rather than the whole name: React Aria composes the
+// field's own label into the trigger's accessible name, so an exact string
+// finds nothing.
+// The box the field draws, and the trigger the chrome puts in its trailing
+// slot. The box is the outer of the two groups, which is the one a
+// `querySelector` reaches first.
+function parts(container: HTMLElement) {
+  const box = container.querySelector('[role="group"]')
+  const trigger = container.querySelector('button')
+  if (!(box instanceof HTMLElement) || !(trigger instanceof HTMLElement)) {
+    throw new Error('expected the field to draw a box and a trigger')
+  }
+  return {
+    box: box.getBoundingClientRect(),
+    trigger: trigger.getBoundingClientRect(),
+  }
+}
+
 // React Aria names every segment for the end it belongs to — "month, Start
 // Date," and "month, End Date," — which is what separates the two groups
 // without either carrying a test id.
@@ -30,9 +48,6 @@ function segmentsOf(view: ReturnType<typeof render>, end: 'End' | 'Start') {
   return view.getAllByRole('spinbutton', { name: new RegExp(`${end} Date`) })
 }
 
-// Matched on a pattern rather than the whole name: React Aria composes the
-// field's own label into the trigger's accessible name, so an exact string
-// finds nothing.
 function triggerOf(
   view: ReturnType<typeof render>,
   label = 'Choose a date range',
@@ -55,20 +70,36 @@ describe('date range picker', () => {
       const view = render(
         <DateRangePicker defaultValue={RANGE} label="Label" />,
       )
-      // Two groups, and the inner one is the picker's: React Aria's Group
-      // holds the segments and the trigger, and the field box around it is
-      // the outer one.
-      const group = view.getAllByRole('group').at(-1)
+      // Two groups: React Aria's, around the segments, and the field box
+      // around that. The trigger is the box's trailing icon, so the box is
+      // the one holding all three — found by what it contains rather than by
+      // its place in the pair, since which group that is belongs to the
+      // layout.
+      const [start] = segmentsOf(view, 'Start')
+      const [end] = segmentsOf(view, 'End')
+      const trigger = triggerOf(view)
+      const group = view
+        .getAllByRole('group')
+        .find(
+          (candidate) =>
+            candidate.contains(start) &&
+            candidate.contains(end) &&
+            candidate.contains(trigger),
+        )
       if (!(group instanceof HTMLElement)) {
-        throw new Error('expected the picker to render a group')
+        throw new Error('expected one group to hold both ends and the trigger')
       }
 
-      // One field rather than two fields beside a button: the box draws once
-      // around all three, and a reader reaches the trigger at the end of the
-      // segments rather than as a separate control.
-      expect(group.contains(segmentsOf(view, 'Start')[0])).toBe(true)
-      expect(group.contains(segmentsOf(view, 'End')[0])).toBe(true)
-      expect(group.contains(triggerOf(view))).toBe(true)
+      // One field rather than two fields beside a button: the group draws
+      // once around all three, under the field's own label, and a reader
+      // reaches the trigger after the segments rather than as a separate
+      // control.
+      expect(group.getAttribute('aria-labelledby')).toBe(
+        view.getByText('Label').id,
+      )
+      expect(
+        end.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
     })
 
     it('orders the start segments ahead of the end segments', () => {
@@ -246,6 +277,27 @@ describe('date range picker', () => {
 
       expect(legend?.textContent).toBe('Label')
       expect(legend?.getBoundingClientRect().width).toBeGreaterThan(0)
+    })
+  })
+  // The trigger is the chrome's trailing icon rather than something on the
+  // segments' line. On that line it was taller than the row holding it, so
+  // it hung past the underline and pulled the segments down with it.
+  describe('the calendar trigger', () => {
+    it('keeps the trigger inside the box', () => {
+      const view = render(<DateRangePicker label="Label" />)
+      const { box, trigger } = parts(view.container)
+
+      expect(trigger.top).toBeGreaterThanOrEqual(box.top)
+      expect(trigger.bottom).toBeLessThanOrEqual(box.bottom)
+    })
+
+    // The slot stretches to the box's full height, so whatever it holds
+    // centres there rather than sitting under the floated label.
+    it('centres the trigger in the box', () => {
+      const view = render(<DateRangePicker label="Label" />)
+      const { box, trigger } = parts(view.container)
+
+      expect(trigger.top - box.top).toBe(box.bottom - trigger.bottom)
     })
   })
 })
