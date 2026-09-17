@@ -129,6 +129,14 @@ const styles = stylex.create({
     inlineSize: '18px',
     justifyContent: 'center',
   },
+  // The slot a segment keeps for the check it takes when chosen. Hidden
+  // rather than absent, since `visibility` leaves the box in the layout —
+  // and the box is the point: the columns are `1fr`, so every segment is as
+  // wide as the widest one's content, and a check appearing in that widest
+  // segment grew the whole track each time the choice moved.
+  glyphReserved: {
+    visibility: 'hidden',
+  },
   glyphSvg: {
     blockSize: '100%',
     inlineSize: '100%',
@@ -380,9 +388,14 @@ type SegmentedButtonSegmentProps = Omit<
 }
 
 /**
- * The check on a chosen segment, or the segment's own icon. Returns a node
- * rather than letting the type be inferred, since `ReactNode` is a union
- * that includes a promise and an inferred one has to be `async`.
+ * The check on a chosen segment, the segment's own icon, or the empty slot a
+ * segment holds open for the check it would take. Returns a node rather than
+ * letting the type be inferred, since `ReactNode` is a union that includes a
+ * promise and an inferred one has to be `async`.
+ *
+ * Every segment that could take a check keeps room for one, chosen or not, so
+ * the track is the same width whichever segment is chosen. A segment told not
+ * to show the check has nothing to keep room for and draws no slot at all.
  */
 function glyphFor(
   state: ToggleButtonRenderProps,
@@ -396,10 +409,13 @@ function glyphFor(
       </span>
     )
   }
-  if (icon === undefined) {
+  if (icon !== undefined) {
+    return <span {...stylex.props(styles.glyph)}>{icon}</span>
+  }
+  if (!showSelectedIcon) {
     return null
   }
-  return <span {...stylex.props(styles.glyph)}>{icon}</span>
+  return <span {...stylex.props(styles.glyph, styles.glyphReserved)} />
 }
 
 // The chosen container's class, from the segment's own state and the shared

@@ -135,6 +135,13 @@ const Overview: Story = {
             chosen. A set that would rather keep its own icons throughout turns
             the check off.
           </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Every segment is as wide as the widest one&rsquo;s label, its icon
+            slot and the gap between them — and it keeps that slot whether it is
+            chosen or not, so the track is the same width whichever segment
+            holds the check. A set with the check turned off keeps no slot, and
+            its segments are as wide as their labels alone.
+          </Text>
         </div>
         <div {...stylex.props(styles.row)}>
           <SegmentedButton aria-label="With icons" defaultSelectedKeys={FIRST}>

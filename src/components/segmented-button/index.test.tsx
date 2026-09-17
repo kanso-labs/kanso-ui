@@ -380,6 +380,58 @@ describe('segmented button', () => {
         view.getByRole('radio').querySelector('[data-testid="icon"]'),
       ).not.toBeNull()
     })
+
+    // The columns are `1fr`, so every segment is as wide as the widest one's
+    // content. A check that appeared only in the chosen segment therefore
+    // moved the whole track each time the choice did, taking the sliding
+    // container's destination with it. Each segment keeps room for the check
+    // it would take, so the widest column is the same whichever is chosen.
+    it('keeps the track the same width whichever segment is chosen', () => {
+      const view = setup(
+        { defaultSelectedKeys: FIRST },
+        <>
+          <SegmentedButton.Segment id="first">Day</SegmentedButton.Segment>
+          <SegmentedButton.Segment id="second">
+            Week at a time
+          </SegmentedButton.Segment>
+          <SegmentedButton.Segment id="third">Month</SegmentedButton.Segment>
+        </>,
+      )
+      const track = view.container.firstElementChild
+      if (!(track instanceof HTMLElement)) {
+        throw new Error('expected the set to draw a track')
+      }
+      const widthNow = () => track.getBoundingClientRect().width
+      const atRest = widthNow()
+      const segments = view.getAllByRole('radio')
+
+      for (const segment of segments) {
+        fireEvent.click(segment)
+        expect(widthNow()).toBe(atRest)
+      }
+
+      // And with nothing chosen: pressing the chosen segment again clears the
+      // selection, since the set allows an empty one.
+      fireEvent.click(segments.at(-1)!)
+      expect(widthNow()).toBe(atRest)
+    })
+
+    // Nothing to keep room for when the check is turned off, so the slot is
+    // not drawn at all and a segment is as wide as its label alone.
+    it('keeps no room for the check when the set turns it off', () => {
+      const withCheck = setup({ showSelectedIcon: true })
+      const wide = withCheck
+        .getAllByRole('radio')[0]
+        .getBoundingClientRect().width
+      withCheck.unmount()
+
+      const without = setup({ showSelectedIcon: false })
+      const narrow = without
+        .getAllByRole('radio')[0]
+        .getBoundingClientRect().width
+
+      expect(narrow).toBeLessThan(wide)
+    })
   })
 
   describe('the ripple', () => {
