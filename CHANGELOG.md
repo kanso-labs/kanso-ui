@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.28.0](https://github.com/kanso-labs/kanso-ui/compare/v0.27.0...v0.28.0) (2026-09-17)
+
+
+### Features
+
+* **components:** export the sub-component and union types a wrapper needs ([#827](https://github.com/kanso-labs/kanso-ui/issues/827)) ([f46d5c2](https://github.com/kanso-labs/kanso-ui/commit/f46d5c2466941ff74071ef6b23b314550067538d))
+* **date-picker,date-range-picker,color-picker:** take a portal container ([#835](https://github.com/kanso-labs/kanso-ui/issues/835)) ([8cee83d](https://github.com/kanso-labs/kanso-ui/commit/8cee83db6ee7ff862f3ed1d30b3a20cb18c85419))
+* **list,list-box:** forward overline to the collection row ([#836](https://github.com/kanso-labs/kanso-ui/issues/836)) ([b1b0e50](https://github.com/kanso-labs/kanso-ui/commit/b1b0e50bf3e20acd1bb9373332420a3f87680db8))
+
+
+### Bug Fixes
+
+* **components:** default the type parameter on the ten generic prop types ([#830](https://github.com/kanso-labs/kanso-ui/issues/830)) ([2adeb71](https://github.com/kanso-labs/kanso-ui/commit/2adeb717a94a66fed5cdac693fbcb4718eb18230))
+* **list-item:** stop a call site's handlers replacing the ripple's ([#839](https://github.com/kanso-labs/kanso-ui/issues/839)) ([55e2bf3](https://github.com/kanso-labs/kanso-ui/commit/55e2bf39cac3c6a0c0b2e56712353c86f64f9577))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.9.1 ([#832](https://github.com/kanso-labs/kanso-ui/issues/832)) ([8b69cae](https://github.com/kanso-labs/kanso-ui/commit/8b69caed994aaf2c8b8981ad7e903e09c864782e))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.5.1 ([#833](https://github.com/kanso-labs/kanso-ui/issues/833)) ([0b79a3b](https://github.com/kanso-labs/kanso-ui/commit/0b79a3b1a448a62a0faf2ff98d048a882bddada7))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.5.3 ([#838](https://github.com/kanso-labs/kanso-ui/issues/838)) ([9ce0e06](https://github.com/kanso-labs/kanso-ui/commit/9ce0e0688e9cc6297ef059c86d1aec275d94500c))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.6.0 ([#840](https://github.com/kanso-labs/kanso-ui/issues/840)) ([b8eaeaa](https://github.com/kanso-labs/kanso-ui/commit/b8eaeaac630520e6e0afc16b313fe4cc46ff6519))
+* update kanso-labs/github-actions action to v3.3.1 ([#834](https://github.com/kanso-labs/kanso-ui/issues/834)) ([a16408b](https://github.com/kanso-labs/kanso-ui/commit/a16408b9df0e1c5f8f7796bdfc591d8346b0f955))
+
 ## [0.27.0](https://github.com/kanso-labs/kanso-ui/compare/v0.26.6...v0.27.0) (2026-09-16)
 
 
