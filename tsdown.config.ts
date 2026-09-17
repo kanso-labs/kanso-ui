@@ -1,3 +1,4 @@
+import { codecovRollupPlugin } from '@codecov/rollup-plugin'
 import styleDictionaryRolldown from '@kanso-labs/unplugin-style-dictionary/rolldown'
 import babel from '@rolldown/plugin-babel'
 import stylexRolldown from '@stylexjs/unplugin/rolldown'
@@ -126,6 +127,30 @@ export default defineConfig({
         writtenOutput = true
       },
     },
+    // Last, as Codecov's own instructions ask. Codecov's rollup plugin rather
+    // than its Vite one, because tsdown is what builds the published package —
+    // vite.config.ts here configures Storybook and Vitest, whose output nobody
+    // installs. tsdown drives rolldown, whose plugin API is rollup's.
+    //
+    // `enableBundleAnalysis` is what keeps a local `npm run build` inert: the
+    // token is an organisation secret, so it is undefined everywhere but CI,
+    // and the plugin then neither writes its stats file nor uploads anything.
+    //
+    // It reports the compiled stylesheet as `assets/stylex.css`, the name it
+    // has while this runs, rather than the `styles.css` a consumer imports.
+    // Its hook is writeBundle and the rename above happens in closeBundle,
+    // which rollup only reaches once every writeBundle has settled — so there
+    // is no ordering that gives it the later name. The bytes are the same
+    // either way, which is what the analysis is measuring.
+    //
+    // The stats file it writes lands in dist/, which `files` in package.json
+    // publishes wholesale — the plugin deletes it again once the upload
+    // returns, which is what keeps it out of the tarball.
+    codecovRollupPlugin({
+      bundleName: 'kanso-ui',
+      enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+      uploadToken: process.env.CODECOV_TOKEN,
+    }),
   ],
   sourcemap: true,
   tsconfig: 'tsconfig.lib.json',

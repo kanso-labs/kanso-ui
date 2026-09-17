@@ -26,7 +26,14 @@ jobs:
         with:
           ignore-scripts: true
 
+      # CODECOV_TOKEN is what switches the bundle-analysis plugin on — see the
+      # comment beside it in tsdown.config.ts. It is an organisation secret, so
+      # a pull request from a fork gets an empty string here and the build runs
+      # without the analysis rather than failing for want of a secret it was
+      # never going to be given.
       - name: Run build
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: npm run build
 
       # publint reads package.json and the packed file list, so it catches an
