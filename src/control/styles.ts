@@ -37,6 +37,12 @@ import {
 // `onSurfaceVariant`, which is the one declaration their otherwise identical
 // discs disagree on, so `disc` holds the other fourteen and each component
 // composes its own colour after.
+// The control's target, which the disc draws at and the label centres its
+// first line on. Stated once because those two have to agree: a disc resized
+// without the label following it would put the control off its own label
+// again, which is the drift this row already had once.
+const TARGET_SIZE = '40px'
+
 const controlStyles = stylex.create({
   // The cursors the control itself takes. The label has its own pair, since
   // the two are separate elements in the grid.
@@ -53,13 +59,13 @@ const controlStyles = stylex.create({
   disc: {
     alignItems: 'center',
     backgroundColor: 'transparent',
-    blockSize: '40px',
+    blockSize: TARGET_SIZE,
     borderRadius: radii.full,
     boxSizing: 'border-box',
     cursor: 'pointer',
     display: 'flex',
     flexShrink: 0,
-    inlineSize: '40px',
+    inlineSize: TARGET_SIZE,
     justifyContent: 'center',
     position: 'relative',
     transitionDuration: motion.durationShort2,
@@ -86,7 +92,7 @@ const controlStyles = stylex.create({
     // is one line or wraps to several. Half of whatever the disc has spare
     // over the line it sits beside, rather than a step of the spacing scale:
     // `sm` is that half only under the default tokens, where 8 + 24 + 8 is
-    // the disc's 40, and a scheme with a longer body line left the control
+    // the target, and a scheme with a longer body line left the control
     // sitting above the middle of its own label.
     //
     // A padding rather than a centred 40dp cell, which would centre the
@@ -94,9 +100,9 @@ const controlStyles = stylex.create({
     // first line below the disc — by 8px under the default tokens, where
     // nothing is meant to move.
     //
-    // The disc is a fixed 40, so a body line taller than that has no room to
-    // centre in and the declaration falls away to nothing.
-    paddingBlock: `calc((40px - ${typography.bodyLargeLineHeight}) / 2)`,
+    // A body line taller than the target has no room to centre in, and the
+    // declaration falls away to nothing.
+    paddingBlock: `calc((${TARGET_SIZE} - ${typography.bodyLargeLineHeight}) / 2)`,
   },
   labelDisabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
