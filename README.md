@@ -306,9 +306,9 @@ import '@kanso-labs/kanso-ui/tokens.css'
 If your app also uses StyleX, theme with
 [`stylex.createTheme()`](https://stylexjs.com/docs/learn/theming/) instead — it
 produces a scoped override class rather than a global one. The token objects
-themselves (`colors`, `spacing`, `typography`, `radii`, `shadows`,
-`stateLayerOpacity`) aren't part of the public API yet; open an issue if you
-need them exported.
+themselves (`colors`, `typography`, `spacing`, `radii`, `shadows`,
+`stateLayerOpacity` and `motion`) aren't part of the public API yet; open an
+issue if you need them exported.
 
 ## Development
 
