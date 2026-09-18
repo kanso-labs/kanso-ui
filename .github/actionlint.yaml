@@ -6,7 +6,7 @@
 #
 # Scoped to the one file rather than passed as a global -ignore, so the rule
 # keeps running over every other workflow. Delete this once the pinned
-# actionlint in kanso-labs/github-actions knows the scope.
+# actionlint in kanso-labs/actions knows the scope.
 paths:
   .github/workflows/test.yaml:
     ignore:
