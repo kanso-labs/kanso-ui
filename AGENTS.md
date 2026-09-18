@@ -11,14 +11,16 @@ are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command                           | Notes                                                                  |
-| ---------- | --------------------------------- | ---------------------------------------------------------------------- |
-| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)         |
-| Test       | `npm test`                        | Vitest in headless Chromium                                            |
-| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`       |
-| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                       |
-| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                    |
-| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions" |
+| Task       | Command                           | Notes                                                                    |
+| ---------- | --------------------------------- | ------------------------------------------------------------------------ |
+| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)           |
+| Test       | `npm test`                        | Vitest in headless Chromium                                              |
+| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`         |
+| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                         |
+| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                      |
+| Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs           |
+| Verify     | `npm run package:check`           | publint, then `scripts/check-package.mjs`; reads `dist/`, so build first |
+| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"   |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
@@ -31,7 +33,9 @@ prefix the command: `mise exec node@24.21.0 -- npm install`.
 
 ## Conventions
 
-Shared with the other `kanso-labs` repositories:
+Shared with the other `kanso-labs` repositories. The canonical text is
+[`CONVENTIONS.md`](https://github.com/kanso-labs/.github/blob/main/CONVENTIONS.md)
+in `kanso-labs/.github`; this is a copy, and `Lint` checks it against that file.
 
 - **Keys in JSON and YAML are ordered by name.** Files whose order carries
   meaning are exempt: workflows, where step order is execution order;
@@ -43,7 +47,11 @@ Shared with the other `kanso-labs` repositories:
 - **Job names and step names are imperative verb phrases.** Job ids, step ids,
   and matrix keys are exempt.
 - **Actions are pinned to exact release tags**, `actions/checkout@v7.0.1`, never
-  a moving major or `@main`. Renovate opens the bump pull requests.
+  `@main` and never a tag the publisher moves — `@v7` and `@v7.0` both move.
+  Renovate opens the bump pull requests, and it has nothing to open when the pin
+  never changes: `frenck/action-app-linter@v2.21` sat still through a repository
+  rename and a release that fixed something a consumer was working around,
+  because the tag it named was moved onto both.
 - **Dependency versions are pinned exactly.** Every `dependencies`,
   `devDependencies`, and `optionalDependencies` entry is a bare version,
   `1.2.3`, never `^1.2.3`, `~1.2.3`, `>=1.2.3`, `*`, `1.x`, or an `||` union.
@@ -51,16 +59,21 @@ Shared with the other `kanso-labs` repositories:
   exception: they state what the consumer's own installed copy must satisfy, so
   ranges are correct there and stay.
 - **`.tool-versions` pins a fully-specified version on every line**,
-  `nodejs 24.21.0`, never `nodejs 24` or `nodejs lts`.
+  `nodejs <major>.<minor>.<patch>`, never `nodejs 24` or `nodejs lts`.
 
 Two of those bullets have a local consequence. `react` is the `peerDependencies`
 exception in practice — pinned in `devDependencies` and a range in
 `peerDependencies` — and installing under a Node version that disagrees with
 `.tool-versions` is the lockfile hazard described under "Commands" above.
 
+In TypeScript the ordering rule is enforced rather than trusted:
+`eslint-plugin-perfectionist` runs at `recommended-natural`, so object keys,
+imports and union members are sorted by the linter.
+
 The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
-the command is `npm run format` and the check runs inside `npm run lint`. The
-mechanics are in the bullets below.
+the command is `npm run format` and the check runs inside `npm run lint`.
+`LICENSE.md` is exempt in `.oxfmtrc.json`, beside `CHANGELOG.md` — both are
+owned elsewhere. The mechanics are in the bullets below.
 
 Specific to this repository:
 
@@ -902,8 +915,8 @@ a project column and a project field cannot be shown in the sidebar, so there is
 no syncing between them and no point adding a project field that duplicates one
 — a board once carried its own P0/P1/P2 Priority beside this, and all two fields
 named Priority ever did was make it unclear which one a reader had just set.
-They are also issues-only: passing a pull request's node id to `updateIssue`
-fails with _Could not resolve to Issue node_.
+They are also issues-only: passing a pull request's node id to
+`setIssueFieldValue` fails with _Could not resolve to Issue node_.
 
 **Four of the ten are derived rather than judged**, so read them off the field
 they follow rather than forming a second opinion:
