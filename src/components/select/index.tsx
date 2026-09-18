@@ -142,7 +142,8 @@ type SelectProps<T extends object = object> = {
   label: string
   /**
    * An icon at the start of the box, before the label and the value: the
-   * page's 24dp leading icon, in the muted role.
+   * page's 24dp leading icon, in the muted role. An icon drawn in `em` takes
+   * that size from the slot.
    */
   leadingIcon?: ReactNode
   /**

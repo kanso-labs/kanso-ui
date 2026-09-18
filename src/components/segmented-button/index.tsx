@@ -372,7 +372,8 @@ type SegmentedButtonSegmentProps = Omit<
   disableRipple?: boolean
   /**
    * An icon before the label, in the page's 18dp size. Replaced by the check
-   * while the segment is chosen, unless the set turns that off.
+   * while the segment is chosen, unless the set turns that off. An icon drawn
+   * in `em` takes that size from the slot.
    */
   icon?: ReactNode
   /** A function may compute the style from the segment's render state. */

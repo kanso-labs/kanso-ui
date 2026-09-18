@@ -138,7 +138,8 @@ type TokenFieldProps<T extends TokenFieldValue = TokenFieldValue> = {
   label: string
   /**
    * An icon at the start of the box, before the label and the value: the
-   * page's 24dp leading icon, in the muted role.
+   * page's 24dp leading icon, in the muted role. An icon drawn in `em` takes
+   * that size from the slot.
    */
   leadingIcon?: ReactNode
   /**
@@ -151,6 +152,7 @@ type TokenFieldProps<T extends TokenFieldValue = TokenFieldValue> = {
   /**
    * An icon at the end of the box, after the value: the page's 24dp trailing
    * icon, in the muted role and the error role once the field has an error.
+   * An icon drawn in `em` takes that size from the slot.
    */
   trailingIcon?: ReactNode
   /**
