@@ -15,6 +15,7 @@ import {
   TagList as RACTagList,
 } from 'react-aria-components'
 
+import { chipGlyph } from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
@@ -41,7 +42,9 @@ import { spacing } from '../../tokens/design.tokens.stylex'
 // **A chip can be removed.** Give the group `onRemove` and each chip draws
 // the page's trailing close target, an 18dp glyph in a target of its own so a
 // press there removes rather than toggles. Backspace and Delete remove the
-// focused chip too, which is React Aria's.
+// focused chip too, which is React Aria's. A chosen chip's check sits at the
+// other end, so a chip that is both selected and removable carries one glyph
+// on each side of its label.
 //
 // **Selection is the group's, not each chip's.** `selectionMode` and
 // `selectedKeys` live on the group, so a set that chooses one of its chips
@@ -115,11 +118,14 @@ type ChipGroupProps<T extends object = object> = {
 // no-new-function-as-prop is after; the React Compiler memoises the result on
 // its inputs.
 //
-// The close target is drawn only where the group allows removing, which React
-// Aria reports rather than the call site saying so on every chip.
+// The check is the chip module's, so a chip in a group and a chip on its own
+// draw the same one. The close target is drawn only where the group allows
+// removing, which React Aria reports rather than the call site saying so on
+// every chip.
 function chipContent(children: ReactNode, removeLabel: string) {
   return (state: TagRenderProps) => (
     <>
+      {chipGlyph(state.isSelected)}
       {children}
       {state.allowsRemoving ? (
         <RACButton

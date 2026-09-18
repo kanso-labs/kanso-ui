@@ -33,6 +33,19 @@ import {
 // StyleX replaces a property whole, so the disabled styles take the hover and
 // pressed branches of whichever state they are applied over.
 //
+// A selected chip carries the page's check before its label, which is what
+// makes the selection legible without colour. The two containers differ in
+// colour alone, and under a scheme whose secondary container sits close to
+// the surface — or for a reader who does not see colour — that is no
+// difference at all.
+//
+// The chip widens when the check appears, and that is the page's behaviour
+// rather than a cost of drawing it: a chip is flow content, laid out in a
+// row that wraps, so nothing around it has a width to hold. A segmented
+// button's segments are equal columns of one track, which is a different
+// geometry answering a different question, and the two should not be read
+// across.
+//
 // Apart from any component so a chip in a group and a chip on its own cannot
 // drift; see `src/row` for the same arrangement around a list's row.
 
@@ -73,6 +86,29 @@ const chipStyles = stylex.create({
   disabledUnselected: {
     backgroundColor: 'transparent',
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
+  // The check a selected chip carries: the page's 18dp icon, before the
+  // label, in a slot of its own so the SVG has a box to fill. `fontSize` as
+  // well as the box, so a glyph drawn in `em` or an icon font lands at the
+  // size an SVG does — the same slot a segmented button's segments draw
+  // their check in.
+  glyph: {
+    alignItems: 'center',
+    blockSize: '18px',
+    display: 'inline-flex',
+    flexShrink: 0,
+    fontSize: '18px',
+    inlineSize: '18px',
+    justifyContent: 'center',
+    // The page's 8dp between the check and the label is the chip's own gap;
+    // what is trimmed here is the chip's inline padding, which the page
+    // draws at 8 on the side an icon is on rather than 16. `remove` trims
+    // the other end the same way, for the same line of the same table.
+    marginInlineStart: `calc(-1 * ${spacing.sm})`,
+  },
+  glyphSvg: {
+    blockSize: '100%',
+    inlineSize: '100%',
   },
   // The trailing close target the page draws on an input chip: an 18dp glyph
   // in the content role, in a target of its own so a press on it removes the

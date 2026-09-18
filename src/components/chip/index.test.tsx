@@ -47,6 +47,13 @@ const CLASSES = {
   unselectedColor: classesOf(stylex.props(probeStyles.unselectedColor)),
 }
 
+// The check, or null where the chip draws none. It is the only SVG a chip
+// renders, and it is `aria-hidden` — a chip announces its state through
+// `aria-pressed`, so a role query would not find it and should not.
+function checkIn(chip: HTMLElement) {
+  return chip.querySelector('svg')
+}
+
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -144,6 +151,73 @@ describe('chip', () => {
       fireEvent.click(chip)
       expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(true)
       expect(hasClasses(chip, CLASSES.unselectedBackground)).toBe(false)
+    })
+  })
+
+  // The two containers differ in colour alone, so without the check a reader
+  // who does not see colour has nothing to read the selection off — and a
+  // scheme whose secondary container sits near the surface loses it for
+  // everyone.
+  describe('the check', () => {
+    it('draws the check once selected and none before', () => {
+      const { chip, unmount } = setup()
+      expect(checkIn(chip)).toBeNull()
+      unmount()
+
+      const { chip: selected } = setup({ defaultSelected: true })
+      expect(checkIn(selected)).not.toBeNull()
+    })
+
+    it('follows the state a press puts the chip in', () => {
+      const { chip } = setup()
+      fireEvent.click(chip)
+      expect(checkIn(chip)).not.toBeNull()
+
+      fireEvent.click(chip)
+      expect(checkIn(chip)).toBeNull()
+    })
+
+    it("draws it at the page's 18dp icon size", () => {
+      const { chip } = setup({ defaultSelected: true })
+      const check = checkIn(chip)
+      const box = check?.parentElement?.getBoundingClientRect()
+
+      expect(box?.width).toBe(18)
+      expect(box?.height).toBe(18)
+    })
+
+    // The page gives 16dp of inline padding for a chip without icons and 8dp
+    // on the side an icon is on. The chip keeps the 16 and the slot pulls
+    // back 8, which is what leaves the padding test above reading 16px on an
+    // unselected chip while a selected one measures the page's 8.
+    it("insets it by the page's 8dp rather than the bare 16", () => {
+      const { chip } = setup({ defaultSelected: true })
+      const check = checkIn(chip)
+      const slot = check?.parentElement?.getBoundingClientRect()
+      const box = chip.getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(chip).borderLeftWidth)
+
+      expect((slot?.left ?? 0) - box.left - border).toBe(8)
+    })
+
+    // A chip is flow content in a row that wraps, so it is free to grow: the
+    // slot plus the chip's own 8dp gap, less the 8dp the padding gives back.
+    it('widens the chip by the slot it adds', () => {
+      const { chip, unmount } = setup()
+      const unselected = chip.getBoundingClientRect().width
+      unmount()
+
+      const { chip: selected } = setup({ defaultSelected: true })
+
+      expect(selected.getBoundingClientRect().width - unselected).toBe(18)
+    })
+
+    // `aria-pressed` is what announces the selection, so a check that also
+    // reached the accessibility tree would say it a second time.
+    it('keeps the check out of the accessibility tree', () => {
+      const { chip } = setup({ defaultSelected: true })
+
+      expect(checkIn(chip)?.getAttribute('aria-hidden')).toBe('true')
     })
   })
 })
