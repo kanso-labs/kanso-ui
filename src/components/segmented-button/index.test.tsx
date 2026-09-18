@@ -3,7 +3,11 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
-import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  spacing,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -19,6 +23,9 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   focusLayer: { opacity: stateLayerOpacity.focus },
+  // The glyph slot is the only thing in a segment pinned to the leading
+  // padding edge, which is what tells it apart from the label beside it.
+  glyphSlot: { insetInlineStart: spacing.md },
   hidden: { opacity: 0 },
   hoverLayer: { opacity: stateLayerOpacity.hover },
   pressedLayer: { opacity: stateLayerOpacity.pressed },
@@ -42,6 +49,7 @@ const CLASSES = {
   disabledContainer: classesOf(stylex.props(probeStyles.disabledContainer)),
   disabledContent: classesOf(stylex.props(probeStyles.disabledContent)),
   focusLayer: classesOf(stylex.props(probeStyles.focusLayer)),
+  glyphSlot: classesOf(stylex.props(probeStyles.glyphSlot)),
   hidden: classesOf(stylex.props(probeStyles.hidden)),
   hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
   pressedLayer: classesOf(stylex.props(probeStyles.pressedLayer)),
@@ -77,12 +85,36 @@ function containersIn(view: ReturnType<typeof setup>) {
   return [...view.container.querySelectorAll('button > div')]
 }
 
+// The glyph slot, which every segment that could ever draw a check or an
+// icon carries whether or not it is drawing one.
+function glyphSlotOf(segment: Element) {
+  const found = [...segment.children].find((child) =>
+    hasClasses(child, CLASSES.glyphSlot),
+  )
+  if (!(found instanceof HTMLElement)) {
+    throw new Error('expected the segment to carry a glyph slot')
+  }
+  return found
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
 function hasContainer(segment: Element) {
   return segment.querySelector(':scope > div') !== null
+}
+
+// The label. The glyph slot, the state layer and the ripple surface are
+// spans too, and it is the only one of the four holding text.
+function labelOf(segment: Element) {
+  const found = [...segment.children].find(
+    (child) => child.tagName === 'SPAN' && child.textContent !== '',
+  )
+  if (!(found instanceof HTMLElement)) {
+    throw new Error('expected the segment to carry a label')
+  }
+  return found
 }
 
 // The state layer, above the container and below the label. `currentColor`
@@ -95,6 +127,48 @@ function layerOf(segment: Element) {
     throw new Error('expected the segment to carry a state layer')
   }
   return found
+}
+
+// Every transition the track has running, played out.
+//
+// A width read straight after a press is not the width of either state: the
+// glyph slot's own size and the label's margins both transition, so for a
+// moment the track still holds the shape it is leaving. That shape is the one
+// the width tests are checking is the same as the one it is arriving at, so
+// reading it early is how a test of this passes with the defect still in
+// place — which is what an earlier draft of those tests did.
+//
+// Waiting on the animations rather than on a clock is what keeps that
+// deterministic. There is nothing to advance here: a CSS transition runs on
+// the document timeline, which fake timers do not drive, and polling for a
+// settled value would race the thing being measured.
+async function settle(track: Element) {
+  await Promise.all(
+    track.getAnimations({ subtree: true }).map(async (animation) => {
+      try {
+        await animation.finished
+      } catch {
+        // A transition interrupted by the next press is cancelled rather
+        // than finished, and rejects.
+      }
+    }),
+  )
+}
+
+function trackOf(segment: Element) {
+  const track = segment.parentElement
+  if (track === null) {
+    throw new Error('expected the segment to sit in a track')
+  }
+  return track
+}
+
+// One press, played out, and what the track measures once it has settled.
+async function widthAfterPressing(segment: Element) {
+  const track = trackOf(segment)
+  fireEvent.click(segment)
+  await settle(track)
+  return track.getBoundingClientRect().width
 }
 
 const REDUCE = 'prefers-reduced-motion: reduce'
@@ -379,6 +453,198 @@ describe('segmented button', () => {
       expect(
         view.getByRole('radio').querySelector('[data-testid="icon"]'),
       ).not.toBeNull()
+    })
+  })
+
+  // The check used to be laid out beside the label, so it was part of the
+  // segment's content size — and with `1fr` columns, every column is as wide
+  // as the widest segment asks. The widest segment was therefore whichever
+  // one was chosen, and the whole track grew and shrank with the choice.
+  //
+  // The three labels the default set carries are of different lengths, which
+  // is what lets the check change which of them is the widest. A set of
+  // equal labels would pass every one of these with the defect in place.
+  describe("the track's width", () => {
+    // Guards the three below: a track measuring zero, or labels that were
+    // all one width, would make an unchanging width prove nothing.
+    it('is measurable, and its labels are of different widths', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const segments = view.getAllByRole('radio')
+      const labels = segments.map(
+        (segment) => labelOf(segment).getBoundingClientRect().width,
+      )
+
+      expect(
+        trackOf(segments[0]).getBoundingClientRect().width,
+      ).toBeGreaterThan(0)
+      expect(new Set(labels).size).toBe(labels.length)
+    })
+
+    it('does not change as the choice moves between segments', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const segments = view.getAllByRole('radio')
+      const widths = [trackOf(segments[0]).getBoundingClientRect().width]
+
+      for (const segment of segments) {
+        // Sequential on purpose: each press has to have settled before the
+        // next one starts, or the width read is one part-way between them.
+        // oxlint-disable-next-line eslint/no-await-in-loop -- see above
+        widths.push(await widthAfterPressing(segment))
+      }
+
+      expect(new Set(widths).size).toBe(1)
+    })
+
+    // Nothing here passes `disallowEmptySelection`, so pressing the chosen
+    // segment clears the selection — which used to take the check out of the
+    // track and shrink it a second time.
+    it('does not change when the choice is cleared', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const first = view.getAllByRole('radio')[0]
+      const chosen = trackOf(first).getBoundingClientRect().width
+
+      const cleared = await widthAfterPressing(first)
+
+      expect(first.getAttribute('aria-checked')).toBe('false')
+      expect(cleared).toBe(chosen)
+    })
+
+    // Choosing several draws several checks, so the defect compounded rather
+    // than cancelling out.
+    it('does not change as segments are added to the choice', async () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const buttons = view.getAllByRole('button')
+      const widths = [trackOf(buttons[0]).getBoundingClientRect().width]
+
+      for (const button of buttons.slice(1)) {
+        // oxlint-disable-next-line eslint/no-await-in-loop -- see the test above
+        widths.push(await widthAfterPressing(button))
+      }
+
+      expect(new Set(widths).size).toBe(1)
+    })
+
+    // The room the glyph needs belongs to the segment rather than to the
+    // choice, so drawing one costs the label nothing: a label that fits
+    // unchosen fits chosen, and none of the three ever truncates.
+    it('leaves the label the same room whether or not a glyph is drawn', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const second = view.getAllByRole('radio')[1]
+      const unchosen = labelOf(second).getBoundingClientRect().width
+
+      await widthAfterPressing(second)
+
+      expect(labelOf(second).getBoundingClientRect().width).toBe(unchosen)
+    })
+
+    it('never truncates a label, chosen or not', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const segments = view.getAllByRole('radio')
+      const overflowing: string[] = []
+
+      for (const segment of segments) {
+        // oxlint-disable-next-line eslint/no-await-in-loop -- see the widths test above
+        await widthAfterPressing(segment)
+        for (const each of segments) {
+          const label = labelOf(each)
+          if (label.scrollWidth > label.clientWidth) {
+            overflowing.push(label.textContent)
+          }
+        }
+      }
+
+      expect(overflowing).toStrictEqual([])
+    })
+
+    // The other half of what the room buys. The slot is pinned to the
+    // leading padding edge and draws over whatever is under it, so a label
+    // that did not move for it would have the check drawn across its first
+    // characters — on the widest segment, which is the one whose label fills
+    // its column exactly.
+    it('leaves the page gap between the glyph and the label', async () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const segments = view.getAllByRole('radio')
+      const gaps: number[] = []
+
+      for (const segment of segments) {
+        // oxlint-disable-next-line eslint/no-await-in-loop -- see the widths test above
+        await widthAfterPressing(segment)
+        gaps.push(
+          labelOf(segment).getBoundingClientRect().left -
+            glyphSlotOf(segment).getBoundingClientRect().right,
+        )
+      }
+
+      expect(gaps.filter((gap) => gap < 8)).toStrictEqual([])
+    })
+
+    // And what splitting the room across both sides buys. A whole reserve on
+    // the leading side would hold the track just as still, and leave every
+    // label that draws no glyph sitting 13px right of where it belongs.
+    //
+    // Measured from the padding box rather than the border box, since every
+    // segment but the first drops its leading rule to share its neighbour's
+    // — so a segment's own borders are not symmetric and its content's
+    // centre is not the centre of what it draws.
+    it('centres a label with nothing drawn beside it', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const second = view.getAllByRole('radio')[1]
+      const segment = second.getBoundingClientRect()
+      const label = labelOf(second).getBoundingClientRect()
+      const rules = getComputedStyle(second)
+
+      const leading =
+        label.left - segment.left - parseFloat(rules.borderInlineStartWidth)
+      const trailing =
+        segment.right - parseFloat(rules.borderInlineEndWidth) - label.right
+
+      expect(leading).toBeCloseTo(trailing, 1)
+    })
+
+    // The mechanism the rest rest on: the slot is positioned, so it is no
+    // part of what the columns are measured from, and the label's two
+    // margins hold the room instead — the same total in both states, moved
+    // to the leading side when something is drawn.
+    it('draws the glyph slot out of the segment flow', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const slot = getComputedStyle(glyphSlotOf(view.getAllByRole('radio')[0]))
+
+      expect(slot.position).toBe('absolute')
+      expect(slot.insetInlineStart).toBe('12px')
+    })
+
+    it('keeps the same room on the label in both states', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [chosen, unchosen] = view
+        .getAllByRole('radio')
+        .map((segment) => getComputedStyle(labelOf(segment)))
+
+      expect([chosen.marginInlineStart, chosen.marginInlineEnd]).toStrictEqual([
+        '26px',
+        '0px',
+      ])
+      expect([
+        unchosen.marginInlineStart,
+        unchosen.marginInlineEnd,
+      ]).toStrictEqual(['13px', '13px'])
+    })
+
+    // A set that can draw neither a check nor an icon has no slot to keep
+    // room for, and reserving it would be dead space in every segment.
+    it('keeps no room when the set draws no check and no segment has an icon', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        showSelectedIcon: false,
+      })
+      const label = getComputedStyle(labelOf(view.getAllByRole('radio')[0]))
+
+      expect([label.marginInlineStart, label.marginInlineEnd]).toStrictEqual([
+        '0px',
+        '0px',
+      ])
     })
   })
 
