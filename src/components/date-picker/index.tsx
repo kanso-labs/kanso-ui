@@ -67,7 +67,14 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
   container?: Element
   /** Supporting text under the field. */
   description?: string
-  /** The message shown instead of the description, which also marks the field invalid. */
+  /**
+   * The message shown instead of the description, which also marks the
+   * field invalid.
+   *
+   * Outside a `Form` the message line arrives with the message, so the
+   * field grows when this does and moves what is under it. A `Form` holds
+   * that space from the start; so does a permanent `description`.
+   */
   error?: string
   /**
    * Whether the label floats into the box's top once the field holds a

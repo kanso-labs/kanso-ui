@@ -184,6 +184,39 @@ describe('form', () => {
       const view = render(<TextField label="Alone" />)
       expect(view.container.querySelectorAll('[slot]')).toHaveLength(0)
     })
+
+    // The other half of what the `error` prop docs promise: a field outside a
+    // form has no line to fill, so one arriving takes the space from whatever
+    // is under it. Pinned because it is the comparison that makes wrapping in
+    // a form worth mentioning at all.
+    it('moves the field below when one on its own gains an error', () => {
+      const view = render(
+        <>
+          <TextField label="First" />
+          <TextField label="Second" />
+        </>,
+      )
+      // Read off the container rather than `secondFieldTop`, which looks the
+      // fields up through the form that is deliberately absent here.
+      const secondOf = () => {
+        const second = [...view.container.children][1]
+        if (!(second instanceof HTMLElement)) {
+          throw new Error('expected two fields')
+        }
+        return second.getBoundingClientRect().top
+      }
+      const before = secondOf()
+
+      view.rerender(
+        <>
+          <TextField error="Choose another name." label="First" />
+          <TextField label="Second" />
+        </>,
+      )
+
+      expect(view.getByText('Choose another name.')).not.toBeNull()
+      expect(secondOf() - before).toBe(20)
+    })
   })
 
   describe('validation behaviour', () => {

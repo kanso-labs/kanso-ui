@@ -105,7 +105,8 @@ const Overview: Story = {
             message, the error colour and aria-invalid all follow from the form.
             Every field inside a form keeps the line under it clear whether or
             not it has anything to say, so a message arriving leaves the fields
-            below it where they are.
+            below it where they are. A field on its own has no such line, so an
+            error reaching that one grows it and moves whatever sits under it.
           </Text>
         </div>
         <div {...stylex.props(styles.sample)}>
