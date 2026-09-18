@@ -312,13 +312,59 @@ issue if you need them exported.
 
 ## Development
 
-- `npm run storybook` — component playground
-- `npm run build-storybook` — build that playground as a static site, the same
-  way the `Deploy Storybook` workflow does
-- `npm run tokens:build` — regenerate `src/tokens/design.tokens.*` from
-  `src/tokens/design.tokens.json`
-- `npm test` — Storybook story tests (vitest, headless Chromium)
-- `npm run build` — build the publishable package into `dist/`
+Fork, then clone the repository:
+
+```shell
+git clone https://github.com/your-username/kanso-ui.git
+```
+
+Install with the Node version in [`.tool-versions`](.tool-versions). CI resolves
+it from that file, and an older npm rewrites `package-lock.json` as it installs.
+If `node --version` disagrees:
+
+```shell
+mise exec node@"$(awk '/^nodejs/{print $2}' .tool-versions)" -- npm install
+```
+
+`npm install` also fetches the Playwright browsers the tests run in, through the
+`prepare` script.
+
+### The commands CI runs
+
+Between them these are the whole gate:
+
+```shell
+npm run lint   # oxlint, then ESLint, then oxfmt --check
+npm run build  # tsc -b, then tsdown into dist/
+npm test       # Storybook story tests, vitest in headless Chromium
+```
+
+`npm run package:check` runs publint over `dist/`, so it needs a build first.
+
+**oxfmt formats this repository, not Prettier**, and it covers Markdown, JSON
+and YAML as well as TypeScript. `npm run lint -- --fix` will not reformat
+anything — reach for `npm run format`.
+
+### Everything else
+
+| Command                           | What it does                                          |
+| --------------------------------- | ----------------------------------------------------- |
+| `npm run storybook`               | the component playground (`npm run dev` is an alias)  |
+| `npm run build-storybook`         | that playground as a static site, as CI publishes it  |
+| `npm run test:coverage`           | the suite with v8 coverage, written to `coverage/`    |
+| `npm run tokens:build`            | regenerate `src/tokens/design.tokens.*` from the JSON |
+| `npm run component:new -- <name>` | scaffold `src/components/<name>` and its entries      |
+
+[`AGENTS.md`](AGENTS.md) carries the conventions every component follows, the
+reasoning behind them, and the traps. It is written for coding agents and is
+equally the fullest thing a human contributor can read.
+
+Contribution guidelines for the organization are in
+[`kanso-labs/.github`](https://github.com/kanso-labs/.github).
+
+## License
+
+MIT
 
 [build-shield]:
   https://img.shields.io/github/actions/workflow/status/kanso-labs/kanso-ui/build.yaml?branch=main&label=Build
