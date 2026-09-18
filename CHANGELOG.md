@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/kanso-labs/kanso-ui/compare/v0.29.1...v0.30.0) (2026-09-18)
+
+
+### Features
+
+* **copy-field:** let a call site learn a clipboard write failed ([#908](https://github.com/kanso-labs/kanso-ui/issues/908)) ([edd3cd1](https://github.com/kanso-labs/kanso-ui/commit/edd3cd103ce793b63ecad5fadc666bbb6b0ba5ed))
+
+
+### Bug Fixes
+
+* **segmented-button:** keep the track's width when the check moves between segments ([#917](https://github.com/kanso-labs/kanso-ui/issues/917)) ([37b9693](https://github.com/kanso-labs/kanso-ui/commit/37b9693a4b34a4ce7eade0a9fd4fcfb69c484b59))
+
 ## [0.29.1](https://github.com/kanso-labs/kanso-ui/compare/v0.29.0...v0.29.1) (2026-09-18)
 
 
