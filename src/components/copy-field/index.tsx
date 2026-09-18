@@ -109,6 +109,18 @@ type CopyFieldProps = {
    * built-in would be a trap rather than a convenience.
    */
   onCopied?: (value: string) => void
+  /**
+   * Called when the write is refused, with whatever was thrown. The button
+   * stays at rest, so this is the only signal an app gets — reach for it to
+   * fall back, by selecting the value or saying so in a snackbar.
+   *
+   * Takes the error where `onCopied` takes the value, because the value is
+   * the one thing the call site already has and the reason is the one thing
+   * it does not. The two refusals throw differently: outside a secure
+   * context `navigator.clipboard` is not there at all, and where the
+   * permission is denied it is a `DOMException`.
+   */
+  onCopyFailed?: (error: unknown) => void
   /** The text shown, and the text copied. */
   value: string
 } & Omit<HTMLAttributes<HTMLDivElement>, 'children'>
@@ -117,11 +129,16 @@ type CopyFieldProps = {
  * A value to be read and taken away — a repository URL, a token, a command.
  * It shows the value in the mono face and copies it on request, confirming
  * on the button itself.
+ *
+ * A write refused — outside a secure context, or where the permission is
+ * denied — leaves the button at rest rather than confirming, and calls
+ * `onCopyFailed`.
  */
 function CopyField({
   copiedLabel = 'Copied',
   copyLabel = 'Copy',
   onCopied,
+  onCopyFailed,
   value,
   ...props
 }: CopyFieldProps) {
@@ -141,12 +158,18 @@ function CopyField({
     const write = async () => {
       try {
         await navigator.clipboard.writeText(value)
-      } catch {
+      } catch (error) {
         // A clipboard write is refused outside a secure context and wherever
         // the permission is denied, and neither is something the call site can
         // fix. Staying at rest is the honest report: the value is not on the
         // clipboard, so the control must not claim it is.
+        //
+        // It is reported rather than swallowed, since a control that does
+        // nothing is indistinguishable from one that is broken. Nothing is
+        // logged — the library writes to the console nowhere, and a warning
+        // an app cannot turn off is not its to emit.
         setCopied(false)
+        onCopyFailed?.(error)
         return
       }
       setCopied(true)
@@ -157,7 +180,7 @@ function CopyField({
       }, COPIED_RESET_MS)
     }
     void write()
-  }, [onCopied, value])
+  }, [onCopied, onCopyFailed, value])
 
   return (
     <div {...props} {...mergeStyles(stylex.props(styles.root), props)}>
