@@ -323,7 +323,7 @@ const graphiteRadii = stylex.createTheme(radii, {
   pill: '6px',
   sm: '4px',
   xl: '12px',
-  xs: '3px',
+  xs: '2px',
 })
 
 const graphiteShadows = stylex.createTheme(shadows, {
@@ -348,14 +348,14 @@ const graphiteSizing = stylex.createTheme(sizing, {
 })
 
 const graphiteSpacing = stylex.createTheme(spacing, {
-  lg: '16px',
-  md: '10px',
+  lg: '12px',
+  md: '8px',
   sm: '6px',
-  xl: '24px',
+  xl: '20px',
   xs: '4px',
-  xxl: '32px',
+  xxl: '28px',
   xxs: '2px',
-  xxxl: '40px',
+  xxxl: '36px',
 })
 
 const neonColors = stylex.createTheme(colors, {
