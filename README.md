@@ -373,7 +373,7 @@ MIT
 [codecov]: https://codecov.io/gh/kanso-labs/kanso-ui
 [coverage-shield]:
   https://img.shields.io/codecov/c/github/kanso-labs/kanso-ui?label=Coverage
-[license]: ./LICENSE
+[license]: ./LICENSE.md
 [license-shield]: https://img.shields.io/github/license/kanso-labs/kanso-ui
 [npm]: https://www.npmjs.com/package/@kanso-labs/kanso-ui
 [npm-downloads-shield]: https://img.shields.io/npm/dm/@kanso-labs/kanso-ui
