@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.28.5](https://github.com/kanso-labs/kanso-ui/compare/v0.28.4...v0.28.5) (2026-09-18)
+
+
+### Bug Fixes
+
+* **calendar:** hold the grid at six rows so a month's height does not change ([#884](https://github.com/kanso-labs/kanso-ui/issues/884)) ([506ca38](https://github.com/kanso-labs/kanso-ui/commit/506ca38c1de1e0b8a76c27d57653983bc34a31b3))
+* **chip:** draw the check the filter chip's selected state carries ([#883](https://github.com/kanso-labs/kanso-ui/issues/883)) ([35325f3](https://github.com/kanso-labs/kanso-ui/commit/35325f3b571f5fb1c556f72d004e4a9bda9ccce2))
+* **copy-field:** keep the button's width while it reads Copied ([#881](https://github.com/kanso-labs/kanso-ui/issues/881)) ([5426957](https://github.com/kanso-labs/kanso-ui/commit/5426957608e0e76633a165d668678b913a01f2a7))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.9.0 ([#885](https://github.com/kanso-labs/kanso-ui/issues/885)) ([9ae7271](https://github.com/kanso-labs/kanso-ui/commit/9ae72710f7621178221e163bcb94acff63ef61e7))
+* update dependency oxlint-tsgolint to v7.0.2002 ([#886](https://github.com/kanso-labs/kanso-ui/issues/886)) ([09e952c](https://github.com/kanso-labs/kanso-ui/commit/09e952c8bbc71036c9369537ee070f7647a8db8e))
+
 ## [0.28.4](https://github.com/kanso-labs/kanso-ui/compare/v0.28.3...v0.28.4) (2026-09-17)
 
 
