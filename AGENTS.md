@@ -573,7 +573,7 @@ into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
 
 **That control offers more than light and dark**, and the extra entries come
-from `src/theming/themes.ts`: five demo schemes the `Theming` sidebar section is
+from `src/theming/themes.ts`: the demo schemes the `Theming` sidebar section is
 built from, which `ThemeWrapper` applies to any story the same way it applies
 the library's own two. They are Storybook material rather than library API —
 nothing under `src/index.ts` reaches them, they are excluded from coverage
@@ -618,7 +618,7 @@ ordered by it, so a new component is a new `Section` in its alphabetical place
 rather than a row appended to a group. Give it the sentence under the headline
 that says what a scheme reaches in it, and the same placeholder copy the rest of
 the page uses, since the sample-copy rule applies there as everywhere. The page
-is shared verbatim by all five schemes, so one edit reaches every one of them.
+is shared verbatim by every scheme, so one edit reaches all of them.
 
 `AppBar` is the one component with no section of its own: its headline is the
 page's only `<h1>`, so the bar is drawn at the top of the page and its entry in
