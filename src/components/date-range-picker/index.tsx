@@ -70,7 +70,10 @@ const styles = stylex.create({
   },
 })
 
-type DateRangePickerProps<T extends DateValue = DateValue> = {
+type DateRangePickerProps<T extends DateValue = DateValue> = Omit<
+  RACDateRangePickerProps<T>,
+  'children' | 'className' | 'style'
+> & {
   /** A function may compute the class from the picker's render state. */
   className?: RACDateRangePickerProps<T>['className']
   /**
@@ -93,7 +96,10 @@ type DateRangePickerProps<T extends DateValue = DateValue> = {
   floatingLabel?: boolean
   /** What the field is for. Always rendered; never a placeholder. */
   label: string
-  /** An icon at the box's leading end. */
+  /**
+   * An icon at the box's leading end, in the page's 24dp size. An icon drawn
+   * in `em` takes that size from the slot.
+   */
   leadingIcon?: ReactNode
   /**
    * What is drawn between the two segment groups. Decoration — a screen
@@ -113,7 +119,7 @@ type DateRangePickerProps<T extends DateValue = DateValue> = {
    * @default 'filled'
    */
   variant?: FieldVariant
-} & Omit<RACDateRangePickerProps<T>, 'children' | 'className' | 'style'>
+}
 
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-jsx-as-prop is after — the same reason Select builds its

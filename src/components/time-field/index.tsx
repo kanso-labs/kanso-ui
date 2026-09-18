@@ -56,11 +56,17 @@ type TimeFieldProps<T extends TimeValue = TimeValue> = Omit<
   floatingLabel?: boolean
   /** What the field is for. Always rendered; never a placeholder. */
   label: string
-  /** An icon at the box's leading end. */
+  /**
+   * An icon at the box's leading end, in the page's 24dp size. An icon drawn
+   * in `em` takes that size from the slot.
+   */
   leadingIcon?: ReactNode
   /** A function may compute the style from the field's render state. */
   style?: RACTimeFieldProps<T>['style']
-  /** An icon at the box's trailing end. */
+  /**
+   * An icon at the box's trailing end, in the page's 24dp size. An icon
+   * drawn in `em` takes that size from the slot.
+   */
   trailingIcon?: ReactNode
   /**
    * Which of the text fields page's two boxes to draw.

@@ -214,6 +214,58 @@ them unless told which the app supports; React Aria's
 [`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
 is how an app says so.
 
+### Icons
+
+The package ships no glyph icons, so every icon comes from the app — an icon
+set, or an inline SVG of its own. Three things are asked of it:
+
+- **`aria-hidden`**, since the control around it carries the name. An
+  `IconButton` takes its name from `aria-label`, and a field's icon is
+  decoration beside a label that already says what the field is for.
+- **`currentColor`** for `fill` or `stroke`, so the icon takes the colour the
+  slot sets — muted in a field, the on-container role inside a filled button,
+  and the disabled fade in either.
+- **`1em` square**, which is what makes one icon serve every size.
+
+```tsx
+function StarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
+    </svg>
+  )
+}
+```
+
+`1em` works because the slots that own an icon's size set it as a font size, and
+the icon inherits it:
+
+| Slot                                       | Size an `em` icon takes                              |
+| ------------------------------------------ | ---------------------------------------------------- |
+| `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
+| A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
+| `SegmentedButton.Segment`'s `icon`         | 18px                                                 |
+
+**The `leading` and `trailing` slots on a row are different.** A list item, a
+menu item, a tree item and an app bar set no icon size, so an icon there takes
+the size of the text beside it — 16px in a list row. Give an icon in one of
+those a size of its own:
+
+```tsx
+<ListItem leading={<StarIcon height="24" width="24" />}>Headline</ListItem>
+```
+
+An SVG with a `viewBox` and no size at all has no size to shrink from, so what
+it does next belongs to the slot rather than to the icon. In an `IconButton` it
+fills the button edge to edge; in a field's icon slot it collapses and draws
+nothing. Sizing it is what avoids both.
+
 ## Theming
 
 Every design token — color, spacing, radii, shadows, typography, state-layer

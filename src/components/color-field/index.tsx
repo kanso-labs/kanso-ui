@@ -51,11 +51,18 @@ type ColorFieldProps = Omit<
   floatingLabel?: boolean
   /** What the field is for. Always rendered; never a placeholder. */
   label: string
-  /** An icon at the box's leading end. A `ColorSwatch` shows the value. */
+  /**
+   * An icon at the box's leading end, in the page's 24dp size. A
+   * `ColorSwatch` shows the value. An icon drawn in `em` takes that size
+   * from the slot.
+   */
   leadingIcon?: ReactNode
   /** A function may compute the style from the field's render state. */
   style?: RACColorFieldProps['style']
-  /** An icon at the box's trailing end. */
+  /**
+   * An icon at the box's trailing end, in the page's 24dp size. An icon
+   * drawn in `em` takes that size from the slot.
+   */
   trailingIcon?: ReactNode
   /**
    * Which of the text fields page's two boxes to draw.

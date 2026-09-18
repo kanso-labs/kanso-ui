@@ -78,6 +78,7 @@ type TextFieldProps = {
   /**
    * An icon at the end of the box, after the value: the page's 24dp trailing
    * icon, in the muted role and the error role while the field has an error.
+   * An icon drawn in `em` takes that size from the slot.
    */
   trailingIcon?: ReactNode
   /**

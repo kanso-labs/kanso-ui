@@ -31,6 +31,15 @@ const PARAGRAPH = <p />
 // frame, under a manager still showing the sidebar and the toolbar.
 const LINK_TARGET = { rel: 'noreferrer', target: '_blank' } as const
 
+const ICONS = `// aria-hidden, currentColor, and 1em square.
+<svg aria-hidden="true" fill="currentColor" height="1em"
+     viewBox="0 0 24 24" width="1em">
+  <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
+</svg>
+
+// A row sets no icon size, so give one there a size of its own.
+<ListItem leading={<StarIcon height="24" width="24" />}>Headline</ListItem>`
+
 const INSTALL = 'npm install @kanso-labs/kanso-ui'
 
 const USAGE = `import { Button } from '@kanso-labs/kanso-ui'
@@ -260,6 +269,37 @@ function GettingStartedPage() {
         <Card variant="filled">
           <pre {...stylex.props(styles.snippet)}>
             <Code>{RENDERING}</Code>
+          </pre>
+        </Card>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Icons
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The package ships no glyph icons, so every icon comes from the app.
+            Give it <Code>aria-hidden</Code>, since the control around it
+            carries the name; <Code>currentColor</Code>, so it takes the colour
+            the slot sets; and a size of <Code>1em</Code>, which is what makes
+            one icon serve every size.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            <Code>1em</Code> works because the slots that own an icon&apos;s
+            size set it as a font size: <Code>IconButton</Code> draws 20px
+            through 40px across its five sizes, a field&apos;s{' '}
+            <Code>leadingIcon</Code> and <Code>trailingIcon</Code> 24px, and a
+            segment&apos;s <Code>icon</Code> 18px. A row&apos;s{' '}
+            <Code>leading</Code> and <Code>trailing</Code> set none, so an icon
+            there follows the text beside it.
+          </Text>
+        </div>
+        <Card variant="filled">
+          <pre {...stylex.props(styles.snippet)}>
+            <Code>{ICONS}</Code>
           </pre>
         </Card>
       </section>
