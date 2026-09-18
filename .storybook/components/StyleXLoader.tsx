@@ -4,7 +4,8 @@
 // deliberately — Storybook's indexer reads preview.tsx as text and `eval`s the
 // storySort expression as plain JavaScript, so an annotation there takes the
 // story index down. See the comment above preview.tsx's own copy of this
-// disable.
+// disable. The declarations this file would otherwise be typed by sit dormant
+// in `vite-env.d.ts`, which no project covers either.
 //
 // Scoped to the one rule rather than the file, and needed because lint-staged
 // invokes oxlint per staged path. A per-file run resolves no project, so the
