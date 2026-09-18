@@ -39,6 +39,10 @@ type TextFieldProps = {
    * The problem with the current value, in words. Its presence is what puts
    * the field in its error state — the message, the red underline, and
    * `aria-invalid` all follow from it.
+   *
+   * Outside a `Form` the message line arrives with the message, so the
+   * field grows when this does and moves what is under it. A `Form` holds
+   * that space from the start; so does a permanent `description`.
    */
   error?: string
   /**

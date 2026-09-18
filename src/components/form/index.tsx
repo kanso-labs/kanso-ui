@@ -59,6 +59,13 @@ type FormProps = {
  * be told something arrived: see `validationBehavior` for what the form does
  * and what it leaves to the call site.
  *
+ * A form also reserves each field's message line. A field on its own draws
+ * that line only once it has something to say, so an error arriving after a
+ * submit or an async check makes the field taller and moves everything below
+ * it down the page. Inside a form the line is there from the start, empty,
+ * and nothing moves when it fills — which is the whole reason a form is where
+ * a message arrives after the fact.
+ *
  * The call site's `className` and `style` land on the form element, which is
  * the element a layout positions.
  */

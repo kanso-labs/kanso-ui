@@ -37,6 +37,10 @@ type CheckboxGroupProps = {
    * The problem with the current selection, in words. Its presence is what
    * puts the group in its error state — the message, the boxes' error
    * colours and `aria-invalid` all follow from it.
+   *
+   * Outside a `Form` the message line arrives with the message, so the
+   * field grows when this does and moves what is under it. A `Form` holds
+   * that space from the start; so does a permanent `description`.
    */
   error?: string
   /**
