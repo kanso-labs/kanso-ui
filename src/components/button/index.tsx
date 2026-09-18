@@ -22,6 +22,7 @@ import {
   colors,
   radii,
   shadows,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -79,7 +80,7 @@ type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     cursor: 'pointer',
@@ -158,7 +159,7 @@ const styles = stylex.create({
   // scale, and the scale should not grow to fit one component. `md` is the
   // page's S, which it calls the default.
   lg: {
-    blockSize: '56px',
+    blockSize: sizing.controlLg,
     fontFamily: typography.titleMediumFont,
     fontSize: typography.titleMediumSize,
     fontWeight: typography.titleMediumWeight,
@@ -167,7 +168,7 @@ const styles = stylex.create({
     paddingInline: spacing.xl,
   },
   md: {
-    blockSize: '40px',
+    blockSize: sizing.controlSm,
     paddingInline: spacing.lg,
   },
   outlined: {
@@ -228,7 +229,7 @@ const styles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   xl: {
-    blockSize: '96px',
+    blockSize: sizing.controlXl,
     fontFamily: typography.headlineSmallFont,
     fontSize: typography.headlineSmallSize,
     fontWeight: typography.headlineSmallWeight,
@@ -238,11 +239,11 @@ const styles = stylex.create({
     paddingInline: '48px',
   },
   xs: {
-    blockSize: '32px',
+    blockSize: sizing.controlXs,
     paddingInline: spacing.lg,
   },
   xxl: {
-    blockSize: '136px',
+    blockSize: sizing.controlXxl,
     fontFamily: typography.headlineLargeFont,
     fontSize: typography.headlineLargeSize,
     fontWeight: typography.headlineLargeWeight,

@@ -93,7 +93,7 @@ const triggerStyles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
       default: colors.surfaceContainerLow,
     },
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: colors.onSurface,

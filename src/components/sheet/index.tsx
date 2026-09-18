@@ -169,7 +169,7 @@ const styles = stylex.create({
     backgroundColor: colors.onSurfaceVariant,
     blockSize: '4px',
     // 9999 on a 4dp bar resolves to the page's own 2dp corner.
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     inlineSize: '32px',
   },

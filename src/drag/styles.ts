@@ -19,7 +19,7 @@ const dragStyles = stylex.create({
   indicator: {
     backgroundColor: 'transparent',
     blockSize: '2px',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     marginBlock: '-1px',
     outlineStyle: 'none',

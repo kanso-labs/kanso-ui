@@ -25,7 +25,7 @@ import { colors, motion, radii, shadows } from '../tokens/design.tokens.stylex'
 const colorThumb = stylex.create({
   thumb: {
     blockSize: '20px',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     boxShadow: `0 0 0 2px ${colors.surface}, 0 0 0 3px ${colors.outline}`,
     boxSizing: 'border-box',
     cursor: 'grab',

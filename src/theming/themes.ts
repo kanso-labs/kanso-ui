@@ -4,6 +4,7 @@ import {
   colors,
   radii,
   shadows,
+  sizing,
   spacing,
   typography,
 } from '../tokens/design.tokens.stylex'
@@ -147,10 +148,11 @@ const editorialTypography = stylex.createTheme(typography, {
 })
 
 const editorialRadii = stylex.createTheme(radii, {
-  full: '9999px',
+  circle: '9999px',
   lg: '6px',
   md: '4px',
   none: '0px',
+  pill: '9999px',
   sm: '3px',
   xl: '10px',
   xs: '2px',
@@ -314,10 +316,11 @@ const graphiteTypography = stylex.createTheme(typography, {
 })
 
 const graphiteRadii = stylex.createTheme(radii, {
-  full: '9999px',
+  circle: '9999px',
   lg: '8px',
   md: '6px',
   none: '0px',
+  pill: '6px',
   sm: '4px',
   xl: '12px',
   xs: '3px',
@@ -329,6 +332,19 @@ const graphiteShadows = stylex.createTheme(shadows, {
   elevation3: '0px 4px 14px 0px rgba(0, 0, 0, 0.48)',
   elevation4: '0px 8px 26px 0px rgba(0, 0, 0, 0.46)',
   elevation5: '0px 12px 40px 0px rgba(0, 0, 0, 0.45)',
+})
+
+const graphiteSizing = stylex.createTheme(sizing, {
+  controlLg: '40px',
+  controlMd: '36px',
+  controlSm: '32px',
+  controlXl: '56px',
+  controlXs: '24px',
+  controlXxl: '72px',
+  rowLg: '56px',
+  rowMd: '44px',
+  rowSm: '32px',
+  rowXs: '30px',
 })
 
 const graphiteSpacing = stylex.createTheme(spacing, {
@@ -444,10 +460,11 @@ const neonTypography = stylex.createTheme(typography, {
 })
 
 const neonRadii = stylex.createTheme(radii, {
-  full: '9999px',
+  circle: '9999px',
   lg: '26px',
   md: '20px',
   none: '0px',
+  pill: '9999px',
   sm: '14px',
   xl: '34px',
   xs: '10px',
@@ -568,10 +585,11 @@ const nordicTypography = stylex.createTheme(typography, {
 })
 
 const nordicRadii = stylex.createTheme(radii, {
-  full: '9999px',
+  circle: '9999px',
   lg: '32px',
   md: '24px',
   none: '0px',
+  pill: '9999px',
   sm: '16px',
   xl: '44px',
   xs: '10px',
@@ -721,10 +739,11 @@ const posterTypography = stylex.createTheme(typography, {
 })
 
 const posterRadii = stylex.createTheme(radii, {
-  full: '9999px',
+  circle: '9999px',
   lg: '0px',
   md: '0px',
   none: '0px',
+  pill: '9999px',
   sm: '0px',
   xl: '0px',
   xs: '0px',
@@ -852,10 +871,11 @@ const terminalTypography = stylex.createTheme(typography, {
 })
 
 const terminalRadii = stylex.createTheme(radii, {
-  full: '2px',
+  circle: '2px',
   lg: '0px',
   md: '0px',
   none: '0px',
+  pill: '2px',
   sm: '0px',
   xl: '0px',
   xs: '0px',
@@ -906,13 +926,14 @@ const demoThemes = {
   },
   graphite: {
     description:
-      'Periwinkle over a near-black neutral ladder, set in Inter at thirteen pixels with every heading tracked tight, cornered between three and twelve pixels, and lifted by plain black shadows rather than tinted ones.',
+      'Periwinkle over a near-black neutral ladder, set in Inter at thirteen pixels with every heading tracked tight, drawn at a thirty-two-pixel control height with rectangular buttons beside round avatars, and lifted by plain black shadows rather than tinted ones.',
     label: 'Graphite',
     theme: [
       graphiteColors,
       graphiteTypography,
       graphiteRadii,
       graphiteShadows,
+      graphiteSizing,
       graphiteSpacing,
     ],
   },

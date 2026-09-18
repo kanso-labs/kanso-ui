@@ -78,10 +78,11 @@
   --kui-motion-easing-spring-fast: cubic-bezier(0.34, 1.56, 0.64, 1);
   --kui-motion-easing-spring-slow: cubic-bezier(0.16, 1, 0.3, 1);
   --kui-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
-  --kui-radius-full: 9999px;
+  --kui-radius-circle: 9999px;
   --kui-radius-lg: 16px;
   --kui-radius-md: 12px;
   --kui-radius-none: 0px;
+  --kui-radius-pill: 9999px;
   --kui-radius-sm: 8px;
   --kui-radius-xl: 28px;
   --kui-radius-xs: 4px;
@@ -95,6 +96,16 @@
     0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
   --kui-shadow-elevation5:
     0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+  --kui-sizing-control-lg: 56px;
+  --kui-sizing-control-md: 48px;
+  --kui-sizing-control-sm: 40px;
+  --kui-sizing-control-xl: 96px;
+  --kui-sizing-control-xs: 32px;
+  --kui-sizing-control-xxl: 136px;
+  --kui-sizing-row-lg: 88px;
+  --kui-sizing-row-md: 72px;
+  --kui-sizing-row-sm: 56px;
+  --kui-sizing-row-xs: 48px;
   --kui-spacing-lg: 16px;
   --kui-spacing-md: 12px;
   --kui-spacing-sm: 8px;

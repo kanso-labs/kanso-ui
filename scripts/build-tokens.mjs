@@ -96,6 +96,7 @@ const CSS_CATEGORY = {
   motion: 'motion',
   radii: 'radius',
   shadows: 'shadow',
+  sizing: 'sizing',
   spacing: 'spacing',
   stateLayerOpacity: 'state-layer-opacity',
   typography: 'typography',
@@ -374,9 +375,32 @@ function spacingEntries(allTokens) {
   ])
 }
 
+// Flattened from the JSON's two families, control and row, because defineVars
+// takes a flat record — `controlXs` here is `sizing.component.controlXs` there,
+// and `--kui-sizing-control-xs` in the stylesheet.
+/** @param {TransformedToken[]} allTokens @returns {Entry[]} */
+function sizingEntries(allTokens) {
+  const keys = [
+    'controlXs',
+    'controlSm',
+    'controlMd',
+    'controlLg',
+    'controlXl',
+    'controlXxl',
+    'rowXs',
+    'rowSm',
+    'rowMd',
+    'rowLg',
+  ]
+  return keys.map((key) => [
+    key,
+    `'${byPath(allTokens, 'sizing', 'component', key)}'`,
+  ])
+}
+
 /** @param {TransformedToken[]} allTokens @returns {Entry[]} */
 function radiiEntries(allTokens) {
-  const keys = ['none', 'xs', 'sm', 'md', 'lg', 'xl', 'full']
+  const keys = ['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill', 'circle']
   return keys.map((key) => [
     key,
     `'${byPath(allTokens, 'radii', 'component', key)}'`,
@@ -659,6 +683,8 @@ ${defineVarsBlock('spacing', withCssVarFallback('spacing', spacingEntries(allTok
 
 ${defineVarsBlock('radii', withCssVarFallback('radii', radiiEntries(allTokens)))}
 
+${defineVarsBlock('sizing', withCssVarFallback('sizing', sizingEntries(allTokens)))}
+
 ${defineVarsBlock(
   'shadows',
   withCssVarFallback('shadows', shadowsEntries(allTokens)),
@@ -701,6 +727,7 @@ function cssSource(allTokens) {
     ...cssLines('typography', typographyEntries(allTokens)),
     ...cssLines('spacing', spacingEntries(allTokens)),
     ...cssLines('radii', radiiEntries(allTokens)),
+    ...cssLines('sizing', sizingEntries(allTokens)),
     ...cssLines('shadows', shadowsEntries(allTokens)),
     ...cssLines('stateLayerOpacity', stateLayerOpacityEntries(allTokens)),
     ...cssLines('motion', motionEntries(allTokens)),

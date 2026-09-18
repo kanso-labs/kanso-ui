@@ -94,7 +94,7 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: '24px',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: 'inherit',

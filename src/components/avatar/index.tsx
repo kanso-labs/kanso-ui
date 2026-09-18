@@ -31,7 +31,7 @@ import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,

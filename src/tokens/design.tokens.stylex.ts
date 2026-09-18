@@ -488,16 +488,32 @@ const spacing = stylex.defineVars({
 export { spacing }
 
 const radii = stylex.defineVars({
-  full: 'var(--kui-radius-full, 9999px)',
+  circle: 'var(--kui-radius-circle, 9999px)',
   lg: 'var(--kui-radius-lg, 16px)',
   md: 'var(--kui-radius-md, 12px)',
   none: 'var(--kui-radius-none, 0px)',
+  pill: 'var(--kui-radius-pill, 9999px)',
   sm: 'var(--kui-radius-sm, 8px)',
   xl: 'var(--kui-radius-xl, 28px)',
   xs: 'var(--kui-radius-xs, 4px)',
 })
 
 export { radii }
+
+const sizing = stylex.defineVars({
+  controlLg: 'var(--kui-sizing-control-lg, 56px)',
+  controlMd: 'var(--kui-sizing-control-md, 48px)',
+  controlSm: 'var(--kui-sizing-control-sm, 40px)',
+  controlXl: 'var(--kui-sizing-control-xl, 96px)',
+  controlXs: 'var(--kui-sizing-control-xs, 32px)',
+  controlXxl: 'var(--kui-sizing-control-xxl, 136px)',
+  rowLg: 'var(--kui-sizing-row-lg, 88px)',
+  rowMd: 'var(--kui-sizing-row-md, 72px)',
+  rowSm: 'var(--kui-sizing-row-sm, 56px)',
+  rowXs: 'var(--kui-sizing-row-xs, 48px)',
+})
+
+export { sizing }
 
 const shadows = stylex.defineVars({
   elevation1:

@@ -4,6 +4,7 @@ import {
   colors,
   motion,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -54,7 +55,7 @@ import {
 const chipStyles = stylex.create({
   base: {
     alignItems: 'center',
-    blockSize: '32px',
+    blockSize: sizing.controlXs,
     borderRadius: radii.sm,
     borderStyle: 'solid',
     borderWidth: '1px',
@@ -123,7 +124,7 @@ const chipStyles = stylex.create({
       default: 'transparent',
     },
     blockSize: '18px',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: 'inherit',

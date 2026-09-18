@@ -35,6 +35,7 @@ import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -163,7 +164,7 @@ const styles = stylex.create({
   // The page's 56dp header, in a medium weight against the rows' regular
   // one.
   header: {
-    blockSize: '56px',
+    blockSize: sizing.rowSm,
     color: colors.onSurfaceVariant,
     fontFamily: typography.labelLargeFont,
     fontSize: typography.labelLargeSize,

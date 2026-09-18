@@ -12,6 +12,7 @@ import {
   motion,
   radii,
   shadows,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -123,7 +124,7 @@ const styles = stylex.create({
   },
   easingDot: {
     backgroundColor: colors.primary,
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     height: DOT_SIZE,
     insetBlockStart: 0,
     insetInlineStart: 0,
@@ -149,7 +150,7 @@ const styles = stylex.create({
   // the cubic-bezier() text sitting next to it.
   easingLane: {
     backgroundColor: colors.surfaceContainerHighest,
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     flexBasis: '96px',
     flexGrow: 1,
     height: DOT_SIZE,
@@ -215,7 +216,7 @@ const styles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
       default: colors.secondaryContainer,
     },
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     color: colors.onSecondaryContainer,
     cursor: 'pointer',
@@ -260,6 +261,12 @@ const styles = stylex.create({
     borderRadius: radii.lg,
     height: '48px',
     width: '48px',
+  },
+  sizingBar: {
+    backgroundColor: colors.secondaryContainer,
+    borderRadius: radii.xs,
+    boxSizing: 'border-box',
+    inlineSize: '40px',
   },
   spacingBar: {
     backgroundColor: colors.primary,
@@ -576,11 +583,37 @@ const spacingOrder: (keyof typeof spacingStyles)[] = [
   'xxxl',
 ]
 
+const sizingStyles = stylex.create({
+  controlLg: { blockSize: sizing.controlLg },
+  controlMd: { blockSize: sizing.controlMd },
+  controlSm: { blockSize: sizing.controlSm },
+  controlXl: { blockSize: sizing.controlXl },
+  controlXs: { blockSize: sizing.controlXs },
+  controlXxl: { blockSize: sizing.controlXxl },
+  rowLg: { blockSize: sizing.rowLg },
+  rowMd: { blockSize: sizing.rowMd },
+  rowSm: { blockSize: sizing.rowSm },
+  rowXs: { blockSize: sizing.rowXs },
+})
+const sizingOrder: (keyof typeof sizingStyles)[] = [
+  'controlXs',
+  'controlSm',
+  'controlMd',
+  'controlLg',
+  'controlXl',
+  'controlXxl',
+  'rowXs',
+  'rowSm',
+  'rowMd',
+  'rowLg',
+]
+
 const radiiStyles = stylex.create({
-  full: { borderRadius: radii.full },
+  circle: { borderRadius: radii.circle },
   lg: { borderRadius: radii.lg },
   md: { borderRadius: radii.md },
   none: { borderRadius: radii.none },
+  pill: { borderRadius: radii.pill },
   sm: { borderRadius: radii.sm },
   xl: { borderRadius: radii.xl },
   xs: { borderRadius: radii.xs },
@@ -592,7 +625,8 @@ const radiiOrder: (keyof typeof radiiStyles)[] = [
   'md',
   'lg',
   'xl',
-  'full',
+  'pill',
+  'circle',
 ]
 
 // A marker fills once the viewport has reached that class's floor, so the
@@ -988,6 +1022,31 @@ function Tokens() {
             <div key={name} {...stylex.props(styles.row)}>
               <span {...stylex.props(styles.tokenLabel)}>{name}</span>
               <div {...stylex.props(styles.radiiBox, radiiStyles[name])} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Size
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Container heights: the control scale every button, field and
+            segmented control takes its height from, and the row scale a list,
+            menu or table row takes its own from. The values are the Material
+            Design spec's, so overriding them is how a theme sets a density the
+            spec does not draw.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.rowList)}>
+          {sizingOrder.map((name) => (
+            <div key={name} {...stylex.props(styles.row)}>
+              <span {...stylex.props(styles.tokenLabel)}>{name}</span>
+              <div {...stylex.props(styles.sizingBar, sizingStyles[name])} />
             </div>
           ))}
         </div>
