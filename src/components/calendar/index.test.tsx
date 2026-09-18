@@ -27,15 +27,47 @@ function probe(style: stylex.StyleXStyles) {
 // from August and October filling the ends.
 const SEPTEMBER = new CalendarDate(2026, 9, 15)
 
+// The three lengths a month grid comes in, and 2026 has all of them.
+// February is the short end at four weeks, September the ordinary five, and
+// May the six the grid is held at.
+const FEBRUARY_FOUR_WEEKS = new CalendarDate(2026, 2, 15)
+const MAY_SIX_WEEKS = new CalendarDate(2026, 5, 15)
+
+// Six weeks of dates under the weekday row, each of them the 40dp the page
+// gives a date. Written out rather than read off the element, so a grid that
+// lost its rows fails here instead of agreeing with itself.
+const HELD_GRID_BLOCK_SIZE = 280
+
 // Hoisted so the identity is stable, which is what react-perf is after.
 const isSixteenth = (date: { day: number }) => date.day === 16
 const VISIBLE_TWO = { months: 2 }
+
+// The calendar's own box, which is the element a layout positions and so the
+// one whose height moving the month must not change.
+function calendarBox(view: ReturnType<typeof render>) {
+  const root = view.container.firstElementChild
+  if (!(root instanceof HTMLElement)) {
+    throw new Error('expected the calendar to draw a container')
+  }
+  return root.getBoundingClientRect()
+}
 
 // Matched on the date rather than the whole label: React Aria appends
 // "selected" to the name of the date the calendar holds, so an exact string
 // finds an unselected date and misses the same date once it is chosen.
 function cellFor(view: ReturnType<typeof render>, label: string) {
   return view.getByRole('button', { name: new RegExp(label) })
+}
+
+// Where the first row of dates sits relative to the calendar's own top, so a
+// grid that held its height by sinking to the bottom of the room is caught
+// rather than counted as still.
+function firstDateOffset(view: ReturnType<typeof render>) {
+  const row = view.getByRole('grid').querySelector('tbody tr')
+  if (!(row instanceof HTMLElement)) {
+    throw new Error('expected the grid to draw a week')
+  }
+  return row.getBoundingClientRect().top - calendarBox(view).top
 }
 
 // React Aria renders a hidden "Next" of its own after the grid, so a chevron
@@ -48,6 +80,16 @@ function headerButton(view: ReturnType<typeof render>, label: string) {
     throw new Error(`expected a ${label} chevron in the header`)
   }
   return found
+}
+
+// The distance between one week and the next. Read off two rows rather than
+// one row's height, since that is what a stretched grid changes.
+function rowPitch(grid: HTMLElement) {
+  const [first, second] = [...grid.querySelectorAll('tbody tr')]
+  if (!(first instanceof HTMLElement) || !(second instanceof HTMLElement)) {
+    throw new Error('expected the grid to draw at least two weeks')
+  }
+  return second.getBoundingClientRect().top - first.getBoundingClientRect().top
 }
 
 describe('calendar', () => {
@@ -311,6 +353,112 @@ describe('calendar', () => {
       )
 
       expect(view.getAllByRole('grid')).toHaveLength(1)
+    })
+
+    // Two months of different lengths sit side by side rather than the
+    // shorter one stretching to the taller: a stretched grid spreads its
+    // weeks out, which would draw the two months at different pitches.
+    it('draws two months of different lengths at the same pitch', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={FEBRUARY_FOUR_WEEKS}
+          visibleDuration={VISIBLE_TWO}
+        />,
+      )
+      const [february, march] = view.getAllByRole('grid')
+
+      expect(rowPitch(february)).toBe(rowPitch(march))
+    })
+  })
+
+  // A month grid is as tall as its weeks, so left alone the calendar changed
+  // height as the month moved — taking whatever sat under it down the page,
+  // and inside a picker's popover moving the panel's own edge while it was
+  // open.
+  describe('the height it holds', () => {
+    it('is the same whatever the month is', () => {
+      const four = render(
+        <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
+      )
+      const short = calendarBox(four)
+      four.unmount()
+
+      const five = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const ordinary = calendarBox(five)
+      five.unmount()
+
+      const six = render(
+        <Calendar aria-label="Label" defaultValue={MAY_SIX_WEEKS} />,
+      )
+
+      expect(short.height).toBe(calendarBox(six).height)
+      expect(ordinary.height).toBe(calendarBox(six).height)
+    })
+
+    it('does not change when a chevron moves the month', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
+      )
+      const before = calendarBox(view).height
+
+      // February 2026 is four weeks and March is five, so this is the
+      // navigation that grew the calendar.
+      fireEvent.click(headerButton(view, 'Next'))
+
+      expect(calendarBox(view).height).toBe(before)
+    })
+
+    // The room is held whatever the month, which is what a six-week month
+    // already asked for — so this pins the height to six rows rather than to
+    // whichever month happened to be rendered first.
+    it('holds six weeks under the weekday row', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
+      )
+      const room = view.getByRole('grid').parentElement
+      if (!(room instanceof HTMLElement)) {
+        throw new Error('expected a row holding the grids')
+      }
+
+      expect(room.getBoundingClientRect().height).toBe(HELD_GRID_BLOCK_SIZE)
+    })
+
+    // Holding the room by stretching the grid into it would keep the
+    // calendar's height while moving every date inside it, which trades the
+    // defect for a quieter one. A four-week month's weeks stay at the pitch a
+    // six-week month's have.
+    it('leaves a short month at the pitch a long one draws', () => {
+      const four = render(
+        <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
+      )
+      const short = rowPitch(four.getByRole('grid'))
+      four.unmount()
+
+      const six = render(
+        <Calendar aria-label="Label" defaultValue={MAY_SIX_WEEKS} />,
+      )
+
+      expect(short).toBe(rowPitch(six.getByRole('grid')))
+    })
+
+    // The dates start in the same place too, not only at the same spacing —
+    // a grid pushed to the bottom of its room would hold both and still move
+    // every date down the page.
+    it('starts the dates in the same place whatever the month', () => {
+      const four = render(
+        <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
+      )
+      const short = firstDateOffset(four)
+      four.unmount()
+
+      const six = render(
+        <Calendar aria-label="Label" defaultValue={MAY_SIX_WEEKS} />,
+      )
+
+      expect(short).toBe(firstDateOffset(six))
     })
   })
 })

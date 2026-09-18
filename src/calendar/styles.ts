@@ -18,6 +18,18 @@ import {
 // is only a range's — the band between the two ends — is marked as the
 // library's own where it is defined, since the page tokenises no such thing.
 
+// One row of the grid. The weekday row and every week of dates are the same
+// 40dp, so `cell`, `headerCell` and the room `months` reserves are all this
+// one number — a date resized without the reservation following it would put
+// the calendar's height back on its month.
+const ROW_BLOCK_SIZE = '40px'
+
+// The weeks the grid holds room for, which is the most any month occupies: a
+// 31-day month beginning on the last day of a week runs one day, then four
+// whole weeks, then two days. February 2026 is the other end at four. Holding
+// six draws every month in the box the longest one fills.
+const WEEKS_HELD = 6
+
 const calendarStyles = stylex.create({
   // The date itself: the page's 40dp state layer, which is the circle a
   // selected date fills and the shape a hover tints.
@@ -28,7 +40,7 @@ const calendarStyles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
-    blockSize: '40px',
+    blockSize: ROW_BLOCK_SIZE,
     borderRadius: radii.full,
     boxSizing: 'border-box',
     color: colors.onSurface,
@@ -150,7 +162,7 @@ const calendarStyles = stylex.create({
   // The weekday row. The page gives it the same body-large the dates take,
   // in the full content role rather than a muted one.
   headerCell: {
-    blockSize: '40px',
+    blockSize: ROW_BLOCK_SIZE,
     color: colors.onSurface,
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
@@ -169,13 +181,28 @@ const calendarStyles = stylex.create({
     margin: 0,
     textAlign: 'center',
   },
-  // Two months side by side, for a `visibleDuration` of more than one.
+  // Two months side by side, for a `visibleDuration` of more than one, and
+  // the room the grid is held at.
+  //
+  // The grids sit at their natural height at the top of that room rather than
+  // stretching into it. A stretched table spreads the height it is given
+  // across the rows it has, which holds the calendar still while moving every
+  // date inside it — February's four weeks drew at a 60px pitch against a
+  // six-week month's 40. Two months of different lengths top-align for the
+  // same reason.
   months: {
+    alignItems: 'start',
     display: 'flex',
     gap: spacing.xl,
+    // The weekday row plus six weeks of dates. Left to the month the grid is
+    // as tall as its weeks, so the calendar grew by 80px between February
+    // 2026 and May, taking whatever sat under it down the page — and inside a
+    // picker's popover moving the panel's own edge while it was open.
+    minBlockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
   },
   // The page's docked container: 360dp on the high surface container. Its
-  // height is the grid's own, for the reason in the comment above.
+  // height follows the room `months` holds, which is what keeps it from month
+  // to month.
   root: {
     backgroundColor: colors.surfaceContainerHigh,
     borderRadius: radii.lg,
