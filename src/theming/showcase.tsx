@@ -191,6 +191,15 @@ function PlusIcon() {
 
 const styles = stylex.create({
   // Sized in `em`, so a glyph takes the slot's own size.
+  // SearchField caps its bar at the 720px its spec gives a search bar, while
+  // the list box under it takes whatever width it is handed — so at the page's
+  // own measure the two drew at different widths. A measure under that cap is
+  // what makes the pair agree, and the card around them is what gives the
+  // list an edge to sit inside rather than floating on the page.
+  autocomplete: {
+    inlineSize: '360px',
+    maxInlineSize: '100%',
+  },
   glyph: {
     blockSize: '1em',
     inlineSize: '1em',
@@ -464,15 +473,19 @@ function Showcase({ name }: ShowcaseProps) {
           />
 
           <Section
-            description="A search field wired to a list box, so the filtering is the component and everything visible belongs to the two it holds."
+            description="A search field wired to a list box, so the filtering is the component and the bar and the rows are all it draws. The card is the page's, giving the pair an edge and a measure the wrapper itself never sets."
             title="Autocomplete"
           >
-            <Autocomplete>
-              <SearchField label="Label" placeholder="Search" />
-              <ListBox aria-label="Label" selectionMode="single">
-                {SHOWCASE_OPTIONS}
-              </ListBox>
-            </Autocomplete>
+            <div {...stylex.props(styles.autocomplete)}>
+              <Card padding="none" variant="outlined">
+                <Autocomplete>
+                  <SearchField label="Label" placeholder="Search" />
+                  <ListBox aria-label="Label" selectionMode="single">
+                    {SHOWCASE_OPTIONS}
+                  </ListBox>
+                </Autocomplete>
+              </Card>
+            </div>
           </Section>
 
           <Section
