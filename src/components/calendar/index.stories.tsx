@@ -91,9 +91,10 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The page&apos;s 456px container height is a picker&apos;s, counting
-            a headline and an action row a calendar does not draw — so this is
-            as tall as its weeks, and a six-week month is taller than a
-            five-week one.
+            a headline and an action row a calendar does not draw. What is held
+            instead is the grid, at six weeks — the most any month occupies — so
+            the calendar keeps its height as the month moves and a shorter month
+            leaves its last rows empty.
           </Text>
         </div>
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} />

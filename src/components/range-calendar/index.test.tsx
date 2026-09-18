@@ -27,6 +27,26 @@ const RANGE = {
   start: new CalendarDate(2026, 9, 8),
 }
 
+// February 2026 is four weeks and May is six, which are the two ends of what
+// a month grid can be.
+const FOUR_WEEK_RANGE = {
+  end: new CalendarDate(2026, 2, 15),
+  start: new CalendarDate(2026, 2, 8),
+}
+const SIX_WEEK_RANGE = {
+  end: new CalendarDate(2026, 5, 15),
+  start: new CalendarDate(2026, 5, 8),
+}
+
+// The calendar's own box, which is the element a layout positions.
+function calendarBox(view: ReturnType<typeof render>) {
+  const root = view.container.firstElementChild
+  if (!(root instanceof HTMLElement)) {
+    throw new Error('expected the calendar to draw a container')
+  }
+  return root.getBoundingClientRect()
+}
+
 // Matched on the date rather than the whole label: React Aria appends
 // "selected" to the name of a date inside the range.
 function cellFor(view: ReturnType<typeof render>, label: string) {
@@ -170,6 +190,23 @@ describe('range calendar', () => {
       )
 
       expect(view.getAllByRole('grid')).toHaveLength(2)
+    })
+
+    // The room the grid is held at is the shared module's, so this asks the
+    // same question calendar/index.test.tsx asks: a range calendar inside a
+    // layout must not resize as its month moves.
+    it('holds its height whatever the month is', () => {
+      const four = render(
+        <RangeCalendar aria-label="Label" defaultValue={FOUR_WEEK_RANGE} />,
+      )
+      const short = calendarBox(four).height
+      four.unmount()
+
+      const six = render(
+        <RangeCalendar aria-label="Label" defaultValue={SIX_WEEK_RANGE} />,
+      )
+
+      expect(short).toBe(calendarBox(six).height)
     })
 
     it('bounds the same way a Calendar does', () => {

@@ -25,12 +25,14 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // state layer inside them, body-large for both the weekday row and the dates,
 // primary for the selected circle and for today's outline.
 //
-// The page's container is 456dp tall, which this does not fix: that height is
-// a picker's, counting a headline and an action row the calendar itself does
-// not draw. A month grid is as tall as its weeks, and six-week months are
-// taller than five-week ones — pinning 456 would crop one or pad the other.
+// The page's container is 456dp tall, which this does not take: that height
+// is a picker's, counting a headline and an action row the calendar itself
+// does not draw. What is held instead is the grid, at six weeks — the most
+// any month occupies — so the calendar keeps its height as the month moves
+// and a shorter month leaves its last rows empty. `months` in
+// `src/calendar/styles.ts` is where the room is reserved.
 //
-// Three things are this component's own.
+// Four things are this component's own.
 //
 // **The cell is a circle in a square.** The page gives the date a 48dp
 // container and a 40dp state layer, which is a 40dp circle with 4dp of room
