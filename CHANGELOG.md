@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.29.0](https://github.com/kanso-labs/kanso-ui/compare/v0.28.6...v0.29.0) (2026-09-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **tokens:** add sizing tokens and split the pill and circle radii ([#900](https://github.com/kanso-labs/kanso-ui/issues/900))
+
+### Features
+
+* **tokens:** add sizing tokens and split the pill and circle radii ([#900](https://github.com/kanso-labs/kanso-ui/issues/900)) ([42f9a71](https://github.com/kanso-labs/kanso-ui/commit/42f9a7167225edebe1c492e0c40ed40b40ff417d))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.0 ([#902](https://github.com/kanso-labs/kanso-ui/issues/902)) ([2f5efb3](https://github.com/kanso-labs/kanso-ui/commit/2f5efb33874199345c2597313dcbc79fc2eaf9b8))
+
 ## [0.28.6](https://github.com/kanso-labs/kanso-ui/compare/v0.28.5...v0.28.6) (2026-09-18)
 
 
