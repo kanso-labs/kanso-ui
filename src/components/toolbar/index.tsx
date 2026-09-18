@@ -50,7 +50,7 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     display: 'inline-flex',

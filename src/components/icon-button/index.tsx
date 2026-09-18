@@ -31,6 +31,7 @@ import {
   colors,
   motion,
   radii,
+  sizing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
 import ProgressIndicator from '../progress-indicator'
@@ -94,7 +95,7 @@ type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 const styles = stylex.create({
   base: {
     alignItems: 'center',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     cursor: 'pointer',
@@ -114,7 +115,7 @@ const styles = stylex.create({
     transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}`,
   },
   disabled: {
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     cursor: 'not-allowed',
   },
   filled: {
@@ -157,14 +158,14 @@ const styles = stylex.create({
   // 40, which is why the two middle sizes share one icon and the container
   // alone grows between them.
   lg: {
-    blockSize: '56px',
-    borderRadius: { ':active': radii.md, default: radii.full },
+    blockSize: sizing.controlLg,
+    borderRadius: { ':active': radii.md, default: radii.pill },
     fontSize: '24px',
     inlineSize: '56px',
   },
   md: {
-    blockSize: '40px',
-    borderRadius: { ':active': radii.sm, default: radii.full },
+    blockSize: sizing.controlSm,
+    borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '24px',
     inlineSize: '40px',
   },
@@ -254,20 +255,20 @@ const styles = stylex.create({
     color: colors.onSecondary,
   },
   xl: {
-    blockSize: '96px',
-    borderRadius: { ':active': radii.lg, default: radii.full },
+    blockSize: sizing.controlXl,
+    borderRadius: { ':active': radii.lg, default: radii.pill },
     fontSize: '32px',
     inlineSize: '96px',
   },
   xs: {
-    blockSize: '32px',
-    borderRadius: { ':active': radii.sm, default: radii.full },
+    blockSize: sizing.controlXs,
+    borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '20px',
     inlineSize: '32px',
   },
   xxl: {
-    blockSize: '136px',
-    borderRadius: { ':active': radii.lg, default: radii.full },
+    blockSize: sizing.controlXxl,
+    borderRadius: { ':active': radii.lg, default: radii.pill },
     fontSize: '40px',
     inlineSize: '136px',
   },

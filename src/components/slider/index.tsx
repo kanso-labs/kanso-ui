@@ -72,7 +72,7 @@ const styles = stylex.create({
     alignItems: 'center',
     backgroundColor: colors.inverseSurface,
     blockSize: '44px',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     color: colors.inverseOnSurface,
     display: 'flex',
@@ -148,7 +148,7 @@ const styles = stylex.create({
   stop: {
     backgroundColor: colors.onSecondaryContainer,
     blockSize: '4px',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     inlineSize: '4px',
     insetBlockStart: HANDLE_GAP,
     insetInlineEnd: HANDLE_GAP,
@@ -169,7 +169,7 @@ const styles = stylex.create({
   thumb: {
     backgroundColor: colors.primary,
     blockSize: '44px',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     cursor: 'grab',
     inlineSize: HANDLE_WIDTH,

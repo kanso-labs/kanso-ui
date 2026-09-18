@@ -65,7 +65,7 @@ const styles = stylex.create({
   dot: {
     backgroundColor: 'currentColor',
     blockSize: '10px',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     inlineSize: '10px',
   },
   // The group's buttons: one under another, or along a line when the group
@@ -85,7 +85,7 @@ const styles = stylex.create({
     alignItems: 'center',
     blockSize: '20px',
     borderColor: 'currentColor',
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     borderStyle: 'solid',
     borderWidth: '2px',
     boxSizing: 'border-box',

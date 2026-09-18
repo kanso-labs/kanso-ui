@@ -400,7 +400,7 @@ function GettingStartedPage() {
             Components
           </ListItem>
           <Separator />
-          <ListItem supporting="The tokens every component is built from — colour, type, spacing, radii, shadows, motion.">
+          <ListItem supporting="The tokens every component is built from — colour, type, spacing, radii, sizing, shadows, motion.">
             Foundations
           </ListItem>
           <Separator />
@@ -456,10 +456,10 @@ function GettingStartedPage() {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             That takes the token objects it overrides — <Code>colors</Code>,{' '}
             <Code>typography</Code>, <Code>spacing</Code>, <Code>radii</Code>,{' '}
-            <Code>shadows</Code>, <Code>stateLayerOpacity</Code> and{' '}
-            <Code>motion</Code> — and those are not part of the public API yet,
-            so redeclaring <Code>--kui-*</Code> at <Code>:root</Code> is the
-            route today.{' '}
+            <Code>sizing</Code>, <Code>shadows</Code>,{' '}
+            <Code>stateLayerOpacity</Code> and <Code>motion</Code> — and those
+            are not part of the public API yet, so redeclaring{' '}
+            <Code>--kui-*</Code> at <Code>:root</Code> is the route today.{' '}
             {/* No `underline` override: this one sits inside a sentence, so
                 the rule is what separates it from the prose for a reader who
                 does not see the colour difference. The links under Elsewhere

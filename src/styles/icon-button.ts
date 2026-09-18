@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   radii,
+  sizing,
   stateLayerOpacity,
 } from '../tokens/design.tokens.stylex'
 
@@ -35,8 +36,8 @@ const iconButton = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
-    blockSize: '40px',
-    borderRadius: radii.full,
+    blockSize: sizing.controlSm,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,

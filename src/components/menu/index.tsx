@@ -34,6 +34,7 @@ import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import {
   colors,
   radii,
+  sizing,
   spacing,
   typography,
 } from '../../tokens/design.tokens.stylex'
@@ -136,7 +137,7 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     justifyContent: 'center',
-    minBlockSize: '48px',
+    minBlockSize: sizing.rowXs,
   },
   // The element with the menu role inside the surface, and the focus ring it
   // shows when a keyboard puts focus on the menu itself rather than an item.

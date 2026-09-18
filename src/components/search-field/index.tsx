@@ -22,6 +22,7 @@ import {
   colors,
   motion,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
@@ -65,8 +66,8 @@ const styles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHigh})`,
       default: colors.surfaceContainerHigh,
     },
-    blockSize: '56px',
-    borderRadius: radii.full,
+    blockSize: sizing.controlLg,
+    borderRadius: radii.pill,
     boxShadow: {
       ':focus-within': `inset 0 0 0 2px ${colors.primary}`,
       default: 'none',

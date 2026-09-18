@@ -296,7 +296,7 @@ const styles = stylex.create({
   // Material's does the same.
   indeterminateBarInner: {
     backgroundColor: colors.primary,
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     inset: 0,
     position: 'absolute',
@@ -304,7 +304,7 @@ const styles = stylex.create({
   // The row the bars run inside, which clips them at both ends.
   indeterminateRow: {
     blockSize: `${THICKNESS}px`,
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     inlineSize: '100%',
     overflow: 'hidden',

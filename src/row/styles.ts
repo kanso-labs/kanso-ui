@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -68,13 +69,13 @@ const rowStyles = stylex.create({
   // and a pill rather than a rectangle, since what marks the current row
   // there is a shape as much as a colour.
   drawer: {
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     // `auto` replaces the `100%` in `base`: a margin sits outside the box, so
     // a full-width row with one overflows its container by exactly the inset
     // — the same trap Separator's own insets document.
     inlineSize: 'auto',
     marginInline: spacing.md,
-    minBlockSize: '56px',
+    minBlockSize: sizing.rowSm,
   },
   headlineList: {
     fontFamily: typography.bodyLargeFont,
@@ -109,7 +110,7 @@ const rowStyles = stylex.create({
   // The lists page's one-line container height. A row whose headline wraps
   // grows past it; nothing truncates.
   list: {
-    minBlockSize: '56px',
+    minBlockSize: sizing.rowSm,
   },
   // Prose wraps, so this column's min-content width is usually one word and
   // it shrinks happily. min-width: 0 is for the case that cannot wrap — a
@@ -125,7 +126,7 @@ const rowStyles = stylex.create({
   },
   // The menus page's item height.
   menu: {
-    minBlockSize: '48px',
+    minBlockSize: sizing.rowXs,
   },
   // A line above the headline, in the page's label-small and the same muted
   // role the supporting line takes. Its colour follows the supporting line's
@@ -206,7 +207,7 @@ const rowStyles = stylex.create({
   // at once.
   threeLine: {
     alignItems: 'flex-start',
-    minBlockSize: '88px',
+    minBlockSize: sizing.rowLg,
   },
   // The lists page's two-line container height, for a row drawing two of its
   // three lines: a headline with a supporting line, or with an overline.
@@ -224,7 +225,7 @@ const rowStyles = stylex.create({
   // spacing scale. The floor keeps the page's number where the page puts it,
   // next to the other two, and leaves the row centring its lines inside it.
   twoLine: {
-    minBlockSize: '72px',
+    minBlockSize: sizing.rowMd,
   },
 })
 

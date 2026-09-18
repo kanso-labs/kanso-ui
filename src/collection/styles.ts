@@ -3,7 +3,12 @@ import type { ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 
 import { rowStyles } from '../row/styles'
-import { colors, spacing, typography } from '../tokens/design.tokens.stylex'
+import {
+  colors,
+  sizing,
+  spacing,
+  typography,
+} from '../tokens/design.tokens.stylex'
 
 // The chrome around the row. `src/row` was extracted so a list, menu, tree and
 // drawer draw the same row; everything wrapped around it stayed behind in each
@@ -52,7 +57,7 @@ const collectionStyles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     justifyContent: 'center',
-    minBlockSize: '56px',
+    minBlockSize: sizing.rowSm,
   },
   section: {
     boxSizing: 'border-box',

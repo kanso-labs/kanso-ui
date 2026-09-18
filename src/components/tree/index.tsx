@@ -86,7 +86,7 @@ const styles = stylex.create({
     // not compile, and a `<button>` left with its own background shows the
     // browser's grey chrome behind the glyph.
     backgroundColor: 'transparent',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,

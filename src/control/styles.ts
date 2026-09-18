@@ -60,7 +60,7 @@ const controlStyles = stylex.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: TARGET_SIZE,
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     boxSizing: 'border-box',
     cursor: 'pointer',
     display: 'flex',

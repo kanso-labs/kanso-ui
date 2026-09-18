@@ -268,10 +268,10 @@ nothing. Sizing it is what avoids both.
 
 ## Theming
 
-Every design token — color, spacing, radii, shadows, typography, state-layer
-opacity — is backed by a CSS custom property under the `--kui-*` namespace.
-Override any of them in your own stylesheet to retheme every Kanso component,
-independent of your app's build tooling:
+Every design token — color, spacing, radii, sizing, shadows, typography,
+state-layer opacity — is backed by a CSS custom property under the `--kui-*`
+namespace. Override any of them in your own stylesheet to retheme every Kanso
+component, independent of your app's build tooling:
 
 ```css
 :root {
@@ -306,7 +306,7 @@ import '@kanso-labs/kanso-ui/tokens.css'
 If your app also uses StyleX, theme with
 [`stylex.createTheme()`](https://stylexjs.com/docs/learn/theming/) instead — it
 produces a scoped override class rather than a global one. The token objects
-themselves (`colors`, `typography`, `spacing`, `radii`, `shadows`,
+themselves (`colors`, `typography`, `spacing`, `radii`, `sizing`, `shadows`,
 `stateLayerOpacity` and `motion`) aren't part of the public API yet; open an
 issue if you need them exported.
 

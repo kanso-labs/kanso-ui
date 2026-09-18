@@ -59,7 +59,7 @@ export const indicatorStyles = stylex.create({
   active: {
     backgroundColor: colors.primary,
     blockSize: '100%',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     flexShrink: 0,
     transitionDuration: `${DETERMINATE_MS}ms`,
@@ -128,7 +128,7 @@ export const indicatorStyles = stylex.create({
   stop: {
     backgroundColor: colors.primary,
     blockSize: `${THICKNESS}px`,
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     boxSizing: 'border-box',
     flexShrink: 0,
     inlineSize: `${THICKNESS}px`,
@@ -137,7 +137,7 @@ export const indicatorStyles = stylex.create({
   // something to hold it becomes a row of its own; empty it is drawn solid.
   track: {
     blockSize: '100%',
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     boxSizing: 'border-box',
     display: 'flex',
     flexGrow: 1,

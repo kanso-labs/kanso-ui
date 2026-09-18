@@ -41,7 +41,7 @@ const calendarStyles = stylex.create({
       default: 'transparent',
     },
     blockSize: ROW_BLOCK_SIZE,
-    borderRadius: radii.full,
+    borderRadius: radii.circle,
     boxSizing: 'border-box',
     color: colors.onSurface,
     cursor: 'pointer',
@@ -91,14 +91,14 @@ const calendarStyles = stylex.create({
   },
   // The last day, rounded on the side the band ends at.
   cellRangeEnd: {
-    borderEndEndRadius: radii.full,
-    borderStartEndRadius: radii.full,
+    borderEndEndRadius: radii.circle,
+    borderStartEndRadius: radii.circle,
   },
   // The first day of a range: a circle on its leading side, square on the
   // side the band continues from.
   cellRangeStart: {
-    borderEndStartRadius: radii.full,
-    borderStartStartRadius: radii.full,
+    borderEndStartRadius: radii.circle,
+    borderStartStartRadius: radii.circle,
   },
   // The date the calendar holds. A filled circle in the primary role, which
   // is what the page gives it.
