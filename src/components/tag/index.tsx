@@ -110,10 +110,16 @@ const outlinedTones = stylex.create({
   },
 })
 
-type TagProps = RenderComponentProps<'span'> & {
+type TagProps = {
   /**
    * Which colour role the tag carries. `neutral` states without ranking;
    * the other three read as good, bad, or worth noticing.
+   *
+   * Each is a container under its own on-colour, guaranteed legible on the
+   * surface family — which is what the library's own tokens and every demo
+   * scheme are held to. Over a container of its own the pair is one colour
+   * family on top of another and is not guaranteed, so a custom theme placing
+   * a tag there has to check that pair itself.
    * @default 'neutral'
    */
   tone?: TagTone
@@ -124,7 +130,7 @@ type TagProps = RenderComponentProps<'span'> & {
    * @default 'filled'
    */
   variant?: TagVariant
-}
+} & RenderComponentProps<'span'>
 
 type TagTone = 'negative' | 'neutral' | 'positive' | 'primary'
 

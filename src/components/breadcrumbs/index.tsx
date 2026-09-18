@@ -51,8 +51,15 @@ import Link from '../link'
 
 const styles = stylex.create({
   // Points further in, so it mirrors under a right-to-left writing mode.
-  // Sized against the 20dp the menus page gives the same glyph, since there
-  // is no breadcrumbs page to take one from.
+  //
+  // 18dp, a step under the 20dp the menus page gives the same glyph, since
+  // there is no breadcrumbs page to take a size from. A submenu's chevron is
+  // the trailing element of an icon slot, where it is the only thing in its
+  // column; this one is a separator inside a row of label-large links, and at
+  // 20 it sat heavier than the words either side of it. The glyph is already
+  // drawn at 24 in Disclosure, Select, Tree and NavigationTree and at 20 in
+  // Menu, so it takes the size of the thing it sits in rather than one size
+  // everywhere.
   chevron: {
     blockSize: '18px',
     flexShrink: 0,

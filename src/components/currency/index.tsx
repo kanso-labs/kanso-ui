@@ -66,6 +66,12 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
    * Which colour role to render in. `auto` follows the sign of `value`, with
    * zero reading as neutral.
+   *
+   * The positive and negative roles are guaranteed legible on the surface
+   * family, which is what the library's own tokens and every demo scheme are
+   * held to. Over a container of its own — a selected row, a filled card —
+   * the pair is one colour family on top of another and is not guaranteed, so
+   * a custom theme placing one there has to check that pair itself.
    * @default 'auto'
    */
   tone?: Tone

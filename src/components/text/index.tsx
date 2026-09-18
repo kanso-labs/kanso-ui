@@ -169,6 +169,14 @@ type TextProps = {
    * see AGENTS.md, under Prop vocabularies, which settles on that word. This
    * one predates the rule, and renaming a public prop's value is a breaking
    * change of its own.
+   *
+   * Every role here is guaranteed legible on the surface family, which is
+   * what the library's own tokens and every demo scheme are held to. Over a
+   * container of its own — a selected row, a filled card — `positive`,
+   * `negative` and `error` are one colour family on top of another and are
+   * not guaranteed, so a custom theme placing text there has to check that
+   * pair itself. `inherit` is the way out: it takes the container's own
+   * on-colour rather than setting one.
    * @default 'default'
    */
   tone?:
