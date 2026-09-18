@@ -10,6 +10,20 @@ permissions:
   code-quality: write
   contents: read
 
+# Three pushes to a branch inside a minute otherwise run three Tests to
+# completion — the longest of the three at 20 minutes, with a Playwright
+# Chromium download behind it — and only the last one is answering a question
+# anybody is asking. Grouped per workflow and ref, so Test never waits on Build
+# or Lint and one branch never waits on another.
+#
+# cancel-in-progress is on everywhere except main, and main matters more here
+# than for the other two: this is the workflow that uploads the coverage
+# report, so a cancelled run there is a merge with no coverage recorded against
+# it rather than one stale check.
+concurrency:
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: test-${{ github.ref }}
+
 jobs:
   test:
     name: Test

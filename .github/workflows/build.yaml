@@ -9,6 +9,19 @@ on:
 permissions:
   contents: read
 
+# Three pushes to a branch inside a minute otherwise run three Builds to
+# completion, and only the last one is answering a question anybody is asking:
+# a pull request's check list shows the head commit alone. Grouped per workflow
+# and ref, so Build never waits on Lint or Test and one branch never waits on
+# another.
+#
+# cancel-in-progress is on everywhere except main, where each push is the
+# repository re-verifying what it just merged rather than iterating towards a
+# review.
+concurrency:
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: build-${{ github.ref }}
+
 jobs:
   build:
     name: Build
