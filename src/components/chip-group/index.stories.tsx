@@ -124,8 +124,9 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Selection is the group&apos;s rather than each chip&apos;s, so a set
             that chooses one and a set that chooses several are the same
-            component with a different word. A chip on its own that toggles
-            nothing else is still Chip.
+            component with a different word. A chosen chip draws the page&apos;s
+            check before its label, so the state reads without colour. A chip on
+            its own that toggles nothing else is still Chip.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>

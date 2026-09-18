@@ -138,9 +138,10 @@ const Overview: Story = {
             States
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Selected carries a container of its own; unselected is an outline on
-            the page. Disabled composites the same on-surface opacity over both,
-            so the two converge.
+            Selected carries a container of its own and the page&apos;s check
+            before the label, which is what makes the state legible without
+            colour; unselected is an outline on the page. Disabled composites
+            the same on-surface opacity over both, so the two converge.
           </Text>
         </div>
         <div {...stylex.props(styles.inline)}>

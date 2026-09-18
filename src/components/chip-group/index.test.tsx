@@ -38,6 +38,13 @@ const CLASSES = {
 
 const SECOND = ['second']
 
+// The check a chosen chip draws, or null where it draws none. A removable
+// chip also renders the close target's cross, so this takes the first SVG —
+// the check is before the label and the cross after it.
+function checkIn(chip: Element) {
+  return chip.querySelector('svg')
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -237,6 +244,76 @@ describe('chip group', () => {
     it('takes the error role on the label when there is an error', () => {
       const view = setup({ error: 'Choose one' })
       expect(hasClasses(view.getByText('Label'), CLASSES.error)).toBe(true)
+    })
+  })
+
+  // The check is the chip module's, so this asks the same question
+  // chip/index.test.tsx asks of a chip on its own: what a reader who does not
+  // see colour has to go on.
+  describe('the check', () => {
+    it('draws it on the chosen chips alone', () => {
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        selectionMode: 'multiple',
+      })
+      const [first, second, third] = view.getAllByRole('row')
+
+      expect(checkIn(second)).not.toBeNull()
+      expect(checkIn(first)).toBeNull()
+      expect(checkIn(third)).toBeNull()
+    })
+
+    it('follows the selection as it moves', () => {
+      const view = setup({ selectionMode: 'single' })
+      const [first, second] = view.getAllByRole('row')
+
+      fireEvent.click(first)
+      expect(checkIn(first)).not.toBeNull()
+
+      fireEvent.click(second)
+      expect(checkIn(second)).not.toBeNull()
+      expect(checkIn(first)).toBeNull()
+    })
+
+    // A chip that is both chosen and removable carries one glyph on each side
+    // of its label, so this pins that the check went before the label rather
+    // than the close target having been counted twice.
+    it('sits before the label, with the close target after it', () => {
+      const onRemove = vi.fn<() => void>()
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        onRemove,
+        selectionMode: 'multiple',
+      })
+      const [, second] = view.getAllByRole('row')
+      const check = checkIn(second)
+      const close = view.getByRole('button', { name: 'Remove Second item' })
+      if (check === null) {
+        throw new Error('expected the chosen chip to draw a check')
+      }
+
+      expect(second.querySelectorAll('svg')).toHaveLength(2)
+      expect(close.contains(check)).toBe(false)
+      expect(
+        check.compareDocumentPosition(close) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
+    })
+
+    it("draws it at the page's 18dp icon size", () => {
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        selectionMode: 'multiple',
+      })
+      const [, second] = view.getAllByRole('row')
+      const slot = checkIn(second)?.parentElement?.getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(second).borderLeftWidth)
+
+      expect(slot?.width).toBe(18)
+      // The page's 8dp padding on the side an icon is on, which the slot
+      // pulls back out of the chip's own 16.
+      expect(
+        (slot?.left ?? 0) - second.getBoundingClientRect().left - border,
+      ).toBe(8)
     })
   })
 })
