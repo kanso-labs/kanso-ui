@@ -9,10 +9,12 @@ import {
   typography,
 } from '../tokens/design.tokens.stylex'
 
-// The pill the chips page draws, shared by the two components that draw one:
-// Chip, which is a toggle on its own, and ChipGroup's chip, which is one of a
-// set that can also be removed. The measurements and roles are the page's
-// filter chip — a 32dp container with an 8dp corner and 16dp of inline
+// The pill the chips page draws, shared by the three components that draw
+// one: Chip, which is a toggle on its own; ChipGroup's chip, which is one of
+// a set that can also be removed; and TokenField's token, which takes `base`
+// and `unselected` alone — a token is not selectable, so it reaches for
+// neither the selected container nor the check below. The measurements and
+// roles are the page's filter chip — a 32dp container with an 8dp corner and 16dp of inline
 // padding, an outline variant border while unselected, the secondary
 // container pair once selected.
 //

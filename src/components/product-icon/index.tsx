@@ -27,11 +27,12 @@ import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 // every logo that was not an opaque square. On the fallback it is seen exactly
 // when it is meant to be: while there is no mark, or none has loaded.
 //
-// No Material Design page draws a product mark. Its sizes are the lists
-// page's leading elements, `md` the 40dp avatar and `lg` the 56dp image, and
-// `sm` matches Avatar's own small so the two fill the same slots. The
-// fallback's tint is a container role under its on-colour, the pairing every
-// filled surface in the system uses.
+// No Material Design page draws a product mark, so its sizes are Avatar's —
+// 36, 40 and 56 — which is what lets a mark and a person fill the same slot.
+// Avatar's own comment is where those three are argued, against the
+// library's control scale rather than against a page. The fallback's tint is
+// a container role under its on-colour, the pairing every filled surface in
+// the system uses.
 const styles = stylex.create({
   base: {
     alignItems: 'center',

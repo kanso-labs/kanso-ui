@@ -5,7 +5,7 @@
 // are — and a number guessed at the call site puts every row in the wrong
 // place the moment a component's own height changes.
 //
-// These are that number, and `src/layout.test.ts` renders each collection and
+// These are that number, and `src/layout.test.tsx` renders each collection and
 // measures it, so a constant here cannot drift from what the component draws.
 //
 // They are the heights as rendered, which is what a virtualizer needs — not

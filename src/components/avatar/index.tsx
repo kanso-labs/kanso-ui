@@ -16,6 +16,18 @@ import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 // Sizes carry their own type size but not their own weight or family: the
 // label face at medium weight holds across all three, so a large avatar is
 // bigger initials rather than differently-styled ones.
+//
+// The three are the library's own rather than a spec page's — no Material
+// Design page gives a measurement for one in text; the lists page draws its
+// leading elements in a diagram and tabulates only their padding. So they are
+// stated against the scale the library already has. `md` is 40dp, which is
+// Button's and IconButton's own `md` height, so an avatar and a control line
+// up in a row. `lg` is 56dp. `sm` is 36dp, between the 32dp a chip and an
+// `xs` control take and that 40dp default, for a row that wants a person
+// smaller than the button beside them.
+//
+// ProductIcon takes the same three, so a mark and a person fill the same
+// slot.
 const styles = stylex.create({
   base: {
     alignItems: 'center',

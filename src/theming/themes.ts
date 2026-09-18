@@ -8,7 +8,8 @@ import {
   typography,
 } from '../tokens/design.tokens.stylex'
 
-// Four schemes that exist to be looked at. They are Storybook material rather
+// The demo schemes, which exist to be looked at. They are Storybook material
+// rather
 // than library API — nothing under src/index.ts reaches them — and what they
 // document is the shape of a theme rather than a palette anyone should ship.
 //
