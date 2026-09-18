@@ -706,8 +706,8 @@ only after every `writeBundle` has settled. The bytes are the same, which is
 what the analysis measures.
 
 **Most of CI is shared, not configured here.**
-[`kanso-labs/github-actions`](https://github.com/kanso-labs/github-actions)
-holds it, pinned by exact tag, and Renovate opens the bump pull requests:
+[`kanso-labs/actions`](https://github.com/kanso-labs/actions) holds it, pinned
+by exact tag, and Renovate opens the bump pull requests:
 
 - `actions/setup-node` installs the pinned Node, restores the npm cache and runs
   `npm ci`. It replaced four copies of the same four steps. Pass
