@@ -39,6 +39,14 @@ const SEGMENTS = (
 )
 
 const styles = stylex.create({
+  // Stacked and left-aligned, so that three tracks of the same width line
+  // their edges up and a reader can see that they do.
+  column: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.md,
+  },
   header: {
     display: 'flex',
     flexDirection: 'column',
@@ -120,6 +128,38 @@ const Overview: Story = {
           >
             {SEGMENTS}
           </SegmentedButton>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            What a segment is as wide as
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Every segment is as wide as the widest of them, and each one keeps
+            room for the check whether or not it is drawing one. So a segment is
+            its widest label plus that room, and the track is that again times
+            the number of segments — none of which depends on what is chosen.
+            The three below differ only in which segment that is.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.column)}>
+          <SegmentedButton
+            aria-label="First chosen"
+            defaultSelectedKeys={FIRST}
+          >
+            {SEGMENTS}
+          </SegmentedButton>
+          <SegmentedButton
+            aria-label="Second chosen"
+            defaultSelectedKeys={SECOND}
+          >
+            {SEGMENTS}
+          </SegmentedButton>
+          <SegmentedButton aria-label="None chosen">{SEGMENTS}</SegmentedButton>
         </div>
       </section>
 
