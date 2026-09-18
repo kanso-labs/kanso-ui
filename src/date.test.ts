@@ -4,8 +4,8 @@ import packageJson from '../package.json'
 import * as date from './date'
 
 // The main entry and the three barrels it re-exports, as source rather than as
-// modules — the same `?raw` glob `internals.test.ts` and `readme.test.ts` read
-// a module's text with.
+// modules — the same `?raw` glob `internals.test.ts` reads a module's text
+// with.
 //
 // Read rather than imported because `import('./index')` resolves the whole
 // library: three `export *` statements pull every component module and its
