@@ -35,7 +35,8 @@ prefix the command: `mise exec node@24.21.0 -- npm install`.
 
 Shared with the other `kanso-labs` repositories. The canonical text is
 [`CONVENTIONS.md`](https://github.com/kanso-labs/.github/blob/main/CONVENTIONS.md)
-in `kanso-labs/.github`; this is a copy, and `Lint` checks it against that file.
+in `kanso-labs/.github`; this is a copy, kept in step by hand. Change that file
+first, then every copy.
 
 - **Keys in JSON and YAML are ordered by name.** Files whose order carries
   meaning are exempt: workflows, where step order is execution order;
