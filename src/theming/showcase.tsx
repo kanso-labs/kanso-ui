@@ -974,7 +974,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The row every list, menu and tree draws, with its leading, supporting and trailing slots filled. An outlined card with no padding of its own is the bordered container, so the rows keep their inset and the rules between them are inset to the leading edge of the text rather than to the card."
+            description="The row every list, menu and tree draws, with its leading, supporting and trailing slots filled. An outlined card with no padding of its own is the bordered container, so the rows keep their inset and the rules between them start where a row's own content does, under the avatar, rather than running edge to edge."
             title="ListItem"
           >
             <Card padding="none" variant="outlined">
@@ -983,7 +983,7 @@ function Showcase({ name }: ShowcaseProps) {
                   {index === 0 ? null : <Separator inset="start" />}
                   <ListItem
                     interactive
-                    leading={<Avatar name={person} size="sm" tone={tone} />}
+                    leading={<Avatar name={person} tone={tone} />}
                     supporting="Supporting line"
                     trailing={<Currency value={amount} />}
                   >
