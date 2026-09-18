@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.29.1](https://github.com/kanso-labs/kanso-ui/compare/v0.29.0...v0.29.1) (2026-09-18)
+
+
+### Bug Fixes
+
+* **theming:** give the showcase's Autocomplete a bounded surface ([#906](https://github.com/kanso-labs/kanso-ui/issues/906)) ([7258fe3](https://github.com/kanso-labs/kanso-ui/commit/7258fe3c0b81699d3f90bca823c10dbf006a9ddd))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.1 ([#905](https://github.com/kanso-labs/kanso-ui/issues/905)) ([2d33807](https://github.com/kanso-labs/kanso-ui/commit/2d338073d6152fd4a4c7773ba5dcc13587420c98))
+
 ## [0.29.0](https://github.com/kanso-labs/kanso-ui/compare/v0.28.6...v0.29.0) (2026-09-18)
 
 
