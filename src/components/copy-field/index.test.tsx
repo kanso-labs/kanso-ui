@@ -194,6 +194,68 @@ describe('copyField', () => {
       await click(button)
       expect(onCopied).not.toHaveBeenCalled()
     })
+
+    // The absence of `onCopied` is not a signal an app can act on, so the
+    // refusal is reported in its own right — otherwise a control that does
+    // nothing cannot be told from one that is broken.
+    it('hands the refusal to the call site', async () => {
+      const denied = new Error('denied')
+      install(async () => {
+        await Promise.reject(denied)
+      })
+      const onCopyFailed = vi.fn<(error: unknown) => void>()
+      const { button } = setup({ onCopyFailed })
+
+      await click(button)
+
+      expect(onCopyFailed).toHaveBeenCalledTimes(1)
+      expect(onCopyFailed).toHaveBeenCalledWith(denied)
+    })
+
+    it('reports nothing when the write lands', async () => {
+      const onCopyFailed = vi.fn<(error: unknown) => void>()
+      const { button } = setup({ onCopyFailed })
+
+      await click(button)
+
+      expect(onCopyFailed).not.toHaveBeenCalled()
+      expect(buttonNamed(button, 'Copied')).toBe(button)
+    })
+
+    // Outside a secure context the clipboard is not there at all, so the
+    // throw is a TypeError from reading `writeText` off nothing rather than
+    // the DOMException a denied permission gives. Both reach the same place.
+    it('reports a clipboard that is not there at all', async () => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: undefined,
+      })
+      const onCopyFailed = vi.fn<(error: unknown) => void>()
+      const onCopied = vi.fn<(value: string) => void>()
+      const { button } = setup({ onCopied, onCopyFailed })
+
+      await click(button)
+
+      expect(onCopyFailed).toHaveBeenCalledTimes(1)
+      expect(onCopied).not.toHaveBeenCalled()
+      expect(buttonNamed(button, 'Copy')).toBe(button)
+    })
+
+    // The whole point of reporting it is that the control does not change, so
+    // this pins that reporting did not quietly move the button.
+    it('leaves the button exactly as it was at rest', async () => {
+      install(async () => {
+        await Promise.reject(new Error('denied'))
+      })
+      const { button } = setup({ onCopyFailed: vi.fn<(e: unknown) => void>() })
+      const before = button.className
+      const width = button.getBoundingClientRect().width
+
+      await click(button)
+
+      expect(button.className).toBe(before)
+      expect(button.getBoundingClientRect().width).toBe(width)
+    })
   })
 
   // A button's own label changing is not reliably announced, so the
