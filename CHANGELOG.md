@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.2](https://github.com/kanso-labs/kanso-ui/compare/v0.30.1...v0.30.2) (2026-09-20)
+
+
+### Dependencies
+
+* update commitlint to v21.2.3 ([#923](https://github.com/kanso-labs/kanso-ui/issues/923)) ([84ce0aa](https://github.com/kanso-labs/kanso-ui/commit/84ce0aace8cddf2cb68f6b913b89715dfb25749a))
+
 ## [0.30.1](https://github.com/kanso-labs/kanso-ui/compare/v0.30.0...v0.30.1) (2026-09-19)
 
 
