@@ -138,13 +138,16 @@ function ColorSwatchPickerItem({
   ...props
 }: ColorSwatchPickerItemProps) {
   return (
-    <RACColorSwatchPickerItem {...props} className={itemClassName}>
+    <RACColorSwatchPickerItem
+      {...props}
+      {...mergeStatefulStyles(itemStyles, props)}
+    >
       {children ?? <ColorSwatch />}
     </RACColorSwatchPickerItem>
   )
 }
 
-// The item's classes, from React Aria's render state. StyleX cannot target
+// The item's styles, from React Aria's render state. StyleX cannot target
 // `[data-selected]` on the element it is styling, so the state comes from
 // what React Aria hands the className.
 //
@@ -152,18 +155,16 @@ function ColorSwatchPickerItem({
 // replaces a property whole, so a swatch that is both takes the focus ring's
 // outer offset — which is what keeps the two rings from landing on each
 // other. `disabled` is last, so it takes the cursor with it.
-function itemClassName(state: {
+function itemStyles(state: {
   isDisabled: boolean
   isFocusVisible: boolean
   isSelected: boolean
 }) {
-  return (
-    stylex.props(
-      styles.item,
-      state.isSelected && styles.itemSelected,
-      state.isFocusVisible && styles.itemFocused,
-      state.isDisabled && styles.itemDisabled,
-    ).className ?? ''
+  return stylex.props(
+    styles.item,
+    state.isSelected && styles.itemSelected,
+    state.isFocusVisible && styles.itemFocused,
+    state.isDisabled && styles.itemDisabled,
   )
 }
 

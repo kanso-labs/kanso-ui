@@ -7,6 +7,11 @@ import ColorSwatchPicker from '.'
 
 const PALETTE = ['#6750A4', '#625B71', '#7D5260']
 
+// Hoisted rather than written inline, which react-perf's
+// `jsx-no-new-function-as-prop` refuses: a fresh function on every render.
+const BY_SELECTION = (state: { isSelected: boolean }) =>
+  state.isSelected ? 'chosen' : 'unchosen'
+
 function picker(props: { defaultValue?: string; disabled?: boolean } = {}) {
   return (
     <ColorSwatchPicker
@@ -104,6 +109,33 @@ describe('color swatch picker', () => {
     expect(Number.parseInt(focusedOffset, 10)).toBeGreaterThan(
       Number.parseInt(selectedOffset, 10),
     )
+  })
+
+  // src/components/styling.test.tsx pins the plain-string form of both props
+  // on an item. This is the other form the prop's type admits, and the one
+  // that only a swatch inside a listbox can exercise: React Aria hands the
+  // function the item's own render state, which is where `isSelected` comes
+  // from.
+  it('computes an item class from the render state it is handed', () => {
+    const view = render(
+      <ColorSwatchPicker aria-label="Label" defaultValue={PALETTE[0]}>
+        {PALETTE.map((color) => (
+          <ColorSwatchPicker.Item
+            className={BY_SELECTION}
+            color={color}
+            key={color}
+          />
+        ))}
+      </ColorSwatchPicker>,
+    )
+    const [first, second] = view.getAllByRole('option')
+
+    expect(first.classList).toContain('chosen')
+    expect(second.classList).toContain('unchosen')
+    // The item's own rings are compiled classes, so a merge that kept only
+    // the call site's function would pass the two assertions above and leave
+    // every swatch unstyled.
+    expect(getComputedStyle(first).outlineStyle).toBe('solid')
   })
 
   it('fades a colour that cannot be chosen, and refuses it', () => {
