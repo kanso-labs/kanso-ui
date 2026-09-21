@@ -23,6 +23,7 @@ import {
   Text,
   TextArea,
   TextAreaContext,
+  TextContext,
   useSlottedContext,
   VisuallyHidden,
 } from 'react-aria-components'
@@ -724,6 +725,10 @@ function FieldMessage({
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
   const insideForm = useInsideForm()
+  // Read directly rather than through `useSlottedContext`, which throws for
+  // a missing slot exactly as `Text` does — the throw is the thing being
+  // avoided. What it is for is below, at `written`.
+  const text = useContext(TextContext)
 
   // The limit, in words, for the description React Aria reads out with the
   // field. `maxLength` alone reaches the control as the native attribute,
@@ -785,6 +790,39 @@ function FieldMessage({
       </Text>
     )
 
+  // Outside a field that validates there is nothing to hand React Aria's
+  // `FieldError`, and it draws nothing without it — a group of chips is a
+  // group rather than a form control, so the error it was given is written
+  // out instead.
+  //
+  // Through the group's error slot where there is one, which is what makes
+  // the message reach a screen reader at all: React Aria generates the id
+  // its `aria-describedby` points at up front, then keeps it only while
+  // something in the document carries it, so an element outside the slot is
+  // drawn and never announced. The description beside it has always gone
+  // through its own slot, which is why that half worked.
+  //
+  // Not every group has one. `TagGroup` wires up a description and an error;
+  // `TokenField` wires up a description alone and generates no error id at
+  // all, so its message has nothing to attach to and stays a bare element.
+  const errorSlot =
+    text !== null &&
+    typeof text === 'object' &&
+    'slots' in text &&
+    text.slots?.errorMessage !== undefined
+
+  const messageStyles = stylex.props(
+    fieldChromeStyles.message,
+    fieldChromeStyles.messageError,
+  )
+  const written = errorSlot ? (
+    <Text slot="errorMessage" {...messageStyles}>
+      {error}
+    </Text>
+  ) : (
+    <span {...messageStyles}>{error}</span>
+  )
+
   return (
     <div
       {...stylex.props(
@@ -794,18 +832,7 @@ function FieldMessage({
       )}
     >
       {validation === null && error !== undefined ? (
-        // Outside a field that validates there is nothing to hand React
-        // Aria's `FieldError`, and it draws nothing without it — a group of
-        // chips is a group rather than a form control, so the error it was
-        // given is written out instead.
-        <span
-          {...stylex.props(
-            fieldChromeStyles.message,
-            fieldChromeStyles.messageError,
-          )}
-        >
-          {error}
-        </span>
+        written
       ) : (
         <FieldError
           {...stylex.props(
