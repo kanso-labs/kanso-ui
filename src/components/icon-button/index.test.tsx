@@ -486,6 +486,22 @@ describe('icon button', () => {
         view.container.querySelector('span[aria-hidden="true"]'),
       ).toBeNull()
     })
+
+    // Pending gates the ripple the way disabled does. React Aria nulls out
+    // the click it derived itself while pending but not the pointer events
+    // carrying ours, so a press begun here could never be ended and the
+    // ripple was left at its pressed opacity — see button/index.test.tsx,
+    // whose stubbed clock lets it press through the whole cycle.
+    it('renders no ripple surface while pending', () => {
+      const view = render(
+        <IconButton aria-label="Add" isPending>
+          <svg />
+        </IconButton>,
+      )
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).toBeNull()
+    })
   })
 
   // React Aria's pending state keeps the button focusable while it stops

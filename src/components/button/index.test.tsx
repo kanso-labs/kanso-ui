@@ -669,6 +669,24 @@ describe('press behaviour', () => {
       expect(isPressed()).toBe(false)
     })
 
+    // Pending gates interaction the way disabled does, so it gates the
+    // ripple too. React Aria nulls out the handlers it derived itself while
+    // pending — the completing click among them — but not the copy carrying
+    // ours, so a press that started could never be ended and the ripple was
+    // left at its pressed opacity for good.
+    it('neither fires handlers nor ripples while pending', async () => {
+      const onClick = vi.fn<() => void>()
+      const { button, isPressed } = setup({ isPending: true, onClick })
+
+      firePointer(button, 'pointerdown', { buttons: 1 })
+      await advance(MINIMUM_PRESS_MS)
+      firePointer(button, 'pointerup')
+      await advance(MINIMUM_PRESS_MS)
+
+      expect(onClick).not.toHaveBeenCalled()
+      expect(isPressed()).toBe(false)
+    })
+
     // `disableRipple` removes the ripple outright, and passes consumer
     // handlers straight through rather than merging them.
     it('renders no surface at all when the ripple is disabled', async () => {
