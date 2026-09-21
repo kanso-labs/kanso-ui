@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.30.3](https://github.com/kanso-labs/kanso-ui/compare/v0.30.2...v0.30.3) (2026-09-21)
+
+
+### Dependencies
+
+* update dependency @testing-library/jest-dom to v7 ([#921](https://github.com/kanso-labs/kanso-ui/issues/921)) ([8464299](https://github.com/kanso-labs/kanso-ui/commit/84642998793eb55a979c1168b4a06d916a88b1b8))
+* update dependency style-dictionary to v5.5.5 ([#925](https://github.com/kanso-labs/kanso-ui/issues/925)) ([fb476a8](https://github.com/kanso-labs/kanso-ui/commit/fb476a855fc5d62d8dc323a2c59b315ed8783e67))
+
 ## [0.30.2](https://github.com/kanso-labs/kanso-ui/compare/v0.30.1...v0.30.2) (2026-09-20)
 
 
