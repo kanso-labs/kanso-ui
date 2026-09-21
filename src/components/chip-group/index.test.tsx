@@ -81,6 +81,27 @@ describe('chip group', () => {
       expect(view.queryByText('Supporting line')).toBeNull()
     })
 
+    // Drawing the message is not the same as saying it. React Aria keeps an
+    // id in the group's `aria-describedby` only while an element carrying
+    // that id is in the document, so a message rendered outside its slot is
+    // read by nobody — the id is dropped again on mount.
+    it.each([
+      ['description', { description: 'Supporting line' }, 'Supporting line'],
+      ['error', { error: 'Choose one' }, 'Choose one'],
+    ])('describes the group by its %s', (_name, props, text) => {
+      const view = setup(props)
+      const described = view
+        .getByRole('grid', { name: 'Label' })
+        .getAttribute('aria-describedby')
+      // An empty attribute would make the `some` below vacuously false, and
+      // a missing one would throw rather than read as "not described".
+      expect(described ?? '').not.toBe('')
+
+      const ids = (described ?? '').split(' ').filter(Boolean)
+      const message = view.getByText(text)
+      expect(ids).toContain(message.id)
+    })
+
     it('reports a disabled chip as one', () => {
       const view = setup({ disabledKeys: SECOND })
       const [, second] = view.getAllByRole('row')
