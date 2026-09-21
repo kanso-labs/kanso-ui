@@ -277,6 +277,11 @@ describe('dialog', () => {
       })
       expect(paddingOf(body).left).toBe('24px')
       expect(paddingOf(body).right).toBe('24px')
+      // None of its own at either end: the header and the footer are what
+      // carry the container's 24, and the 16 and 24 they leave in front of
+      // and after the body are the page's two gaps.
+      expect(paddingOf(body).top).toBe('0px')
+      expect(paddingOf(body).bottom).toBe('0px')
       expect(paddingOf(footer)).toEqual({
         bottom: '24px',
         left: '24px',
@@ -290,6 +295,38 @@ describe('dialog', () => {
           view.getByRole('button', { name: 'Cancel' }).getBoundingClientRect()
             .right,
       ).toBe(24)
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // A dialog with no header and no footer has no part to carry the ends of
+    // the container's 24, so the body carries them itself — the shape a
+    // command palette is, which otherwise sat flush against the container's
+    // top and bottom edges.
+    it('pads the body at both ends when it is the whole dialog', async () => {
+      await page.viewport(1024, 768)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content aria-label="Commands">
+            <Dialog.Body>Supporting line</Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const container = containerOf(view.getByRole('dialog'))
+      const body = view.getByText('Supporting line')
+
+      expect(paddingOf(body)).toEqual({
+        bottom: '24px',
+        left: '24px',
+        right: '24px',
+        top: '24px',
+      })
+      // And the padding is the container's own, not room around it.
+      expect(
+        body.getBoundingClientRect().top -
+          container.getBoundingClientRect().top,
+      ).toBe(0)
 
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
