@@ -280,7 +280,14 @@ const styles = stylex.create({
     minInlineSize: 0,
   },
   // The bars of the indeterminate line: full width, scaled and translated
-  // from the leading edge, and started off it.
+  // from the left edge, and started off it.
+  //
+  // Physical rather than logical, deliberately. The keyframes are Material's
+  // own percentages and they translate one way only, so a logical inset
+  // would start the bar at the right edge under a right-to-left writing
+  // mode while the sweep kept pushing it further right — off the row it is
+  // meant to cross. The direction is handled once, by mirroring the row; see
+  // `indeterminateRow`.
   indeterminateBar: {
     blockSize: `${THICKNESS}px`,
     boxSizing: 'border-box',
@@ -302,6 +309,15 @@ const styles = stylex.create({
     position: 'absolute',
   },
   // The row the bars run inside, which clips them at both ends.
+  //
+  // The whole row is mirrored under a right-to-left writing mode, which is
+  // what makes the sweep travel in the reading direction. The bars inside it
+  // are positioned and translated in physical terms on purpose — see
+  // `indeterminateBar` — so mirroring them one by one would mean mirroring
+  // Material's tuned keyframes too. Flipping the row instead turns the whole
+  // coordinate system over at once, and everything drawn in it is
+  // symmetric: the track, and two bars whose corners are the same pill at
+  // both ends.
   indeterminateRow: {
     blockSize: `${THICKNESS}px`,
     borderRadius: radii.pill,
@@ -309,6 +325,7 @@ const styles = stylex.create({
     inlineSize: '100%',
     overflow: 'hidden',
     position: 'relative',
+    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
   },
   indeterminateTrack: {
     backgroundColor: colors.secondaryContainer,
@@ -323,7 +340,7 @@ const styles = stylex.create({
     animationIterationCount: 'infinite',
     animationName: primaryTranslate,
     animationTimingFunction: 'linear',
-    insetInlineStart: '-145.167%',
+    left: '-145.167%',
   },
   primaryBarInner: {
     '@media (prefers-reduced-motion: reduce)': {
@@ -347,7 +364,7 @@ const styles = stylex.create({
     animationIterationCount: 'infinite',
     animationName: secondaryTranslate,
     animationTimingFunction: 'linear',
-    insetInlineStart: '-54.8889%',
+    left: '-54.8889%',
   },
   secondaryBarInner: {
     '@media (prefers-reduced-motion: reduce)': {
