@@ -47,6 +47,18 @@ const DEFAULT_VIEWPORT = {
   width: window.innerWidth,
 }
 
+/**
+ * The entry keyframe the panel of a freshly opened sheet resolves to. It
+ * unmounts before returning, so two readings can be taken in one test without
+ * a second dialog being on the page while the first is still up.
+ */
+function arrivalOf() {
+  const view = setup()
+  const name = getComputedStyle(panelOf(view.getByRole('dialog'))).animationName
+  view.unmount()
+  return name
+}
+
 // Reads the four corners as the browser resolved them. Which two are rounded
 // is the whole difference between the two presentations, so this is what
 // proves the media query switched rather than that the declaration exists.
@@ -62,6 +74,27 @@ function cornersOf(element: Element) {
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/**
+ * Runs `open` with the document in a right-to-left writing mode, and restores
+ * the language afterwards.
+ *
+ * The language rather than `dir`, which is what a reader would actually set.
+ * `:dir(rtl)` is downlevelled to an `:is(:lang(…))` list of right-to-left
+ * languages before it reaches the stylesheet, so `dir="rtl"` alone matches
+ * none of it — the gap #1008 tracks. `lang` is what the compiled rule keys
+ * on today, so it is what exercises the branch. It goes on the document
+ * rather than a wrapper because React Aria portals the panel to the body.
+ */
+function inRightToLeft<T>(read: () => T): T {
+  const previous = document.documentElement.lang
+  document.documentElement.lang = 'ar'
+  try {
+    return read()
+  } finally {
+    document.documentElement.lang = previous
+  }
 }
 
 /** The panel around the element with the dialog role, which is what is sized and shaped. */
@@ -253,6 +286,38 @@ describe('sheet', () => {
         topLeft: '16px',
         topRight: '0px',
       })
+    })
+
+    // The panel rests against the inline end, which `insetInlineEnd` flips to
+    // the physical left under a right-to-left document. `translateX` is
+    // physical and flips with nothing, so one keyframe cannot serve both: the
+    // panel would arrive from the far side of where it comes to rest.
+    it('slides the side sheet in from the edge it rests on', async () => {
+      await page.viewport(1024, 768)
+      const settled = arrivalOf()
+      const mirrored = inRightToLeft(arrivalOf)
+
+      expect(settled).not.toBe('none')
+      expect(mirrored).not.toBe(settled)
+    })
+
+    // The bottom sheet arrives along the block axis, which no writing mode
+    // changes, so the breakpoint has to win over the branch above it — in
+    // both directions. Asserting the two agree is not enough on its own:
+    // a bottom sheet wrongly given one of the side keyframes agrees with
+    // itself just as well, so each is also held apart from both of those.
+    it('keeps the bottom sheet arriving from below in either writing mode', async () => {
+      await page.viewport(1024, 768)
+      const side = arrivalOf()
+      const sideMirrored = inRightToLeft(arrivalOf)
+
+      await page.viewport(375, 812)
+      const bottom = arrivalOf()
+      const bottomMirrored = inRightToLeft(arrivalOf)
+
+      expect(bottomMirrored).toBe(bottom)
+      expect(bottom).not.toBe(side)
+      expect(bottom).not.toBe(sideMirrored)
     })
 
     it('is a bottom sheet below it', async () => {
