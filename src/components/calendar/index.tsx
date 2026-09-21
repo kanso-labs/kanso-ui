@@ -122,6 +122,7 @@ function cellClassName(state: {
   isDisabled: boolean
   isSelected: boolean
   isToday: boolean
+  isUnavailable: boolean
 }) {
   return (
     stylex.props(
@@ -129,6 +130,7 @@ function cellClassName(state: {
       focus.ring,
       state.isToday && calendarStyles.cellToday,
       state.isSelected && calendarStyles.cellSelected,
+      state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
   )

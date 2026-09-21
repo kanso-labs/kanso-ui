@@ -59,14 +59,17 @@ type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
 //
 // The order is what makes a range read as one shape. Every selected day takes
 // the band; the two ends then take the circle over it, and round the outer
-// edge the band does not continue past. `disabled` is last of all, and StyleX
-// replaces a property whole, so it takes the branches above it with it.
+// edge the band does not continue past. `unavailable` comes after those, so a
+// ruled-out day inside a range keeps the band and takes the strikethrough
+// over it. `disabled` is last of all, and StyleX replaces a property whole,
+// so it takes the branches above it with it.
 function cellClassName(state: {
   isDisabled: boolean
   isSelected: boolean
   isSelectionEnd: boolean
   isSelectionStart: boolean
   isToday: boolean
+  isUnavailable: boolean
 }) {
   const isEnd =
     state.isSelected && (state.isSelectionStart || state.isSelectionEnd)
@@ -82,6 +85,7 @@ function cellClassName(state: {
         calendarStyles.cellRangeStart,
       state.isSelected && state.isSelectionEnd && calendarStyles.cellRangeEnd,
       isEnd && calendarStyles.cellSelected,
+      state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
   )
