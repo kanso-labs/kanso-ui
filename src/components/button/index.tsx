@@ -363,6 +363,7 @@ function Button({
   disableRipple = false,
   href,
   isDisabled = false,
+  isPending = false,
   onClick,
   onContextMenu,
   onKeyDown,
@@ -386,14 +387,24 @@ function Button({
   // mergeStyles. The ripple is off while disabled: React Aria still forwards
   // pointer events to a disabled element, and a press that changes nothing
   // should not look like one.
-  const ripple = useRipple<FocusableElement>(!disableRipple && !isDisabled, {
-    onClick,
-    onContextMenu,
-    onPointerCancel,
-    onPointerDown,
-    onPointerLeave,
-    onPointerUp,
-  })
+  //
+  // Off while pending for the same reason, and for a second one. React Aria
+  // nulls out the handlers it derived itself while pending — the click among
+  // them — but not the separate copy of the global pointer events that
+  // carries ours, so a press still reached the ripple and started it while
+  // the click that would have ended it never arrived. The ripple stayed at
+  // its pressed opacity until some later press completed a cycle of its own.
+  const ripple = useRipple<FocusableElement>(
+    !disableRipple && !isDisabled && !isPending,
+    {
+      onClick,
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+  )
 
   const styleProps = mergeStatefulStyles(
     (state: ButtonState) =>
@@ -432,6 +443,7 @@ function Button({
   return (
     <RACButton
       isDisabled={isDisabled}
+      isPending={isPending}
       render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}

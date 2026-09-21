@@ -466,6 +466,7 @@ function IconButton({
   disableRipple = false,
   href,
   isDisabled,
+  isPending = false,
   isSelected,
   onChange,
   onClick,
@@ -497,15 +498,21 @@ function IconButton({
   // `style` there may be functions of render state, which ripple's own
   // handler-only merge doesn't need to know about. It is also why the styles
   // below merge through mergeStatefulStyles rather than the plain
-  // mergeStyles. The ripple is off while disabled, as in Button.
-  const ripple = useRipple<FocusableElement>(!disableRipple && !disabled, {
-    onClick,
-    onContextMenu,
-    onPointerCancel,
-    onPointerDown,
-    onPointerLeave,
-    onPointerUp,
-  })
+  // mergeStyles. The ripple is off while disabled, and while pending, as in
+  // Button — and pending for the same second reason given there: React Aria
+  // suppresses the click that would end a press but not the pointer events
+  // that start one, so a ripple begun while pending was never ended.
+  const ripple = useRipple<FocusableElement>(
+    !disableRipple && !disabled && !isPending,
+    {
+      onClick,
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+  )
 
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
 
@@ -569,6 +576,7 @@ function IconButton({
   return (
     <RACButton
       isDisabled={disabled}
+      isPending={isPending}
       render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
