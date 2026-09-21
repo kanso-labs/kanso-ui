@@ -9,6 +9,7 @@ import { ToggleButton } from 'react-aria-components'
 
 import { chipGlyph } from '../../chip'
 import { chipStyles } from '../../chip/styles'
+import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -16,6 +17,16 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // chip module's in `src/chip`, shared with the chips a ChipGroup draws; what
 // is here is React Aria's `ToggleButton` around them, which is what makes a
 // standalone chip a two-state button rather than one of a set.
+//
+// Two of the call site's props go on the element through `src/render/aria`
+// rather than through that spread, as `Button` and `IconButton` do. React
+// Aria builds a button's attributes from an allowlist that holds only the
+// labelling `aria-*` and the state it manages itself, so any other one — a
+// shortcut, an owned element — is dropped before it reaches the DOM. And it
+// wraps a keyboard handler it is given so that the event stops there unless
+// the handler asks otherwise, which is its convention rather than the DOM's;
+// on the element the handler bubbles, so an Escape pressed on a chip inside
+// a dialog still reaches the dialog.
 
 type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
   /**
@@ -33,9 +44,15 @@ type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
  * let it keep its own state. Selection is announced through `aria-pressed`
  * rather than a role of its own.
  */
-function Chip({ children, ...props }: ChipProps) {
+function Chip({ children, onKeyDown, onKeyUp, render, ...props }: ChipProps) {
+  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+
   return (
-    <ToggleButton {...props} {...mergeStatefulStyles(propsFor, props)}>
+    <ToggleButton
+      render={toggleButtonRenderer(element, render)}
+      {...props}
+      {...mergeStatefulStyles(propsFor, props)}
+    >
       {chipContent(children)}
     </ToggleButton>
   )

@@ -106,6 +106,71 @@ describe('chip', () => {
     })
   })
 
+  // React Aria builds a button's DOM props from an allowlist: no keyboard
+  // handler is on it, and of the `aria-*` props only the labelling four plus
+  // the handful `useButton` re-adds for state it manages itself. Everything
+  // else a call site passes is dropped before it reaches the element, which
+  // is what `src/render/aria.tsx` exists to put back.
+  describe('what it puts on the element', () => {
+    it('calls a keyboard handler the call site passed', () => {
+      const onKeyDown = vi.fn<() => void>()
+      const onKeyUp = vi.fn<() => void>()
+      const { chip } = setup({ onKeyDown, onKeyUp })
+
+      fireEvent.keyDown(chip, { key: 'a' })
+      fireEvent.keyUp(chip, { key: 'a' })
+
+      expect(onKeyDown).toHaveBeenCalledTimes(1)
+      expect(onKeyUp).toHaveBeenCalledTimes(1)
+    })
+
+    // React Aria wraps a handler it is given so that it stops propagation
+    // unless the handler asks otherwise, which is its convention rather than
+    // the DOM's. On the element directly it bubbles, so an Escape pressed on
+    // a chip inside a dialog still reaches the dialog.
+    //
+    // The chip has to carry its own handler for this to mean anything: React
+    // Aria installs no wrapper when there is none to wrap, so a chip without
+    // one bubbles either way and would pass whatever this component did.
+    it('lets that handler bubble to an ancestor', () => {
+      const onAncestorKeyDown = vi.fn<() => void>()
+      const onKeyDown = vi.fn<() => void>()
+      const view = render(
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- the listener is the subject of the test
+        <div onKeyDown={onAncestorKeyDown}>
+          <Chip onKeyDown={onKeyDown}>Label</Chip>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('button'), { bubbles: true, key: 'a' })
+
+      expect(onKeyDown).toHaveBeenCalledTimes(1)
+      expect(onAncestorKeyDown).toHaveBeenCalledTimes(1)
+    })
+
+    // Rendered directly rather than through `setup`, which takes a
+    // `Partial<ChipProps>` object: an object literal is excess-property
+    // checked against it, where a JSX attribute is not.
+    it('keeps a non-labelling aria attribute the call site set', () => {
+      const view = render(<Chip aria-keyshortcuts="Control+K">Label</Chip>)
+
+      expect(view.getByRole('button').getAttribute('aria-keyshortcuts')).toBe(
+        'Control+K',
+      )
+    })
+
+    // The labelling four are React Aria's own, and may combine with what a
+    // parent gives through context, so they are left to it rather than
+    // written over with the call site's copy.
+    it('leaves the labelling attributes to React Aria', () => {
+      const { chip } = setup({ 'aria-label': 'Label' })
+
+      expect(chip.getAttribute('aria-label')).toBe('Label')
+      // The state React Aria manages itself still reaches the element too.
+      expect(chip.getAttribute('aria-pressed')).toBe('false')
+    })
+  })
+
   // These assert on class membership rather than computed colour. StyleX
   // injects a class's CSS the first time that class is used, and these tests
   // are the only thing that uses the chip's selected styles — read
