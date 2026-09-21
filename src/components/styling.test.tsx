@@ -211,6 +211,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'ColorSwatchPicker',
   },
   {
+    element: (
+      <ColorSwatchPicker defaultValue="#6750A4">
+        <ColorSwatchPicker.Item {...PROBE} color="#6750A4" />
+      </ColorSwatchPicker>
+    ),
+    name: 'ColorSwatchPicker.Item',
+  },
+  {
     element: <ColorWheel {...PROBE} defaultValue="hsl(200, 100%, 50%)" />,
     name: 'ColorWheel',
   },
