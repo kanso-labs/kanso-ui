@@ -1,3 +1,5 @@
+import type { PopoverRenderProps } from 'react-aria-components'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -348,6 +350,41 @@ describe('menu', () => {
       expect(style.paddingBottom).toBe('8px')
       expect(style.minInlineSize).toBe('112px')
       expect(style.maxInlineSize).toBe('280px')
+    })
+
+    // The surface is the element a layout positions: it carries the
+    // background, the corner and the width range, and the list inside it has
+    // none of them. A width landing on the list would change nothing a call
+    // site can see, which is what makes this worth pinning to an element
+    // rather than to the document.
+    it('lands the call site styles on the surface, not the list', () => {
+      const view = setup({ className: 'probe', style: { inlineSize: '240px' } })
+      const menu = view.getByRole('menu', { name: 'Open' })
+      const surface = surfaceOf(menu)
+
+      expect(surface.classList).toContain('probe')
+      expect(surface.style.inlineSize).toBe('240px')
+      expect(menu.classList).not.toContain('probe')
+      expect(menu.style.inlineSize).toBe('')
+      // The surface keeps its own compiled classes beside the call site's.
+      expect(hasClasses(surface, CLASSES.surface)).toBe(true)
+    })
+
+    it('computes those styles from the surface render state', () => {
+      const className = vi.fn<
+        (
+          state: PopoverRenderProps & { defaultClassName: string | undefined },
+        ) => string
+      >(() => 'computed')
+      const view = setup({ className })
+      const surface = surfaceOf(view.getByRole('menu', { name: 'Open' }))
+
+      expect(surface.classList).toContain('computed')
+      // The popover's render state rather than the menu's, since that is the
+      // element the class lands on. `placement` is the one a call site keying
+      // a style on which way the menu opened would reach for, and the menu's
+      // own state does not carry it.
+      expect(className.mock.calls.at(-1)?.[0]).toHaveProperty('placement')
     })
 
     // The menus page's item: 48dp tall, in the row module's menu variant.

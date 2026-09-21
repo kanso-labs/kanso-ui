@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import type {
+  ClassNameOrFunction,
   MenuItemRenderProps,
   PopoverRenderProps,
   MenuItemProps as RACMenuItemProps,
@@ -7,6 +8,7 @@ import type {
   MenuProps as RACMenuProps,
   MenuSectionProps as RACMenuSectionProps,
   MenuTriggerProps as RACMenuTriggerProps,
+  StyleOrFunction,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -171,8 +173,11 @@ type MenuContentProps<T extends object = object> = {
   align?: MenuAlign
   /** Moves the menu along that side, in pixels. */
   alignOffset?: number
-  /** A function may compute the class from the menu's render state. */
-  className?: RACMenuProps<T>['className']
+  /**
+   * Lands on the surface, which is the element a layout positions. A
+   * function may compute the class from the surface's render state.
+   */
+  className?: ClassNameOrFunction<PopoverRenderProps>
   /**
    * Where to portal the menu. Defaults to the end of `<body>`, which is right
    * for an app that sets its StyleX theme on `:root`. An app that scopes the
@@ -195,8 +200,8 @@ type MenuContentProps<T extends object = object> = {
   side?: MenuSide
   /** How far the menu sits from the trigger, in pixels. @default 8 */
   sideOffset?: number
-  /** A function may compute the style from the menu's render state. */
-  style?: RACMenuProps<T>['style']
+  /** Lands on the surface, as `className` does. */
+  style?: StyleOrFunction<PopoverRenderProps>
 } & Omit<RACMenuProps<T>, 'className' | 'style'>
 
 type MenuItemProps<T extends object = object> = {
@@ -366,18 +371,12 @@ function MenuContent<T extends object = object>({
       placement={placementOf(side, align)}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
-      {...mergeStatefulStyles(surfaceStyles, {})}
+      {...mergeStatefulStyles(surfaceStyles, { className, style })}
     >
       {search === undefined ? null : (
         <div {...stylex.props(styles.search)}>{search}</div>
       )}
-      <RACMenu<T>
-        {...props}
-        {...mergeStatefulStyles(stylex.props(styles.menu), {
-          className,
-          style,
-        })}
-      />
+      <RACMenu<T> {...props} {...stylex.props(styles.menu)} />
     </RACPopover>
   )
 }
