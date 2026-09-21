@@ -15,6 +15,13 @@ interface RowContentProps {
    */
   isDisabled?: boolean
   /**
+   * Whether the headline is drawn heavier than its variant's own weight, for
+   * a row marked without the container a selected one takes. The navigation
+   * drawer's trail to the current row is what asks for it.
+   * @default false
+   */
+  isEmphasized?: boolean
+  /**
    * Whether the row is selected. The supporting line takes the selected
    * container's own content role when it is, rather than staying in the
    * muted role it draws on the surface.
@@ -58,6 +65,7 @@ type RowVariant = 'drawer' | 'list' | 'menu'
 function RowContent({
   children,
   isDisabled = false,
+  isEmphasized = false,
   isSelected = false,
   leading,
   overline,
@@ -88,6 +96,7 @@ function RowContent({
         <span
           {...stylex.props(
             label ? rowStyles.headlineMenu : rowStyles.headlineList,
+            isEmphasized && rowStyles.headlineEmphasis,
           )}
         >
           {children}

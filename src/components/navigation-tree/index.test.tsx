@@ -172,9 +172,13 @@ describe('navigation tree', () => {
       expect(getComputedStyle(branch).backgroundColor).not.toBe(
         getComputedStyle(child).backgroundColor,
       )
-      expect(getComputedStyle(branch).fontWeight).not.toBe(
-        getComputedStyle(view.getAllByRole('row')[2]).fontWeight,
-      )
+      // Read off the label rather than the row. The row's own weight never
+      // reaches the text: RowContent draws the label in a span that states
+      // the label-large role in full, weight included, and an inherited
+      // value does not reach an element declaring its own.
+      expect(
+        getComputedStyle(view.getByText('First item')).fontWeight,
+      ).not.toBe(getComputedStyle(view.getByText('Second item')).fontWeight)
     })
 
     it('marks an ancestor even while its child is collapsed out of sight', () => {

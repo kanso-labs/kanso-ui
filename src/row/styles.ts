@@ -77,6 +77,15 @@ const rowStyles = stylex.create({
     marginInline: spacing.md,
     minBlockSize: sizing.rowSm,
   },
+  // A headline drawn heavier than its variant's own, for a row marked
+  // without the container a selected one takes. It sets the weight alone, so
+  // the rest of the type role still comes from the variant's headline style
+  // beside it — and it has to sit on the headline itself, since that style
+  // states a weight and an inherited one never reaches an element declaring
+  // its own.
+  headlineEmphasis: {
+    fontWeight: typography.weightBold,
+  },
   headlineList: {
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,

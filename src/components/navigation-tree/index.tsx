@@ -55,6 +55,13 @@ import {
 // otherwise show nothing at all. It takes the label's weight rather than the
 // pill, so the trail reads as a trail rather than as a second current row.
 //
+// That weight goes on the label itself, through the row module's
+// `isEmphasized`, and it has to: the row's own `font-weight` never reaches
+// the text, since `RowContent` draws the label in a span stating the
+// label-large role in full, weight included. The pair also has to differ by
+// more than a step — the label's own weight is already the medium one, so a
+// trail set in medium is a trail nobody can see.
+//
 // **The pill's shape is the library's own.** The page gives the active
 // indicator's colour, height and width but keeps its shape behind a token
 // set that does not open to a script — the same gap recorded on the buttons
@@ -93,12 +100,6 @@ const styles = stylex.create({
     transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
-  },
-  // The row on the way to the current one. The page gives the current row a
-  // weight of its own, and this is the lighter half of that pair — enough to
-  // say the trail passes through here without claiming to be the end of it.
-  currentAncestor: {
-    fontWeight: typography.weightMedium,
   },
   // A section's heading. The page's own headline role, which comes to the
   // same values as its label — so the heading is set apart by colour and by
@@ -244,6 +245,7 @@ function itemContent(
   return (state: NavigationTreeItemRenderProps): ReactNode => (
     <RowContent
       isDisabled={state.isDisabled}
+      isEmphasized={state.isCurrentAncestor}
       isSelected={state.isCurrent}
       leading={leadingFor(state, leading)}
       supporting={supporting}
@@ -270,7 +272,6 @@ function itemStyles(state: NavigationTreeItemRenderProps) {
     rowStyles.drawer,
     rowStyles.interactive,
     styles.indent,
-    state.isCurrentAncestor && styles.currentAncestor,
     state.isCurrent && rowStyles.selectedDrawer,
     state.isDisabled && rowStyles.disabled,
   )
