@@ -60,6 +60,33 @@ describe('color picker', () => {
 
       expect(view.queryByRole('dialog')).toBeNull()
     })
+
+    // The open state reaches the overlay on its own, so a disabled picker
+    // can still be open: already open when a form disables it, or opened
+    // from outside. Nothing on react-stately's side carries the disabled
+    // state onto the surface, so a picker that only disables its trigger is
+    // one whose plane, strips and field still change the value.
+    it('disables what it opens, not only the trigger', () => {
+      const view = render(
+        <ColorPicker
+          alpha
+          defaultOpen
+          defaultValue={PURPLE}
+          isDisabled
+          label="Label"
+        />,
+      )
+
+      const sliders = view.getAllByRole('slider')
+      // The plane, the hue strip and the alpha strip, one slider each. The
+      // count is asserted because an empty list would make the `every`
+      // below vacuously true.
+      expect(sliders).toHaveLength(3)
+      expect(sliders.every((slider) => slider.hasAttribute('disabled'))).toBe(
+        true,
+      )
+      expect(fieldOf(view).hasAttribute('disabled')).toBe(true)
+    })
   })
 
   describe('what it opens', () => {

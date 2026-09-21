@@ -132,7 +132,13 @@ type ColorPickerProps = Omit<RACColorPickerProps, 'children'> & {
   container?: Element
   /** Whether the surface starts open. Uncontrolled; pair `isOpen` with `onOpenChange` instead. */
   defaultOpen?: boolean
-  /** Whether the whole picker is inert. @default false */
+  /**
+   * Whether the whole picker is inert — the trigger, and the plane, strips
+   * and field on the surface, which can be on screen while disabled since
+   * the surface opens independently of the trigger. An arrangement passed
+   * as `children` is the call site's own to disable.
+   * @default false
+   */
   isDisabled?: boolean
   /** Whether the surface is open. Controlled; needs `onOpenChange`. */
   isOpen?: boolean
@@ -213,17 +219,44 @@ function ColorPicker({
           {...stylex.props(overlay.popup, picker.popover)}
         >
           <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
+            {/*
+              Disabled reaches every control here, not only the trigger.
+              React Aria's colour picker carries no disabled state of its
+              own — react-stately's `useColorPickerState` has no such
+              concept — so nothing hands it down the way a field's context
+              would. And the surface opens independently of the trigger, so
+              a disabled picker can still be on screen: already open when a
+              form disables it, or opened from outside. Without this the
+              plane could be dragged, the strips moved with the arrow keys
+              and the field typed into, all changing the value of something
+              documented as inert.
+
+              An arrangement a call site passes as `children` is its own to
+              disable; there is no context to reach it through.
+            */}
             {children ?? (
               <div {...stylex.props(styles.body)}>
                 <ColorArea
                   aria-label={label}
                   colorSpace="hsl"
+                  isDisabled={isDisabled}
                   xChannel="saturation"
                   yChannel="lightness"
                 />
-                <ColorSlider channel="hue" colorSpace="hsl" label="Hue" />
-                {alpha ? <ColorSlider channel="alpha" label="Alpha" /> : null}
-                <ColorField label={label} />
+                <ColorSlider
+                  channel="hue"
+                  colorSpace="hsl"
+                  isDisabled={isDisabled}
+                  label="Hue"
+                />
+                {alpha ? (
+                  <ColorSlider
+                    channel="alpha"
+                    isDisabled={isDisabled}
+                    label="Alpha"
+                  />
+                ) : null}
+                <ColorField isDisabled={isDisabled} label={label} />
               </div>
             )}
           </RACDialog>

@@ -127,6 +127,17 @@ const Disabled: Story = {
   },
 }
 
-export { Default, Disabled, Open, Overview, WithAlpha }
+// Disabled and open at once, which the surface opening independently of the
+// trigger makes reachable: a picker already open when a form disables it.
+// Its own story because a closed one shows the trigger alone, and the
+// controls on the surface are the half that has to look inert too.
+const DisabledOpen: Story = {
+  args: {
+    defaultOpen: true,
+    isDisabled: true,
+  },
+}
+
+export { Default, Disabled, DisabledOpen, Open, Overview, WithAlpha }
 
 export default meta
