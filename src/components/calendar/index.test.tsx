@@ -262,6 +262,46 @@ describe('calendar', () => {
       ).toBe('true')
     })
 
+    // React Aria keeps a date ruled out this way focusable, which is what
+    // separates it from one outside min and max: a reader can land on it and
+    // be told it is unavailable. So it has to be legible where a disabled
+    // date does not, and it has to be tellable apart from a date that can be
+    // picked — the test above pins only the announcement, which a cell drawn
+    // exactly like every other one still passes.
+    it('marks a date ruled out one at a time as one a reader can see', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          isDateUnavailable={isSixteenth}
+        />,
+      )
+      const unavailable = cellFor(view, 'Wednesday, September 16, 2026')
+      const available = cellFor(view, 'Thursday, September 17, 2026')
+
+      expect(getComputedStyle(unavailable).textDecorationLine).toBe(
+        'line-through',
+      )
+      expect(getComputedStyle(available).textDecorationLine).toBe('none')
+    })
+
+    it('keeps that date readable rather than fading it out of reach', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          isDateUnavailable={isSixteenth}
+        />,
+      )
+      const unavailable = cellFor(view, 'Wednesday, September 16, 2026')
+
+      // It stays focusable, so the disabled fade would leave a reader on a
+      // cell they cannot read. Full contrast is what React Aria asks for.
+      expect(getComputedStyle(unavailable).color).toBe(
+        probe(probeStyles.onSurface).color,
+      )
+    })
+
     it('fades a date from the month either side, as the disabled date it is', () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,

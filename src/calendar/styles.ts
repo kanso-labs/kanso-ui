@@ -56,9 +56,10 @@ const calendarStyles = stylex.create({
     // The page's 48dp date container: this 40dp layer with 4dp either side.
     marginInline: spacing.xs,
   },
-  // A date the calendar will not take: outside the range, or ruled out by
-  // `isDateUnavailable`. The page's own 38% on the content role, which is the
-  // same fade every disabled control here takes.
+  // A date outside `minValue` and `maxValue`, or in a month either side of
+  // the one shown. The page's own 38% on the content role, which is the same
+  // fade every disabled control here takes. A date ruled out one at a time is
+  // `cellUnavailable` instead, for the reason recorded there.
   cellDisabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
@@ -117,6 +118,22 @@ const calendarStyles = stylex.create({
     borderStyle: 'solid',
     borderWidth: '1px',
     color: colors.primary,
+  },
+  // A date ruled out one at a time by `isDateUnavailable`. React Aria keeps
+  // it focusable, unlike a date outside the bounds, so a reader can land on
+  // it and be told it is unavailable — which is why it cannot take
+  // `cellDisabled`'s fade: at 38% it would leave a reader on a cell they
+  // cannot read, against the 4.5:1 that staying focusable obliges.
+  //
+  // The strikethrough is the affordance React Aria names for this state, and
+  // it is the library's own: the date pickers page carries no treatment for
+  // a date that is shown but cannot be taken. It keeps the full content
+  // role, so the date stays legible and is still told apart from a date that
+  // can be picked.
+  cellUnavailable: {
+    backgroundColor: 'transparent',
+    cursor: 'not-allowed',
+    textDecorationLine: 'line-through',
   },
   // What the chevrons that move the month add to the shared icon-button
   // chrome in src/styles/icon-button.ts, which is where the reason for

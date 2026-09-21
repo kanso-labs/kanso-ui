@@ -38,6 +38,9 @@ const SIX_WEEK_RANGE = {
   start: new CalendarDate(2026, 5, 8),
 }
 
+// Hoisted so the identity is stable, which is what react-perf is after.
+const isTenth = (date: { day: number }) => date.day === 10
+
 // The calendar's own box, which is the element a layout positions.
 function calendarBox(view: ReturnType<typeof render>) {
   const root = view.container.firstElementChild
@@ -167,6 +170,27 @@ describe('range calendar', () => {
   })
 
   describe('shared with Calendar', () => {
+    // The `Bounded` story rules weekends out to show a range stopping at one,
+    // and until the cell drew something a reader could see it showed nothing
+    // at all. A date inside the range that is ruled out has to be tellable
+    // from the days either side of it.
+    it('marks a date ruled out one at a time inside the range', () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          isDateUnavailable={isTenth}
+        />,
+      )
+      const unavailable = cellFor(view, 'September 10, 2026')
+      const available = cellFor(view, 'September 11, 2026')
+
+      expect(getComputedStyle(unavailable).textDecorationLine).toBe(
+        'line-through',
+      )
+      expect(getComputedStyle(available).textDecorationLine).toBe('none')
+    })
+
     it('draws the same chevrons, one per direction', () => {
       const view = render(
         <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
