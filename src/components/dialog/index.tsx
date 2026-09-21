@@ -69,6 +69,14 @@ const slideInFromBottom = stylex.keyframes({
 const styles = stylex.create({
   // The only part that scrolls, so the headline and the actions keep their
   // place while the middle runs out of room.
+  //
+  // The page's 24dp of padding all round is spent by whichever part is at
+  // each end: the header carries the top of it and the footer the bottom,
+  // which is what leaves the 16dp headline-to-body and 24dp body-to-actions
+  // gaps those two draw. A dialog without one of them has no part to carry
+  // that end, so the body takes it when it is the element at that end — a
+  // body-only dialog, the shape a command palette is, otherwise sat flush
+  // against the container's top and bottom edges.
   body: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -82,6 +90,8 @@ const styles = stylex.create({
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
     overflowY: 'auto',
+    paddingBlockEnd: { ':last-child': spacing.xl, default: 0 },
+    paddingBlockStart: { ':first-child': spacing.xl, default: 0 },
     paddingInline: spacing.xl,
   },
   // The scrim centres the container, which is what makes the dialog a dialog

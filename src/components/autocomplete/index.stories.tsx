@@ -22,6 +22,13 @@ const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
 const styles = stylex.create({
+  // A command's icon, at the 24dp the search bar draws its magnifier at. A
+  // row sets no icon size of its own, so the size is the story's to give.
+  glyph: {
+    blockSize: '24px',
+    display: 'block',
+    inlineSize: '24px',
+  },
   header: {
     display: 'flex',
     flexDirection: 'column',
@@ -42,12 +49,21 @@ const styles = stylex.create({
     paddingBlockStart: spacing.xl,
     paddingInline: spacing.xl,
   },
-  // The command palette's own column: the search bar over its results, with
-  // the dialog's padding removed so the rows run to its edges.
+  // The command palette's own column: the search bar over its results.
   palette: {
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.sm,
+  },
+  // The results, inset so they line up with the bar above them. The bar is
+  // the search page's, whose padding is to a 48dp tap target with the
+  // magnifier 12dp inside it — `spacing.lg + spacing.md` — while a row's
+  // own padding is the lists page's 16dp. Insetting the list by the 12dp
+  // between them puts a row's leading slot under the magnifier and its
+  // headline under the typed text, which is the alignment the search page
+  // draws and what makes the two read as one column rather than two.
+  paletteResults: {
+    paddingInline: spacing.md,
   },
   row: {
     display: 'flex',
@@ -97,6 +113,56 @@ const COMMANDS = (
     <Menu.Item id="save">Save file</Menu.Item>
     <Menu.Item id="close">Close file</Menu.Item>
   </>
+)
+
+// A plain glyph per command, drawn by the story: the library's own are
+// private to it. They are here because the palette's rows need leading
+// content to line up with the bar's magnifier — see `paletteResults`.
+function Glyph({ path }: { path: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      {...stylex.props(styles.glyph)}
+    >
+      <path d={path} />
+    </svg>
+  )
+}
+
+const OPEN = (
+  <Glyph path="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+)
+const SAVE = <Glyph path="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14" />
+const CLOSE = <Glyph path="m7 7 10 10M17 7 7 17" />
+
+// The palette's search bar and its results, shared by the Overview's
+// section and the story below so the two cannot drift apart.
+const PALETTE_SEARCH = (
+  <SearchField label="Search commands" placeholder="Type a command" />
+)
+
+const PALETTE_RESULTS = (
+  <ListBox
+    aria-label="Commands"
+    selectionMode="single"
+    {...stylex.props(styles.paletteResults)}
+  >
+    <ListBox.Item id="open" leading={OPEN}>
+      Open file
+    </ListBox.Item>
+    <ListBox.Item id="save" leading={SAVE}>
+      Save file
+    </ListBox.Item>
+    <ListBox.Item id="close" leading={CLOSE}>
+      Close file
+    </ListBox.Item>
+  </ListBox>
 )
 
 const meta = {
@@ -186,15 +252,8 @@ const Overview: Story = {
               <Dialog.Body>
                 <div {...stylex.props(styles.palette)}>
                   <Autocomplete>
-                    <SearchField
-                      label="Search commands"
-                      placeholder="Type a command"
-                    />
-                    <ListBox aria-label="Commands" selectionMode="single">
-                      <ListBox.Item id="open">Open file</ListBox.Item>
-                      <ListBox.Item id="save">Save file</ListBox.Item>
-                      <ListBox.Item id="close">Close file</ListBox.Item>
-                    </ListBox>
+                    {PALETTE_SEARCH}
+                    {PALETTE_RESULTS}
                   </Autocomplete>
                 </div>
               </Dialog.Body>
@@ -250,15 +309,8 @@ const CommandPalette: Story = {
         <Dialog.Body>
           <div {...stylex.props(styles.palette)}>
             <Autocomplete {...args}>
-              <SearchField
-                label="Search commands"
-                placeholder="Type a command"
-              />
-              <ListBox aria-label="Commands" selectionMode="single">
-                <ListBox.Item id="open">Open file</ListBox.Item>
-                <ListBox.Item id="save">Save file</ListBox.Item>
-                <ListBox.Item id="close">Close file</ListBox.Item>
-              </ListBox>
+              {PALETTE_SEARCH}
+              {PALETTE_RESULTS}
             </Autocomplete>
           </div>
         </Dialog.Body>
