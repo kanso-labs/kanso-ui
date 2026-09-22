@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node
-        uses: kanso-labs/actions/setup-node@v4.0.0
+        uses: kanso-labs/actions/setup-node@v4.0.1
         with:
           ignore-scripts: true
 
