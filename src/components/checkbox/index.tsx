@@ -43,6 +43,7 @@ import {
 // 2dp is a step the shape scale does not carry.
 const styles = stylex.create({
   box: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: '18px',

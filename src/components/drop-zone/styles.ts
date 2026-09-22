@@ -37,6 +37,7 @@ const dropZoneStyles = stylex.create({
   // The outlined card's surface, rule and corner, with a dashed rule and
   // room enough to aim at.
   root: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderColor: colors.outlineVariant,

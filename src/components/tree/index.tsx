@@ -102,6 +102,7 @@ const styles = stylex.create({
   // Points at what the row opens, so it turns a quarter once it is open. It
   // mirrors under a right-to-left writing mode, as every chevron here does.
   chevronGlyph: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     inlineSize: '24px',
     transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },

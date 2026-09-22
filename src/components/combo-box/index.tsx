@@ -110,6 +110,7 @@ const styles = stylex.create({
   // every other chevron here takes — Disclosure's, Tree's and
   // NavigationTree's — and the standard easing is theirs too.
   toggleGlyph: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     inlineSize: '24px',
     transform: 'rotate(90deg)',

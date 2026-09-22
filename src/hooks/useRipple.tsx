@@ -66,6 +66,22 @@ function isTouch(event: PointerEvent) {
 }
 
 /**
+ * Whether the reader has asked the OS for less motion.
+ *
+ * Growth is a Web Animations call, which makes it the one animation in the
+ * library no `@media (prefers-reduced-motion: reduce)` branch can reach — see
+ * src/styles/ripple.ts for the opacity half, which is CSS and carries one.
+ *
+ * Read at the press rather than once at mount, so a reader who changes the
+ * setting is answered by their next press rather than by their next reload.
+ * The press already reads layout through `getBoundingClientRect`, which costs
+ * more than this does.
+ */
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
  * Renders a press ripple that grows from the pointer's position, or from
  * the element's center for a keyboard or other non-pointer activation.
  *
@@ -193,7 +209,14 @@ function useRipple<HostElement extends Element = Element>(
           // press is held, so the token is spent here rather than named as a
           // constant — element.animate() is one of the two places a StyleX
           // token could not have gone.
-          duration: motionDurationMs.long1,
+          //
+          // Zeroed rather than skipped under reduced motion, which lands the
+          // disc at its full size with the growth never drawn. Skipping the
+          // call outright would leave `growAnimation` unset, and the release
+          // below reads its `currentTime` to decide whether the press has
+          // been visible long enough — so the press would still be shown, and
+          // would stop being held for its minimum.
+          duration: prefersReducedMotion() ? 0 : motionDurationMs.long1,
           easing: motionEasing.standard,
           fill: 'forwards',
         },

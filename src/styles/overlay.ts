@@ -104,6 +104,12 @@ const overlay = stylex.create({
     gap: spacing.sm,
   },
   // Material Design's scrim is the scrim role at 32%, not a colour of its own.
+  //
+  // The one animation here that keeps its duration under reduced motion, and
+  // deliberately: a cross-fade moves nothing, and `popup` above is already
+  // leaning on this one still playing — with every panel arriving instantly,
+  // the ground darkening is the whole of what says an overlay opened. Left to
+  // follow the rest, the four overlays would appear with no cue at all.
   scrim: {
     animationDuration: motion.durationShort2,
     animationName: fadeIn,

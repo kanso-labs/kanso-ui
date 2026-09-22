@@ -21,6 +21,7 @@ import {
 
 const styles = stylex.create({
   base: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     borderRadius: radii.xs,
     boxSizing: 'border-box',
     cursor: 'pointer',

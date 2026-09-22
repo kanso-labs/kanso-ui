@@ -79,6 +79,7 @@ const styles = stylex.create({
     alignItems: 'center',
   },
   stepper: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: BOX_HALF,

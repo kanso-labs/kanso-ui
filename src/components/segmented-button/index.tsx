@@ -364,6 +364,7 @@ const styles = stylex.create({
       ':first-child': `min(${radii.pill}, 20px)`,
       default: radii.none,
     },
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: sizing.controlSm,
@@ -424,6 +425,7 @@ const styles = stylex.create({
   // disabled: React Aria reports none of the three for a control that
   // cannot be pressed.
   stateLayer: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: 'currentColor',
     borderRadius: 'inherit',
     boxSizing: 'border-box',

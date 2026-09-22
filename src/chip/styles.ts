@@ -54,6 +54,7 @@ import {
 
 const chipStyles = stylex.create({
   base: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     blockSize: sizing.controlXs,
     borderRadius: radii.sm,

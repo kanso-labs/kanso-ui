@@ -25,6 +25,15 @@ const FIELD = classesOf(controlStyles.field)
 const LABEL = classesOf(controlStyles.label)
 const DISC = classesOf(controlStyles.disc)
 
+// A style's whole class list as one compound selector, rather than its first
+// class alone. StyleX writes one class per declaration and gives identical
+// declarations from different styles the same name, so any single class can be
+// one a dozen other styles also carry — the shared
+// `@media (prefers-reduced-motion: reduce)` branch is on 33 of them, and it
+// sorts first. Matching on all of them is what names one style again.
+const selectorFor = (classes: ReadonlyArray<string>) =>
+  classes.map((name) => `.${name}`).join('')
+
 const LABELLED: ReadonlyArray<{
   element: ReactElement
   name: string
@@ -94,9 +103,9 @@ const WRAPPING_WIDTH = { width: '220px' }
 const SUBPIXEL = 1
 
 function centringOf(container: HTMLElement, text: string) {
-  // Found by the class the shared disc compiles to rather than by its
+  // Found by the classes the shared disc compiles to rather than by its
   // height, so resizing the control does not quietly stop this finding it.
-  const disc = container.querySelector(`.${DISC[0]}`)
+  const disc = container.querySelector(selectorFor(DISC))
   const label = [...container.querySelectorAll('span')].find(
     (span) => span.textContent === text,
   )
@@ -147,7 +156,7 @@ describe('the shared control row', () => {
     ({ element, text }) => {
       const view = render(element)
       const label = view.getByText(text)
-      const field = label.closest(`.${FIELD[0]}`)
+      const field = label.closest(selectorFor(FIELD))
       if (!(field instanceof HTMLElement)) {
         throw new Error('expected the label to sit inside the grid')
       }
@@ -164,7 +173,7 @@ describe('the shared control row', () => {
 
   it.each(DISCED)('gives $name the 40dp disc', ({ element }) => {
     const view = render(element)
-    const disc = view.container.querySelector(`.${DISC[0]}`)
+    const disc = view.container.querySelector(selectorFor(DISC))
     if (!(disc instanceof HTMLElement)) {
       throw new Error('expected the control to draw the shared disc')
     }

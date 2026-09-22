@@ -62,6 +62,7 @@ export const indicatorStyles = stylex.create({
   // across — so the ends would square off as the value fell. The width stays
   // for those two reasons rather than for want of trying the transform.
   active: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: colors.primary,
     blockSize: '100%',
     borderRadius: radii.pill,

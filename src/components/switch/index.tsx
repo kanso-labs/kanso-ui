@@ -87,6 +87,7 @@ const styles = stylex.create({
   },
   // The handle itself, centred in its travelling box and sized by state.
   handle: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: colors.outline,
     blockSize: '16px',
@@ -125,6 +126,7 @@ const styles = stylex.create({
   // The 40dp state layer, centred on the handle: the ripple's host, and
   // where hover and press are painted.
   layer: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: 'transparent',
     blockSize: '40px',
     borderRadius: radii.circle,
@@ -138,6 +140,7 @@ const styles = stylex.create({
   },
   // The description and error sit under the text, in the second column.
   seat: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     blockSize: '28px',
     boxSizing: 'border-box',
@@ -170,6 +173,7 @@ const styles = stylex.create({
     insetInlineStart: '20px',
   },
   track: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: colors.surfaceContainerHighest,
     blockSize: '32px',
     borderColor: colors.outline,
