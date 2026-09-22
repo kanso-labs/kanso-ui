@@ -77,21 +77,29 @@ function forcedColorRules(element: Element): Map<string, string> {
         continue
       }
 
-      // StyleX writes one class per declaration and repeats it to raise
-      // specificity, so a selector is a run of the same class plus an
-      // optional pseudo-class: `.abc.abc:focus-within`.
-      const [selector, pseudo = ''] = rule.selectorText.split(':', 2)
-      const className = selector.split('.').find(Boolean)
+      // A rule can carry several selectors, not one. StyleX gives each
+      // declaration its own class, but two modules that happen to write the
+      // same declaration under the same query share a rule — this box's
+      // focus outline and the search bar's arrive as
+      // `.abc.abc:focus-within, .def.def:focus`. Reading only the first
+      // would report the rule as missing for whichever component lost the
+      // race, which is a false negative rather than a gap.
+      for (const selectorText of rule.selectorText.split(',')) {
+        // Each is a run of one class repeated to raise specificity, plus an
+        // optional pseudo-class: `.abc.abc:focus-within`.
+        const [selector, pseudo = ''] = selectorText.trim().split(':', 2)
+        const className = selector.split('.').find(Boolean)
 
-      if (className === undefined || !element.classList.contains(className)) {
-        continue
-      }
+        if (className === undefined || !element.classList.contains(className)) {
+          continue
+        }
 
-      for (const property of rule.style) {
-        found.set(
-          pseudo === '' ? property : `${property}:${pseudo}`,
-          rule.style.getPropertyValue(property),
-        )
+        for (const property of rule.style) {
+          found.set(
+            pseudo === '' ? property : `${property}:${pseudo}`,
+            rule.style.getPropertyValue(property),
+          )
+        }
       }
     }
   }

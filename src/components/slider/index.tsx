@@ -55,12 +55,24 @@ import {
 // comes to the same — so a theme moving that step opened the gap beside the
 // handle while the stop, written as the literal it is, stayed where the page
 // puts it.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const HANDLE_GAP = '6px'
 const HANDLE_WIDTH = '4px'
 
 const styles = stylex.create({
+  // The filled part of the track. `Highlight` under forced colours is what
+  // keeps it apart from the empty part beside it: that mode paints author
+  // backgrounds in a system colour, so both segments would otherwise flatten
+  // to the same one and the slider would say nothing about its value. A
+  // system keyword is kept rather than repainted, which is what makes this
+  // the one place a background is still the right property to reach for.
   active: {
-    backgroundColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   activeDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
@@ -128,9 +140,19 @@ const styles = stylex.create({
   // One part of the track: the 16dp strip, centred in the 44dp the handle
   // takes, placed by the insets each part is given.
   segment: {
-    backgroundColor: colors.secondaryContainer,
+    backgroundColor: {
+      default: colors.secondaryContainer,
+      [FORCED_COLORS]: 'Canvas',
+    },
     blockSize: '16px',
+    // The strip's own edge under forced colours, so the track is still a
+    // shape rather than a run of page background. `Canvas` above empties it
+    // deliberately: the empty part reads as the outline alone, and `active`
+    // fills its share with `Highlight` over the top.
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.sm,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
     insetBlockStart: '14px',
     position: 'absolute',
@@ -146,7 +168,10 @@ const styles = stylex.create({
   // 4dp is the dot's size rather than the handle's width, which happens to
   // match.
   stop: {
-    backgroundColor: colors.onSecondaryContainer,
+    backgroundColor: {
+      default: colors.onSecondaryContainer,
+      [FORCED_COLORS]: 'ButtonText',
+    },
     blockSize: '4px',
     borderRadius: radii.circle,
     inlineSize: '4px',
@@ -167,14 +192,21 @@ const styles = stylex.create({
   // Aria only sets the axis the handle moves along. The size and the colour
   // are the page's.
   thumb: {
-    backgroundColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     blockSize: '44px',
+    // The handle's own edge under forced colours. It is 4dp wide and sits on
+    // a filled track, so `Highlight` alone would lose it against the filled
+    // part it marks the end of; `ButtonText` around it is what keeps the two
+    // apart.
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.pill,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
     cursor: 'grab',
     inlineSize: HANDLE_WIDTH,
     insetBlockStart: '50%',
-    outlineColor: colors.primary,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     outlineOffset: '2px',
     outlineStyle: 'none',
     outlineWidth: '2px',

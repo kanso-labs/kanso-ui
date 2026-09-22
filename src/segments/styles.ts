@@ -13,6 +13,12 @@ import {
 // stories, a barrel entry and a `styling.test.tsx` case — which shared styles
 // are none of.
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const segmentStyles = stylex.create({
   // The segments on one line. `FieldValue` around it is what gives the line
   // its place in the box — including the room a floated label needs — so
@@ -30,7 +36,20 @@ const segmentStyles = stylex.create({
     boxSizing: 'border-box',
     caretColor: 'transparent',
     color: colors.onSurface,
-    outlineStyle: 'none',
+    // What focus becomes under forced colours, where the fill below is gone.
+    // That mode paints backgrounds in a system colour, so `segmentFocused`'s
+    // filled shape — the only sign of focus this has, since the caret is
+    // hidden and the browser's own ring is suppressed on the line above —
+    // stops telling one segment from another. An outline is a property the
+    // mode keeps, and `Highlight` is the keyword a forced palette gives the
+    // thing it marks as active.
+    outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '1px' },
+    outlineStyle: {
+      default: 'none',
+      [FORCED_COLORS]: { ':focus': 'solid', default: 'none' },
+    },
+    outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
     paddingInline: spacing.xxs,
     textAlign: 'end',
   },

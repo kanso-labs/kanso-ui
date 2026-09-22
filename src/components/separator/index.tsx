@@ -10,6 +10,12 @@ import {
 import { mergeStyles } from '../../styles/merge'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // A divider is the same colour as a border, so it draws from outlineVariant
 // rather than a role of its own — the design system treats the two as one
 // decision, and a separator that drifted from the borders around it would
@@ -56,12 +62,29 @@ const styles = stylex.create({
     flexShrink: 0,
     margin: 0,
   },
+  // The rule redrawn as a border under forced colours, where the fill above
+  // is gone: that mode paints backgrounds in a system colour, and a rule
+  // whose whole visual is a background flattens into the surface behind it.
+  //
+  // A border on the axis the rule runs across, rather than on `base`, since
+  // which edge carries it is what the orientation decides. The box is 1dp on
+  // that axis and sized by its border, so the border is the whole of it.
+  //
+  // Drawn where a Card's elevation and the rule under a Tabs are not: those
+  // are decoration, and this divides content. `CanvasText` is the keyword a
+  // forced palette gives ordinary marks on the page.
   horizontal: {
     blockSize: '1px',
+    borderBlockStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderBlockStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockStartWidth: { default: null, [FORCED_COLORS]: '1px' },
     inlineSize: '100%',
   },
   vertical: {
     alignSelf: 'stretch',
+    borderInlineStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderInlineStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderInlineStartWidth: { default: null, [FORCED_COLORS]: '1px' },
     inlineSize: '1px',
   },
 })
