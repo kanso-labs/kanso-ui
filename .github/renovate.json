@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "local>kanso-labs/.github is the organization's shared Renovate preset, holding the settings that have to hold in every kanso-labs repository. It is listed last because a later preset wins a conflict with an earlier one: moved ahead of config:recommended it would be overridden by the very preset it exists to correct. This file is merged over the runner's config.js rather than inheriting from it, so extending the preset here is what carries an organization-wide setting into this repository at all. See the README in kanso-labs/.github.",
-  "extends": ["config:recommended", "local>kanso-labs/.github"],
+  "description": "local>kanso-labs/.github:renovate-config is the organization's shared Renovate preset, holding the settings that have to hold in every kanso-labs repository. It is listed last because a later preset wins a conflict with an earlier one: moved ahead of config:recommended it would be overridden by the very preset it exists to correct. This file is merged over the runner's config.js rather than inheriting from it, so extending the preset here is what carries an organization-wide setting into this repository at all. See the README in kanso-labs/.github.",
+  "extends": ["config:recommended", "local>kanso-labs/.github:renovate-config"],
   "labels": ["area:foundations", "kind:tooling"],
   "lockFileMaintenance": {
     "automerge": true,
