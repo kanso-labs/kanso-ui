@@ -8,7 +8,7 @@ import {
 } from 'react-aria-components'
 
 import { thumbClassName } from '../../styles/color'
-import { mergeStyles } from '../../styles/merge'
+import { mergeStatefulStyles } from '../../styles/merge'
 import { stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // Hue as a ring. React Aria paints the conic gradient on the track's own
@@ -70,15 +70,15 @@ type ColorWheelProps = Omit<
   'children' | 'className' | 'innerRadius' | 'outerRadius' | 'style'
 > & {
   /** A function may compute the class from the wheel's render state. */
-  className?: string
+  className?: RACColorWheelProps['className']
   /**
    * How far the ring reaches from the centre, in pixels. The wheel is twice
    * this across.
    * @default 100
    */
   outerRadius?: number
-  /** Lands on the wheel, as `className` does. */
-  style?: React.CSSProperties
+  /** A function may compute the style from the wheel's render state. */
+  style?: RACColorWheelProps['style']
   /**
    * How wide the band is, in pixels. The inner radius is this in from
    * `outerRadius`, so the two cannot disagree.
@@ -123,7 +123,7 @@ function ColorWheel({
       isDisabled={isDisabled}
       outerRadius={outerRadius}
       {...props}
-      {...mergeStyles(
+      {...mergeStatefulStyles(
         stylex.props(styles.root, isDisabled && styles.rootDisabled),
         { className, style },
       )}
