@@ -74,7 +74,7 @@
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
     "@eslint/js": "10.0.1",
-    "@kanso-labs/unplugin-style-dictionary": "0.10.4",
+    "@kanso-labs/unplugin-style-dictionary": "0.10.5",
     "@rolldown/plugin-babel": "0.2.4",
     "@storybook/addon-a11y": "10.6.0",
     "@storybook/addon-docs": "10.6.0",
