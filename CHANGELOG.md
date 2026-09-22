@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.30.4](https://github.com/kanso-labs/kanso-ui/compare/v0.30.3...v0.30.4) (2026-09-22)
+
+
+### Bug Fixes
+
+* **calendar:** give unavailable dates a visual affordance in Calendar and RangeCalendar ([#1019](https://github.com/kanso-labs/kanso-ui/issues/1019)) ([76dc147](https://github.com/kanso-labs/kanso-ui/commit/76dc1476c44db490196586701ced4a3cde6551cd))
+* **chip:** put keyboard handlers and non-labelling aria-* back on the element ([#1018](https://github.com/kanso-labs/kanso-ui/issues/1018)) ([65b3cd1](https://github.com/kanso-labs/kanso-ui/commit/65b3cd1917c10787e9e7a6688019fa836e4effcb))
+* **color-picker:** forward isDisabled to the area, sliders and field on the surface ([#1014](https://github.com/kanso-labs/kanso-ui/issues/1014)) ([ed0bb44](https://github.com/kanso-labs/kanso-ui/commit/ed0bb44488b2ca88a271d9e0b6470f730a6f30d4))
+* **color-swatch-picker:** merge the caller's className into the item instead of replacing it ([#1015](https://github.com/kanso-labs/kanso-ui/issues/1015)) ([de1ddee](https://github.com/kanso-labs/kanso-ui/commit/de1ddee6f4ab1d07e22e472d290e100ed31345e3))
+* **dialog:** pad a body-only dialog at both ends ([#1005](https://github.com/kanso-labs/kanso-ui/issues/1005)) ([f6623f8](https://github.com/kanso-labs/kanso-ui/commit/f6623f85d06e9148fd9f7012925f2632b81af669))
+* **field:** expose a group's error message through aria-describedby ([#1012](https://github.com/kanso-labs/kanso-ui/issues/1012)) ([3555300](https://github.com/kanso-labs/kanso-ui/commit/3555300c33b77c889470eafa478361bbda72656e))
+* **menu:** land className and style on the surface, as MenuContent's doc promises ([#1016](https://github.com/kanso-labs/kanso-ui/issues/1016)) ([11fcaa5](https://github.com/kanso-labs/kanso-ui/commit/11fcaa586814794417e9db8a76fd4f84d2c44323))
+* **navigation-tree:** weight the label of a current ancestor, not only its row ([#1017](https://github.com/kanso-labs/kanso-ui/issues/1017)) ([f00e6b6](https://github.com/kanso-labs/kanso-ui/commit/f00e6b6d9df3ea5b5feb07cf240e1d77e9434d7f))
+* **progress-indicator:** sweep the indeterminate bar in the writing direction ([#1009](https://github.com/kanso-labs/kanso-ui/issues/1009)) ([ef75003](https://github.com/kanso-labs/kanso-ui/commit/ef75003c4abe782e0bb1a3cae2609a36ff2619c5))
+* **sheet:** slide the side sheet in from the edge it rests on under RTL ([#1020](https://github.com/kanso-labs/kanso-ui/issues/1020)) ([b80b672](https://github.com/kanso-labs/kanso-ui/commit/b80b672227d820aae85a44c7a3785464e07ca01c))
+* stop the ripple sticking when a pending button is pressed ([#1007](https://github.com/kanso-labs/kanso-ui/issues/1007)) ([bcf6105](https://github.com/kanso-labs/kanso-ui/commit/bcf6105ba45d3f0fffe9bc44bd08815fa7e5b32d))
+* **table:** draw the focus ring on a keyboard-focused row ([#1021](https://github.com/kanso-labs/kanso-ui/issues/1021)) ([cc9e6b7](https://github.com/kanso-labs/kanso-ui/commit/cc9e6b7e9c15bfaa21102defba24a184fa169bdc))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.2 ([#1002](https://github.com/kanso-labs/kanso-ui/issues/1002)) ([90b8a9c](https://github.com/kanso-labs/kanso-ui/commit/90b8a9cfac32a6b270cf20ac6ba5780af55a49c5))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.3 ([#1013](https://github.com/kanso-labs/kanso-ui/issues/1013)) ([009cdb5](https://github.com/kanso-labs/kanso-ui/commit/009cdb575c6ad2039dce420e28a5228208057863))
+* update dependency oxfmt to v0.69.0 ([#1003](https://github.com/kanso-labs/kanso-ui/issues/1003)) ([6305530](https://github.com/kanso-labs/kanso-ui/commit/6305530f71284ca9a723b70e9d05abb0dd878c19))
+* update dependency typescript-eslint to v8.70.1 ([#1010](https://github.com/kanso-labs/kanso-ui/issues/1010)) ([d71f735](https://github.com/kanso-labs/kanso-ui/commit/d71f735b68e868d9ef63c2d7437d3d2d4a6269b9))
+
 ## [0.30.3](https://github.com/kanso-labs/kanso-ui/compare/v0.30.2...v0.30.3) (2026-09-21)
 
 
