@@ -110,7 +110,7 @@ const styles = stylex.create({
   close: {
     blockSize: sizing.controlMd,
     color: colors.inverseOnSurface,
-    inlineSize: '48px',
+    inlineSize: sizing.controlMd,
     padding: 0,
   },
   closeGlyph: {

@@ -44,7 +44,7 @@ const iconButton = stylex.create({
     cursor: 'pointer',
     display: 'flex',
     flexShrink: 0,
-    inlineSize: '40px',
+    inlineSize: sizing.controlSm,
     justifyContent: 'center',
     padding: 0,
   },
