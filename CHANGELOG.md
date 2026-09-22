@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.1](https://github.com/kanso-labs/kanso-ui/compare/v0.31.0...v0.31.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **control:** decide the 48dp touch target once, for Checkbox, RadioGroup, Switch, IconButton and NumberField ([#1033](https://github.com/kanso-labs/kanso-ui/issues/1033)) ([769cbe3](https://github.com/kanso-labs/kanso-ui/commit/769cbe34335480878cc3887ebb300b5a897ca143))
+* **snackbar:** stop documenting an aria-label default that was never applied ([#1035](https://github.com/kanso-labs/kanso-ui/issues/1035)) ([4ad1cfd](https://github.com/kanso-labs/kanso-ui/commit/4ad1cfd627ecdc990f3b6b88b11855936f9b2947))
+
+
+### Dependencies
+
+* update dependency eslint-plugin-perfectionist to v5.12.0 ([#1037](https://github.com/kanso-labs/kanso-ui/issues/1037)) ([3242098](https://github.com/kanso-labs/kanso-ui/commit/3242098d94a2ec156217a84f1d659a5fbada269d))
+* update kanso-labs/actions action to v4.0.1 ([#1036](https://github.com/kanso-labs/kanso-ui/issues/1036)) ([c85e6f7](https://github.com/kanso-labs/kanso-ui/commit/c85e6f78b56b2afac385233e2301dc4a8b4c6e6d))
+
 ## [0.31.0](https://github.com/kanso-labs/kanso-ui/compare/v0.30.5...v0.31.0) (2026-09-22)
 
 
