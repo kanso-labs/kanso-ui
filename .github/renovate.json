@@ -8,23 +8,11 @@
     "enabled": true
   },
   "minimumReleaseAge": null,
-  "mise": {
-    "enabled": true
-  },
   "packageRules": [
-    {
-      "description": "Renovate's own config:recommended sets semanticCommitType through a packageRule, and packageRules beat top-level config. Setting it at the top level therefore does nothing at all: every upgrade stays chore and cuts no release.",
-      "matchPackageNames": ["*"],
-      "semanticCommitType": "deps"
-    },
     {
       "allowedVersions": "<8",
       "description": "babel-plugin-react-compiler declares @babel/types ^7, and Babel 8 removed AssignmentPattern from the LVal alias. Under Babel 8 the compiler raises (BuildHIR::lowerAssignment) Expected object property value to be an LVal on every component with a defaulted destructured prop, and panicThreshold defaults to none, so it skips them silently. Lift this once a babel-plugin-react-compiler release declares Babel 8 support.",
       "matchPackageNames": ["@babel/core", "@babel/traverse", "@babel/types"]
-    },
-    {
-      "automerge": true,
-      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "description": "Grouped in .github/dependabot.yml under a duplicate 'react' key, so YAML dropped it and these were never actually grouped.",
@@ -68,11 +56,5 @@
       "groupName": "vitest",
       "matchPackageNames": ["@vitest/**", "vitest"]
     }
-  ],
-  "prConcurrentLimit": 0,
-  "prHourlyLimit": 0,
-  "rebaseWhen": "behind-base-branch",
-  "recreateWhen": "always",
-  "semanticCommitScope": null,
-  "semanticCommits": "enabled"
+  ]
 }
