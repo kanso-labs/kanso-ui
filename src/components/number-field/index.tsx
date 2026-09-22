@@ -45,6 +45,20 @@ import IconButton from '../icon-button'
 // from the end where the page puts a field's icons — the box's 16dp of
 // padding less the 4dp they pull back.
 //
+// **The stacked pair is the one control here that does not reach the 48dp
+// target**, and it is the layout rather than an oversight. Every other small
+// control in the library draws that target out of flow, over whatever sits
+// beside it — src/control/styles.ts carries the decision. These two have only
+// each other beside them: the column is 56dp tall in total, so two 48dp
+// targets inside it would overlap across most of their height, and the half
+// of a press that landed in the overlap would go to whichever box was
+// uppermost rather than to the glyph under the finger. Incrementing when a
+// reader meant to decrement is worse than a target that is short, so the
+// stacked layout keeps its 32 by 28 and the reader who needs the larger one
+// has `steppers="horizontal"`, where each is an extra-small icon button and
+// gets the target from there — with the gap that keeps those two targets off
+// each other, which is the room the column has none of.
+//
 // React Aria's `NumberField` is the root and the box is its `Group`, which
 // is what names the box and the two steppers as one control; the steppers
 // are its increment and decrement buttons through context, disabled at the
@@ -150,8 +164,15 @@ const styles = stylex.create({
   },
   // Side by side: 12dp from the end, as the page places a field's icons,
   // out of the box's 16dp of padding.
+  // Side by side, the two need the room their targets take. An extra-small
+  // icon button is 32dp drawing a 48dp target, so each reaches 8dp past its
+  // own edge — flush against each other, every press on the inner 8dp of one
+  // glyph would land on its neighbour's target, and a reader pressing minus
+  // would increment. The gap is that reach, which puts each target's edge
+  // exactly on the other's, with neither over a glyph.
   steppersInline: {
     flexDirection: 'row',
+    gap: spacing.sm,
     marginBlockStart: 0,
     marginInlineEnd: `calc(${spacing.md} - ${spacing.lg})`,
   },

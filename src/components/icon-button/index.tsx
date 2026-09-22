@@ -92,6 +92,14 @@ import ProgressIndicator from '../progress-indicator'
 // assigns to that size, used here at rest rather than invented.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
+/**
+ * The press area the page requires of its two smallest sizes. A literal
+ * rather than `sizing.controlMd`, which holds the same number: that is a step
+ * of the control scale, and a consumer resizing their medium controls should
+ * not shrink a target the page states as a floor.
+ */
+const TARGET_SIZE = '48px'
+
 const styles = stylex.create({
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
@@ -158,13 +166,34 @@ const styles = stylex.create({
   // icon's size, since an icon drawn in `em` follows it: 20, 24, 24, 32 and
   // 40, which is why the two middle sizes share one icon and the container
   // alone grows between them.
+  //
+  // Two of them are drawn smaller than a press may be: the page says under
+  // its measurements that the extra-small and small buttons "must have a
+  // target size of 48x48dp or larger to be accessible", and this library's
+  // `xs` and `md` are those two at 32 and 40. Each carries a transparent
+  // `::before` out to the 48, which takes the press because a pseudo-element
+  // is part of the element it belongs to, and moves nothing because the box
+  // is out of flow. The larger three are already over it.
+  //
+  // Two of these side by side end up with targets that meet, since neither
+  // container is half the target wide. The page's own answer is to space
+  // them, which is a call for the layout around the button rather than for
+  // the button — and an overlap is what the sizes already had, with the
+  // difference that the reachable half was unreachable instead.
   lg: {
     blockSize: sizing.controlLg,
     borderRadius: { ':active': radii.md, default: radii.pill },
     fontSize: '24px',
     inlineSize: sizing.controlLg,
   },
+  // The page requires a 48dp target of the two smallest sizes, and both are
+  // under it: a transparent box reaches the 4dp either side. See TARGET_SIZE.
   md: {
+    '::before': {
+      content: '""',
+      inset: `calc((${sizing.controlSm} - ${TARGET_SIZE}) / 2)`,
+      position: 'absolute',
+    },
     blockSize: sizing.controlSm,
     borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '24px',
@@ -261,7 +290,14 @@ const styles = stylex.create({
     fontSize: '32px',
     inlineSize: sizing.controlXl,
   },
+  // The smaller of the two the page requires a 48dp target of, so its box
+  // reaches 8dp either side. See TARGET_SIZE.
   xs: {
+    '::before': {
+      content: '""',
+      inset: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2)`,
+      position: 'absolute',
+    },
     blockSize: sizing.controlXs,
     borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '20px',
