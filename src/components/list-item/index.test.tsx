@@ -5,6 +5,7 @@
 // Compiler this repo builds with already handles.
 // oxlint-disable react-perf/jsx-no-jsx-as-prop
 
+import type { StyleXStyles } from '@stylexjs/stylex'
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
@@ -13,15 +14,43 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ListItem from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
   bodyMedium: { fontSize: typography.bodyMediumSize },
+  disabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
   labelSmall: { fontSize: typography.labelSmallSize },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
+  // The interactive row's two tints and nothing else, written as the row
+  // module writes them so they hash to the same atomic classes.
+  tints: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: null,
+    },
+  },
 })
+
+// An empty list would make an `every` vacuously true and a `some` vacuously
+// false, so it is a broken assertion rather than a passing one.
+function classesOf(style: StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the style to generate at least one class')
+  }
+  return classes
+}
 
 function probeColor(element: ReactElement) {
   const view = render(element)
@@ -378,6 +407,108 @@ describe('list item', () => {
       expect(getComputedStyle(view.getByRole('button')).backgroundColor).toBe(
         'rgba(0, 0, 0, 0)',
       )
+    })
+  })
+
+  // The treatment the row module gives every disabled row, which each
+  // collection item already draws from React Aria's render state.
+  describe('disabled', () => {
+    // Both lines take the row's faded colour rather than the muted role, which
+    // at full strength under a faded headline would leave the lines the row is
+    // least about as the ones that stand out.
+    it('fades the headline and both of its lines', () => {
+      const expected = probeColor(
+        <div data-testid="probe" {...stylex.props(probeStyles.disabled)} />,
+      )
+      // Guards the comparison: the muted role the two lines draw at rest must
+      // not already be this colour, or the assertions would hold however the
+      // row was styled.
+      expect(expected).not.toBe(
+        probeColor(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.onSurfaceVariant)}
+          />,
+        ),
+      )
+
+      const view = render(
+        <ListItem isDisabled overline="Overline" supporting="Supporting line">
+          Headline
+        </ListItem>,
+      )
+
+      expect(getComputedStyle(view.getByText('Overline')).color).toBe(expected)
+      expect(getComputedStyle(view.getByText('Headline')).color).toBe(expected)
+      expect(getComputedStyle(view.getByText('Supporting line')).color).toBe(
+        expected,
+      )
+    })
+
+    it('marks a row that only presents as disabled', () => {
+      const disabled = render(<ListItem isDisabled>Headline</ListItem>)
+      const enabled = render(<ListItem>Headline</ListItem>)
+
+      expect(rowIn(disabled.container).getAttribute('aria-disabled')).toBe(
+        'true',
+      )
+      expect(rowIn(enabled.container).hasAttribute('aria-disabled')).toBe(false)
+    })
+
+    it('disables the button an interactive row renders', () => {
+      const onClick = vi.fn<() => void>()
+      const view = render(
+        <ListItem interactive isDisabled onClick={onClick}>
+          Headline
+        </ListItem>,
+      )
+      const button = view.getByRole('button')
+
+      expect(button).toHaveProperty('disabled', true)
+      button.click()
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    // A press on a disabled button still delivers its pointerdown and
+    // pointerup, and withholds only the click, which is what ends a press.
+    // With the ripple left on, the press would start and then stay drawn.
+    it('draws no ripple', () => {
+      const view = render(
+        <ListItem interactive isDisabled>
+          Headline
+        </ListItem>,
+      )
+      const button = view.getByRole('button')
+
+      firePointer(button, 'pointerdown', { buttons: 1 })
+      firePointer(button, 'pointerup', { buttons: 0 })
+
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).toBeNull()
+    })
+
+    // Read off the classes StyleX writes rather than hovered for real: every
+    // test file is a frame in one shared page, and a real pointer aimed at
+    // this one passed alone and timed out under a full run. The enabled row
+    // beside it is what proves these are the tint's classes to look for.
+    it('drops the hover and pressed tints and shows a not-allowed cursor', () => {
+      const tints = classesOf(probeStyles.tints)
+      const view = render(
+        <>
+          <ListItem interactive>Enabled</ListItem>
+          <ListItem interactive isDisabled>
+            Disabled
+          </ListItem>
+        </>,
+      )
+      const [enabled, disabled] = view.getAllByRole('button')
+
+      expect(tints.every((name) => enabled.classList.contains(name))).toBe(true)
+      expect(tints.some((name) => disabled.classList.contains(name))).toBe(
+        false,
+      )
+      expect(getComputedStyle(disabled).cursor).toBe('not-allowed')
     })
   })
 

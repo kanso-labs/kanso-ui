@@ -397,6 +397,16 @@ const Default: Story = {
   decorators: [Constrained],
 }
 
+// Interactive, since a disabled row is most often an action that is not
+// available yet. A row that only presents is drawn the same way.
+const Disabled: Story = {
+  args: {
+    interactive: true,
+    isDisabled: true,
+  },
+  decorators: [Constrained],
+}
+
 // Its own story because it is a different element — a button rather than a
 // div — with focus and ripple behaviour a snapshot cannot show.
 const Interactive: Story = {
@@ -421,6 +431,6 @@ const ThreeLine: Story = {
   decorators: [Constrained],
 }
 
-export { Default, Interactive, Overview, ThreeLine }
+export { Default, Disabled, Interactive, Overview, ThreeLine }
 
 export default meta

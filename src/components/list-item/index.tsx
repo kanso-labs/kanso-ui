@@ -16,6 +16,16 @@ type ListItemProps = {
    * @default false
    */
   interactive?: boolean
+  /**
+   * Draws the row disabled, in the treatment every row in the library shares:
+   * its text fades to on-surface at the disabled content opacity, overline
+   * and supporting line included. An interactive row's button is disabled
+   * outright: it takes no focus, no hover tint, no press and no ripple. A row
+   * that only presents has nothing to disable, and is marked `aria-disabled`
+   * instead so the state it draws is announced as well.
+   * @default false
+   */
+  isDisabled?: boolean
   /** Content before the headline: an avatar, an icon, a checkbox. */
   leading?: ReactNode
   /**
@@ -45,6 +55,7 @@ type ListItemProps = {
 function ListItem({
   children,
   interactive = false,
+  isDisabled = false,
   leading,
   onClick,
   onContextMenu,
@@ -68,7 +79,12 @@ function ListItem({
   // `HTMLElement` rather than the button: the same handlers now reach both
   // elements, and only the type `ListItemProps` already declares is assignable
   // to a <div>'s props as well as a <button>'s.
-  const ripple = useRipple<HTMLElement>(interactive, {
+  //
+  // Off on a disabled row as well as on one that only presents. A press on a
+  // disabled button still delivers its pointerdown and pointerup, and
+  // withholds only the click, which is what ends a press — so a ripple left
+  // on would start and then stay drawn.
+  const ripple = useRipple<HTMLElement>(interactive && !isDisabled, {
     onClick,
     onContextMenu,
     onPointerCancel,
@@ -93,6 +109,7 @@ function ListItem({
 
   const content = (
     <RowContent
+      isDisabled={isDisabled}
       leading={leading}
       overline={overline}
       supporting={supporting}
@@ -102,9 +119,14 @@ function ListItem({
     </RowContent>
   )
 
+  // `disabled` goes last in both lists. On the button that is what lets it
+  // win over the interactive style, as it does on every collection item:
+  // StyleX replaces a property whole, which takes the hover and pressed tints
+  // and the pointer cursor with it.
   if (!interactive) {
     return (
       <div
+        aria-disabled={isDisabled || undefined}
         {...props}
         {...ripple.handlers}
         {...mergeStyles(
@@ -113,6 +135,7 @@ function ListItem({
             rowStyles.list,
             twoLine && rowStyles.twoLine,
             threeLine && rowStyles.threeLine,
+            isDisabled && rowStyles.disabled,
           ),
           props,
         )}
@@ -124,6 +147,7 @@ function ListItem({
 
   return (
     <button
+      disabled={isDisabled}
       type="button"
       {...ripple.handlers}
       {...props}
@@ -134,6 +158,7 @@ function ListItem({
           rowStyles.interactive,
           twoLine && rowStyles.twoLine,
           threeLine && rowStyles.threeLine,
+          isDisabled && rowStyles.disabled,
         ),
         props,
       )}
