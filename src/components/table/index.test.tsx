@@ -137,6 +137,42 @@ function resizerOf(handle: HTMLElement) {
   return resizer
 }
 
+// A sortable table whose direction can be reversed from outside it, which is
+// what makes the arrow redraw rather than mount afresh.
+function Sortable() {
+  const [direction, setDirection] = useState<'ascending' | 'descending'>(
+    'ascending',
+  )
+  return (
+    <>
+      <button
+        onClick={() => {
+          setDirection('descending')
+        }}
+        type="button"
+      >
+        Reverse
+      </button>
+      <Table
+        aria-label="Label"
+        onSortChange={vi.fn<(descriptor: SortDescriptor) => void>()}
+        sortDescriptor={{ column: COLUMNS[0], direction }}
+      >
+        <Table.Header>
+          <Table.Column allowsSorting id={COLUMNS[0]} isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    </>
+  )
+}
+
 describe('table', () => {
   describe('structure', () => {
     it('renders the grid roles React Aria gives a table', () => {
@@ -271,40 +307,6 @@ describe('table', () => {
     })
 
     it('turns the arrow over when the direction changes', () => {
-      function Sortable() {
-        const [direction, setDirection] = useState<'ascending' | 'descending'>(
-          'ascending',
-        )
-        return (
-          <>
-            <button
-              onClick={() => {
-                setDirection('descending')
-              }}
-              type="button"
-            >
-              Reverse
-            </button>
-            <Table
-              aria-label="Label"
-              onSortChange={vi.fn<(descriptor: SortDescriptor) => void>()}
-              sortDescriptor={{ column: COLUMNS[0], direction }}
-            >
-              <Table.Header>
-                <Table.Column allowsSorting id={COLUMNS[0]} isRowHeader>
-                  Label
-                </Table.Column>
-              </Table.Header>
-              <Table.Body>
-                <Table.Row id="first">
-                  <Table.Cell>First item</Table.Cell>
-                </Table.Row>
-              </Table.Body>
-            </Table>
-          </>
-        )
-      }
-
       const view = render(<Sortable />)
       const pathOf = () =>
         view

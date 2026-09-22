@@ -67,6 +67,11 @@ const styles = stylex.create({
 
 const OPEN = ['first', 'second']
 
+// The tinted square above, in a row's leading slot.
+function glyph(mark: string) {
+  return <span {...stylex.props(styles.glyph)}>{mark}</span>
+}
+
 const meta = {
   args: {
     'aria-label': 'Label',
@@ -78,10 +83,6 @@ const meta = {
 type Story = StoryObj<typeof meta>
 
 function Sample(props: { leading?: boolean }) {
-  const glyph = (mark: string) => (
-    <span {...stylex.props(styles.glyph)}>{mark}</span>
-  )
-
   return (
     <Card padding="none" variant="outlined">
       <NavigationTree

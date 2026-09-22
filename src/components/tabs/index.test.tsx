@@ -98,6 +98,25 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   }
 }
 
+// A tab set whose second panel is taller than its first, which is what gives
+// the panel box two heights to measure between.
+function withPanels() {
+  return render(
+    <Tabs defaultSelectedKey="first">
+      <Tabs.List aria-label="Label">
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panels data-testid="panels">
+        <Tabs.Panel id="first">First item</Tabs.Panel>
+        <Tabs.Panel id="second">
+          <div style={TALL}>Second item</div>
+        </Tabs.Panel>
+      </Tabs.Panels>
+    </Tabs>,
+  )
+}
+
 describe('tabs', () => {
   describe('semantics', () => {
     // The roles are the reason this wraps React Aria rather than styling a row
@@ -322,23 +341,6 @@ describe('tabs', () => {
   // instead, and the result is recorded in the pull request.
 
   describe('the panel box', () => {
-    function withPanels() {
-      return render(
-        <Tabs defaultSelectedKey="first">
-          <Tabs.List aria-label="Label">
-            <Tabs.Tab id="first">First item</Tabs.Tab>
-            <Tabs.Tab id="second">Second item</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panels data-testid="panels">
-            <Tabs.Panel id="first">First item</Tabs.Panel>
-            <Tabs.Panel id="second">
-              <div style={TALL}>Second item</div>
-            </Tabs.Panel>
-          </Tabs.Panels>
-        </Tabs>,
-      )
-    }
-
     it('takes its height from the variable React Aria measures', () => {
       const view = withPanels()
       const box = view.getByTestId('panels')

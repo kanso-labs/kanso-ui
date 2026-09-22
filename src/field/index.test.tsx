@@ -105,6 +105,32 @@ function settled(element: HTMLElement) {
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
+// A field of one variant, optionally under the theme whose body lines are
+// longer, measured for the room its box leaves around the control.
+function renderField(variant: 'filled' | 'outlined', themed: boolean) {
+  const field = (
+    <TextField validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+      <FieldBox label="Label" variant={variant}>
+        <FieldInput />
+      </FieldBox>
+    </TextField>
+  )
+  const view = render(
+    themed ? (
+      <div {...stylex.props(longLineType, longLineSpacing)}>{field}</div>
+    ) : (
+      <div>{field}</div>
+    ),
+  )
+  const box = boxOf(view.container).getBoundingClientRect()
+  const control = controlIn(view.container).getBoundingClientRect()
+  return {
+    box: box.height,
+    roomAbove: control.top - box.top,
+    roomBelow: box.bottom - control.bottom,
+  }
+}
+
 // The parts only make sense inside a React Aria field, which is what
 // associates the label, wires the messages and carries validation. A bare
 // React Aria TextField stands in for whichever field a consumer builds.
@@ -333,30 +359,6 @@ describe('field chrome', () => {
   // one is right only under those: these render under a theme whose body
   // lines are longer and check the control still fits.
   describe('box height', () => {
-    function renderField(variant: 'filled' | 'outlined', themed: boolean) {
-      const field = (
-        <TextField validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
-          <FieldBox label="Label" variant={variant}>
-            <FieldInput />
-          </FieldBox>
-        </TextField>
-      )
-      const view = render(
-        themed ? (
-          <div {...stylex.props(longLineType, longLineSpacing)}>{field}</div>
-        ) : (
-          <div>{field}</div>
-        ),
-      )
-      const box = boxOf(view.container).getBoundingClientRect()
-      const control = controlIn(view.container).getBoundingClientRect()
-      return {
-        box: box.height,
-        roomAbove: control.top - box.top,
-        roomBelow: box.bottom - control.bottom,
-      }
-    }
-
     // A filled box's control line ran 2px past the underline under this
     // theme, with nothing left beneath it, while the box stayed at 56.
     it('keeps the control inside a filled box under a longer body line', () => {
