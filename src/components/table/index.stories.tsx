@@ -94,6 +94,12 @@ const SCROLLING_ROWS = Array.from({ length: 9 }, (_unused, index) => ({
   value: String(index + 1).padStart(2, '0'),
 }))
 
+// What the empty table draws in place of rows. Declared once rather than
+// written at the prop, which would hand it a new function each render.
+function nothingToShow() {
+  return 'Nothing to show'
+}
+
 const meta = {
   component: Table,
   title: 'Components/Table',
@@ -394,8 +400,8 @@ const Overview: Story = {
             A footer holds a row under the body — totals and the like — and is
             ruled off from it. React Aria keeps it out of the selection and the
             keyboard navigation, so it is read as a summary rather than as one
-            more row. A table with no rows shows its `emptyState` in their
-            place, and still says what its columns are.
+            more row. A table with no rows shows what its `renderEmptyState`
+            returns in their place, and still says what its columns are.
           </Text>
         </div>
         <Card padding="none" variant="outlined">
@@ -434,7 +440,7 @@ const Overview: Story = {
               </Table.Column>
               <Table.Column id={COLUMNS.value}>Value</Table.Column>
             </Table.Header>
-            <Table.Body emptyState="Nothing to show" />
+            <Table.Body renderEmptyState={nothingToShow} />
           </Table>
         </Card>
       </section>
