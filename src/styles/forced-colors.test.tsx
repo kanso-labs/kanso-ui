@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react'
 
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import ColorSlider from '../components/color-slider'
+import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
@@ -188,5 +189,23 @@ describe('a boundary drawn in a shadow or a fill', () => {
     expect(forcedColorRules(empty).get('background-color')).not.toBe(
       filledRules.get('background-color'),
     )
+  })
+
+  // Under forced colours every outline is repainted in one system colour, so
+  // a hover ring the same shape as the selection ring would read as a second
+  // chosen swatch. Dashed there, it cannot.
+  it('draws a hovered swatch its ring dashed, apart from the chosen one', () => {
+    const view = render(
+      <ColorSwatchPicker aria-label="Label" defaultValue="#6750A4">
+        <ColorSwatchPicker.Item color="#6750A4" />
+        <ColorSwatchPicker.Item color="#625B71" />
+      </ColorSwatchPicker>,
+    )
+    const [chosen, other] = view.getAllByRole('option')
+
+    fireEvent.pointerOver(other, { pointerType: 'mouse' })
+
+    expect(forcedColorRules(other).get('outline-style')).toBe('dashed')
+    expect(forcedColorRules(chosen).get('outline-style')).toBeUndefined()
   })
 })
