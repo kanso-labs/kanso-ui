@@ -51,11 +51,16 @@ function probe(style: stylex.StyleXStyles) {
 // calls on one element are resolved by compiled source order rather than by
 // which was passed last, so a forced state would not reliably beat the real
 // one.
-function stateBox(state: { isDropTarget?: boolean; isFocusVisible?: boolean }) {
+function stateBox(state: {
+  isDisabled?: boolean
+  isDropTarget?: boolean
+  isFocusVisible?: boolean
+}) {
   const view = render(
     <span
       className={
         rootStyles({
+          isDisabled: state.isDisabled ?? false,
           isDropTarget: state.isDropTarget ?? false,
           isFocusVisible: state.isFocusVisible ?? false,
         }).className
@@ -70,6 +75,8 @@ function stateBox(state: { isDropTarget?: boolean; isFocusVisible?: boolean }) {
     backgroundColor: computed.backgroundColor,
     borderTopColor: computed.borderTopColor,
     borderTopStyle: computed.borderTopStyle,
+    color: computed.color,
+    cursor: computed.cursor,
     outlineStyle: computed.outlineStyle,
   }
   view.unmount()
@@ -173,6 +180,41 @@ describe('drop zone', () => {
       expect(focused.backgroundColor).toBe(resting.backgroundColor)
       expect(focused.outlineStyle).toBe('solid')
       expect(resting.outlineStyle).toBe('none')
+    })
+
+    // A target that takes nothing has to look like it. React Aria stops a
+    // disabled zone responding either way, so without this it invites a drop
+    // that silently does nothing.
+    it('fades a target that is taking nothing, and says so with the cursor', () => {
+      const disabled = stateBox({ isDisabled: true })
+      const resting = stateBox({})
+
+      expect(disabled.color).not.toBe(resting.color)
+      expect(disabled.borderTopColor).not.toBe(resting.borderTopColor)
+      expect(disabled.cursor).toBe('not-allowed')
+      expect(resting.cursor).not.toBe('not-allowed')
+    })
+
+    // The case above reads a bare element carrying the root's classes, which
+    // has no label inside it. That is exactly what it cannot see: the label
+    // states its own colour, so the root's faded one never reaches it, and a
+    // zone whose rule had faded while its words had not would pass up there.
+    // This renders the real component and reads the words.
+    it('fades the words of a disabled zone, not only the box around them', () => {
+      const disabled = render(<DropZone isDisabled label="Drop here" />)
+      const disabledLabel = getComputedStyle(
+        disabled.getByText('Drop here'),
+      ).color
+      const disabledCursor = getComputedStyle(boxOf(disabled)).cursor
+      disabled.unmount()
+
+      const resting = render(<DropZone label="Drop here" />)
+
+      expect(disabledLabel).not.toBe(
+        getComputedStyle(resting.getByText('Drop here')).color,
+      )
+      expect(disabledCursor).toBe('not-allowed')
+      expect(getComputedStyle(boxOf(resting)).cursor).not.toBe('not-allowed')
     })
   })
 
