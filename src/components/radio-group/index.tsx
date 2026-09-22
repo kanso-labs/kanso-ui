@@ -82,6 +82,7 @@ const styles = stylex.create({
   // The description sits under the text, in the second column.
   // The ring. Its colour is the control's, which the dot inherits.
   ring: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     blockSize: '20px',
     borderColor: 'currentColor',

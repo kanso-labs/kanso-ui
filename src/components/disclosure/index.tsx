@@ -59,6 +59,7 @@ const styles = stylex.create({
   // once it is open. It mirrors under a right-to-left writing mode, as every
   // chevron here does.
   chevron: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     color: colors.onSurfaceVariant,
     flexShrink: 0,

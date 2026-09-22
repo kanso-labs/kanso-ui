@@ -192,6 +192,7 @@ const styles = stylex.create({
   // Aria only sets the axis the handle moves along. The size and the colour
   // are the page's.
   thumb: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     blockSize: '44px',
     // The handle's own edge under forced colours. It is 4dp wide and sits on

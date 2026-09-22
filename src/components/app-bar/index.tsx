@@ -54,11 +54,13 @@ const styles = stylex.create({
   // rather than of value — but the properties underneath still transition,
   // so the type resizes with the bar instead of snapping when it arrives.
   headline: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     transitionDuration: motion.durationMedium1,
     transitionProperty: 'font-size, letter-spacing, line-height',
     transitionTimingFunction: motion.easingEmphasized,
   },
   root: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: colors.surface,
     boxSizing: 'border-box',

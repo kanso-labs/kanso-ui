@@ -35,6 +35,7 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // on the ripple itself — the gradient's own shape reads as a circle.
 const styles = stylex.create({
   press: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundImage: `radial-gradient(closest-side, currentColor max(calc(100% - 70px), 65%), transparent 100%)`,
     left: 0,
     opacity: 0,

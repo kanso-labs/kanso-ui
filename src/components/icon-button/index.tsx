@@ -94,6 +94,7 @@ type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
 const styles = stylex.create({
   base: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     borderRadius: radii.pill,
     borderWidth: 0,

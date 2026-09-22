@@ -66,6 +66,7 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // supporting text is what a person reads.
 const styles = stylex.create({
   bar: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,

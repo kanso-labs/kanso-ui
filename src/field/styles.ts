@@ -94,6 +94,7 @@ const BOX_OUTLINED_BLOCK_SIZE = `calc(2 * ${spacing.lg} + ${typography.bodyLarge
 // nothing measured. Empty, it cuts nothing, which is the closed notch.
 const fieldChromeStyles = stylex.create({
   affix: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     flexShrink: 0,
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
@@ -124,6 +125,7 @@ const fieldChromeStyles = stylex.create({
     gridArea: '1 / 1 / 2 / 2',
   },
   box: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'flex-start',
     backgroundColor: colors.surfaceContainerHighest,
     blockSize: BOX_BLOCK_SIZE,
@@ -386,6 +388,7 @@ const fieldChromeStyles = stylex.create({
   // An icon slot: the page's 24dp icon in the muted role, centred in the
   // box's full height. An icon drawn in `em` follows the slot's size.
   icon: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     alignSelf: 'stretch',
     color: colors.onSurfaceVariant,
@@ -451,6 +454,7 @@ const fieldChromeStyles = stylex.create({
   // which is what lets the box move it — and the transition is here so the
   // inherited change animates on the label rather than snapping.
   label: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     color: colors.onSurfaceVariant,
     transitionDuration: motion.durationShort3,
     transitionProperty:
@@ -507,6 +511,7 @@ const fieldChromeStyles = stylex.create({
   // label, less the 4dp the notch adds beside it — and its type is the
   // label's floated type, so an open notch is exactly the label's width.
   outline: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     borderColor: 'currentColor',
     borderRadius: radii.xs,
     borderStyle: 'solid',

@@ -30,6 +30,7 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 
 const colorThumb = stylex.create({
   thumb: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '20px',
     // What the ring becomes under forced colours, where the shadow below is
     // gone. That mode drops box shadows outright, so the handle would be a

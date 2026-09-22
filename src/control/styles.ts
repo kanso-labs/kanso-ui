@@ -57,6 +57,7 @@ const controlStyles = stylex.create({
   // Switch has none of this: its track is 52 by 40 and carries the layer
   // itself.
   disc: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: TARGET_SIZE,

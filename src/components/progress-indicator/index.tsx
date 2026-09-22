@@ -228,6 +228,7 @@ const styles = stylex.create({
   // easing one and not the other snapped the 4dp gap between them shut and
   // open again while the active arc grew smoothly.
   arcMotion: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     transitionDuration: motion.durationLong2,
     transitionProperty: 'stroke-dasharray, stroke-dashoffset',
     transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',

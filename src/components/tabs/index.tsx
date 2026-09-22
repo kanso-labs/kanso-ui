@@ -138,6 +138,7 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingEmphasized,
   },
   tab: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: sizing.controlMd,
