@@ -256,13 +256,13 @@ type SnackbarOptions = {
   timeout?: number
 }
 
-type SnackbarProps = Omit<
-  RACToastRegionProps<SnackbarMessage>,
-  'children' | 'className' | 'queue' | 'style'
-> & {
+type SnackbarProps = {
   /**
-   * What a screen reader calls the region holding the snackbar.
-   * @default 'Notifications'
+   * What a screen reader calls the region holding the snackbar. Left out,
+   * React Aria names the region itself: a count of the messages it holds, in
+   * the reader's own locale — "1 notification." in English, and one of some
+   * thirty languages otherwise. Pass a name only to replace that, and pass a
+   * translated one, since whatever is passed is read as written.
    */
   'aria-label'?: string
   /** A function may compute the class from the region's render state. */
@@ -278,7 +278,10 @@ type SnackbarProps = Omit<
   queue: SnackbarQueue
   /** A function may compute the style from the region's render state. */
   style?: RACToastRegionProps<SnackbarMessage>['style']
-}
+} & Omit<
+  RACToastRegionProps<SnackbarMessage>,
+  'children' | 'className' | 'queue' | 'style'
+>
 
 // One entry of the queue, as React Aria hands it to the region's render
 // function. Taken from its render state rather than imported from
