@@ -115,6 +115,24 @@ function missing(classes: ReadonlyArray<string>, element: Element) {
   return classes.filter((name) => !applied.has(name))
 }
 
+// A checkbox at the width that makes a long label wrap, optionally under the
+// theme whose body lines are longer.
+function renderCheckbox(copy: string, themed: boolean) {
+  const field = (
+    <div style={WRAPPING_WIDTH}>
+      <Checkbox>{copy}</Checkbox>
+    </div>
+  )
+
+  return render(
+    themed ? (
+      <div {...stylex.props(longLineType, longLineSpacing)}>{field}</div>
+    ) : (
+      field
+    ),
+  )
+}
+
 describe('the shared control row', () => {
   it('compiles to classes at all', () => {
     // Empty lists would make every case below pass for the wrong reason,
@@ -161,22 +179,6 @@ describe('the shared control row', () => {
     const SHORT = 'Label'
     const WRAPPING =
       'Label that wraps across two lines because it is long enough'
-
-    function renderCheckbox(copy: string, themed: boolean) {
-      const field = (
-        <div style={WRAPPING_WIDTH}>
-          <Checkbox>{copy}</Checkbox>
-        </div>
-      )
-
-      return render(
-        themed ? (
-          <div {...stylex.props(longLineType, longLineSpacing)}>{field}</div>
-        ) : (
-          field
-        ),
-      )
-    }
 
     it('centres a one-line label on the disc under a longer body line', () => {
       const view = renderCheckbox(SHORT, true)

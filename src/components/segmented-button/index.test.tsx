@@ -85,6 +85,16 @@ function containersIn(view: ReturnType<typeof setup>) {
   return [...view.container.querySelectorAll('button > div')]
 }
 
+// The two leading corners of the container drawn in one segment, under a
+// given selection.
+function cornersFor(keys: string[], index: number) {
+  const view = setup({ defaultSelectedKeys: keys })
+  const style = getComputedStyle(containerOf(view.getAllByRole('radio')[index]))
+  const corners = [style.borderStartStartRadius, style.borderStartEndRadius]
+  view.unmount()
+  return corners
+}
+
 // The glyph slot, which every segment that could ever draw a check or an
 // icon carries whether or not it is drawing one.
 function glyphSlotOf(segment: Element) {
@@ -806,19 +816,6 @@ describe('segmented button', () => {
     // token taken down to what the browser draws it at, since the token's
     // own 9999px is clamped and a clamped value cannot be interpolated.
     it('takes the corners of the segment it is in', () => {
-      const cornersFor = (keys: string[], index: number) => {
-        const view = setup({ defaultSelectedKeys: keys })
-        const style = getComputedStyle(
-          containerOf(view.getAllByRole('radio')[index]),
-        )
-        const corners = [
-          style.borderStartStartRadius,
-          style.borderStartEndRadius,
-        ]
-        view.unmount()
-        return corners
-      }
-
       expect(cornersFor(FIRST, 0)).toStrictEqual(['20px', '0px'])
       expect(cornersFor(SECOND, 1)).toStrictEqual(['0px', '0px'])
       expect(cornersFor(THIRD, 2)).toStrictEqual(['0px', '20px'])

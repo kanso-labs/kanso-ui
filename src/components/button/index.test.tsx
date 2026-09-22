@@ -96,6 +96,15 @@ function firePointerLeave(target: Element, init: PointerEventInit = {}) {
   firePointer(target, 'pointerout', { relatedTarget: document.body, ...init })
 }
 
+// The inline padding one set of props resolves to, with the render torn down
+// again so a caller can compare across sizes and variants.
+function inlinePadding(props: Parameters<typeof setup>[0]) {
+  const { button, unmount } = setup(props)
+  const padding = getComputedStyle(button).paddingLeft
+  unmount()
+  return padding
+}
+
 /**
  * Stands in for the Web Animations API so a test can control how much of a
  * press has elapsed.
@@ -200,13 +209,6 @@ describe('appearance', () => {
   // and a variant reaching for a padding of its own would show up wherever
   // it was declared.
   it('gives every variant the same inline padding at a size', () => {
-    const inlinePadding = (props: Parameters<typeof setup>[0]) => {
-      const { button, unmount } = setup(props)
-      const padding = getComputedStyle(button).paddingLeft
-      unmount()
-      return padding
-    }
-
     for (const size of ['xs', 'md', 'lg', 'xl', 'xxl'] as const) {
       const filled = inlinePadding({ size, variant: 'filled' })
 

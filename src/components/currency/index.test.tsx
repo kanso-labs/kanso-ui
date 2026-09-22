@@ -60,6 +60,26 @@ function setup(props: Partial<Parameters<typeof Currency>[0]> = {}) {
   return { ...view, currency: view.getByTestId('currency') }
 }
 
+// The three tone roles read off probes rather than named as literals, so the
+// assertions follow the tokens the component draws from.
+function toneColors() {
+  const probe = render(
+    <div>
+      <div data-testid="positive" {...stylex.props(probeStyles.positive)} />
+      <div data-testid="negative" {...stylex.props(probeStyles.negative)} />
+      <div data-testid="neutral" {...stylex.props(probeStyles.neutral)} />
+    </div>,
+  )
+  const read = (id: string) => getComputedStyle(probe.getByTestId(id)).color
+  const expected = {
+    negative: read('negative'),
+    neutral: read('neutral'),
+    positive: read('positive'),
+  }
+  probe.unmount()
+  return expected
+}
+
 describe('currency', () => {
   describe('formatting', () => {
     it('formats as currency in the given locale', () => {
@@ -123,24 +143,6 @@ describe('currency', () => {
   })
 
   describe('tone', () => {
-    function toneColors() {
-      const probe = render(
-        <div>
-          <div data-testid="positive" {...stylex.props(probeStyles.positive)} />
-          <div data-testid="negative" {...stylex.props(probeStyles.negative)} />
-          <div data-testid="neutral" {...stylex.props(probeStyles.neutral)} />
-        </div>,
-      )
-      const read = (id: string) => getComputedStyle(probe.getByTestId(id)).color
-      const expected = {
-        negative: read('negative'),
-        neutral: read('neutral'),
-        positive: read('positive'),
-      }
-      probe.unmount()
-      return expected
-    }
-
     it('derives the tone from the sign of the value', () => {
       const expected = toneColors()
       // Guards the comparisons below: three roles that resolved to one colour

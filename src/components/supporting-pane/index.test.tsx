@@ -46,6 +46,21 @@ async function columnsAt(width: number) {
   return { columns, room }
 }
 
+// Read off the boxes rather than the tracks: which column each pane lands
+// in is the whole question, and a track list says nothing about that.
+async function panesAt(width: number, placement?: 'leading' | 'trailing') {
+  await page.viewport(width, 900)
+  const view = render(<SupportingPane {...PANES} placement={placement} />)
+  const root = view.container.firstElementChild
+  if (!(root instanceof HTMLElement)) {
+    throw new Error('expected the layout to render an element')
+  }
+  const [main, supporting] = [...root.children].map((pane) =>
+    pane.getBoundingClientRect(),
+  )
+  return { main, supporting }
+}
+
 afterAll(async () => {
   await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
 })
@@ -138,21 +153,6 @@ describe('placement', () => {
   afterAll(async () => {
     await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
   })
-
-  // Read off the boxes rather than the tracks: which column each pane lands
-  // in is the whole question, and a track list says nothing about that.
-  async function panesAt(width: number, placement?: 'leading' | 'trailing') {
-    await page.viewport(width, 900)
-    const view = render(<SupportingPane {...PANES} placement={placement} />)
-    const root = view.container.firstElementChild
-    if (!(root instanceof HTMLElement)) {
-      throw new Error('expected the layout to render an element')
-    }
-    const [main, supporting] = [...root.children].map((pane) =>
-      pane.getBoundingClientRect(),
-    )
-    return { main, supporting }
-  }
 
   it('puts the supporting pane after the main one by default', async () => {
     const { main, supporting } = await panesAt(EXPANDED)
