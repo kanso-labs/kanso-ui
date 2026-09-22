@@ -120,12 +120,12 @@ const styles = stylex.create({
     // page's own colour with nothing at its edge. A `CanvasText` border is
     // what `popup` in src/styles/overlay.ts draws for the same reason.
     //
-    // On the content-facing edge alone, as the corners are rounded — the
-    // bottom sheet's top edge here, the side sheet's inline-start edge below.
-    // The others meet the edge of the screen, where a border would frame the
-    // viewport rather than the panel. Inside the size rather than around it,
-    // since the panel is `border-box`, and none of it is drawn while forced
-    // colours are off.
+    // On the content-facing edge alone, the one whose corners are rounded —
+    // the bottom sheet's top edge here, the side sheet's inline-start edge
+    // further down. The others meet the edge of the screen, where a border
+    // would frame the viewport rather than the panel. Inside the size rather
+    // than around it, since the panel is `border-box`, and none of it is
+    // drawn while forced colours are off.
     borderBlockStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderBlockStartStyle: {
       default: null,
