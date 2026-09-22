@@ -166,6 +166,14 @@ describe('token field', () => {
       expect(hasClasses(held.getByText('Label'), CLASSES.floated)).toBe(true)
     })
 
+    // A field that is typed into is checked in index.stories.tsx's `Typed`
+    // instead. Nothing short of real keyboard input moves this component's
+    // value — React Aria drives it from `beforeinput`'s target ranges, so a
+    // dispatched event does nothing and `execCommand` edits the DOM without
+    // the state hearing of it — and real input is a page-level resource that
+    // times out under a parallel run, which is the same reason the media
+    // queries in this suite are read rather than emulated.
+
     it('takes the error role when there is an error', () => {
       const view = setup({ error: 'Add at least one tag' })
       expect(hasClasses(view.getByText('Label'), CLASSES.error)).toBe(true)
