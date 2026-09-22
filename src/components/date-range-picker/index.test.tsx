@@ -143,6 +143,21 @@ describe('date range picker', () => {
   })
 
   describe('the calendar half', () => {
+    // The dialog the calendar opens in is named by React Aria rather than by
+    // this component: its picker hook hands the dialog `aria-labelledby`
+    // through context, pointing at the trigger's own label and the field's.
+    // Nothing here passes a name, which is why it looked unnamed from the
+    // source — the name is only visible once rendered. The first half is
+    // React Aria's localized string and moves with it; the second is the
+    // label the call site gave, which is what a reader chose the field by.
+    it('names the dialog it opens in after the trigger and the label', () => {
+      const view = render(<DateRangePicker defaultOpen label="Label" />)
+
+      expect(
+        view.getByRole('dialog', { name: 'Choose a date range Label' }),
+      ).not.toBeNull()
+    })
+
     it('keeps the calendar closed until the trigger is pressed', () => {
       const view = render(
         <DateRangePicker defaultValue={RANGE} label="Label" />,
