@@ -77,23 +77,19 @@ function hasClasses(element: Element, classes: string[]) {
 }
 
 /**
- * Runs `open` with the document in a right-to-left writing mode, and restores
- * the language afterwards.
+ * Runs `read` with the document in a right-to-left writing direction, and
+ * restores the direction afterwards.
  *
- * The language rather than `dir`, which is what a reader would actually set.
- * `:dir(rtl)` is downlevelled to an `:is(:lang(…))` list of right-to-left
- * languages before it reaches the stylesheet, so `dir="rtl"` alone matches
- * none of it — the gap #1008 tracks. `lang` is what the compiled rule keys
- * on today, so it is what exercises the branch. It goes on the document
- * rather than a wrapper because React Aria portals the panel to the body.
+ * `dir` is what `:dir()` reads, and it goes on the document rather than a
+ * wrapper because React Aria portals the panel to the body.
  */
 function inRightToLeft<T>(read: () => T): T {
-  const previous = document.documentElement.lang
-  document.documentElement.lang = 'ar'
+  const previous = document.documentElement.dir
+  document.documentElement.dir = 'rtl'
   try {
     return read()
   } finally {
-    document.documentElement.lang = previous
+    document.documentElement.dir = previous
   }
 }
 

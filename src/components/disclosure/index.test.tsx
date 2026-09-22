@@ -36,6 +36,33 @@ const CLASSES = {
   turned: classesOf(stylex.props(probeStyles.turned)),
 }
 
+/**
+ * The chevron's transform as the browser resolved it, with the disclosure
+ * rendered inside a `<div>` carrying `attributes`. `a` is the matrix's
+ * horizontal scale and `b` the sine of its turn, which is enough to tell a
+ * mirror and a quarter turn each way apart.
+ */
+function chevronUnder(
+  attributes: { dir?: 'ltr' | 'rtl'; lang?: string },
+  isExpanded = false,
+) {
+  const view = render(
+    <div {...attributes}>
+      <Disclosure defaultExpanded={isExpanded}>
+        <Disclosure.Header>Headline</Disclosure.Header>
+        <Disclosure.Panel>Panel body</Disclosure.Panel>
+      </Disclosure>
+    </div>,
+  )
+  const chevron = view.container.querySelector('svg')
+  if (chevron === null) {
+    throw new Error('expected the header to draw its chevron')
+  }
+  const { a, b } = new DOMMatrixReadOnly(getComputedStyle(chevron).transform)
+  view.unmount()
+  return { a: Math.round(a), b: Math.round(b) }
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -162,6 +189,24 @@ describe('disclosure', () => {
       const chevron = view.container.querySelector('svg')
 
       expect(hasClasses(chevron!, CLASSES.turned)).toBe(true)
+    })
+
+    // Read as the browser resolved it rather than as a class, since what is
+    // under test is that the rule reaches an element whose direction is set
+    // by `dir` — the only thing `:dir()` reads.
+    it('mirrors under a right-to-left direction, open or closed', () => {
+      expect(chevronUnder({ dir: 'ltr' })).toEqual({ a: 1, b: 0 })
+      expect(chevronUnder({ dir: 'rtl' })).toEqual({ a: -1, b: 0 })
+
+      expect(chevronUnder({ dir: 'ltr' }, true)).toEqual({ a: 0, b: 1 })
+      expect(chevronUnder({ dir: 'rtl' }, true)).toEqual({ a: 0, b: -1 })
+    })
+
+    // A language does not reverse a document's text on its own, so it must
+    // not reverse the chevron beside that text either.
+    it('follows the direction rather than the language', () => {
+      expect(chevronUnder({ lang: 'ar' })).toEqual({ a: 1, b: 0 })
+      expect(chevronUnder({ dir: 'rtl', lang: 'en' })).toEqual({ a: -1, b: 0 })
     })
   })
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Checks the two things about the built package that publint cannot see.
+// Checks the three things about the built package that publint cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
-// emitted module and never asks Node to resolve anything, which leaves two
-// failures it reports as "All good!".
+// emitted module or stylesheet and never asks Node to resolve anything, which
+// leaves three failures it reports as "All good!".
 //
 // The first is the exports map's `default` condition. It is what lets a
 // require() reach this ESM-only package at all: under `import` instead, the
@@ -18,6 +18,13 @@
 // shipped. Three separate pieces keep it there — see "How the compiled CSS
 // reaches a consumer" in AGENTS.md — and nothing failed the build when it
 // went missing.
+//
+// The third is the right-to-left mirroring in dist/styles.css. lightningcss
+// rewrites `:dir(rtl)` into a list of `:lang()` selectors for any target
+// without `:dir()`, which matches on a reader's language rather than their
+// writing direction, and the build turns that rewrite off in
+// tsdown.config.ts. The tests read the dev server's stylesheet rather than
+// this one, so this is the only place the build's half is checked.
 
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -99,6 +106,19 @@ check('dist/index.js still imports ./styles.css', () => {
   if (!source.includes('./styles.css')) {
     throw new Error(
       'the side-effect import is gone, so a consumer gets no compiled rules',
+    )
+  }
+})
+
+check('dist/styles.css mirrors on dir rather than on lang', () => {
+  const css = readFileSync(
+    new URL('../dist/styles.css', import.meta.url),
+    'utf8',
+  )
+
+  if (!css.includes(':dir(rtl)')) {
+    throw new Error(
+      'no :dir(rtl) rule survived the build, so nothing mirrors under dir="rtl"',
     )
   }
 })
