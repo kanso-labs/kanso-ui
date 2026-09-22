@@ -572,6 +572,13 @@ function resizerClassName(state: ColumnResizerRenderProps) {
 function rowStyles(state: RowRenderProps) {
   return stylex.props(
     styles.row,
+    // The same ring a cell and a column header draw, and for the same
+    // reason: React Aria moves focus to the row itself, so the row is where
+    // it has to show. Unconditional, as it is on those two — `focus` carries
+    // its own `:focus-visible`, and the browser's default ring is what shows
+    // through without it: a colour and an offset the rest of the table does
+    // not use, and one no forced-colours mode is obliged to keep.
+    styles.focus,
     // A row is interactive when the table does something with a press —
     // selecting it, or running its `onAction`. React Aria reports the first
     // through the selection mode; the second is what `isPressed` can only
