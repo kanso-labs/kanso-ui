@@ -68,9 +68,19 @@ const styles = stylex.create({
   button: {
     display: 'contents',
   },
-  // The 48dp target, as tall as the label's line, with the track centred in
-  // it.
+  // The 40dp state layer the page draws, with the track centred in it, and
+  // the page's 48dp target reached by a transparent box over the one axis
+  // that is short — the track's own 52 already clears it across. Out of flow,
+  // so the row keeps the height it had. src/control/styles.ts carries the
+  // same pair for the checkbox and the radio button, and the reasoning for
+  // both.
   control: {
+    '::before': {
+      content: '""',
+      insetBlock: '-4px',
+      insetInline: 0,
+      position: 'absolute',
+    },
     alignItems: 'center',
     blockSize: '40px',
     boxSizing: 'border-box',
@@ -79,6 +89,7 @@ const styles = stylex.create({
     flexShrink: 0,
     inlineSize: '52px',
     justifyContent: 'center',
+    position: 'relative',
   },
   glyph: {
     blockSize: '16px',
