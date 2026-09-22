@@ -236,7 +236,10 @@ function DialogBody(props: HTMLAttributes<HTMLDivElement>) {
  *
  * A press on the scrim closes the dialog unless `isDismissable` says
  * otherwise, which is the same default `Sheet` takes and the reverse of
- * React Aria's own.
+ * React Aria's own. Escape is a separate prop, `isKeyboardDismissDisabled`,
+ * and `isDismissable` says nothing about it — so a dialog that has to be
+ * answered from one of its actions, as an alert dialog usually does, turns
+ * off both.
  */
 function DialogContent({
   children,

@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 
@@ -45,6 +45,28 @@ const DEFAULT_VIEWPORT = {
   width: window.innerWidth,
 }
 
+/** An alert dialog, with the dismissal props a call site passes. */
+function alert(props: {
+  isDismissable?: boolean
+  isKeyboardDismissDisabled?: boolean
+}) {
+  return render(
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content role="alertdialog" {...props}>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>,
+  )
+}
+
 /** The container around the element with the dialog role: what is sized and shaped. */
 function containerOf(dialog: HTMLElement) {
   const container = dialog.parentElement
@@ -57,6 +79,21 @@ function containerOf(dialog: HTMLElement) {
     animation.finish()
   }
   return container
+}
+
+// What a dismissal needs before its outcome can be read. A dialog that is
+// closing stays on screen until the animations on it end, and its entry one
+// is still running straight after it opens; and even with none left, React
+// Aria unmounts it a microtask after the event rather than during it. Read
+// sooner, a dialog Escape had already closed looked like one it had held
+// open. Every press below goes through this, and the cases that expect a
+// close are what show it waits long enough.
+async function dismissWith(press: () => void) {
+  for (const animation of document.getAnimations()) {
+    animation.finish()
+  }
+  press()
+  await act(async () => {})
 }
 
 function hasClasses(element: Element, classes: string[]) {
@@ -83,6 +120,35 @@ function partsOf(view: ReturnType<typeof render>) {
     throw new Error('expected the dialog to hold a header and a footer')
   }
   return { body, footer, header }
+}
+
+/**
+ * Escape, dispatched on the dialog itself, as `closes on Escape` does.
+ * Dispatched on whatever held focus instead, it missed the dialog whenever
+ * an earlier case's dialog had handed focus back to the page — and a key
+ * that never reaches the dialog leaves it open for a reason that proves
+ * nothing. The story checks the real path, from a focused dialog.
+ */
+async function pressEscape(dialog: HTMLElement) {
+  await dismissWith(() => {
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+  })
+}
+
+/** A press on the scrim, outside the container, which is what React Aria reads as outside. */
+async function pressScrim(dialog: HTMLElement) {
+  const scrim = scrimOf(containerOf(dialog))
+  const init = {
+    button: 0,
+    isPrimary: true,
+    pointerId: 1,
+    pointerType: 'mouse',
+  }
+  await dismissWith(() => {
+    fireEvent.pointerDown(scrim, init)
+    fireEvent.pointerUp(scrim, init)
+    fireEvent.click(scrim, init)
+  })
 }
 
 /** The scrim the container sits on, which fills the window. */
@@ -182,6 +248,63 @@ describe('dialog', () => {
       fireEvent.keyDown(view.getByRole('dialog'), { key: 'Escape' })
       await waitFor(() => {
         expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    // The press every case below uses, shown closing a dialog that allows it,
+    // so a dialog those cases find still open was held open and was not
+    // simply missed.
+    it('closes on a press on the scrim', async () => {
+      const view = setup()
+      await pressScrim(view.getByRole('dialog'))
+
+      expect(view.queryByRole('dialog')).toBeNull()
+    })
+
+    // React Aria keeps the two ways out on two props: `isDismissable` is a
+    // press on the scrim, `isKeyboardDismissDisabled` is Escape. The stories
+    // once paired an alert dialog with the first alone, which left Escape
+    // closing a question that had to be answered.
+    describe('an alert dialog, which has to be answered', () => {
+      it('stays open on Escape with keyboard dismissal off', async () => {
+        const view = alert({
+          isDismissable: false,
+          isKeyboardDismissDisabled: true,
+        })
+        await pressEscape(view.getByRole('alertdialog'))
+
+        expect(view.getByRole('alertdialog')).not.toBeNull()
+      })
+
+      it('stays open on a press on the scrim', async () => {
+        const view = alert({
+          isDismissable: false,
+          isKeyboardDismissDisabled: true,
+        })
+        await pressScrim(view.getByRole('alertdialog'))
+
+        expect(view.getByRole('alertdialog')).not.toBeNull()
+      })
+
+      it('closes from one of its own actions', async () => {
+        const view = alert({
+          isDismissable: false,
+          isKeyboardDismissDisabled: true,
+        })
+        await dismissWith(() => {
+          fireEvent.click(view.getByRole('button', { name: 'Confirm' }))
+        })
+
+        expect(view.queryByRole('alertdialog')).toBeNull()
+      })
+
+      // The control for the Escape case above, and the reason the stories
+      // pass both props: `isDismissable` says nothing about Escape.
+      it('still closes on Escape with isDismissable={false} alone', async () => {
+        const view = alert({ isDismissable: false })
+        await pressEscape(view.getByRole('alertdialog'))
+
+        expect(view.queryByRole('alertdialog')).toBeNull()
       })
     })
 
