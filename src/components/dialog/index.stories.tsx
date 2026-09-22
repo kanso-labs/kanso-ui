@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect, waitFor } from 'storybook/test'
 
 import Dialog from '.'
 import { CloseGlyph } from '../../glyphs'
@@ -129,14 +130,19 @@ const Overview: Story = {
             role=&quot;alertdialog&quot; is for a question that has to be
             answered before the page carries on, which a screen reader announces
             rather than waiting to be asked. Pair it with
-            isDismissable=&#123;false&#125;, so the answer has to come from one
-            of the actions.
+            isDismissable=&#123;false&#125; and isKeyboardDismissDisabled, so
+            the answer has to come from one of the actions: the first stops a
+            press on the scrim closing it, and the second the Escape key.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
           <Dialog>
             <Button variant="outlined">Open alert</Button>
-            <Dialog.Content isDismissable={false} role="alertdialog">
+            <Dialog.Content
+              isDismissable={false}
+              isKeyboardDismissDisabled
+              role="alertdialog"
+            >
               <Dialog.Header>
                 <Dialog.Title>Headline</Dialog.Title>
               </Dialog.Header>
@@ -191,11 +197,44 @@ const Default: Story = {
   ),
 }
 
+// The alert dialog, found from the document: it is portalled to the end of
+// the body, outside the story's canvas.
+function alertDialog() {
+  return document.querySelector('[role="alertdialog"]')
+}
+
 const AlertDialog: Story = {
+  // The story is the pattern a call site copies, so what it promises is
+  // checked on the story itself: a question that has to be answered stays on
+  // screen when Escape is pressed. React Aria keeps Escape and a press outside
+  // on two separate props, and a story passing only the second documented an
+  // alert dialog that closed on the first.
+  play: async ({ userEvent }) => {
+    await waitFor(async () => {
+      await expect(alertDialog()).not.toBeNull()
+    })
+    // Escape reaches React Aria only from inside the dialog, so a press made
+    // anywhere else would leave it open for a reason that proves nothing.
+    await expect(alertDialog()?.contains(document.activeElement)).toBe(true)
+    // And a dialog that is closing stays on screen until the animations on
+    // it end, which the entry one has not yet: without this, the check below
+    // passed on a dialog that Escape had already closed.
+    for (const animation of document.getAnimations()) {
+      animation.finish()
+    }
+
+    await userEvent.keyboard('{Escape}')
+
+    await expect(alertDialog()).not.toBeNull()
+  },
   render: () => (
     <Dialog defaultOpen>
       <Button variant="outlined">Open alert</Button>
-      <Dialog.Content isDismissable={false} role="alertdialog">
+      <Dialog.Content
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        role="alertdialog"
+      >
         <Dialog.Header>
           <Dialog.Title>Headline</Dialog.Title>
         </Dialog.Header>
