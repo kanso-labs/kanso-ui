@@ -30,6 +30,12 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // The dialogs page's two dialogs, which are one component here for the same
 // reason Sheet's two presentations are: the page pairs them by window size
 // rather than offering a choice. Above the medium breakpoint it is the basic
@@ -122,7 +128,25 @@ const styles = stylex.create({
     // Between the page's two widths above the breakpoint, and never taller
     // than the room the scrim's padding leaves; full screen below it.
     blockSize: { default: 'auto', [media.belowMedium]: '100%' },
+    // What the container's edge becomes under forced colours, where the
+    // `boxShadow` below is gone. That mode drops box shadows outright and
+    // paints backgrounds in `Canvas`, the container's fill and the scrim
+    // behind it alike, so the dialog would be the page's own colour laid over
+    // the page's own colour with nothing at its edge. A `CanvasText` border
+    // is what `popup` in src/styles/overlay.ts draws for the same reason.
+    //
+    // All round above the breakpoint, where the dialog floats over the page,
+    // and none below it, where the dialog fills the window and no edge of it
+    // meets the page: a border there would frame the viewport rather than
+    // the dialog. Inside the size rather than around it, since the container
+    // is `border-box`, and none of it is drawn while forced colours are off.
+    borderColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderRadius: { default: radii.xl, [media.belowMedium]: radii.none },
+    borderStyle: {
+      default: null,
+      [FORCED_COLORS]: { default: 'solid', [media.belowMedium]: 'none' },
+    },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxShadow: shadows.elevation1,
     boxSizing: 'border-box',
     color: colors.onSurface,

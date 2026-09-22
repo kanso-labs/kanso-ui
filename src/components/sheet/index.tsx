@@ -30,6 +30,12 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // One component, two presentations. Above the medium breakpoint it is a side
 // sheet pinned to the inline end of the viewport; below it, the same panel
 // becomes a bottom sheet. That is the pairing the Material Design pages draw
@@ -107,6 +113,25 @@ const styles = stylex.create({
     // sheet coming to rest rather than sliding to a stop.
     animationTimingFunction: motion.easingEmphasizedDecelerate,
     backgroundColor: colors.surfaceContainerLow,
+    // What the panel's edge becomes under forced colours, where the
+    // `boxShadow` below is gone. That mode drops box shadows outright and
+    // paints backgrounds in `Canvas`, the panel's fill and the scrim behind
+    // it alike, so the panel would be the page's own colour laid over the
+    // page's own colour with nothing at its edge. A `CanvasText` border is
+    // what `popup` in src/styles/overlay.ts draws for the same reason.
+    //
+    // On the content-facing edge alone, the one whose corners are rounded —
+    // the bottom sheet's top edge here, the side sheet's inline-start edge
+    // further down. The others meet the edge of the screen, where a border
+    // would frame the viewport rather than the panel. Inside the size rather
+    // than around it, since the panel is `border-box`, and none of it is
+    // drawn while forced colours are off.
+    borderBlockStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderBlockStartStyle: {
+      default: null,
+      [FORCED_COLORS]: { default: null, [media.belowMedium]: 'solid' },
+    },
+    borderBlockStartWidth: { default: null, [FORCED_COLORS]: '1px' },
     // Rounded on the content-facing edges only, square where the panel meets
     // the edge of the screen — the side sheet rounds its two inline-start
     // corners, the bottom sheet its two top ones.
@@ -115,6 +140,16 @@ const styles = stylex.create({
       default: radii.lg,
       [media.belowMedium]: radii.none,
     },
+    // The side sheet's edge. Logical, like the inset that pins the panel, so
+    // under a right-to-left document, where the panel rests on the left, the
+    // border moves to its right with it — without the `:dir(rtl)` branch the
+    // entry needs, since `translateX` is physical and this is not.
+    borderInlineStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderInlineStartStyle: {
+      default: null,
+      [FORCED_COLORS]: { default: 'solid', [media.belowMedium]: 'none' },
+    },
+    borderInlineStartWidth: { default: null, [FORCED_COLORS]: '1px' },
     borderStartEndRadius: {
       default: radii.none,
       [media.belowMedium]: radii.xl,

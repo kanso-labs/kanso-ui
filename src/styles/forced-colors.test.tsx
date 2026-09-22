@@ -1,20 +1,33 @@
 import type { ReactElement } from 'react'
 
 import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import Button from '../components/button'
 import ColorSlider from '../components/color-slider'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
+import Dialog from '../components/dialog'
 import Menu from '../components/menu'
 import Popover from '../components/popover'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
+import Sheet from '../components/sheet'
 import Slider from '../components/slider'
 import Tooltip from '../components/tooltip'
 
 const FORCED_COLORS = 'forced-colors: active'
+
+// One pixel either side of the medium breakpoint the modal panels swap at, so
+// a query written with the wrong comparison fails here rather than passing on
+// the round number both readings agree on.
+const COMPACT = 599
+const MEDIUM = 601
+
+// Storybook and the other specs share this browser, so the viewport has to go
+// back to something ordinary or whatever runs next inherits 599px.
+const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
 
 /** The one element matching `selector`, or a failure naming what was looked for. */
 function find(element: ReactElement, selector: string): Element {
@@ -38,6 +51,13 @@ function find(element: ReactElement, selector: string): Element {
  * CDP alone, which no test file here may drive, so what a test can prove is
  * that the rules exist and that the element carries the classes they are
  * written against.
+ *
+ * Forced colours is the one query taken as holding. Any other that a rule
+ * sits inside is asked of the page as it stands, so a rule keyed on a
+ * breakpoint as well reaches the element only at the widths it names, and a
+ * case sets the viewport to read one side of it. Where two rules reach the
+ * same property the later one wins, as it does in the page: StyleX writes
+ * the rule under both queries after the one under forced colours alone.
  */
 function forcedColorRules(element: Element): Map<string, string> {
   const found = new Map<string, string>()
@@ -51,10 +71,11 @@ function forcedColorRules(element: Element): Map<string, string> {
   function walk(rules: CSSRule[], inForcedColors: boolean) {
     for (const rule of rules) {
       if (rule instanceof CSSMediaRule) {
-        walk(
-          [...rule.cssRules],
-          inForcedColors || rule.conditionText.includes(FORCED_COLORS),
-        )
+        const forced = rule.conditionText.includes(FORCED_COLORS)
+
+        if (forced || matchMedia(rule.conditionText).matches) {
+          walk([...rule.cssRules], inForcedColors || forced)
+        }
         continue
       }
 
@@ -158,6 +179,34 @@ const SURFACES: ReadonlyArray<{ name: string; open: () => Element }> = [
   { name: "a popover's surface", open: openPopover },
   { name: 'a tooltip', open: openTooltip },
 ]
+
+// The two modal panels, open, each returning the element its edge is drawn
+// on: the one around the element carrying the role, as for a popover.
+function openDialog(): Element {
+  const view = render(
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content>
+        <Dialog.Title>Headline</Dialog.Title>
+      </Dialog.Content>
+    </Dialog>,
+  )
+
+  return parentOf(view.getByRole('dialog'))
+}
+
+function openSheet(): Element {
+  const view = render(
+    <Sheet defaultOpen>
+      <Button>Open</Button>
+      <Sheet.Content>
+        <Sheet.Title>Headline</Sheet.Title>
+      </Sheet.Content>
+    </Sheet>,
+  )
+
+  return parentOf(view.getByRole('dialog'))
+}
 
 describe('a boundary drawn in a shadow or a fill', () => {
   // The handle is a ring around a fill that is the value itself, and the ring
@@ -275,4 +324,55 @@ describe('a boundary drawn in a shadow or a fill', () => {
       expect(rules.get('border-top-color')).toBe('canvastext')
     },
   )
+
+  // A modal panel's edge is its elevation as well, and forced colours paints
+  // the scrim behind it in `Canvas` along with the panel, so nothing else
+  // sets the panel apart from the page. Each draws a border on the edges that
+  // meet the page and on no others, and which edges those are is the
+  // breakpoint's to decide — so these read either side of it.
+  describe('a modal panel', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('gives a dialog a border all round, in place of its shadow', async () => {
+      await page.viewport(MEDIUM, 900)
+      const rules = forcedColorRules(openDialog())
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('canvastext')
+    })
+
+    // Full screen, every edge of it meets the edge of the window instead.
+    it('draws a full-screen dialog no border', async () => {
+      await page.viewport(COMPACT, 900)
+
+      expect(forcedColorRules(openDialog()).get('border-top-style')).toBe(
+        'none',
+      )
+    })
+
+    // Read as the logical property, which is what moves the edge to the
+    // panel's right under RTL, where the panel rests against the left.
+    it('gives a side sheet a border on its inline-start edge alone', async () => {
+      await page.viewport(MEDIUM, 900)
+      const rules = forcedColorRules(openSheet())
+
+      expect(rules.get('border-inline-start-style')).toBe('solid')
+      expect(rules.get('border-inline-start-width')).toBe('1px')
+      expect(rules.get('border-inline-start-color')).toBe('canvastext')
+      expect(rules.get('border-top-style')).toBeUndefined()
+    })
+
+    it('gives a bottom sheet a border on its top edge alone', async () => {
+      await page.viewport(COMPACT, 900)
+      const rules = forcedColorRules(openSheet())
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('canvastext')
+      expect(rules.get('border-inline-start-style')).toBe('none')
+    })
+  })
 })
