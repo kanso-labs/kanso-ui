@@ -29,6 +29,7 @@ const probeStyles = stylex.create({
   labelLarge: { fontWeight: typography.labelLargeWeight },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { color: colors.outlineVariant },
+  primary: { color: colors.primary },
   primaryContainer: { color: colors.primaryContainer },
 })
 
@@ -764,6 +765,28 @@ describe('table', () => {
       fireEvent.keyUp(first, { key: 'ArrowDown' })
 
       expect(second.contains(document.activeElement)).toBe(true)
+    })
+
+    // React Aria moves focus to the row itself, not into a cell, so the row
+    // is where the ring has to be drawn. Cells and column headers already
+    // draw one; a row arrowed onto showed nothing at all.
+    it('shows a ring on a row that holds focus and none at rest', () => {
+      const view = render(<Basic />)
+      const [, first] = view.getAllByRole('row')
+
+      expect(getComputedStyle(first).outlineStyle).toBe('none')
+
+      first.focus()
+
+      expect(document.activeElement).toBe(first)
+      // The library's ring rather than the browser's fallback, which is what
+      // showed before: that one computes `auto`, at a colour and an offset of
+      // the UA's choosing.
+      expect(getComputedStyle(first).outlineStyle).toBe('solid')
+      expect(getComputedStyle(first).outlineWidth).toBe('2px')
+      expect(getComputedStyle(first).outlineColor).toBe(
+        probe(probeStyles.primary).color,
+      )
     })
   })
 })
