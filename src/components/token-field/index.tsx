@@ -5,6 +5,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useState } from 'react'
 import {
   Token as RACToken,
   TokenField as RACTokenField,
@@ -171,6 +172,20 @@ type TokenFieldProps<T extends TokenFieldValue = TokenFieldValue> = {
 // `react-stately`, which this package does not depend on directly.
 type TokenSegment = Parameters<RACTokenInputProps['children']>[0]
 
+// Keeps the mirrored copy in step and then hands the change on to the call
+// site. Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after; the React Compiler memoises
+// the result on its input.
+function changeHandler<T extends TokenFieldValue>(
+  setHeld: (value: T) => void,
+  onChange: ((value: T) => void) | undefined,
+) {
+  return (value: T) => {
+    setHeld(value)
+    onChange?.(value)
+  }
+}
+
 // Whether the field holds anything, for the floating label. A token field's
 // editable area is a contenteditable element rather than an input, so the
 // chrome cannot read a value off it and is told instead.
@@ -233,11 +248,22 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
   variant = 'filled',
   ...props
 }: TokenFieldProps<T>) {
-  const populated = isPopulated(props.value ?? props.defaultValue)
+  // A copy of what the field holds, kept only so the label can float from
+  // it. React Aria's token field reports `isDisabled` and `isReadOnly`
+  // through its render props and not its value, and it hands its state down
+  // a context of its own that nothing outside the module can read — so an
+  // uncontrolled field has no other way to say what it is holding now.
+  //
+  // This mirrors rather than controls: `defaultValue` still goes through, so
+  // React Aria keeps owning the value and the editing it does with it. A
+  // controlled field is read straight off the prop, which already moves.
+  const [held, setHeld] = useState(props.defaultValue)
+  const populated = isPopulated(props.value ?? held)
 
   return (
     <RACTokenField<T>
       {...props}
+      onChange={changeHandler(setHeld, props.onChange)}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
       <FieldBox

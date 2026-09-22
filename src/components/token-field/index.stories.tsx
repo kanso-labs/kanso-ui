@@ -3,11 +3,33 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 import { useState } from 'react'
 import { TokenFieldValue } from 'react-aria-components'
+import { expect, waitFor } from 'storybook/test'
 
 import TokenField from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { spacing, typography } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
+
+// The class StyleX hashes for the floated label's own size, which is the
+// observable signal that the box considers the field populated — the same
+// probe index.test.tsx reads, since the hash is a pure function of the
+// declaration rather than of where it was written.
+const probeStyles = stylex.create({
+  floated: { fontSize: typography.bodySmallSize },
+})
+
+const floatedClassNames = (stylex.props(probeStyles.floated).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+function isFloated(label: HTMLElement) {
+  // The length check matters: `[].every()` is vacuously true, so an empty
+  // class list would report "floated" unconditionally.
+  return (
+    floatedClassNames.length > 0 &&
+    floatedClassNames.every((name) => label.classList.contains(name))
+  )
+}
 
 // See avatar/index.stories.tsx for why the overview is built from the
 // library's own components, why its sections are divided by a rule, and why
@@ -192,6 +214,61 @@ const Disabled: Story = {
   render: Default.render,
 }
 
+// The floating label, driven by real typing rather than by a prop. It is here
+// and not in index.test.tsx because nothing else moves this component's
+// value: React Aria drives it from the target ranges on a `beforeinput`, so a
+// dispatched event changes nothing and `execCommand` edits the DOM without
+// the state hearing of it. Only a genuine key press does — and a genuine key
+// press is a page-level resource, which under the unit project's parallel run
+// timed out rather than failing, the same pathology this suite documents for
+// media emulation.
+//
+// Both readings are taken with focus elsewhere, which is the whole point: the
+// box floats its label while focus is within it, so a field checked while
+// still focused floats whatever it holds.
+//
+// A test rather than documentation, so it is kept out of the sidebar the way
+// button's `Pressed` is — `!dev` subtracts the tag the sidebar filters on and
+// leaves `test`, and Chromatic is told separately since it reads the index.
+// `Empty` already covers this field visually.
+const Typed: Story = {
+  args: { defaultValue: EMPTY },
+  parameters: {
+    chromatic: { disableSnapshot: true },
+  },
+  play: async ({ canvas, step, userEvent }) => {
+    const label = canvas.getByText('Label')
+    const box = canvas.getByRole('textbox', { name: 'Label' })
+
+    await expect(isFloated(label)).toBe(false)
+
+    // One character, so the backspace below is a whole round trip rather than
+    // a partial deletion — a token would go in one press and plain text a
+    // character at a time, and the two need not agree.
+    await step('type into it, then leave', async () => {
+      await userEvent.click(box)
+      await userEvent.keyboard('a')
+      await userEvent.tab()
+    })
+
+    await waitFor(async () => {
+      await expect(isFloated(label)).toBe(true)
+    })
+
+    await step('take it back out, then leave again', async () => {
+      await userEvent.click(box)
+      await userEvent.keyboard('{Backspace}')
+      await userEvent.tab()
+    })
+
+    await waitFor(async () => {
+      await expect(isFloated(label)).toBe(false)
+    })
+  },
+  render: Default.render,
+  tags: ['!dev'],
+}
+
 export {
   Default,
   Disabled,
@@ -199,6 +276,7 @@ export {
   Invalid,
   Outlined,
   Overview,
+  Typed,
   WithDescription,
 }
 
