@@ -47,13 +47,22 @@ function scrimColour() {
   return colour
 }
 
-// The surface each picker opens its content on. React Aria nests a dialog
-// inside it, so the surface is the dialog's parent.
+// The surface each picker opens its content on, settled. React Aria nests a
+// dialog inside it, so the surface is the dialog's parent.
+//
+// Its entry animation is finished before anything is read, and that is not
+// a nicety. The animation drives `transform`, so while it runs it replaces
+// whatever transform the surface rests with — a surface measured mid-entry
+// is one that has not been placed yet. `finish()` jumps to the end at once,
+// which is deterministic where waiting for it would not be.
 function surfaceOf(element: ReactElement) {
   const view = render(element)
   const surface = view.getByRole('dialog').parentElement
   if (surface === null) {
     throw new Error('expected the dialog to sit on a surface')
+  }
+  for (const animation of surface.getAnimations()) {
+    animation.finish()
   }
   return surface
 }
@@ -110,7 +119,57 @@ describe('a picker opened below the medium breakpoint', () => {
   )
 })
 
+// The half the scrim depends on. React Aria positions a popover with inline
+// `left`, `top` and `position`, which beat any class, so below the breakpoint
+// the surface was placed by the field and then shifted by the centring
+// transform — half its own size up and left, with most of the calendar off
+// the screen. A scrim behind that would dim a page the picker cannot be used
+// on.
+describe('a picker opened below the medium breakpoint, placed', () => {
+  it.each(PICKERS)('centres $name in the window', async ({ element }) => {
+    await page.viewport(COMPACT, 900)
+    const box = surfaceOf(element).getBoundingClientRect()
+
+    expect(Math.abs(box.left + box.width / 2 - COMPACT / 2)).toBeLessThan(1)
+    expect(Math.abs(box.top + box.height / 2 - 900 / 2)).toBeLessThan(1)
+  })
+
+  // Pinned to all four edges, a surface with no size of its own stretches to
+  // fill them and is centred only in the sense that it covers everything.
+  it.each(PICKERS)(
+    'sizes $name to its content, not the window',
+    async ({ element }) => {
+      await page.viewport(COMPACT, 900)
+      const box = surfaceOf(element).getBoundingClientRect()
+      // What the surface may grow to: the window less 16 on each side.
+      const room = 2 * 16
+
+      expect(box.width).toBeLessThan(COMPACT - room)
+      expect(box.height).toBeLessThan(900 - room)
+    },
+  )
+
+  it.each(PICKERS)('keeps all of $name on the screen', async ({ element }) => {
+    await page.viewport(COMPACT, 900)
+    const box = surfaceOf(element).getBoundingClientRect()
+
+    expect(box.left).toBeGreaterThanOrEqual(0)
+    expect(box.top).toBeGreaterThanOrEqual(0)
+    expect(box.right).toBeLessThanOrEqual(COMPACT)
+    expect(box.bottom).toBeLessThanOrEqual(900)
+  })
+})
+
 describe('a picker opened at the medium breakpoint and above', () => {
+  // Docked, the surface is React Aria's to place against what opened it.
+  // The compact rules take the position from it with `!important`, and none
+  // of that may reach a window this wide.
+  it.each(PICKERS)('leaves React Aria to place $name', async ({ element }) => {
+    await page.viewport(MEDIUM, 900)
+
+    expect(getComputedStyle(surfaceOf(element)).position).toBe('absolute')
+  })
+
   // Docked to its field, the picker is a menu-like surface rather than a
   // dialog, and a page dimmed behind a dropdown would be a modal nobody
   // asked for.
