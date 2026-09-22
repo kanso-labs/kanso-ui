@@ -52,7 +52,7 @@ jobs:
       # the Test job needs those; here they are a few hundred megabytes to
       # build a static site with.
       - name: Set up Node
-        uses: kanso-labs/actions/setup-node@v4.0.0
+        uses: kanso-labs/actions/setup-node@v4.0.1
         with:
           ignore-scripts: true
 
