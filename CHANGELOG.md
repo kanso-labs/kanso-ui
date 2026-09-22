@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.5](https://github.com/kanso-labs/kanso-ui/compare/v0.30.4...v0.30.5) (2026-09-22)
+
+
+### Bug Fixes
+
+* **token-field:** float the label from the live value when the field is uncontrolled ([#1023](https://github.com/kanso-labs/kanso-ui/issues/1023)) ([a0bd00d](https://github.com/kanso-labs/kanso-ui/commit/a0bd00dd64f729f96d1720fe9a404ba18e5e2d9f))
+
 ## [0.30.4](https://github.com/kanso-labs/kanso-ui/compare/v0.30.3...v0.30.4) (2026-09-22)
 
 
