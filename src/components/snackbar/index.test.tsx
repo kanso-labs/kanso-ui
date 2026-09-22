@@ -316,6 +316,30 @@ describe('snackbar', () => {
         expect(view.getByRole('region', { name: 'Messages' })).not.toBeNull()
       })
     })
+
+    // Left unnamed, the region takes React Aria's own name, which counts the
+    // messages it holds and is localized — "1 notification." under the test
+    // locale, since the queue shows one at a time. The prop's comment once
+    // promised a plain 'Notifications' that nothing ever applied, and
+    // applying it now would swap every reader's own language for English, so
+    // what is pinned here is the name React Aria gives rather than that one.
+    //
+    // The exact string is React Aria's and moves with it. If an upgrade
+    // changes it, this fails with the new wording in the diff, which is worth
+    // knowing about a name every screen reader user hears.
+    it("leaves an unnamed region to React Aria's localized count", async () => {
+      const { queue, view } = setup()
+      act(() => {
+        queue.add('First item')
+      })
+
+      await waitFor(() => {
+        expect(
+          view.getByRole('region', { name: '1 notification.' }),
+        ).not.toBeNull()
+      })
+      expect(view.queryByRole('region', { name: 'Notifications' })).toBeNull()
+    })
   })
 
   describe('appearance', () => {
