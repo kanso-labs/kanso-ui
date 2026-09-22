@@ -8,6 +8,15 @@ import ColorSlider from '../color-slider'
 
 const BLUE = 'hsl(200, 100%, 50%)'
 
+// The function forms of `className` and `style`, which React Aria hands the
+// wheel's render state. Hoisted rather than written at the prop, which
+// react-perf refuses: a fresh function on every render.
+const CLASS_BY_STATE = (state: { isDisabled: boolean }) =>
+  state.isDisabled ? 'wheel-off' : 'wheel-on'
+const STYLE_BY_STATE = (state: { isDisabled: boolean }) => ({
+  zIndex: state.isDisabled ? 2 : 1,
+})
+
 // The radius the mask's hole is cut at, read back off the computed value.
 function holeRadius(view: ReturnType<typeof render>) {
   const mask = getComputedStyle(trackOf(view)).maskImage
@@ -27,6 +36,14 @@ function radiusOfThumb(view: ReturnType<typeof render>) {
     thumb.left + thumb.width / 2 - (track.left + track.width / 2),
     thumb.top + thumb.height / 2 - (track.top + track.height / 2),
   )
+}
+
+function rootOf(view: ReturnType<typeof render>) {
+  const root = view.container.firstElementChild
+  if (!(root instanceof HTMLElement)) {
+    throw new Error('expected the wheel to render')
+  }
+  return root
 }
 
 function thumbOf(view: ReturnType<typeof render>) {
@@ -192,6 +209,50 @@ describe('color wheel', () => {
 
       expect(Number.parseFloat(getComputedStyle(root).opacity)).toBeLessThan(1)
       expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  // The comment on `className` has always promised the function form, and
+  // React Aria's own prop takes it, as ColorSlider's and ColorSwatchPicker's
+  // do. What each case pins is that the function reaches React Aria and runs
+  // there, rather than being turned into a string on the way.
+  describe('what a call site passes it', () => {
+    it('computes its class from the render state', () => {
+      const enabled = render(
+        <ColorWheel className={CLASS_BY_STATE} defaultValue={BLUE} />,
+      )
+      const disabled = render(
+        <ColorWheel
+          className={CLASS_BY_STATE}
+          defaultValue={BLUE}
+          isDisabled
+        />,
+      )
+
+      expect(rootOf(enabled).classList).toContain('wheel-on')
+      expect(rootOf(disabled).classList).toContain('wheel-off')
+    })
+
+    // A merge that kept only the call site's function would satisfy the case
+    // above and leave the wheel unstyled.
+    it('keeps its own classes beside the one it computes', () => {
+      const view = render(
+        <ColorWheel className={CLASS_BY_STATE} defaultValue={BLUE} />,
+      )
+
+      expect(getComputedStyle(rootOf(view)).display).toBe('inline-block')
+    })
+
+    it('computes its style from the render state', () => {
+      const enabled = render(
+        <ColorWheel defaultValue={BLUE} style={STYLE_BY_STATE} />,
+      )
+      const disabled = render(
+        <ColorWheel defaultValue={BLUE} isDisabled style={STYLE_BY_STATE} />,
+      )
+
+      expect(rootOf(enabled).style.zIndex).toBe('1')
+      expect(rootOf(disabled).style.zIndex).toBe('2')
     })
   })
 })
