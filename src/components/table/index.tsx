@@ -335,10 +335,12 @@ type TableBodyProps<T extends object = object> = Omit<
   /** A function may compute the class from the body's render state. */
   className?: RACTableBodyProps<T>['className']
   /**
-   * What the table shows in place of rows when it has none. Drawn in a row
-   * of its own spanning every column.
+   * What the table shows in place of rows when it has none: React Aria's own
+   * render function, under React Aria's own name, as List, ListBox, Tree and
+   * ChipGroup take it. What it returns is drawn in a row of its own spanning
+   * every column, inside the muted, padded box the table draws there.
    */
-  emptyState?: ReactNode
+  renderEmptyState?: RACTableBodyProps<T>['renderEmptyState']
   /** A function may compute the style from the body's render state. */
   style?: RACTableBodyProps<T>['style']
 }
@@ -540,14 +542,23 @@ function dropAriaLevel(node: HTMLTableRowElement | null) {
   node?.removeAttribute('aria-level')
 }
 
-// What the body draws in place of rows. A call rather than a function
-// written at the prop, for the same reason the others are.
-function emptyContent(emptyState: ReactNode) {
+// What the body draws in place of rows: whatever the call site's function
+// returns, inside the box that pads and centres it. A call rather than a
+// function written at the prop, for the same reason the others are.
+//
+// The box is the one thing this adds to React Aria's prop, and the one way
+// the table differs from its siblings, which pass theirs straight through and
+// draw nothing around it. A table's empty state goes in a spanning cell that
+// is not this component's and carries no padding, so without the box the
+// content would sit against the table's edge with no room around it.
+function emptyContent(
+  renderEmptyState: (state: TableBodyRenderProps) => ReactNode,
+) {
   // The return type is written out rather than inferred: `ReactNode` is a
   // union that includes a promise, and a function inferred as returning one
   // has to be `async`.
-  return (_state: TableBodyRenderProps): ReactNode => (
-    <span {...stylex.props(styles.empty)}>{emptyState}</span>
+  return (state: TableBodyRenderProps): ReactNode => (
+    <span {...stylex.props(styles.empty)}>{renderEmptyState(state)}</span>
   )
 }
 
@@ -677,23 +688,25 @@ function Table({
 }
 
 /**
- * The rows. `emptyState` is what it shows when there are none — a table with
- * no rows and nothing to say in their place is a blank area with a header
- * over it.
+ * The rows. `renderEmptyState` is what it shows when there are none — a table
+ * with no rows and nothing to say in their place is a blank area with a
+ * header over it.
  *
  * It carries no styles of its own, since every rule a body needs is drawn by
  * the rows inside it, so a `className` here lands on the `<tbody>` through
  * React Aria rather than through a merge.
  */
 function TableBody<T extends object = object>({
-  emptyState,
+  renderEmptyState,
   ...props
 }: TableBodyProps<T>) {
   return (
     <RACTableBody<T>
       {...props}
       renderEmptyState={
-        emptyState === undefined ? undefined : emptyContent(emptyState)
+        renderEmptyState === undefined
+          ? undefined
+          : emptyContent(renderEmptyState)
       }
     />
   )

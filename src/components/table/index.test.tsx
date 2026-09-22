@@ -13,13 +13,19 @@
 // oxlint-disable react-perf/jsx-no-new-function-as-prop
 // oxlint-disable react-perf/jsx-no-new-object-as-prop
 
-import type { Key, ReactElement } from 'react'
-import type { Selection, SortDescriptor } from 'react-aria-components'
+import type { Key } from 'react'
+import type {
+  TableBodyProps as RACTableBodyProps,
+  Selection,
+  SortDescriptor,
+} from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+
+import type { TableBodyProps } from '.'
 
 import Table from '.'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
@@ -44,14 +50,25 @@ const COLUMNS = ['colName', 'colValue'] as const
 const DRAG_FROM = { button: 0, clientX: 200, pointerId: 1 }
 const DRAG_TO = { button: 0, clientX: 120, pointerId: 1 }
 
+// What the empty cases draw in place of rows. Named rather than written at
+// each prop, since three cases share it and the text is what they find.
+function nothingToShow() {
+  return 'Nothing to show'
+}
+
+// The same empty state, typed with React Aria's own prop type rather than
+// this component's.
+const fromReactAria: RACTableBodyProps<object>['renderEmptyState'] = (state) =>
+  state.isEmpty ? 'Nothing to show' : null
+
 // A plain table with two columns and two rows, which is what most of the
 // cases below need before they change one thing about it.
 function Basic(props: {
-  emptyState?: ReactElement | string
   loadMore?: boolean
   loadMoreLabel?: string
   loadMoreLoading?: boolean
   onResize?: (widths: Map<Key, unknown>) => void
+  renderEmptyState?: TableBodyProps['renderEmptyState']
   resizable?: boolean
   resizableColumns?: boolean
   resizeLabel?: string
@@ -88,7 +105,7 @@ function Basic(props: {
         </Table.Column>
         <Table.Column id={COLUMNS[1]}>Value</Table.Column>
       </Table.Header>
-      <Table.Body emptyState={props.emptyState}>
+      <Table.Body renderEmptyState={props.renderEmptyState}>
         {rows.map(([id, label, value]) => (
           <Table.Row id={id} key={id}>
             {props.selectionMode === undefined ? null : (
@@ -451,7 +468,7 @@ describe('table', () => {
 
   describe('empty state', () => {
     it('shows what it was given in place of rows', () => {
-      const view = render(<Basic emptyState="Nothing to show" rows={[]} />)
+      const view = render(<Basic renderEmptyState={nothingToShow} rows={[]} />)
 
       expect(view.getByText('Nothing to show')).not.toBeNull()
       // The header is still drawn: a table with no rows still says what its
@@ -460,7 +477,7 @@ describe('table', () => {
     })
 
     it('draws it in the muted role rather than the row one', () => {
-      const view = render(<Basic emptyState="Nothing to show" rows={[]} />)
+      const view = render(<Basic renderEmptyState={nothingToShow} rows={[]} />)
 
       expect(getComputedStyle(view.getByText('Nothing to show')).color).toBe(
         probe(probeStyles.onSurfaceVariant).color,
@@ -468,7 +485,7 @@ describe('table', () => {
     })
 
     it('centres it in a row of its own rather than leaving it at the edge', () => {
-      const view = render(<Basic emptyState="Nothing to show" rows={[]} />)
+      const view = render(<Basic renderEmptyState={nothingToShow} rows={[]} />)
       const empty = getComputedStyle(view.getByText('Nothing to show'))
 
       // React Aria's cell carries no padding of its own, so an inline box
@@ -483,6 +500,57 @@ describe('table', () => {
 
       expect(view.queryByText('Nothing to show')).toBeNull()
       expect(view.getAllByRole('columnheader')).toHaveLength(2)
+    })
+
+    // The sibling collections — List, ListBox, Tree and ChipGroup — all take
+    // React Aria's own render function under its own name, and this is the
+    // same prop: a function of the body's render state rather than a node.
+    it('hands the function the state React Aria renders the body in', () => {
+      const received: Array<{ isEmpty: boolean }> = []
+      const view = render(
+        <Basic
+          renderEmptyState={(state) => {
+            received.push({ isEmpty: state.isEmpty })
+            return 'Nothing to show'
+          }}
+          rows={[]}
+        />,
+      )
+
+      expect(view.getByText('Nothing to show')).not.toBeNull()
+      expect(received.length).toBeGreaterThan(0)
+      expect(received.every((state) => state.isEmpty)).toBe(true)
+    })
+
+    // A compile-time check as much as a run-time one, enforced by `tsc -b`
+    // over the test files: the function is typed with React Aria's own prop
+    // type, so this fails to compile the day the table's stops accepting it —
+    // which is what a consumer moving between this and a sibling relies on.
+    it('keeps the name and type React Aria gives the prop', () => {
+      const view = render(<Basic renderEmptyState={fromReactAria} rows={[]} />)
+
+      expect(view.getByText('Nothing to show')).not.toBeNull()
+    })
+
+    // The name the prop used to have, and the node it used to take. The
+    // `@ts-expect-error` is the half that matters: `tsc -b` checks this file,
+    // so the day `emptyState` type-checks again the directive goes unused and
+    // the build fails. At run time the old name reaches React Aria as a prop
+    // it does not know, and draws nothing.
+    it('no longer takes the node it used to, under the old name', () => {
+      const view = render(
+        <Table aria-label="Label">
+          <Table.Header>
+            <Table.Column id={COLUMNS[0]} isRowHeader>
+              Label
+            </Table.Column>
+          </Table.Header>
+          {/* @ts-expect-error -- renamed to `renderEmptyState`, React Aria's name */}
+          <Table.Body emptyState="Nothing to show" />
+        </Table>,
+      )
+
+      expect(view.queryByText('Nothing to show')).toBeNull()
     })
   })
 
