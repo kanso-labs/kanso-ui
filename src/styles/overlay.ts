@@ -10,6 +10,12 @@ import {
   spacing,
 } from '../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // What every overlay shares, drawn once. Popover's anchored surface and its
 // entry, Sheet's scrim, and the element that carries the dialog role inside
 // each of them; the coverage plan brings a dozen more overlays — Menu, Select,
@@ -87,7 +93,20 @@ const overlay = stylex.create({
     // Decelerating, so the surface arrives quickly and settles.
     animationTimingFunction: motion.easingEmphasizedDecelerate,
     backgroundColor: colors.surfaceContainer,
+    // What the surface's edge becomes under forced colours, where the
+    // `boxShadow` below is gone. That mode drops box shadows outright and
+    // paints the fill in `Canvas`, the colour it paints the page in, so the
+    // surface would be the page's own colour laid over the page with nothing
+    // at its edge — a menu's items running straight into whatever the page
+    // draws behind them. A border is a property the mode keeps, and a
+    // `CanvasText` one is how the browser draws the edge of its own popover
+    // and dialog. Inside the size rather than around it, since the surface is
+    // `border-box`, so a select's list stays the width of its field. None of
+    // it is drawn while forced colours are off.
+    borderColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderRadius: radii.md,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxShadow: shadows.elevation2,
     boxSizing: 'border-box',
     color: colors.onSurface,
