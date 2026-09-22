@@ -28,6 +28,12 @@ import {
 } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // The search page's search bar, on its own: a 56dp container with a full
 // corner on surface container high, a 24dp magnifier in on surface variant
 // at the start, the supporting text in on surface variant and the input
@@ -67,7 +73,16 @@ const styles = stylex.create({
       default: colors.surfaceContainerHigh,
     },
     blockSize: sizing.controlLg,
+    // What the bar draws under forced colours, where the shadow below is
+    // gone. That mode drops box shadows outright and paints the background
+    // in a system colour, so the bar's boundary and its only focus indicator
+    // — one shadow in two states — would disappear together, exactly as the
+    // field chrome's box would without its own branch. The border is the
+    // boundary and the outline is focus, which is how that box splits them.
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.pill,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxShadow: {
       ':focus-within': `inset 0 0 0 2px ${colors.primary}`,
       default: 'none',
@@ -78,6 +93,16 @@ const styles = stylex.create({
     gap: spacing.lg,
     inlineSize: '100%',
     maxInlineSize: '720px',
+    // The ring's offset and width are the library's own, from
+    // src/styles/focus.ts, so the bar's focus is the size every other
+    // component's is.
+    outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '2px' },
+    outlineStyle: {
+      default: null,
+      [FORCED_COLORS]: { ':focus-within': 'solid', default: null },
+    },
+    outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
     paddingInlineEnd: spacing.lg,
     paddingInlineStart: `calc(${spacing.lg} + ${spacing.md})`,
     transitionDuration: motion.durationShort2,
@@ -86,7 +111,14 @@ const styles = stylex.create({
   },
   barDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    // Grey under forced colours, which no UA greys for itself: the fades
+    // above are author colours the mode repaints, so a disabled bar would
+    // otherwise be drawn exactly like one that can be typed into.
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // 4dp in from the padding, so the icon inside the 40dp button ends 28dp
   // from the end, where the page's 48dp target puts it.
