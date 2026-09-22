@@ -51,10 +51,11 @@ import ColorSwatch from '../color-swatch'
 // picker that wants to be round, which is a different shape rather than a
 // different control.
 //
-// **It is docked above the medium breakpoint and modal below it**, which is
-// the same swap `DatePicker` and `Sheet` make — the shared one in
-// `src/styles/picker.ts` rather than a third copy. A 280dp surface anchored
-// to a trigger is unreachable at 375px.
+// **It is docked above the medium breakpoint and modal below it**, centred
+// over a scrim there — the same swap `DatePicker` makes, at the width `Sheet`
+// changes presentation too, and the shared one in `src/styles/picker.ts`
+// rather than a third copy. A 280dp surface anchored to a trigger is
+// unreachable at 375px.
 //
 // One thing the picker has to do that its parts do not. **The plane and the
 // hue strip are pinned to HSL.** A channel has to belong to the value's own

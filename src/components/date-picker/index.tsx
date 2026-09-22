@@ -45,11 +45,13 @@ import Calendar from '../calendar'
 // the button at the end of them rather than as a separate control.
 //
 // **It is docked above the medium breakpoint and modal below it**, which is
-// the pairing the page draws and the same swap `Sheet` makes. It is done in
-// CSS rather than by rendering a different tree: a 360dp calendar anchored
-// to a field is unreachable at 375px, and a modal that stayed centred on a
-// desktop would cover a form for no reason. `Sheet` settles this the same
-// way, and doing it twice in two different ways is how the two would drift.
+// the pairing the page draws: below the breakpoint the picker is a dialog,
+// centred over a scrim, and `Sheet` changes presentation at the same width.
+// It is done in CSS rather than by rendering a different tree: a 360dp
+// calendar anchored to a field is unreachable at 375px, and a modal that
+// stayed centred on a desktop would cover a form for no reason. `Sheet`
+// settles its own swap the same way, and doing it twice in two different
+// ways is how the two would drift. The styles are in `src/styles/picker.ts`.
 
 type DatePickerProps<T extends DateValue = DateValue> = Omit<
   RACDatePickerProps<T>,

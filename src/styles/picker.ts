@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   media,
+  shadows,
   spacing,
   stateLayerOpacity,
 } from '../tokens/design.tokens.stylex'
@@ -33,9 +34,31 @@ const picker = stylex.create({
     outlineStyle: 'none',
   },
   // The calendar's surface. Docked to the field above the breakpoint; below
-  // it, centred in the viewport with room around it, which is what the
-  // page's modal picker is.
+  // it, centred in the viewport with room around it and over a scrim, which
+  // is what the page's modal picker is — the date pickers page puts the
+  // picker in a dialog on a compact window, and the dialogs page draws a
+  // dialog over the scrim role at the 32% Sheet and Dialog paint.
+  //
+  // **The scrim is a shadow the surface casts, not an element of its own.**
+  // React Aria already draws the full-window box a scrim would be — the
+  // underlay that takes a press outside and closes the picker — but with an
+  // inline style and no class, so nothing here can paint it. A fixed box
+  // drawn inside the surface would not reach the window either: the surface
+  // is centred with a transform, and a transform makes itself the box a fixed
+  // child is placed against. A spread shadow is drawn outside the surface's
+  // own edge and no further in, so it dims the page and leaves the surface
+  // whole. It fades in with the surface and goes when the surface does,
+  // since no overlay here animates out, and it takes no press, which is
+  // right: the underlay beneath it already does.
+  //
+  // `100vmax` is the window's longer side, which is as far as any edge of the
+  // window can be from any edge of the surface. Forced colours drops it, as
+  // it drops the surface's own elevation.
   popover: {
+    boxShadow: {
+      default: shadows.elevation2,
+      [media.belowMedium]: `${shadows.elevation2}, 0 0 0 100vmax color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
+    },
     insetBlockStart: { default: 'auto', [media.belowMedium]: '50%' },
     insetInlineStart: { default: 'auto', [media.belowMedium]: '50%' },
     maxInlineSize: {
