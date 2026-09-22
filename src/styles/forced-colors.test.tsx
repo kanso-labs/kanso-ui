@@ -3,12 +3,16 @@ import type { ReactElement } from 'react'
 import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import Button from '../components/button'
 import ColorSlider from '../components/color-slider'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
+import Menu from '../components/menu'
+import Popover from '../components/popover'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Slider from '../components/slider'
+import Tooltip from '../components/tooltip'
 
 const FORCED_COLORS = 'forced-colors: active'
 
@@ -109,6 +113,52 @@ function parentOf(element: Element): Element {
 
 const HUE = <ColorSlider channel="hue" defaultValue="hsl(200, 100%, 50%)" />
 
+// The anchored overlays, open, each returning the element their surface is
+// drawn on. That is the element around the one carrying the role for a menu
+// and a popover, and the tooltip itself for a tooltip. Portalled to the
+// end of the body, which is where the queries bound by `render` look.
+function openMenu(): Element {
+  const view = render(
+    <Menu defaultOpen>
+      <Button>Open</Button>
+      <Menu.Content>
+        <Menu.Item id="first">First item</Menu.Item>
+      </Menu.Content>
+    </Menu>,
+  )
+
+  return parentOf(view.getByRole('menu'))
+}
+
+function openPopover(): Element {
+  const view = render(
+    <Popover defaultOpen>
+      <Button>Open</Button>
+      <Popover.Content>
+        <Popover.Title>Headline</Popover.Title>
+      </Popover.Content>
+    </Popover>,
+  )
+
+  return parentOf(view.getByRole('dialog'))
+}
+
+function openTooltip(): Element {
+  const view = render(
+    <Tooltip defaultOpen label="Label">
+      <Button>Open</Button>
+    </Tooltip>,
+  )
+
+  return view.getByRole('tooltip')
+}
+
+const SURFACES: ReadonlyArray<{ name: string; open: () => Element }> = [
+  { name: "a menu's surface", open: openMenu },
+  { name: "a popover's surface", open: openPopover },
+  { name: 'a tooltip', open: openTooltip },
+]
+
 describe('a boundary drawn in a shadow or a fill', () => {
   // The handle is a ring around a fill that is the value itself, and the ring
   // is two stacked shadows. Both go, leaving a bare circle of whatever colour
@@ -208,4 +258,21 @@ describe('a boundary drawn in a shadow or a fill', () => {
     expect(forcedColorRules(other).get('outline-style')).toBe('dashed')
     expect(forcedColorRules(chosen).get('outline-style')).toBeUndefined()
   })
+
+  // Every anchored overlay is drawn on the one surface in overlay.ts, whose
+  // edge is its elevation alone. Forced colours paints that surface's fill in
+  // the page's own `Canvas`, so without a border a menu's items ran straight
+  // into whatever the page drew behind them. Each overlay merges styles of
+  // its own over the surface, and one that wrote a border would replace this
+  // one whole, so it is read off each rather than off the style once.
+  it.each(SURFACES)(
+    'gives $name a border, in place of its shadow',
+    ({ open }) => {
+      const rules = forcedColorRules(open())
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('canvastext')
+    },
+  )
 })
