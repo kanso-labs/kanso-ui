@@ -1,9 +1,11 @@
 import type { Color } from 'react-aria-components'
 
+import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ColorSwatchPicker from '.'
+import { colors } from '../../tokens/design.tokens.stylex'
 
 const PALETTE = ['#6750A4', '#625B71', '#7D5260']
 
@@ -11,6 +13,28 @@ const PALETTE = ['#6750A4', '#625B71', '#7D5260']
 // `jsx-no-new-function-as-prop` refuses: a fresh function on every render.
 const BY_SELECTION = (state: { isSelected: boolean }) =>
   state.isSelected ? 'chosen' : 'unchosen'
+
+// The three roles a swatch's ring is drawn in, resolved the way the page
+// resolves them, so a case compares computed colour with computed colour.
+const probeStyles = stylex.create({
+  outline: { color: colors.outline },
+  outlineVariant: { color: colors.outlineVariant },
+  primary: { color: colors.primary },
+})
+
+function colourOf(style: stylex.StyleXStyles) {
+  const view = render(<span {...stylex.props(style)} />)
+  const colour = getComputedStyle(view.container.firstElementChild!).color
+  view.unmount()
+  return colour
+}
+
+// A mouse arriving over the swatch, and a press starting on it. React Aria
+// takes hover from `pointerover`, the bubbling event React derives
+// `onPointerEnter` from, and press from a primary `pointerdown`.
+function hover(element: Element) {
+  fireEvent.pointerOver(element, { pointerType: 'mouse' })
+}
 
 function picker(props: { defaultValue?: string; disabled?: boolean } = {}) {
   return (
@@ -27,6 +51,16 @@ function picker(props: { defaultValue?: string; disabled?: boolean } = {}) {
       ))}
     </ColorSwatchPicker>
   )
+}
+
+function press(element: Element, pointerType: 'mouse' | 'touch' = 'mouse') {
+  fireEvent.pointerDown(element, {
+    button: 0,
+    buttons: 1,
+    isPrimary: true,
+    pointerId: 1,
+    pointerType,
+  })
 }
 
 describe('color swatch picker', () => {
@@ -163,5 +197,66 @@ describe('color swatch picker', () => {
       1,
     )
     expect(onChange).not.toHaveBeenCalled()
+  })
+
+  // A state layer is a fill, and a swatch's fill is the colour being chosen,
+  // so the feedback is a ring in the slot selection would take — drawn in the
+  // outline roles rather than primary, so it cannot be read as chosen.
+  describe('an unselected swatch under the pointer', () => {
+    it('takes a ring in the outline variant role while hovered', () => {
+      const view = render(picker())
+      const second = view.getAllByRole('option')[1]
+
+      hover(second)
+
+      const style = getComputedStyle(second)
+      expect(style.outlineStyle).toBe('solid')
+      expect(style.outlineOffset).toBe('2px')
+      expect(style.outlineColor).toBe(colourOf(probeStyles.outlineVariant))
+    })
+
+    // A mouse selects the moment it presses, so the held press a reader
+    // waits through is a touch's: React Aria chooses the swatch on release.
+    // Until then it is pressed and not yet chosen, which is the state this
+    // ring answers.
+    it('holds a stronger ring in the outline role under a touch', () => {
+      const view = render(picker())
+      const second = view.getAllByRole('option')[1]
+
+      press(second, 'touch')
+
+      const style = getComputedStyle(second)
+      expect(second.getAttribute('aria-selected')).toBe('false')
+      expect(style.outlineStyle).toBe('solid')
+      expect(style.outlineColor).toBe(colourOf(probeStyles.outline))
+    })
+
+    // Hover is applied before selection, so a chosen swatch keeps the ring
+    // that says so rather than trading it for the hover one.
+    it('leaves a chosen swatch its own ring', () => {
+      const view = render(picker())
+      const first = view.getAllByRole('option')[0]
+
+      hover(first)
+      press(first)
+
+      const style = getComputedStyle(first)
+      expect(style.outlineColor).toBe(colourOf(probeStyles.primary))
+      expect(style.outlineOffset).toBe('2px')
+    })
+
+    // A guard on React Aria rather than on this component: `itemStyles` draws
+    // the rings from React Aria's hover and press state, and leans on it
+    // reporting neither for a swatch that cannot be chosen. If that changes,
+    // this is what says so.
+    it('puts nothing on a swatch that cannot be chosen', () => {
+      const view = render(picker({ disabled: true }))
+      const second = view.getAllByRole('option')[1]
+
+      hover(second)
+      press(second)
+
+      expect(getComputedStyle(second).outlineStyle).toBe('none')
+    })
   })
 })
