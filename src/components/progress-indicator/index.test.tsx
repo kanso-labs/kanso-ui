@@ -15,13 +15,6 @@ const probeStyles = stylex.create({
   // The arcs are drawn with a stroke rather than filled, so their roles
   // hash to different classes from the linear parts'.
   activeArc: { stroke: colors.primary },
-  // The row's mirror. Asserted as a class rather than as a computed
-  // transform because `:dir()` does not survive to the stylesheet: it is
-  // downlevelled to a `:lang()` list, which `dir="rtl"` alone does not
-  // match, so a wrapper with `dir` computes to `none` however the rule is
-  // written. The class is what this component decides; whether the rule
-  // then reaches a `dir`-only document is the downlevel's business.
-  mirrored: { transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' } },
   track: { backgroundColor: colors.secondaryContainer },
   trackArc: { stroke: colors.secondaryContainer },
 })
@@ -39,7 +32,6 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   active: classesOf(stylex.props(probeStyles.active)),
   activeArc: classesOf(stylex.props(probeStyles.activeArc)),
-  mirrored: classesOf(stylex.props(probeStyles.mirrored)),
   track: classesOf(stylex.props(probeStyles.track)),
   trackArc: classesOf(stylex.props(probeStyles.trackArc)),
 }
@@ -400,25 +392,32 @@ describe('progress indicator', () => {
     // writing mode. `:dir()` is an ordinary pseudo-class, so a wrapper with
     // `dir` is all it takes to read both.
     it('sweeps in the writing direction', () => {
-      // Read under a right-to-left wrapper, which is the direction the two
-      // halves of this differ in. `dir` is enough for the logical-versus-
-      // physical half; the mirror is checked as a class, since `:dir()` is
-      // downlevelled to `:lang()` before it reaches the stylesheet.
+      // One indicator in each direction, since the row's mirror is the thing
+      // the two differ in.
       const view = render(
-        <div dir="rtl">
-          <ProgressIndicator isIndeterminate label="Label" />
-        </div>,
+        <>
+          <ProgressIndicator isIndeterminate label="Left to right" />
+          <div dir="rtl">
+            <ProgressIndicator isIndeterminate label="Right to left" />
+          </div>
+        </>,
       )
-      const row = view.getByRole('progressbar', {
-        name: 'Label',
-      }).lastElementChild
-      const bar = row?.children[1]
-      if (!(row instanceof HTMLElement) || !(bar instanceof HTMLElement)) {
-        throw new Error('expected the row and its primary bar')
+      const rowOf = (name: string) => {
+        const row = view.getByRole('progressbar', { name }).lastElementChild
+        if (!(row instanceof HTMLElement)) {
+          throw new Error('expected the indicator to draw its row')
+        }
+        return row
+      }
+      const row = rowOf('Right to left')
+      const bar = row.children[1]
+      if (!(bar instanceof HTMLElement)) {
+        throw new Error('expected the row to hold its primary bar')
       }
 
       // The row carries the mirror, so the sweep turns over as a whole.
-      expect(hasClasses(row, CLASSES.mirrored)).toBe(true)
+      expect(getComputedStyle(rowOf('Left to right')).transform).toBe('none')
+      expect(getComputedStyle(row).transform).toBe('matrix(-1, 0, 0, 1, 0, 0)')
 
       // And the bar's start is physical, so it does not flip underneath that
       // mirror and cancel it out. A logical inset would resolve to the right

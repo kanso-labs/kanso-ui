@@ -400,6 +400,21 @@ same limit `getComputedStyle` has against a query no test can turn on. Pin the
 resting value alongside the reduced one — a duration that is `0s` in both is a
 transition nobody wrote, not a media query doing its job.
 
+### Writing direction
+
+**Direction is not a media query, so a test sets it and reads the result.**
+`:dir(rtl)` reaches the stylesheet as written — both configs stop lightningcss
+rewriting it into `:lang()` selectors, for the reason `tsdown.config.ts` gives —
+so `dir="rtl"` on a wrapper turns everything inside it over, and `lang` on its
+own turns nothing over. `getComputedStyle` then reads the mirrored value.
+
+An overlay needs more than a wrapper, since React Aria portals it to the body. A
+`Sheet` takes `dir` on `document.documentElement`, as its own test does.
+Anything drawn in a `Popover` — a menu, a select's list, a picker — ignores even
+that, because React Aria's `Popover` stamps a `dir` of its own from
+`useLocale()`. What turns one over is an `I18nProvider` with a right-to-left
+locale, in a test and in a consumer's app alike.
+
 ### Controlling time
 
 Do not wait in real time for a component's own timers. An assertion can land

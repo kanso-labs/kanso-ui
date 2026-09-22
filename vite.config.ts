@@ -7,6 +7,7 @@ import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import stylex from '@stylexjs/unplugin'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
+import { Features } from 'lightningcss'
 import { Server } from 'node:http'
 import path from 'node:path'
 import { defineConfig } from 'vite'
@@ -156,8 +157,15 @@ export default defineConfig(({ command }) => ({
       // — the path every late rule already reaches the page by. Dev server
       // only, which is `serve` for Vitest and Storybook alike: a build's
       // stylesheet is final and has to parse.
-      lightningcssOptions:
-        command === 'serve' ? { errorRecovery: true } : undefined,
+      //
+      // `exclude` is the package build's, for the reason tsdown.config.ts
+      // gives: it keeps `:dir(rtl)` from being rewritten into `:lang()`
+      // selectors, so what the tests and Storybook mirror on is what a
+      // consumer's copy mirrors on.
+      lightningcssOptions: {
+        errorRecovery: command === 'serve',
+        exclude: Features.DirSelector,
+      },
       runtimeInjection: false,
       useCSSLayers: true,
     }),

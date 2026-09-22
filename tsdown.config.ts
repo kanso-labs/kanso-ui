@@ -3,6 +3,7 @@ import styleDictionaryRolldown from '@kanso-labs/unplugin-style-dictionary/rolld
 import babel from '@rolldown/plugin-babel'
 import stylexRolldown from '@stylexjs/unplugin/rolldown'
 import { reactCompilerPreset } from '@vitejs/plugin-react'
+import { Features } from 'lightningcss'
 import {
   copyFileSync,
   existsSync,
@@ -46,6 +47,23 @@ export default defineConfig({
     }),
     stylexRolldown({
       dev: false,
+      // Keeps `:dir(rtl)` as it is written. The plugin runs its rules through
+      // lightningcss with browserslist's defaults as the targets, since this
+      // package declares none, and one of those — Chrome 109 — predates
+      // `:dir()`. That alone had lightningcss rewrite every such rule into a
+      // list of `:lang()` selectors, which match a reader's language rather
+      // than their writing direction: a page with `dir="rtl"` mirrored
+      // nothing, and one with `lang="ar"` over left-to-right text mirrored
+      // everything.
+      //
+      // Excluding that one feature leaves every other lowering the targets
+      // ask for as it was. What it costs is the mirror in Chrome 109 itself,
+      // which drops the rule as a selector it cannot parse — in a browser
+      // that already draws none of the library's state layers, since those
+      // are `color-mix()`, from Chrome 111. `vite.config.ts` excludes it too,
+      // so the tests and Storybook read the rule a consumer gets, and
+      // `scripts/check-package.mjs` checks that it reached dist/styles.css.
+      lightningcssOptions: { exclude: Features.DirSelector },
       runtimeInjection: false,
       useCSSLayers: true,
     }),
