@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.32.0](https://github.com/kanso-labs/kanso-ui/compare/v0.31.1...v0.32.0) (2026-09-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **table:** expose renderEmptyState the way every sibling collection does ([#1038](https://github.com/kanso-labs/kanso-ui/issues/1038))
+
+### Features
+
+* **list-item:** add isDisabled, so the row can draw its disabled state ([#1046](https://github.com/kanso-labs/kanso-ui/issues/1046)) ([a51686f](https://github.com/kanso-labs/kanso-ui/commit/a51686fcad73e97592c0ba4647b9dfd39c478dcc))
+* **table:** expose renderEmptyState the way every sibling collection does ([#1038](https://github.com/kanso-labs/kanso-ui/issues/1038)) ([44250f3](https://github.com/kanso-labs/kanso-ui/commit/44250f3d8360edc583e24d70c76e4137ceccc782))
+
+
+### Bug Fixes
+
+* **color-swatch-picker:** give an unselected swatch hover and pressed feedback ([#1040](https://github.com/kanso-labs/kanso-ui/issues/1040)) ([c3941ca](https://github.com/kanso-labs/kanso-ui/commit/c3941ca1e3d34e6c927320ad699956231bf9eb19))
+* **color-wheel:** accept the function form of className the doc promises ([#1041](https://github.com/kanso-labs/kanso-ui/issues/1041)) ([093cfcb](https://github.com/kanso-labs/kanso-ui/commit/093cfcbcfd78eeae102ebade144b583358abb2de))
+* **date-picker:** centre the picker over a scrim below the breakpoint ([#1042](https://github.com/kanso-labs/kanso-ui/issues/1042)) ([e146bc0](https://github.com/kanso-labs/kanso-ui/commit/e146bc0b18c92eb6f465e172b2bce4d2ef7fb67f))
+* **overlay:** draw the popup surface an edge under forced colours ([#1045](https://github.com/kanso-labs/kanso-ui/issues/1045)) ([4bc24f1](https://github.com/kanso-labs/kanso-ui/commit/4bc24f1dffad7f69cf095970dacb019f58e7773e))
+
 ## [0.31.1](https://github.com/kanso-labs/kanso-ui/compare/v0.31.0...v0.31.1) (2026-09-22)
 
 
