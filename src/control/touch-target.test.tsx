@@ -23,6 +23,17 @@ const TARGET = 48
 // target read as missing on every side it actually reaches.
 const ROOM = { padding: '24px' }
 
+/** An icon button at `size`, rendered with room around it. */
+function buttonOf(size: 'lg' | 'md' | 'xl' | 'xs' | 'xxl') {
+  const view = renderWithRoom(
+    <IconButton aria-label="Label" size={size}>
+      <span />
+    </IconButton>,
+  )
+
+  return view.getByRole('button', { name: 'Label' })
+}
+
 /** The element drawn at exactly `width` by `height` under `root`. */
 function drawnAt(root: ParentNode, width: number, height: number) {
   const found = [...root.querySelectorAll('span')].find((span) => {
@@ -65,6 +76,25 @@ function reaches(element: Element, distance: number) {
 
 function renderWithRoom(element: ReactElement) {
   return render(<div style={ROOM}>{element}</div>)
+}
+
+// NumberField's two steppers, found by the slot React Aria wires each one
+// through rather than by name: the field labels its steppers with the field's
+// own label as well as the button's, so the accessible name is the pair and
+// not either half.
+function steppersOf(element: ReactElement) {
+  const view = renderWithRoom(element)
+  const find = (slot: string) => {
+    const found = view.container.querySelector(`button[slot="${slot}"]`)
+
+    if (!(found instanceof HTMLElement)) {
+      throw new Error(`expected the field to draw its ${slot} stepper`)
+    }
+
+    return found
+  }
+
+  return { minus: find('decrement'), plus: find('increment') }
 }
 
 const DISCED: ReadonlyArray<{ element: ReactElement; name: string }> = [
@@ -149,16 +179,6 @@ describe('the icon button, of which the page requires two sizes', () => {
     { drawn: 40, size: 'md' },
   ]
 
-  function buttonOf(size: 'lg' | 'md' | 'xl' | 'xs' | 'xxl') {
-    const view = renderWithRoom(
-      <IconButton aria-label="Label" size={size}>
-        <span />
-      </IconButton>,
-    )
-
-    return view.getByRole('button', { name: 'Label' })
-  }
-
   it.each(REQUIRED)('keeps $size drawn at $drawn', ({ drawn, size }) => {
     const box = buttonOf(size).getBoundingClientRect()
 
@@ -199,24 +219,6 @@ describe('the icon button, of which the page requires two sizes', () => {
 })
 
 describe('the number field, where two targets share a row', () => {
-  // Found by the slot React Aria wires each one through, rather than by name:
-  // the field labels its steppers with the field's own label as well as the
-  // button's, so the accessible name is the pair and not either half.
-  function steppersOf(element: ReactElement) {
-    const view = renderWithRoom(element)
-    const find = (slot: string) => {
-      const found = view.container.querySelector(`button[slot="${slot}"]`)
-
-      if (!(found instanceof HTMLElement)) {
-        throw new Error(`expected the field to draw its ${slot} stepper`)
-      }
-
-      return found
-    }
-
-    return { minus: find('decrement'), plus: find('increment') }
-  }
-
   // Side by side they are extra-small icon buttons, so each reaches 8dp past
   // its own edge. Flush, those reaches would cross into the neighbour's glyph
   // and a press on minus would increment; the gap is what keeps each press on
