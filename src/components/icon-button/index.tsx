@@ -161,13 +161,13 @@ const styles = stylex.create({
     blockSize: sizing.controlLg,
     borderRadius: { ':active': radii.md, default: radii.pill },
     fontSize: '24px',
-    inlineSize: '56px',
+    inlineSize: sizing.controlLg,
   },
   md: {
     blockSize: sizing.controlSm,
     borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '24px',
-    inlineSize: '40px',
+    inlineSize: sizing.controlSm,
   },
   // Transparent with a rule around it: the page's outlined icon button. The
   // border width comes from the size, since the page thickens it as the
@@ -258,19 +258,19 @@ const styles = stylex.create({
     blockSize: sizing.controlXl,
     borderRadius: { ':active': radii.lg, default: radii.pill },
     fontSize: '32px',
-    inlineSize: '96px',
+    inlineSize: sizing.controlXl,
   },
   xs: {
     blockSize: sizing.controlXs,
     borderRadius: { ':active': radii.sm, default: radii.pill },
     fontSize: '20px',
-    inlineSize: '32px',
+    inlineSize: sizing.controlXs,
   },
   xxl: {
     blockSize: sizing.controlXxl,
     borderRadius: { ':active': radii.lg, default: radii.pill },
     fontSize: '40px',
-    inlineSize: '136px',
+    inlineSize: sizing.controlXxl,
   },
 })
 

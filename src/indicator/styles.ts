@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import {
   colors,
+  motion,
   radii,
   spacing,
   typography,
@@ -34,8 +35,12 @@ import {
 export const THICKNESS = 4
 export const GAP = 4
 
-/** What the page gives a value that changes to move over. */
-export const DETERMINATE_MS = 250
+/**
+ * What the page gives a value that changes to move over. The duration is the
+ * motion scale's own step rather than a constant beside it — src/tokens/
+ * values.ts keeps a number in JS only where one has to reach
+ * `element.animate()` or a timer, and nothing here does.
+ */
 export const DETERMINATE_EASING = 'cubic-bezier(0.4, 0, 0.6, 1)'
 
 export type IndicatorTone = 'inherit' | 'negative' | 'positive' | 'primary'
@@ -62,7 +67,7 @@ export const indicatorStyles = stylex.create({
     borderRadius: radii.pill,
     boxSizing: 'border-box',
     flexShrink: 0,
-    transitionDuration: `${DETERMINATE_MS}ms`,
+    transitionDuration: motion.durationMedium1,
     transitionProperty: 'inline-size',
     transitionTimingFunction: DETERMINATE_EASING,
   },

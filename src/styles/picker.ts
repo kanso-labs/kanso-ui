@@ -40,7 +40,7 @@ const picker = stylex.create({
     insetInlineStart: { default: 'auto', [media.belowMedium]: '50%' },
     maxInlineSize: {
       default: 'none',
-      [media.belowMedium]: 'calc(100vw - 32px)',
+      [media.belowMedium]: `calc(100vw - 2 * ${spacing.lg})`,
     },
     position: { default: 'absolute', [media.belowMedium]: 'fixed' },
     transform: {

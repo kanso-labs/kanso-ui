@@ -12,7 +12,7 @@ import type { IndicatorTone } from '../../indicator/styles'
 import { IndicatorLabels, IndicatorLine } from '../../indicator'
 import { indicatorStyles } from '../../indicator/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { colors, radii } from '../../tokens/design.tokens.stylex'
+import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 
 // The progress indicators page's two shapes, drawn flat: the page's wavy
 // shape is the Expressive column's alone, and its amplitude and wavelength
@@ -228,7 +228,7 @@ const styles = stylex.create({
   // easing one and not the other snapped the 4dp gap between them shut and
   // open again while the active arc grew smoothly.
   arcMotion: {
-    transitionDuration: '500ms',
+    transitionDuration: motion.durationLong2,
     transitionProperty: 'stroke-dasharray, stroke-dashoffset',
     transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
   },
