@@ -5,6 +5,7 @@ import {
   motion,
   radii,
   spacing,
+  stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
 
@@ -26,6 +27,12 @@ const dropZoneStyles = stylex.create({
     lineHeight: typography.bodyMediumLineHeight,
     margin: 0,
     textAlign: 'center',
+  },
+  // The label of a target that will take nothing. It needs a style of its
+  // own rather than inheriting the root's: `label` above states its colour
+  // outright, and an inherited value never reaches an element declaring one.
+  labelDisabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   // The outlined card's surface, rule and corner, with a dashed rule and
   // room enough to aim at.
@@ -54,6 +61,17 @@ const dropZoneStyles = stylex.create({
     transitionProperty: 'background-color, border-color',
     transitionTimingFunction: motion.easingStandard,
   },
+  // A target that will take nothing. React Aria stops a disabled zone
+  // responding to a drop or the keyboard either way, so this is what keeps it
+  // from inviting one — the same 38% on the content role every disabled
+  // control here fades to, over the rule as well as the label, since a dashed
+  // rule at full strength still reads as somewhere to aim at.
+  rootDisabled: {
+    backgroundColor: colors.surface,
+    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    cursor: 'not-allowed',
+  },
   // Applied from render state rather than `:focus-visible`, since what React
   // Aria focuses is a visually hidden button inside rather than this element.
   rootFocused: {
@@ -70,12 +88,19 @@ const dropZoneStyles = stylex.create({
   },
 })
 
-// The target's own classes, from React Aria's render state.
-function rootStyles(state: { isDropTarget: boolean; isFocusVisible: boolean }) {
+// The target's own classes, from React Aria's render state. `disabled` is
+// applied last so it wins over the other two, and StyleX replaces a property
+// whole, so it takes their fill and their rule with it.
+function rootStyles(state: {
+  isDisabled: boolean
+  isDropTarget: boolean
+  isFocusVisible: boolean
+}) {
   return stylex.props(
     dropZoneStyles.root,
     state.isFocusVisible && dropZoneStyles.rootFocused,
     state.isDropTarget && dropZoneStyles.rootOver,
+    state.isDisabled && dropZoneStyles.rootDisabled,
   )
 }
 

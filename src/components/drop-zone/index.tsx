@@ -70,11 +70,22 @@ type FileTriggerProps = RACFileTriggerProps
 // rather than inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after; the React Compiler memoises the result
 // on its inputs.
-function content(children: ReactNode, label: string | undefined) {
+function content(
+  children: ReactNode,
+  label: string | undefined,
+  isDisabled: boolean,
+) {
   return (
     <>
       {label === undefined ? null : (
-        <p {...stylex.props(dropZoneStyles.label)}>{label}</p>
+        <p
+          {...stylex.props(
+            dropZoneStyles.label,
+            isDisabled && dropZoneStyles.labelDisabled,
+          )}
+        >
+          {label}
+        </p>
       )}
       {children}
     </>
@@ -109,7 +120,7 @@ function DropZone({ children, label, ...props }: DropZoneProps) {
       {...props}
       {...mergeStatefulStyles(rootStyles, props)}
     >
-      {content(children, label)}
+      {content(children, label, props.isDisabled ?? false)}
     </RACDropZone>
   )
 }
