@@ -42,8 +42,20 @@ import {
 // sheets page's element alone. Everything inside the panel — the 24 of start
 // and end padding, the 12 between the header's elements, the actions area —
 // comes from the side sheets page and is drawn the same in both.
+
+// The side sheet arrives along the inline axis, and it takes two keyframes to
+// do that rather than one. Which edge the panel rests against is logical —
+// `insetInlineEnd` puts it on the right under a left-to-right document and on
+// the left under a right-to-left one — but `translateX` is physical and flips
+// with nothing. One keyframe would therefore have the panel arrive from the
+// far side of where it comes to rest under one of the two.
 const slideInFromEnd = stylex.keyframes({
   from: { opacity: 0, transform: 'translateX(100%)' },
+  to: { opacity: 1, transform: 'translateX(0)' },
+})
+
+const slideInFromStart = stylex.keyframes({
+  from: { opacity: 0, transform: 'translateX(-100%)' },
   to: { opacity: 1, transform: 'translateX(0)' },
 })
 
@@ -87,6 +99,7 @@ const styles = stylex.create({
       default: motion.durationMedium1,
     },
     animationName: {
+      ':dir(rtl)': slideInFromStart,
       default: slideInFromEnd,
       [media.belowMedium]: slideInFromBottom,
     },
