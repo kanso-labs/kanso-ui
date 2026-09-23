@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { act, render, waitFor } from '@testing-library/react'
 import { TokenFieldValue } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
@@ -15,6 +15,7 @@ const probeStyles = stylex.create({
   chip: { borderColor: colors.outlineVariant },
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
+  selected: { color: colors.onSecondaryContainer },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -31,6 +32,7 @@ const CLASSES = {
   chip: classesOf(stylex.props(probeStyles.chip)),
   error: classesOf(stylex.props(probeStyles.error)),
   floated: classesOf(stylex.props(probeStyles.floated)),
+  selected: classesOf(stylex.props(probeStyles.selected)),
 }
 
 // What counts as a token is the call site's, which is what subclassing the
@@ -73,6 +75,19 @@ const MANY = new TaggedValue(
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// Selects a token as a click on it does: React Aria gives the token
+// `user-select: all`, so the browser's selection takes the whole of it, and
+// the token reads that selection to know it is selected.
+function select(token: HTMLElement) {
+  act(() => {
+    const range = document.createRange()
+    range.selectNode(token)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  })
 }
 
 function setup(props: Partial<Parameters<typeof TokenField>[0]> = {}) {
@@ -162,6 +177,28 @@ describe('token field', () => {
       expect(hasClasses(token, CLASSES.chip)).toBe(true)
       expect(getComputedStyle(token).blockSize).toBe('32px')
       expect(getComputedStyle(token).borderTopLeftRadius).toBe('8px')
+    })
+
+    // A selected token is the one Backspace removes next, so it shows that
+    // it is selected, as Material's input chip does: the selected chip's
+    // container in place of the outline.
+    it('draws a token the selection covers as the selected chip', async () => {
+      const view = setup()
+      const token = view
+        .getByText('#first')
+        .closest<HTMLElement>('[contenteditable="false"]')
+      if (token === null) {
+        throw new Error('expected the text to sit in a token')
+      }
+      expect(hasClasses(token, CLASSES.selected)).toBe(false)
+      expect(hasClasses(token, CLASSES.chip)).toBe(true)
+
+      select(token)
+      await waitFor(() => {
+        expect(token.getAttribute('data-selected')).toBe('true')
+      })
+      expect(hasClasses(token, CLASSES.selected)).toBe(true)
+      expect(hasClasses(token, CLASSES.chip)).toBe(false)
     })
 
     it('draws what renderToken returns instead of the token text', () => {
