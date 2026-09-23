@@ -424,6 +424,13 @@ const fieldChromeStyles = stylex.create({
   iconError: {
     color: colors.error,
   },
+  // A multi-line box has 8dp below the control as well as above it, so the
+  // slot reaches past both to the box's edges and stays centred in its height
+  // as it grows — which is where Material's own text field keeps its icons
+  // on a text area, rather than beside the first line.
+  iconMultiline: {
+    marginBlockEnd: `calc(-1 * ${spacing.sm})`,
+  },
   input: {
     '::placeholder': {
       color: colors.onSurfaceVariant,

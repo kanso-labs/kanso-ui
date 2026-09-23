@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import TextArea from '.'
+import { CloseGlyph, SearchGlyph } from '../../glyphs'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
@@ -34,6 +35,11 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xs,
   },
+  // Sized in `em`, so the icon takes the slot's 24.
+  icon: {
+    blockSize: '1em',
+    inlineSize: '1em',
+  },
   intro: {
     display: 'flex',
     flexDirection: 'column',
@@ -53,6 +59,11 @@ const styles = stylex.create({
     gap: spacing.lg,
   },
 })
+
+// The library's own glyphs stand in for an icon set, so the stories stay a
+// demonstration of the field alone.
+const LEADING_ICON = <SearchGlyph {...stylex.props(styles.icon)} />
+const TRAILING_ICON = <CloseGlyph {...stylex.props(styles.icon)} />
 
 const meta = {
   args: {
@@ -135,6 +146,47 @@ const Overview: Story = {
           />
           <TextArea defaultValue={THREE_LINES} isDisabled label="Disabled" />
           <TextArea defaultValue="" floatingLabel={false} label="Fixed label" />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Icons
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            TextField&apos;s two icons, drawn by the same chrome: 24 in the
+            muted role, 12 from the box&apos;s edge, and the trailing one in the
+            error colour with the rest of the field. They stay centred in the
+            box&apos;s height as it grows rather than beside the first line.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextArea
+            defaultValue=""
+            label="Leading"
+            leadingIcon={LEADING_ICON}
+          />
+          <TextArea
+            defaultValue={THREE_LINES}
+            label="Trailing"
+            trailingIcon={TRAILING_ICON}
+          />
+          <TextArea
+            defaultValue={FIVE_LINES}
+            label="Both, growing"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+          />
+          <TextArea
+            defaultValue=""
+            error="Enter a value."
+            label="With an error"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+          />
         </div>
       </section>
 
@@ -241,6 +293,13 @@ const WithCharacterCount: Story = {
   },
 }
 
+const WithIcons: Story = {
+  args: {
+    leadingIcon: LEADING_ICON,
+    trailingIcon: TRAILING_ICON,
+  },
+}
+
 export {
   Default,
   Disabled,
@@ -251,6 +310,7 @@ export {
   WithCharacterCount,
   WithDescription,
   WithError,
+  WithIcons,
 }
 
 export default meta
