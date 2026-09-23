@@ -382,6 +382,21 @@ describe('dialog', () => {
   })
 
   describe('layout', () => {
+    // The scrim is an element the library renders and the one the centring
+    // padding sits on, so it is border-box like every other: nothing about
+    // it may depend on a reset the consumer might not have.
+    it('draws its scrim border-box', () => {
+      const view = alert({})
+      const scrim = containerOf(view.getByRole('alertdialog')).parentElement
+      if (!(scrim instanceof HTMLElement)) {
+        throw new Error('expected the container to sit on the scrim')
+      }
+      const style = getComputedStyle(scrim)
+
+      expect(style.position).toBe('fixed')
+      expect(style.boxSizing).toBe('border-box')
+    })
+
     // The page's basic dialog pads 24 all round, with 16 between the
     // headline and the body and 24 between the body and the actions. Read as
     // the parts' own padding rather than from where the text lands, since the
