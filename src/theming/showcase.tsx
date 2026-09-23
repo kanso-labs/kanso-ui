@@ -565,7 +565,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The box takes the outline role while empty and the primary pair once marked, and the indeterminate dash takes that same pair."
+            description="The box takes the on-surface-variant role while empty and the primary pair once marked, and the indeterminate dash takes that same pair."
             title="Checkbox"
           >
             <div {...stylex.props(styles.row)}>
@@ -1128,7 +1128,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The ring takes the outline role while empty and primary once chosen, the same pair the checkbox draws."
+            description="The ring takes the on-surface-variant role while empty and primary once chosen, the same pair the checkbox draws."
             title="RadioGroup"
           >
             <RadioGroup defaultValue="second" label="Label">
