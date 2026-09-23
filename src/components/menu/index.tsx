@@ -28,6 +28,7 @@ import {
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
 import { CollectionLoadMore } from '../../collection'
+import { textOf } from '../../collection/text'
 import { ChevronEndGlyph } from '../../glyphs'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
@@ -470,16 +471,6 @@ function surfaceStyles(state: PopoverRenderProps) {
     styles.content,
     popupOrigin(state.placement),
   )
-}
-
-// What the item is worth as text, for the typeahead React Aria drives from
-// an item's words rather than its element. It reads it off the children when
-// they are a string and finds nothing when they are not — and an item here
-// is always an element, since the row wraps its label. So a plain-string
-// label becomes the text value, and anything else has to say what it is
-// worth through `textValue`.
-function textOf(children: ReactNode) {
-  return typeof children === 'string' ? children : undefined
 }
 
 /** What sits after the label: the call site's content, then the shortcut or
