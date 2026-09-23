@@ -106,7 +106,9 @@ const styles = stylex.create({
     paddingInline: spacing.md,
   },
   // The close button: the page's 24dp icon in the supporting text's colour,
-  // in a target the icon buttons page's smallest size.
+  // in a 48dp box. That is the least press area the icon buttons page
+  // allows, which it asks even of its two smallest sizes, 32 and 40dp across
+  // — see IconButton's `TARGET_SIZE`.
   close: {
     blockSize: sizing.controlMd,
     color: colors.inverseOnSurface,
