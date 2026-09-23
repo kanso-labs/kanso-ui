@@ -26,20 +26,28 @@ function useImageLoadingStatus(src: string | undefined): ImageLoadingStatus {
       return undefined
     }
 
-    let mounted = true
-    const settle = (status: Settled['status']) => () => {
-      if (mounted) {
-        setSettled({ src, status })
-      }
+    const onLoad = () => {
+      setSettled({ src, status: 'loaded' })
+    }
+    const onError = () => {
+      setSettled({ src, status: 'error' })
     }
 
     const image = new window.Image()
-    image.addEventListener('load', settle('loaded'), { once: true })
-    image.addEventListener('error', settle('error'), { once: true })
+    image.addEventListener('load', onLoad, { once: true })
+    image.addEventListener('error', onError, { once: true })
     image.src = src
 
+    // A load `src` has moved on from, or one the component went before, is
+    // stopped rather than left to run. Taking the listeners off is what keeps
+    // it from reporting an outcome nobody asked for, and lets the image go
+    // once nothing else holds it; removing its source aborts the fetch. That
+    // is the source removed rather than set empty, which would also abort it
+    // but queue an `error` event on the way.
     return () => {
-      mounted = false
+      image.removeEventListener('load', onLoad)
+      image.removeEventListener('error', onError)
+      image.removeAttribute('src')
     }
   }, [src])
 
