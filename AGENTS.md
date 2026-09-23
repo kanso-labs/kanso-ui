@@ -328,11 +328,12 @@ which is how the drift each bullet names came about.
   already read this way. What a step means is the component's own business and
   belongs in its prop comment: `Button` maps its five onto the spec's XS through
   XL there, and `Avatar` gives its three in pixels.
-- **`tone` names a colour role, and the neutral one is `neutral`.** `Currency`
-  and `Tag` use that word; `inherit` is the separate thing of taking the colour
-  around it, and `Currency`'s `auto` is the separate thing of reading the tone
-  off a value's sign. A component drawing a container per tone — `Tag` — names
-  the container's family rather than the text role, so its `neutral` is the
+- **`tone` names a colour role, and the neutral one is `neutral`.** `Currency`,
+  `Tag` and `Toolbar` use that word, `Toolbar` for the scheme its spec page
+  calls standard; `inherit` is the separate thing of taking the colour around
+  it, and `Currency`'s `auto` is the separate thing of reading the tone off a
+  value's sign. A component drawing a container per tone — `Tag` — names the
+  container's family rather than the text role, so its `neutral` is the
   surface-container pair and not the on-surface one.
 - **A field's `variant` is `FieldVariant`**, imported from `src/field`, never
   the union written out. Eleven components take the prop and the type is

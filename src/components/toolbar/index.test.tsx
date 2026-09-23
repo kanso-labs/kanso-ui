@@ -13,7 +13,7 @@ import Separator from '../separator'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
-  standard: { backgroundColor: colors.surfaceContainer },
+  neutral: { backgroundColor: colors.surfaceContainer },
   vibrant: { backgroundColor: colors.primaryContainer },
 })
 
@@ -28,7 +28,7 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
-  standard: classesOf(stylex.props(probeStyles.standard)),
+  neutral: classesOf(stylex.props(probeStyles.neutral)),
   vibrant: classesOf(stylex.props(probeStyles.vibrant)),
 }
 
@@ -157,16 +157,24 @@ describe('toolbar', () => {
   })
 
   describe('appearance', () => {
-    it('draws the standard scheme on surface container', () => {
-      const view = setup()
-      expect(hasClasses(view.getByRole('toolbar'), CLASSES.standard)).toBe(true)
+    // The page's standard scheme, which `tone` spells `neutral` as every
+    // other tone in the library spells its neutral role.
+    it('draws the neutral scheme on surface container, by default and when asked', () => {
+      const unset = setup()
+      expect(hasClasses(unset.getByRole('toolbar'), CLASSES.neutral)).toBe(true)
+      unset.unmount()
+
+      const neutral = setup({ tone: 'neutral' })
+      expect(hasClasses(neutral.getByRole('toolbar'), CLASSES.neutral)).toBe(
+        true,
+      )
     })
 
     it('moves the vibrant scheme to primary container', () => {
       const view = setup({ tone: 'vibrant' })
       const toolbar = view.getByRole('toolbar')
       expect(hasClasses(toolbar, CLASSES.vibrant)).toBe(true)
-      expect(hasClasses(toolbar, CLASSES.standard)).toBe(false)
+      expect(hasClasses(toolbar, CLASSES.neutral)).toBe(false)
     })
 
     // The page's measurements, stated there in words: 64dp across the bar,

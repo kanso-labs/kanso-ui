@@ -143,9 +143,9 @@ const Overview: Story = {
             Colour
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The page gives the bar two schemes. Standard sits on surface
-            container; vibrant moves it to primary container, for a bar meant to
-            carry the page&apos;s accent.
+            The page gives the bar two schemes. Its standard one is the neutral
+            tone and the default, on surface container; vibrant moves the bar to
+            primary container, for a bar meant to carry the page&apos;s accent.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
