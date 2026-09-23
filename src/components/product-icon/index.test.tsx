@@ -179,6 +179,33 @@ describe('accessibility', () => {
     expect(view.getByRole('img', { name: 'First item' })).toBeInTheDocument()
   })
 
+  // A blank name names nothing. Announced as an image, the icon would be one
+  // with no name, which a screen reader reads as a bare "image" and an
+  // accessibility audit fails; left as a plain element, its empty initial or
+  // its mark, drawn with an empty alt, give it nothing to read.
+  it('is not announced at all while the name is blank', () => {
+    for (const name of ['', '   ']) {
+      const view = render(<ProductIcon name={name} />)
+
+      expect(view.queryByRole('img')).toBeNull()
+      expect(iconIn(view.container).hasAttribute('aria-label')).toBe(false)
+      view.unmount()
+    }
+  })
+
+  // The mark is drawn with an empty alt, so once it loads it does not become
+  // the image the root stopped being.
+  it('is not announced once a mark loads under a blank name', async () => {
+    const view = render(<ProductIcon name="   " src={WIDE_MARK} />)
+    await waitFor(() => {
+      if (!view.container.querySelector('img')) {
+        throw new Error('image has not rendered yet')
+      }
+    })
+
+    expect(view.queryByRole('img')).toBeNull()
+  })
+
   it('forwards arbitrary props', () => {
     const view = render(
       <ProductIcon data-testid="mark" id="mark-id" name="Label" />,

@@ -161,11 +161,17 @@ function ProductIcon({
   // is announced a second time underneath the name. A span rather than an
   // <img>, which is void: this element's whole job is to hold the letter
   // shown when there is no mark, or none has loaded yet.
+  //
+  // A blank name — one still loading, say — names nothing, so the icon is
+  // then a plain element rather than an image with no name, which a screen
+  // reader reads as a bare "image". Its empty initial, or its mark with an
+  // empty alt, leave it nothing to announce.
+  const named = name.trim() !== ''
+
   return useRender({
     defaultTagName: 'span',
     props: {
-      'aria-label': name,
-      role: 'img',
+      ...(named ? { 'aria-label': name, role: 'img' } : {}),
       ...props,
       children:
         status === 'loaded' ? (
