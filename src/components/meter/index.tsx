@@ -61,8 +61,9 @@ type MeterProps = Omit<RACMeterProps, 'children' | 'className' | 'style'> & {
   /**
    * Which colours the measurement is drawn in. `primary` states without
    * ranking; `negative` and `positive` say the value is bad or good, and
-   * recolour the active indicator alone so a column of meters still shares
-   * one track.
+   * recolour the active indicator and the stop indicator, leaving the track
+   * in its secondary container so a column of meters still shares one
+   * track.
    * @default 'primary'
    */
   tone?: MeterTone

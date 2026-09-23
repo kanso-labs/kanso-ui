@@ -134,7 +134,7 @@ describe('meter', () => {
 
     // A tone recolours the two indicator parts and leaves the track, so a
     // column of meters still reads as one scale.
-    it('recolours the indicator alone for a tone', () => {
+    it('recolours the active and stop indicators alone for a tone', () => {
       const { meter } = setup({ tone: 'negative' })
       const { active, stop, track } = partsOf(meter)
       expect(hasClasses(active, CLASSES.negative)).toBe(true)

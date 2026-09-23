@@ -1021,7 +1021,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The tone recolours the active indicator alone, so a column of meters still shares one track."
+            description="The tone recolours the active indicator and the stop indicator and leaves the track, so a column of meters still shares one track."
             title="Meter"
           >
             <Meter label="Label" value={60} />
