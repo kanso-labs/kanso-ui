@@ -311,6 +311,7 @@ function BoxContent({
           {...stylex.props(
             fieldChromeStyles.outline,
             leading !== undefined && fieldChromeStyles.outlineLeading,
+            trailing !== undefined && fieldChromeStyles.outlineTrailing,
             state.isFocusWithin && fieldChromeStyles.outlineFocused,
           )}
         >

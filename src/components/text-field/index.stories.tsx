@@ -61,6 +61,9 @@ const styles = stylex.create({
 const LEADING_ICON = <SearchGlyph {...stylex.props(styles.icon)} />
 const TRAILING_ICON = <CloseGlyph {...stylex.props(styles.icon)} />
 
+const LONG_LABEL =
+  'A label long enough that it has nowhere left to go on one line'
+
 const meta = {
   args: {
     defaultValue: 'Value',
@@ -318,6 +321,37 @@ const Overview: Story = {
         <div {...stylex.props(styles.columns)}>
           <TextField defaultValue="01234.56" label="Default" />
           <TextField defaultValue="01234.56" label="Numeric" numeric />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Long labels
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A label is one line of the box, as the value is. One with no room
+            ends in an ellipsis where the column does — before a trailing icon,
+            when there is one — and an outlined box opens its notch only as far
+            as the label goes.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.columns)}>
+          <TextField defaultValue="" label={LONG_LABEL} />
+          <TextField
+            defaultValue="Value"
+            label={LONG_LABEL}
+            trailingIcon={TRAILING_ICON}
+          />
+          <TextField defaultValue="" label={LONG_LABEL} variant="outlined" />
+          <TextField
+            defaultValue="Value"
+            label={LONG_LABEL}
+            trailingIcon={TRAILING_ICON}
+            variant="outlined"
+          />
         </div>
       </section>
     </div>
