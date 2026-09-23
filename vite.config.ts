@@ -180,6 +180,8 @@ export default defineConfig(({ command }) => ({
       exclude: [
         'src/**/*.stories.tsx',
         'src/**/*.test.{ts,tsx}',
+        // Helpers the tests share, which are theirs rather than the library's.
+        'src/**/*.testing.ts',
         // Storybook material rather than library source, like the generated
         // tokens beside it: the demo schemes are `createTheme` calls with
         // nothing to execute, so counting them would only report 100% for a

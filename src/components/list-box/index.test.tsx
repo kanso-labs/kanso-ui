@@ -1,8 +1,16 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ListBox from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -10,6 +18,9 @@ import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 // Asserting on class membership pins which role each part reaches for without
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
+// Hoisted so the key list is not a new array on every render.
+const FIRST = ['first']
+
 const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -64,6 +75,40 @@ function setup(
 }
 
 describe('list box', () => {
+  // The ripple List's rows draw — see the same block there.
+  describe('the press ripple', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    it('ripples from a press on an option, and lets go once the press ends', async () => {
+      const view = setup()
+      const [option] = view.getAllByRole('option')
+
+      firePointer(option, 'pointerdown', { buttons: 1 })
+      expect(isPressed(option)).toBe(true)
+
+      firePointer(option, 'pointerup', { buttons: 0 })
+      await advance(MINIMUM_PRESS_MS)
+      expect(isPressed(option)).toBe(false)
+    })
+
+    it('draws no ripple on a disabled option', () => {
+      const view = setup({ disabledKeys: FIRST })
+      const [option] = view.getAllByRole('option')
+
+      expect(hasRipple(option)).toBe(false)
+    })
+  })
+
   describe('semantics', () => {
     it('renders a listbox of options named by its label', () => {
       const view = setup()

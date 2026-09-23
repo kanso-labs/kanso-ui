@@ -50,6 +50,11 @@ const RippleState = {
   /** The press has finished growing; waiting for the click that ends it. */
   WaitingForClick: 3,
 } as const
+type ReleaseHandlers<HostElement extends Element> = Omit<
+  RippleEventHandlers<HostElement>,
+  'onClick'
+>
+
 interface RippleEventHandlers<HostElement extends Element> {
   onClick?: MouseEventHandler<HostElement>
   onContextMenu?: MouseEventHandler<HostElement>
@@ -103,14 +108,35 @@ function prefersReducedMotion() {
  * no surface is rendered, leaving `externalHandlers` and a component's own
  * hover/press state layer (if any) untouched.
  *
+ * Pass `endsOnRelease` for a host that never hears its own click: a
+ * collection row, whose clicks React Aria's press handling keeps for itself.
+ * The press then ends when the pointer is released over the host rather than
+ * on the click that would follow, still held for the minimum a short press
+ * gets. A keyboard press reaches such a host as no pointer event at all, so
+ * it draws no ripple there.
+ *
  * `handlers` and `surface` are hand-memoized (not left to build-tool
  * optimization) so a consumer rendering many instances — a list of icon
  * buttons, say — can memoize around them too, and so stability doesn't
  * depend on any particular compiler being configured.
  */
+// A host ending on the release never hears a click, so nothing is taken for
+// one and none is handed back: the handlers are the pointer ones alone, which
+// is also what a collection row's type admits.
+function useRipple<HostElement extends Element = Element>(
+  enabled: boolean,
+  externalHandlers: ReleaseHandlers<HostElement>,
+  endsOnRelease: true,
+): { handlers: ReleaseHandlers<HostElement>; surface: ReactNode }
+function useRipple<HostElement extends Element = Element>(
+  enabled?: boolean,
+  externalHandlers?: RippleEventHandlers<HostElement>,
+  endsOnRelease?: false,
+): { handlers: RippleEventHandlers<HostElement>; surface: ReactNode }
 function useRipple<HostElement extends Element = Element>(
   enabled = true,
   externalHandlers: RippleEventHandlers<HostElement> = {},
+  endsOnRelease = false,
 ): {
   handlers: RippleEventHandlers<HostElement>
   surface: ReactNode
@@ -125,16 +151,21 @@ function useRipple<HostElement extends Element = Element>(
   const initialSize = useRef(0)
   const rippleScale = useRef('1')
 
-  const shouldReactToEvent = useCallback((event: PointerEvent<HostElement>) => {
+  // Whether `event` comes from the pointer a press would follow: the primary
+  // one, and the one that started the press already in flight, if any.
+  const isPressPointer = useCallback((event: PointerEvent<HostElement>) => {
     if (!event.isPrimary) {
       return false
     }
     const startEvent = rippleStartEvent.current
-    if (startEvent && startEvent.pointerId !== event.pointerId) {
-      return false
-    }
-    return isTouch(event) || event.buttons === 1
+    return !startEvent || startEvent.pointerId === event.pointerId
   }, [])
+
+  const shouldReactToEvent = useCallback(
+    (event: PointerEvent<HostElement>) =>
+      isPressPointer(event) && (isTouch(event) || event.buttons === 1),
+    [isPressPointer],
+  )
 
   const determineRippleSize = useCallback((rect: DOMRect) => {
     const { height, width } = rect
@@ -299,22 +330,45 @@ function useRipple<HostElement extends Element = Element>(
 
   const handlePointerUp = useCallback(
     (event: PointerEvent<HostElement>) => {
+      // A mouse or pen release carries no pressed button, so the guard the
+      // other handlers share turns it away, which is right while a click
+      // follows to end the press. A host ending on the release matches it by
+      // its pointer alone.
+      if (endsOnRelease && !isTouch(event)) {
+        if (
+          isPressPointer(event) &&
+          state.current === RippleState.WaitingForClick
+        ) {
+          void endPressAnimation()
+        }
+        return
+      }
+
       if (!shouldReactToEvent(event)) {
         return
       }
 
       if (state.current === RippleState.Holding) {
         state.current = RippleState.WaitingForClick
-        return
-      }
-
-      if (state.current === RippleState.TouchDelay) {
+      } else if (state.current === RippleState.TouchDelay) {
         // Released before the delay elapsed: treat as a completed tap.
         state.current = RippleState.WaitingForClick
         startPressAnimation(event.currentTarget, rippleStartEvent.current)
       }
+
+      // The release is as far as such a host hears, so it is where the
+      // press ends — see `endsOnRelease` above.
+      if (endsOnRelease && state.current === RippleState.WaitingForClick) {
+        void endPressAnimation()
+      }
     },
-    [shouldReactToEvent, startPressAnimation],
+    [
+      endPressAnimation,
+      endsOnRelease,
+      isPressPointer,
+      shouldReactToEvent,
+      startPressAnimation,
+    ],
   )
 
   const handlePointerLeave = useCallback(
@@ -418,24 +472,24 @@ function useRipple<HostElement extends Element = Element>(
     [handlePointerUp, onPointerUpProp],
   )
 
-  const handlers = useMemo(
-    () => ({
-      onClick,
+  const handlers = useMemo(() => {
+    const pointer = {
       onContextMenu,
       onPointerCancel,
       onPointerDown,
       onPointerLeave,
       onPointerUp,
-    }),
-    [
-      onClick,
-      onContextMenu,
-      onPointerCancel,
-      onPointerDown,
-      onPointerLeave,
-      onPointerUp,
-    ],
-  )
+    }
+    return endsOnRelease ? pointer : { onClick, ...pointer }
+  }, [
+    endsOnRelease,
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  ])
 
   const surface = useMemo(
     () => (

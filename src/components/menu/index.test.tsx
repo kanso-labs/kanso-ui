@@ -3,9 +3,15 @@ import type { PopoverRenderProps } from 'react-aria-components'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Menu from '.'
+import {
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+} from '../../hooks/useRipple.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Keycap from '../keycap'
@@ -15,6 +21,9 @@ import Keycap from '../keycap'
 // Asserting on class membership pins which role each part reaches for without
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
+// Hoisted so the key list is not a new array on every render.
+const FIRST = ['first']
+
 const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -114,6 +123,37 @@ function surfaceOf(menu: HTMLElement) {
 }
 
 describe('menu', () => {
+  // The ripple List's rows draw — see the same block there. Only the press
+  // is read here: releasing an item chooses it, which closes the menu.
+  describe('the press ripple', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    it('ripples from a press on an item', () => {
+      const view = setup()
+      const [item] = view.getAllByRole('menuitem')
+
+      firePointer(item, 'pointerdown', { buttons: 1 })
+      expect(isPressed(item)).toBe(true)
+    })
+
+    it('draws no ripple on a disabled item', () => {
+      const view = setup({ disabledKeys: FIRST })
+      const [item] = view.getAllByRole('menuitem')
+
+      expect(hasRipple(item)).toBe(false)
+    })
+  })
+
   describe('semantics', () => {
     it('renders a menu of items named by its label', () => {
       const view = setup()

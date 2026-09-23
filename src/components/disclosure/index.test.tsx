@@ -1,8 +1,16 @@
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Disclosure from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -84,6 +92,40 @@ function setup(props: Partial<Parameters<typeof Disclosure>[0]> = {}) {
 }
 
 describe('disclosure', () => {
+  // The ripple a list's rows draw, since the header is the same row. It is a
+  // button, which hears its own click, so that is where the press ends.
+  describe('the press ripple', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    it('ripples from a press on the header, and lets go once the press ends', async () => {
+      const { trigger } = setup()
+
+      firePointer(trigger, 'pointerdown', { buttons: 1 })
+      expect(isPressed(trigger)).toBe(true)
+
+      firePointer(trigger, 'pointerup', { buttons: 0 })
+      fireEvent.click(trigger)
+      await advance(MINIMUM_PRESS_MS)
+      expect(isPressed(trigger)).toBe(false)
+    })
+
+    it('draws no ripple while disabled', () => {
+      const { trigger } = setup({ isDisabled: true })
+
+      expect(hasRipple(trigger)).toBe(false)
+    })
+  })
+
   describe('semantics', () => {
     // React Aria wants a heading around the trigger — the heading is what a
     // screen reader jumps between, the button is what opens the section — so

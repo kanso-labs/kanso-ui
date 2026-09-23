@@ -21,6 +21,7 @@ import {
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
+import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -248,17 +249,21 @@ function itemContent(
   supporting: ReactNode,
   trailing: ReactNode,
   selectLabel: string,
+  ripple: ReactNode,
 ) {
   return (state: TreeItemRenderProps): ReactNode => (
-    <RowContent
-      isDisabled={state.isDisabled}
-      isSelected={state.isSelected}
-      leading={leadingFor(state, leading, selectLabel)}
-      supporting={supporting}
-      trailing={trailing}
-    >
-      {headline}
-    </RowContent>
+    <>
+      <RowContent
+        isDisabled={state.isDisabled}
+        isSelected={state.isSelected}
+        leading={leadingFor(state, leading, selectLabel)}
+        supporting={supporting}
+        trailing={trailing}
+      >
+        {headline}
+      </RowContent>
+      {state.isDisabled ? null : ripple}
+    </>
   )
 }
 
@@ -371,16 +376,34 @@ function TreeItem<T extends object = object>({
   children,
   headline,
   leading,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   supporting,
   textValue,
   trailing,
   ...props
 }: TreeItemProps<T>) {
   const selectLabel = useContext(SelectLabelContext)
+  // The press ripple List's rows draw — see ListItem there.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
 
   return (
     <RACTreeItem<T>
       textValue={textValueFor(textValue, headline)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(
         // No overline: a tree row takes the list variant's metrics because it
@@ -392,7 +415,14 @@ function TreeItem<T extends object = object>({
       )}
     >
       <RACTreeItemContent>
-        {itemContent(headline, leading, supporting, trailing, selectLabel)}
+        {itemContent(
+          headline,
+          leading,
+          supporting,
+          trailing,
+          selectLabel,
+          ripple.surface,
+        )}
       </RACTreeItemContent>
       {children}
     </RACTreeItem>

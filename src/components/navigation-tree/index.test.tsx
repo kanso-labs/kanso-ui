@@ -12,9 +12,17 @@
 
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import NavigationTree from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -28,6 +36,9 @@ const probeStyles = stylex.create({
 // A branch with one leaf under it, plus a leaf sibling — the smallest tree
 // that has every shape in it: a row that opens, a row nested under it, and a
 // row that does not open.
+// Hoisted so the key list is not a new array on every render.
+const FIRST = ['first']
+
 function Basic(props: {
   expanded?: boolean
   onExpandedChange?: (keys: Set<unknown>) => void
@@ -61,6 +72,43 @@ function probe(style: stylex.StyleXStyles) {
 }
 
 describe('navigation tree', () => {
+  // The ripple List's rows draw — see the same block there.
+  describe('the press ripple', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    it('ripples from a press on a row, and lets go once the press ends', async () => {
+      const view = render(<Basic />)
+      const [row] = view.getAllByRole('row')
+
+      firePointer(row, 'pointerdown', { buttons: 1 })
+      expect(isPressed(row)).toBe(true)
+
+      firePointer(row, 'pointerup', { buttons: 0 })
+      await advance(MINIMUM_PRESS_MS)
+      expect(isPressed(row)).toBe(false)
+    })
+
+    it('draws no ripple on a disabled row', () => {
+      const view = render(
+        <NavigationTree aria-label="Label" disabledKeys={FIRST}>
+          <NavigationTree.Item href="#first" id="first" label="First item" />
+        </NavigationTree>,
+      )
+
+      expect(hasRipple(view.getByRole('row'))).toBe(false)
+    })
+  })
+
   describe('structure', () => {
     it('renders the treegrid roles React Aria gives it', () => {
       const view = render(<Basic />)
