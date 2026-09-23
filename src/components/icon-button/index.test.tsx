@@ -154,6 +154,61 @@ describe('icon button', () => {
 
       expect(view.getByRole('link', { name: 'Add' }).tagName).toBe('A')
     })
+
+    // React Aria keeps the labelling aria-* props and, depending on the form,
+    // a few it has a use for — a button keeps aria-expanded, a link does not
+    // — and wraps keyboard handlers so they stop propagating. The component
+    // puts both back on the element. Each form renders through its own
+    // branch, so each is checked, with two attributes every form drops.
+    describe.each([
+      ['as a button', {}, 'button'],
+      ['as a toggle', { defaultSelected: false }, 'button'],
+      ['as a link', { href: '#first' }, 'link'],
+    ] as const)('%s', (_, props, role) => {
+      it('forwards aria attributes React Aria would drop', () => {
+        const view = render(
+          <IconButton
+            aria-keyshortcuts="Alt+A"
+            aria-label="Add"
+            aria-roledescription="Action"
+            {...props}
+          >
+            <svg />
+          </IconButton>,
+        )
+        const element = view.getByRole(role)
+
+        expect(element.getAttribute('aria-keyshortcuts')).toBe('Alt+A')
+        expect(element.getAttribute('aria-roledescription')).toBe('Action')
+      })
+
+      // On the element directly, an Escape pressed on the button inside a
+      // dialog still reaches the dialog.
+      it('keeps its keyboard handlers on the element, where they bubble', () => {
+        const inner = { down: vi.fn<() => void>(), up: vi.fn<() => void>() }
+        const outer = { down: vi.fn<() => void>(), up: vi.fn<() => void>() }
+        const view = render(
+          <div onKeyDown={outer.down} onKeyUp={outer.up} role="presentation">
+            <IconButton
+              aria-label="Add"
+              onKeyDown={inner.down}
+              onKeyUp={inner.up}
+              {...props}
+            >
+              <svg />
+            </IconButton>
+          </div>,
+        )
+        const element = view.getByRole(role)
+
+        fireEvent.keyDown(element, { key: 'Escape' })
+        fireEvent.keyUp(element, { key: 'Escape' })
+
+        for (const handler of [inner.down, inner.up, outer.down, outer.up]) {
+          expect(handler).toHaveBeenCalledOnce()
+        }
+      })
+    })
   })
 
   describe('appearance', () => {
