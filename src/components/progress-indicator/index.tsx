@@ -280,6 +280,13 @@ const styles = stylex.create({
     flexGrow: 1,
     minInlineSize: 0,
   },
+  // The dots under `inherit`, in the quarter of the surrounding colour that
+  // `indicatorStyles.inheritTrack` gives the rest of the track. Written out
+  // rather than drawn from that style, since the colour here sits inside a
+  // gradient; the buffer's test holds the two to the same colour.
+  dotsInherit: {
+    backgroundImage: `radial-gradient(circle at ${THICKNESS / 2}px 50%, color-mix(in srgb, currentColor 25%, transparent) ${THICKNESS / 2}px, transparent ${THICKNESS / 2}px)`,
+  },
   // The bars of the indeterminate line: full width, scaled and translated
   // from the left edge, and started off it.
   //
@@ -647,9 +654,10 @@ function LinearTrack({
             {...stylex.props(
               styles.trackBuffered,
               styles.trackBufferedAt(buffer),
+              inherit && indicatorStyles.inheritTrack,
             )}
           />
-          <span {...stylex.props(styles.dots)} />
+          <span {...stylex.props(styles.dots, inherit && styles.dotsInherit)} />
         </>
       )}
     </IndicatorLine>
