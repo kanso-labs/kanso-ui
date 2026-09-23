@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.34.0](https://github.com/kanso-labs/kanso-ui/compare/v0.33.0...v0.34.0) (2026-09-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* **toolbar:** spell the neutral tone neutral rather than standard ([#1068](https://github.com/kanso-labs/kanso-ui/issues/1068))
+
+### Features
+
+* **text-area:** add the leadingIcon and trailingIcon slots TextField has ([#1064](https://github.com/kanso-labs/kanso-ui/issues/1064)) ([c4dce3e](https://github.com/kanso-labs/kanso-ui/commit/c4dce3e66ae1944105e5707bac1e7cdf9b9bd9de))
+* **toolbar:** spell the neutral tone neutral rather than standard ([#1068](https://github.com/kanso-labs/kanso-ui/issues/1068)) ([13696a7](https://github.com/kanso-labs/kanso-ui/commit/13696a7386b7c7acd843168da5fc13921e6ff51b))
+
+
+### Bug Fixes
+
+* **field:** centre the icons in an outlined field ([#1067](https://github.com/kanso-labs/kanso-ui/issues/1067)) ([2e403ab](https://github.com/kanso-labs/kanso-ui/commit/2e403ab584a804eb0296e1ebfaea412de05a74e6))
+* **field:** grow an outlined text area or token field with its content ([#1066](https://github.com/kanso-labs/kanso-ui/issues/1066)) ([49f8aa0](https://github.com/kanso-labs/kanso-ui/commit/49f8aa0d0a3a791fdf16b027439956335432ccf8))
+* **time-field:** stop wrapping typed segments in the truncating FieldValue ([#1063](https://github.com/kanso-labs/kanso-ui/issues/1063)) ([9525ffb](https://github.com/kanso-labs/kanso-ui/commit/9525ffb3f0f56d7e4298355eee37eba490824379))
+
 ## [0.33.0](https://github.com/kanso-labs/kanso-ui/compare/v0.32.0...v0.33.0) (2026-09-23)
 
 
