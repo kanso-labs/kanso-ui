@@ -2,6 +2,7 @@ import type { PopoverRenderProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import Menu from '.'
@@ -65,6 +66,42 @@ function setup(
       </Menu.Content>
     </Menu>,
   )
+}
+
+/**
+ * The transform the browser resolved for the chevron on an item that opens a
+ * submenu, with the menu rendered under `locale`.
+ *
+ * The locale rather than a `dir` on a wrapper, since that is what reaches the
+ * chevron: React Aria portals the menu's popover to the body, and stamps it
+ * with a `dir` of its own taken from the locale, so a wrapper's — or even the
+ * document's — never gets there.
+ */
+function submenuChevronUnder(locale: string) {
+  const view = render(
+    <I18nProvider locale={locale}>
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content>
+          <Menu.Submenu>
+            <Menu.Item id="more">More</Menu.Item>
+            <Menu.Content aria-label="More">
+              <Menu.Item id="first">First item</Menu.Item>
+            </Menu.Content>
+          </Menu.Submenu>
+        </Menu.Content>
+      </Menu>
+    </I18nProvider>,
+  )
+  const chevron = view
+    .getByRole('menuitem', { name: 'More' })
+    .querySelector('svg')
+  if (chevron === null) {
+    throw new Error('expected the item to draw its chevron')
+  }
+  const { transform } = getComputedStyle(chevron)
+  view.unmount()
+  return transform
 }
 
 /** The positioned surface the menu is drawn on. */
@@ -310,6 +347,14 @@ describe('menu', () => {
 
       expect(item.getAttribute('aria-haspopup')).toBe('menu')
       expect(item.querySelector('svg')).not.toBeNull()
+    })
+
+    // The chevron points to the inline end, where the submenu opens, so it
+    // turns over with the writing direction. Read as the browser resolved it,
+    // since the point is that the `:dir(rtl)` rule reaches the element.
+    it('mirrors the chevron under a right-to-left locale', () => {
+      expect(submenuChevronUnder('en-US')).toBe('none')
+      expect(submenuChevronUnder('ar-EG')).toBe('matrix(-1, 0, 0, 1, 0, 0)')
     })
 
     it('opens the submenu from its item', async () => {
