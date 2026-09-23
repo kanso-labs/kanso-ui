@@ -28,4 +28,14 @@ function chipGlyph(isSelected: boolean): ReactNode {
   )
 }
 
-export { chipGlyph }
+/**
+ * The label a chip draws, in a span of its own so it can be cut short with an
+ * ellipsis rather than wrapped out of the pill; see the header of `./styles`.
+ * Shared for the reason `chipGlyph` is, by all three components that draw the
+ * pill.
+ */
+function chipLabel(children: ReactNode): ReactNode {
+  return <span {...stylex.props(chipStyles.label)}>{children}</span>
+}
+
+export { chipGlyph, chipLabel }

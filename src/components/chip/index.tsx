@@ -7,7 +7,7 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import { ToggleButton } from 'react-aria-components'
 
-import { chipGlyph } from '../../chip'
+import { chipGlyph, chipLabel } from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
@@ -66,7 +66,7 @@ function chipContent(children: ReactNode) {
   return (state: ToggleButtonRenderProps) => (
     <>
       {chipGlyph(state.isSelected)}
-      {children}
+      {chipLabel(children)}
     </>
   )
 }

@@ -15,6 +15,7 @@ import {
 
 import type { FieldVariant } from '../../field'
 
+import { chipLabel } from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { FieldBox, FieldMessage } from '../../field'
 import { fieldStyles, invalidFrom } from '../../field/root'
@@ -209,7 +210,9 @@ function tokenContent(renderToken: TokenFieldProps['renderToken']) {
         styles.token,
       )}
     >
-      {renderToken === undefined ? segment.text : renderToken(segment)}
+      {chipLabel(
+        renderToken === undefined ? segment.text : renderToken(segment),
+      )}
     </RACToken>
   )
 }

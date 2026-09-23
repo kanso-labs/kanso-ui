@@ -15,9 +15,19 @@ import {
 // a set that can also be removed; and TokenField's token, which takes `base`
 // and `unselected` alone — a token is not selectable, so it reaches for
 // neither the selected container nor the check below. The measurements and
-// roles are the page's filter chip — a 32dp container with an 8dp corner and 16dp of inline
-// padding, an outline variant border while unselected, the secondary
-// container pair once selected.
+// roles are the page's filter chip — a 32dp container with an 8dp corner and
+// 16dp of inline padding, an outline variant border while unselected, the
+// secondary container pair once selected.
+//
+// **A label with no room on one line is cut short, never wrapped.** The
+// container is a fixed 32dp, so a second line has nowhere to go but out of
+// the pill: a chip or a token in a room narrower than its label drew the
+// rest below its own edge, and a chip in a group's row ran past the row's
+// end instead. The pill is held to the room it is in, and the label sits in
+// a span of its own that ends in an ellipsis where the pill does — a span,
+// because a flex container ignores `text-overflow`, which is also why
+// Material's own chips carry one. The whole label stays in the DOM, so a
+// screen reader still reads all of it.
 //
 // Each state composites an on-colour over its own container at the
 // interaction state's opacity rather than swapping in a separate hover
@@ -70,6 +80,9 @@ const chipStyles = stylex.create({
     gap: spacing.sm,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    // Never wider than the room it is in, which is what leaves the label a
+    // width to be cut short at. See the header.
+    maxInlineSize: '100%',
     paddingBlock: 0,
     paddingInline: spacing.lg,
     transitionDuration: motion.durationShort2,
@@ -113,6 +126,16 @@ const chipStyles = stylex.create({
   glyphSvg: {
     blockSize: '100%',
     inlineSize: '100%',
+  },
+  // The label, on one line and ending in an ellipsis where the pill does.
+  // `overflow: hidden` does two jobs: `text-overflow` draws nothing without
+  // it, and a flex item that clips may narrow below the text it holds, where
+  // one that does not is held at that text's width.
+  label: {
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   // The trailing close target the page draws on an input chip: an 18dp glyph
   // in the content role, in a target of its own so a press on it removes the

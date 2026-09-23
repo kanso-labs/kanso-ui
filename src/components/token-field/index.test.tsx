@@ -135,7 +135,14 @@ describe('token field', () => {
     // token here and a chip elsewhere cannot drift.
     it('draws the tokens as the page pill', () => {
       const view = setup()
-      const token = view.getByText('#first')
+      // React Aria's token, the span the caret cannot enter, around the
+      // label the pill cuts short.
+      const token = view
+        .getByText('#first')
+        .closest<HTMLElement>('[contenteditable="false"]')
+      if (token === null) {
+        throw new Error('expected the text to sit in a token')
+      }
       expect(hasClasses(token, CLASSES.chip)).toBe(true)
       expect(getComputedStyle(token).blockSize).toBe('32px')
       expect(getComputedStyle(token).borderTopLeftRadius).toBe('8px')
