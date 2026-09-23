@@ -1,7 +1,9 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
+
+import type { SheetContentProps } from '.'
 
 import Sheet from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
@@ -102,11 +104,45 @@ function panelOf(dialog: HTMLElement) {
   return panel
 }
 
-function setup(props: Partial<Parameters<typeof Sheet>[0]> = {}) {
+/**
+ * A press on the scrim, outside the panel, which is what React Aria reads as
+ * outside. Every animation is run to its end on either side of it and React
+ * let catch up, so a sheet the press closed has unmounted by the time this
+ * returns, and one still there was held open rather than caught mid-exit.
+ */
+async function pressScrim(dialog: HTMLElement) {
+  const scrim = panelOf(dialog).parentElement
+  if (scrim === null) {
+    throw new Error('expected the panel to sit on the scrim')
+  }
+  const init = {
+    button: 0,
+    isPrimary: true,
+    pointerId: 1,
+    pointerType: 'mouse',
+  }
+  await settle()
+  fireEvent.pointerDown(scrim, init)
+  fireEvent.pointerUp(scrim, init)
+  fireEvent.click(scrim, init)
+  await settle()
+}
+
+async function settle() {
+  for (const animation of document.getAnimations()) {
+    animation.finish()
+  }
+  await act(async () => {})
+}
+
+function setup(
+  props: Partial<Parameters<typeof Sheet>[0]> = {},
+  content: Partial<SheetContentProps> = {},
+) {
   const view = render(
     <Sheet defaultOpen {...props}>
       <Button>Open</Button>
-      <Sheet.Content>
+      <Sheet.Content {...content}>
         <Sheet.Handle data-testid="handle" />
         <Sheet.Header>
           <Sheet.Title>Headline</Sheet.Title>
@@ -181,6 +217,22 @@ describe('sheet', () => {
       await waitFor(() => {
         expect(view.queryByRole('dialog')).toBeNull()
       })
+    })
+
+    // `isDismissable` defaults to true here, where React Aria's own default is
+    // false, and the prop's documentation says so. This is what holds the
+    // documentation to the component.
+    it('closes on a press on the scrim unless told otherwise', async () => {
+      const view = setup()
+      await pressScrim(view.getByRole('dialog'))
+      expect(view.queryByRole('dialog')).toBeNull()
+    })
+
+    // The same press, so a sheet still open here was held open.
+    it('stays open on a press on the scrim with isDismissable={false}', async () => {
+      const view = setup({}, { isDismissable: false })
+      await pressScrim(view.getByRole('dialog'))
+      expect(view.getByRole('dialog')).not.toBeNull()
     })
 
     // Controlled means the call site owns the state: closing reports it and
