@@ -55,6 +55,22 @@ const TAGGED = new TaggedValue([
   { text: '#second', type: 'token' },
 ])
 
+// A field narrow enough for MANY to wrap onto several lines.
+const layoutStyles = stylex.create({
+  narrow: { inlineSize: '240px' },
+})
+
+// Enough tokens to wrap onto several lines in a narrow field.
+const MANY = new TaggedValue(
+  Array.from({ length: 12 }, (_, index) => [
+    {
+      text: `#token-${String(index + 1).padStart(2, '0')}`,
+      type: 'token' as const,
+    },
+    { text: ' ', type: 'text' as const },
+  ]).flat(),
+)
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -234,6 +250,30 @@ describe('token field', () => {
       emptyView.unmount()
 
       expect(empty).toBeLessThanOrEqual(spacingOf(setup()).height)
+    })
+
+    // Outlined, the box has the page's 16 above and below what it holds, and
+    // grows with the lines the tokens wrap onto rather than staying at 56
+    // while they run on through the outline.
+    it('grows the outlined box with the lines the tokens wrap onto', () => {
+      const view = render(
+        <div {...stylex.props(layoutStyles.narrow)}>
+          <TokenField defaultValue={MANY} label="Label" variant="outlined" />
+        </div>,
+      )
+      const control = view.getByRole('textbox', { name: 'Label' })
+      const box = control.parentElement?.parentElement
+      if (!(box instanceof HTMLElement)) {
+        throw new Error('expected the control to sit in a column in the box')
+      }
+      const outer = box.getBoundingClientRect()
+      const inner = control.getBoundingClientRect()
+
+      expect(inner.height).toBeGreaterThan(32)
+      expect({
+        above: inner.top - outer.top,
+        below: outer.bottom - inner.bottom,
+      }).toEqual({ above: 16, below: 16 })
     })
   })
 })

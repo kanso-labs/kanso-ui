@@ -1,7 +1,9 @@
+import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import TextArea from '.'
+import { typography } from '../../tokens/design.tokens.stylex'
 
 // The box the control sits in: the label's column is in it.
 function boxOf(label: HTMLElement) {
@@ -19,6 +21,14 @@ function settled(element: HTMLElement) {
   }
   return getComputedStyle(element)
 }
+
+// A label line taller than the default 16, which is what tells the two
+// boxes' least heights apart: the filled box counts the label's line inside
+// it and the outlined one does not, and under the default tokens both come
+// to 56.
+const tallLabelType = stylex.createTheme(typography, {
+  bodySmallLineHeight: '20px',
+})
 
 // An icon a story or a call site would pass: sized in `em`, so it takes the
 // slot's 24.
@@ -38,7 +48,9 @@ function boxHeight(lines: number) {
 
 function setup(props: Partial<Parameters<typeof TextArea>[0]> = {}) {
   const view = render(<TextArea label="Label" {...props} />)
-  const label = view.getByText('Label')
+  // The outlined box's notch holds a hidden copy of the label's text, so the
+  // element is found by its role rather than by the text alone.
+  const label = view.getByText('Label', { selector: 'label' })
   return {
     ...view,
     box: boxOf(label),
@@ -128,6 +140,61 @@ describe('text area', () => {
       expect(box.getBoundingClientRect().height).toBe(56)
     })
 
+    // Outlined, the page puts 16 above and below the text in place of the
+    // filled box's 8 around the label's line and the text, which comes to the
+    // same height for the same lines. The box grows the same way, with the
+    // text inside it rather than running out through the outline.
+    it('grows the outlined box with its text', () => {
+      const { box, control } = setup({
+        defaultValue: FIVE_LINES,
+        variant: 'outlined',
+      })
+      const room = () => {
+        const outer = box.getBoundingClientRect()
+        const inner = control.getBoundingClientRect()
+        return {
+          above: inner.top - outer.top,
+          below: outer.bottom - inner.bottom,
+          height: outer.height,
+        }
+      }
+      expect(room()).toEqual({ above: 16, below: 16, height: boxHeight(5) })
+
+      act(() => {
+        fireEvent.change(control, { target: { value: THREE_LINES } })
+      })
+      expect(room()).toEqual({ above: 16, below: 16, height: boxHeight(3) })
+
+      act(() => {
+        fireEvent.change(control, { target: { value: `${FIVE_LINES}\n` } })
+      })
+      expect(room()).toEqual({ above: 16, below: 16, height: boxHeight(6) })
+    })
+
+    it("is at least the page's 56 outlined with a single row", () => {
+      const { box } = setup({ rows: 1, variant: 'outlined' })
+      expect(box.getBoundingClientRect().height).toBe(56)
+    })
+
+    // One row outlined is an outlined text field's height, 16 above and
+    // below a line of text, however tall the filled box's label line is.
+    it("keeps the outlined box's own least height under a taller label line", () => {
+      const view = render(
+        <div {...stylex.props(tallLabelType)}>
+          <TextArea label="Filled" rows={1} />
+          <TextArea label="Outlined" rows={1} variant="outlined" />
+        </div>,
+      )
+      const heightOf = (label: string) =>
+        boxOf(
+          view.getByText(label, { selector: 'label' }),
+        ).getBoundingClientRect().height
+      expect({
+        filled: heightOf('Filled'),
+        outlined: heightOf('Outlined'),
+      }).toEqual({ filled: 8 + 20 + 24 + 8, outlined: 16 + 24 + 16 })
+    })
+
     it('draws no resize handle', () => {
       const { control } = setup()
       expect(getComputedStyle(control).resize).toBe('none')
@@ -188,6 +255,25 @@ describe('text area', () => {
       })
       expect(offsets()).toEqual({
         box: boxHeight(5),
+        leading: (boxHeight(5) - 24) / 2,
+        trailing: (boxHeight(5) - 24) / 2,
+      })
+    })
+
+    it('centres the icons in the outlined box too', () => {
+      const view = setup({
+        defaultValue: FIVE_LINES,
+        leadingIcon: ICON,
+        trailingIcon: OTHER_ICON,
+        variant: 'outlined',
+      })
+      const box = view.box.getBoundingClientRect()
+      expect(box.height).toBe(boxHeight(5))
+      expect({
+        leading: view.getByTestId('icon').getBoundingClientRect().top - box.top,
+        trailing:
+          view.getByTestId('other-icon').getBoundingClientRect().top - box.top,
+      }).toEqual({
         leading: (boxHeight(5) - 24) / 2,
         trailing: (boxHeight(5) - 24) / 2,
       })

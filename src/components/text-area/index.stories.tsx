@@ -241,6 +241,13 @@ const Overview: Story = {
             label="Growing"
             variant="outlined"
           />
+          <TextArea
+            defaultValue={THREE_LINES}
+            label="With icons"
+            leadingIcon={LEADING_ICON}
+            trailingIcon={TRAILING_ICON}
+            variant="outlined"
+          />
         </div>
       </section>
     </div>

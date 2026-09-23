@@ -402,6 +402,7 @@ function boxStyles(
       trailing && fieldChromeStyles.boxTrailing,
       outlined && fieldChromeStyles.boxOutlined,
       outlined && floatingLabel && fieldChromeStyles.boxOutlinedFloating,
+      outlined && multiline && fieldChromeStyles.boxOutlinedMultiline,
       state.isInvalid &&
         (outlined
           ? fieldChromeStyles.boxOutlinedError

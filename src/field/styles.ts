@@ -363,6 +363,14 @@ const fieldChromeStyles = stylex.create({
       default: `calc(${BOX_OUTLINED_BLOCK_SIZE} - 2 * ${spacing.lg})`,
     },
   },
+  // Outlined and multi-line: the outlined box's 16dp above and below the
+  // text, around a box that grows with it from the page's 56dp. Applied after
+  // `boxOutlined`, whose fixed height would otherwise hold the box at 56dp
+  // while the text ran on through the outline below it.
+  boxOutlinedMultiline: {
+    blockSize: 'auto',
+    minBlockSize: BOX_OUTLINED_BLOCK_SIZE,
+  },
   boxTrailing: {
     paddingInlineEnd: spacing.md,
   },
