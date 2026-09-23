@@ -6,6 +6,7 @@ import Dialog from '../components/dialog'
 import Popover from '../components/popover'
 import Sheet from '../components/sheet'
 import Snackbar from '../components/snackbar'
+import Tooltip from '../components/tooltip'
 
 const REDUCE = 'prefers-reduced-motion: reduce'
 
@@ -141,6 +142,18 @@ function openSheet() {
   return animatedAncestor(view.getByRole('dialog'))
 }
 
+// The tooltip carries the role itself, so the walk out to the animated
+// ancestor stops where it starts.
+function openTooltip() {
+  const view = render(
+    <Tooltip defaultOpen label="Supporting text">
+      <Button>Open</Button>
+    </Tooltip>,
+  )
+
+  return animatedAncestor(view.getByRole('tooltip'))
+}
+
 function showSnackbar() {
   const queue = new Snackbar.Queue()
   const view = render(<Snackbar queue={queue} />)
@@ -157,6 +170,7 @@ const OVERLAYS: ReadonlyArray<{ name: string; open: () => HTMLElement }> = [
   { name: "a dialog's container", open: openDialog },
   { name: "a snackbar's strip", open: showSnackbar },
   { name: "a popover's surface", open: openPopover },
+  { name: "a tooltip's container", open: openTooltip },
 ]
 
 describe('an overlay that moves as it arrives', () => {
