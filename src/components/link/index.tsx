@@ -19,6 +19,16 @@ import {
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
 
+// No Material Design page draws an inline link. The nearest component is the
+// text button, whose label is the same primary role on no container, and this
+// takes that, with the disabled treatment every page gives content: on
+// surface at the disabled-content opacity. What belongs to a control standing
+// on its own is left out — the button's height, padding, type and state
+// layer. A link takes its size and face from the sentence it sits in, and
+// says it can be followed with its underline instead, which is this
+// component's own: a 1px rule in 45% of the primary role, or in the outline
+// role under `inherit`, turning fully primary on hover.
+
 const styles = stylex.create({
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
