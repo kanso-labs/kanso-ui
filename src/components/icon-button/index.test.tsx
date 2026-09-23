@@ -1,3 +1,4 @@
+import type { StyleXStyles } from '@stylexjs/stylex'
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
@@ -6,7 +7,11 @@ import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import IconButton from '.'
-import { colors, radii } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  radii,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than
 // literals, so the assertions pin which role each variant reaches for without
@@ -28,7 +33,44 @@ const probeStyles = stylex.create({
   secondary: { backgroundColor: colors.secondary },
   secondaryContainer: { backgroundColor: colors.secondaryContainer },
   surfaceContainer: { backgroundColor: colors.surfaceContainer },
+  // The hover and pressed tints alone, each the variant's icon colour over its
+  // container, written as the component writes them so they hash to the same
+  // atomic classes. Outlined and standard share one, since both draw the muted
+  // icon over nothing.
+  tintFilled: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      default: null,
+    },
+  },
+  tintMuted: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: null,
+    },
+  },
+  tintTonal: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: null,
+    },
+  },
 })
+
+// An empty list would make the `every` below vacuously true, so it is a
+// broken assertion rather than a passing one.
+function classesOf(style: StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the probe style to generate at least one class')
+  }
+  return classes
+}
 
 function probe(element: ReactElement) {
   const view = render(element)
@@ -186,6 +228,37 @@ describe('icon button', () => {
       ).color
       const { button } = setup()
       expect(getComputedStyle(button).color).toBe(expected)
+    })
+
+    // The page's state layer for each variant is the colour its icon rests
+    // in, laid over its own container. Read off the classes StyleX writes for
+    // the two branches, as the pressed corners above are.
+    it('tints each variant with its own icon colour on hover and press', () => {
+      const cases = [
+        ['filled', probeStyles.tintFilled],
+        ['outlined', probeStyles.tintMuted],
+        ['standard', probeStyles.tintMuted],
+        ['tonal', probeStyles.tintTonal],
+      ] as const
+
+      // Collected by variant, so a failure names the one that drifted.
+      const tinted = Object.fromEntries(
+        cases.map(([variant, tint]) => {
+          const { button, unmount } = setup({ variant })
+          const carries = classesOf(tint).every((name) =>
+            button.classList.contains(name),
+          )
+          unmount()
+          return [variant, carries]
+        }),
+      )
+
+      expect(tinted).toEqual({
+        filled: true,
+        outlined: true,
+        standard: true,
+        tonal: true,
+      })
     })
 
     // The page's outlined icon button: transparent with a rule around it and
