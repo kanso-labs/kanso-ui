@@ -19,6 +19,7 @@ import {
 
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import { textOf } from '../../collection/text'
 import { RowContent } from '../../row'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import Checkbox from '../checkbox'
@@ -303,16 +304,6 @@ function ListSection<T extends object = object>({
       {children}
     </RACGridListSection>
   )
-}
-
-// What the row is worth as text, for the thing React Aria does with a row's
-// words rather than its element: typeahead. It reads that off the children
-// when they are a string and finds nothing when they are not — and a row
-// here is always an element, since it wraps its headline. So a plain-string
-// headline becomes the text value, and anything else has to say what it is
-// worth through `textValue`.
-function textOf(children: ReactNode) {
-  return typeof children === 'string' ? children : undefined
 }
 
 List.Item = ListItem

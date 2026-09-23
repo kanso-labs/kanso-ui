@@ -17,6 +17,7 @@ import {
 
 import { chipGlyph, chipLabel } from '../../chip'
 import { chipStyles } from '../../chip/styles'
+import { textOf } from '../../collection/text'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
 import { groupStyles } from '../../field/styles'
@@ -247,16 +248,6 @@ function chipPropsFor(state: TagRenderProps) {
         ? chipStyles.disabledSelected
         : chipStyles.disabledUnselected),
   )
-}
-
-// What the chip is worth as text, for the typeahead React Aria drives from a
-// chip's words and for what a screen reader announces. It reads it off the
-// children when they are a string and finds nothing when they are not — and a
-// chip here is always an element once it can be removed. So a plain-string
-// label becomes the text value, and anything else has to say what it is worth
-// through `textValue`.
-function textOf(children: ReactNode) {
-  return typeof children === 'string' ? children : undefined
 }
 
 ChipGroup.Chip = ChipGroupChip
