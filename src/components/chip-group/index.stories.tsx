@@ -20,6 +20,7 @@ const PARAGRAPH = <p />
 
 const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
+const LONG = ['long']
 
 const CHIPS = (
   <>
@@ -45,6 +46,10 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.xxs,
+  },
+  // Narrower than the long label below on one line.
+  narrow: {
+    maxInlineSize: '280px',
   },
   page: {
     display: 'flex',
@@ -200,6 +205,35 @@ const Overview: Story = {
             selectionMode="multiple"
           >
             {CHIPS}
+          </ChipGroup>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Long labels
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A chip is never wider than the row it sits in, and a label with no
+            room on one line ends in an ellipsis rather than wrapping out of the
+            32dp pill. The check and the close target stay inside it, and a
+            screen reader still reads the whole label.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.narrow)}>
+          <ChipGroup
+            defaultSelectedKeys={LONG}
+            label="Label"
+            onRemove={noop}
+            selectionMode="multiple"
+          >
+            <ChipGroup.Chip id="long">
+              A label long enough that it has nowhere left to go on one line
+            </ChipGroup.Chip>
+            <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
           </ChipGroup>
         </div>
       </section>
