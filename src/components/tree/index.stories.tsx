@@ -99,6 +99,27 @@ function Sample(props: {
   )
 }
 
+// Two groups under their headings, the first holding a branch, and the row a
+// tree shows while it fetches more when `loading` is set.
+function SectionsSample(props: { loading?: boolean }) {
+  return (
+    <Card padding="none" variant="outlined">
+      <Tree aria-label="Label" defaultExpandedKeys={OPEN}>
+        <Tree.Section header="First group" id="first-group">
+          <Tree.Item headline="First item" id="first">
+            <Tree.Item headline="Second item" id="second" />
+          </Tree.Item>
+          <Tree.Item headline="Third item" id="third" />
+        </Tree.Section>
+        <Tree.Section header="Second group" id="second-group">
+          <Tree.Item headline="Fourth item" id="fourth" />
+        </Tree.Section>
+        {props.loading === true ? <Tree.LoadMore isLoading /> : null}
+      </Tree>
+    </Card>
+  )
+}
+
 const Overview: Story = {
   render: () => (
     <div {...stylex.props(styles.page)}>
@@ -167,6 +188,25 @@ const Overview: Story = {
           <Sample supporting />
         </div>
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Sections and loading
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A section groups rows under a heading, which is what names it for a
+            screen reader, and the rows inside it nest as they do anywhere else.
+            The load-more row is a sentinel: React Aria calls onLoadMore when it
+            comes into view, and draws the ring only while isLoading.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.width)}>
+          <SectionsSample loading />
+        </div>
+      </section>
     </div>
   ),
 }
@@ -189,6 +229,32 @@ const Selectable: Story = {
   ),
 }
 
-export { Default, Overview, Selectable }
+const Sections: Story = {
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <SectionsSample />
+    </div>
+  ),
+}
+
+// Its own story because the ring is the one part of the tree that is drawn
+// only while something is in flight.
+const Loading: Story = {
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <Card padding="none" variant="outlined">
+        <Tree aria-label="Label" defaultExpandedKeys={OPEN}>
+          <Tree.Item headline="First item" id="first">
+            <Tree.Item headline="Second item" id="second" />
+          </Tree.Item>
+          <Tree.Item headline="Third item" id="third" />
+          <Tree.LoadMore isLoading />
+        </Tree>
+      </Card>
+    </div>
+  ),
+}
+
+export { Default, Loading, Overview, Sections, Selectable }
 
 export default meta
