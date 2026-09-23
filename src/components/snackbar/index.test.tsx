@@ -2,6 +2,8 @@ import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { SnackbarOptions } from '.'
+
 import Snackbar from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
 
@@ -259,10 +261,10 @@ describe('snackbar', () => {
       })
     })
 
-    it('closes from the close button when it is dismissable', async () => {
+    it('closes from its close button', async () => {
       const { queue, view } = setup()
       act(() => {
-        queue.add('First item', { isDismissable: true })
+        queue.add('First item', { showCloseButton: true })
       })
       await waitFor(() => {
         expect(view.getByRole('button', { name: 'Close' })).not.toBeNull()
@@ -275,13 +277,29 @@ describe('snackbar', () => {
       })
     })
 
+    // On the overlays around it `isDismissable` is whether a press outside
+    // closes them, so the option here is named for what it draws, and the
+    // other spelling is taken neither by the type nor at run time.
+    it('draws the close button for showCloseButton alone', async () => {
+      const { queue, view } = setup()
+      // @ts-expect-error -- the option is `showCloseButton`
+      const options: SnackbarOptions = { isDismissable: true }
+      act(() => {
+        queue.add('First item', options)
+      })
+      await waitFor(() => {
+        expect(view.getByText('First item')).not.toBeNull()
+      })
+      expect(view.queryByRole('button', { name: 'Close' })).toBeNull()
+    })
+
     // The region's own name is React Aria's, and localized in some thirty
     // languages. Without this the button inside it was announced in English
     // whatever the locale around it, with no API to say otherwise.
     it('lets the close button be named by the call site', async () => {
       const { queue, view } = setup({ closeLabel: 'Fermer' })
       act(() => {
-        queue.add('First item', { isDismissable: true })
+        queue.add('First item', { showCloseButton: true })
       })
 
       await waitFor(() => {
@@ -392,7 +410,7 @@ describe('snackbar', () => {
       act(() => {
         queue.add('First item', {
           action: { label: 'Undo', onPress: () => {} },
-          isDismissable: true,
+          showCloseButton: true,
         })
       })
       await waitFor(() => {

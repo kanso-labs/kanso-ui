@@ -163,7 +163,7 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
-            Dismissable
+            Close button
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             A close button puts the message away before it expires. Every timer
@@ -175,7 +175,7 @@ const Overview: Story = {
           <Button
             onPress={show('Second item could not be saved', {
               action: RETRY,
-              isDismissable: true,
+              showCloseButton: true,
             })}
             variant="tonal"
           >
@@ -200,10 +200,10 @@ const WithAction: Story = {
   args: { queue: seeded({ action: UNDO }) },
 }
 
-const Dismissable: Story = {
-  args: { queue: seeded({ action: RETRY, isDismissable: true }) },
+const WithCloseButton: Story = {
+  args: { queue: seeded({ action: RETRY, showCloseButton: true }) },
 }
 
-export { Default, Dismissable, Overview, WithAction }
+export { Default, Overview, WithAction, WithCloseButton }
 
 export default meta

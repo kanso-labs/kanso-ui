@@ -86,7 +86,7 @@ describe('a control sized from a token a consumer moved', () => {
   // `<Snackbar>` never reaches what it renders.
   it("keeps the snackbar's close button square", () => {
     const queue = new Snackbar.Queue()
-    queue.add('First item', { isDismissable: true })
+    queue.add('First item', { showCloseButton: true })
     const themed = (stylex.props(wideControls).className ?? '').split(' ')
     const root = document.documentElement
 
