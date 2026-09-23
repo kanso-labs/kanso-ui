@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type {
   ButtonRenderProps,
   ColorPickerProps as RACColorPickerProps,
@@ -148,7 +148,7 @@ type ColorPickerProps = Omit<RACColorPickerProps, 'children'> & {
   /** Called when the surface opens or closes. */
   onOpenChange?: (isOpen: boolean) => void
   /** Lands on the trigger, as `className` does. */
-  style?: React.CSSProperties
+  style?: CSSProperties
 }
 
 /**

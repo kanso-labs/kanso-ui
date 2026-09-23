@@ -27,6 +27,20 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // A type from React is imported by name rather than read off the
+      // `React` namespace @types/react declares globally. The global
+      // type-checks with no import at all, so a file could depend on React's
+      // types without saying so anywhere a reader or a tool would look.
+      'no-restricted-syntax': [
+        'error',
+        {
+          message:
+            "Import the type from 'react' by name rather than reading it off the global React namespace.",
+          selector: "TSQualifiedName[left.name='React']",
+        },
+      ],
+    },
   },
   {
     files: ['**/*.stories.tsx'],

@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
@@ -27,7 +29,7 @@ const RING = (stylex.props(focus.ring).className ?? '')
   .filter(Boolean)
 
 const CASES: ReadonlyArray<{
-  element: React.ReactElement
+  element: ReactElement
   name: string
   role: string
 }> = [
