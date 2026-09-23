@@ -86,8 +86,8 @@ function alignedEdges(align: 'center' | 'end' | 'start') {
   const tooltip = settled(view.getByRole('tooltip')).getBoundingClientRect()
   view.unmount()
   return {
-    end: Math.round(trigger.right - tooltip.right),
-    start: Math.round(tooltip.left - trigger.left),
+    end: trigger.right - tooltip.right,
+    start: tooltip.left - trigger.left,
   }
 }
 
@@ -229,10 +229,12 @@ describe('tooltip', () => {
       const end = alignedEdges('end')
       const centre = alignedEdges('center')
 
-      expect(start.start).toBe(0)
-      expect(start.end).toBeGreaterThan(0)
-      expect(end.end).toBe(0)
-      expect(end.start).toBeGreaterThan(0)
+      // Within a pixel rather than exact: the tooltip is placed at the
+      // fractional positions its text measures to, which differ by font.
+      expect(Math.abs(start.start)).toBeLessThanOrEqual(1)
+      expect(start.end).toBeGreaterThan(1)
+      expect(Math.abs(end.end)).toBeLessThanOrEqual(1)
+      expect(end.start).toBeGreaterThan(1)
       expect(Math.abs(centre.start - centre.end)).toBeLessThanOrEqual(1)
     })
 
