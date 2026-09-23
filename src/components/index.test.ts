@@ -1090,15 +1090,15 @@ describe('components barrel', () => {
   it('re-exports the SnackbarMessage type', () => {
     const message: SnackbarMessage = {
       action: undefined,
-      isDismissable: false,
       message: 'First item',
+      showCloseButton: false,
     }
     expect(message.message).toBe('First item')
   })
 
   it('re-exports the SnackbarOptions type', () => {
-    const options: SnackbarOptions = { isDismissable: true }
-    expect(options.isDismissable).toBe(true)
+    const options: SnackbarOptions = { showCloseButton: true }
+    expect(options.showCloseButton).toBe(true)
   })
 
   it('re-exports the SnackbarQueue type', () => {

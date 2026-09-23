@@ -227,8 +227,8 @@ type SnackbarAction = {
 /** What a snackbar carries: its message, and what may sit beside it. */
 type SnackbarMessage = {
   action: SnackbarAction | undefined
-  isDismissable: boolean
   message: ReactNode
+  showCloseButton: boolean
 }
 
 type SnackbarOptions = {
@@ -237,14 +237,18 @@ type SnackbarOptions = {
    * closes the snackbar, which is what the page draws.
    */
   action?: SnackbarAction
+  /** Run when the snackbar closes, however it was closed. */
+  onClose?: () => void
   /**
    * Whether a close button is shown at the end. The page draws one for a
    * message a reader may want out of the way before it expires.
+   *
+   * Named for what it draws rather than `isDismissable`, which on `Sheet`,
+   * `Dialog` and React Aria's modals is whether a press outside them closes
+   * them — a snackbar has no outside to press.
    * @default false
    */
-  isDismissable?: boolean
-  /** Run when the snackbar closes, however it was closed. */
-  onClose?: () => void
+  showCloseButton?: boolean
   /**
    * How long the snackbar is shown, in milliseconds. Defaults to the page's
    * short duration, or its long one when there is an action to read, and the
@@ -252,7 +256,7 @@ type SnackbarOptions = {
    * expires while it is being read.
    *
    * `0` is the page's indefinite length: the snackbar stays until something
-   * closes it. Give one of those an action or `isDismissable`, or there is no
+   * closes it. Give one of those an action or `showCloseButton`, or there is no
    * way to be rid of it.
    */
   timeout?: number
@@ -321,9 +325,9 @@ class SnackbarQueue {
    * Shows a message, and returns the key that closes it.
    */
   add(message: ReactNode, options: SnackbarOptions = {}) {
-    const { action, isDismissable = false, onClose, timeout } = options
+    const { action, onClose, showCloseButton = false, timeout } = options
     return this.rac.add(
-      { action, isDismissable, message },
+      { action, message, showCloseButton },
       {
         onClose,
         timeout: timeout ?? (action === undefined ? SHORT_MS : LONG_MS),
@@ -435,12 +439,12 @@ function SnackbarControls({
   action,
   close,
   closeLabel,
-  isDismissable,
+  showCloseButton,
 }: {
   action: SnackbarAction | undefined
   close: () => void
   closeLabel: string
-  isDismissable: boolean
+  showCloseButton: boolean
 }) {
   return (
     <>
@@ -452,7 +456,7 @@ function SnackbarControls({
           {action.label}
         </SnackbarButton>
       )}
-      {isDismissable ? (
+      {showCloseButton ? (
         <SnackbarButton
           aria-label={closeLabel}
           slot="close"
@@ -475,7 +479,7 @@ function SnackbarToast({
   closeLabel: string
   toast: SnackbarToastItem
 }) {
-  const { action, isDismissable, message } = toast.content
+  const { action, message, showCloseButton } = toast.content
 
   return (
     <RACToast toast={toast} {...stylex.props(styles.toast)}>
@@ -486,7 +490,7 @@ function SnackbarToast({
         action={action}
         close={close}
         closeLabel={closeLabel}
-        isDismissable={isDismissable}
+        showCloseButton={showCloseButton}
       />
     </RACToast>
   )
