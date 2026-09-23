@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.33.0](https://github.com/kanso-labs/kanso-ui/compare/v0.32.0...v0.33.0) (2026-09-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* **snackbar:** rename isDismissable, which means something else on every overlay ([#1059](https://github.com/kanso-labs/kanso-ui/issues/1059))
+
+### Features
+
+* **snackbar:** rename isDismissable, which means something else on every overlay ([#1059](https://github.com/kanso-labs/kanso-ui/issues/1059)) ([24b37c5](https://github.com/kanso-labs/kanso-ui/commit/24b37c580cba59e73fe6558368b7b5f5c881c091))
+
+
+### Bug Fixes
+
+* **chip:** truncate a label that would wrap past the 32dp pill ([#1056](https://github.com/kanso-labs/kanso-ui/issues/1056)) ([98a29f9](https://github.com/kanso-labs/kanso-ui/commit/98a29f955d01f823aa855aa4f91537c491159b9f))
+* **field:** keep a long floated label inside the box ([#1062](https://github.com/kanso-labs/kanso-ui/issues/1062)) ([8193c47](https://github.com/kanso-labs/kanso-ui/commit/8193c4751a5fec9e2a928c42a084983d56ec328f))
+* **icon-button:** tint the standard state layer with on-surface-variant, as its comment says ([#1054](https://github.com/kanso-labs/kanso-ui/issues/1054)) ([1f7980e](https://github.com/kanso-labs/kanso-ui/commit/1f7980e6a702ab50f4a870d703e3c71a17acdaac))
+* **progress-indicator:** recolour the buffered track and dots under tone="inherit" ([#1055](https://github.com/kanso-labs/kanso-ui/issues/1055)) ([21780c9](https://github.com/kanso-labs/kanso-ui/commit/21780c969f60e7102b58741734c55e940e1df20b))
+* **sheet,dialog:** draw the modal panels an edge under forced colours ([#1049](https://github.com/kanso-labs/kanso-ui/issues/1049)) ([f10a1ba](https://github.com/kanso-labs/kanso-ui/commit/f10a1ba90e03e08bb1ff0a4d095810e906af0ee1))
+* **styles:** make the right-to-left mirroring match dir, not lang ([#1048](https://github.com/kanso-labs/kanso-ui/issues/1048)) ([9a43c85](https://github.com/kanso-labs/kanso-ui/commit/9a43c8576dbb149ed9fbdee8f9e8446ce6cb2edb))
+* **switch:** set touch-action: none on the drag handle ([#1060](https://github.com/kanso-labs/kanso-ui/issues/1060)) ([d88b4b4](https://github.com/kanso-labs/kanso-ui/commit/d88b4b489164f2713295151171209622cd542daa))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.9.5 ([#1050](https://github.com/kanso-labs/kanso-ui/issues/1050)) ([5f7a794](https://github.com/kanso-labs/kanso-ui/commit/5f7a79488892ddaec42db586fa9943e03189cfc5))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.5 ([#1051](https://github.com/kanso-labs/kanso-ui/issues/1051)) ([b01e490](https://github.com/kanso-labs/kanso-ui/commit/b01e490d597c98b3e527a58ac8b8bfd1e0f7f9dc))
+
 ## [0.32.0](https://github.com/kanso-labs/kanso-ui/compare/v0.31.1...v0.32.0) (2026-09-22)
 
 
