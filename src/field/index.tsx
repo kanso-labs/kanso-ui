@@ -335,6 +335,7 @@ function BoxContent({
           {...stylex.props(
             fieldChromeStyles.icon,
             multiline && fieldChromeStyles.iconMultiline,
+            outlined && fieldChromeStyles.iconOutlined,
             state.isDisabled && fieldChromeStyles.iconDisabled,
           )}
         >
@@ -369,6 +370,7 @@ function BoxContent({
           {...stylex.props(
             fieldChromeStyles.icon,
             multiline && fieldChromeStyles.iconMultiline,
+            outlined && fieldChromeStyles.iconOutlined,
             state.isInvalid && fieldChromeStyles.iconError,
             state.isDisabled && fieldChromeStyles.iconDisabled,
           )}

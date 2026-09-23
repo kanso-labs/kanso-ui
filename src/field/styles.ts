@@ -401,7 +401,10 @@ const fieldChromeStyles = stylex.create({
     whiteSpace: 'nowrap',
   },
   // An icon slot: the page's 24dp icon in the muted role, centred in the
-  // box's full height. An icon drawn in `em` follows the slot's size.
+  // box's full height. Its negative margins reach past the box's padding to
+  // its edges: the filled box's 8dp above here, and the multi-line and
+  // outlined boxes' in the styles after it. An icon drawn in `em` follows
+  // the slot's size.
   icon: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
@@ -430,6 +433,14 @@ const fieldChromeStyles = stylex.create({
   // on a text area, rather than beside the first line.
   iconMultiline: {
     marginBlockEnd: `calc(-1 * ${spacing.sm})`,
+  },
+  // The outlined box has 16dp above and below the value, one line or
+  // several, so the slot reaches past both. The filled box's 8dp alone
+  // would stop it short of the edges and lift the icon 4px above the
+  // middle.
+  iconOutlined: {
+    marginBlockEnd: `calc(-1 * ${spacing.lg})`,
+    marginBlockStart: `calc(-1 * ${spacing.lg})`,
   },
   input: {
     '::placeholder': {

@@ -46,6 +46,15 @@ function triggerOf(view: ReturnType<typeof render>, label = 'Choose a date') {
   return view.getByRole('button', { name: new RegExp(label) })
 }
 
+// How much more room the trigger leaves above it than below it, in a field
+// of one variant.
+function triggerOffCentre(variant: 'filled' | 'outlined') {
+  const view = render(<DatePicker label="Label" variant={variant} />)
+  const { box, trigger } = parts(view.container)
+  view.unmount()
+  return trigger.top - box.top - (box.bottom - trigger.bottom)
+}
+
 describe('date picker', () => {
   describe('the field half', () => {
     it('draws the same segments a date field does', () => {
@@ -231,13 +240,14 @@ describe('date picker', () => {
       expect(trigger.bottom).toBeLessThanOrEqual(box.bottom)
     })
 
-    // The slot stretches to the box's full height, so whatever it holds
-    // centres there rather than sitting under the floated label.
-    it('centres the trigger in the box', () => {
-      const view = render(<DatePicker label="Label" />)
-      const { box, trigger } = parts(view.container)
-
-      expect(trigger.top - box.top).toBe(box.bottom - trigger.bottom)
+    // The slot stretches to the box's full height, filled or outlined, so
+    // whatever it holds centres there rather than sitting under the floated
+    // label or above the outlined box's middle.
+    it('centres the trigger in the box, filled or outlined', () => {
+      expect({
+        filled: triggerOffCentre('filled'),
+        outlined: triggerOffCentre('outlined'),
+      }).toEqual({ filled: 0, outlined: 0 })
     })
   })
 })

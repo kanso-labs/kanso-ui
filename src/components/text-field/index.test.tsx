@@ -328,6 +328,32 @@ describe('text field', () => {
       expect(trailing.top - box.top).toBe(16)
     })
 
+    // Outlined, the box has 16 above and below the value in place of the
+    // filled box's 8 above the label's line, and the 24 icons stay centred in
+    // its 56 all the same.
+    it('centres the icons in the outlined box', () => {
+      const { label } = setup({
+        leadingIcon: ICON,
+        trailingIcon: OTHER_ICON,
+        variant: 'outlined',
+      })
+      const box = boxOf(label).getBoundingClientRect()
+      const leading = document
+        .querySelector('[data-testid="icon"]')
+        ?.getBoundingClientRect()
+      const trailing = document
+        .querySelector('[data-testid="other-icon"]')
+        ?.getBoundingClientRect()
+      if (leading === undefined || trailing === undefined) {
+        throw new Error('expected both icons to render')
+      }
+      expect(box.height).toBe(56)
+      expect({
+        leading: leading.top - box.top,
+        trailing: trailing.top - box.top,
+      }).toEqual({ leading: 16, trailing: 16 })
+    })
+
     it('keeps the text 16 in without icons', () => {
       const { input, label } = setup()
       const box = boxOf(label).getBoundingClientRect()
