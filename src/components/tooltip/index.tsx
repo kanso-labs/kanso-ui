@@ -9,8 +9,10 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import { Tooltip as RACTooltip, TooltipTrigger } from 'react-aria-components'
 
+import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
+
 import { mergeStatefulStyles } from '../../styles/merge'
-import { overlay, popupOrigin } from '../../styles/overlay'
+import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import {
   colors,
   radii,
@@ -61,7 +63,11 @@ const styles = stylex.create({
 // a custom property — the same one place `Popover` spells a step out.
 const DEFAULT_SIDE_OFFSET = 8
 
-type TooltipAlign = 'center' | 'end' | 'start'
+// The overlay module's, since which side a surface opens on is the same
+// question for every anchored overlay, and `Popover` and `Menu` ask it
+// there too. Aliased rather than re-declared so the names a call site
+// imports stay this component's.
+type TooltipAlign = OverlayAlign
 
 type TooltipProps = {
   /**
@@ -102,20 +108,7 @@ type TooltipProps = {
   style?: StyleOrFunction<TooltipRenderProps>
 } & Omit<TooltipTriggerComponentProps, 'children'>
 
-type TooltipSide = 'bottom' | 'left' | 'right' | 'top'
-
-// React Aria names a placement by the side and, along it, the end the
-// tooltip is aligned to — the same mapping `Popover` makes, kept identical
-// so the two agree on what `side` and `align` mean.
-function placementOf(side: TooltipSide, align: TooltipAlign) {
-  if (align === 'center') {
-    return side
-  }
-  if (side === 'top' || side === 'bottom') {
-    return `${side} ${align}` as const
-  }
-  return `${side} ${align === 'start' ? 'top' : 'bottom'}` as const
-}
+type TooltipSide = OverlaySide
 
 /**
  * A label for the element it wraps, shown while that element is hovered or

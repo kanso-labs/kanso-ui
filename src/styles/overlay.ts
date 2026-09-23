@@ -165,7 +165,8 @@ type OverlaySide = 'bottom' | 'left' | 'right' | 'top'
  * of the two it is asking for, so this maps one onto the other.
  *
  * Shared by every anchored overlay rather than kept in one, since which side
- * a surface opens on is the same question for a popover and a menu.
+ * a surface opens on is the same question for a popover, a menu and a
+ * tooltip.
  */
 function placementOf(side: OverlaySide, align: OverlayAlign) {
   if (align === 'center') {
