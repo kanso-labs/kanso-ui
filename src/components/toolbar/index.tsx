@@ -21,6 +21,9 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 // centred, 8dp between items and 16dp of padding outside them. The two
 // colour schemes are its own too — standard on surface container, vibrant on
 // primary container — and both put the muted content role on what they hold.
+// `tone` spells the standard one `neutral` rather than by the page's name,
+// since that is the word every `tone` in the library uses for its neutral
+// role.
 //
 // Two things are this component's own.
 //
@@ -75,7 +78,7 @@ const styles = stylex.create({
     paddingBlock: spacing.sm,
     paddingInline: spacing.lg,
   },
-  standard: {
+  neutral: {
     backgroundColor: colors.surfaceContainer,
   },
   vertical: {
@@ -101,15 +104,16 @@ type ToolbarProps = Omit<
   /** A function may compute the style from the toolbar's render state. */
   style?: RACToolbarProps['style']
   /**
-   * Which of the page's two colour schemes the bar takes. `standard` is the
-   * surface container it draws by default; `vibrant` moves it to primary
-   * container, for a bar meant to carry the page's accent.
-   * @default 'standard'
+   * Which of the page's two colour schemes the bar takes. `neutral` is the
+   * page's standard scheme, the surface container it draws by default;
+   * `vibrant` moves it to primary container, for a bar meant to carry the
+   * page's accent.
+   * @default 'neutral'
    */
   tone?: ToolbarTone
 }
 
-type ToolbarTone = 'standard' | 'vibrant'
+type ToolbarTone = 'neutral' | 'vibrant'
 
 /**
  * A container for a set of controls, announced as a toolbar so a screen
@@ -141,7 +145,7 @@ type ToolbarTone = 'standard' | 'vibrant'
  */
 function Toolbar({
   orientation = 'horizontal',
-  tone = 'standard',
+  tone = 'neutral',
   ...props
 }: ToolbarProps) {
   // The rule runs across the toolbar rather than along it. Memoised because

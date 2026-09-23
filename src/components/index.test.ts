@@ -929,8 +929,8 @@ describe('components barrel', () => {
   })
 
   it('re-exports the ToolbarTone type', () => {
-    const value: ToolbarTone = 'standard'
-    expect(value).toBe('standard')
+    const value: ToolbarTone = 'neutral'
+    expect(value).toBe('neutral')
   })
 
   it('re-exports the TooltipAlign type', () => {
