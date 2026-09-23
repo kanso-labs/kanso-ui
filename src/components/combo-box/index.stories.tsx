@@ -28,6 +28,8 @@ const OPTIONS = (
   </>
 )
 
+const FIRST_AND_THIRD = ['first', 'third']
+
 const PEOPLE = (
   <>
     <ListBox.Item id="ada">Ada Lovelace</ListBox.Item>
@@ -165,6 +167,41 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Choosing more than one
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            selectionMode=&quot;multiple&quot; draws the chosen options as a
+            list before the input, on its line, and the label stays floated
+            while any are chosen. When the list runs longer than the line it is
+            cut off, and the input keeps a quarter of the line to type in.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.row)}>
+          <div {...stylex.props(styles.column)}>
+            <ComboBox
+              defaultValue={FIRST_AND_THIRD}
+              label="Label"
+              options={OPTIONS}
+              selectionMode="multiple"
+            />
+          </div>
+          <div {...stylex.props(styles.column)}>
+            <ComboBox
+              defaultValue={FIRST_AND_THIRD}
+              label="Label"
+              options={OPTIONS}
+              selectionMode="multiple"
+              variant="outlined"
+            />
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Supporting text and errors
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -235,11 +272,26 @@ const Open: Story = {
   render: Default.render,
 }
 
+// Two options chosen, which the field draws before its input.
+const Multiple: Story = {
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <ComboBox
+        defaultValue={FIRST_AND_THIRD}
+        label="Label"
+        options={OPTIONS}
+        selectionMode="multiple"
+      />
+    </div>
+  ),
+}
+
 export {
   Chosen,
   Default,
   Disabled,
   Invalid,
+  Multiple,
   Open,
   Outlined,
   Overview,

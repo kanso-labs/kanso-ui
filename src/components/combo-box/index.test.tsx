@@ -86,6 +86,36 @@ function setup(props: Partial<Parameters<typeof ComboBox<object>>[0]> = {}) {
   }
 }
 
+const FIRST_AND_THIRD = ['first', 'third']
+
+// A field that takes more than one option, holding two already.
+function setupMultiple(
+  props: Partial<Parameters<typeof ComboBox<object, 'multiple'>>[0]> = {},
+) {
+  const view = render(
+    <div style={WIDTH}>
+      <ComboBox
+        defaultValue={FIRST_AND_THIRD}
+        label="Label"
+        options={OPTIONS}
+        selectionMode="multiple"
+        {...props}
+      />
+    </div>,
+  )
+  const box = view.container.querySelector('[role="group"]')
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the field to draw a box')
+  }
+  return {
+    ...view,
+    box,
+    input: inputOf(view),
+    label: view.getByText('Label', { selector: 'label' }),
+    toggle: view.getByRole('button'),
+  }
+}
+
 // Matches from the start of the text rather than anywhere in it, which the
 // default contains filter does not.
 function startsWith(textValue: string, inputValue: string) {
@@ -228,6 +258,93 @@ describe('combo box', () => {
 
       await waitFor(() => {
         expect(view.input.value).toBe('First item')
+      })
+    })
+  })
+
+  describe('multiple selection', () => {
+    // The chosen options come first on the value's line and the input takes
+    // what is left of it, inside the box where typing can be seen.
+    it('draws the chosen options before the input, on its line', () => {
+      const view = setupMultiple()
+      const chosen = view
+        .getByText('First item and Third item')
+        .getBoundingClientRect()
+      const input = view.input.getBoundingClientRect()
+      const box = view.box.getBoundingClientRect()
+
+      expect(chosen.right).toBeLessThanOrEqual(input.left)
+      expect(Math.abs(chosen.top - input.top)).toBeLessThan(1)
+      expect(input.bottom).toBeLessThanOrEqual(box.bottom)
+    })
+
+    // Three options run longer than the line, and it is the options that
+    // give way: they end in an ellipsis, and the input keeps 3em to type in.
+    it('keeps room to type when the chosen options run long', () => {
+      const view = setupMultiple({
+        defaultValue: ['first', 'second', 'third'],
+      })
+      const chosen = view.getByText('First item, Second item, and Third item')
+      const text = getComputedStyle(chosen)
+      expect(chosen.scrollWidth).toBeGreaterThan(chosen.clientWidth)
+      expect([text.overflowX, text.textOverflow, text.whiteSpace]).toEqual([
+        'hidden',
+        'ellipsis',
+        'nowrap',
+      ])
+      expect(
+        Math.abs(
+          view.input.getBoundingClientRect().width -
+            3 * Number.parseFloat(getComputedStyle(view.input).fontSize),
+        ),
+      ).toBeLessThan(1)
+    })
+
+    // The input is empty while options are chosen, so it cannot be what
+    // floats the label; the chosen options are.
+    it('floats the label while an option is chosen', () => {
+      const chosen = setupMultiple()
+      expect(getComputedStyle(chosen.label).fontSize).toBe('12px')
+      chosen.unmount()
+
+      const none = setupMultiple({ defaultValue: [] })
+      expect(getComputedStyle(none.label).fontSize).toBe('16px')
+    })
+
+    it('keeps the options chosen before when another is chosen', async () => {
+      const view = setupMultiple()
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getByRole('listbox')).not.toBeNull()
+      })
+
+      fireEvent.click(view.getByRole('option', { name: 'Second item' }))
+
+      await waitFor(() => {
+        const text = view.box.textContent
+        expect(
+          ['First item', 'Second item', 'Third item'].every((name) =>
+            text.includes(name),
+          ),
+        ).toBe(true)
+      })
+    })
+
+    it('still filters the list as it is typed', async () => {
+      const view = setupMultiple()
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'Sec' } })
+      })
+
+      await waitFor(() => {
+        expect(
+          view.getAllByRole('option').map((option) => option.textContent),
+        ).toEqual(['Second item'])
       })
     })
   })
