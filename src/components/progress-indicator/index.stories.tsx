@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import ProgressIndicator from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
 import Text from '../text'
 
@@ -51,6 +51,18 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
+  },
+  // A surface with a colour of its own, which is what `inherit` is for: on
+  // primary, the page's own pair would disappear into the fill.
+  surface: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.lg,
+    color: colors.onPrimary,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xl,
+    maxInlineSize: '360px',
+    padding: spacing.lg,
   },
 })
 
@@ -152,6 +164,52 @@ const Overview: Story = {
             isIndeterminate
             variant="circular"
           />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Tone
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            tone=&quot;inherit&quot; draws the indicator in the colour around
+            it, and its track, buffer included, in a quarter of that colour. It
+            is for a surface with a colour of its own, such as a filled button,
+            where the page&apos;s primary would be the fill. The label keeps its
+            own muted colour, so an indicator here is named with aria-label
+            instead.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.surface)}>
+          <ProgressIndicator aria-label="Half" tone="inherit" value={50} />
+          <ProgressIndicator
+            aria-label="Buffered"
+            buffer={70}
+            tone="inherit"
+            value={30}
+          />
+          <ProgressIndicator
+            aria-label="Working"
+            isIndeterminate
+            tone="inherit"
+          />
+          <div {...stylex.props(styles.rings)}>
+            <ProgressIndicator
+              aria-label="Quarter"
+              tone="inherit"
+              value={25}
+              variant="circular"
+            />
+            <ProgressIndicator
+              aria-label="Working"
+              isIndeterminate
+              tone="inherit"
+              variant="circular"
+            />
+          </div>
         </div>
       </section>
     </div>

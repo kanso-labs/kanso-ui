@@ -15,6 +15,9 @@ const probeStyles = stylex.create({
   // The arcs are drawn with a stroke rather than filled, so their roles
   // hash to different classes from the linear parts'.
   activeArc: { stroke: colors.primary },
+  // The colour of something an indicator can sit inside, such as a filled
+  // button's label.
+  ink: { color: colors.onPrimary },
   track: { backgroundColor: colors.secondaryContainer },
   trackArc: { stroke: colors.secondaryContainer },
 })
@@ -329,6 +332,39 @@ describe('progress indicator', () => {
       expect(solid.getBoundingClientRect().width).toBeCloseTo(width * 0.625, 0)
       expect(dots.getBoundingClientRect().width).toBeCloseTo(width * 0.375, 0)
       expect(getComputedStyle(dots).animationName).not.toBe('none')
+    })
+
+    // Under `inherit` the track is a quarter of the colour around it, and the
+    // buffer is part of the track: the solid stretch and the dots take that
+    // same quarter rather than the page's secondary container.
+    it('draws the buffer in the inherited track colour', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.ink)}>
+          <ProgressIndicator label="Page" value={20} />
+          <ProgressIndicator label="Plain" tone="inherit" value={20} />
+          <ProgressIndicator
+            buffer={70}
+            label="Buffered"
+            tone="inherit"
+            value={20}
+          />
+        </div>,
+      )
+      const trackOf = (name: string) =>
+        linearPartsOf(view.getByRole('progressbar', { name })).track
+      const inherited = getComputedStyle(trackOf('Plain')).backgroundColor
+      // Guards the comparison: the page's own track must not already be this
+      // colour, or the assertions would hold however the buffer was drawn.
+      expect(inherited).not.toBe(
+        getComputedStyle(trackOf('Page')).backgroundColor,
+      )
+
+      const [solid, dots] = [...trackOf('Buffered').children]
+      if (!(solid instanceof HTMLElement) || !(dots instanceof HTMLElement)) {
+        throw new Error('expected the track to hold the buffer and the dots')
+      }
+      expect(getComputedStyle(solid).backgroundColor).toBe(inherited)
+      expect(getComputedStyle(dots).backgroundImage).toContain(inherited)
     })
 
     it('leaves the track solid without one', () => {
