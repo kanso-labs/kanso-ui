@@ -134,6 +134,7 @@ const overlay = stylex.create({
     animationName: fadeIn,
     animationTimingFunction: motion.easingStandard,
     backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
+    boxSizing: 'border-box',
     inset: 0,
     position: 'fixed',
   },

@@ -279,6 +279,21 @@ describe('sheet', () => {
   // The side sheets page's measurements, read as the browser resolved them
   // rather than as classes, since a padding is a number and not a role.
   describe('layout', () => {
+    // The scrim is an element the library renders, so it is border-box like
+    // every other rather than depending on a reset the consumer might not
+    // have.
+    it('draws its scrim border-box', () => {
+      const view = setup()
+      const scrim = panelOf(view.getByRole('dialog')).parentElement
+      if (!(scrim instanceof HTMLElement)) {
+        throw new Error('expected the panel to sit on the scrim')
+      }
+      const style = getComputedStyle(scrim)
+
+      expect(style.position).toBe('fixed')
+      expect(style.boxSizing).toBe('border-box')
+    })
+
     it('insets the header, body and footer by 24', () => {
       const view = setup()
       const parts = [
