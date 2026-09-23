@@ -20,6 +20,13 @@ function settled(element: HTMLElement) {
   return getComputedStyle(element)
 }
 
+// An icon a story or a call site would pass: sized in `em`, so it takes the
+// slot's 24.
+const ICON = <svg data-testid="icon" style={{ height: '1em', width: '1em' }} />
+const OTHER_ICON = (
+  <svg data-testid="other-icon" style={{ height: '1em', width: '1em' }} />
+)
+
 const THREE_LINES = 'First line.\nSecond line.\nThird line.'
 const FIVE_LINES = `${THREE_LINES}\nFourth line.\nFifth line.`
 
@@ -124,6 +131,66 @@ describe('text area', () => {
     it('draws no resize handle', () => {
       const { control } = setup()
       expect(getComputedStyle(control).resize).toBe('none')
+    })
+  })
+
+  describe('icons', () => {
+    // TextField's measurements, from the same chrome: 24 icons 12 from the
+    // box's edges, and the label and the text 16 past the leading one.
+    it('draws the icons 12 from the edges and moves the text past the leading one', () => {
+      const view = setup({ leadingIcon: ICON, trailingIcon: OTHER_ICON })
+      const box = view.box.getBoundingClientRect()
+      const leading = view.getByTestId('icon').getBoundingClientRect()
+      const trailing = view.getByTestId('other-icon').getBoundingClientRect()
+      expect(leading.width).toBe(24)
+      expect(leading.left - box.left).toBe(12)
+      expect(view.label.getBoundingClientRect().left - box.left).toBe(52)
+      expect(view.control.getBoundingClientRect().left - box.left).toBe(52)
+      expect(box.right - trailing.right).toBe(12)
+    })
+
+    it('keeps the text 16 in without icons', () => {
+      const view = setup()
+      const box = view.box.getBoundingClientRect()
+      expect(view.label.getBoundingClientRect().left - box.left).toBe(16)
+      expect(view.control.getBoundingClientRect().left - box.left).toBe(16)
+    })
+
+    // Material's own text field keeps its icons centred in the box's height
+    // on a text area too, and this box grows: the 24 icon sits halfway down
+    // whatever the box holds, rather than at the 56's centre or the first
+    // line's.
+    it('centres the icons in the box as it grows', () => {
+      const view = setup({
+        defaultValue: THREE_LINES,
+        leadingIcon: ICON,
+        trailingIcon: OTHER_ICON,
+      })
+      const offsets = () => {
+        const box = view.box.getBoundingClientRect()
+        return {
+          box: box.height,
+          leading:
+            view.getByTestId('icon').getBoundingClientRect().top - box.top,
+          trailing:
+            view.getByTestId('other-icon').getBoundingClientRect().top -
+            box.top,
+        }
+      }
+      expect(offsets()).toEqual({
+        box: boxHeight(3),
+        leading: (boxHeight(3) - 24) / 2,
+        trailing: (boxHeight(3) - 24) / 2,
+      })
+
+      act(() => {
+        fireEvent.change(view.control, { target: { value: FIVE_LINES } })
+      })
+      expect(offsets()).toEqual({
+        box: boxHeight(5),
+        leading: (boxHeight(5) - 24) / 2,
+        trailing: (boxHeight(5) - 24) / 2,
+      })
     })
   })
 

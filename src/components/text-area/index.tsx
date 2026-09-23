@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -14,12 +15,13 @@ import {
 import { mergeStatefulStyles } from '../../styles/merge'
 
 // The text fields page's multi-line configuration of the filled field: the
-// same box, floating label, underline and message as TextField, holding a
-// text area rather than an input. The page gives the box 56dp by default
-// and 8dp of padding above and below, with the label vertically centred
-// while the field is empty; a box holding more than one line keeps the
-// padding and grows, which is the chrome's `multiline` box. The page draws
-// no resize handle, and none is drawn here.
+// same box, floating label, icons, underline and message as TextField,
+// holding a text area rather than an input. The page gives the box 56dp by
+// default and 8dp of padding above and below, with the label vertically
+// centred while the field is empty; a box holding more than one line keeps
+// the padding and grows, which is the chrome's `multiline` box, and its
+// icons stay centred in its height as it does. The page draws no resize
+// handle, and none is drawn here.
 //
 // Its own component rather than a prop of TextField, so `rows` and
 // `autosize` stay off TextField's type and `numeric` stays off this one.
@@ -74,11 +76,23 @@ type TextAreaProps = {
    */
   label: string
   /**
+   * An icon at the start of the box, before the label and the text: the
+   * page's 24dp leading icon, in the muted role. An icon drawn in `em` takes
+   * that size from the slot.
+   */
+  leadingIcon?: ReactNode
+  /**
    * How many lines of text the field shows: the least it shows while it
    * grows, or all it shows when it does not.
    * @default 3
    */
   rows?: number
+  /**
+   * An icon at the end of the box, after the text: the page's 24dp trailing
+   * icon, in the muted role and the error role while the field has an error.
+   * An icon drawn in `em` takes that size from the slot.
+   */
+  trailingIcon?: ReactNode
   /**
    * The filled box, or the outlined one: no fill, an outline that thickens
    * and takes the primary role while focused, and the label cutting it once
@@ -95,6 +109,10 @@ type TextAreaProps = {
  * `className` and `style` land on the field as a whole, which is the element
  * a layout positions.
  *
+ * The text fields page's configurations are props: `leadingIcon` and
+ * `trailingIcon` at the box's ends, and `characterCount` opposite the
+ * supporting text, counting against `maxLength`.
+ *
  * The box, label, control and message are the field chrome in `src/field`,
  * shared with every other field; this component is what React Aria's
  * `TextField` puts around them.
@@ -108,7 +126,9 @@ function TextArea({
   floatingLabel = true,
   isDisabled = false,
   label,
+  leadingIcon,
   rows = 3,
+  trailingIcon,
   variant = 'filled',
   ...props
 }: TextAreaProps) {
@@ -125,7 +145,9 @@ function TextArea({
       <FieldBox
         floatingLabel={floatingLabel}
         label={label}
+        leading={leadingIcon}
         multiline
+        trailing={trailingIcon}
         variant={variant}
       >
         <FieldTextArea autosize={autosize} rows={rows} />

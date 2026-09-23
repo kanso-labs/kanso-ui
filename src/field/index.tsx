@@ -248,6 +248,7 @@ function boxContent(
   floatingLabel: boolean,
   isPopulated: boolean | undefined,
   leading: ReactNode,
+  multiline: boolean,
   trailing: ReactNode,
   trigger: ReactNode,
   variant: FieldVariant,
@@ -258,6 +259,7 @@ function boxContent(
       isPopulated={isPopulated}
       label={label}
       leading={leading}
+      multiline={multiline}
       state={state}
       trailing={trailing}
       trigger={trigger}
@@ -281,6 +283,7 @@ function BoxContent({
   isPopulated,
   label,
   leading,
+  multiline,
   state,
   trailing,
   trigger,
@@ -291,6 +294,7 @@ function BoxContent({
   isPopulated: boolean | undefined
   label: string
   leading: ReactNode
+  multiline: boolean
   state: GroupRenderProps
   trailing: ReactNode
   trigger: ReactNode
@@ -330,6 +334,7 @@ function BoxContent({
         <span
           {...stylex.props(
             fieldChromeStyles.icon,
+            multiline && fieldChromeStyles.iconMultiline,
             state.isDisabled && fieldChromeStyles.iconDisabled,
           )}
         >
@@ -363,6 +368,7 @@ function BoxContent({
         <span
           {...stylex.props(
             fieldChromeStyles.icon,
+            multiline && fieldChromeStyles.iconMultiline,
             state.isInvalid && fieldChromeStyles.iconError,
             state.isDisabled && fieldChromeStyles.iconDisabled,
           )}
@@ -445,6 +451,7 @@ function FieldBox({
         floatingLabel,
         isPopulated,
         leading,
+        multiline,
         trailing,
         trigger,
         variant,
