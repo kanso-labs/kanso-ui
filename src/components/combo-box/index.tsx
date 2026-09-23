@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import type { ComboBoxProps as RACComboBoxProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -66,15 +66,35 @@ import ListBox from '../list-box'
 // the last chosen option on blur rather than keeping text that means nothing.
 //
 // Choosing more than one is `selectionMode="multiple"`, which draws the
-// chosen options before the input through React Aria's `ComboBoxValue`. For
-// a field that draws each of them as a removable chip, the coverage plan has
-// TokenField.
+// chosen options before the input on its line, through React Aria's
+// `ComboBoxValue`, with the label floated over them. For a field that draws
+// each of them as a removable chip, the coverage plan has TokenField.
 
 // Hoisted so it is not a new element on every render, which is what
 // react-perf's jsx-no-jsx-as-prop is after.
 const TOGGLE = <ComboToggle />
 
 const styles = stylex.create({
+  // The value's line when more than one option may be chosen: the chosen
+  // options, then the input taking what is left. The options are as wide as
+  // their text and give way first, ending in an ellipsis where the line runs
+  // out; the input keeps 3em at least, a few characters of the value's type,
+  // so there is always somewhere to type. A grid rather than a flex row,
+  // because each of the two fills its own track at the width the chrome
+  // already gives it.
+  chosenLine: {
+    columnGap: spacing.sm,
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, max-content) minmax(3em, 1fr)',
+  },
+  // The chosen options' text, cut short with an ellipsis. On React Aria's
+  // element rather than the chrome's `FieldValue` around it, which is a flex
+  // container, and `text-overflow` does not reach a flex item's text.
+  chosenText: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
   // The list, under the field and as wide as it. The overlay's own width
   // range belongs to a menu opened from a button, so it is replaced here.
   list: {
@@ -120,10 +140,6 @@ const styles = stylex.create({
   },
   toggleGlyphOpen: {
     transform: 'rotate(-90deg)',
-  },
-  // The chosen options, before the input, when more than one may be chosen.
-  values: {
-    flexShrink: 0,
   },
 })
 
@@ -198,14 +214,14 @@ type ComboBoxProps<
 type ComboBoxSelectionMode = 'multiple' | 'single'
 
 /**
- * The chosen options, drawn before the input when more than one may be
- * chosen. The chrome's `FieldValue` is the styled element and React Aria's
- * `ComboBoxValue` sits inside it, as it does in Select.
+ * The chosen options, drawn before the input on its line when more than one
+ * may be chosen. The chrome's `FieldValue` is the styled element and React
+ * Aria's `ComboBoxValue` sits inside it, as it does in Select.
  */
 function ChosenValues() {
   return (
-    <FieldValue {...stylex.props(styles.values)}>
-      <RACComboBoxValue />
+    <FieldValue>
+      <RACComboBoxValue {...stylex.props(styles.chosenText)} />
     </FieldValue>
   )
 }
@@ -270,22 +286,16 @@ function ComboBox<
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox
+      <ComboBoxBox
+        boxRef={boxRef}
         floatingLabel={floatingLabel}
-        // React Aria's `TextField` hands its group the field's disabled and
-        // invalid state through context; its `ComboBox` does not, so the box
-        // is told outright or its label and its underline never turn.
         isDisabled={isDisabled}
         isInvalid={invalidFrom(error)}
         label={label}
-        leading={leadingIcon}
-        ref={boxRef}
-        trailing={TOGGLE}
+        leadingIcon={leadingIcon}
+        multiple={props.selectionMode === 'multiple'}
         variant={variant}
-      >
-        {props.selectionMode === 'multiple' ? <ChosenValues /> : null}
-        <FieldInput />
-      </FieldBox>
+      />
       <FieldMessage description={description} error={error} />
       <RACPopover
         triggerRef={boxRef}
@@ -296,6 +306,63 @@ function ComboBox<
         <ListBox>{options}</ListBox>
       </RACPopover>
     </RACComboBox>
+  )
+}
+
+/**
+ * The box and what it holds. Its own component so it can read React Aria's
+ * state for what is chosen: with more than one option allowed, the input is
+ * empty while options are chosen, so it cannot be what says the field holds
+ * something. The box is told instead, and the label floats over the chosen
+ * options rather than resting on them. Otherwise the box reads the input, as
+ * it does for one option, which is what floats the label on typed text.
+ */
+function ComboBoxBox({
+  boxRef,
+  floatingLabel,
+  isDisabled,
+  isInvalid,
+  label,
+  leadingIcon,
+  multiple,
+  variant,
+}: {
+  boxRef: RefObject<HTMLDivElement | null>
+  floatingLabel: boolean
+  isDisabled: boolean
+  isInvalid: boolean | undefined
+  label: string
+  leadingIcon: ReactNode
+  multiple: boolean
+  variant: FieldVariant
+}) {
+  const state = useContext(ComboBoxStateContext)
+  const chosen = multiple && (state?.selectedItems.length ?? 0) > 0
+
+  return (
+    <FieldBox
+      floatingLabel={floatingLabel}
+      // React Aria's `TextField` hands its group the field's disabled and
+      // invalid state through context; its `ComboBox` does not, so the box
+      // is told outright or its label and its underline never turn.
+      isDisabled={isDisabled}
+      isInvalid={isInvalid}
+      isPopulated={chosen ? true : undefined}
+      label={label}
+      leading={leadingIcon}
+      ref={boxRef}
+      trailing={TOGGLE}
+      variant={variant}
+    >
+      {multiple ? (
+        <span {...stylex.props(styles.chosenLine)}>
+          <ChosenValues />
+          <FieldInput />
+        </span>
+      ) : (
+        <FieldInput />
+      )}
+    </FieldBox>
   )
 }
 
