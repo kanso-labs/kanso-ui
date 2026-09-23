@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -12,6 +12,9 @@ const probeStyles = stylex.create({
   onSurface: { color: colors.onSurface },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   primary: { color: colors.primary },
+  // Narrower than a twelve-hour time down to the second, which is where the
+  // line has to be clipped.
+  room: { inlineSize: '100px' },
 })
 
 function probe(style: stylex.StyleXStyles) {
@@ -159,6 +162,70 @@ describe('time field', () => {
 
       expect(view.getByText('Supporting line')).not.toBeNull()
       expect(view.container.querySelector('[data-invalid]')).not.toBeNull()
+    })
+  })
+
+  // A typed value longer than its box behaves as an input's text does. It
+  // is clipped rather than cut short or wrapped, since every segment in it is
+  // still a place to type; the segment with focus is scrolled into view, as
+  // an input's caret is; and the line goes back to its start when focus
+  // leaves, as an input's does.
+  describe('a value longer than its box', () => {
+    it('brings the segment being typed into view, and returns to the start after', () => {
+      const view = render(
+        <I18nProvider locale="en-US">
+          <div {...stylex.props(probeStyles.room)}>
+            <TimeField
+              defaultValue={new Time(12, 34, 56)}
+              granularity="second"
+              label="Label"
+            />
+          </div>
+          <button type="button">Elsewhere</button>
+        </I18nProvider>,
+      )
+      const segments = segmentsOf(view)
+      const first = segments[0]
+      const last = segments.at(-1)
+      // The segments sit in React Aria's input, which sits in the line.
+      const line = first.parentElement?.parentElement
+      if (last === undefined || !(line instanceof HTMLElement)) {
+        throw new Error('expected the segments to sit in a line')
+      }
+      // Within a pixel: the line scrolls by whole pixels and the segments'
+      // widths are fractional, so a segment scrolled into view can still
+      // reach a hundredth of a pixel past the edge.
+      const shows = (segment: HTMLElement) => {
+        const own = segment.getBoundingClientRect()
+        const room = line.getBoundingClientRect()
+        return own.left >= room.left - 1 && own.right <= room.right + 1
+      }
+
+      // The day period starts out past the end of the box.
+      expect(shows(last)).toBe(false)
+
+      act(() => {
+        first.focus()
+      })
+      for (const segment of segments.slice(0, -1)) {
+        fireEvent.keyDown(segment, { key: 'ArrowRight' })
+        fireEvent.keyUp(segment, { key: 'ArrowRight' })
+      }
+      expect(document.activeElement).toBe(last)
+      expect(shows(last)).toBe(true)
+
+      // Moving between segments is not leaving them: the line stays where
+      // typing has taken it rather than jumping back to its start.
+      fireEvent.keyDown(last, { key: 'ArrowLeft' })
+      fireEvent.keyUp(last, { key: 'ArrowLeft' })
+      expect(document.activeElement).toBe(segments.at(-2))
+      expect(shows(last)).toBe(true)
+
+      act(() => {
+        view.getByRole('button', { name: 'Elsewhere' }).focus()
+      })
+      expect(line.scrollLeft).toBe(0)
+      expect(shows(first)).toBe(true)
     })
   })
 })

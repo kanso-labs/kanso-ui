@@ -20,7 +20,7 @@ import {
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 const segmentStyles = stylex.create({
-  // The segments on one line. `FieldValue` around it is what gives the line
+  // The segments on one line. `FieldSegments` around it is what gives the line
   // its place in the box — including the room a floated label needs — so
   // what is left here is only how the segments sit next to each other.
   input: {

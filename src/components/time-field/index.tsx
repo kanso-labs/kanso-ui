@@ -12,7 +12,7 @@ import {
 
 import type { FieldVariant } from '../../field'
 
-import { FieldBox, FieldMessage, FieldValue } from '../../field'
+import { FieldBox, FieldMessage, FieldSegments } from '../../field'
 import {
   fieldStyles,
   invalidFrom,
@@ -133,11 +133,11 @@ function TimeField<T extends TimeValue>({
         trailing={trailingIcon}
         variant={variant}
       >
-        <FieldValue>
+        <FieldSegments>
           <RACDateInput {...stylex.props(segmentStyles.input)}>
             {renderSegment}
           </RACDateInput>
-        </FieldValue>
+        </FieldSegments>
       </FieldBox>
       <FieldMessage description={description} error={error} />
     </RACTimeField>

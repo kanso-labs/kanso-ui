@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode, Ref } from 'react'
+import type { FocusEvent, HTMLAttributes, ReactNode, Ref } from 'react'
 import type {
   ButtonProps,
   GroupProps,
@@ -524,6 +524,36 @@ function FieldInput({
 }
 
 /**
+ * A date or a time's segments, in a {@link FieldBox}: React Aria's
+ * `DateInput`, or the group holding a range's two. This is what carries the
+ * control's type and its place on the line, clearing the label at the top,
+ * as {@link FieldValue} does for a value that was chosen.
+ *
+ * A typed value longer than its box behaves as an input's text does. It is
+ * clipped rather than cut short, since every segment on the line is still a
+ * place to type. The browser scrolls whichever segment has focus into view,
+ * as it scrolls to an input's caret. And when focus leaves the segments the
+ * line goes back to its start, as an input's text does on blur, so a value
+ * at rest reads from its beginning rather than from wherever it was left.
+ */
+function FieldSegments({ children }: { children: ReactNode }) {
+  const box = useContext(BoxContext)
+
+  return (
+    <span
+      onBlur={returnToStart}
+      {...stylex.props(
+        fieldChromeStyles.input,
+        fieldChromeStyles.segments,
+        box.underLabel && fieldChromeStyles.inputUnderLabel,
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
+/**
  * A field's multi-line text control, in a {@link FieldBox} drawn `multiline`.
  * React Aria's `TextArea`, with the same label association, value and
  * validation {@link FieldInput} takes from the field around it, and the same
@@ -611,9 +641,10 @@ function FieldTrigger(props: FieldTriggerProps) {
 /**
  * A field's value where it was chosen rather than typed, in a
  * {@link FieldBox}. Put React Aria's own element inside it — a select's
- * `SelectValue`, a picker's display — and this is what carries the input's
- * type and its place on the line, clearing the label at the top and
- * truncating rather than wrapping.
+ * `SelectValue` — and this is what carries the input's type and its place on
+ * the line, clearing the label at the top and truncating rather than
+ * wrapping. A date or a time is typed, segment by segment, and takes
+ * {@link FieldSegments} instead.
  *
  * The wrapper is the styled one rather than React Aria's element, because
  * this is the box's flex item: styling the element inside instead left it
@@ -646,6 +677,15 @@ function FieldValue({
       )}
     />
   )
+}
+
+// Back to the start of the line once focus has left every segment on it —
+// not while it moves from one segment to the next. The start is 0 in either
+// writing direction: a right-to-left line scrolls towards negative values.
+function returnToStart(event: FocusEvent<HTMLElement>) {
+  if (!event.currentTarget.contains(event.relatedTarget)) {
+    event.currentTarget.scrollLeft = 0
+  }
 }
 
 function useFieldPopulated() {
@@ -882,6 +922,7 @@ export {
   FieldInput,
   FieldLabel,
   FieldMessage,
+  FieldSegments,
   FieldTextArea,
   FieldTrigger,
   FieldValue,
