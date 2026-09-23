@@ -110,8 +110,8 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             Whether the measurement is good or bad is the call site&apos;s to
             decide — nothing here reads the number and picks. Only the active
-            indicator changes colour, so a column of meters still shares one
-            track.
+            indicator and the stop indicator change colour, so a column of
+            meters still shares one track.
           </Text>
         </div>
         <div {...stylex.props(styles.column)}>
