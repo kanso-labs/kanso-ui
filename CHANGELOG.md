@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.2](https://github.com/kanso-labs/kanso-ui/compare/v0.34.1...v0.34.2) (2026-09-23)
+
+
+### Bug Fixes
+
+* **menu:** type MenuSubmenuProps.children as exactly the two elements its doc requires ([#1090](https://github.com/kanso-labs/kanso-ui/issues/1090)) ([09b233a](https://github.com/kanso-labs/kanso-ui/commit/09b233af2391d7eca0addafa9087853ce8b4760e))
+* **product-icon:** drop the empty accessible name when the name is blank ([#1091](https://github.com/kanso-labs/kanso-ui/issues/1091)) ([0927e26](https://github.com/kanso-labs/kanso-ui/commit/0927e26e203e3fcea85bc9dc56f35900e251464e))
+
 ## [0.34.1](https://github.com/kanso-labs/kanso-ui/compare/v0.34.0...v0.34.1) (2026-09-23)
 
 
