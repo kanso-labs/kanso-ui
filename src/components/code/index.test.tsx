@@ -65,7 +65,7 @@ describe('code', () => {
       const view = render(
         <div {...stylex.props(harnessStyles.narrow)}>
           <Code data-testid="code">
-            ghcr.io/kanso-labs/a-long-unbroken-identifier
+            registry.example/first-second/a-long-unbroken-identifier
           </Code>
         </div>,
       )
