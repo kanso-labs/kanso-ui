@@ -253,6 +253,15 @@ const styles = stylex.create({
   swatchPlane: {
     inlineSize: '200px',
   },
+  // Room above the trigger for the tooltip the page holds open over it, so
+  // the bubble sits in clear space rather than over the section's
+  // description. Above rather than beside or below, because React Aria
+  // places a tooltip against the visible part of the window: this far down
+  // the page, one asked to open below flips above it, and one asked to open
+  // beside it is pulled up into the window, away from its trigger.
+  tooltipRow: {
+    paddingBlockStart: spacing.xxl,
+  },
 })
 
 const AVATAR_TONES = [
@@ -1451,8 +1460,8 @@ function Showcase({ name }: ShowcaseProps) {
             description="The inverse surface again, at the label size, anchored to the control it describes."
             title="Tooltip"
           >
-            <div {...stylex.props(styles.row)}>
-              <Tooltip label="Supporting text">
+            <div {...stylex.props(styles.row, styles.tooltipRow)}>
+              <Tooltip defaultOpen label="Supporting text">
                 <Button variant="outlined">Hover for a tooltip</Button>
               </Tooltip>
             </div>
