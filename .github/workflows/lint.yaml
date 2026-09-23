@@ -40,10 +40,10 @@ jobs:
       # .github/actionlint.yaml carries the one suppression this repository
       # needs; see the comment in that file.
       - name: Run actionlint
-        uses: kanso-labs/actions/lint-workflows@v4.0.1
+        uses: kanso-labs/actions/lint-workflows@v4.0.2
 
       - name: Set up Node
-        uses: kanso-labs/actions/setup-node@v4.0.1
+        uses: kanso-labs/actions/setup-node@v4.0.2
         with:
           ignore-scripts: true
 
