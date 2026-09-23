@@ -373,8 +373,12 @@ Sheet.Title = SheetTitle
 // styling. A call site has no reason to know there are three elements:
 // `className` and `style` reach the panel, which is the one worth restyling
 // and positioning, and everything else lands on the dialog.
+//
+// `isDismissable` is declared here rather than picked with its sibling, since
+// the picked one carries React Aria's documentation, whose default is the
+// reverse of this component's.
 type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
-  Pick<ModalOverlayProps, 'isDismissable' | 'isKeyboardDismissDisabled'> & {
+  Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'> & {
     /** A function may compute the class from the panel's render state. */
     className?: ClassNameOrFunction<ModalRenderProps>
     /**
@@ -385,6 +389,14 @@ type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
      * `prefers-color-scheme` default.
      */
     container?: Element
+    /**
+     * Whether a press on the scrim, outside the panel, closes the sheet.
+     * `true` here where React Aria's own default is `false`, since a sheet
+     * that ignores a tap outside it reads as stuck. Escape is
+     * `isKeyboardDismissDisabled`'s, and this says nothing about it.
+     * @default true
+     */
+    isDismissable?: boolean
     /** A function may compute the style from the panel's render state. */
     style?: StyleOrFunction<ModalRenderProps>
   }

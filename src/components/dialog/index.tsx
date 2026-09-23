@@ -329,21 +329,34 @@ Dialog.Title = DialogTitle
 // container's styling. A call site has no reason to know there are three
 // elements: `className` and `style` reach the container, which is the one
 // worth restyling, and everything else lands on the dialog.
-type DialogContentProps = Omit<RACDialogProps, 'className' | 'style'> &
-  Pick<ModalOverlayProps, 'isDismissable' | 'isKeyboardDismissDisabled'> & {
-    /** A function may compute the class from the container's render state. */
-    className?: ClassNameOrFunction<ModalRenderProps>
-    /**
-     * Where to portal the dialog and scrim. Defaults to the end of `<body>`,
-     * which is right for an app that sets its StyleX theme on `:root`. An app
-     * that scopes the theme to a subtree has to point this at an element
-     * inside it, or the dialog renders outside the theme and falls back to
-     * the tokens' `prefers-color-scheme` default.
-     */
-    container?: Element
-    /** A function may compute the style from the container's render state. */
-    style?: StyleOrFunction<ModalRenderProps>
-  }
+//
+// `isDismissable` is declared here rather than picked with its sibling, since
+// the picked one carries React Aria's documentation, whose default is the
+// reverse of this component's.
+type DialogContentProps = {
+  /** A function may compute the class from the container's render state. */
+  className?: ClassNameOrFunction<ModalRenderProps>
+  /**
+   * Where to portal the dialog and scrim. Defaults to the end of `<body>`,
+   * which is right for an app that sets its StyleX theme on `:root`. An app
+   * that scopes the theme to a subtree has to point this at an element
+   * inside it, or the dialog renders outside the theme and falls back to
+   * the tokens' `prefers-color-scheme` default.
+   */
+  container?: Element
+  /**
+   * Whether a press on the scrim, outside the container, closes the
+   * dialog. `true` here where React Aria's own default is `false`, the
+   * same default `Sheet` takes. Escape is `isKeyboardDismissDisabled`'s,
+   * and this says nothing about it — an alert dialog, which has to be
+   * answered from one of its actions, turns off both.
+   * @default true
+   */
+  isDismissable?: boolean
+  /** A function may compute the style from the container's render state. */
+  style?: StyleOrFunction<ModalRenderProps>
+} & Omit<RACDialogProps, 'className' | 'style'> &
+  Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'>
 
 type DialogTitleProps = HeadingProps
 
