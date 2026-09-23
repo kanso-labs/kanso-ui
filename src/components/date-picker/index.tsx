@@ -16,7 +16,7 @@ import {
 
 import type { FieldVariant } from '../../field'
 
-import { FieldBox, FieldMessage, FieldValue } from '../../field'
+import { FieldBox, FieldMessage, FieldSegments } from '../../field'
 import {
   fieldStyles,
   invalidFrom,
@@ -185,13 +185,13 @@ function DatePicker<T extends DateValue>({
         trailing={calendarTrigger(triggerLabel)}
         variant={variant}
       >
-        <FieldValue>
+        <FieldSegments>
           <RACGroup {...stylex.props(picker.group)}>
             <RACDateInput {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
           </RACGroup>
-        </FieldValue>
+        </FieldSegments>
       </FieldBox>
       <FieldMessage description={description} error={error} />
       <RACPopover

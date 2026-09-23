@@ -616,6 +616,18 @@ const fieldChromeStyles = stylex.create({
     visibility: 'hidden',
     whiteSpace: 'pre-wrap',
   },
+  // A date or a time's segments on the value's line, laid out as a row so it
+  // does not stretch to the box's height. Clipped at the box as an input's
+  // text is, and neither wrapped nor cut short with an ellipsis: every
+  // segment on the line is a place to type, so none of it can be drawn as
+  // though it were not there. The browser scrolls the segment with focus into
+  // view, since a box that clips is still one it can scroll.
+  segments: {
+    alignItems: 'center',
+    display: 'flex',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+  },
   // No handle, since the page draws none; the rows scroll instead.
   textArea: {
     display: 'block',
