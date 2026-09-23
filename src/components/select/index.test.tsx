@@ -55,6 +55,20 @@ function hasClasses(element: Element, classes: string[]) {
 // component's. A fixed width keeps the two comparable.
 const WIDTH = { width: '320px' }
 
+// How far the chevron's middle sits from the box's, in a field of one
+// variant.
+function chevronOffCentre(variant: 'filled' | 'outlined') {
+  const view = setup({ variant })
+  const box = view.container.querySelector('[role="group"]')
+  if (box === null) {
+    throw new Error('expected the field to draw a box')
+  }
+  const outer = box.getBoundingClientRect()
+  const glyph = glyphOf(view).getBoundingClientRect()
+  view.unmount()
+  return glyph.top + glyph.height / 2 - (outer.top + outer.height / 2)
+}
+
 // The chevron is the only svg either field draws. Narrowed here rather than
 // asserted at the call site, so a field that failed to draw one fails with
 // that sentence instead of further down on a null.
@@ -266,6 +280,16 @@ describe('select', () => {
       expect(box.getBoundingClientRect().height).toBe(
         view.trigger.getBoundingClientRect().height,
       )
+    })
+
+    // The chevron is the field's trailing icon, centred in the box whichever
+    // box it is: the filled one's 8 above the label and nothing below, or
+    // the outlined one's 16 above and below the value.
+    it('centres the chevron in the box, filled or outlined', () => {
+      expect({
+        filled: chevronOffCentre('filled'),
+        outlined: chevronOffCentre('outlined'),
+      }).toEqual({ filled: 0, outlined: 0 })
     })
 
     // The page draws the list under the field and as wide as it, which only
