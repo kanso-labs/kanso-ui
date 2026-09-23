@@ -85,6 +85,7 @@ const COLUMNS = {
 // Hoisted so the array identity is stable across renders, which is what
 // react-perf's jsx-no-new-array-as-prop is after.
 const SELECTED = ['second']
+const DISABLED = ['third']
 
 // Enough rows to scroll under a sticky header, each with an id of its own —
 // the same three repeated would give three rows one key between them.
@@ -194,6 +195,42 @@ function Resizable() {
               <Table.Cell>{row.status}</Table.Cell>
               <Table.Cell>
                 <span {...stylex.props(styles.value)}>{row.value}</span>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
+    </Card>
+  )
+}
+
+// A table whose rows select, with the second selected. Shared by the
+// overview and the Disabled story, which disables a row of the same table.
+function Selecting(props: { disabledKeys?: string[] }) {
+  return (
+    <Card padding="none" variant="outlined">
+      <Table
+        aria-label="Label"
+        defaultSelectedKeys={SELECTED}
+        disabledKeys={props.disabledKeys}
+        selectionMode="multiple"
+      >
+        <Table.Header>
+          <Table.Column id="colSelect" selection />
+          <Table.Column id={COLUMNS.name} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column id={COLUMNS.status}>Status</Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {ROWS.map((row) => (
+            <Table.Row id={row.id} key={row.id}>
+              <Table.Cell selection />
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>
+                <Tag tone={row.status === 'Ready' ? 'positive' : 'neutral'}>
+                  {row.status}
+                </Tag>
               </Table.Cell>
             </Table.Row>
           ))}
@@ -317,34 +354,7 @@ const Overview: Story = {
             holding both.
           </Text>
         </div>
-        <Card padding="none" variant="outlined">
-          <Table
-            aria-label="Label"
-            defaultSelectedKeys={SELECTED}
-            selectionMode="multiple"
-          >
-            <Table.Header>
-              <Table.Column id="colSelect" selection />
-              <Table.Column id={COLUMNS.name} isRowHeader>
-                Label
-              </Table.Column>
-              <Table.Column id={COLUMNS.status}>Status</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              {ROWS.map((row) => (
-                <Table.Row id={row.id} key={row.id}>
-                  <Table.Cell selection />
-                  <Table.Cell>{row.name}</Table.Cell>
-                  <Table.Cell>
-                    <Tag tone={row.status === 'Ready' ? 'positive' : 'neutral'}>
-                      {row.status}
-                    </Tag>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </Card>
+        <Selecting />
       </section>
 
       <Separator />
@@ -452,6 +462,13 @@ const Default: Story = {
   render: () => <Basic />,
 }
 
+// Its own story because it is a state the overview does not draw: the third
+// row faded, with its checkbox off and neither tint nor pointer, in a table
+// whose other rows still select.
+const Disabled: Story = {
+  render: () => <Selecting disabledKeys={DISABLED} />,
+}
+
 // Its own story because it is a state a snapshot can show and the overview's
 // copy cannot: the arrow beside the sorted column, and the rows in the order
 // the call site put them in.
@@ -494,6 +511,6 @@ const StickyHeader: Story = {
   ),
 }
 
-export { Default, Overview, Resizing, Sorting, StickyHeader }
+export { Default, Disabled, Overview, Resizing, Sorting, StickyHeader }
 
 export default meta
