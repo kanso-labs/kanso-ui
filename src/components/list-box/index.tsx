@@ -19,6 +19,7 @@ import {
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { textOf } from '../../collection/text'
+import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 
@@ -135,18 +136,22 @@ function itemContent(
   overline: ReactNode,
   supporting: ReactNode,
   trailing: ReactNode,
+  ripple: ReactNode,
 ) {
   return (state: ListBoxItemRenderProps) => (
-    <RowContent
-      isDisabled={state.isDisabled}
-      isSelected={state.isSelected}
-      leading={leading}
-      overline={overline}
-      supporting={supporting}
-      trailing={trailing}
-    >
-      {children}
-    </RowContent>
+    <>
+      <RowContent
+        isDisabled={state.isDisabled}
+        isSelected={state.isSelected}
+        leading={leading}
+        overline={overline}
+        supporting={supporting}
+        trailing={trailing}
+      >
+        {children}
+      </RowContent>
+      {state.isDisabled ? null : ripple}
+    </>
   )
 }
 
@@ -193,19 +198,45 @@ function ListBox<T extends object>(props: ListBoxProps<T>) {
 function ListBoxItem<T extends object = object>({
   children,
   leading,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   overline,
   supporting,
   textValue,
   trailing,
   ...props
 }: ListBoxItemProps<T>) {
+  // The press ripple List's rows draw — see ListItem there.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
+
   return (
     <RACListBoxItem
       textValue={textValue ?? textOf(children)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(rowItemStyles(supporting, overline), props)}
     >
-      {itemContent(children, leading, overline, supporting, trailing)}
+      {itemContent(
+        children,
+        leading,
+        overline,
+        supporting,
+        trailing,
+        ripple.surface,
+      )}
     </RACListBoxItem>
   )
 }

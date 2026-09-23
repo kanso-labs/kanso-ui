@@ -20,6 +20,7 @@ import {
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles, rowItemStyles } from '../../collection/styles'
 import { textOf } from '../../collection/text'
+import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import Checkbox from '../checkbox'
@@ -146,18 +147,22 @@ function itemContent(
   supporting: ReactNode,
   trailing: ReactNode,
   selectLabel: string,
+  ripple: ReactNode,
 ) {
   return (state: GridListItemRenderProps) => (
-    <RowContent
-      isDisabled={state.isDisabled}
-      isSelected={state.isSelected}
-      leading={leadingFor(state, leading, selectLabel)}
-      overline={overline}
-      supporting={supporting}
-      trailing={trailing}
-    >
-      {children}
-    </RowContent>
+    <>
+      <RowContent
+        isDisabled={state.isDisabled}
+        isSelected={state.isSelected}
+        leading={leadingFor(state, leading, selectLabel)}
+        overline={overline}
+        supporting={supporting}
+        trailing={trailing}
+      >
+        {children}
+      </RowContent>
+      {state.isDisabled ? null : ripple}
+    </>
   )
 }
 
@@ -240,6 +245,11 @@ function List<T extends object>({
 function ListItem<T extends object = object>({
   children,
   leading,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   overline,
   supporting,
   textValue,
@@ -247,10 +257,26 @@ function ListItem<T extends object = object>({
   ...props
 }: ListRowProps<T>) {
   const selectLabel = useContext(SelectLabelContext)
+  // The press ripple ListItem draws, so a row looks the same pressed in a
+  // list as on its own. The call site's pointer handlers are handed to the
+  // hook to merge, for the reason ListItem gives. React Aria keeps a row's
+  // clicks for its own press handling, so the press ends on the release.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
 
   return (
     <RACGridListItem
       textValue={textValue ?? textOf(children)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(rowItemStyles(supporting, overline), props)}
     >
@@ -261,6 +287,7 @@ function ListItem<T extends object = object>({
         supporting,
         trailing,
         selectLabel,
+        ripple.surface,
       )}
     </RACGridListItem>
   )

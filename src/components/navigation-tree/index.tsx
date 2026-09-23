@@ -17,6 +17,7 @@ import {
 
 import { collectionStyles } from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
+import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
 import { focus } from '../../styles/focus'
@@ -242,19 +243,23 @@ function itemContent(
   leading: ReactNode,
   supporting: ReactNode,
   trailing: ReactNode,
+  ripple: ReactNode,
 ) {
   return (state: NavigationTreeItemRenderProps): ReactNode => (
-    <RowContent
-      isDisabled={state.isDisabled}
-      isEmphasized={state.isCurrentAncestor}
-      isSelected={state.isCurrent}
-      leading={leadingFor(state, leading)}
-      supporting={supporting}
-      trailing={trailing}
-      variant="drawer"
-    >
-      {label}
-    </RowContent>
+    <>
+      <RowContent
+        isDisabled={state.isDisabled}
+        isEmphasized={state.isCurrentAncestor}
+        isSelected={state.isCurrent}
+        leading={leadingFor(state, leading)}
+        supporting={supporting}
+        trailing={trailing}
+        variant="drawer"
+      >
+        {label}
+      </RowContent>
+      {state.isDisabled ? null : ripple}
+    </>
   )
 }
 
@@ -350,19 +355,38 @@ function NavigationTreeItem<T extends object = object>({
   children,
   label,
   leading,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   supporting,
   textValue,
   trailing,
   ...props
 }: NavigationTreeItemProps<T>) {
+  // The press ripple List's rows draw — see ListItem there.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
+
   return (
     <RACNavigationTreeItem<T>
       textValue={textValueFor(textValue, label)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(itemStyles, props)}
     >
       <RACNavigationTreeItemContent>
-        {itemContent(label, leading, supporting, trailing)}
+        {itemContent(label, leading, supporting, trailing, ripple.surface)}
       </RACNavigationTreeItemContent>
       {children}
     </RACNavigationTreeItem>

@@ -1,8 +1,16 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import List from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -10,6 +18,9 @@ import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 // Asserting on class membership pins which role each part reaches for without
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
+// Hoisted so the key list is not a new array on every render.
+const FIRST = ['first']
+
 const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -253,6 +264,50 @@ describe('list', () => {
       expect(style.minBlockSize).toBe('56px')
       expect(style.paddingLeft).toBe('16px')
       expect(style.paddingRight).toBe('16px')
+    })
+  })
+
+  // The ripple ListItem draws, so a row looks the same pressed in a list as
+  // on its own. React Aria keeps a row's clicks for its own press handling,
+  // so the press ends on the release; a row waiting for a click would stay
+  // pressed.
+  describe('the press ripple', () => {
+    let restoreAnimate: () => void
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restoreAnimate = installFakeAnimate()
+    })
+
+    afterEach(() => {
+      restoreAnimate()
+      vi.useRealTimers()
+    })
+
+    it('ripples from a press on a row, and lets go once the press ends', async () => {
+      const view = render(
+        <List aria-label="Label">
+          <List.Item id="first">First item</List.Item>
+        </List>,
+      )
+      const row = view.getByRole('row')
+
+      firePointer(row, 'pointerdown', { buttons: 1 })
+      expect(isPressed(row)).toBe(true)
+
+      firePointer(row, 'pointerup', { buttons: 0 })
+      await advance(MINIMUM_PRESS_MS)
+      expect(isPressed(row)).toBe(false)
+    })
+
+    it('draws no ripple on a disabled row', () => {
+      const view = render(
+        <List aria-label="Label" disabledKeys={FIRST}>
+          <List.Item id="first">First item</List.Item>
+        </List>,
+      )
+
+      expect(hasRipple(view.getByRole('row'))).toBe(false)
     })
   })
 

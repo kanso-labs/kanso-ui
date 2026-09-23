@@ -1,8 +1,24 @@
 import { render } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '../components/button'
 import { motionDurationMs } from '../tokens/values'
+import { useRipple } from './useRipple'
+import {
+  advance,
+  firePointer,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from './useRipple.testing'
+
+// Sized so the ripple has somewhere to grow, and positioned, as the hook asks
+// of its host. Hoisted so it is one object rather than a new one per render.
+const HOST_STYLE = {
+  height: '40px',
+  position: 'relative',
+  width: '100px',
+} as const
 
 /** Presses `button` with a mouse, which is what starts the growth. */
 function press(button: Element) {
@@ -51,6 +67,17 @@ function recordAnimations() {
       Object.defineProperty(Element.prototype, 'animate', native)
     },
   }
+}
+
+/** A host that ends its press on the release, as a collection row does. */
+function ReleaseHost() {
+  const ripple = useRipple<HTMLDivElement>(true, {}, true)
+
+  return (
+    <div data-testid="host" style={HOST_STYLE} {...ripple.handlers}>
+      {ripple.surface}
+    </div>
+  )
 }
 
 /**
@@ -133,5 +160,49 @@ describe("the ripple's growth, which is driven rather than declared", () => {
     } finally {
       animate.restore()
     }
+  })
+})
+
+// A collection row never hears its own click, so a host asking for it ends
+// the press on the release. The rows' own tests press with a mouse; these
+// are the two touch paths, where a press is only confirmed after a delay.
+describe('a press that ends on its release', () => {
+  let restoreAnimate: () => void
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    restoreAnimate = installFakeAnimate()
+  })
+
+  afterEach(() => {
+    restoreAnimate()
+    vi.useRealTimers()
+  })
+
+  it('plays a touch tap released before the delay through to its end', async () => {
+    const view = render(<ReleaseHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    expect(isPressed(host)).toBe(false)
+
+    firePointer(host, 'pointerup', { pointerType: 'touch' })
+    expect(isPressed(host)).toBe(true)
+
+    await advance(MINIMUM_PRESS_MS)
+    expect(isPressed(host)).toBe(false)
+  })
+
+  it('lets a held touch go on its release', async () => {
+    const view = render(<ReleaseHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+    expect(isPressed(host)).toBe(true)
+
+    firePointer(host, 'pointerup', { pointerType: 'touch' })
+    await advance(MINIMUM_PRESS_MS)
+    expect(isPressed(host)).toBe(false)
   })
 })

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type {
+  FocusableElement,
   DisclosurePanelProps as RACDisclosurePanelProps,
   DisclosureProps as RACDisclosureProps,
 } from 'react-aria-components'
@@ -15,6 +16,7 @@ import {
 } from 'react-aria-components'
 
 import { ChevronEndGlyph } from '../../glyphs'
+import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -210,15 +212,24 @@ function DisclosureHeader({
   // reports the press states rather than what the button controls — so
   // whether the section is open comes from the disclosure's own context.
   const state = useContext(DisclosureStateContext)
+  // The press ripple a list's rows draw, since this is the same row. It is a
+  // button, which hears its own click, so the press ends there as Button's
+  // does, and a keyboard press draws one too.
+  const ripple = useRipple<FocusableElement>()
 
   return (
     <RACHeading level={headingLevel} {...stylex.props(styles.heading)}>
-      <RACButton className={headerClassName(supporting)} slot="trigger">
+      <RACButton
+        className={headerClassName(supporting)}
+        slot="trigger"
+        {...ripple.handlers}
+      >
         {headerContent(
           children,
           leading,
           supporting,
           state?.isExpanded === true,
+          ripple.surface,
         )}
       </RACButton>
     </RACHeading>
@@ -290,16 +301,20 @@ function headerContent(
   leading: ReactNode,
   supporting: ReactNode,
   isExpanded: boolean,
+  ripple: ReactNode,
 ) {
   return (state: { isDisabled: boolean }) => (
-    <RowContent
-      isDisabled={state.isDisabled}
-      leading={leading}
-      supporting={supporting}
-      trailing={chevronFor(isExpanded)}
-    >
-      {children}
-    </RowContent>
+    <>
+      <RowContent
+        isDisabled={state.isDisabled}
+        leading={leading}
+        supporting={supporting}
+        trailing={chevronFor(isExpanded)}
+      >
+        {children}
+      </RowContent>
+      {state.isDisabled ? null : ripple}
+    </>
   )
 }
 
