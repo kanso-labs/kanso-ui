@@ -14,6 +14,7 @@ import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { render, renderHook } from '@testing-library/react'
+import { isValidElement } from 'react'
 import { describe, expect, it } from 'vitest'
 
 import Button from '../components/button'
@@ -34,7 +35,9 @@ const OURS = () => <span />
 const DRAG = <Button slot="drag">Drag</Button>
 
 const probeStyles = stylex.create({
+  onSurface: { color: colors.onSurface },
   primary: { color: colors.primary },
+  surfaceContainerHigh: { color: colors.surfaceContainerHigh },
 })
 
 // One set of hooks handed to whichever collection the case is about, which is
@@ -47,6 +50,28 @@ function Draggable({ children }: { children: (hooks: Hooks) => ReactNode }) {
   })
 
   return <>{children(dragAndDropHooks)}</>
+}
+
+// The preview the wrapper installs, for the items named. React Aria draws it
+// only while a drag is in flight, which a test cannot start, so this calls
+// the renderer and renders what it returns — the element React Aria would
+// draw under the pointer.
+function preview(labels: string[]) {
+  const { result } = renderHook(() =>
+    useDragAndDrop({ getItems: () => [], onReorder: () => undefined }),
+  )
+  const element = result.current.dragAndDropHooks.renderDragPreview?.(
+    labels.map((label) => ({ 'text/plain': label })),
+  )
+  if (!isValidElement(element)) {
+    throw new Error('expected the preview to be an element')
+  }
+  const view = render(element)
+  const surface = view.container.firstElementChild
+  if (!(surface instanceof HTMLElement)) {
+    throw new Error('expected the preview to draw a surface')
+  }
+  return surface
 }
 
 function probe(style: stylex.StyleXStyles) {
@@ -162,6 +187,51 @@ describe('drag and drop', () => {
       )
 
       expect(result.current.dragAndDropHooks.renderDropIndicator).toBe(OURS)
+    })
+  })
+
+  describe('the drag preview', () => {
+    it('names the item being dragged', () => {
+      expect(preview(['First item']).textContent).toBe('First item')
+    })
+
+    // More than one, and the first is named with a count of the rest rather
+    // than all of them, which would run past the preview's width.
+    it('names the first of several and counts the rest', () => {
+      expect(preview(['First item', 'Second item']).textContent).toBe(
+        'First item + 1',
+      )
+      expect(
+        preview(['First item', 'Second item', 'Third item']).textContent,
+      ).toBe('First item + 2')
+    })
+
+    // The row it came from, raised: the label type on a surface above the
+    // list's own.
+    it('is drawn on a raised surface in the label type', () => {
+      const surface = getComputedStyle(preview(['First item']))
+
+      expect(surface.backgroundColor).toBe(
+        probe(probeStyles.surfaceContainerHigh),
+      )
+      expect(surface.color).toBe(probe(probeStyles.onSurface))
+      expect(surface.fontSize).toBe('14px')
+      expect(surface.lineHeight).toBe('20px')
+    })
+
+    it('cuts a long label short at its width with an ellipsis', () => {
+      const surface = preview([
+        'A label long enough to run past the width '.repeat(3),
+      ])
+      const style = getComputedStyle(surface)
+
+      expect(surface.getBoundingClientRect().width).toBeLessThanOrEqual(320)
+      expect(surface.scrollWidth).toBeGreaterThan(surface.clientWidth)
+      expect([style.overflowX, style.textOverflow, style.whiteSpace]).toEqual([
+        'hidden',
+        'ellipsis',
+        'nowrap',
+      ])
     })
   })
 
