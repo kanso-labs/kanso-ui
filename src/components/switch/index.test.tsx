@@ -283,6 +283,32 @@ describe('switch', () => {
       expect(settled(seat)).toBe('20px')
     })
 
+    // A touch that lands on the handle belongs to the drag. Left to the
+    // browser, a finger moving across it is read as a pan of the page, which
+    // takes the pointer and cancels the drag before it can settle. Read off
+    // the seat, since touch-action is decided where the touch lands and the
+    // state layer inside the seat is part of it.
+    it('keeps a touch on the handle from panning the page', () => {
+      const { input } = setup()
+      expect(getComputedStyle(partsOf(input).seat).touchAction).toBe('none')
+    })
+
+    // A handle that cannot be dragged has no drag to protect, so the page
+    // still pans from it — a column of disabled switches scrolls like any
+    // other content.
+    it('leaves a handle that cannot be dragged to the page', () => {
+      const disabled = setup({ isDisabled: true })
+      expect(getComputedStyle(partsOf(disabled.input).seat).touchAction).toBe(
+        'auto',
+      )
+      disabled.unmount()
+
+      const readOnly = setup({ isReadOnly: true })
+      expect(getComputedStyle(partsOf(readOnly.input).seat).touchAction).toBe(
+        'auto',
+      )
+    })
+
     it('keeps the handle inside the two ends of the track', () => {
       const { input } = setup()
       const { seat } = partsOf(input)
