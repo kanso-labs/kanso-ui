@@ -23,6 +23,9 @@ const probeStyles = stylex.create({
   focusedLabel: { color: colors.primary },
   mono: { fontFamily: typography.fontFamilyMono },
   mutedLabel: { color: colors.onSurfaceVariant },
+  // Narrower than a long label on one line, which is where wrapping it and
+  // cutting it short part ways.
+  room: { inlineSize: '240px' },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -104,6 +107,71 @@ function settled(element: HTMLElement) {
 }
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+
+const LONG_LABEL =
+  'A label long enough that it has nowhere left to go on one line'
+
+// Where a long label ends up, read once its transition has settled. The
+// column is what the label is positioned in, and so the room it has: the
+// width between the box's padding and any icon at either end. An outlined
+// label pads itself either side, which is why the text is measured inside
+// that padding.
+//
+// An ellipsis is paint, which nothing here can read, so `cutShort` is every
+// condition CSS sets for drawing one: text wider than its box, a box that
+// clips, and `text-overflow` asking for it.
+function fitOf(label: HTMLElement) {
+  const column = label.parentElement
+  if (column === null) {
+    throw new Error('expected the label to sit in a column')
+  }
+  const style = settled(label)
+  const own = label.getBoundingClientRect()
+  const room = column.getBoundingClientRect()
+  return {
+    cutShort:
+      style.textOverflow === 'ellipsis' &&
+      style.overflowX !== 'visible' &&
+      label.scrollWidth > label.clientWidth,
+    inColumn: own.right - Number.parseFloat(style.paddingRight) <= room.right,
+    oneLine: own.height === Number.parseFloat(style.lineHeight),
+  }
+}
+
+const FITS = { cutShort: true, inColumn: true, oneLine: true }
+
+// A box of either variant around a long label, in a room too narrow for it.
+function renderLong(
+  props: {
+    defaultValue?: string
+    trailing?: boolean
+    variant?: 'filled' | 'outlined'
+  } = {},
+) {
+  const view = render(
+    <div {...stylex.props(probeStyles.room)}>
+      <TextField
+        defaultValue={props.defaultValue}
+        validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      >
+        <FieldBox
+          label={LONG_LABEL}
+          trailing={props.trailing === true ? TRAILING_ICON : undefined}
+          variant={props.variant}
+        >
+          <FieldInput />
+        </FieldBox>
+      </TextField>
+    </div>,
+  )
+  return {
+    ...view,
+    label: view.getByText(LONG_LABEL, { selector: 'label' }),
+  }
+}
+
+// The page's trailing icon: 24dp, the size the slot is laid out for.
+const TRAILING_ICON = <svg aria-hidden="true" height="24" width="24" />
 
 // A field of one variant, optionally under the theme whose body lines are
 // longer, measured for the room its box leaves around the control.
@@ -287,6 +355,58 @@ describe('field chrome', () => {
     it('carries no placeholder of its own under a fixed label', () => {
       const { input } = setup({ floatingLabel: false })
       expect(input.hasAttribute('placeholder')).toBe(false)
+    })
+  })
+
+  // A label is one line of the box, as the value is: one with no room for
+  // it is cut short with an ellipsis where the column ends, as Material's own
+  // fields cut theirs, rather than wrapped onto lines that run down over the
+  // value and out through the bottom of the box.
+  describe('a long label', () => {
+    it('is cut short in a filled box, at rest and floated', () => {
+      const resting = renderLong()
+      expect(fitOf(resting.label)).toEqual(FITS)
+      resting.unmount()
+
+      const floated = renderLong({ defaultValue: 'Value' })
+      expect(fitOf(floated.label)).toEqual(FITS)
+    })
+
+    it('is cut short in an outlined box, at rest and floated', () => {
+      const resting = renderLong({ variant: 'outlined' })
+      expect(fitOf(resting.label)).toEqual(FITS)
+      resting.unmount()
+
+      const floated = renderLong({ defaultValue: 'Value', variant: 'outlined' })
+      expect(fitOf(floated.label)).toEqual(FITS)
+    })
+
+    it('stops before a trailing icon', () => {
+      const view = renderLong({ trailing: true })
+      expect(fitOf(view.label)).toEqual(FITS)
+    })
+
+    // The notch is cut by a copy of the label in the outline's legend, which
+    // has to stop where the label does, or the outline stays open past the
+    // ellipsis. Beside a trailing icon that is the icon's slot and its
+    // spacing, which the outline takes out of the notch's room as it does at
+    // a leading icon. Within the pixel the outline's own border sets it in
+    // by, at either end.
+    it('opens the outlined notch as wide as the cut-short label', () => {
+      const view = renderLong({
+        defaultValue: 'Value',
+        trailing: true,
+        variant: 'outlined',
+      })
+      const legend = view.container.querySelector('legend')
+      if (legend === null) {
+        throw new Error('expected the outline to hold its notch')
+      }
+      const label = view.label.getBoundingClientRect()
+      const notch = legend.getBoundingClientRect()
+
+      expect(Math.abs(notch.left - label.left)).toBeLessThanOrEqual(1)
+      expect(Math.abs(notch.right - label.right)).toBeLessThanOrEqual(1)
     })
   })
 

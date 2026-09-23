@@ -251,10 +251,22 @@ const fieldChromeStyles = stylex.create({
   // in. Kept apart from `label`, which is the colour alone, so a field that
   // lays its label out differently — a checkbox, a slider — can take the
   // one without the other.
+  //
+  // One line, like everything else the box draws, cut short with an
+  // ellipsis where the column ends — which is before an icon at either end,
+  // since those sit beside the column rather than in it. Left to wrap, a
+  // label with no room ran down over the value and out through the bottom
+  // of the box: three lines of it below a 56dp box at rest. Material's own
+  // fields cut their labels the same way.
   boxLabel: {
+    boxSizing: 'border-box',
     insetBlockStart: 0,
     insetInlineStart: 0,
+    maxInlineSize: '100%',
+    overflow: 'hidden',
     position: 'absolute',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   // The floated label's type, for a field whose control CSS cannot ask
   // about. `boxFloating` shrinks the label by keying the box on
@@ -272,9 +284,12 @@ const fieldChromeStyles = stylex.create({
   },
   // Outlined, the label rests on the value's line and moves up onto the
   // outline, with the page's 4dp beside it — which the notch has too, so
-  // the two line up.
+  // the two line up. The 4dp either side is outside the column, so the
+  // widest the label goes is the column and the two 4dps, which leaves its
+  // text the column's width as a filled label's is.
   boxLabelOutlined: {
     insetInlineStart: `calc(-1 * ${spacing.xs})`,
+    maxInlineSize: `calc(100% + 2 * ${spacing.xs})`,
     paddingInline: spacing.xs,
   },
   // Floated: half the label's own 16dp line above the column, which is
@@ -540,9 +555,13 @@ const fieldChromeStyles = stylex.create({
     paddingInlineStart: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs})`,
   },
   // The notch: the legend, holding the label's text out of sight and no
-  // height of its own, so the border stays on the box's edge.
+  // height of its own, so the border stays on the box's edge. The widest it
+  // opens is the outline's own padding box, which is what has to stop where
+  // the label's column does for a label cut short to cut a notch no longer
+  // than itself.
   outlineNotch: {
     blockSize: 0,
+    boxSizing: 'border-box',
     lineHeight: 0,
     maxInlineSize: '100%',
     overflow: 'hidden',
@@ -555,6 +574,14 @@ const fieldChromeStyles = stylex.create({
   // with nothing in it.
   outlineNotchOpen: {
     paddingInline: spacing.xs,
+  },
+  // Short of a trailing icon: the page's 12dp, the icon and its 16dp, as
+  // `outlineLeading` is at the other end, so a cut-short label's notch ends
+  // with it. Like `outlineLeading`, it is laid out for the page's 24dp icon;
+  // a picker's 40dp trigger in the slot leaves the notch open 16dp past the
+  // ellipsis of a label cut short beside it.
+  outlineTrailing: {
+    paddingInlineEnd: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs})`,
   },
   // Wrapped as the browser wraps a text area, so the two break their lines
   // at the same places.
