@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type {
   TokenFieldProps as RACTokenFieldProps,
   TokenInputProps as RACTokenInputProps,
+  TokenRenderProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -107,7 +108,6 @@ const styles = stylex.create({
   // A token's own pill sits on the value's line rather than filling it, and
   // the caret has to be able to land either side of it.
   token: {
-    userSelect: 'none',
     verticalAlign: 'middle',
   },
 })
@@ -200,16 +200,26 @@ function isPopulated(value: TokenFieldValue | undefined) {
 // What each token draws. Built by a call rather than written inline at the
 // prop, which is what react-perf's no-new-function-as-prop is after; the
 // React Compiler memoises the result on its input.
+// A token is the chip it looks like: unselected at rest, and the selected
+// chip — Material's selected input chip — once the selection covers it. A
+// click selects the whole token, since React Aria gives it
+// `user-select: all`, and so does the keyboard's selection running across
+// it; either way it is the token Backspace removes next, and this is what
+// says so.
+function tokenClassName({ isSelected }: TokenRenderProps) {
+  return (
+    stylex.props(
+      chipStyles.base,
+      focus.ring,
+      isSelected ? chipStyles.selected : chipStyles.unselected,
+      styles.token,
+    ).className ?? ''
+  )
+}
+
 function tokenContent(renderToken: TokenFieldProps['renderToken']) {
   return (segment: TokenSegment) => (
-    <RACToken
-      {...stylex.props(
-        chipStyles.base,
-        focus.ring,
-        chipStyles.unselected,
-        styles.token,
-      )}
-    >
+    <RACToken className={tokenClassName}>
       {chipLabel(
         renderToken === undefined ? segment.text : renderToken(segment),
       )}
