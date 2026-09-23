@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.34.1](https://github.com/kanso-labs/kanso-ui/compare/v0.34.0...v0.34.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* **avatar:** drop the empty aria-label when the name is blank ([#1086](https://github.com/kanso-labs/kanso-ui/issues/1086)) ([ccb67c5](https://github.com/kanso-labs/kanso-ui/commit/ccb67c53742e2a9a0be60136b0e90c0deb204271))
+* **color-picker:** import CSSProperties for the style prop instead of the ambient React namespace ([#1082](https://github.com/kanso-labs/kanso-ui/issues/1082)) ([1fa635b](https://github.com/kanso-labs/kanso-ui/commit/1fa635bfd54f332f3efb1d1686fb8b19fcd9fe1c))
+* **combo-box:** draw the chosen options and the input on one line under a floated label ([#1077](https://github.com/kanso-labs/kanso-ui/issues/1077)) ([3fad2c8](https://github.com/kanso-labs/kanso-ui/commit/3fad2c8853f388bfd358f97e71cc90676f294d4c))
+* **dialog:** set boxSizing on the scrim's centring wrapper ([#1083](https://github.com/kanso-labs/kanso-ui/issues/1083)) ([f5af433](https://github.com/kanso-labs/kanso-ui/commit/f5af433325ed10d3b9e1d65ccec3e8bcd0d37071))
+* **hooks:** remove the image-load listeners and abort the fetch on cleanup ([#1079](https://github.com/kanso-labs/kanso-ui/issues/1079)) ([953c402](https://github.com/kanso-labs/kanso-ui/commit/953c402fa0fb02fb928077912f596d947ac6adc1))
+* **list-item:** press a row the same way List, ListBox and Menu do ([#1088](https://github.com/kanso-labs/kanso-ui/issues/1088)) ([d65a6a9](https://github.com/kanso-labs/kanso-ui/commit/d65a6a966ab6bcdd0f6612e37abbafed14057af1))
+* **token-field:** draw a selected token as a selected chip ([#1074](https://github.com/kanso-labs/kanso-ui/issues/1074)) ([f5c6290](https://github.com/kanso-labs/kanso-ui/commit/f5c629000ecc847d9052c7367250f251a63c043d))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.6 ([#1089](https://github.com/kanso-labs/kanso-ui/issues/1089)) ([db054dd](https://github.com/kanso-labs/kanso-ui/commit/db054ddc969515e58092bc3e2898d72bdad64ad3))
+* update kanso-labs/actions action to v4.0.2 ([#1080](https://github.com/kanso-labs/kanso-ui/issues/1080)) ([5c1960a](https://github.com/kanso-labs/kanso-ui/commit/5c1960af6340e60ecc58642723429f1e14fac6f9))
+
 ## [0.34.0](https://github.com/kanso-labs/kanso-ui/compare/v0.33.0...v0.34.0) (2026-09-23)
 
 
