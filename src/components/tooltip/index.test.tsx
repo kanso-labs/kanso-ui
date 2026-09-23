@@ -65,6 +65,32 @@ function settled(tooltip: HTMLElement) {
 // for want of space. Hoisted for react-perf's no-new-object-as-prop.
 const ROOM_ABOVE = { paddingBlockStart: '200px' }
 
+// Room on every side, so a tooltip lined up with an edge of the element is
+// not pushed back in from the edge of the window.
+const ROOM_AROUND = { padding: '200px' }
+
+// How far the tooltip's start and end sit in from the element's, opened
+// below it with the alignment asked for. The element is wider than the
+// tooltip, so the two can only share the edge that was asked for.
+function alignedEdges(align: 'center' | 'end' | 'start') {
+  const view = render(
+    <div style={ROOM_AROUND}>
+      <Tooltip align={align} defaultOpen label="Label" side="bottom">
+        <Button>Trigger</Button>
+      </Tooltip>
+    </div>,
+  )
+  const trigger = view
+    .getByRole('button', { name: 'Trigger' })
+    .getBoundingClientRect()
+  const tooltip = settled(view.getByRole('tooltip')).getBoundingClientRect()
+  view.unmount()
+  return {
+    end: Math.round(trigger.right - tooltip.right),
+    start: Math.round(tooltip.left - trigger.left),
+  }
+}
+
 function setup(props: Partial<Parameters<typeof Tooltip>[0]> = {}) {
   const view = render(
     <div style={ROOM_ABOVE}>
@@ -194,6 +220,20 @@ describe('tooltip', () => {
       expect(tooltip.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         view.trigger.getBoundingClientRect().bottom,
       )
+    })
+
+    // `align` goes through the overlay module's mapping onto React Aria's
+    // placements, the one `Popover` and `Menu` use.
+    it('lines up with the start or the end of the element when asked', () => {
+      const start = alignedEdges('start')
+      const end = alignedEdges('end')
+      const centre = alignedEdges('center')
+
+      expect(start.start).toBe(0)
+      expect(start.end).toBeGreaterThan(0)
+      expect(end.end).toBe(0)
+      expect(end.start).toBeGreaterThan(0)
+      expect(Math.abs(centre.start - centre.end)).toBeLessThanOrEqual(1)
     })
 
     it("leaves the page's 8 between the element and the tooltip", () => {
