@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+
 import { render } from '@testing-library/react'
 import { afterAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -27,7 +29,7 @@ const OUTER = { inlineSize: '1400px' }
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const SECTION = <section aria-label="Container" />
 
-function renderContainer(element: React.ReactElement) {
+function renderContainer(element: ReactElement) {
   const view = render(<div style={OUTER}>{element}</div>)
   const container = view.container.firstElementChild?.firstElementChild
   if (!(container instanceof HTMLElement)) {

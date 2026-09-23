@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -20,7 +22,7 @@ function Items() {
   )
 }
 
-function renderStack(element: React.ReactElement) {
+function renderStack(element: ReactElement) {
   const view = render(<div style={OUTER}>{element}</div>)
   const stack = view.container.firstElementChild?.firstElementChild
   if (!(stack instanceof HTMLElement)) {
