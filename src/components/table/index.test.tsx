@@ -28,10 +28,26 @@ import { describe, expect, it, vi } from 'vitest'
 import type { TableBodyProps } from '.'
 
 import Table from '.'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
   bodyMedium: { fontSize: typography.bodyMediumSize },
+  disabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  // A selecting row's hover and pressed tints alone, written as the row's own
+  // style writes them so they hash to the same atomic classes.
+  interactiveTints: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: null,
+    },
+  },
   labelLarge: { fontWeight: typography.labelLargeWeight },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { color: colors.outlineVariant },
@@ -64,6 +80,8 @@ const fromReactAria: RACTableBodyProps<object>['renderEmptyState'] = (state) =>
 // A plain table with two columns and two rows, which is what most of the
 // cases below need before they change one thing about it.
 function Basic(props: {
+  defaultSelectedKeys?: string[]
+  disabledKeys?: string[]
   loadMore?: boolean
   loadMoreLabel?: string
   loadMoreLoading?: boolean
@@ -86,6 +104,8 @@ function Basic(props: {
   return (
     <Table
       aria-label="Label"
+      defaultSelectedKeys={props.defaultSelectedKeys}
+      disabledKeys={props.disabledKeys}
       onResize={props.onResize}
       resizable={props.resizable}
       resizeLabel={props.resizeLabel}
@@ -124,6 +144,18 @@ function Basic(props: {
       </Table.Body>
     </Table>
   )
+}
+
+// An empty list would make an `every` vacuously true and a `some` vacuously
+// false, so it is a broken assertion rather than a passing one.
+function classesOf(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the probe style to generate at least one class')
+  }
+  return classes
 }
 
 function drag(resizer: HTMLElement) {
@@ -463,6 +495,61 @@ describe('table', () => {
       const view = render(<Basic />)
 
       expect(view.queryByRole('checkbox')).toBeNull()
+    })
+  })
+
+  // A row React Aria's `disabledKeys` disables draws the treatment every
+  // disabled row in the library shares. Its style is listed last of the three
+  // row states, so it wins over the interactive and selected ones, and StyleX
+  // replaces a property whole, so their tints go with it.
+  describe('a disabled row', () => {
+    it('is reported as one', () => {
+      const view = render(<Basic disabledKeys={['second']} />)
+      const [, first, second] = view.getAllByRole('row')
+
+      expect(first.getAttribute('aria-disabled')).toBeNull()
+      expect(second.getAttribute('aria-disabled')).toBe('true')
+    })
+
+    it('fades its text to on-surface at the disabled content opacity', () => {
+      const view = render(<Basic disabledKeys={['second']} />)
+      const [, first, second] = view.getAllByRole('row')
+      const faded = probe(probeStyles.disabled).color
+
+      expect(getComputedStyle(second).color).toBe(faded)
+      expect(getComputedStyle(first).color).not.toBe(faded)
+    })
+
+    // Read off the classes StyleX writes for the two branches, since nothing
+    // here hovers or presses for real; the enabled row beside it is what
+    // proves these are the tints to look for.
+    it("takes none of a selecting row's tints, nor its pointer", () => {
+      const view = render(
+        <Basic disabledKeys={['second']} selectionMode="multiple" />,
+      )
+      const [, first, second] = view.getAllByRole('row')
+      const tints = classesOf(probeStyles.interactiveTints)
+
+      expect(tints.every((name) => first.classList.contains(name))).toBe(true)
+      expect(tints.some((name) => second.classList.contains(name))).toBe(false)
+      expect(getComputedStyle(first).cursor).toBe('pointer')
+      expect(getComputedStyle(second).cursor).toBe('not-allowed')
+    })
+
+    // A disabled row can still be selected by the call site, and it draws no
+    // container for it: the fade is the one state it shows.
+    it('drops the selected container when it is selected too', () => {
+      const view = render(
+        <Basic
+          defaultSelectedKeys={['second']}
+          disabledKeys={['second']}
+          selectionMode="multiple"
+        />,
+      )
+      const [, , second] = view.getAllByRole('row')
+
+      expect(second.getAttribute('aria-selected')).toBe('true')
+      expect(getComputedStyle(second).backgroundColor).toBe('rgba(0, 0, 0, 0)')
     })
   })
 
