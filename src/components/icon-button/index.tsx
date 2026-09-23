@@ -40,7 +40,8 @@ import ProgressIndicator from '../progress-indicator'
 // interaction state's opacity, rather than swapping in a separate hover
 // color. The pairs are the icon buttons spec page's: filled on primary,
 // tonal on secondary container, outlined with an outline variant border and
-// an on-surface-variant icon, standard on surface variant over nothing. calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
+// an on-surface-variant icon, standard on surface variant over nothing.
+// calc(<opacity> * 100%) turns the token's unitless 0-1 ratio into the
 // percentage color-mix() takes. Inlined at each property rather than factored
 // into a helper: @stylexjs/babel-plugin only statically recognizes
 // expressions written directly as property values.
@@ -238,11 +239,13 @@ const styles = stylex.create({
     position: 'absolute',
   },
   // Transparent, so it tints whatever it is sitting on rather than carrying a
-  // container of its own — the same treatment ListItem's rows get.
+  // container of its own, as ListItem's rows do. The tint is its icon's
+  // on-surface-variant, which is this variant's state layer on the page,
+  // where a row's is the on-surface its headline is drawn in.
   standard: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
     color: colors.onSurfaceVariant,
