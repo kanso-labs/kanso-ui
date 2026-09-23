@@ -267,9 +267,10 @@ type MenuSide = OverlaySide
 type MenuSubmenuProps = {
   /**
    * The item that opens the submenu, then the `Menu.Content` it opens.
-   * Exactly those two, in that order.
+   * Exactly those two, in that order. The count is the type's to enforce;
+   * the order is not, since every JSX element has the same type.
    */
-  children: ReactElement[]
+  children: [trigger: ReactElement, content: ReactElement]
   /**
    * How long the pointer rests on the item before the submenu opens, in
    * milliseconds.

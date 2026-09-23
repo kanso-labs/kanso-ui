@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 
 // Taken from the barrel rather than from each component's own module, which is
@@ -1019,7 +1020,11 @@ describe('components barrel', () => {
   })
 
   it('re-exports the MenuSubmenuProps type', () => {
-    const props: MenuSubmenuProps = { children: [], delay: 200 }
+    const element = createElement('span')
+    const props: MenuSubmenuProps = {
+      children: [element, element],
+      delay: 200,
+    }
     expect(props.delay).toBe(200)
   })
 

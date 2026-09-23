@@ -5,6 +5,8 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { MenuSubmenuProps } from '.'
+
 import Menu from '.'
 import {
   firePointer,
@@ -371,6 +373,28 @@ describe('menu', () => {
   })
 
   describe('submenus', () => {
+    // The two-element tuple is the half that matters: `tsc -b` checks this
+    // file, so a submenu given one element, or a third, fails to compile.
+    // React Aria's SubmenuTrigger reads the first two children and no
+    // others, so at runtime a third is dropped without a word and a missing
+    // second leaves the item nothing to open.
+    //
+    // Checked on the props type rather than through JSX, for both ends. A
+    // lone JSX child is not an array, so JSX refuses one whatever the tuple
+    // says. And TypeScript counts a `{/* */}` comment among the children as
+    // a child when it reports a third, so that error lands on the
+    // directive's own line, which the directive does not cover.
+    it('types its children as the item and the menu it opens, and no more', () => {
+      const item = <Menu.Item id="more">More</Menu.Item>
+      // @ts-expect-error -- the menu the item opens is missing
+      const missing: MenuSubmenuProps['children'] = [item]
+      // @ts-expect-error -- a third element has nowhere to go
+      const extra: MenuSubmenuProps['children'] = [item, item, item]
+
+      expect(missing).toHaveLength(1)
+      expect(extra).toHaveLength(3)
+    })
+
     // React Aria reports `hasSubmenu` on the item inside a SubmenuTrigger,
     // so the chevron is drawn from state rather than named twice.
     it('marks the item that opens one and draws its chevron', () => {
