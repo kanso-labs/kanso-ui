@@ -41,9 +41,11 @@ describe('avatar', () => {
       expect(avatar.textContent).toBe('AL')
     })
 
+    // Found through the container rather than as an image, since a blank
+    // name is not announced as one — see "accessibility" below.
     it('renders nothing for a name that is only whitespace', () => {
-      const { avatar } = setup({ name: '   ' })
-      expect(avatar.textContent).toBe('')
+      const view = render(<Avatar name="   " />)
+      expect(view.container.firstElementChild?.textContent).toBe('')
     })
 
     // Indexing a string with [0] would split the surrogate pair and render a
@@ -77,6 +79,21 @@ describe('avatar', () => {
       const view = render(<Avatar name="Ada Lovelace" />)
       expect(view.getByRole('img').textContent).toBe('AL')
       expect(view.queryByRole('img', { name: 'AL' })).toBeNull()
+    })
+
+    // A blank name names nothing. Announced as an image, the avatar would be
+    // one with no name, which a screen reader reads as a bare "image" and an
+    // accessibility audit fails; left as a plain element, its empty initials
+    // or its photo, drawn with an empty alt, give it nothing to read.
+    it('is not announced at all while the name is blank', () => {
+      for (const name of ['', '   ']) {
+        const view = render(<Avatar name={name} />)
+        const avatar = view.container.firstElementChild
+
+        expect(view.queryByRole('img')).toBeNull()
+        expect(avatar?.hasAttribute('aria-label')).toBe(false)
+        view.unmount()
+      }
     })
   })
 
