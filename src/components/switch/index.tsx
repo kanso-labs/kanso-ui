@@ -149,7 +149,10 @@ const styles = stylex.create({
     transitionProperty: 'background-color',
     transitionTimingFunction: motion.easingStandard,
   },
-  // The description and error sit under the text, in the second column.
+  // The handle's travelling box: the pressed handle's 28dp, centred 16dp from
+  // the start of the track while off and 16dp from its end while on, which
+  // is where the page's handles sit. The insets are measured from inside the
+  // track's 2dp rule, so zero puts the box's centre 16dp from the edge.
   seat: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
@@ -171,10 +174,15 @@ const styles = stylex.create({
   seatAt: (offset: number) => ({
     insetInlineStart: `${offset}px`,
   }),
-  // The handle's travelling box: the pressed handle's 28dp, centred 16dp from
-  // the start of the track while off and 16dp from its end while on, which
-  // is where the page's handles sit. The insets are measured from inside the
-  // track's 2dp rule, so zero puts the box's centre 16dp from the edge.
+  // A handle that can be dragged keeps a touch that lands on it. Left to the
+  // browser, a finger moving across the handle is read as a pan of the page,
+  // which takes the pointer and cancels the drag before it can settle. The
+  // state layer is inside the seat, so a touch on its wider 40dp is kept too.
+  // React Aria sets the same on its slider's thumb and track, and Table's
+  // resizer here does too.
+  seatDraggable: {
+    touchAction: 'none',
+  },
   // Following the pointer: the travel is the drag itself, so the transition
   // is off until the handle is let go.
   seatDragging: {
@@ -313,6 +321,7 @@ function buttonContent(
               {...stylex.props(
                 styles.seat,
                 on && styles.seatOn,
+                interactive && styles.seatDraggable,
                 dragging && styles.seatDragging,
                 dragging && styles.seatAt(drag.offset ?? 0),
               )}
