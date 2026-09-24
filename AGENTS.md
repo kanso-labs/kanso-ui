@@ -883,11 +883,23 @@ The [Kanso Labs project](https://github.com/orgs/kanso-labs/projects/1) holds
 the plan to give the library a component for every React Aria Components export:
 one issue per pull request, from #520 on, and a draft item per decision the plan
 rested on, each of which records the choice taken. Every item carries a Phase, a
-Kind, an Area, a Size and a Status, and every issue carries the `v1.0.0`
-milestone, a type, a pair of labels, a priority and an effort besides; the
-Roadmap view is the board by phase, and each issue names what it depends on.
+Kind, an Area, a Size and a Status, and every issue carries a milestone, a type,
+a pair of labels, a priority and an effort besides; the Roadmap view is the
+board by phase, and each issue names what it depends on.
 
-Items are worked in phase order, and the project is kept current as they are:
+**The improvement audit of 24 September 2026 added a second set**, #1106 to
+#1188, filed the same way: one issue per pull request, titled with the
+Conventional Commit it will merge as. Its four phases are numbered on from the
+plan's rather than slotted between them, so neither set renumbers the other —
+`15 · Blockers`, `16 · Hardening`, `17 · Road to 1.0` and
+`18 · Material coverage`. The numbers keep the two apart and say nothing about
+order: blockers come before anything in phase 1, which is why the audit's phases
+are worked by their priority, set out under "Priority follows Phase" below,
+rather than after phase 14. Phase 18 is Material Design coverage that 1.0 does
+not wait for, so its issues carry `v1.1.0` rather than `v1.0.0`.
+
+Items are worked in phase order — the audit's by their priority — and the
+project is kept current as they are:
 
 - Starting an item sets its Status to In Progress. Its pull request closes it
   with `Closes #N`, and the project's own workflow moves it to Done when that
@@ -915,11 +927,11 @@ else. Nothing joins them up, so each is set in its own place.
 | Field     | Set on         | Values                                                                                                                         |
 | --------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Status    | Project item   | Todo, In Progress, Done                                                                                                        |
-| Phase     | Project item   | `0 · Foundations` through `14 · CI hygiene`, and `Decisions`                                                                   |
+| Phase     | Project item   | `0 · Foundations` through `18 · Material coverage`, and `Decisions`                                                            |
 | Kind      | Project item   | Component, Variant, Fix, Refactor, Integration, Tooling, Docs, Decision                                                        |
 | Area      | Project item   | Foundations, Buttons, Collections, Colour, Date and time, Drag and drop, Forms, Navigation, Overlays, Pickers, Status, Content |
 | Size      | Project item   | S, M, L                                                                                                                        |
-| Milestone | Issue, PR      | `v1.0.0`                                                                                                                       |
+| Milestone | Issue, PR      | `v1.0.0`, and `v1.1.0` for phase 18                                                                                            |
 | Type      | Issue, PR      | Feature, Bug, Task                                                                                                             |
 | Labels    | Issue, PR      | one `kind:`, one `area:`                                                                                                       |
 | Priority  | Issue (native) | Urgent, High, Medium, Low                                                                                                      |
@@ -940,10 +952,13 @@ they follow rather than forming a second opinion:
 
 - **Priority follows Phase.** `0 · Foundations` and `0 · Material alignment` are
   Urgent, phases 1 through 4 are High, 5 through 9 are Medium, and 10 through 14
-  with the Decisions are Low. Items are already worked in phase order, so a
-  priority disagreeing with the phase would describe an order nobody follows.
+  with the Decisions are Low. The audit's four take one step each, from the top:
+  `15 · Blockers` is Urgent, `16 · Hardening` High, `17 · Road to 1.0` Medium
+  and `18 · Material coverage` Low. Items are already worked in phase order, so
+  a priority disagreeing with the phase would describe an order nobody follows.
   What it buys is a sort that survives being grouped by something other than
-  Phase, in a place the board is not.
+  Phase, in a place the board is not — and, for the audit's phases, the only
+  order they have against the plan's.
 - **Effort follows Size** — `L` is High, `M` is Medium, `S` is Low. The two ask
   the same question in different vocabularies, and only Size is ever argued.
 - **Type follows Kind.** Component and Variant are a Feature, Fix is a Bug, and
