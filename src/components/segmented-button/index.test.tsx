@@ -411,6 +411,68 @@ describe('segmented button', () => {
 
       expect(document.activeElement).toBe(second)
     })
+
+    // Choosing several is a toolbar rather than a radio group, and React Aria
+    // gives the two the same keys: the arrows move focus between segments
+    // and choose nothing, Space and Enter toggle the focused segment on its
+    // own, and Tab leaves the set rather than stepping through it.
+    it('moves between segments with the arrow keys, choosing nothing, while several may be', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const buttons = view.getAllByRole('button')
+
+      act(() => {
+        buttons[0].focus()
+      })
+      fireEvent.keyDown(buttons[0], { key: 'ArrowRight' })
+      fireEvent.keyUp(buttons[0], { key: 'ArrowRight' })
+
+      expect(document.activeElement).toBe(buttons[1])
+      expect(
+        buttons.map((button) => button.getAttribute('aria-pressed')),
+      ).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    it('toggles the focused segment alone with Space and Enter while several may be', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const buttons = view.getAllByRole('button')
+
+      act(() => {
+        buttons[1].focus()
+      })
+      fireEvent.keyDown(buttons[1], { key: ' ' })
+      fireEvent.keyUp(buttons[1], { key: ' ' })
+      expect(
+        buttons.map((button) => button.getAttribute('aria-pressed')),
+      ).toStrictEqual(['true', 'true', 'false'])
+
+      fireEvent.keyDown(buttons[1], { key: 'Enter' })
+      fireEvent.keyUp(buttons[1], { key: 'Enter' })
+      expect(
+        buttons.map((button) => button.getAttribute('aria-pressed')),
+      ).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    // A synthetic Tab moves nothing by itself, so this reads React Aria's
+    // half of it: focus is handed to the last segment and the key is left to
+    // the browser, whose own Tab then carries it out of the set from there.
+    it('leaves the set on Tab rather than stepping through it while several may be', () => {
+      const view = setup({ selectionMode: 'multiple' })
+      const buttons = view.getAllByRole('button')
+
+      act(() => {
+        buttons[0].focus()
+      })
+      const leftToBrowser = fireEvent.keyDown(buttons[0], { key: 'Tab' })
+
+      expect(leftToBrowser).toBe(true)
+      expect(document.activeElement).toBe(buttons[2])
+    })
   })
 
   describe('the check', () => {
