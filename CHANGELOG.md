@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.4](https://github.com/kanso-labs/kanso-ui/compare/v0.34.3...v0.34.4) (2026-09-24)
+
+
+### Dependencies
+
+* update dependency vite to v8.3.1 ([#1104](https://github.com/kanso-labs/kanso-ui/issues/1104)) ([fccf2d0](https://github.com/kanso-labs/kanso-ui/commit/fccf2d01f64a2a5c5b2c616ecb7d29778762a0bf))
+
 ## [0.34.3](https://github.com/kanso-labs/kanso-ui/compare/v0.34.2...v0.34.3) (2026-09-24)
 
 
