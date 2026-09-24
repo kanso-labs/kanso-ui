@@ -13,9 +13,9 @@ import { describe, expect, it } from 'vitest'
 // block was a module-local constant rather than an exported one.
 //
 // What is asserted is that no entry defines styles, not that every one has a
-// styles.ts: src/glyphs draws icons and has no styles at all, so a file there
-// would be empty. Read as source rather than as modules, since where a
-// declaration is written is not something a runtime import can see.
+// styles.ts: an internal with nothing to style would need an empty one. Read
+// as source rather than as modules, since where a declaration is written is
+// not something a runtime import can see.
 const INTERNAL_ENTRIES = import.meta.glob('./*/index.tsx', {
   eager: true,
   import: 'default',
