@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Select from '.'
+import { SearchGlyph } from '../../glyphs'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 import Separator from '../separator'
@@ -51,6 +52,11 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xs,
   },
+  // Sized in `em`, so the icon takes the slot's 24.
+  icon: {
+    blockSize: '1em',
+    inlineSize: '1em',
+  },
   intro: {
     display: 'flex',
     flexDirection: 'column',
@@ -80,6 +86,10 @@ const styles = stylex.create({
     inlineSize: '320px',
   },
 })
+
+// The library's own glyphs stand in for an icon set, so the stories stay a
+// demonstration of the field alone.
+const LEADING_ICON = <SearchGlyph {...stylex.props(styles.icon)} />
 
 const meta = {
   args: {
@@ -128,6 +138,55 @@ const Overview: Story = {
             <Select
               defaultValue="second"
               label="Label"
+              options={OPTIONS}
+              variant="outlined"
+            />
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            A leading icon
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            An icon at the start of the box says what the field is for. It is 24
+            in the muted role, 12 from the box&apos;s edge, with the label and
+            the value moved past it, and it stays muted when the rest of the
+            field takes the error role. A press on it opens the list like one
+            anywhere else in the box.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.row)}>
+          <div {...stylex.props(styles.column)}>
+            <Select
+              defaultValue="second"
+              label="Label"
+              leadingIcon={LEADING_ICON}
+              options={OPTIONS}
+            />
+            <Select
+              error="Choose an item"
+              label="Label"
+              leadingIcon={LEADING_ICON}
+              options={OPTIONS}
+            />
+          </div>
+          <div {...stylex.props(styles.column)}>
+            <Select
+              defaultValue="second"
+              label="Label"
+              leadingIcon={LEADING_ICON}
+              options={OPTIONS}
+              variant="outlined"
+            />
+            <Select
+              error="Choose an item"
+              label="Label"
+              leadingIcon={LEADING_ICON}
               options={OPTIONS}
               variant="outlined"
             />
@@ -218,6 +277,11 @@ const Open: Story = {
   render: Default.render,
 }
 
+const WithLeadingIcon: Story = {
+  args: { leadingIcon: LEADING_ICON },
+  render: Default.render,
+}
+
 export {
   Chosen,
   Default,
@@ -227,6 +291,7 @@ export {
   Outlined,
   Overview,
   WithDescription,
+  WithLeadingIcon,
 }
 
 export default meta

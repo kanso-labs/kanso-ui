@@ -3,7 +3,12 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Select from '.'
-import { colors, motion, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  motion,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -12,9 +17,13 @@ import ListBox from '../list-box'
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
+  disabledIcon: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
-  placeholder: { color: colors.onSurfaceVariant },
+  // The muted role, which the placeholder and the leading icon both take.
+  muted: { color: colors.onSurfaceVariant },
   // The curve the rest of the library turns a chevron on, read back through
   // the browser so the assertion pins the role rather than the cubic-bezier
   // it currently resolves to.
@@ -32,9 +41,10 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  disabledIcon: classesOf(stylex.props(probeStyles.disabledIcon)),
   error: classesOf(stylex.props(probeStyles.error)),
   floated: classesOf(stylex.props(probeStyles.floated)),
-  placeholder: classesOf(stylex.props(probeStyles.placeholder)),
+  muted: classesOf(stylex.props(probeStyles.muted)),
 }
 
 const OPTIONS = (
@@ -45,6 +55,9 @@ const OPTIONS = (
   </>
 )
 
+// Sized in `em`, so it takes the slot's 24.
+const ICON = <svg data-testid="icon" style={{ height: '1em', width: '1em' }} />
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -54,6 +67,15 @@ function hasClasses(element: Element, classes: string[]) {
 // narrower than itself for reasons that are the window's rather than the
 // component's. A fixed width keeps the two comparable.
 const WIDTH = { width: '320px' }
+
+/** The box the field draws, which the press target and the icons sit in. */
+function boxOf(view: ReturnType<typeof render>) {
+  const box = view.container.querySelector('[role="group"]')
+  if (!(box instanceof HTMLElement)) {
+    throw new Error('expected the field to draw a box')
+  }
+  return box
+}
 
 // How far the chevron's middle sits from the box's, in a field of one
 // variant.
@@ -91,11 +113,10 @@ function setup(props: Partial<Parameters<typeof Select<object>>[0]> = {}) {
 
 /** The element React Aria draws the value in, styled by the field chrome. */
 function valueOf(view: ReturnType<typeof render>) {
-  // The box holds the press target, then the column the label and the value
-  // share, then the trailing icon. The value is the column's last child.
-  const box = view.container.querySelector('[role="group"]')
-  const value =
-    box?.querySelector('button')?.nextElementSibling?.lastElementChild
+  // The label and the value share a column, the value last. Found through
+  // the label rather than by position in the box, which a leading icon
+  // shifts by one.
+  const value = view.getByText('Label').parentElement?.lastElementChild
   if (!(value instanceof HTMLElement)) {
     throw new Error('expected the box to draw a value')
   }
@@ -253,7 +274,7 @@ describe('select', () => {
     // behind, so it shows in the muted role from the start.
     it('draws the placeholder in the muted role', () => {
       const view = setup({ floatingLabel: false, placeholder: 'Pick one' })
-      expect(hasClasses(valueOf(view), CLASSES.placeholder)).toBe(true)
+      expect(hasClasses(valueOf(view), CLASSES.muted)).toBe(true)
       expect(valueOf(view).textContent).toBe('Pick one')
     })
 
@@ -322,6 +343,65 @@ describe('select', () => {
   // which is what lets an app retime it: redeclaring
   // `--kui-motion-duration-short3` is the documented way to do that from
   // outside the StyleX toolchain, and a hard-coded duration ignores it.
+  // The page's 24dp leading icon, in the slot every field draws: 12 from the
+  // box's edge, with the label and the value moved past it.
+  describe('the leading icon', () => {
+    it('draws the icon 12 from the edge and moves the label and the value past it', () => {
+      const view = setup({ defaultValue: 'second', leadingIcon: ICON })
+      const box = boxOf(view).getBoundingClientRect()
+      const icon = view.getByTestId('icon').getBoundingClientRect()
+
+      expect(icon.width).toBe(24)
+      expect(icon.left - box.left).toBe(12)
+      expect(
+        view.getByText('Label').getBoundingClientRect().left - box.left,
+      ).toBe(52)
+      expect(valueOf(view).getBoundingClientRect().left - box.left).toBe(52)
+      expect(valueOf(view).textContent).toBe('Second item')
+    })
+
+    // The error goes to the label and the underline, and the page leaves
+    // the leading icon in the muted role through it.
+    it('draws the icon in the muted role, with or without an error', () => {
+      for (const error of [undefined, 'Choose an item']) {
+        const view = setup({ error, leadingIcon: ICON })
+        const slot = view.getByTestId('icon').parentElement
+
+        if (!(slot instanceof HTMLElement)) {
+          throw new Error('expected the icon to sit in its slot')
+        }
+        expect(hasClasses(slot, CLASSES.muted)).toBe(true)
+        expect(hasClasses(slot, CLASSES.error)).toBe(false)
+        view.unmount()
+      }
+    })
+
+    // React Aria's Select hands the box no disabled state, so the icon dims
+    // only because the field passes it on — see the box in the component.
+    it('dims the icon while disabled', () => {
+      const view = setup({ isDisabled: true, leadingIcon: ICON })
+      const slot = view.getByTestId('icon').parentElement
+
+      if (!(slot instanceof HTMLElement)) {
+        throw new Error('expected the icon to sit in its slot')
+      }
+      expect(hasClasses(slot, CLASSES.disabledIcon)).toBe(true)
+    })
+
+    // The press target is drawn over the icon, so a press on the icon opens
+    // the list like one anywhere else in the box.
+    it('opens the list from a press on the icon', () => {
+      const view = setup({ leadingIcon: ICON })
+      const icon = view.getByTestId('icon').getBoundingClientRect()
+      const hit = document.elementFromPoint(
+        icon.left + icon.width / 2,
+        icon.top + icon.height / 2,
+      )
+
+      expect(hit !== null && view.trigger.contains(hit)).toBe(true)
+    })
+  })
+
   describe('the turn', () => {
     // On the document element rather than on a wrapper: StyleX compiles a
     // token into a variable of its own, declared once at the root as the
