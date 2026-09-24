@@ -98,6 +98,70 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   }
 }
 
+const REDUCE = 'prefers-reduced-motion: reduce'
+
+/**
+ * The two transition durations that reach `element` — the one it rests at
+ * and the one `@media (prefers-reduced-motion: reduce)` gives it — read out
+ * of the stylesheet rather than off a page put into that state, for the
+ * reason src/styles/overlay-reduced-motion.test.tsx gives: Chromium's media
+ * emulation is a page-level command, and every test file shares the page.
+ */
+function transitionDurations(element: Element): {
+  reduced: string | undefined
+  resting: string | undefined
+} {
+  let reduced: string | undefined
+  let resting: string | undefined
+
+  for (const sheet of document.styleSheets) {
+    walk([...sheet.cssRules], false)
+  }
+
+  return { reduced, resting }
+
+  function walk(rules: CSSRule[], inReduce: boolean) {
+    for (const rule of rules) {
+      if (rule instanceof CSSMediaRule) {
+        walk(
+          [...rule.cssRules],
+          inReduce || rule.conditionText.includes(REDUCE),
+        )
+        continue
+      }
+
+      if (rule instanceof CSSGroupingRule) {
+        walk([...rule.cssRules], inReduce)
+        continue
+      }
+
+      if (!(rule instanceof CSSStyleRule)) {
+        continue
+      }
+
+      // StyleX writes one class per declaration and repeats it to raise
+      // specificity, so a selector is a run of the same class.
+      const className = rule.selectorText.split('.').find(Boolean)
+
+      if (className === undefined || !element.classList.contains(className)) {
+        continue
+      }
+
+      const duration = rule.style.getPropertyValue('transition-duration')
+
+      if (duration === '') {
+        continue
+      }
+
+      if (inReduce) {
+        reduced = duration
+      } else {
+        resting = duration
+      }
+    }
+  }
+}
+
 // A tab set whose second panel is taller than its first, which is what gives
 // the panel box two heights to measure between.
 function withPanels() {
@@ -339,6 +403,42 @@ describe('tabs', () => {
   // keyDown does not drive — a test written against it reports on the test
   // harness rather than on the component. It is verified in a real browser
   // instead, and the result is recorded in the pull request.
+
+  // Three parts move: the indicator slides between tabs, the panel box
+  // resizes to the panel it holds, and a tab's colours change with its
+  // state. Each stops for a reader who asked for less motion, and each is
+  // pinned at rest too — a duration of `0s` in both is a transition nobody
+  // wrote, not a media query doing its job.
+  describe('reduced motion', () => {
+    const PARTS: ReadonlyArray<{ find: () => Element; name: string }> = [
+      {
+        find: () => {
+          const indicator = indicatorOf(setup().first)
+          if (indicator === null) {
+            throw new Error('expected the tab to carry an indicator')
+          }
+          return indicator
+        },
+        name: 'the indicator',
+      },
+      { find: () => withPanels().getByTestId('panels'), name: 'the panel box' },
+      { find: () => setup().first, name: 'a tab' },
+    ]
+
+    it.each(PARTS)('moves $name at all', ({ find }) => {
+      const { resting } = transitionDurations(find())
+
+      expect(resting).toBeDefined()
+      expect(resting).not.toBe('0s')
+    })
+
+    it.each(PARTS)(
+      'stops moving $name for a reader who asked for less motion',
+      ({ find }) => {
+        expect(transitionDurations(find()).reduced).toBe('0s')
+      },
+    )
+  })
 
   describe('the panel box', () => {
     it('takes its height from the variable React Aria measures', () => {
