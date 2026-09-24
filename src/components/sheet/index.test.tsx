@@ -160,6 +160,41 @@ function setup(
   return view
 }
 
+// Sixty lines of body, far more than any viewport holds, which is what shows
+// whether the body scrolls or the panel clips it.
+const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
+  <p key={index}>Supporting line</p>
+))
+
+/** A sheet whose body runs past its panel, read once it has arrived. */
+function longSheet() {
+  const view = render(
+    <Sheet defaultOpen>
+      <Button>Open</Button>
+      <Sheet.Content>
+        <Sheet.Header>
+          <Sheet.Title>Headline</Sheet.Title>
+        </Sheet.Header>
+        <Sheet.Body data-testid="body">{LONG_BODY}</Sheet.Body>
+        <Sheet.Footer>
+          <Button slot="close">Cancel</Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>,
+  )
+  // Its entry slides it in from an edge, so a box read while that is running
+  // is somewhere it is not going to stay.
+  for (const animation of panelOf(view.getByRole('dialog')).getAnimations({
+    subtree: true,
+  })) {
+    animation.finish()
+  }
+  return {
+    body: view.getByTestId('body'),
+    cancel: view.getByRole('button', { name: 'Cancel' }),
+  }
+}
+
 describe('sheet', () => {
   describe('semantics', () => {
     // The roles are the reason this wraps React Aria rather than styling a fixed
@@ -398,6 +433,44 @@ describe('sheet', () => {
         topLeft: '28px',
         topRight: '28px',
       })
+    })
+  })
+
+  // The body is the one part that scrolls: a body longer than the room
+  // leaves the header and the actions where they are, and the rest of the
+  // text a scroll away rather than clipped past the panel's edge.
+  describe('a body longer than the room', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it.each([
+      { height: 812, name: 'the bottom sheet', width: 375 },
+      { height: 768, name: 'the side sheet', width: 1024 },
+    ])(
+      'scrolls the body of $name and keeps its actions on screen',
+      async ({ height, width }) => {
+        await page.viewport(width, height)
+        const { body, cancel } = longSheet()
+
+        expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+        body.scrollTop = 200
+        expect(body.scrollTop).toBe(200)
+        // A tab stop while it scrolls, so a keyboard can scroll it too.
+        expect(body.tabIndex).toBe(0)
+        expect(cancel.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          window.innerHeight,
+        )
+      },
+    )
+
+    // A body that shows whole has nothing to scroll, so it is no stop at all.
+    it('leaves a body that fits out of the tab order', () => {
+      const view = setup()
+
+      expect(view.getByText('Supporting line').hasAttribute('tabindex')).toBe(
+        false,
+      )
     })
   })
 

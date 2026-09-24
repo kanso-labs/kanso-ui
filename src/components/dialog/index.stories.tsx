@@ -197,6 +197,42 @@ const Default: Story = {
   ),
 }
 
+// Forty lines of body: more than the dialog has room for at any width, so
+// the story shows what the body does when it runs out.
+const LONG_BODY = Array.from({ length: 40 }, (_, index) => (
+  <Text key={index} render={PARAGRAPH} tone="muted" variant="bodyMedium">
+    Supporting line
+  </Text>
+))
+
+// A body longer than the room is the one part that scrolls: the header and
+// the actions stay on screen, and the rest of the text is a scroll away
+// rather than clipped past the container's edge.
+const LongBody: Story = {
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open dialog</Button>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseGlyph {...stylex.props(styles.glyph)} />
+          </IconButton>
+        </Dialog.Header>
+        <Dialog.Body>{LONG_BODY}</Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
 // The alert dialog, found from the document: it is portalled to the end of
 // the body, outside the story's canvas.
 function alertDialog() {
@@ -256,6 +292,6 @@ const AlertDialog: Story = {
   ),
 }
 
-export { AlertDialog, Default, Overview }
+export { AlertDialog, Default, LongBody, Overview }
 
 export default meta

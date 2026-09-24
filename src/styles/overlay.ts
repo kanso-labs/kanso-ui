@@ -57,14 +57,32 @@ const overlay = stylex.create({
   fromLeft: { transformOrigin: 'left center' },
   fromRight: { transformOrigin: 'right center' },
   fromTop: { transformOrigin: 'top center' },
+  // The ring on a modal panel's body while it is a tab stop, which it is only
+  // while its content runs past it — see useScrollable. Drawn inside the body
+  // rather than around it, since the body runs to the panel's edges and the
+  // panel clips whatever passes them.
+  modalBodyRing: {
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
+  },
   // The element with the dialog role inside a modal panel. It fills the panel
   // and lays the panel's parts out as a column, and shows no ring of its own
   // when React Aria focuses it, since the scrim already marks the panel out.
+  //
+  // `minBlockSize: 0` is what lets the body scroll. A panel only capped by a
+  // max height — the basic dialog, the bottom sheet — has no definite height
+  // for `100%` to resolve against, and a flex item's minimum is its content,
+  // so without it the element grew to the whole body and the panel clipped
+  // the rest, actions included. Allowed to shrink, it stops at the panel's
+  // cap and the body takes the overflow.
   modalDialog: {
     blockSize: '100%',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
+    minBlockSize: 0,
     outlineStyle: 'none',
   },
   // The anchored surface itself, without its padding: a menu's items run to

@@ -180,6 +180,35 @@ function setup(props: Partial<Parameters<typeof Dialog>[0]> = {}) {
   )
 }
 
+// Sixty lines of body, far more than any viewport holds, which is what shows
+// whether the body scrolls or the container clips it.
+const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
+  <p key={index}>Supporting line</p>
+))
+
+/** A dialog whose body runs past its container, read once it has arrived. */
+function longDialog() {
+  const view = render(
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body data-testid="body">{LONG_BODY}</Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close">Cancel</Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>,
+  )
+  containerOf(view.getByRole('dialog'))
+  return {
+    body: view.getByTestId('body'),
+    cancel: view.getByRole('button', { name: 'Cancel' }),
+  }
+}
+
 describe('dialog', () => {
   describe('semantics', () => {
     it('renders a dialog named by its title', () => {
@@ -378,6 +407,61 @@ describe('dialog', () => {
       // The scrim is the window, and the dialog fills it.
       expect(container.getBoundingClientRect().width).toBe(room.width)
       expect(container.getBoundingClientRect().height).toBe(room.height)
+    })
+  })
+
+  // The body is the one part that scrolls: a body longer than the room
+  // leaves the header and the actions where they are, and the rest of the
+  // text a scroll away rather than clipped past the container's edge.
+  describe('a body longer than the room', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it.each([
+      { height: 768, name: 'the basic dialog', width: 1024 },
+      { height: 812, name: 'the full-screen dialog', width: 375 },
+    ])(
+      'scrolls the body of $name and keeps its actions on screen',
+      async ({ height, width }) => {
+        await page.viewport(width, height)
+        const { body, cancel } = longDialog()
+
+        expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+        body.scrollTop = 200
+        expect(body.scrollTop).toBe(200)
+        // A tab stop while it scrolls, so a keyboard can scroll it too.
+        expect(body.tabIndex).toBe(0)
+        expect(cancel.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          window.innerHeight,
+        )
+      },
+    )
+
+    it("keeps a call site's own tabIndex on a body that scrolls", async () => {
+      await page.viewport(1024, 768)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content aria-label="Label">
+            <Dialog.Body data-testid="body" tabIndex={-1}>
+              {LONG_BODY}
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      containerOf(view.getByRole('dialog'))
+
+      expect(view.getByTestId('body').tabIndex).toBe(-1)
+    })
+
+    // A body that shows whole has nothing to scroll, so it is no stop at all.
+    it('leaves a body that fits out of the tab order', () => {
+      const view = setup()
+
+      expect(view.getByText('Supporting line').hasAttribute('tabindex')).toBe(
+        false,
+      )
     })
   })
 
