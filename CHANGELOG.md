@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.34.3](https://github.com/kanso-labs/kanso-ui/compare/v0.34.2...v0.34.3) (2026-09-24)
+
+
+### Bug Fixes
+
+* set boxSizing on the explicitly sized glyphs in Select and Snackbar ([#1099](https://github.com/kanso-labs/kanso-ui/issues/1099)) ([c7fdfcd](https://github.com/kanso-labs/kanso-ui/commit/c7fdfcd5214a933883fc246253821cc167d54ace))
+
+
+### Dependencies
+
+* update dependency eslint-plugin-perfectionist to v5.12.1 ([#1094](https://github.com/kanso-labs/kanso-ui/issues/1094)) ([9d5103b](https://github.com/kanso-labs/kanso-ui/commit/9d5103bf1d0ecfa9e422235f2117273bd9fb43ff))
+
 ## [0.34.2](https://github.com/kanso-labs/kanso-ui/compare/v0.34.1...v0.34.2) (2026-09-23)
 
 
