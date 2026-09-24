@@ -6,6 +6,13 @@ import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
+// The type scale on Material Design's typography pages: fifteen styles, the
+// display, headline, title, body and label roles at large, medium and small.
+// Each is a size, a line height, a tracking, a weight and a typeface — the
+// scale's brand face for display, headline and the large title, its plain
+// face for the rest. The values are the tokens', which carry the scale's own
+// numbers, so no style here writes one down.
+//
 // One key per style in the 15-entry type scale, named exactly as the token
 // group names it, so `styles[variant]` indexes straight off the prop with no
 // lookup table to keep in sync. Every style sets all five fields the scale
