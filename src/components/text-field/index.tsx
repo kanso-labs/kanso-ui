@@ -27,7 +27,7 @@ type TextFieldProps = {
    * Read with the field on focus rather than as the value changes, so it
    * names the limit and not what is left of it. The visible count is hidden
    * from the tree, which is what this replaces.
-   * @default `Up to ${maxLength} characters`
+   * @default `Up to ${maxLength} characters`, singular for a limit of one
    */
   characterLimitLabel?: string
   /**
