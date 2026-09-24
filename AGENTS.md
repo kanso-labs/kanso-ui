@@ -893,13 +893,14 @@ Conventional Commit it will merge as. Its four phases are numbered on from the
 plan's rather than slotted between them, so neither set renumbers the other —
 `15 · Blockers`, `16 · Hardening`, `17 · Road to 1.0` and
 `18 · Material coverage`. The numbers keep the two apart and say nothing about
-order: blockers come before anything in phase 1, which is why the audit's phases
-are worked by their priority, set out under "Priority follows Phase" below,
-rather than after phase 14. Phase 18 is Material Design coverage that 1.0 does
-not wait for, so its issues carry `v1.1.0` rather than `v1.0.0`.
+order: blockers come before anything in phase 1, which is why items are worked
+by their priority, set out under "Priority follows Phase, then Kind" below,
+rather than by the phase's number. Phase 18 is Material Design coverage that 1.0
+does not wait for, so its issues carry `v1.1.0` rather than `v1.0.0`.
 
-Items are worked in phase order — the audit's by their priority — and the
-project is kept current as they are:
+**Items are worked in priority order, and oldest first within a priority** —
+Urgent before High before Medium before Low, and the lower issue number first
+among equals. The project is kept current as they are:
 
 - Starting an item sets its Status to In Progress. Its pull request closes it
   with `Closes #N`, and the project's own workflow moves it to Done when that
@@ -950,15 +951,16 @@ They are also issues-only: passing a pull request's node id to
 **Four of the ten are derived rather than judged**, so read them off the field
 they follow rather than forming a second opinion:
 
-- **Priority follows Phase.** `0 · Foundations` and `0 · Material alignment` are
-  Urgent, phases 1 through 4 are High, 5 through 9 are Medium, and 10 through 14
-  with the Decisions are Low. The audit's four take one step each, from the top:
-  `15 · Blockers` is Urgent, `16 · Hardening` High, `17 · Road to 1.0` Medium
-  and `18 · Material coverage` Low. Items are already worked in phase order, so
-  a priority disagreeing with the phase would describe an order nobody follows.
-  What it buys is a sort that survives being grouped by something other than
-  Phase, in a place the board is not — and, for the audit's phases, the only
-  order they have against the plan's.
+- **Priority follows Phase, then Kind.** `0 · Foundations` and
+  `0 · Material alignment` are Urgent, phases 1 through 4 are High, 5 through 9
+  are Medium, and 10 through 14 with the Decisions are Low. The audit's four
+  take one step each, from the top: `15 · Blockers` is Urgent, `16 · Hardening`
+  High, `17 · Road to 1.0` Medium and `18 · Material coverage` Low. Kind then
+  moves two sets: a Docs item is Low whatever its phase, and any other item its
+  phase left at Low is Medium — work that changes what ships goes ahead of work
+  that only describes it. Priority is the order items are worked in, so it is
+  also what orders the audit's phases against the plan's, and it survives being
+  grouped by something other than Phase, in a place the board is not.
 - **Effort follows Size** — `L` is High, `M` is Medium, `S` is Low. The two ask
   the same question in different vocabularies, and only Size is ever argued.
 - **Type follows Kind.** Component and Variant are a Feature, Fix is a Bug, and
