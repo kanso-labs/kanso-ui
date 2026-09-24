@@ -18,8 +18,17 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
   },
   errorText: { color: colors.error },
-  hoverLayer: {
+  hoverOnSurface: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  hoverPrimary: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  pressedOnSurface: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  pressedPrimary: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   restingTone: { color: colors.onSurfaceVariant },
   selectedTone: { color: colors.primary },
@@ -39,7 +48,10 @@ const CLASSES = {
   disabledLabel: classesOf(stylex.props(probeStyles.disabledLabel)),
   disabledTone: classesOf(stylex.props(probeStyles.disabledTone)),
   errorText: classesOf(stylex.props(probeStyles.errorText)),
-  hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
+  hoverOnSurface: classesOf(stylex.props(probeStyles.hoverOnSurface)),
+  hoverPrimary: classesOf(stylex.props(probeStyles.hoverPrimary)),
+  pressedOnSurface: classesOf(stylex.props(probeStyles.pressedOnSurface)),
+  pressedPrimary: classesOf(stylex.props(probeStyles.pressedPrimary)),
   restingTone: classesOf(stylex.props(probeStyles.restingTone)),
   selectedTone: classesOf(stylex.props(probeStyles.selectedTone)),
 }
@@ -217,18 +229,56 @@ describe('radio group', () => {
 
     // React derives `onPointerEnter` from the bubbling `pointerover`, which
     // is what React Aria's hover tracking listens for.
-    it('lays the on surface state layer over the control while hovered', () => {
+    it('lays the on surface state layer over an unselected control while hovered', () => {
       const { first } = setup()
       const control = controlOf(first)
       act(() => {
         fireEvent.pointerOver(control, { pointerType: 'mouse' })
       })
-      expect(hasClasses(control, CLASSES.hoverLayer)).toBe(true)
+      expect(hasClasses(control, CLASSES.hoverOnSurface)).toBe(true)
 
       act(() => {
         fireEvent.pointerOut(control, { pointerType: 'mouse' })
       })
-      expect(hasClasses(control, CLASSES.hoverLayer)).toBe(false)
+      expect(hasClasses(control, CLASSES.hoverOnSurface)).toBe(false)
+    })
+
+    // The other three of the four. The layer is on surface over an unselected
+    // button and primary over a selected one while hovered, and the two swap
+    // once pressed. Swapping either pair's keys draws both of its layers in
+    // the other role, and only these four would notice.
+    it('lays the primary state layer over a selected control while hovered', () => {
+      const { first } = setup({ defaultValue: 'first' })
+      const control = controlOf(first)
+      act(() => {
+        fireEvent.pointerOver(control, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(control, CLASSES.hoverPrimary)).toBe(true)
+      expect(hasClasses(control, CLASSES.hoverOnSurface)).toBe(false)
+    })
+
+    // A press starts on the pointer going down, and the selection moves only
+    // once it comes back up, so the button is read while it is still
+    // unselected.
+    it('lays the primary state layer over an unselected control while pressed', () => {
+      const { first } = setup()
+      const control = controlOf(first)
+      act(() => {
+        fireEvent.pointerDown(control, { button: 0, pointerId: 1 })
+      })
+      expect(first).toHaveProperty('checked', false)
+      expect(hasClasses(control, CLASSES.pressedPrimary)).toBe(true)
+      expect(hasClasses(control, CLASSES.pressedOnSurface)).toBe(false)
+    })
+
+    it('lays the on surface state layer over a selected control while pressed', () => {
+      const { first } = setup({ defaultValue: 'first' })
+      const control = controlOf(first)
+      act(() => {
+        fireEvent.pointerDown(control, { button: 0, pointerId: 1 })
+      })
+      expect(hasClasses(control, CLASSES.pressedOnSurface)).toBe(true)
+      expect(hasClasses(control, CLASSES.pressedPrimary)).toBe(false)
     })
   })
 
