@@ -895,8 +895,9 @@ plan's rather than slotted between them, so neither set renumbers the other —
 `18 · Material coverage`. The numbers keep the two apart and say nothing about
 order: blockers come before anything in phase 1, which is why items are worked
 by their priority, set out under "Priority follows Phase, then Kind" below,
-rather than by the phase's number. Phase 18 is Material Design coverage that 1.0
-does not wait for, so its issues carry `v1.1.0` rather than `v1.0.0`.
+rather than by the phase's number. Phase 18 is Material Design coverage, and it
+carries `v1.0.0` like every other phase: the milestone is the whole plan, so 1.0
+waits for all of it.
 
 **Items are worked in priority order, and oldest first within a priority** —
 Urgent before High before Medium before Low, and the lower issue number first
@@ -932,7 +933,7 @@ else. Nothing joins them up, so each is set in its own place.
 | Kind      | Project item   | Component, Variant, Fix, Refactor, Integration, Tooling, Docs, Decision                                                        |
 | Area      | Project item   | Foundations, Buttons, Collections, Colour, Date and time, Drag and drop, Forms, Navigation, Overlays, Pickers, Status, Content |
 | Size      | Project item   | S, M, L                                                                                                                        |
-| Milestone | Issue, PR      | `v1.0.0`, and `v1.1.0` for phase 18                                                                                            |
+| Milestone | Issue, PR      | `v1.0.0`                                                                                                                       |
 | Type      | Issue, PR      | Feature, Bug, Task                                                                                                             |
 | Labels    | Issue, PR      | one `kind:`, one `area:`                                                                                                       |
 | Priority  | Issue (native) | Urgent, High, Medium, Low                                                                                                      |
