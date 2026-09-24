@@ -25,12 +25,15 @@ import { FormContext, useSlottedContext } from 'react-aria-components'
 const FIELD_VALIDATION_BEHAVIOR = 'aria'
 
 /**
- * What a field passes React Aria for `isInvalid`, from its `error` prop. Any
- * value there, `false` included, makes the field's validation controlled: it
- * is exactly as invalid as the prop says, and what a `Form` reports for it —
- * a server's errors, or the browser's own — is never shown. So the prop is
- * left unset while the field has no error of its own, which is what lets
- * the form's reach it.
+ * What a field passes React Aria for `isInvalid`, from its `error` prop:
+ * `true` while there is a message, and nothing at all while there is not.
+ *
+ * Nothing rather than `false`, because React Aria reads any `isInvalid` it is
+ * given — `false` as much as `true` — as the field taking its validation into
+ * its own hands. The field is then exactly as invalid as the prop says, and
+ * what a `Form` reports for it, a server's errors or the browser's own, is
+ * never shown. Leaving the prop unset while the field has no error of its own
+ * is what lets the form's reach it.
  */
 function invalidFrom(error: string | undefined): true | undefined {
   return error === undefined ? undefined : true
