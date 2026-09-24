@@ -1,4 +1,9 @@
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
+
+import * as stylex from '@stylexjs/stylex'
+
+import { mergeStyles } from '../styles/merge'
+import { glyphStyles } from './styles'
 
 // The glyphs the library's own controls draw: the check and the dash a
 // checkbox shows, the plus and minus a number field's steppers show, and
@@ -22,33 +27,52 @@ type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 // they say "up" and "down" rather than "onward", and those do not flip.
 function ArrowDownwardGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
-    </svg>
+    </Glyph>
   )
 }
 
 function ArrowUpwardGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
-    </svg>
+    </Glyph>
   )
 }
 
 // What the date picker's trigger draws: the calendar a date is picked from.
 function CalendarGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
-    </svg>
+    </Glyph>
   )
 }
 
 function CheckGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+    </Glyph>
+  )
+}
+
+/**
+ * The svg every glyph draws: the 24-unit grid its path is on, the colour it
+ * takes from the text around it, and its box. The call site's `className`
+ * and `style` are merged with the glyph's own rather than replacing them.
+ */
+function Glyph({ children, ...props }: GlyphProps & { children: ReactNode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      {...props}
+      {...mergeStyles(stylex.props(glyphStyles.glyph), props)}
+    >
+      {children}
     </svg>
   )
 }
@@ -57,9 +81,9 @@ function CheckGlyph(props: GlyphProps) {
 // decrement; the two names say which is meant at the call site.
 function MinusGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M19 13H5v-2h14v2z" />
-    </svg>
+    </Glyph>
   )
 }
 
@@ -71,33 +95,33 @@ const IndeterminateGlyph = MinusGlyph
 // transform here would be an inline style.
 function ChevronEndGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-    </svg>
+    </Glyph>
   )
 }
 
 function CloseGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-    </svg>
+    </Glyph>
   )
 }
 
 function PlusGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-    </svg>
+    </Glyph>
   )
 }
 
 function SearchGlyph(props: GlyphProps) {
   return (
-    <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" {...props}>
+    <Glyph {...props}>
       <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-    </svg>
+    </Glyph>
   )
 }
 
