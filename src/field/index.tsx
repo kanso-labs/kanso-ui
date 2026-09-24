@@ -172,7 +172,7 @@ interface FieldMessageProps {
    * How the limit is said to a screen reader, where there is a `maxLength`.
    * It is read with the field on focus rather than as the value changes, so
    * it names the limit and not what is left of it.
-   * @default `Up to ${maxLength} characters`
+   * @default `Up to ${maxLength} characters`, singular for a limit of one
    */
   characterLimitLabel?: string | undefined
   /**
