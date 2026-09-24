@@ -10,6 +10,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useRef } from 'react'
 import {
   Dialog,
   DialogTrigger,
@@ -18,6 +19,7 @@ import {
   ModalOverlay,
 } from 'react-aria-components'
 
+import { useScrollable } from '../../hooks/useScrollable'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import {
@@ -271,7 +273,21 @@ function Sheet({ children, ...props }: SheetProps) {
 }
 
 function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} {...mergeStyles(stylex.props(styles.body), props)} />
+  const ref = useRef<HTMLDivElement>(null)
+  // A body its content runs past is a tab stop, so a keyboard can scroll it
+  // when nothing inside it takes focus; a call site's own tabIndex still
+  // wins. See useScrollable.
+  const scrollable = useScrollable(ref)
+
+  return (
+    <div
+      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scroll container with nothing focusable inside is otherwise out of a keyboard's reach, which axe's scrollable-region-focusable reports
+      tabIndex={scrollable ? 0 : undefined}
+      {...props}
+      ref={ref}
+      {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
+    />
+  )
 }
 
 /**

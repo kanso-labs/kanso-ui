@@ -260,6 +260,45 @@ const BottomSheet: Story = {
   ),
 }
 
+// Forty lines of body: more than the bottom sheet has room for, so the story
+// shows what the body does when it runs out.
+const LONG_BODY = Array.from({ length: 40 }, (_, index) => (
+  <Text key={index} render={PARAGRAPH} tone="muted" variant="bodyMedium">
+    Supporting line
+  </Text>
+))
+
+// A body longer than the room is the one part that scrolls: the handle, the
+// header and the actions stay on screen, and the rest of the text is a scroll
+// away rather than clipped past the panel's edge. The bottom sheet, since it
+// is only as tall as its content up to a cap, and that is the presentation
+// that clipped; the side sheet fills the height and always scrolled.
+const LongBody: Story = {
+  globals: BottomSheet.globals,
+  parameters: BottomSheet.parameters,
+  render: (args) => (
+    <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
+      <Sheet.Content>
+        <Sheet.Handle />
+        <Sheet.Header>
+          <Sheet.Title>Headline</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseIcon />
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>{LONG_BODY}</Sheet.Body>
+        <Sheet.Footer>
+          <Button>Confirm</Button>
+          <Button slot="close" variant="outlined">
+            Cancel
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>
+  ),
+}
+
 // The one check that runs against the real entry animation rather than a
 // stubbed clock — 250ms of it — which is why it is a story and not a case in
 // index.test.tsx. See AGENTS.md, "Controlling time".
@@ -310,6 +349,6 @@ const OpensAndCloses: Story = {
   tags: ['!dev'],
 }
 
-export { BottomSheet, Default, OpensAndCloses, Overview }
+export { BottomSheet, Default, LongBody, OpensAndCloses, Overview }
 
 export default meta
