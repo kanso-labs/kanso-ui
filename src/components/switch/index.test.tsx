@@ -117,6 +117,16 @@ function setup(props: Partial<Parameters<typeof Switch>[0]> = {}) {
   }
 }
 
+/** A switch under a right-to-left writing mode, set on a wrapper. */
+function setupRtl() {
+  const view = render(
+    <div dir="rtl">
+      <Switch>Label</Switch>
+    </div>,
+  )
+  return { ...view, input: view.getByRole('switch', { name: 'Label' }) }
+}
+
 /** Finishes the handle's growth, so a computed size is the settled one. */
 function sized(handle: HTMLElement) {
   for (const animation of handle.getAnimations()) {
@@ -404,6 +414,34 @@ describe('switch', () => {
       dragBy(seat, 14).release()
       expect(cancelled).toHaveBeenCalledTimes(1)
       expect(input).toHaveProperty('checked', true)
+    })
+
+    // Under a right-to-left writing mode the track runs the other way: the
+    // handle rests at the right and turns on at the left, so the drag reads
+    // the pointer's travel from the right. Where the seat is drawn is read as
+    // well as its inset, since following the pointer is a thing seen on the
+    // screen rather than a number the two directions share.
+    it('follows the pointer leftward under a right-to-left writing mode', () => {
+      const { input } = setupRtl()
+      const { seat } = partsOf(input)
+      const resting = seat.getBoundingClientRect().left
+
+      const drag = dragBy(seat, -12)
+      expect(getComputedStyle(seat).insetInlineStart).toBe('12px')
+      expect(seat.getBoundingClientRect().left).toBe(resting - 12)
+
+      drag.release()
+      expect(input).toHaveProperty('checked', true)
+      expect(settled(seat)).toBe('20px')
+    })
+
+    it('springs back from a rightward drag under a right-to-left writing mode', () => {
+      const { input } = setupRtl()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 12).release()
+      expect(input).toHaveProperty('checked', false)
+      expect(settled(seat)).toBe('0px')
     })
 
     it('does not drag while disabled or read-only', () => {
