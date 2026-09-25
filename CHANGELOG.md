@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.34.5](https://github.com/kanso-labs/kanso-ui/compare/v0.34.4...v0.34.5) (2026-09-25)
+
+
+### Bug Fixes
+
+* **overlay:** let a Dialog's and a bottom Sheet's body scroll instead of clipping it ([#1192](https://github.com/kanso-labs/kanso-ui/issues/1192)) ([8ca697b](https://github.com/kanso-labs/kanso-ui/commit/8ca697bc3593db15d1f5533f8871ece0ffb9f88a))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.7 ([#1194](https://github.com/kanso-labs/kanso-ui/issues/1194)) ([a7db043](https://github.com/kanso-labs/kanso-ui/commit/a7db043797a788b8b658bc190f5dd1b35281bfc3))
+* update dependency oxlint-tsgolint to v7.0.2003 ([#1195](https://github.com/kanso-labs/kanso-ui/issues/1195)) ([17efb85](https://github.com/kanso-labs/kanso-ui/commit/17efb85668f4aeff3962ec960d0682466d4cb453))
+
 ## [0.34.4](https://github.com/kanso-labs/kanso-ui/compare/v0.34.3...v0.34.4) (2026-09-24)
 
 
