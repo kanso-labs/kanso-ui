@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.6](https://github.com/kanso-labs/kanso-ui/compare/v0.34.5...v0.34.6) (2026-09-26)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.8 ([#1196](https://github.com/kanso-labs/kanso-ui/issues/1196)) ([6c37633](https://github.com/kanso-labs/kanso-ui/commit/6c37633a9d4bad5c53aa86f9b292e4796537b1ee))
+* update dependency lint-staged to v17.6.0 ([#1198](https://github.com/kanso-labs/kanso-ui/issues/1198)) ([93d800e](https://github.com/kanso-labs/kanso-ui/commit/93d800e7eca782d7984da96ebf710a5d6902c926))
+
 ## [0.34.5](https://github.com/kanso-labs/kanso-ui/compare/v0.34.4...v0.34.5) (2026-09-25)
 
 
