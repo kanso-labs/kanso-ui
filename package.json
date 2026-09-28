@@ -102,7 +102,7 @@
     "lightningcss": "1.33.0",
     "lint-staged": "17.6.0",
     "oxc-transform-react": "0.145.0",
-    "oxfmt": "0.70.0",
+    "oxfmt": "0.71.0",
     "oxlint": "1.85.0",
     "oxlint-tsgolint": "7.0.2003",
     "playwright": "1.63.0",
