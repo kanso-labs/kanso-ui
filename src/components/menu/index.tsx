@@ -325,9 +325,10 @@ function itemContent(
 
 // StyleX cannot target `[data-selected]` on the element it is styling, so an
 // item's state comes from the render state React Aria hands its className.
-// The order matters: `disabled` is applied last so it wins over both the
-// interactive and the selected branches, and StyleX replaces a property
-// whole, so it takes their hover states with it.
+// The order matters: `disabled` is applied last so its ground and colour
+// win over the selected container's. The state layers come from the render
+// state as well — see `focusVisible` in src/row/styles.ts — and React Aria
+// reports none of them on a disabled item, so nothing has to outrank them.
 // No overline, and so no three-line row: the menus page gives one item
 // height and one line of text. `List.Item` and `ListBox.Item` take the prop
 // because the lists page is what they draw, and this row is 48dp rather than
@@ -336,8 +337,10 @@ function itemStyles(state: MenuItemRenderProps) {
   return stylex.props(
     rowStyles.base,
     rowStyles.menu,
-    rowStyles.interactive,
     state.isSelected && rowStyles.selectedMenu,
+    state.isHovered && rowStyles.hovered,
+    state.isFocusVisible && rowStyles.focusVisible,
+    state.isPressed && rowStyles.pressed,
     state.isDisabled && rowStyles.disabled,
   )
 }

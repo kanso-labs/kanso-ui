@@ -32,6 +32,7 @@ import {
 
 import { CollectionLoadMore } from '../../collection'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
+import { rowStyles as rowLayers } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -250,9 +251,9 @@ const styles = stylex.create({
     borderBlockStartWidth: { ':first-child': 0, default: '1px' },
   },
   // Applied from render state rather than `:disabled`, since a row is a
-  // `<tr>` React Aria marks with aria-disabled. Last of the three so it wins
-  // over the interactive and selected branches, and StyleX replaces a
-  // property whole, so it takes their hover states with it.
+  // `<tr>` React Aria marks with aria-disabled. Last, so its ground and colour
+  // win over the selected row's; React Aria reports no hover or press on a
+  // disabled row, so the state layers never meet it.
   rowDisabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -261,20 +262,8 @@ const styles = stylex.create({
   // The row's layers composite over `transparent` rather than a container
   // colour, so the row tints whatever the table is sitting on. The selected
   // state is the one that brings a container of its own.
-  rowInteractive: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
-    cursor: 'pointer',
-  },
   rowSelected: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
-      default: colors.primaryContainer,
-    },
+    backgroundColor: colors.primaryContainer,
     color: colors.onPrimaryContainer,
   },
   // Wide enough for the checkbox and its 16dp on each side, and no wider —
@@ -590,12 +579,14 @@ function rowStyles(state: RowRenderProps) {
     // through without it: a colour and an offset the rest of the table does
     // not use, and one no forced-colours mode is obliged to keep.
     styles.focus,
-    // A row is interactive when the table does something with a press —
-    // selecting it, or running its `onAction`. React Aria reports the first
-    // through the selection mode; the second is what `isPressed` can only
-    // become through.
-    state.selectionMode !== 'none' && styles.rowInteractive,
     state.isSelected && styles.rowSelected,
+    // The state layers come from the render state, which is what makes a
+    // row that only runs an action — `onRowAction`, a row's `onAction` or
+    // `href` — take them as a selectable one does: React Aria reports a row
+    // hovered or pressed only when a press does something to it, whether
+    // that is selecting it, running its action or dragging it.
+    state.isHovered && rowLayers.hovered,
+    state.isPressed && rowLayers.pressed,
     state.isDisabled && styles.rowDisabled,
   )
 }

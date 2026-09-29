@@ -59,7 +59,8 @@ const rowStyles = stylex.create({
   // Applied from render state rather than `:disabled`, since a collection
   // item is a div React Aria marks with aria-disabled. Listed after the
   // interactive and selected styles so it wins over both, and StyleX replaces
-  // a property whole, so it takes their hover branches with it.
+  // a property whole, so it takes the interactive style's hover branch with
+  // it.
   disabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -76,6 +77,33 @@ const rowStyles = stylex.create({
     inlineSize: 'auto',
     marginInline: spacing.md,
     minBlockSize: sizing.rowSm,
+  },
+  // The state layers and the focus ring of a row React Aria renders as a
+  // collection item — every list, menu, tree and table row — applied from its
+  // render state rather than from pseudo-classes.
+  //
+  // Three things make the render state the right source. Under virtual focus
+  // — a ComboBox's options, a ListBox or Menu inside Autocomplete — DOM focus
+  // stays in the input, so no pseudo-class ever matches the option the
+  // keyboard is on, while React Aria still reports it `isFocusVisible`. React
+  // Aria reports `isHovered` only for a row a press acts on — one it selects,
+  // runs an action for, or drags — so an inert row takes no tint and no
+  // pointer. And `isPressed` covers a keyboard press as well as a pointer's.
+  //
+  // Each layer is a background image over whatever the row rests on, in the
+  // row's own colour: on surface over the surface, and the container's own
+  // on-colour over a selected row's container — the pairing the pages give
+  // each ground — so one style serves a row selected or not. Where two apply
+  // the later wins, as the pages draw one layer at a time: focus over hover,
+  // and a press over both.
+  focusVisible: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent))`,
+    outlineColor: colors.primary,
+    // Inside the row, as `interactive`'s is, so a focused row keeps its whole
+    // ring inside a container that clips.
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // A headline drawn heavier than its variant's own, for a row marked
   // without the container a selected one takes. It sets the weight alone, so
@@ -100,6 +128,15 @@ const rowStyles = stylex.create({
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
   },
+  // A state layer from render state — see `focusVisible`.
+  hovered: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent))`,
+    cursor: 'pointer',
+  },
+  // The same layers from pseudo-classes, for a row that is a plain element
+  // rather than a React Aria item: ListItem's button, Disclosure's header.
+  // Each takes real focus, so `:focus-visible` matches it, and each is
+  // interactive by being rendered at all.
   interactive: {
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
@@ -149,31 +186,23 @@ const rowStyles = stylex.create({
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,
   },
+  // A state layer from render state — see `focusVisible`.
+  pressed: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent))`,
+  },
   // The drawer page's active row. Secondary container rather than the lists
   // page's primary one, which is what keeps a drawer's current row distinct
   // from a selected row in the list beside it.
   selectedDrawer: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
+    backgroundColor: colors.secondaryContainer,
     color: colors.onSecondaryContainer,
   },
   selectedList: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.primaryContainer})`,
-      default: colors.primaryContainer,
-    },
+    backgroundColor: colors.primaryContainer,
     color: colors.onPrimaryContainer,
   },
   selectedMenu: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onTertiaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.tertiaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onTertiaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.tertiaryContainer})`,
-      default: colors.tertiaryContainer,
-    },
+    backgroundColor: colors.tertiaryContainer,
     color: colors.onTertiaryContainer,
   },
   slot: {

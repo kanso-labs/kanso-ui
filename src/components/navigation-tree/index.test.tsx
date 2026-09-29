@@ -11,7 +11,7 @@
 // oxlint-disable react-perf/jsx-no-new-object-as-prop
 
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import NavigationTree from '.'
@@ -23,6 +23,7 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import { rowStyles } from '../../row/styles'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -158,6 +159,30 @@ describe('navigation tree', () => {
       const leaf = view.getByText('Second item').getBoundingClientRect().left
 
       expect(leaf).toBe(branch)
+    })
+  })
+
+  // A row is a link, which a press acts on, so React Aria reports it hovered
+  // and the row takes the hover layer and the pointer from that report — the
+  // current row too, where the layer lies over the pill's container. One row
+  // at a time, since React Aria ends a row's hover once the pointer is over
+  // another.
+  describe('the state layers', () => {
+    it('lays the hover layer over a row, the current one included', () => {
+      const view = render(<Basic />)
+      const [first, child] = view.getAllByRole('row')
+      const hovered = (stylex.props(rowStyles.hovered).className ?? '')
+        .split(' ')
+        .filter(Boolean)
+      expect(hovered.length).toBeGreaterThan(0)
+
+      for (const row of [first, child]) {
+        act(() => {
+          fireEvent.pointerOver(row, { pointerType: 'mouse' })
+        })
+        expect(hovered.every((name) => row.classList.contains(name))).toBe(true)
+        expect(getComputedStyle(row).cursor).toBe('pointer')
+      }
     })
   })
 

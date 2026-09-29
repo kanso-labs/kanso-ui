@@ -157,9 +157,10 @@ function itemContent(
 
 // StyleX cannot target `[data-selected]` on the element it is styling, so an
 // option's state comes from the render state React Aria hands its className.
-// The order matters: `disabled` is applied last so it wins over both the
-// interactive and the selected branches, and StyleX replaces a property
-// whole, so it takes their hover states with it.
+// The order matters: `disabled` is applied last so its ground and colour
+// win over the selected container's. The state layers come from the render
+// state as well — see `focusVisible` in src/row/styles.ts — and React Aria
+// reports none of them on a disabled option, so nothing has to outrank them.
 //
 // A supporting line moves the option from the page's one-line container
 // height to its two-line one, which is a floor rather than something the

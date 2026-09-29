@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ComboBox from '.'
+import { rowStyles } from '../../row/styles'
 import { colors, motion, typography } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
@@ -87,6 +88,20 @@ function setup(props: Partial<Parameters<typeof ComboBox<object>>[0]> = {}) {
 }
 
 const FIRST_AND_THIRD = ['first', 'third']
+
+/**
+ * The classes a shared row style compiles to, and so what a row drawing it
+ * carries. An empty list would make an `every` vacuously true, so it throws.
+ */
+function layerClasses(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the row style to generate at least one class')
+  }
+  return classes
+}
 
 // A field that takes more than one option, holding two already.
 function setupMultiple(
@@ -361,6 +376,35 @@ describe('combo box', () => {
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
+    })
+
+    // The options take virtual focus: DOM focus stays in the input, and the
+    // option the keyboard is on is named by aria-activedescendant, so no
+    // `:focus-visible` ever matches it. The ring and the focus layer come
+    // from React Aria's render state instead, which still reports it.
+    it('draws the option the keyboard is on as focused', async () => {
+      const view = setup()
+      act(() => {
+        view.input.focus()
+      })
+      fireEvent.keyDown(view.input, { key: 'ArrowDown' })
+      fireEvent.keyUp(view.input, { key: 'ArrowDown' })
+
+      const active = await waitFor(() => {
+        const id = view.input.getAttribute('aria-activedescendant')
+        const found = id === null ? null : document.getElementById(id)
+        if (found === null) {
+          throw new Error('expected an option the keyboard is on')
+        }
+        return found
+      })
+
+      expect(document.activeElement).toBe(view.input)
+      expect(
+        layerClasses(rowStyles.focusVisible).every((name) =>
+          active.classList.contains(name),
+        ),
+      ).toBe(true)
     })
 
     it('closes on Escape', async () => {

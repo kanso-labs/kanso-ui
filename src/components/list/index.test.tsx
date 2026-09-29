@@ -11,6 +11,7 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import { rowStyles } from '../../row/styles'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -53,6 +54,23 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+// Hoisted, which is what react-perf's no-new-function-as-prop is after.
+const NOOP = () => {}
+
+/**
+ * The classes a shared row style compiles to, and so what a row drawing it
+ * carries. An empty list would make an `every` vacuously true, so it throws.
+ */
+function layerClasses(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the row style to generate at least one class')
+  }
+  return classes
+}
+
 function setup(
   props: Partial<Parameters<typeof List<object>>[0]> = {},
   children?: Parameters<typeof List<object>>[0]['children'],
@@ -71,6 +89,43 @@ function setup(
 }
 
 describe('list', () => {
+  // React Aria reports a row hovered only when a press does something to it
+  // — selects it, runs its action, or drags it — and the hover layer and the
+  // pointer follow that report rather than `:hover`.
+  describe('interactivity', () => {
+    it('leaves a row nothing acts on untinted, and without a pointer', () => {
+      const view = setup({ selectionMode: 'none' })
+      const [first] = view.getAllByRole('row')
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+
+      expect(
+        layerClasses(rowStyles.hovered).some((name) =>
+          first.classList.contains(name),
+        ),
+      ).toBe(false)
+      expect(getComputedStyle(first).cursor).not.toBe('pointer')
+    })
+
+    it('tints a row that runs an action, and points at it', () => {
+      const view = setup({ onAction: NOOP, selectionMode: 'none' })
+      const [first] = view.getAllByRole('row')
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+
+      expect(
+        layerClasses(rowStyles.hovered).every((name) =>
+          first.classList.contains(name),
+        ),
+      ).toBe(true)
+      expect(getComputedStyle(first).cursor).toBe('pointer')
+    })
+  })
+
   describe('semantics', () => {
     it('renders a grid of rows named by its label', () => {
       const view = setup()
