@@ -24,11 +24,11 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // grid, the weekday row, the chevrons and the date circle — so the two cannot
 // come apart.
 //
-// What a range adds is the band between its two ends, and the page tokenises
-// no such thing: its token set covers the docked calendar's selected date and
-// stops there. So the band is the library's own, and its reasons are in
-// `src/calendar/styles.ts` where it is defined — the secondary container, one
-// step down from the primary the two ends take.
+// What a range adds is the band between its two ends. The docked token set
+// stops at the selected date, so the band's colours are the modal date
+// picker's range-selection tokens — the secondary container, one step down
+// from the primary the two ends take — and its reasons are in
+// `src/calendar/styles.ts` where it is defined.
 //
 // Two things follow from drawing a band across a grid whose cells are spaced
 // apart.

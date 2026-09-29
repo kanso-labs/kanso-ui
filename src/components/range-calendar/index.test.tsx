@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import RangeCalendar from '.'
 import { CalendarDate } from '../../date'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
   onPrimary: { color: colors.onPrimary },
@@ -12,6 +12,30 @@ const probeStyles = stylex.create({
   primary: { color: colors.primary },
   secondaryContainer: { color: colors.secondaryContainer },
 })
+
+// The band's state layers, written the way the component writes them, so
+// the classes StyleX hashes from them are the component's own.
+const bandLayers = stylex.create({
+  band: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      default: null,
+    },
+  },
+})
+
+// An empty list would make the `every` below vacuously true, so it is a
+// broken assertion rather than a passing one.
+function classesOf(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the style to generate at least one class')
+  }
+  return classes
+}
 
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
@@ -96,11 +120,27 @@ describe('range calendar', () => {
       )
       const middle = getComputedStyle(cellFor(view, 'September 11, 2026'))
 
-      // The page tokenises no band, so this is the library's own: the
-      // secondary container, one step down from the primary the ends take.
+      // The modal date picker's range-selection container: the secondary
+      // container, one step down from the primary the ends take.
       expect(middle.backgroundColor).toBe(probe(probeStyles.secondaryContainer))
       expect(middle.color).toBe(probe(probeStyles.onSecondaryContainer))
       expect(middle.backgroundColor).not.toBe(probe(probeStyles.primary))
+    })
+
+    // A day inside a range is one a reader presses to move an end, so it
+    // answers the pointer. The layer is the modal date picker's range
+    // selection token, on primary container over the band's own container.
+    it('lays a state layer over the band while hovered or pressed', () => {
+      const view = render(
+        <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
+      )
+      const middle = cellFor(view, 'September 11, 2026')
+
+      expect(
+        classesOf(bandLayers.band).every((name) =>
+          middle.classList.contains(name),
+        ),
+      ).toBe(true)
     })
 
     it('squares the band so consecutive days join', () => {

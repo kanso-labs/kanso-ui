@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Calendar from '.'
 import { CalendarDate, getLocalTimeZone, today } from '../../date'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
@@ -13,6 +17,53 @@ const probeStyles = stylex.create({
   primary: { color: colors.primary },
   surfaceContainerHigh: { color: colors.surfaceContainerHigh },
 })
+
+// The declarations a state is drawn with, written the way the component
+// writes them, so the classes StyleX hashes from them are the component's
+// own. `default: null` leaves each to the state it names.
+const stateStyles = stylex.create({
+  chevronFaded: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    cursor: 'default',
+  },
+  chevronLayers: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: null,
+    },
+  },
+  selectedLayers: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      default: null,
+    },
+  },
+})
+
+// An empty list would make the `every` below vacuously true, so it is a
+// broken assertion rather than a passing one.
+function classesOf(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the style to generate at least one class')
+  }
+  return classes
+}
+
+function hasClasses(element: Element, style: stylex.StyleXStyles) {
+  return classesOf(style).every((name) => element.classList.contains(name))
+}
+
+// A calendar bounded inside one month, so React Aria disables both chevrons:
+// there is no month before or after the one shown to move to.
+const BOUNDED = {
+  maxValue: new CalendarDate(2026, 9, 24),
+  minValue: new CalendarDate(2026, 9, 8),
+}
 
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
@@ -171,6 +222,23 @@ describe('calendar', () => {
       expect(cell.backgroundColor).toBe(probe(probeStyles.primary).color)
       expect(cell.color).toBe(probe(probeStyles.onPrimary).color)
       expect(Number.parseFloat(cell.borderTopLeftRadius)).toBeGreaterThan(19)
+    })
+
+    // The date pickers page gives the selected date an on-primary state
+    // layer at the hover and pressed opacities, over its primary fill. It is
+    // the cell a reader presses again to change their mind, so it answers the
+    // pointer like every other.
+    it('lays the on-primary state layer over its fill while hovered or pressed', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+
+      expect(
+        hasClasses(
+          cellFor(view, 'Tuesday, September 15, 2026'),
+          stateStyles.selectedLayers,
+        ),
+      ).toBe(true)
     })
 
     it('reports the date that was pressed', () => {
@@ -358,6 +426,33 @@ describe('calendar', () => {
       // its own Button, so nesting IconButton inside one would put two
       // buttons where the page draws one.
       expect(bar.querySelectorAll('button')).toHaveLength(2)
+    })
+
+    // React Aria disables a chevron with no month to move to, and a press on
+    // one does nothing — so it fades as the picker's trigger does, and keeps
+    // no state layer to say otherwise.
+    it('fades a chevron React Aria has disabled, and drops its state layer', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} {...BOUNDED} />,
+      )
+
+      for (const label of ['Previous', 'Next']) {
+        const chevron = headerButton(view, label)
+
+        expect(chevron.hasAttribute('disabled')).toBe(true)
+        expect(hasClasses(chevron, stateStyles.chevronFaded)).toBe(true)
+        expect(hasClasses(chevron, stateStyles.chevronLayers)).toBe(false)
+      }
+    })
+
+    it('keeps a chevron with a month to move to at full strength', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const chevron = headerButton(view, 'Next')
+
+      expect(hasClasses(chevron, stateStyles.chevronFaded)).toBe(false)
+      expect(hasClasses(chevron, stateStyles.chevronLayers)).toBe(true)
     })
   })
 

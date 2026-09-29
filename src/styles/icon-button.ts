@@ -18,8 +18,10 @@ import {
 // the element React Aria renders.
 //
 // What each keeps is what it does not share. A calendar's chevron sits in a
-// 48dp column, so it adds the 4dp either side; a picker's trigger takes a
-// fade when the field around it is disabled.
+// 48dp column, so it adds the 4dp either side. Both take `chromeDisabled`
+// when React Aria disables them — a trigger when the field around it is
+// disabled, a chevron when there is no month to move to — and each reads
+// that from its own render state.
 //
 // This is deliberately narrow. Five other buttons in the library draw a bare
 // icon — a tree's caret, a navigation tree's, a combo box's toggle, a chip's
@@ -47,6 +49,16 @@ const iconButton = stylex.create({
     inlineSize: sizing.controlSm,
     justifyContent: 'center',
     padding: 0,
+  },
+  // The 38% the segments of a picker's field take, so a disabled trigger
+  // fades with the field around it and a disabled chevron with the calendar.
+  // StyleX replaces a property whole, which is what lets this drop the hover
+  // and pressed branches rather than having to restate each as
+  // `transparent`.
+  chromeDisabled: {
+    backgroundColor: 'transparent',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    cursor: 'default',
   },
 })
 

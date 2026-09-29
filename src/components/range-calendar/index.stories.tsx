@@ -98,10 +98,10 @@ const Overview: Story = {
             take.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The date pickers page carries no token for that band, so it is the
-            library&apos;s own. It is square where it continues and round where
-            it stops, which is what makes a run of days read as one shape rather
-            than a row of circles.
+            The band&apos;s colours are the modal date picker&apos;s range
+            selection tokens, and its shape is the library&apos;s own: square
+            where it continues and round where it stops, which is what makes a
+            run of days read as one shape rather than a row of circles.
           </Text>
         </div>
         <RangeCalendar aria-label="Label" defaultValue={RANGE} />
