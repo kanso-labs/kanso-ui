@@ -49,6 +49,13 @@ import {
 //
 // The adjacent label is body-large on surface, which the page keeps the same
 // whether or not the button is selected.
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // `display: contents`, so the control and the label text sit in the
   // field's two columns themselves. The label element is still what a click
@@ -62,11 +69,20 @@ const styles = stylex.create({
     color: colors.onSurfaceVariant,
   },
   // The dot, drawn in the ring's colour so the two never disagree.
+  //
+  // Not under forced colours. That mode paints an author's fill in the
+  // page's own `Canvas`, so the dot vanished and a chosen radio drew the same
+  // empty ring as every other. A system colour is kept rather than repainted,
+  // so there the dot is `Highlight`, the colour the mode gives whatever is
+  // chosen, and `GrayText` while disabled.
   dot: {
-    backgroundColor: 'currentColor',
+    backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'Highlight' },
     blockSize: '10px',
     borderRadius: radii.circle,
     inlineSize: '10px',
+  },
+  dotDisabled: {
+    backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'GrayText' },
   },
   // The group's buttons: one under another, or along a line when the group
   // is horizontal.
@@ -197,7 +213,14 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
           )}
         >
           <span {...stylex.props(styles.ring)}>
-            {state.isSelected ? <span {...stylex.props(styles.dot)} /> : null}
+            {state.isSelected ? (
+              <span
+                {...stylex.props(
+                  styles.dot,
+                  state.isDisabled && styles.dotDisabled,
+                )}
+              />
+            ) : null}
           </span>
           {interactive ? ripple.surface : null}
         </span>

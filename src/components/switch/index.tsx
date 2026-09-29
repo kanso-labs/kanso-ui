@@ -61,6 +61,24 @@ import {
 // drag, and the switch flips when it is released past the middle of the
 // track or springs back when it is not. React Aria's `SwitchButton` has no
 // drag of its own, so the travel is this component's — see `useHandleDrag`.
+//
+// Under forced colours the switch names system colours for its fills. That
+// mode paints an author's fill in the page's own `Canvas`, so the handle
+// vanished and on and off drew the same empty pill; a system colour is kept
+// rather than repainted. Off is a `ButtonText` handle in an empty track with
+// a `ButtonText` rule. On is a `HighlightText` handle in a track filled with
+// `Highlight`, the pair the mode gives whatever is chosen, with the check in
+// `Highlight` over the handle. Disabled, the same shapes are `GrayText`, and
+// the handle of a switch that is on is emptied to `Canvas` so it still shows
+// against its track. Every style that sets a fill repeats its branch, since
+// one written without the query replaces the property whole, branch and all.
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // `display: contents`, so the control and the label text sit in the
   // field's two columns themselves. The label element is still what a click
@@ -100,11 +118,14 @@ const styles = stylex.create({
   handle: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
-    backgroundColor: colors.outline,
+    backgroundColor: { default: colors.outline, [FORCED_COLORS]: 'ButtonText' },
     blockSize: '16px',
     borderRadius: radii.circle,
     boxSizing: 'border-box',
-    color: colors.onPrimaryContainer,
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
     display: 'flex',
     inlineSize: '16px',
     justifyContent: 'center',
@@ -113,22 +134,37 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
   },
   handleActive: {
-    backgroundColor: colors.onSurfaceVariant,
+    backgroundColor: {
+      default: colors.onSurfaceVariant,
+      [FORCED_COLORS]: 'ButtonText',
+    },
   },
   handleDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   handleOn: {
-    backgroundColor: colors.onPrimary,
+    backgroundColor: {
+      default: colors.onPrimary,
+      [FORCED_COLORS]: 'HighlightText',
+    },
     blockSize: '24px',
     inlineSize: '24px',
   },
   handleOnActive: {
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: {
+      default: colors.primaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
   },
   handleOnDisabled: {
-    backgroundColor: colors.surface,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    backgroundColor: { default: colors.surface, [FORCED_COLORS]: 'Canvas' },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   handlePressed: {
     blockSize: '28px',
@@ -193,9 +229,12 @@ const styles = stylex.create({
   },
   track: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
-    backgroundColor: colors.surfaceContainerHighest,
+    backgroundColor: {
+      default: colors.surfaceContainerHighest,
+      [FORCED_COLORS]: 'Canvas',
+    },
     blockSize: '32px',
-    borderColor: colors.outline,
+    borderColor: { default: colors.outline, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.pill,
     borderStyle: 'solid',
     borderWidth: '2px',
@@ -208,16 +247,25 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
   },
   trackDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Canvas',
+    },
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   trackOn: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    borderColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   trackOnDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-    borderColor: 'transparent',
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
+    borderColor: { default: 'transparent', [FORCED_COLORS]: 'GrayText' },
   },
 })
 
