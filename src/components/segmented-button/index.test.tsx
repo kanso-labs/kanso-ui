@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
+import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   spacing,
@@ -165,24 +166,6 @@ async function settle(track: Element) {
   )
 }
 
-function trackOf(segment: Element) {
-  const track = segment.parentElement
-  if (track === null) {
-    throw new Error('expected the segment to sit in a track')
-  }
-  return track
-}
-
-// One press, played out, and what the track measures once it has settled.
-async function widthAfterPressing(segment: Element) {
-  const track = trackOf(segment)
-  fireEvent.click(segment)
-  await settle(track)
-  return track.getBoundingClientRect().width
-}
-
-const REDUCE = 'prefers-reduced-motion: reduce'
-
 function setup(
   props: Partial<Parameters<typeof SegmentedButton>[0]> = {},
   children?: Parameters<typeof SegmentedButton>[0]['children'],
@@ -206,89 +189,36 @@ function setup(
   )
 }
 
+function trackOf(segment: Element) {
+  const track = segment.parentElement
+  if (track === null) {
+    throw new Error('expected the segment to sit in a track')
+  }
+  return track
+}
+
 /**
  * What the container's transition reaches `element` as — the duration it
  * rests at, the duration `@media (prefers-reduced-motion: reduce)` gives it,
- * and the properties it names — read out of the stylesheet rather than off a
- * page put into that state.
- *
- * Chromium's media emulation is the direct way to ask this, and this file
- * used to: `Emulation.setEmulatedMedia` over CDP, in an `afterEach` that put
- * the page back after every test. But that command is page-level and Vitest
- * runs each test file as an iframe inside one shared page, so its cost is
- * whatever the whole page is doing — timed over a full run, the same send
- * took 1.5s, then 2.1s, 2.8s, 7.4s, 12.8s and 14.9s while the other 171 files
- * were at peak concurrency, and 1ms once they had drained. Half the 30s
- * timeout is inside the noise, which is what failed a different handful of
- * these tests on every run, always as a timeout and never as an assertion.
- *
- * Only one test here asks for reduced motion; the other 35 were paying that
- * cost to restore a setting nothing had changed. Reading the rule is
- * deterministic and needs no restoring, and it is what
- * `src/styles/overlay-reduced-motion.test.tsx` already does for the overlays
- * and `src/field/forced-colors.test.tsx` for the query it cannot emulate.
+ * and the properties it names — read out of the stylesheet through the
+ * shared walker in src/styles/stylesheet.testing.ts. This file once drove
+ * Chromium's media emulation for it instead, which is what timed out a
+ * different handful of these tests on every full run; AGENTS.md, "Media
+ * queries a test cannot set", has the account.
  */
-function transitionRules(element: Element): {
-  properties: string | undefined
-  reduced: string | undefined
-  resting: string | undefined
-} {
-  let properties: string | undefined
-  let reduced: string | undefined
-  let resting: string | undefined
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules], false)
+function transitionRules(element: Element) {
+  return {
+    ...reducedMotionOf(element, 'transition-duration'),
+    properties: reducedMotionOf(element, 'transition-property').resting,
   }
+}
 
-  return { properties, reduced, resting }
-
-  function walk(rules: CSSRule[], inReduce: boolean) {
-    for (const rule of rules) {
-      if (rule instanceof CSSMediaRule) {
-        walk(
-          [...rule.cssRules],
-          inReduce || rule.conditionText.includes(REDUCE),
-        )
-        continue
-      }
-
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules], inReduce)
-        continue
-      }
-
-      if (!(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      // StyleX writes one class per declaration and repeats it to raise
-      // specificity, so a selector is a run of the same class.
-      const className = rule.selectorText.split('.').find(Boolean)
-
-      if (className === undefined || !element.classList.contains(className)) {
-        continue
-      }
-
-      const property = rule.style.getPropertyValue('transition-property')
-
-      if (property !== '' && !inReduce) {
-        properties = property
-      }
-
-      const duration = rule.style.getPropertyValue('transition-duration')
-
-      if (duration === '') {
-        continue
-      }
-
-      if (inReduce) {
-        reduced = duration
-      } else {
-        resting = duration
-      }
-    }
-  }
+// One press, played out, and what the track measures once it has settled.
+async function widthAfterPressing(segment: Element) {
+  const track = trackOf(segment)
+  fireEvent.click(segment)
+  await settle(track)
+  return track.getBoundingClientRect().width
 }
 
 describe('segmented button', () => {
