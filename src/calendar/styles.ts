@@ -15,8 +15,22 @@ import {
 //
 // The values are the date pickers page's docked calendar, named in
 // `src/components/calendar/index.tsx` along with the departures from it. What
-// is only a range's — the band between the two ends — is marked as the
-// library's own where it is defined, since the page tokenises no such thing.
+// is only a range's — the band between the two ends — takes its colours from
+// the modal date picker's range-selection tokens instead, since the docked
+// token set stops at the selected date; see `cellInRange`.
+//
+// Under forced colours a selected date and a range's band are fills, which
+// that mode paints in a system colour, so a calendar showed no selection and
+// no range there, only today's outline. Both take `Highlight` with
+// `HighlightText` over it, the pair the mode gives whatever is chosen, which
+// draws a range as one run from its first day to its last.
+//
+// They take the pair with `forced-color-adjust: none`. Left to adjust, the
+// mode lays a `Canvas` backplate behind every run of text, and a date in
+// `HighlightText` on that backplate is a blank box. With it off nothing is
+// forced on those cells, so they name a system colour for everything they
+// draw — the fill, the date, today's outline and the focus ring. A day ruled
+// out or disabled names none, so it hands itself back to the mode.
 
 // One row of the grid. The weekday row and every week of dates are the same
 // 40dp, so `cell`, `headerCell` and the room `months` reserves are all this
@@ -29,6 +43,12 @@ const ROW_BLOCK_SIZE = '40px'
 // whole weeks, then two days. February 2026 is the other end at four. Holding
 // six draws every month in the box the longest one fills.
 const WEEKS_HELD = 6
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
 
 const calendarStyles = stylex.create({
   // The date itself: the page's 40dp state layer, which is the circle a
@@ -64,24 +84,38 @@ const calendarStyles = stylex.create({
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
     cursor: 'not-allowed',
+    // Back to the mode's own colours — see the header.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
-  // The days between the two ends of a range. The date pickers page
-  // tokenises the docked calendar's selected date but carries nothing for a
-  // range's span, so this is the library's own: the secondary container, one
-  // step down from the primary the two ends take, which is the same pair the
-  // navigation drawer uses for its own active indicator.
+  // The days between the two ends of a range, in the modal date picker's
+  // range-selection tokens: the secondary container, one step down from the
+  // primary the two ends take, with the label in on secondary container and
+  // the hover and pressed state layers in on primary container. The docked
+  // token set this calendar otherwise follows stops at the selected date, so
+  // the band borrows from the modal one, which is where Material draws a
+  // range.
   //
-  // Square rather than round, so consecutive days join into one band. The two
+  // Square rather than round, so consecutive days join into one band — the
+  // library's own shape, where the modal picker draws a 40dp pill. The two
   // ends round their outer edge back, which is what makes the band start and
   // stop at a circle.
   cellInRange: {
     backgroundColor: {
-      ':active': colors.secondaryContainer,
-      ':hover': colors.secondaryContainer,
+      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
       default: colors.secondaryContainer,
+      [FORCED_COLORS]: 'Highlight',
     },
+    borderColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     borderRadius: 0,
-    color: colors.onSecondaryContainer,
+    color: {
+      default: colors.onSecondaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    // The mode's own chosen pair, named rather than forced — see the header.
+    // The border is today's outline, drawn into the fill, and the outline is
+    // the focus ring, drawn on the page around the cell.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
     // The band fills the whole 48dp its date occupies, rather than the 40dp
     // circle inside it — which is what lets one day's band meet the next
     // one's. A negative margin cannot do this: a margin moves a box without
@@ -89,6 +123,7 @@ const calendarStyles = stylex.create({
     // dashed run of separate blocks.
     inlineSize: '100%',
     marginInline: 0,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
   },
   // The last day, rounded on the side the band ends at.
   cellRangeEnd: {
@@ -101,15 +136,23 @@ const calendarStyles = stylex.create({
     borderEndStartRadius: radii.circle,
     borderStartStartRadius: radii.circle,
   },
-  // The date the calendar holds. A filled circle in the primary role, which
-  // is what the page gives it.
+  // The date the calendar holds. A filled circle in the primary role, with
+  // the on-primary state layer over it while hovered or pressed, which is
+  // what the page gives it. Each branch is written here because StyleX
+  // replaces a property whole: left out, the unselected cell's on-surface
+  // layer over nothing would stand in for the fill on hover.
   cellSelected: {
     backgroundColor: {
-      ':active': colors.primary,
-      ':hover': colors.primary,
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
+      [FORCED_COLORS]: 'Highlight',
     },
-    color: colors.onPrimary,
+    borderColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
+    // Named rather than forced, as the band's are — see the header.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
   },
   // Today, when it is not the date held: the page's 1dp outline in the
   // primary role, with the label to match.
@@ -133,6 +176,8 @@ const calendarStyles = stylex.create({
   cellUnavailable: {
     backgroundColor: 'transparent',
     cursor: 'not-allowed',
+    // Back to the mode's own colours — see the header.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
     textDecorationLine: 'line-through',
   },
   // What the chevrons that move the month add to the shared icon-button

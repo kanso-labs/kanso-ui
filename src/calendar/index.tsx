@@ -61,10 +61,18 @@ function calendarHeaderCell(day: string): ReactElement {
   )
 }
 
-function chevronClassName() {
+// A chevron's classes, from React Aria's own render state. React Aria
+// disables one when the month it would move to is outside `minValue` and
+// `maxValue`, or the whole calendar is disabled, and a press on it then does
+// nothing — so it takes the shared fade, which drops the state layer too.
+function chevronClassName(state: { isDisabled: boolean }) {
   return (
-    stylex.props(iconButton.chrome, calendarStyles.chevron, focus.ring)
-      .className ?? ''
+    stylex.props(
+      iconButton.chrome,
+      calendarStyles.chevron,
+      focus.ring,
+      state.isDisabled && iconButton.chromeDisabled,
+    ).className ?? ''
   )
 }
 

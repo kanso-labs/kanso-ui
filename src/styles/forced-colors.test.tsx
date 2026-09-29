@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
 import Button from '../components/button'
+import Calendar from '../components/calendar'
 import ColorSlider from '../components/color-slider'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
@@ -15,12 +16,14 @@ import Meter from '../components/meter'
 import Popover from '../components/popover'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
+import RangeCalendar from '../components/range-calendar'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
 import Switch from '../components/switch'
 import Tooltip from '../components/tooltip'
+import { CalendarDate } from '../date'
 import { declarationsHeld } from './stylesheet.testing'
 
 const FORCED_COLORS = 'forced-colors: active'
@@ -34,6 +37,18 @@ const MEDIUM = 601
 // Storybook and the other specs share this browser, so the viewport has to go
 // back to something ordinary or whatever runs next inherits 599px.
 const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
+
+// A fixed range, so the calendar cases read the same whenever they run: the
+// 8th to the 15th of September 2026. Its last day is also the date a single
+// calendar holds.
+const RANGE = {
+  end: new CalendarDate(2026, 9, 15),
+  start: new CalendarDate(2026, 9, 8),
+}
+
+// A day inside that range, ruled out on its own. Hoisted so its identity is
+// stable, which is what react-perf is after.
+const isEleventh = (date: { day: number }) => date.day === 11
 
 // What an icon button holds. Its drawing is beside the point here, since
 // nothing below reads it.
@@ -718,5 +733,82 @@ describe('a state told by a fill alone', () => {
         ),
       ).get('background-color'),
     ).toBeUndefined()
+  })
+
+  // A selected date is a fill with its text over it, and a range adds a band
+  // that is a fill alone, so the mode left a calendar with no selection and
+  // no range on it — only today's outline, which is a border.
+  it('draws the selected date in Highlight', () => {
+    const view = render(
+      <Calendar aria-label="Label" defaultValue={RANGE.end} />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 15, 2026/ }),
+    )
+
+    expect(rules.get('background-color')).toBe('highlight')
+    expect(rules.get('color')).toBe('highlighttext')
+  })
+
+  // Left to adjust, the mode lays a `Canvas` backplate behind the date, and
+  // `HighlightText` on it is a blank box. So the chosen cells opt out, and
+  // name a system colour for the two other things they draw: today's
+  // outline, into the fill, and the focus ring, on the page around it.
+  it('takes the chosen pair as it is, today and the focus ring included', () => {
+    const view = render(
+      <Calendar aria-label="Label" defaultValue={RANGE.end} />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 15, 2026/ }),
+    )
+
+    expect(rules.get('forced-color-adjust')).toBe('none')
+    expect(rules.get('border-top-color')).toBe('highlight')
+    expect(rules.get('outline-color')).toBe('canvastext')
+  })
+
+  // A day ruled out inside a range, and a date in a disabled calendar, draw
+  // no fill of their own and name no system colour, so they are the mode's
+  // to colour again.
+  it('hands a day ruled out inside a range back to the mode', () => {
+    const view = render(
+      <RangeCalendar
+        aria-label="Label"
+        defaultValue={RANGE}
+        isDateUnavailable={isEleventh}
+      />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 11, 2026/ }),
+    )
+
+    expect(rules.get('forced-color-adjust')).toBe('auto')
+  })
+
+  it('hands the date a disabled calendar holds back to the mode', () => {
+    const view = render(
+      <Calendar aria-label="Label" defaultValue={RANGE.end} isDisabled />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 15, 2026/ }),
+    )
+
+    expect(rules.get('forced-color-adjust')).toBe('auto')
+  })
+
+  it.each([
+    { label: /September 8, 2026/, name: 'first day' },
+    { label: /September 12, 2026/, name: 'band' },
+    // Matched with the word React Aria ends the name with, since both ends
+    // name the whole range first and the first one names this day too.
+    { label: /September 15, 2026 selected/, name: 'last day' },
+  ])('draws the $name of a range in Highlight', ({ label }) => {
+    const view = render(
+      <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
+    )
+    const rules = forcedColorRules(view.getByRole('button', { name: label }))
+
+    expect(rules.get('background-color')).toBe('highlight')
+    expect(rules.get('color')).toBe('highlighttext')
   })
 })

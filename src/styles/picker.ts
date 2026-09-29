@@ -1,12 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
-import {
-  colors,
-  media,
-  shadows,
-  spacing,
-  stateLayerOpacity,
-} from '../tokens/design.tokens.stylex'
+import { colors, media, shadows, spacing } from '../tokens/design.tokens.stylex'
 import { focus } from './focus'
 import { iconButton } from './icon-button'
 
@@ -93,15 +87,6 @@ const picker = stylex.create({
     },
     position: { default: null, [media.belowMedium]: 'fixed !important' },
   },
-  // The disabled trigger takes the same 38% the segments beside it take, so
-  // one disabled field fades as a whole. StyleX replaces a property whole,
-  // which is what lets this drop the hover and pressed branches rather than
-  // having to restate each as `transparent`.
-  triggerDisabled: {
-    backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
-    cursor: 'default',
-  },
   triggerGlyph: {
     blockSize: '24px',
     inlineSize: '24px',
@@ -110,13 +95,15 @@ const picker = stylex.create({
 
 // The trigger's classes, from React Aria's own render state. A picker's
 // trigger is disabled by the field around it rather than by a prop of its
-// own, so the fade comes off the state React Aria hands the className.
+// own, so the fade comes off the state React Aria hands the className. It is
+// the same 38% the segments beside it take, so one disabled field fades as a
+// whole.
 function triggerClassName(state: { isDisabled: boolean }) {
   return (
     stylex.props(
       iconButton.chrome,
       focus.ring,
-      state.isDisabled && picker.triggerDisabled,
+      state.isDisabled && iconButton.chromeDisabled,
     ).className ?? ''
   )
 }
