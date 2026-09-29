@@ -265,9 +265,10 @@ function itemContent(
 
 // StyleX cannot target `[data-current]` on the element it is styling, so a
 // row's state comes from the render state React Aria hands its className.
-// The order matters: `disabled` is applied last so it wins over both the
-// interactive and the current branches, and StyleX replaces a property
-// whole, so it takes their hover states with it.
+// The order matters: `disabled` is applied last so its ground and colour
+// win over the current container's. The state layers come from the render
+// state as well — see `focusVisible` in src/row/styles.ts — and React Aria
+// reports none of them on a disabled row, so nothing has to outrank them.
 // No overline, and so no three-line row: the navigation drawer page gives
 // one item height and one line of text. `List.Item` and `ListBox.Item` take
 // the prop because the lists page is what they draw; this row follows the
@@ -276,9 +277,11 @@ function itemStyles(state: NavigationTreeItemRenderProps) {
   return stylex.props(
     rowStyles.base,
     rowStyles.drawer,
-    rowStyles.interactive,
     styles.indent,
     state.isCurrent && rowStyles.selectedDrawer,
+    state.isHovered && rowStyles.hovered,
+    state.isFocusVisible && rowStyles.focusVisible,
+    state.isPressed && rowStyles.pressed,
     state.isDisabled && rowStyles.disabled,
   )
 }

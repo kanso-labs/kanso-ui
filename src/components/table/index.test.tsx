@@ -21,13 +21,14 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { TableBodyProps } from '.'
 
 import Table from '.'
+import { rowStyles as rowLayers } from '../../row/styles'
 import {
   colors,
   stateLayerOpacity,
@@ -38,15 +39,6 @@ const probeStyles = stylex.create({
   bodyMedium: { fontSize: typography.bodyMediumSize },
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-  },
-  // A selecting row's hover and pressed tints alone, written as the row's own
-  // style writes them so they hash to the same atomic classes.
-  interactiveTints: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: null,
-    },
   },
   labelLarge: { fontWeight: typography.labelLargeWeight },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
@@ -79,6 +71,9 @@ const fromReactAria: RACTableBodyProps<object>['renderEmptyState'] = (state) =>
 
 // A plain table with two columns and two rows, which is what most of the
 // cases below need before they change one thing about it.
+// Hoisted, which is what react-perf's no-new-function-as-prop is after.
+const NOOP = () => {}
+
 function Basic(props: {
   defaultSelectedKeys?: string[]
   disabledKeys?: string[]
@@ -86,6 +81,7 @@ function Basic(props: {
   loadMoreLabel?: string
   loadMoreLoading?: boolean
   onResize?: (widths: Map<Key, unknown>) => void
+  onRowAction?: (key: Key) => void
   renderEmptyState?: TableBodyProps['renderEmptyState']
   resizable?: boolean
   resizableColumns?: boolean
@@ -107,6 +103,7 @@ function Basic(props: {
       defaultSelectedKeys={props.defaultSelectedKeys}
       disabledKeys={props.disabledKeys}
       onResize={props.onResize}
+      onRowAction={props.onRowAction}
       resizable={props.resizable}
       resizeLabel={props.resizeLabel}
       selectionMode={props.selectionMode}
@@ -502,6 +499,44 @@ describe('table', () => {
   // disabled row in the library shares. Its style is listed last of the three
   // row states, so it wins over the interactive and selected ones, and StyleX
   // replaces a property whole, so their tints go with it.
+  // A table that opens a record from a row runs an action on it with no
+  // selection at all, and that row answers a hover as a selecting row does:
+  // React Aria reports it hovered because a press does something to it.
+  describe('a row that runs an action', () => {
+    it('takes the hover layer and the pointer with no selection', () => {
+      const view = render(<Basic onRowAction={NOOP} />)
+      const [, first] = view.getAllByRole('row')
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+
+      expect(
+        classesOf(rowLayers.hovered).every((name) =>
+          first.classList.contains(name),
+        ),
+      ).toBe(true)
+      expect(getComputedStyle(first).cursor).toBe('pointer')
+    })
+
+    // And one nothing acts on — no selection, no action — takes neither.
+    it('leaves a row nothing acts on untinted, and without a pointer', () => {
+      const view = render(<Basic />)
+      const [, first] = view.getAllByRole('row')
+
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+
+      expect(
+        classesOf(rowLayers.hovered).some((name) =>
+          first.classList.contains(name),
+        ),
+      ).toBe(false)
+      expect(getComputedStyle(first).cursor).not.toBe('pointer')
+    })
+  })
+
   describe('a disabled row', () => {
     it('is reported as one', () => {
       const view = render(<Basic disabledKeys={['second']} />)
@@ -520,19 +555,29 @@ describe('table', () => {
       expect(getComputedStyle(first).color).not.toBe(faded)
     })
 
-    // Read off the classes StyleX writes for the two branches, since nothing
-    // here hovers or presses for real; the enabled row beside it is what
-    // proves these are the tints to look for.
+    // React Aria reports no hover on a disabled row, so hovering it leaves it
+    // without the layer and the pointer the enabled row beside it takes —
+    // which is also what proves those are the classes to look for. One at a
+    // time: React Aria ends a row's hover once the pointer is over another.
     it("takes none of a selecting row's tints, nor its pointer", () => {
       const view = render(
         <Basic disabledKeys={['second']} selectionMode="multiple" />,
       )
       const [, first, second] = view.getAllByRole('row')
-      const tints = classesOf(probeStyles.interactiveTints)
+      const hovered = classesOf(rowLayers.hovered)
 
-      expect(tints.every((name) => first.classList.contains(name))).toBe(true)
-      expect(tints.some((name) => second.classList.contains(name))).toBe(false)
+      act(() => {
+        fireEvent.pointerOver(first, { pointerType: 'mouse' })
+      })
+      expect(hovered.every((name) => first.classList.contains(name))).toBe(true)
       expect(getComputedStyle(first).cursor).toBe('pointer')
+
+      act(() => {
+        fireEvent.pointerOver(second, { pointerType: 'mouse' })
+      })
+      expect(hovered.some((name) => second.classList.contains(name))).toBe(
+        false,
+      )
       expect(getComputedStyle(second).cursor).toBe('not-allowed')
     })
 

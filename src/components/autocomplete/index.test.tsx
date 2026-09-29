@@ -1,7 +1,9 @@
+import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Autocomplete from '.'
+import { rowStyles } from '../../row/styles'
 import Button from '../button'
 import ListBox from '../list-box'
 import Menu from '../menu'
@@ -41,6 +43,20 @@ function setup(
 // Hoisted so the slot is not a new element on every render, which is what
 // react-perf's jsx-no-jsx-as-prop is after.
 const SEARCH = <SearchField label="Search" />
+
+/**
+ * The classes a shared row style compiles to, and so what a row drawing it
+ * carries. An empty list would make an `every` vacuously true, so it throws.
+ */
+function layerClasses(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  if (classes.length === 0) {
+    throw new Error('expected the row style to generate at least one class')
+  }
+  return classes
+}
 
 // Matches from the start of the text rather than anywhere in it, which the
 // default contains filter does not.
@@ -168,6 +184,45 @@ describe('autocomplete', () => {
   // around the bar and the collection. A menu is the one that needs the
   // surface's search slot, since its children are a collection.
   describe('around a menu', () => {
+    // A searchable menu holds focus in its search bar too, so the item the
+    // keyboard is on is drawn focused from React Aria's render state, as a
+    // list's option is.
+    it('draws the item the keyboard is on as focused', async () => {
+      const view = render(
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Autocomplete>
+            <Menu.Content search={SEARCH}>
+              <Menu.Item id="first">First item</Menu.Item>
+              <Menu.Item id="second">Second item</Menu.Item>
+            </Menu.Content>
+          </Autocomplete>
+        </Menu>,
+      )
+      const input = view.getByRole('searchbox', { name: 'Search' })
+      act(() => {
+        input.focus()
+      })
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      fireEvent.keyUp(input, { key: 'ArrowDown' })
+
+      const active = await waitFor(() => {
+        const id = input.getAttribute('aria-activedescendant')
+        const found = id === null ? null : document.getElementById(id)
+        if (found === null) {
+          throw new Error('expected an item the keyboard is on')
+        }
+        return found
+      })
+
+      expect(document.activeElement).toBe(input)
+      expect(
+        layerClasses(rowStyles.focusVisible).every((name) =>
+          active.classList.contains(name),
+        ),
+      ).toBe(true)
+    })
+
     it('narrows a menu from the surface search slot', async () => {
       const view = render(
         <Menu defaultOpen>
@@ -210,6 +265,33 @@ describe('autocomplete', () => {
         expect(view.input.getAttribute('aria-activedescendant')).not.toBeNull()
       })
       expect(document.activeElement).toBe(view.input)
+    })
+
+    // With focus held in the input no `:focus-visible` matches the option the
+    // keyboard is on, so its ring and focus layer come from React Aria's
+    // render state, which still reports it.
+    it('draws the option the keyboard is on as focused', async () => {
+      const view = setup()
+      act(() => {
+        view.input.focus()
+      })
+      fireEvent.keyDown(view.input, { key: 'ArrowDown' })
+      fireEvent.keyUp(view.input, { key: 'ArrowDown' })
+
+      const active = await waitFor(() => {
+        const id = view.input.getAttribute('aria-activedescendant')
+        const found = id === null ? null : document.getElementById(id)
+        if (found === null) {
+          throw new Error('expected an item the keyboard is on')
+        }
+        return found
+      })
+
+      expect(
+        layerClasses(rowStyles.focusVisible).every((name) =>
+          active.classList.contains(name),
+        ),
+      ).toBe(true)
     })
   })
 })

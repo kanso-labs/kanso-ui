@@ -72,6 +72,9 @@ const collectionStyles = stylex.create({
  */
 type CollectionItemState = {
   isDisabled: boolean
+  isFocusVisible: boolean
+  isHovered: boolean
+  isPressed: boolean
   isSelected: boolean
 }
 
@@ -106,11 +109,13 @@ function rowItemStyles(
     stylex.props(
       rowStyles.base,
       rowStyles.list,
-      rowStyles.interactive,
       extra,
       lines === 1 && rowStyles.twoLine,
       lines === 2 && rowStyles.threeLine,
       state.isSelected && rowStyles.selectedList,
+      state.isHovered && rowStyles.hovered,
+      state.isFocusVisible && rowStyles.focusVisible,
+      state.isPressed && rowStyles.pressed,
       state.isDisabled && rowStyles.disabled,
     )
 }
