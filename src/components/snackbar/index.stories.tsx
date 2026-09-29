@@ -23,10 +23,6 @@ const PARAGRAPH = <p />
 // snackbar on it rather than with three buttons and nothing to look at.
 const messages = new Snackbar.Queue()
 
-// Long enough to read on a page being looked at rather than used, since the
-// page's own durations are short by design.
-const LINGER = 6000
-
 // Two sample actions. Their handlers do nothing, since what a story shows is
 // the snackbar rather than what pressing it would do.
 const noop = () => {}
@@ -52,10 +48,11 @@ messages.add('First item saved', { action: UNDO, timeout: 0 })
 
 // The handlers the page's buttons take, built by a call rather than written
 // inline at the prop, which is what react-perf's no-new-function-as-prop is
-// after.
+// after. Each message takes the component's own duration, which is what the
+// page is there to show.
 function show(message: string, options: Parameters<typeof messages.add>[1]) {
   return () => {
-    messages.add(message, { timeout: LINGER, ...options })
+    messages.add(message, options)
   }
 }
 
@@ -123,7 +120,7 @@ const Overview: Story = {
             Message
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A message on its own leaves after a short while. Show one by calling
+            A message on its own leaves after five seconds. Show one by calling
             add on the queue — nothing is rendered until you do, which is why
             this page seeds one to open with.
           </Text>
@@ -144,8 +141,9 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             One action sits after the message, and pressing it closes the
-            snackbar. A message carrying an action is shown for longer, since it
-            has to be read before it can be taken.
+            snackbar. A message carrying an action stays until the action is
+            taken or something closes it, since a reader may need longer to
+            reach the action than any timer allows.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
@@ -166,9 +164,9 @@ const Overview: Story = {
             Close button
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A close button puts the message away before it expires. Every timer
-            pauses while the region is hovered or focused, so a message never
-            leaves while it is being read.
+            A close button puts the message away without taking its action.
+            Every timer pauses while the region is hovered or focused, so a
+            message never leaves while it is being read.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>

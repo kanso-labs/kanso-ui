@@ -38,6 +38,8 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+const UNDO = { label: 'Undo', onPress: () => {} }
+
 /** A fresh queue and a mounted region, since the queue outlives React. */
 function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
   const queue = new Snackbar.Queue()
@@ -139,9 +141,9 @@ describe('snackbar', () => {
   })
 
   describe('timing', () => {
-    // A message alone is shown for the page's short duration; one carrying
-    // an action for its long one, since the action has to be read first.
-    it('leaves on its own after the short duration', () => {
+    // A message alone is shown for five seconds; one carrying an action stays
+    // until it is taken or closed — see the durations in the component.
+    it('leaves on its own after five seconds', () => {
       vi.useFakeTimers()
       try {
         const { queue, view } = setup()
@@ -151,7 +153,7 @@ describe('snackbar', () => {
         expect(view.getByText('First item')).not.toBeNull()
 
         act(() => {
-          vi.advanceTimersByTime(1400)
+          vi.advanceTimersByTime(4900)
         })
         expect(view.queryByText('First item')).not.toBeNull()
 
@@ -164,23 +166,23 @@ describe('snackbar', () => {
       }
     })
 
-    it('stays longer when there is an action to read', () => {
+    it('stays until closed when there is an action to take', () => {
       vi.useFakeTimers()
       try {
         const { queue, view } = setup()
+        let key = ''
         act(() => {
-          queue.add('First item', {
-            action: { label: 'Undo', onPress: () => {} },
-          })
+          key = queue.add('First item', { action: UNDO })
         })
 
+        // A minute is far past any duration a timer would have been given.
         act(() => {
-          vi.advanceTimersByTime(1600)
+          vi.advanceTimersByTime(60_000)
         })
         expect(view.queryByText('First item')).not.toBeNull()
 
         act(() => {
-          vi.advanceTimersByTime(1200)
+          queue.close(key)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -188,12 +190,15 @@ describe('snackbar', () => {
       }
     })
 
-    it('takes a timeout of its own', () => {
+    it.each<[string, SnackbarOptions]>([
+      ['alone', {}],
+      ['with an action', { action: UNDO }],
+    ])('takes a timeout of its own, %s', (_, options) => {
       vi.useFakeTimers()
       try {
         const { queue, view } = setup()
         act(() => {
-          queue.add('First item', { timeout: 10_000 })
+          queue.add('First item', { ...options, timeout: 10_000 })
         })
 
         act(() => {

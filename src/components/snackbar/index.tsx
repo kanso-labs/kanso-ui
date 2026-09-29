@@ -73,12 +73,23 @@ import {
 // end of `<body>`. An app that scopes its StyleX theme to a subtree has to
 // put the theme on `:root` for the snackbar to be drawn in it.
 
-// The page's two durations, from the same implementation its measurements
-// come from: a message alone is shown for the short one, a message with an
-// action for the long one, since an action has to be read before it can be
-// taken.
-const SHORT_MS = 1500
-const LONG_MS = 2750
+// How long a message is shown when the call site names no `timeout`. The
+// specs page gives no duration, so these come from the snackbar's guidelines
+// and accessibility pages.
+//
+// A message alone leaves after five seconds. The pages allow four to ten, and
+// React Aria's toast docs set five as the least a reader should be given.
+//
+// A message with an action stays until the action is taken or something
+// closes it, as the pages ask of every actionable snackbar. No timer can know
+// how long a reader needs to act: a screen reader user hears the message
+// first and has to reach the region before the action is any use, and the
+// pause while the region is hovered or focused only starts once they have.
+// Android's snackbar can keep shorter defaults because the platform lengthens
+// them from each user's accessibility settings, and the web has no such
+// setting to read.
+const MESSAGE_MS = 5000
+const UNTIL_CLOSED = 0
 
 // Below the page's 600dp breakpoint the snackbar runs the width of the
 // screen; above it, it takes between 320 and 576.
@@ -250,10 +261,12 @@ type SnackbarOptions = {
    */
   showCloseButton?: boolean
   /**
-   * How long the snackbar is shown, in milliseconds. Defaults to the page's
-   * short duration, or its long one when there is an action to read, and the
-   * timer is paused while the region is hovered or focused so a message never
-   * expires while it is being read.
+   * How long the snackbar is shown, in milliseconds. Defaults to five seconds
+   * for a message alone. A message with an action defaults to `0` and stays
+   * until the action is taken or something closes it, as Material Design asks
+   * of an actionable snackbar, since a reader may need longer to reach the
+   * action than any timer allows. The timer is paused while the region is
+   * hovered or focused, so a message never expires while it is being read.
    *
    * `0` is the page's indefinite length: the snackbar stays until something
    * closes it. Give one of those an action or `showCloseButton`, or there is no
@@ -330,7 +343,7 @@ class SnackbarQueue {
       { action, message, showCloseButton },
       {
         onClose,
-        timeout: timeout ?? (action === undefined ? SHORT_MS : LONG_MS),
+        timeout: timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
       },
     )
   }
