@@ -11,10 +11,12 @@ import DateField from '../components/date-field'
 import Dialog from '../components/dialog'
 import Menu from '../components/menu'
 import Popover from '../components/popover'
+import RadioGroup, { Radio } from '../components/radio-group'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
+import Switch from '../components/switch'
 import Tooltip from '../components/tooltip'
 import { declarationsHeld } from './stylesheet.testing'
 
@@ -30,6 +32,33 @@ const MEDIUM = 601
 // back to something ordinary or whatever runs next inherits 599px.
 const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
 
+/** A lone radio's dot, drawn inside its ring only while it is chosen. */
+function dotOf(props: { isDisabled?: boolean } = {}) {
+  const view = render(
+    <RadioGroup defaultValue="first" label="Label" {...props}>
+      <Radio value="first">First item</Radio>
+    </RadioGroup>,
+  )
+  const ring = firstChildOf(drawnAfter(view.getByRole('radio')), 'a ring')
+
+  return firstChildOf(ring, 'a dot in the ring')
+}
+
+/**
+ * The element after the one wrapping `input`. React Aria wraps the input of a
+ * radio or a switch in a visually hidden element, and what the control draws
+ * follows it in the label.
+ */
+function drawnAfter(input: HTMLElement): Element {
+  const drawn = parentOf(input).nextElementSibling
+
+  if (drawn === null) {
+    throw new Error('expected the control to follow the input')
+  }
+
+  return drawn
+}
+
 /** The one element matching `selector`, or a failure naming what was looked for. */
 function find(element: ReactElement, selector: string): Element {
   const view = render(element)
@@ -40,6 +69,17 @@ function find(element: ReactElement, selector: string): Element {
   }
 
   return found
+}
+
+/** The first child of `element`, or a failure naming what was looked for. */
+function firstChildOf(element: Element, what: string): Element {
+  const child = element.firstElementChild
+
+  if (child === null) {
+    throw new Error(`expected ${what}`)
+  }
+
+  return child
 }
 
 /**
@@ -70,6 +110,23 @@ function parentOf(element: Element): Element {
   }
 
   return parent
+}
+
+/**
+ * A switch's track and the handle travelling in it. The handle is the last
+ * child of the seat, the track's first child, after the state layer.
+ */
+function switchOf(props: { isDisabled?: boolean; isSelected?: boolean }) {
+  const view = render(<Switch {...props}>Label</Switch>)
+  const input = view.getByRole('switch')
+  const track = firstChildOf(drawnAfter(input), 'a track')
+  const handle = firstChildOf(track, 'a seat').lastElementChild
+
+  if (handle === null) {
+    throw new Error('expected the seat to hold the handle')
+  }
+
+  return { handle, input, track }
 }
 
 const HUE = <ColorSlider channel="hue" defaultValue="hsl(200, 100%, 50%)" />
@@ -314,5 +371,81 @@ describe('a boundary drawn in a shadow or a fill', () => {
       expect(rules.get('border-top-color')).toBe('canvastext')
       expect(rules.get('border-inline-start-style')).toBe('none')
     })
+  })
+})
+
+// A radio says it is chosen, and a switch that it is on, through fills alone,
+// and forced colours paints every author fill in the page's own `Canvas`. A
+// chosen radio's dot vanished into its ring, and a switch lost its handle
+// and drew on and off as the same empty pill. System colours are kept rather
+// than repainted, so each fill names one.
+describe('a state told by a fill alone', () => {
+  it('draws the chosen radio its dot in Highlight', () => {
+    expect(forcedColorRules(dotOf()).get('background-color')).toBe('highlight')
+  })
+
+  it('draws a disabled radio its dot in GrayText', () => {
+    expect(
+      forcedColorRules(dotOf({ isDisabled: true })).get('background-color'),
+    ).toBe('graytext')
+  })
+
+  it('fills the track of a switch that is on, with the handle over it', () => {
+    const { handle, track } = switchOf({ isSelected: true })
+    const trackRules = forcedColorRules(track)
+
+    expect(trackRules.get('background-color')).toBe('highlight')
+    expect(trackRules.get('border-top-color')).toBe('highlight')
+    expect(forcedColorRules(handle).get('background-color')).toBe(
+      'highlighttext',
+    )
+  })
+
+  // The check is drawn in the handle's text colour, so it takes the other
+  // half of the pair the handle's fill is from.
+  it('draws the check of a switch that is on in Highlight', () => {
+    const { handle } = switchOf({ isSelected: true })
+
+    expect(forcedColorRules(handle).get('color')).toBe('highlight')
+  })
+
+  it('draws the handle of a switch that is off over an empty track', () => {
+    const { handle, track } = switchOf({})
+    const trackRules = forcedColorRules(track)
+
+    expect(trackRules.get('background-color')).toBe('canvas')
+    expect(trackRules.get('border-top-color')).toBe('buttontext')
+    expect(forcedColorRules(handle).get('background-color')).toBe('buttontext')
+  })
+
+  // The handle takes a fill of its own while hovered, pressed or focused,
+  // and a fill written without the query would replace the one written with
+  // it — so the handle would vanish exactly while it was being pointed at.
+  it.each([
+    { expected: 'buttontext', isSelected: false, name: 'off' },
+    { expected: 'highlighttext', isSelected: true, name: 'on' },
+  ])(
+    'keeps the handle of a switch that is $name while it is hovered',
+    ({ expected, isSelected }) => {
+      const { handle, input } = switchOf({ isSelected })
+
+      fireEvent.pointerOver(parentOf(input), { pointerType: 'mouse' })
+
+      expect(forcedColorRules(handle).get('background-color')).toBe(expected)
+    },
+  )
+
+  it('draws a disabled switch that is off in GrayText', () => {
+    const { handle, track } = switchOf({ isDisabled: true })
+
+    expect(forcedColorRules(track).get('border-top-color')).toBe('graytext')
+    expect(forcedColorRules(handle).get('background-color')).toBe('graytext')
+  })
+
+  it('fills the track of a disabled switch that is on in GrayText', () => {
+    const { handle, track } = switchOf({ isDisabled: true, isSelected: true })
+
+    expect(forcedColorRules(track).get('background-color')).toBe('graytext')
+    expect(forcedColorRules(handle).get('background-color')).toBe('canvas')
   })
 })
