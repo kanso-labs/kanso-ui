@@ -245,6 +245,11 @@ const pressedLayers = stylex.create({
 // seat's own 28dp.
 const TRAVEL = 20
 
+// How far a press has to move before it is a drag: a quarter of the travel.
+// A finger, a mouse and a pen all move a pixel or two between pressing and
+// lifting, and a press inside this is still a tap, which flips the switch.
+const DRAG_SLOP = TRAVEL / 4
+
 type Drag = ReturnType<typeof useHandleDrag>
 
 type Ripple = ReturnType<typeof useRipple<HTMLSpanElement>>
@@ -419,8 +424,14 @@ function Switch({
  * state of the switch's own. The click the pointer's release sends after
  * that is cancelled too, so nothing flips the switch a second time.
  *
- * A press that never moves is left alone entirely, so a tap flips the switch
- * as it did before.
+ * A press that moves no further than the slop is left alone entirely, so a
+ * tap flips the switch however still the pointer was — a drag starts only
+ * once the pointer passes it, and from then on the handle follows every move.
+ *
+ * The guard for the click after a drag is cleared by the next press, not by
+ * that click, since the click may never come: a touch dragged past the
+ * browser's own slop sends none, and a guard left armed swallowed the next
+ * tap instead.
  */
 function useHandleDrag() {
   const [offset, setOffset] = useState<null | number>(null)
@@ -460,6 +471,9 @@ function useHandleDrag() {
         return
       }
       const along = from.rtl ? from.x - event.clientX : event.clientX - from.x
+      if (settled.current === null && Math.abs(along) <= DRAG_SLOP) {
+        return
+      }
       const next = Math.min(TRAVEL, Math.max(0, from.base + along))
       settled.current = next
       setOffset(next)
@@ -506,6 +520,7 @@ function useHandleDrag() {
       onClickCapture,
       onPointerCancel,
       onPointerDown: (event: ReactPointerEvent<HTMLSpanElement>) => {
+        cancelClick.current = false
         if (event.pointerType === 'mouse' && event.button !== 0) {
           return
         }

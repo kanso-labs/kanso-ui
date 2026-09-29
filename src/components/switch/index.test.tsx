@@ -378,6 +378,71 @@ describe('switch', () => {
       expect(input).toHaveProperty('checked', true)
     })
 
+    // A finger, a mouse and a pen all move a pixel or two between pressing
+    // and lifting, so a movement inside the slop is still a tap: the click
+    // the release sends goes through, and the switch flips. The click lands on
+    // the seat, as a real one does, since that is where the drag's guard
+    // listens for it.
+    it.each(['mouse', 'touch'] as const)(
+      'still flips on a %s tap that jitters inside the slop',
+      (pointerType) => {
+        const { input } = setup()
+        const { seat } = partsOf(input)
+
+        fireEvent.pointerDown(seat, {
+          button: 0,
+          clientX: 100,
+          pointerId: 1,
+          pointerType,
+        })
+        fireEvent.pointerMove(seat, { clientX: 104, pointerId: 1, pointerType })
+        fireEvent.pointerUp(seat, { clientX: 104, pointerId: 1, pointerType })
+        fireEvent.click(seat)
+
+        expect(input).toHaveProperty('checked', true)
+      },
+    )
+
+    // A touch dragged past the browser's own slop sends no click at all, so
+    // the guard armed for that click is still set when the next tap comes —
+    // and has to be cleared by the next press rather than swallow it.
+    it('flips on the tap after a touch drag that sent no click', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      fireEvent.pointerDown(seat, {
+        button: 0,
+        clientX: 100,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      fireEvent.pointerMove(seat, {
+        clientX: 124,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      fireEvent.pointerUp(seat, {
+        clientX: 124,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      expect(input).toHaveProperty('checked', true)
+
+      fireEvent.pointerDown(seat, {
+        button: 0,
+        clientX: 100,
+        pointerId: 2,
+        pointerType: 'touch',
+      })
+      fireEvent.pointerUp(seat, {
+        clientX: 100,
+        pointerId: 2,
+        pointerType: 'touch',
+      })
+      fireEvent.click(seat)
+      expect(input).toHaveProperty('checked', false)
+    })
+
     it('reports a drag on a controlled switch without moving', () => {
       const onChange = vi.fn<(selected: boolean) => void>()
       const { input } = setup({ isSelected: false, onChange })
