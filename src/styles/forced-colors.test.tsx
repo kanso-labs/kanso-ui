@@ -9,6 +9,7 @@ import ColorSlider from '../components/color-slider'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
 import Dialog from '../components/dialog'
+import IconButton from '../components/icon-button'
 import Menu from '../components/menu'
 import Popover from '../components/popover'
 import RadioGroup, { Radio } from '../components/radio-group'
@@ -31,6 +32,15 @@ const MEDIUM = 601
 // Storybook and the other specs share this browser, so the viewport has to go
 // back to something ordinary or whatever runs next inherits 599px.
 const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
+
+// What an icon button holds. Its drawing is beside the point here, since
+// nothing below reads it.
+const ICON = <svg />
+
+/** The one button `element` renders. */
+function buttonIn(element: ReactElement): Element {
+  return render(element).getByRole('button')
+}
 
 /** A lone radio's dot, drawn inside its ring only while it is chosen. */
 function dotOf(props: { isDisabled?: boolean } = {}) {
@@ -253,6 +263,79 @@ describe('a boundary drawn in a shadow or a fill', () => {
     expect(rules.get('border-top-color')).toBe('canvastext')
   })
 
+  // A filled, tonal or elevated button is bounded by its container alone —
+  // its fill, and an elevated one's shadow — and the mode drops both. What
+  // was left was a label with nothing round it, which reads as text rather
+  // than as a control.
+  it.each(['elevated', 'filled', 'tonal'] as const)(
+    'gives a %s button a border, in place of its container',
+    (variant) => {
+      const rules = forcedColorRules(
+        buttonIn(<Button variant={variant}>Label</Button>),
+      )
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('buttontext')
+    },
+  )
+
+  // Every form of a filled or tonal icon button is bounded by a fill,
+  // toggles chosen or not included.
+  it.each([
+    { name: 'a filled icon button', props: { variant: 'filled' } },
+    { name: 'a tonal icon button', props: { variant: 'tonal' } },
+    {
+      name: 'an unchosen filled toggle',
+      props: { defaultSelected: false, variant: 'filled' },
+    },
+    {
+      name: 'a chosen filled toggle',
+      props: { defaultSelected: true, variant: 'filled' },
+    },
+    {
+      name: 'an unchosen tonal toggle',
+      props: { defaultSelected: false, variant: 'tonal' },
+    },
+    {
+      name: 'a chosen tonal toggle',
+      props: { defaultSelected: true, variant: 'tonal' },
+    },
+  ] as const)(
+    'gives $name a border, in place of its container',
+    ({ props }) => {
+      const rules = forcedColorRules(
+        buttonIn(
+          <IconButton aria-label="Label" {...props}>
+            {ICON}
+          </IconButton>,
+        ),
+      )
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('buttontext')
+    },
+  )
+
+  // The page draws no boundary round a text button or a standard icon
+  // button, and neither does the mode.
+  it.each([
+    { element: <Button variant="text">Label</Button>, name: 'a text button' },
+    {
+      element: (
+        <IconButton aria-label="Label" variant="standard">
+          {ICON}
+        </IconButton>
+      ),
+      name: 'a standard icon button',
+    },
+  ])('draws $name no border', ({ element }) => {
+    expect(
+      forcedColorRules(buttonIn(element)).get('border-top-width'),
+    ).toBeUndefined()
+  })
+
   // Everything a slider says about its value is a background: how far the
   // filled part runs, where the empty part stops, where the handle sits. The
   // track's parts are spans in order — filled, empty — with the handle after
@@ -447,5 +530,118 @@ describe('a state told by a fill alone', () => {
 
     expect(forcedColorRules(track).get('background-color')).toBe('graytext')
     expect(forcedColorRules(handle).get('background-color')).toBe('canvas')
+  })
+
+  // A disabled button is a faded label on a faded container or rule, which
+  // the mode repaints at full strength. Chromium greys a disabled `<button>`
+  // there by itself, but not the `<span>` React Aria renders for a disabled
+  // link, so each disabled style names `GrayText` rather than leave it to the
+  // browser.
+  it('draws the label of a disabled link button in GrayText', () => {
+    const view = render(
+      <Button href="#label" isDisabled>
+        Label
+      </Button>,
+    )
+
+    expect(forcedColorRules(view.getByRole('link')).get('color')).toBe(
+      'graytext',
+    )
+  })
+
+  it.each(['elevated', 'filled', 'outlined', 'text', 'tonal'] as const)(
+    'draws the label of a disabled %s button in GrayText',
+    (variant) => {
+      expect(
+        forcedColorRules(
+          buttonIn(
+            <Button isDisabled variant={variant}>
+              Label
+            </Button>,
+          ),
+        ).get('color'),
+      ).toBe('graytext')
+    },
+  )
+
+  it.each(['elevated', 'filled', 'outlined', 'tonal'] as const)(
+    'draws the edge of a disabled %s button in GrayText',
+    (variant) => {
+      expect(
+        forcedColorRules(
+          buttonIn(
+            <Button isDisabled variant={variant}>
+              Label
+            </Button>,
+          ),
+        ).get('border-top-color'),
+      ).toBe('graytext')
+    },
+  )
+
+  it.each(['filled', 'outlined', 'standard', 'tonal'] as const)(
+    'draws the icon of a disabled %s icon button in GrayText',
+    (variant) => {
+      expect(
+        forcedColorRules(
+          buttonIn(
+            <IconButton aria-label="Label" isDisabled variant={variant}>
+              {ICON}
+            </IconButton>,
+          ),
+        ).get('color'),
+      ).toBe('graytext')
+    },
+  )
+
+  it.each(['filled', 'outlined', 'tonal'] as const)(
+    'draws the edge of a disabled %s icon button in GrayText',
+    (variant) => {
+      expect(
+        forcedColorRules(
+          buttonIn(
+            <IconButton aria-label="Label" isDisabled variant={variant}>
+              {ICON}
+            </IconButton>,
+          ),
+        ).get('border-top-color'),
+      ).toBe('graytext')
+    },
+  )
+
+  // A toggle says it is chosen through its fill, or a standard one through
+  // its icon's colour alone, and the mode repaints both, so a chosen toggle
+  // looked the same as an unchosen one.
+  it.each(['filled', 'outlined', 'standard', 'tonal'] as const)(
+    'draws a chosen %s toggle in Highlight',
+    (variant) => {
+      const rules = forcedColorRules(
+        buttonIn(
+          <IconButton aria-label="Label" defaultSelected variant={variant}>
+            {ICON}
+          </IconButton>,
+        ),
+      )
+
+      expect(rules.get('background-color')).toBe('highlight')
+      expect(rules.get('color')).toBe('highlighttext')
+    },
+  )
+
+  // A chosen filled toggle has the plain filled button's colours, and the
+  // two are only told apart here.
+  it.each([
+    { name: 'a filled icon button', props: {} },
+    { name: 'an unchosen filled toggle', props: { defaultSelected: false } },
+  ])('keeps $name out of Highlight', ({ props }) => {
+    expect(
+      forcedColorRules(
+        buttonIn(
+          <IconButton aria-label="Label" variant="filled" {...props}>
+            {ICON}
+          </IconButton>,
+        ),
+      ).get('background-color'),
+    ).toBeUndefined()
   })
 })
