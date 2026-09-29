@@ -57,6 +57,16 @@ import ProgressIndicator from '../progress-indicator'
 // take the hover and pressed branches with them — which is what keeps a
 // hovered disabled button from lighting up.
 //
+// **Under forced colours a container is drawn as a rule.** That mode drops
+// the shadow and paints author backgrounds in a system colour, which left a
+// filled, tonal or elevated button as a label with nothing round it. `base`
+// draws a 1px `ButtonText` border there instead. Outlined keeps its own rule,
+// and text stays without one, as the page draws it. The mode repaints a
+// disabled button's fade at full strength as well. Chromium greys a disabled
+// `<button>` there by itself, but not the `<span>` React Aria renders for a
+// disabled link, so the disabled styles name `GrayText` for the label and
+// the edge rather than leave it to the browser.
+//
 // Two independent axes, applied base -> variant -> size. The variant carries
 // colour and the size carries geometry, so the two never argue: inline
 // padding belongs to the size alone, and every size declares its own.
@@ -77,11 +87,20 @@ import ProgressIndicator from '../progress-indicator'
 // text button was the wider of the two.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   base: {
     alignItems: 'center',
+    // The container's rule under forced colours — see the header.
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.pill,
-    borderWidth: 0,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
     cursor: 'pointer',
     display: 'inline-flex',
@@ -118,8 +137,12 @@ const styles = stylex.create({
   },
   elevatedDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
     boxShadow: 'none',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   filled: {
     backgroundColor: {
@@ -137,8 +160,12 @@ const styles = stylex.create({
   },
   filledDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
     boxShadow: 'none',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // While pending, the label stays in the flow so the button keeps its
   // width, and is hidden — `display: contents` leaves the layout exactly as
@@ -185,8 +212,14 @@ const styles = stylex.create({
   },
   outlinedDisabled: {
     backgroundColor: 'transparent',
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // The ring sits over the hidden label, centred in the button.
   pending: {
@@ -203,11 +236,16 @@ const styles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
+    // No rule under forced colours either, which replaces `base`'s whole.
+    borderWidth: 0,
     color: colors.primary,
   },
   textDisabled: {
     backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   tonal: {
     backgroundColor: {
@@ -225,8 +263,12 @@ const styles = stylex.create({
   },
   tonalDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
     boxShadow: 'none',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   xl: {
     blockSize: sizing.controlXl,

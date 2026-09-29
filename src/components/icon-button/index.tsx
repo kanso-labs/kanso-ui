@@ -91,7 +91,24 @@ import ProgressIndicator from '../progress-indicator'
 // page keeps behind its size menu, but the page also says both shapes press
 // to the same radius — so the size's pressed corner is the value it already
 // assigns to that size, used here at rest rather than invented.
+//
+// **Under forced colours a container is drawn as a rule, and a chosen toggle
+// as the mode's own chosen pair.** That mode paints author backgrounds in a
+// system colour and forces the icon's, which left a filled or tonal icon
+// button as an icon with nothing round it and a chosen toggle the same as an
+// unchosen one. `base` draws a 1px `ButtonText` border there, as Button's
+// does. Outlined keeps its own rule, and standard stays without one, as the
+// page draws it. A chosen toggle of any style is filled `Highlight` with its
+// icon in `HighlightText`. A disabled button's icon and edge are `GrayText`,
+// for the reason Button's comment gives: the browser greys a disabled
+// `<button>` there, but not the `<span>` a disabled link is.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
 
 /**
  * The press area the page requires of its two smallest sizes. A literal
@@ -105,8 +122,11 @@ const styles = stylex.create({
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
+    // The container's rule under forced colours — see the header.
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
     borderRadius: radii.pill,
-    borderWidth: 0,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
     cursor: 'pointer',
     display: 'inline-flex',
@@ -138,7 +158,11 @@ const styles = stylex.create({
   },
   filledDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // The filled toggle's unchosen container, which is not the plain filled
   // button's: the page rests it on surface container with the muted icon and
@@ -150,6 +174,18 @@ const styles = stylex.create({
       default: colors.surfaceContainer,
     },
     color: colors.onSurfaceVariant,
+  },
+  // The filled toggle once chosen: the plain filled button's colours, and a
+  // style of its own only for the forced-colours pair, which the plain button
+  // must not take.
+  filledToggleSelected: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      default: colors.primary,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
   },
   // While pending, the label stays in the flow so the button keeps its
   // width, and is hidden — `display: contents` leaves the layout exactly as
@@ -215,8 +251,14 @@ const styles = stylex.create({
   },
   outlinedDisabled: {
     backgroundColor: 'transparent',
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // A chosen outlined toggle drops its rule for a container: the page moves
   // it to the inverse surface pair, which is the one place a toggle here
@@ -226,9 +268,13 @@ const styles = stylex.create({
       ':active': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
       ':hover': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
       default: colors.inverseSurface,
+      [FORCED_COLORS]: 'Highlight',
     },
-    borderColor: 'transparent',
-    color: colors.inverseOnSurface,
+    borderColor: { default: 'transparent', [FORCED_COLORS]: 'Highlight' },
+    color: {
+      default: colors.inverseOnSurface,
+      [FORCED_COLORS]: 'HighlightText',
+    },
   },
   // The ring sits over the hidden label, centred in the button.
   pending: {
@@ -248,21 +294,30 @@ const styles = stylex.create({
       ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
     },
+    // No rule under forced colours either, which replaces `base`'s whole.
+    borderWidth: 0,
     color: colors.onSurfaceVariant,
   },
   standardDisabled: {
     backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // A standard toggle keeps no container either way; what changes is the
   // icon, which the page moves from the muted role to primary once chosen.
+  // Under forced colours, where that colour is forced, the chosen one is
+  // filled instead — see the header.
   standardToggleSelected: {
     backgroundColor: {
       ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
       ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
+      [FORCED_COLORS]: 'Highlight',
     },
-    color: colors.primary,
+    borderWidth: 0,
+    color: { default: colors.primary, [FORCED_COLORS]: 'HighlightText' },
   },
   tonal: {
     backgroundColor: {
@@ -274,7 +329,11 @@ const styles = stylex.create({
   },
   tonalDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // The tonal toggle's chosen container: the page moves it from the
   // secondary container pair to secondary itself, which is the one place a
@@ -284,8 +343,9 @@ const styles = stylex.create({
       ':active': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
       ':hover': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
       default: colors.secondary,
+      [FORCED_COLORS]: 'Highlight',
     },
-    color: colors.onSecondary,
+    color: { default: colors.onSecondary, [FORCED_COLORS]: 'HighlightText' },
   },
   xl: {
     blockSize: sizing.controlXl,
@@ -337,11 +397,15 @@ const selectedShapes = stylex.create({
   xxl: { borderRadius: radii.lg },
 })
 
-// Which container a toggle draws, chosen and not. Three of the six are the
-// plain button's own styles: a chosen filled toggle is the filled button, and
-// an unchosen tonal or standard one is the tonal or standard button.
+// Which container a toggle draws, chosen and not. Two of the six are the
+// plain button's own styles: an unchosen tonal or standard toggle is the
+// tonal or standard button. A chosen filled toggle takes the filled button's
+// colours from a style of its own, which adds the forced-colours pair.
 const toggleStyles = {
-  filled: { selected: styles.filled, unselected: styles.filledToggle },
+  filled: {
+    selected: styles.filledToggleSelected,
+    unselected: styles.filledToggle,
+  },
   outlined: {
     selected: styles.outlinedToggleSelected,
     unselected: styles.outlined,
