@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.34.9](https://github.com/kanso-labs/kanso-ui/compare/v0.34.8...v0.34.9) (2026-09-29)
+
+
+### Bug Fixes
+
+* **menu:** open a submenu beside the item that opens it ([#1216](https://github.com/kanso-labs/kanso-ui/issues/1216)) ([680430c](https://github.com/kanso-labs/kanso-ui/commit/680430cf10f19fcd14b774dd50ebbf8ffec86b00))
+* **switch:** let a tap with pointer jitter flip the switch, and stop a touch drag swallowing the next tap ([#1213](https://github.com/kanso-labs/kanso-ui/issues/1213)) ([a636db5](https://github.com/kanso-labs/kanso-ui/commit/a636db503cdacf67801eece4a26bab174edc3293))
+
+
+### Dependencies
+
+* update actions/upload-code-coverage action to v1.4.3 ([#1204](https://github.com/kanso-labs/kanso-ui/issues/1204)) ([7d1f963](https://github.com/kanso-labs/kanso-ui/commit/7d1f963a286d84b3f9b49bea16c5ef98312de757))
+* update chromaui/action action to v18.10.0 ([#1206](https://github.com/kanso-labs/kanso-ui/issues/1206)) ([9d5529d](https://github.com/kanso-labs/kanso-ui/commit/9d5529d232532ec29687e60dc906e5d946cbca85))
+* update chromaui/action action to v18.10.1 ([#1211](https://github.com/kanso-labs/kanso-ui/issues/1211)) ([53806bc](https://github.com/kanso-labs/kanso-ui/commit/53806bccdf8024d9746d3a2e8e9151d6b10350fa))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.12 ([#1205](https://github.com/kanso-labs/kanso-ui/issues/1205)) ([5276002](https://github.com/kanso-labs/kanso-ui/commit/527600279837871ad7973b4b24af6dc791909c8e))
+* update dependency oxfmt to v0.71.0 ([#1207](https://github.com/kanso-labs/kanso-ui/issues/1207)) ([72b91cb](https://github.com/kanso-labs/kanso-ui/commit/72b91cb0715e4eeeac0e662567ae881a755710ca))
+* update dependency typescript-eslint to v8.71.0 ([#1208](https://github.com/kanso-labs/kanso-ui/issues/1208)) ([48ecbbc](https://github.com/kanso-labs/kanso-ui/commit/48ecbbc1bf4b6f5ba94c84fd2e537b1d4ea98ad6))
+* update oxlint to v1.86.0 ([#1209](https://github.com/kanso-labs/kanso-ui/issues/1209)) ([3ec33da](https://github.com/kanso-labs/kanso-ui/commit/3ec33da491a07bd2634fca516e7f0bc0f5954323))
+
 ## [0.34.8](https://github.com/kanso-labs/kanso-ui/compare/v0.34.7...v0.34.8) (2026-09-27)
 
 
