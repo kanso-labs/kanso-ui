@@ -29,8 +29,7 @@ import Tabs from '../components/tabs'
 import TextField from '../components/text-field'
 import Tree from '../components/tree'
 import { rippleStyles } from './ripple'
-
-const REDUCE = 'prefers-reduced-motion: reduce'
+import { reducedMotionOf } from './stylesheet.testing'
 
 // The two properties a duration can be spelled in. A component draws through
 // one or the other, never both on one element, so each is read on its own.
@@ -52,65 +51,12 @@ function isStill(value: string) {
 
 /**
  * The duration `@media (prefers-reduced-motion: reduce)` gives `element` for
- * `property`, read out of the compiled stylesheet.
- *
- * Reading the rule is the only way to ask this. Chromium exposes the query
- * through `Emulation.setEmulatedMedia` alone, which is a page-level command
- * while Vitest runs every file as an iframe inside one shared page — so two
- * files driving it write one setting, and the send waits on whatever the whole
- * page is doing. src/styles/overlay-reduced-motion.test.tsx carries the same
- * walker for the four overlays, and src/field/forced-colors.test.tsx one for
- * the query beside this one.
+ * `property`, read out of the compiled stylesheet through the shared walker
+ * in ./stylesheet.testing.ts — the only way to ask it, since nothing here may
+ * put the page into that state.
  */
 function reducedDuration(element: Element, property: string) {
-  let found: string | undefined
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules], false)
-  }
-
-  return found
-
-  function walk(rules: CSSRule[], inReduce: boolean) {
-    for (const rule of rules) {
-      if (rule instanceof CSSMediaRule) {
-        walk(
-          [...rule.cssRules],
-          inReduce || rule.conditionText.includes(REDUCE),
-        )
-        continue
-      }
-
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules], inReduce)
-        continue
-      }
-
-      if (!inReduce || !(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      const value = rule.style.getPropertyValue(property)
-
-      if (value === '' || !reaches(rule.selectorText)) {
-        continue
-      }
-
-      found = value
-    }
-  }
-
-  // StyleX writes one class per declaration and repeats it to raise
-  // specificity, and it merges identical declarations from different modules
-  // into one rule with several selectors — `.abc.abc, .def.def` — so each is
-  // read on its own rather than the first standing for the list.
-  function reaches(selectorText: string) {
-    return selectorText.split(',').some((selector) => {
-      const className = selector.trim().split(/[.:]/).find(Boolean)
-
-      return className !== undefined && element.classList.contains(className)
-    })
-  }
+  return reducedMotionOf(element, property).reduced
 }
 
 /**

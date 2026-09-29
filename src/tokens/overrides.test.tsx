@@ -7,6 +7,7 @@ import ColorPicker from '../components/color-picker'
 import IconButton from '../components/icon-button'
 import ProgressIndicator from '../components/progress-indicator'
 import Snackbar from '../components/snackbar'
+import { rulesReaching } from '../styles/stylesheet.testing'
 import { motion, sizing, spacing } from './design.tokens.stylex'
 
 // `--kui-*` is the documented override contract, so a consumer who resizes or
@@ -163,42 +164,16 @@ describe('a surface inset from a token a consumer moved', () => {
 
 /**
  * Every `max-width` the stylesheet gives `element` — StyleX compiles
- * `maxInlineSize` to the physical property, read as authored.
- * All of them rather than one: the surface sets the property twice, once at
- * rest and once under the breakpoint, and it is the second that carries the
- * token. `getComputedStyle` would resolve the `calc()` to pixels and only
- * inside the query, so the rules are read instead.
+ * `maxInlineSize` to the physical property, read as authored, through the
+ * shared walker in src/styles/stylesheet.testing.ts. All of them rather than
+ * one: the surface sets the property twice, once at rest and once under the
+ * breakpoint, and it is the second that carries the token. The walker asks
+ * the page whether a breakpoint holds, and the runner's width is under this
+ * one. `getComputedStyle` would resolve the `calc()` to pixels, so the rules
+ * are read instead.
  */
 function maxInlineSizesOf(element: Element): string[] {
-  const found: string[] = []
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules])
-  }
-
-  return found
-
-  function walk(rules: CSSRule[]) {
-    for (const rule of rules) {
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules])
-        continue
-      }
-
-      if (!(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      const className = rule.selectorText.split(/[.:]/).find(Boolean)
-      const value = rule.style.getPropertyValue('max-width')
-
-      if (
-        className !== undefined &&
-        value !== '' &&
-        element.classList.contains(className)
-      ) {
-        found.push(value)
-      }
-    }
-  }
+  return rulesReaching(element)
+    .map((rule) => rule.style.getPropertyValue('max-width'))
+    .filter((value) => value !== '')
 }

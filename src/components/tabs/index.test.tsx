@@ -3,6 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
+import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
@@ -98,68 +99,13 @@ function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
   }
 }
 
-const REDUCE = 'prefers-reduced-motion: reduce'
-
 /**
- * The two transition durations that reach `element` — the one it rests at
- * and the one `@media (prefers-reduced-motion: reduce)` gives it — read out
- * of the stylesheet rather than off a page put into that state, for the
- * reason src/styles/overlay-reduced-motion.test.tsx gives: Chromium's media
- * emulation is a page-level command, and every test file shares the page.
+ * The two transition durations that reach `element` — the one it rests at and
+ * the one `@media (prefers-reduced-motion: reduce)` gives it — read out of the
+ * stylesheet through the shared walker in src/styles/stylesheet.testing.ts.
  */
-function transitionDurations(element: Element): {
-  reduced: string | undefined
-  resting: string | undefined
-} {
-  let reduced: string | undefined
-  let resting: string | undefined
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules], false)
-  }
-
-  return { reduced, resting }
-
-  function walk(rules: CSSRule[], inReduce: boolean) {
-    for (const rule of rules) {
-      if (rule instanceof CSSMediaRule) {
-        walk(
-          [...rule.cssRules],
-          inReduce || rule.conditionText.includes(REDUCE),
-        )
-        continue
-      }
-
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules], inReduce)
-        continue
-      }
-
-      if (!(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      // StyleX writes one class per declaration and repeats it to raise
-      // specificity, so a selector is a run of the same class.
-      const className = rule.selectorText.split('.').find(Boolean)
-
-      if (className === undefined || !element.classList.contains(className)) {
-        continue
-      }
-
-      const duration = rule.style.getPropertyValue('transition-duration')
-
-      if (duration === '') {
-        continue
-      }
-
-      if (inReduce) {
-        reduced = duration
-      } else {
-        resting = duration
-      }
-    }
-  }
+function transitionDurations(element: Element) {
+  return reducedMotionOf(element, 'transition-duration')
 }
 
 // A tab set whose second panel is taller than its first, which is what gives

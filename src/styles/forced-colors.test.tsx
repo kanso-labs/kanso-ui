@@ -16,6 +16,7 @@ import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
 import Tooltip from '../components/tooltip'
+import { declarationsHeld } from './stylesheet.testing'
 
 const FORCED_COLORS = 'forced-colors: active'
 
@@ -43,77 +44,16 @@ function find(element: ReactElement, selector: string): Element {
 
 /**
  * Every declaration that reaches `element` from inside a forced-colours media
- * query, keyed by property and by the selector's trailing pseudo-class.
- *
- * Copied from src/field/forced-colors.test.tsx rather than shared with it,
- * which is the arrangement AGENTS.md asks for. Reading the stylesheet is the
- * only way to check this: Chromium exposes forced-colours emulation through
- * CDP alone, which no test file here may drive, so what a test can prove is
- * that the rules exist and that the element carries the classes they are
- * written against.
+ * query, keyed by property and by the selector's trailing pseudo-class, read
+ * through the shared walker in ./stylesheet.testing.ts.
  *
  * Forced colours is the one query taken as holding. Any other that a rule
  * sits inside is asked of the page as it stands, so a rule keyed on a
  * breakpoint as well reaches the element only at the widths it names, and a
- * case sets the viewport to read one side of it. Where two rules reach the
- * same property the later one wins, as it does in the page: StyleX writes
- * the rule under both queries after the one under forced colours alone.
+ * case sets the viewport to read one side of it.
  */
-function forcedColorRules(element: Element): Map<string, string> {
-  const found = new Map<string, string>()
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules], false)
-  }
-
-  return found
-
-  function walk(rules: CSSRule[], inForcedColors: boolean) {
-    for (const rule of rules) {
-      if (rule instanceof CSSMediaRule) {
-        const forced = rule.conditionText.includes(FORCED_COLORS)
-
-        if (forced || matchMedia(rule.conditionText).matches) {
-          walk([...rule.cssRules], inForcedColors || forced)
-        }
-        continue
-      }
-
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules], inForcedColors)
-        continue
-      }
-
-      if (!inForcedColors || !(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      // A rule can carry several selectors, not one. StyleX gives each
-      // declaration its own class, but two modules that happen to write the
-      // same declaration under the same query share a rule — the date
-      // segment's focus outline and the search bar's arrive as
-      // `.abc.abc:focus-within, .def.def:focus`. Reading only the first
-      // would report the rule as missing for whichever component lost the
-      // race, which is a false negative rather than a gap.
-      for (const selectorText of rule.selectorText.split(',')) {
-        // Each is a run of one class repeated to raise specificity, plus an
-        // optional pseudo-class: `.abc.abc:focus-within`.
-        const [selector, pseudo = ''] = selectorText.trim().split(':', 2)
-        const className = selector.split('.').find(Boolean)
-
-        if (className === undefined || !element.classList.contains(className)) {
-          continue
-        }
-
-        for (const property of rule.style) {
-          found.set(
-            pseudo === '' ? property : `${property}:${pseudo}`,
-            rule.style.getPropertyValue(property),
-          )
-        }
-      }
-    }
-  }
+function forcedColorRules(element: Element) {
+  return declarationsHeld(element, FORCED_COLORS)
 }
 
 /**

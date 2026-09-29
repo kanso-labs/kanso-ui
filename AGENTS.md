@@ -387,14 +387,17 @@ concurrency. Half the 30s timeout is inside that noise, which is what timed out
 a different handful of `segmented-button/index.test.tsx` on every run — always
 as a timeout, never as an assertion, and never reproducible on the one file.
 
-Read the rule out of the compiled stylesheet instead, walking
-`document.styleSheets` for the declarations that reach the element's own
-classes. It is deterministic, it needs no restoring afterwards, and it asserts
-the thing that was actually written down.
-`src/styles/overlay-reduced-motion.test.tsx`,
-`src/components/segmented-button/index.test.tsx` and
-`src/field/forced-colors.test.tsx` each carry a walker of that shape; copy the
-nearest one rather than reaching for emulation.
+Read the rule out of the compiled stylesheet instead, through `rulesReaching` in
+`src/styles/stylesheet.testing.ts`. It walks `document.styleSheets` for the
+rules that reach an element's own classes, takes the one query named as
+`holding` as true, and asks the page about any other, so a rule keyed on a
+breakpoint as well counts only at the widths it names. `declarationsHeld` and
+`reducedMotionOf` beside it are the two readings the tests here make of it. It
+is deterministic, it needs no restoring afterwards, and it asserts the thing
+that was actually written down. Import it rather than writing another walk:
+seven copies drifted apart before it existed, one descending into every query
+and another asking the page, and it is a `.testing.ts` module, which coverage
+leaves out with the tests.
 
 What this cannot prove is that the browser then applies the rule, which is the
 same limit `getComputedStyle` has against a query no test can turn on. Pin the

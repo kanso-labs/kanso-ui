@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import Select from '../components/select'
 import TextField from '../components/text-field'
+import { declarationsHeld } from '../styles/stylesheet.testing'
 import { fieldChromeStyles } from './styles'
 
 const FORCED_COLORS = 'forced-colors: active'
@@ -41,68 +42,15 @@ function box(
 
 /**
  * Every declaration that reaches `element` from inside a forced-colours media
- * query, keyed by property and by the selector's trailing pseudo-class.
+ * query, keyed by property and by the selector's trailing pseudo-class, read
+ * through the shared walker in src/styles/stylesheet.testing.ts.
  *
- * Reading the stylesheet is the only way to check this: Chromium exposes
- * forced-colours emulation through CDP alone, which neither the browser test
- * runner nor Chromatic's modes can reach, so no rendered element can be put
- * into that mode here. What a test can prove is that the rules exist and that
- * the element carries the classes they are written against.
+ * Reading the stylesheet is the only way to check this: no rendered element
+ * can be put into that mode here. What a test can prove is that the rules
+ * exist and that the element carries the classes they are written against.
  */
-function forcedColorRules(element: Element): Map<string, string> {
-  const found = new Map<string, string>()
-
-  for (const sheet of document.styleSheets) {
-    walk([...sheet.cssRules], false)
-  }
-
-  return found
-
-  function walk(rules: CSSRule[], inForcedColors: boolean) {
-    for (const rule of rules) {
-      if (rule instanceof CSSMediaRule) {
-        walk(
-          [...rule.cssRules],
-          inForcedColors || rule.conditionText.includes(FORCED_COLORS),
-        )
-        continue
-      }
-
-      if (rule instanceof CSSGroupingRule) {
-        walk([...rule.cssRules], inForcedColors)
-        continue
-      }
-
-      if (!inForcedColors || !(rule instanceof CSSStyleRule)) {
-        continue
-      }
-
-      // A rule can carry several selectors, not one. StyleX gives each
-      // declaration its own class, but two modules that happen to write the
-      // same declaration under the same query share a rule — this box's
-      // focus outline and the search bar's arrive as
-      // `.abc.abc:focus-within, .def.def:focus`. Reading only the first
-      // would report the rule as missing for whichever component lost the
-      // race, which is a false negative rather than a gap.
-      for (const selectorText of rule.selectorText.split(',')) {
-        // Each is a run of one class repeated to raise specificity, plus an
-        // optional pseudo-class: `.abc.abc:focus-within`.
-        const [selector, pseudo = ''] = selectorText.trim().split(':', 2)
-        const className = selector.split('.').find(Boolean)
-
-        if (className === undefined || !element.classList.contains(className)) {
-          continue
-        }
-
-        for (const property of rule.style) {
-          found.set(
-            pseudo === '' ? property : `${property}:${pseudo}`,
-            rule.style.getPropertyValue(property),
-          )
-        }
-      }
-    }
-  }
+function forcedColorRules(element: Element) {
+  return declarationsHeld(element, FORCED_COLORS)
 }
 
 describe('a field under forced colours', () => {
