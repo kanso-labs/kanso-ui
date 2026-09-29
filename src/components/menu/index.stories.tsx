@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect, waitFor } from 'storybook/test'
 
 import Menu from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
@@ -218,7 +219,24 @@ const Sections: Story = {
   ),
 }
 
+// Opened, so the story shows where a submenu lands: beside the item that
+// opens it, at the inline end its chevron points to, rather than over the
+// rest of the menu. The menus are portalled to the end of the body, outside
+// the canvas, so they are found through the document.
 const Submenu: Story = {
+  play: async ({ userEvent }) => {
+    const item = await waitFor(() => {
+      const found = document.querySelector('[role="menuitem"][aria-haspopup]')
+      if (!(found instanceof HTMLElement)) {
+        throw new Error('expected the item that opens the submenu')
+      }
+      return found
+    })
+    await userEvent.click(item)
+    await waitFor(async () => {
+      await expect(document.querySelectorAll('[role="menu"]')).toHaveLength(2)
+    })
+  },
   render: (args) => (
     <Menu {...args} defaultOpen>
       <Button variant="outlined">Share</Button>

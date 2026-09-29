@@ -115,6 +115,53 @@ function submenuChevronUnder(locale: string) {
   return transform
 }
 
+// Hoisted, which is what react-perf's no-new-object-as-prop is after.
+const RIGHT_TO_LEFT = { dir: 'rtl' } as const
+
+/**
+ * Where React Aria placed the submenu an item opens, with the menu rendered
+ * under `locale`. The right-to-left case sits in a right-to-left wrapper so
+ * the trigger, and the menu with it, lie against the right edge: the submenu
+ * then has room at its inline end, and a placement read from it is a choice
+ * rather than a flip away from an edge.
+ */
+async function submenuPlacementUnder(
+  locale: string,
+  content: Partial<Parameters<typeof Menu.Content<object>>[0]> = {},
+) {
+  const rtl = locale.startsWith('ar')
+  const view = render(
+    <I18nProvider locale={locale}>
+      <div {...(rtl ? RIGHT_TO_LEFT : {})}>
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Menu.Content>
+            <Menu.Submenu>
+              <Menu.Item id="more">More</Menu.Item>
+              <Menu.Content aria-label="More" {...content}>
+                <Menu.Item id="first">First item</Menu.Item>
+              </Menu.Content>
+            </Menu.Submenu>
+          </Menu.Content>
+        </Menu>
+      </div>
+    </I18nProvider>,
+  )
+  const item = view.getByRole('menuitem', { name: 'More' })
+  const key = rtl ? 'ArrowLeft' : 'ArrowRight'
+
+  act(() => {
+    item.focus()
+  })
+  fireEvent.keyDown(item, { key })
+  fireEvent.keyUp(item, { key })
+
+  const submenu = await waitFor(() => view.getByRole('menu', { name: 'More' }))
+  const placement = surfaceOf(submenu).getAttribute('data-placement')
+  view.unmount()
+  return placement
+}
+
 /** The positioned surface the menu is drawn on. */
 function surfaceOf(menu: HTMLElement) {
   const surface = menu.parentElement
@@ -372,6 +419,22 @@ describe('menu', () => {
     })
   })
 
+  // A root menu takes the side and the offset React Aria gives a menu
+  // trigger's popover: below the trigger, from its start, 8 away.
+  describe('placement', () => {
+    it('opens a menu below its trigger, 8 away', () => {
+      const view = setup()
+      const surface = surfaceOf(view.getByRole('menu', { name: 'Open' }))
+      const trigger = view.getByRole('button', { name: 'Open' })
+
+      expect(surface.getAttribute('data-placement')).toBe('bottom')
+      expect(
+        surface.getBoundingClientRect().top -
+          trigger.getBoundingClientRect().bottom,
+      ).toBe(8)
+    })
+  })
+
   describe('submenus', () => {
     // The two-element tuple is the half that matters: `tsc -b` checks this
     // file, so a submenu given one element, or a third, fails to compile.
@@ -419,6 +482,27 @@ describe('menu', () => {
     it('mirrors the chevron under a right-to-left locale', () => {
       expect(submenuChevronUnder('en-US')).toBe('none')
       expect(submenuChevronUnder('ar-EG')).toBe('matrix(-1, 0, 0, 1, 0, 0)')
+    })
+
+    // At the inline end of the item that opens it, where the chevron points:
+    // that is where React Aria's submenu trigger places it, and a submenu
+    // given no side of its own leaves the placement to it. Below the item
+    // it would cover the rest of the menu it came from.
+    it.each([
+      ['en-US', 'right'],
+      ['ar-EG', 'left'],
+    ])(
+      'opens the submenu beside its item under %s',
+      async (locale, expected) => {
+        expect(await submenuPlacementUnder(locale)).toBe(expected)
+      },
+    )
+
+    // A side the call site does give still wins.
+    it('opens the submenu on a side the call site names', async () => {
+      expect(await submenuPlacementUnder('en-US', { side: 'bottom' })).toBe(
+        'bottom',
+      )
     })
 
     it('opens the submenu from its item', async () => {

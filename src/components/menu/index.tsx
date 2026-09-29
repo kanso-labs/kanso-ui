@@ -171,7 +171,11 @@ const styles = stylex.create({
 type MenuAlign = OverlayAlign
 
 type MenuContentProps<T extends object = object> = {
-  /** Where the menu lines up along that side. @default 'start' */
+  /**
+   * Where the menu lines up along that side. Left out, a menu lines up with
+   * the start of its trigger, and a submenu with the top of the item that
+   * opens it.
+   */
   align?: MenuAlign
   /** Moves the menu along that side, in pixels. */
   alignOffset?: number
@@ -198,9 +202,17 @@ type MenuContentProps<T extends object = object> = {
    * the bar and the items inside one wrapper.
    */
   search?: ReactNode
-  /** Which side of the trigger the menu opens on. @default 'bottom' */
+  /**
+   * Which side of the trigger the menu opens on. Left out, a menu opens below
+   * its trigger and a submenu at the inline end of the item that opens it,
+   * where the item's chevron points — the places React Aria gives each.
+   * Given `align` alone, the side is `bottom`.
+   */
   side?: MenuSide
-  /** How far the menu sits from the trigger, in pixels. @default 8 */
+  /**
+   * How far the menu sits from the trigger, in pixels. Left out, React Aria's:
+   * 8, or 0 for a menu opened with `trigger="contextMenu"`.
+   */
   sideOffset?: number
   /** Lands on the surface, as `className` does. */
   style?: StyleOrFunction<PopoverRenderProps>
@@ -359,15 +371,21 @@ function Menu({ children, ...props }: MenuProps) {
  *
  * The call site's `className` and `style` land on the surface, which is the
  * element a layout positions.
+ *
+ * The placement and the offsets are passed on only where the call site gives
+ * them. React Aria hands the popover a placement of its own through context —
+ * below the trigger for a menu, at the item's inline end for a submenu — and
+ * a prop set here replaces it, so a default written here opened every
+ * submenu below its item, over the rest of the menu it came from.
  */
 function MenuContent<T extends object = object>({
-  align = 'start',
+  align,
   alignOffset,
   className,
   container,
   search,
-  side = 'bottom',
-  sideOffset = 8,
+  side,
+  sideOffset,
   style,
   ...props
 }: MenuContentProps<T>) {
@@ -375,7 +393,11 @@ function MenuContent<T extends object = object>({
     <RACPopover
       crossOffset={alignOffset}
       offset={sideOffset}
-      placement={placementOf(side, align)}
+      placement={
+        side === undefined && align === undefined
+          ? undefined
+          : placementOf(side ?? 'bottom', align ?? 'start')
+      }
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(surfaceStyles, { className, style })}
