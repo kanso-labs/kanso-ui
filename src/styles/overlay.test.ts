@@ -3,7 +3,7 @@ import type { StyleXStyles } from '@stylexjs/stylex'
 import * as stylex from '@stylexjs/stylex'
 import { describe, expect, it } from 'vitest'
 
-import { overlay, popupOrigin } from './overlay'
+import { overlay, placementOf, popupOrigin } from './overlay'
 
 // The same declarations the module writes, so they hash to the same atomic
 // classes — see chip/index.test.tsx for the pattern.
@@ -48,8 +48,38 @@ describe('overlay', () => {
     })
   })
 
+  // The library's side and alignment, in React Aria's placement. Centred,
+  // a surface needs only its side. Above or below the anchor it aligns along
+  // the inline axis, which React Aria spells `start` and `end` as the library
+  // does; beside it, it aligns along the block axis, which React Aria spells
+  // `top` and `bottom`, so `start` is the top and `end` the bottom. Every
+  // anchored overlay positions through this, so a flipped branch would
+  // misplace all of them at once.
+  describe('placementOf', () => {
+    it.each([
+      ['bottom', 'start', 'bottom start'],
+      ['bottom', 'center', 'bottom'],
+      ['bottom', 'end', 'bottom end'],
+      ['top', 'start', 'top start'],
+      ['top', 'center', 'top'],
+      ['top', 'end', 'top end'],
+      ['left', 'start', 'left top'],
+      ['left', 'center', 'left'],
+      ['left', 'end', 'left bottom'],
+      ['right', 'start', 'right top'],
+      ['right', 'center', 'right'],
+      ['right', 'end', 'right bottom'],
+    ] as const)(
+      'places a surface on the %s side, aligned %s, as %s',
+      (side, align, expected) => {
+        expect(placementOf(side, align)).toBe(expected)
+      },
+    )
+  })
+
   it('compiles every shared style to at least one class', () => {
     for (const style of [
+      overlay.modalBodyRing,
       overlay.modalDialog,
       overlay.popup,
       overlay.popupDialog,
