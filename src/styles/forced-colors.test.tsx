@@ -11,7 +11,9 @@ import DateField from '../components/date-field'
 import Dialog from '../components/dialog'
 import IconButton from '../components/icon-button'
 import Menu from '../components/menu'
+import Meter from '../components/meter'
 import Popover from '../components/popover'
+import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import SearchField from '../components/search-field'
 import Separator from '../components/separator'
@@ -104,6 +106,23 @@ function firstChildOf(element: Element, what: string): Element {
  */
 function forcedColorRules(element: Element) {
   return declarationsHeld(element, FORCED_COLORS)
+}
+
+/**
+ * The parts of the line a meter or a linear progress indicator draws under
+ * its label row, in order: the active indicator, the track and the stop, or
+ * for an indeterminate line the track and the two bars.
+ */
+function lineOf(element: ReactElement): Element[] {
+  const view = render(element)
+  const indicator = view.queryByRole('meter') ?? view.queryByRole('progressbar')
+  const line = indicator?.lastElementChild
+
+  if (line === null || line === undefined) {
+    throw new Error('expected the indicator to draw a line')
+  }
+
+  return [...line.children]
 }
 
 /**
@@ -369,6 +388,62 @@ describe('a boundary drawn in a shadow or a fill', () => {
       filledRules.get('background-color'),
     )
   })
+
+  // A meter and a linear progress indicator say everything they say with
+  // backgrounds too — the active indicator, the track and the stop — so the
+  // mode left them drawing nothing at all. The value takes `Highlight`, as
+  // the slider's does, and the track keeps an edge, so the line is still a
+  // shape with the value along it.
+  it.each([
+    { element: <Meter label="Label" value={40} />, name: 'a meter' },
+    {
+      element: <ProgressIndicator label="Label" value={40} />,
+      name: 'a linear progress indicator',
+    },
+    {
+      element: <Meter label="Label" tone="negative" value={40} />,
+      name: 'a negative meter',
+    },
+    {
+      element: <Meter label="Label" tone="positive" value={40} />,
+      name: 'a positive meter',
+    },
+    {
+      element: <ProgressIndicator label="Label" tone="inherit" value={40} />,
+      name: 'a progress indicator of the inherited tone',
+    },
+  ])(
+    'draws the value of $name in Highlight on an edged track',
+    ({ element }) => {
+      const [active, track, stop] = lineOf(element)
+
+      expect(forcedColorRules(active).get('background-color')).toBe('highlight')
+      expect(forcedColorRules(stop).get('background-color')).toBe('highlight')
+      expect(forcedColorRules(track).get('outline-style')).toBe('solid')
+      expect(forcedColorRules(track).get('outline-color')).toBe('canvastext')
+    },
+  )
+
+  it.each([
+    { name: 'an indeterminate line', tone: 'primary' },
+    { name: 'an indeterminate line of the inherited tone', tone: 'inherit' },
+  ] as const)(
+    'draws the bars of $name in Highlight on an edged track',
+    ({ tone }) => {
+      const [track, ...bars] = lineOf(
+        <ProgressIndicator isIndeterminate label="Label" tone={tone} />,
+      )
+
+      expect(bars).toHaveLength(2)
+      for (const bar of bars) {
+        expect(
+          forcedColorRules(firstChildOf(bar, 'a bar')).get('background-color'),
+        ).toBe('highlight')
+      }
+      expect(forcedColorRules(track).get('outline-style')).toBe('solid')
+      expect(forcedColorRules(track).get('outline-color')).toBe('canvastext')
+    },
+  )
 
   // Under forced colours every outline is repainted in one system colour, so
   // a hover ring the same shape as the selection ring would read as a second

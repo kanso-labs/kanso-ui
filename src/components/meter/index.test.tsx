@@ -163,19 +163,35 @@ describe('meter', () => {
     })
 
     // The active indicator and the track share the line: whatever the value
-    // does not take, the track does.
+    // does not take, the track does. What they share is the row less the two
+    // 4dp gaps and the 4dp stop, which are there at every value.
     it('gives the track what the active indicator leaves', () => {
       const { meter } = setup({ value: 25 })
       const { active, row, track } = partsOf(meter)
-      const room = row.getBoundingClientRect().width
+      const room = row.getBoundingClientRect().width - 4 * 3
       const activeWidth = active.getBoundingClientRect().width
 
       expect(activeWidth).toBeCloseTo(room * 0.25, 0)
-      // Two 4dp gaps and the 4dp stop sit between them.
       expect(track.getBoundingClientRect().width).toBeCloseTo(
-        room - activeWidth - 4 * 3,
+        room - activeWidth,
         0,
       )
     })
+
+    // At the top of the range the active indicator has all the room there
+    // is, and the stop still ends the row rather than running past it into
+    // whatever sits beside the meter.
+    it.each([99, 100])(
+      'keeps the stop at the end of the row at %i',
+      (value) => {
+        const { meter } = setup({ value })
+        const { row, stop } = partsOf(meter)
+
+        expect(stop.getBoundingClientRect().right).toBeCloseTo(
+          row.getBoundingClientRect().right,
+          0,
+        )
+      },
+    )
   })
 })

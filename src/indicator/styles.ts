@@ -15,9 +15,16 @@ import {
 //
 // The page's anatomy names three parts — the active indicator in primary,
 // the track in secondary container, and the stop indicator in primary at the
-// end — at 4dp thick with 4dp between them. The active indicator's width is
-// the percentage itself and the track takes what is left, so the row is a
-// flex line and the two gaps are its `gap`.
+// end — at 4dp thick with 4dp between them. The row is a flex line and the
+// two gaps are its `gap`. The active indicator takes the value's share of
+// what the two gaps and the stop leave, and the track takes the rest, so the
+// stop ends the row at every value.
+//
+// Under forced colours every part here is a background, which that mode
+// paints in a system colour, so the line drew nothing at all. The active
+// indicator and the stop take `Highlight` there, as the slider's filled part
+// does, and the track keeps a `CanvasText` edge, drawn as an outline inside
+// it so it takes no room from the line.
 //
 // `tone` is the line's colour. `primary` is the page's own pair, and it is
 // what a progress indicator draws. `negative` and `positive` swap the active
@@ -45,6 +52,12 @@ export const DETERMINATE_EASING = 'cubic-bezier(0.4, 0, 0.6, 1)'
 
 export type IndicatorTone = 'inherit' | 'negative' | 'positive' | 'primary'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 export const indicatorStyles = stylex.create({
   // The active indicator: the percentage's own share of the row.
   //
@@ -63,7 +76,7 @@ export const indicatorStyles = stylex.create({
   // for those two reasons rather than for want of trying the transform.
   active: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
-    backgroundColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     blockSize: '100%',
     borderRadius: radii.pill,
     boxSizing: 'border-box',
@@ -72,15 +85,20 @@ export const indicatorStyles = stylex.create({
     transitionProperty: 'inline-size',
     transitionTimingFunction: DETERMINATE_EASING,
   },
-  // How far along the active indicator has come. A dynamic style, since
-  // StyleX compiles its classes ahead of time and the number is the value.
+  // How far along the active indicator has come: the value's share of the
+  // row less the two gaps and the stop, which the line draws at every value.
+  // A share of the whole row would run the row 12dp long at the maximum,
+  // with the stop drawn past its end. A dynamic style, since StyleX compiles
+  // its classes ahead of time and the number is the value.
   activeAt: (percentage: number) => ({
-    inlineSize: `${percentage}%`,
+    inlineSize: `calc((100% - ${GAP * 2 + THICKNESS}px) * ${percentage / 100})`,
   }),
   // Drawn on something that already carries a colour. The active indicator
-  // takes the colour it inherits, and the track a quarter of it.
+  // takes the colour it inherits, and the track a quarter of it. The fill
+  // repeats the forced-colours branch every tone carries, since a fill
+  // written without it would replace `active`'s whole.
   inheritActive: {
-    backgroundColor: 'currentColor',
+    backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'Highlight' },
     stroke: 'currentColor',
   },
   inheritTrack: {
@@ -116,10 +134,10 @@ export const indicatorStyles = stylex.create({
   // What `negative` and `positive` draw the active indicator and the stop
   // indicator in, over the same track every other tone uses.
   negativeActive: {
-    backgroundColor: colors.negative,
+    backgroundColor: { default: colors.negative, [FORCED_COLORS]: 'Highlight' },
   },
   positiveActive: {
-    backgroundColor: colors.positive,
+    backgroundColor: { default: colors.positive, [FORCED_COLORS]: 'Highlight' },
   },
   // The label row and the line, stacked.
   root: {
@@ -132,7 +150,7 @@ export const indicatorStyles = stylex.create({
   // The stop indicator: the page draws it at the end of the track, in the
   // same primary as the active indicator.
   stop: {
-    backgroundColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     blockSize: `${THICKNESS}px`,
     borderRadius: radii.circle,
     boxSizing: 'border-box',
@@ -148,6 +166,13 @@ export const indicatorStyles = stylex.create({
     display: 'flex',
     flexGrow: 1,
     minInlineSize: 0,
+    // The track's edge under forced colours. An outline inside the track
+    // rather than a border, since a border would hold the track open at 2px
+    // when the value leaves it none, and push the stop past the row again.
+    outlineColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '-1px' },
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    outlineWidth: { default: null, [FORCED_COLORS]: '1px' },
     overflow: 'hidden',
   },
   trackSolid: {

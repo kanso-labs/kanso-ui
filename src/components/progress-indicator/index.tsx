@@ -23,8 +23,9 @@ import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 // give either side of the track. The ring is the page's default 40dp of the
 // four sizes it draws.
 //
-// The determinate line is a row of those parts, so the active indicator's
-// width is the percentage itself and the track takes what is left. The
+// The determinate line is a row of those parts: the active indicator takes
+// the value's share of what the gaps and the stop leave, and the track takes
+// the rest — see `activeAt` in src/indicator/styles.ts. The
 // determinate ring is two arcs of one circle, cut by the dash pattern: the
 // active arc runs from the top for its share of the circumference, and the
 // track picks up 4dp past it and stops 4dp before it comes back round,
@@ -79,6 +80,12 @@ const THICKNESS = 4
 const GAP = 4
 const RADIUS = (CIRCULAR_SIZE - THICKNESS) / 2
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
 
 // The ring's timings. The arc is 1333ms; a full cycle is four of them; and
 // the rotation is the arc scaled by 360/306, which is the arc's start
@@ -264,6 +271,11 @@ const styles = stylex.create({
   }),
   // The scrolling dots beyond the buffer: the track's colour, at half the
   // thickness, one pitch of five apart.
+  //
+  // Under forced colours the buffer draws nothing, the dots and the solid
+  // part before them alike, since both are the track's own colour and the
+  // mode draws the track as its edge alone. What the line keeps there is the
+  // value, in `Highlight`, which is the one thing a reader has to have.
   dots: {
     '@media (prefers-reduced-motion: reduce)': {
       animationDuration: `${BUFFER_MS * LINE_SLOWDOWN}ms`,
@@ -309,8 +321,11 @@ const styles = stylex.create({
   // The radius is drawn under the bar's own scale, so it flattens as the bar
   // narrows — that is inherent to scaling the bar rather than sizing it, and
   // Material's does the same.
+  //
+  // Under forced colours the bars are `Highlight` and the track keeps an
+  // edge, as the determinate line's parts do — see src/indicator/styles.ts.
   indeterminateBarInner: {
-    backgroundColor: colors.primary,
+    backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     borderRadius: radii.pill,
     boxSizing: 'border-box',
     inset: 0,
@@ -335,9 +350,16 @@ const styles = stylex.create({
     position: 'relative',
     transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
   },
+  // The pill is the row's clip as well, and is repeated here only so the
+  // forced-colours edge follows it rather than being cut at the corners.
   indeterminateTrack: {
     backgroundColor: colors.secondaryContainer,
+    borderRadius: radii.pill,
     inset: 0,
+    outlineColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '-1px' },
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    outlineWidth: { default: null, [FORCED_COLORS]: '1px' },
     position: 'absolute',
   },
   primaryBar: {

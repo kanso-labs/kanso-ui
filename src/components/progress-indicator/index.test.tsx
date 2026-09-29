@@ -149,13 +149,28 @@ describe('progress indicator', () => {
       expect(stop.getBoundingClientRect().height).toBe(4)
     })
 
+    // The share is of the row less the two gaps and the stop indicator,
+    // which the line draws at every value.
     it("gives the active indicator the value's share of the row", () => {
       const { bar } = setup({ value: 25 })
       const { active, row } = linearPartsOf(bar)
-      const width = row.getBoundingClientRect().width
+      const room = row.getBoundingClientRect().width - 4 - 8
 
-      expect(active.getBoundingClientRect().width).toBeCloseTo(width * 0.25, 0)
+      expect(active.getBoundingClientRect().width).toBeCloseTo(room * 0.25, 0)
     })
+
+    it.each([99, 100])(
+      'keeps the stop at the end of the row at %i',
+      (value) => {
+        const { bar } = setup({ value })
+        const { row, stop } = linearPartsOf(bar)
+
+        expect(stop.getBoundingClientRect().right).toBeCloseTo(
+          row.getBoundingClientRect().right,
+          0,
+        )
+      },
+    )
 
     it('leaves the track what the value has not taken', () => {
       const full = setup({ value: 100 })
