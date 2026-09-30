@@ -240,6 +240,8 @@ function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
 function chipPropsFor(state: TagRenderProps) {
   return stylex.props(
     chipStyles.base,
+    chipStyles.target,
+    chipStyles.targetInGroup,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
     state.isDisabled && chipStyles.disabled,

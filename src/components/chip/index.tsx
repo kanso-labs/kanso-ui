@@ -82,6 +82,7 @@ function chipContent(children: ReactNode) {
 function propsFor(state: ToggleButtonRenderProps) {
   return stylex.props(
     chipStyles.base,
+    chipStyles.target,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
     state.isDisabled && chipStyles.disabled,

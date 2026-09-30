@@ -3,10 +3,14 @@ import type { ReactElement } from 'react'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import Button from '../components/button'
 import Checkbox from '../components/checkbox'
+import Chip from '../components/chip'
+import ChipGroup from '../components/chip-group'
 import IconButton from '../components/icon-button'
 import NumberField from '../components/number-field'
 import RadioGroup, { Radio } from '../components/radio-group'
+import SegmentedButton from '../components/segmented-button'
 import Switch from '../components/switch'
 
 // The 48dp target the checkbox, radio button, switch and icon button pages
@@ -22,6 +26,15 @@ const TARGET = 48
 // `elementFromPoint` answers with null whatever is drawn there — and the
 // target read as missing on every side it actually reaches.
 const ROOM = { padding: '24px' }
+
+// Narrow enough that three chips wrap onto more than one row, so the gap
+// between rows is there to be measured across.
+const NARROW = { inlineSize: '160px', padding: '24px' }
+
+// A remove handler that does nothing, hoisted so its identity is stable,
+// which is what react-perf is after. What is measured is the target, not
+// what a press on it does.
+const noop = () => {}
 
 /** An icon button at `size`, rendered with room around it. */
 function buttonOf(size: 'lg' | 'md' | 'xl' | 'xs' | 'xxl') {
@@ -250,5 +263,161 @@ describe('the number field, where two targets share a row', () => {
 
     expect(box.width).toBe(32)
     expect(box.height).toBeLessThan(TARGET)
+  })
+})
+
+/**
+ * The element whose text is `label` climbs to, found by what it is rather
+ * than by a class: the chip or segment that holds the label.
+ */
+function holding(view: ReturnType<typeof render>, label: string, role: string) {
+  const found = view.getByText(label).closest(`[role="${role}"], ${role}`)
+
+  if (found === null) {
+    throw new Error(`expected ${label} inside a ${role}`)
+  }
+
+  return found
+}
+
+/** A labelled button at `size`, rendered with room around it. */
+function labelledButton(size: 'lg' | 'md' | 'xs') {
+  return renderWithRoom(<Button size={size}>Label</Button>).getByRole('button')
+}
+
+/** The first of two segments, rendered with room around the track. */
+function segment() {
+  const view = renderWithRoom(
+    <SegmentedButton aria-label="Label">
+      <SegmentedButton.Segment id="first">First item</SegmentedButton.Segment>
+      <SegmentedButton.Segment id="second">Second item</SegmentedButton.Segment>
+    </SegmentedButton>,
+  )
+
+  return holding(view, 'First item', 'button')
+}
+
+// A button and a segment are wide enough across, so the target reaches above
+// and below alone — a reach past the side would be room taken from whatever
+// sits beside them, and the segments sit flush against each other.
+describe('the button, of which the page requires two sizes', () => {
+  const REQUIRED: ReadonlyArray<{ drawn: number; size: 'md' | 'xs' }> = [
+    { drawn: 32, size: 'xs' },
+    { drawn: 40, size: 'md' },
+  ]
+
+  it.each(REQUIRED)('keeps $size drawn at $drawn', ({ drawn, size }) => {
+    expect(labelledButton(size).getBoundingClientRect().height).toBe(drawn)
+  })
+
+  it.each(REQUIRED)(
+    'takes a press out to 48 above and below $size',
+    ({ drawn, size }) => {
+      const reach = (TARGET - drawn) / 2
+
+      expect(reaches(labelledButton(size), reach - 1)).toEqual({
+        above: true,
+        before: false,
+        below: true,
+      })
+    },
+  )
+
+  it.each(REQUIRED)('stops at 48 for $size', ({ drawn, size }) => {
+    const reach = (TARGET - drawn) / 2
+
+    expect(reaches(labelledButton(size), reach + 1)).toMatchObject({
+      above: false,
+      below: false,
+    })
+  })
+
+  it('draws no target around lg, which is over it already', () => {
+    expect(reaches(labelledButton('lg'), 1)).toMatchObject({
+      above: false,
+      below: false,
+    })
+  })
+})
+
+describe('the segmented button, whose track is 40', () => {
+  it('takes a press out to 48 above and below a segment', () => {
+    expect(reaches(segment(), (TARGET - 40) / 2 - 1)).toEqual({
+      above: true,
+      before: false,
+      below: true,
+    })
+  })
+
+  it('stops at 48 for a segment', () => {
+    expect(reaches(segment(), (TARGET - 40) / 2 + 1)).toMatchObject({
+      above: false,
+      below: false,
+    })
+  })
+})
+
+describe('the chip, which is 32', () => {
+  it('takes a press out to 48 above and below a chip on its own', () => {
+    const chip = renderWithRoom(<Chip>Label</Chip>).getByRole('button')
+
+    expect(reaches(chip, (TARGET - 32) / 2 - 1)).toEqual({
+      above: true,
+      before: false,
+      below: true,
+    })
+    expect(reaches(chip, (TARGET - 32) / 2 + 1)).toMatchObject({
+      above: false,
+      below: false,
+    })
+  })
+
+  // In a group the rows wrap 8dp apart, and a full 48dp target on each chip
+  // would lay one row's reach over the next one's. Each reaches halfway
+  // across the gap instead, so the two meet without either covering the
+  // other, and a press between rows goes to the nearer chip.
+  it('reaches halfway across the gap between the rows of a group', () => {
+    const view = render(
+      <div style={NARROW}>
+        <ChipGroup label="Label">
+          <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+          <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
+          <ChipGroup.Chip id="third">Third item</ChipGroup.Chip>
+        </ChipGroup>
+      </div>,
+    )
+    const first = holding(view, 'First item', 'row')
+    const second = holding(view, 'Second item', 'row')
+
+    // The case only means something once the chips have wrapped.
+    expect(second.getBoundingClientRect().top).toBeGreaterThan(
+      first.getBoundingClientRect().bottom,
+    )
+    expect(reaches(first, 3).below).toBe(true)
+    expect(reaches(first, 5).below).toBe(false)
+  })
+
+  // The close target sits inside a chip that is itself a press target when
+  // the group selects, so WCAG's 24px minimum is its own box to meet: the
+  // chip around it is no spacing to lean on.
+  it('gives the close target 24px of its own', () => {
+    const view = renderWithRoom(
+      <ChipGroup label="Label" onRemove={noop} selectionMode="multiple">
+        <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+      </ChipGroup>,
+    )
+    const remove = view.getByRole('button', { name: /Remove/ })
+
+    expect(remove.getBoundingClientRect().width).toBe(18)
+    expect(reaches(remove, 2)).toEqual({
+      above: true,
+      before: true,
+      below: true,
+    })
+    expect(reaches(remove, 4)).toEqual({
+      above: false,
+      before: false,
+      below: false,
+    })
   })
 })

@@ -364,6 +364,18 @@ const styles = stylex.create({
       ':first-child': `min(${radii.pill}, 20px)`,
       default: radii.none,
     },
+    // The segmented buttons page's 48dp target, over a track drawn at 40: a
+    // transparent box reaching 4dp past the top and bottom, as Button's two
+    // smallest sizes do. Not across, since the segments sit flush and a reach
+    // there would lay each one's target over its neighbour's. A pixel longer
+    // than the arithmetic, since the box is placed from inside the segment's
+    // 1px border.
+    '::before': {
+      content: '""',
+      insetBlock: `calc((${sizing.controlSm} - 48px) / 2 - 1px)`,
+      insetInline: 0,
+      position: 'absolute',
+    },
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
