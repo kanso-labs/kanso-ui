@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.34.10](https://github.com/kanso-labs/kanso-ui/compare/v0.34.9...v0.34.10) (2026-09-30)
+
+
+### Bug Fixes
+
+* **button,icon-button:** draw the containers a border and a chosen toggle in Highlight under forced colours ([#1221](https://github.com/kanso-labs/kanso-ui/issues/1221)) ([f7e82c3](https://github.com/kanso-labs/kanso-ui/commit/f7e82c3c038bfb629ea5f98c251d196fb58ab087))
+* **calendar:** mark the selection under forced colours, and give it and the chevrons their hover, pressed and disabled states ([#1224](https://github.com/kanso-labs/kanso-ui/issues/1224)) ([d23c053](https://github.com/kanso-labs/kanso-ui/commit/d23c053598028036b40f7b13027a8459618dc239))
+* draw the 48dp target on Button, SegmentedButton and Chip, and a 24px one on the chip's remove ([#1226](https://github.com/kanso-labs/kanso-ui/issues/1226)) ([3ca2202](https://github.com/kanso-labs/kanso-ui/commit/3ca22022a9157a98bd120edb5e0d923b540722cd))
+* **indicator:** keep the stop inside the line, and draw the meter and linear progress in system colours under forced colours ([#1222](https://github.com/kanso-labs/kanso-ui/issues/1222)) ([999f756](https://github.com/kanso-labs/kanso-ui/commit/999f756f34487fa31b5fdd8c8ade945af0ac4147))
+* **radio-group,switch:** show which radio is chosen and whether a switch is on under forced colours ([#1220](https://github.com/kanso-labs/kanso-ui/issues/1220)) ([1a75344](https://github.com/kanso-labs/kanso-ui/commit/1a753441236df42959636f4987d145625059b836))
+* **row:** draw focus, hover and pressed from React Aria's render state ([#1217](https://github.com/kanso-labs/kanso-ui/issues/1217)) ([33a8a6e](https://github.com/kanso-labs/kanso-ui/commit/33a8a6ed4b8812896a509484f317d2d1c48e7348))
+* **snackbar:** default to durations a reader can act on ([#1219](https://github.com/kanso-labs/kanso-ui/issues/1219)) ([bd26f0e](https://github.com/kanso-labs/kanso-ui/commit/bd26f0edd3615333fafb92d969cee611c3d6b534))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.13 ([#1223](https://github.com/kanso-labs/kanso-ui/issues/1223)) ([e448a81](https://github.com/kanso-labs/kanso-ui/commit/e448a81c116648472a7b06e23fd9d7c87716d583))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.14 ([#1227](https://github.com/kanso-labs/kanso-ui/issues/1227)) ([59b42be](https://github.com/kanso-labs/kanso-ui/commit/59b42be68a7dd3cad832d558afeac9346cfeeac3))
+* update storybook to v10.6.1 ([#1225](https://github.com/kanso-labs/kanso-ui/issues/1225)) ([1e48da4](https://github.com/kanso-labs/kanso-ui/commit/1e48da4644469c09a829105d311e4a9a04d3a220))
+
 ## [0.34.9](https://github.com/kanso-labs/kanso-ui/compare/v0.34.8...v0.34.9) (2026-09-29)
 
 
