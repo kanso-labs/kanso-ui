@@ -62,6 +62,10 @@ import {
 // Apart from any component so a chip in a group and a chip on its own cannot
 // drift; see `src/row` for the same arrangement around a list's row.
 
+// The press area the chips page requires around its 32dp chip. A literal for
+// the reason IconButton's `TARGET_SIZE` gives.
+const TARGET_SIZE = '48px'
+
 const chipStyles = stylex.create({
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
@@ -141,6 +145,15 @@ const chipStyles = stylex.create({
   // in the content role, in a target of its own so a press on it removes the
   // chip rather than toggling it.
   remove: {
+    // WCAG's 24px minimum, reached by a transparent box 3px past each edge of
+    // the 18dp glyph. The chip around it is a press target of its own when
+    // the group selects, so it is no spacing to lean on: the close target has
+    // to meet the minimum by itself.
+    '::before': {
+      content: '""',
+      inset: '-3px',
+      position: 'absolute',
+    },
     alignItems: 'center',
     backgroundColor: {
       ':active': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
@@ -168,6 +181,7 @@ const chipStyles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     padding: 0,
+    position: 'relative',
   },
   removeGlyph: {
     blockSize: '18px',
@@ -181,6 +195,34 @@ const chipStyles = stylex.create({
     },
     borderColor: 'transparent',
     color: colors.onSecondaryContainer,
+  },
+  // The chips page's 48dp target around the 32dp chip: a transparent box
+  // reaching 8dp past the top and bottom, taking the press because a
+  // pseudo-element is part of the element it belongs to, and moving nothing
+  // because it is out of flow. Across, the label's padding already clears
+  // the target. A chip applies this beside `base`; a token in a field does
+  // not, since a reach above or below a token would take the press meant to
+  // put the caret on the line next to it.
+  //
+  // The insets are a pixel longer than the arithmetic, because an absolute
+  // box is placed from inside its parent's border, and the chip's is 1px.
+  target: {
+    '::before': {
+      content: '""',
+      insetBlock: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2 - 1px)`,
+      insetInline: 0,
+      position: 'absolute',
+    },
+    position: 'relative',
+  },
+  // A chip in a group, whose rows wrap `spacing.sm` apart. A full target on
+  // each chip would lay one row's reach over the next one's, so a press
+  // between them would go to whichever was drawn later rather than to the
+  // nearer. Each reaches halfway across the gap instead, and the two meet.
+  targetInGroup: {
+    '::before': {
+      insetBlock: `calc(-1 * ${spacing.sm} / 2 - 1px)`,
+    },
   },
   unselected: {
     backgroundColor: {

@@ -26,6 +26,10 @@ const LONG_TOKEN = new TokenFieldValue([{ text: LONG_LABEL, type: 'token' }])
 // condition CSS sets for drawing one: text wider than its box, a box that
 // clips, and `text-overflow` asking for the ellipsis. Without the clip the
 // declaration draws nothing and the text runs on past the pill's end.
+//
+// `oneLine` holds the label's box to the pill's height rather than reading
+// the pill's own overflow: a chip's transparent 48dp target is an absolute
+// box that overflows the pill by design, which a scroll height counts.
 function fitOf(pill: Element, label: HTMLElement, room: HTMLElement) {
   if (!(pill instanceof HTMLElement)) {
     throw new TypeError('expected the pill to be an element')
@@ -38,7 +42,9 @@ function fitOf(pill: Element, label: HTMLElement, room: HTMLElement) {
       label.scrollWidth > label.clientWidth,
     inRoom:
       pill.getBoundingClientRect().width <= room.getBoundingClientRect().width,
-    oneLine: pill.scrollHeight <= pill.clientHeight,
+    oneLine:
+      label.getBoundingClientRect().height <=
+      pill.getBoundingClientRect().height,
   }
 }
 

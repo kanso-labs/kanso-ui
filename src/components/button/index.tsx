@@ -87,6 +87,15 @@ import ProgressIndicator from '../progress-indicator'
 // text button was the wider of the two.
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
+/**
+ * The press area the buttons page requires, which its two smallest sizes are
+ * drawn under. A literal rather than `sizing.controlMd`, which holds the same
+ * number, for the reason IconButton's `TARGET_SIZE` gives: a consumer
+ * resizing their medium controls should not shrink a target the page states
+ * as a floor.
+ */
+const TARGET_SIZE = '48px'
+
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -194,7 +203,18 @@ const styles = stylex.create({
     lineHeight: typography.titleMediumLineHeight,
     paddingInline: spacing.xl,
   },
+  // The page requires a 48dp target of the two smallest sizes, and both are
+  // drawn under it: a transparent box reaches past the top and bottom edges,
+  // taking the press because a pseudo-element is part of the element it
+  // belongs to, and moving nothing because it is out of flow. Across, the
+  // label's padding already clears the target, so the box stops at the sides.
   md: {
+    '::before': {
+      content: '""',
+      insetBlock: `calc((${sizing.controlSm} - ${TARGET_SIZE}) / 2)`,
+      insetInline: 0,
+      position: 'absolute',
+    },
     blockSize: sizing.controlSm,
     paddingInline: spacing.lg,
   },
@@ -280,7 +300,15 @@ const styles = stylex.create({
     lineHeight: typography.headlineSmallLineHeight,
     paddingInline: '48px',
   },
+  // The smaller of the two the page requires a 48dp target of, so its box
+  // reaches 8dp past each edge. See `md`.
   xs: {
+    '::before': {
+      content: '""',
+      insetBlock: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2)`,
+      insetInline: 0,
+      position: 'absolute',
+    },
     blockSize: sizing.controlXs,
     paddingInline: spacing.lg,
   },
