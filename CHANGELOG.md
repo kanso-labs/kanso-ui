@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.11](https://github.com/kanso-labs/kanso-ui/compare/v0.34.10...v0.34.11) (2026-10-01)
+
+
+### Dependencies
+
+* update dependency @chromatic-com/storybook to v5.4.0 ([#1228](https://github.com/kanso-labs/kanso-ui/issues/1228)) ([f378fdf](https://github.com/kanso-labs/kanso-ui/commit/f378fdff44d5022e6e14062cc6080117c0bd357c))
+* update dependency globals to v17.13.0 ([#1229](https://github.com/kanso-labs/kanso-ui/issues/1229)) ([1463fad](https://github.com/kanso-labs/kanso-ui/commit/1463fada4e808e25678a511e520b147a8e2cc0b2))
+
 ## [0.34.10](https://github.com/kanso-labs/kanso-ui/compare/v0.34.9...v0.34.10) (2026-09-30)
 
 
