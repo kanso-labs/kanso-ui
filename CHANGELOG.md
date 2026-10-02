@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.13](https://github.com/kanso-labs/kanso-ui/compare/v0.34.12...v0.34.13) (2026-10-02)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.10.2 ([#1237](https://github.com/kanso-labs/kanso-ui/issues/1237)) ([371ba27](https://github.com/kanso-labs/kanso-ui/commit/371ba27c66e76eefa7d450f30bf7ef789b1e0dca))
+* update dependency eslint to v10.12.0 ([#1239](https://github.com/kanso-labs/kanso-ui/issues/1239)) ([1a009d8](https://github.com/kanso-labs/kanso-ui/commit/1a009d81b29aafedcbc4ddb1e47db1c9f8fbc779))
+
 ## [0.34.12](https://github.com/kanso-labs/kanso-ui/compare/v0.34.11...v0.34.12) (2026-10-01)
 
 
