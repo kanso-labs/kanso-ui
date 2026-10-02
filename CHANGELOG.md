@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.34.12](https://github.com/kanso-labs/kanso-ui/compare/v0.34.11...v0.34.12) (2026-10-01)
+
+
+### Dependencies
+
+* update actions/upload-code-coverage action to v1.4.4 ([#1231](https://github.com/kanso-labs/kanso-ui/issues/1231)) ([80f2c60](https://github.com/kanso-labs/kanso-ui/commit/80f2c60392f3687caf729b5b2e94500e6eebdc6d))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.15 ([#1236](https://github.com/kanso-labs/kanso-ui/issues/1236)) ([c7c2994](https://github.com/kanso-labs/kanso-ui/commit/c7c299466a776e5d8f4b7c81c6337403acb58363))
+* update dependency publint to v0.3.25 ([#1234](https://github.com/kanso-labs/kanso-ui/issues/1234)) ([96143e8](https://github.com/kanso-labs/kanso-ui/commit/96143e84b01a25635927495dfa6c1ab0e6c9e8e7))
+* update dependency vite to v8.3.2 ([#1232](https://github.com/kanso-labs/kanso-ui/issues/1232)) ([2603835](https://github.com/kanso-labs/kanso-ui/commit/2603835ca1d55cb8a2680ce533212f34439edf59))
+* update kanso-labs/actions action to v4.1.0 ([#1235](https://github.com/kanso-labs/kanso-ui/issues/1235)) ([47582aa](https://github.com/kanso-labs/kanso-ui/commit/47582aab228196757d1eb94fa9db940b39c0f7e6))
+
 ## [0.34.11](https://github.com/kanso-labs/kanso-ui/compare/v0.34.10...v0.34.11) (2026-10-01)
 
 
