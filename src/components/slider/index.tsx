@@ -1,3 +1,5 @@
+'use client'
+
 import type {
   SliderProps as RACSliderProps,
   SliderThumbRenderProps,

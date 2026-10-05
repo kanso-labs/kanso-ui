@@ -89,6 +89,11 @@ Specific to this repository:
   showcase section to you: its place there is alphabetical, but what it shows
   and the sentence under its headline are judgements, which is why the script
   prints the reminder rather than guessing.
+- **Every component's `index.tsx` opens with `'use client'`**, which is what
+  lets a server component render it — see "Server components" in the README. The
+  scaffold writes it, `src/client-boundary.test.ts` fails a component without
+  it, and `npm run package:check` fails a build that dropped it. The entry,
+  `src/layout.ts` and `src/date.ts` stay server modules and must not take it.
 - Public API is exported from `src/index.ts`: the components barrel, and the
   curated React Aria utilities in `src/react-aria.ts`. **`react-aria-components`
   stays a pinned dependency, never a peer**, and that module is why. A consumer

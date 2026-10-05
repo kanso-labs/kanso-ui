@@ -1,3 +1,5 @@
+'use client'
+
 import type { DOMAttributes, ReactNode } from 'react'
 import type {
   ButtonRenderProps,

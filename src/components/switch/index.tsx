@@ -1,3 +1,5 @@
+'use client'
+
 // React's event types are aliased because `useHandleDrag` also constructs a
 // DOM `PointerEvent`. Imported unaliased, the name shadows that constructor:
 // TypeScript still resolves the call to the global, since a type-only import

@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode, RefObject } from 'react'
 import type { ComboBoxProps as RACComboBoxProps } from 'react-aria-components'
 

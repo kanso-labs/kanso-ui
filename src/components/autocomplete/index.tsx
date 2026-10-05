@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import type { AutocompleteProps as RACAutocompleteProps } from 'react-aria-components'
 

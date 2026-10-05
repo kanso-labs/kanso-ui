@@ -171,6 +171,12 @@ export default defineConfig({
     }),
   ],
   sourcemap: true,
+  // Rolldown warns that a module's "use client" may not survive bundling,
+  // once per component. It survives here: `unbundle` writes every module to
+  // a file of its own, and rolldown keeps a leading directive in the file
+  // its module lands in — which scripts/check-package.mjs asserts of the
+  // built package, so the warning would only be noise on every build.
+  suppressWarnings: /module level directive "use client"/,
   tsconfig: 'tsconfig.lib.json',
   unbundle: true,
 })

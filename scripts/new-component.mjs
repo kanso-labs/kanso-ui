@@ -61,7 +61,12 @@ function stubs({ component, directory }) {
   const props = `${component}Props`
   const lower = component.charAt(0).toLowerCase() + component.slice(1)
 
-  const index = `import * as stylex from '@stylexjs/stylex'
+  // A client module, as every component is: the React Compiler and React Aria
+  // both need the client, so a server component can render the component
+  // only from across this boundary. See "Server components" in the README.
+  const index = `'use client'
+
+import * as stylex from '@stylexjs/stylex'
 
 import type { RenderComponentProps } from '../../render/useRender'
 

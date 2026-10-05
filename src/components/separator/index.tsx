@@ -1,3 +1,5 @@
+'use client'
+
 import type { SeparatorProps as RACSeparatorProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'

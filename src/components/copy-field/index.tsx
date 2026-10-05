@@ -1,3 +1,5 @@
+'use client'
+
 import type { HTMLAttributes } from 'react'
 
 import * as stylex from '@stylexjs/stylex'

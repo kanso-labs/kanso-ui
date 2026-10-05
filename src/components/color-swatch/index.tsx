@@ -1,3 +1,5 @@
+'use client'
+
 import type { CSSProperties } from 'react'
 import type { ColorSwatchProps as RACColorSwatchProps } from 'react-aria-components'
 
