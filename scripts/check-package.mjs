@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Checks the four things about the built package that publint cannot see.
+// Checks the five things about the built package that publint cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
@@ -26,7 +26,11 @@
 // tsdown.config.ts. The tests read the dev server's stylesheet rather than
 // this one, so this is the only place the build's half is checked.
 //
-// The fourth is the client boundary a server component meets. Every component
+// The fourth is the name of the cascade layer the library's rules land in,
+// which an app with layered CSS of its own orders the library by — see
+// tsdown.config.ts.
+//
+// The fifth is the client boundary a server component meets. Every component
 // module has to open with "use client" in dist, not only in src, since that is
 // the file a consumer's bundler reads — and rolldown warns that it may not
 // keep a module's directive, a warning the build suppresses on the strength of
@@ -128,6 +132,32 @@ check('dist/styles.css mirrors on dir rather than on lang', () => {
     throw new Error(
       'no :dir(rtl) rule survived the build, so nothing mirrors under dir="rtl"',
     )
+  }
+})
+
+// The layer an app orders the library by. Its name is a public contract:
+// the README tells a Tailwind v4 app to declare `@layer theme, base, kanso,
+// components, utilities`, and every rule outside it would sit in a layer of
+// its own that app never named.
+check('dist/styles.css puts every rule in the kanso layer', () => {
+  const css = readFileSync(
+    new URL('../dist/styles.css', import.meta.url),
+    'utf8',
+  )
+  const layers = [...css.matchAll(/@layer\s+([^{;]+)/gu)].flatMap((match) =>
+    match[1].split(',').map((name) => name.trim()),
+  )
+
+  if (!layers.includes('kanso.priority1')) {
+    throw new Error(
+      'no kanso.priority1 layer, so the library has no name to order by',
+    )
+  }
+
+  const unnamed = layers.filter((name) => !name.startsWith('kanso.'))
+
+  if (unnamed.length > 0) {
+    throw new Error(`layers outside kanso: ${[...new Set(unnamed)].join(', ')}`)
   }
 })
 

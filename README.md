@@ -51,9 +51,33 @@ positioned from the call site like any other element:
 <Card className="col-span-2" style={{ marginBlockStart: '2rem' }} />
 ```
 
-StyleX compiles the library's own rules into a CSS `@layer`, and your app's
-stylesheet is unlayered, so your rules win the cascade wherever the two meet —
-no specificity contest, and no `!important`.
+### Ordering the library's rules
+
+StyleX compiles the library's own rules into one CSS cascade layer, named
+`kanso`. A stylesheet of your own that is not layered beats every rule in it
+wherever the two meet — no specificity contest, and no `!important`.
+
+CSS that is layered takes its place from the order its layers are named in, so
+an app whose CSS is layered names the order. Tailwind v4 writes its preflight
+into `base` and its utilities into `utilities`; put `kanso` between them, so a
+utility on the call site wins and the preflight does not empty a button:
+
+```css
+@layer theme, base, kanso, components, utilities;
+@import 'tailwindcss';
+```
+
+A reset that is not layered — Tailwind v3's preflight, or a normalize sheet —
+beats every layered rule, the library's included, and turns a filled button
+transparent. Give it a layer ordered before `kanso`:
+
+```css
+@layer reset, kanso;
+@import 'modern-normalize.css' layer(reset);
+```
+
+A layer's place is fixed where it is first named, so the statement goes at the
+top of the stylesheet your app loads first, ahead of the library's.
 
 ### React Aria utilities
 

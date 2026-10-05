@@ -167,7 +167,9 @@ export default defineConfig(({ command }) => ({
         exclude: Features.DirSelector,
       },
       runtimeInjection: false,
-      useCSSLayers: true,
+      // The package build's named layer, for the reason tsdown.config.ts
+      // gives, so the cascade the tests read is the one a consumer orders.
+      useCSSLayers: { prefix: 'kanso' },
     }),
     // The same panic threshold the package build runs under, so a function
     // the compiler cannot compile fails here too — at the story or the test
