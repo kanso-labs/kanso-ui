@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   Key,
   TabsProps as RACTabsProps,
@@ -278,7 +278,10 @@ function tabRenderer(
  * what each panel holds are the call site's to decide — the parts are
  * `Tabs.List`, `Tabs.Tab`, and `Tabs.Panel`.
  */
-function Tabs({ children, ...props }: TabsProps) {
+function Tabs({
+  children,
+  ...props
+}: RefAttributes<HTMLDivElement> & TabsProps) {
   const [panels, setPanels] = useState<ReadonlySet<Key>>(NO_PANELS)
 
   const register = useCallback((id: Key) => {

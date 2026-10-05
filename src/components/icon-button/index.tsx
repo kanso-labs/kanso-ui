@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ButtonRenderProps,
   ClassNameOrFunction,
@@ -27,6 +27,7 @@ import {
   linkRenderer,
   toggleButtonRenderer,
 } from '../../render/aria'
+import { refCallback } from '../../render/ref'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -584,13 +585,14 @@ function IconButton({
   onPointerLeave,
   onPointerUp,
   pendingLabel = 'Loading',
+  ref,
   rel,
   render,
   size = 'md',
   target,
   variant = 'standard',
   ...props
-}: IconButtonProps) {
+}: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
   // A field's context may disable the button — a number field's stepper at
   // the end of its range, a search field's clear button with the field — and
   // React Aria takes a prop over its context, so a default of `false` here
@@ -621,6 +623,10 @@ function IconButton({
   )
 
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+  // The element is a toggle, a link or a button, so the ref is typed as a link
+  // or a button and handed to each as the callback all three accept — see
+  // src/render/ref.ts.
+  const forwarded = refCallback(ref)
 
   // The three props that make this a toggle. Read together rather than behind
   // a `toggle` word of its own, the way `href` already turns the button into
@@ -637,6 +643,7 @@ function IconButton({
         isDisabled={disabled}
         isSelected={isSelected}
         onChange={onChange}
+        ref={forwarded}
         render={toggleButtonRenderer(element, render)}
         {...ripple.handlers}
         {...props}
@@ -666,6 +673,7 @@ function IconButton({
       <RACLink
         href={href}
         isDisabled={disabled}
+        ref={forwarded}
         rel={rel}
         render={linkRenderer(element)}
         target={target}
@@ -683,6 +691,7 @@ function IconButton({
     <RACButton
       isDisabled={disabled}
       isPending={isPending}
+      ref={forwarded}
       render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}

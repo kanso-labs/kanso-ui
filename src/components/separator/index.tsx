@@ -1,5 +1,6 @@
 'use client'
 
+import type { RefAttributes } from 'react'
 import type { SeparatorProps as RACSeparatorProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -150,7 +151,11 @@ type SeparatorProps = Omit<RACSeparatorProps, 'orientation'> & {
  * the rule across the toolbar's own direction. `elementType` picks a
  * different element, and `render` is React Aria's function form.
  */
-function Separator({ inset = 'none', orientation, ...props }: SeparatorProps) {
+function Separator({
+  inset = 'none',
+  orientation,
+  ...props
+}: RefAttributes<HTMLElement> & SeparatorProps) {
   const context = useSlottedContext(SeparatorContext, props.slot)
   const resolved = orientation ?? context?.orientation ?? 'horizontal'
 

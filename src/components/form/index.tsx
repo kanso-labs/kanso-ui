@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, RefAttributes } from 'react'
 import type { FormProps as RACFormProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -74,7 +74,7 @@ type FormProps = {
 function Form({
   validationBehavior = FIELD_VALIDATION_BEHAVIOR,
   ...props
-}: FormProps) {
+}: FormProps & RefAttributes<HTMLFormElement>) {
   return (
     <RACForm
       validationBehavior={validationBehavior}

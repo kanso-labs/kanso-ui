@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref, RefAttributes } from 'react'
 import type { ColorFieldProps as RACColorFieldProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -35,10 +35,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // holds. It is left to the call site rather than drawn here, since a field
 // inside a picker sits beside a swatch already.
 
-type ColorFieldProps = Omit<
-  RACColorFieldProps,
-  'children' | 'className' | 'style'
-> & {
+type ColorFieldProps = {
   /** A function may compute the class from the field's render state. */
   className?: RACColorFieldProps['className']
   /** Supporting text under the field. */
@@ -58,6 +55,11 @@ type ColorFieldProps = Omit<
    * @default true
    */
   floatingLabel?: boolean
+  /**
+   * A ref to the field's own `<input>`, which is the element a call site moves
+   * focus to — after a server's error, say. `ref` is the field as a whole.
+   */
+  inputRef?: Ref<HTMLInputElement>
   /** What the field is for. Always rendered; never a placeholder. */
   label: string
   /**
@@ -78,7 +80,7 @@ type ColorFieldProps = Omit<
    * @default 'filled'
    */
   variant?: FieldVariant
-}
+} & Omit<RACColorFieldProps, 'children' | 'className' | 'style'>
 
 /**
  * A colour typed into a field. The value is React Aria's — pass `value` with
@@ -101,13 +103,14 @@ function ColorField({
   description,
   error,
   floatingLabel = true,
+  inputRef,
   isDisabled = false,
   label,
   leadingIcon,
   trailingIcon,
   variant = 'filled',
   ...props
-}: ColorFieldProps) {
+}: ColorFieldProps & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (
@@ -125,7 +128,7 @@ function ColorField({
         trailing={trailingIcon}
         variant={variant}
       >
-        <FieldInput />
+        <FieldInput ref={inputRef} />
       </FieldBox>
       <FieldMessage description={description} error={error} />
     </RACColorField>

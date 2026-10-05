@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref, RefAttributes } from 'react'
 import type {
   SearchFieldProps as RACSearchFieldProps,
   SearchFieldRenderProps,
@@ -178,6 +179,11 @@ type SearchFieldProps = {
    */
   error?: string
   /**
+   * A ref to the field's own `<input>`, which is the element a call site moves
+   * focus to — after a server's error, say. `ref` is the field as a whole.
+   */
+  inputRef?: Ref<HTMLInputElement>
+  /**
    * What the field searches, for a screen reader. The bar draws no label,
    * so this is read and never shown; `placeholder` is what is seen.
    */
@@ -196,6 +202,7 @@ function fieldContent(
   clearLabel: string,
   description: string | undefined,
   error: string | undefined,
+  inputRef: Ref<HTMLInputElement> | undefined,
 ) {
   return (state: SearchFieldRenderProps) => (
     <>
@@ -206,7 +213,11 @@ function fieldContent(
         {...stylex.props(styles.bar, state.isDisabled && styles.barDisabled)}
       >
         <SearchGlyph {...stylex.props(styles.glyph)} />
-        <FieldInput placeholder={placeholder} {...stylex.props(styles.input)} />
+        <FieldInput
+          placeholder={placeholder}
+          ref={inputRef}
+          {...stylex.props(styles.input)}
+        />
         {state.isEmpty ? null : (
           <IconButton aria-label={clearLabel} {...stylex.props(styles.clear)}>
             <CloseGlyph {...stylex.props(styles.clearGlyph)} />
@@ -235,11 +246,12 @@ function SearchField({
   clearLabel = 'Clear',
   description,
   error,
+  inputRef,
   isDisabled = false,
   label,
   placeholder,
   ...props
-}: SearchFieldProps) {
+}: RefAttributes<HTMLDivElement> & SearchFieldProps) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (
@@ -250,7 +262,14 @@ function SearchField({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      {fieldContent(label, placeholder, clearLabel, description, error)}
+      {fieldContent(
+        label,
+        placeholder,
+        clearLabel,
+        description,
+        error,
+        inputRef,
+      )}
     </RACSearchField>
   )
 }

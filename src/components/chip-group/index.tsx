@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TagGroupProps as RACTagGroupProps,
   TagListProps as RACTagListProps,
@@ -186,7 +186,7 @@ function ChipGroup<T extends object = object>({
   removeLabel = 'Remove',
   renderEmptyState,
   ...props
-}: ChipGroupProps<T>) {
+}: ChipGroupProps<T> & RefAttributes<HTMLDivElement>) {
   const invalid = invalidFrom(error)
 
   return (

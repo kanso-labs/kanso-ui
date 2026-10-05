@@ -1,6 +1,6 @@
 'use client'
 
-import type { DOMAttributes, ReactNode } from 'react'
+import type { DOMAttributes, ReactNode, RefAttributes } from 'react'
 import type {
   ButtonRenderProps,
   ClassNameOrFunction,
@@ -18,6 +18,7 @@ import {
   buttonRenderer,
   linkRenderer,
 } from '../../render/aria'
+import { refCallback } from '../../render/ref'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -445,13 +446,14 @@ function Button({
   onPointerLeave,
   onPointerUp,
   pendingLabel = 'Loading',
+  ref,
   rel,
   render,
   size = 'md',
   target,
   variant = 'filled',
   ...props
-}: ButtonProps) {
+}: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
   // `props` (className/style, etc.) is spread separately: `className` and
   // `style` there may be functions of render state, which ripple's own
   // handler-only merge doesn't need to know about. It is also why the styles
@@ -493,12 +495,16 @@ function Button({
   )
 
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+  // The element is a link or a button, so the ref is typed as either, and is
+  // handed to each as the callback both accept — see src/render/ref.ts.
+  const forwarded = refCallback(ref)
 
   if (href !== undefined) {
     return (
       <RACLink
         href={href}
         isDisabled={isDisabled}
+        ref={forwarded}
         rel={rel}
         render={linkRenderer(element)}
         target={target}
@@ -516,6 +522,7 @@ function Button({
     <RACButton
       isDisabled={isDisabled}
       isPending={isPending}
+      ref={forwarded}
       render={buttonRenderer(element, render)}
       {...ripple.handlers}
       {...props}

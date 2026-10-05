@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   FocusableElement,
   ToastRegionProps as RACToastRegionProps,
@@ -396,7 +396,11 @@ function closeToast(queue: SnackbarQueue, key: string) {
  * The call site's `className` and `style` land on that region, which is the
  * element a layout positions.
  */
-function Snackbar({ closeLabel = 'Close', queue, ...props }: SnackbarProps) {
+function Snackbar({
+  closeLabel = 'Close',
+  queue,
+  ...props
+}: RefAttributes<HTMLDivElement> & SnackbarProps) {
   return (
     <RACToastRegion<SnackbarMessage>
       queue={queue.rac}

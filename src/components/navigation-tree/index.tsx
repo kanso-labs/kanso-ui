@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   NavigationTreeItemRenderProps,
   NavigationTreeItemProps as RACNavigationTreeItemProps,
@@ -327,7 +327,9 @@ function leadingFor(
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
  */
-function NavigationTree<T extends object>(props: NavigationTreeProps<T>) {
+function NavigationTree<T extends object>(
+  props: NavigationTreeProps<T> & RefAttributes<HTMLDivElement>,
+) {
   return (
     <RACNavigationTree<T>
       {...props}

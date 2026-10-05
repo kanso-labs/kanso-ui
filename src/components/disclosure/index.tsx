@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   FocusableElement,
   DisclosurePanelProps as RACDisclosurePanelProps,
@@ -188,7 +188,10 @@ function chevronFor(isExpanded: boolean) {
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function Disclosure({ children, ...props }: DisclosureProps) {
+function Disclosure({
+  children,
+  ...props
+}: DisclosureProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACDisclosure
       {...props}

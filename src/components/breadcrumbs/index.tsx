@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   BreadcrumbRenderProps,
   BreadcrumbProps as RACBreadcrumbProps,
@@ -147,7 +147,9 @@ type BreadcrumbsProps<T extends object = object> = Omit<
  * The call site's `className` and `style` land on the list, which is the
  * element a layout positions.
  */
-function Breadcrumbs<T extends object = object>(props: BreadcrumbsProps<T>) {
+function Breadcrumbs<T extends object = object>(
+  props: BreadcrumbsProps<T> & RefAttributes<HTMLOListElement>,
+) {
   return (
     <RACBreadcrumbs<T>
       {...props}

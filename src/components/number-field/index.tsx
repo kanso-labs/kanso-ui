@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref, RefAttributes } from 'react'
 import type {
   ButtonRenderProps,
   NumberFieldProps as RACNumberFieldProps,
@@ -222,6 +222,11 @@ type NumberFieldProps = {
    */
   incrementLabel?: string
   /**
+   * A ref to the field's own `<input>`, which is the element a call site moves
+   * focus to — after a server's error, say. `ref` is the field as a whole.
+   */
+  inputRef?: Ref<HTMLInputElement>
+  /**
    * What the field is for. Required rather than optional: a field with no
    * label is a box a screen reader cannot name.
    */
@@ -267,13 +272,14 @@ function NumberField({
   error,
   floatingLabel = true,
   incrementLabel = 'Increase',
+  inputRef,
   isDisabled = false,
   label,
   numeric = true,
   steppers = 'vertical',
   variant = 'filled',
   ...props
-}: NumberFieldProps) {
+}: NumberFieldProps & RefAttributes<HTMLDivElement>) {
   const inline = steppers === 'horizontal'
 
   const validationBehavior = useFieldValidationBehavior()
@@ -288,7 +294,7 @@ function NumberField({
     >
       <FieldBox floatingLabel={floatingLabel} label={label} variant={variant}>
         <div {...stylex.props(styles.row, inline && styles.rowInline)}>
-          <FieldInput numeric={numeric} />
+          <FieldInput numeric={numeric} ref={inputRef} />
           <div
             {...stylex.props(
               styles.steppers,

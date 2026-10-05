@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref, RefAttributes } from 'react'
 import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -54,6 +54,11 @@ type TextFieldProps = {
    * @default true
    */
   floatingLabel?: boolean
+  /**
+   * A ref to the field's own `<input>`, which is the element a call site moves
+   * focus to — after a server's error, say. `ref` is the field as a whole.
+   */
+  inputRef?: Ref<HTMLInputElement>
   /**
    * What the field is for. Required rather than optional: a text field with
    * no label is a box a screen reader cannot name.
@@ -121,6 +126,7 @@ function TextField({
   description,
   error,
   floatingLabel = true,
+  inputRef,
   isDisabled = false,
   label,
   leadingIcon,
@@ -130,7 +136,7 @@ function TextField({
   trailingIcon,
   variant = 'filled',
   ...props
-}: TextFieldProps) {
+}: RefAttributes<HTMLDivElement> & TextFieldProps) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (
@@ -148,7 +154,12 @@ function TextField({
         trailing={trailingIcon}
         variant={variant}
       >
-        <FieldInput numeric={numeric} prefix={prefix} suffix={suffix} />
+        <FieldInput
+          numeric={numeric}
+          prefix={prefix}
+          ref={inputRef}
+          suffix={suffix}
+        />
       </FieldBox>
       <FieldMessage
         characterCount={characterCount}

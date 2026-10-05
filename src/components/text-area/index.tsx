@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref, RefAttributes } from 'react'
 import type { TextFieldProps as RACTextFieldProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -73,6 +73,12 @@ type TextAreaProps = {
    */
   floatingLabel?: boolean
   /**
+   * A ref to the field's own `<textarea>`, which is the element a call site
+   * moves focus to — after a server's error, say. `ref` is the field as a
+   * whole.
+   */
+  inputRef?: Ref<HTMLTextAreaElement>
+  /**
    * What the field is for. Required rather than optional: a text area with
    * no label is a box a screen reader cannot name.
    */
@@ -126,6 +132,7 @@ function TextArea({
   description,
   error,
   floatingLabel = true,
+  inputRef,
   isDisabled = false,
   label,
   leadingIcon,
@@ -133,7 +140,7 @@ function TextArea({
   trailingIcon,
   variant = 'filled',
   ...props
-}: TextAreaProps) {
+}: RefAttributes<HTMLDivElement> & TextAreaProps) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (
@@ -152,7 +159,7 @@ function TextArea({
         trailing={trailingIcon}
         variant={variant}
       >
-        <FieldTextArea autosize={autosize} rows={rows} />
+        <FieldTextArea autosize={autosize} ref={inputRef} rows={rows} />
       </FieldBox>
       <FieldMessage
         characterCount={characterCount}
