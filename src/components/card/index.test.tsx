@@ -20,6 +20,23 @@ const probeStyles = stylex.create({
   surfaceContainerLow: { backgroundColor: colors.surfaceContainerLow },
 })
 
+// A column shorter than the card it holds, scrolling whatever overflows it:
+// the shape a sheet's body takes once the sheet reaches its cap.
+const columnStyles = stylex.create({
+  column: {
+    blockSize: '48px',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
+  },
+  content: {
+    blockSize: '120px',
+  },
+  giveWay: {
+    minBlockSize: 0,
+  },
+})
+
 // Empty and hoisted for the same reasons the stories hoist theirs: useRender
 // injects the children, so jsx-a11y sees an anchor with no content yet, and a
 // fresh element per render would trip react-perf's no-jsx-as-prop.
@@ -297,10 +314,11 @@ describe('card', () => {
     // round, so its background — a row's hover tint, a ripple — paints over
     // the corner arcs unless the card clips. Asserted together with the
     // radius, since clipping only matters while there is a corner to clip to.
+    // `clip` rather than `hidden`, for the reason the column tests give.
     it('clips its contents to its rounded corners', () => {
       const view = render(<Card padding="none">content</Card>)
       const computed = getComputedStyle(cardIn(view.container))
-      expect(computed.overflow).toBe('hidden')
+      expect(computed.overflow).toBe('clip')
       expect(computed.borderRadius).not.toBe('0px')
     })
 
@@ -315,6 +333,49 @@ describe('card', () => {
         expected,
       )
       expect(expected).not.toBe('0px')
+    })
+  })
+
+  describe('in a column', () => {
+    // Under `overflow: hidden` the card was a scroll container, whose
+    // automatic minimum size as a flex item is zero, so it was the item that
+    // gave way: it shrank to the column and hid the rest of itself, and the
+    // column, with nothing left to overflow, never scrolled.
+    it('keeps its full height in a column too short for it', () => {
+      const view = render(
+        <div data-testid="column" {...stylex.props(columnStyles.column)}>
+          <Card padding="none">
+            <div
+              data-testid="content"
+              {...stylex.props(columnStyles.content)}
+            />
+          </Card>
+        </div>,
+      )
+      const column = view.getByTestId('column')
+      const content = view.getByTestId('content')
+      // Guards the comparisons: in a column with room to spare, the card
+      // keeps its height without ever having been asked to give way.
+      expect(column.clientHeight).toBeLessThan(content.offsetHeight)
+
+      expect(cardIn(column).offsetHeight).toBe(content.offsetHeight)
+      expect(column.scrollHeight).toBeGreaterThan(column.clientHeight)
+    })
+
+    // The way out the component's comment names, for a card that scrolls
+    // content of its own. Pinned so that nothing the card sets on itself
+    // comes to stand in the way of it.
+    it('gives way when its minimum size is zeroed', () => {
+      const view = render(
+        <div data-testid="column" {...stylex.props(columnStyles.column)}>
+          <Card padding="none" {...stylex.props(columnStyles.giveWay)}>
+            <div {...stylex.props(columnStyles.content)} />
+          </Card>
+        </div>,
+      )
+      const column = view.getByTestId('column')
+
+      expect(cardIn(column).offsetHeight).toBe(column.clientHeight)
     })
   })
 
