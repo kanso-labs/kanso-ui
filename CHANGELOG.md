@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.34.15](https://github.com/kanso-labs/kanso-ui/compare/v0.34.14...v0.34.15) (2026-10-05)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.11.0 ([#1248](https://github.com/kanso-labs/kanso-ui/issues/1248)) ([97d4e5c](https://github.com/kanso-labs/kanso-ui/commit/97d4e5ce1a95eeb9511c6d824d304748f775f8d6))
+* update dependency oxfmt to v0.72.0 ([#1249](https://github.com/kanso-labs/kanso-ui/issues/1249)) ([3bbf166](https://github.com/kanso-labs/kanso-ui/commit/3bbf16680fe5c44617a09bdf8eda6a4f6e82972d))
+* update dependency typescript-eslint to v8.71.1 ([#1247](https://github.com/kanso-labs/kanso-ui/issues/1247)) ([8f417ab](https://github.com/kanso-labs/kanso-ui/commit/8f417ab786c29b99e750038597adff0e164d1a01))
+
 ## [0.34.14](https://github.com/kanso-labs/kanso-ui/compare/v0.34.13...v0.34.14) (2026-10-04)
 
 
