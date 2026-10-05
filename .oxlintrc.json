@@ -63,5 +63,5 @@
     "builtin": true,
     "browser": true
   },
-  "ignorePatterns": ["dist", "storybook-static"]
+  "ignorePatterns": ["dist", "scripts/consumer-types", "storybook-static"]
 }

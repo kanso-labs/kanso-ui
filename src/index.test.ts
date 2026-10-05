@@ -402,6 +402,21 @@ describe('the main entry', () => {
   it('publishes the compiled stylesheet a consumer has to reach', () => {
     // src/index.ts imports it for its side effect, and this is the entry that
     // makes the specifier resolve in the published package.
-    expect(packageJson.exports['./styles.css']).toBe('./dist/styles.css')
+    expect(packageJson.exports['./styles.css']).toEqual({
+      default: './dist/styles.css',
+      types: './dist/stylesheet.d.ts',
+    })
+  })
+
+  // Each stylesheet subpath carries a declaration as well as the file, so a
+  // consumer's `import '@kanso-labs/kanso-ui/styles.css'` type-checks under
+  // TypeScript 6's `noUncheckedSideEffectImports` with no `*.css` declaration
+  // of its own. scripts/check-package.mjs compiles such a consumer against
+  // the built package.
+  it('types the token stylesheet the same way', () => {
+    expect(packageJson.exports['./tokens.css']).toEqual({
+      default: './dist/tokens.css',
+      types: './dist/stylesheet.d.ts',
+    })
   })
 })

@@ -12,8 +12,15 @@ export default defineConfig([
   // `.claude/worktrees/` holds per-session checkouts of this repository, so
   // without this ESLint lints every other branch alongside the current one.
   // It is gitignored, but flat config does not read .gitignore the way oxlint
-  // and oxfmt do, so it has to be named here.
-  globalIgnores(['.claude', 'dist', 'storybook-static']),
+  // and oxfmt do, so it has to be named here. `scripts/consumer-types` is a
+  // consumer of the built package, which only exists after a build, so it is
+  // type-checked by scripts/check-package.mjs rather than linted here.
+  globalIgnores([
+    '.claude',
+    'dist',
+    'scripts/consumer-types',
+    'storybook-static',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

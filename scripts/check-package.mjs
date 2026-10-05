@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Checks the five things about the built package that publint cannot see.
+// Checks the six things about the built package that publint and attw cannot
+// see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
@@ -30,6 +31,13 @@
 // which an app with layered CSS of its own orders the library by — see
 // tsdown.config.ts.
 //
+// The sixth is the published types under TypeScript 6's defaults, which turn
+// `noUncheckedSideEffectImports` on. attw reports whether each entry resolves
+// to a declaration; it does not compile a consumer, and a declaration that
+// imports a stylesheet is what TS2882 is about. So the types are read for
+// that import, and a consumer with no `*.css` declaration of its own is
+// compiled against them with `skipLibCheck` off — see scripts/consumer-types.
+//
 // The fifth is the client boundary a server component meets. Every component
 // module has to open with "use client" in dist, not only in src, since that is
 // the file a consumer's bundler reads — and rolldown warns that it may not
@@ -38,6 +46,7 @@
 // reaches without crossing that line run on the server, so none of them may
 // import React or React Aria, which a server bundle cannot evaluate.
 
+import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 
@@ -258,6 +267,39 @@ check('collectionSizes is a value a server can read', () => {
     typeof sizes.listRow !== 'number'
   ) {
     throw new TypeError('dist/layout.js did not hand back collectionSizes')
+  }
+})
+
+check('no published declaration imports a stylesheet', () => {
+  const declarations = readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((path) => path.endsWith('.d.ts'))
+  const importing = declarations.filter((path) =>
+    /^\s*import\s*["'][^"']+\.css["']/mu.test(distSource(path)),
+  )
+
+  if (declarations.length === 0) {
+    throw new Error('found no declarations in dist, so this proves nothing')
+  }
+
+  if (importing.length > 0) {
+    throw new Error(`a stylesheet import in ${importing.join(', ')}`)
+  }
+})
+
+check('a consumer type-checks under TypeScript 6 defaults', () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      require.resolve('typescript/bin/tsc'),
+      '-p',
+      new URL('consumer-types/tsconfig.json', import.meta.url).pathname,
+    ],
+    { encoding: 'utf8' },
+  )
+
+  if (result.status !== 0) {
+    throw new Error(result.stdout.trim() || result.stderr.trim())
   }
 })
 
