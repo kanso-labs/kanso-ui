@@ -59,6 +59,12 @@ import {
 // tab so the indicator reaches the bottom of the bar. Which tab carries it
 // comes from React Aria's render state rather than a selector, since StyleX
 // cannot target [data-selected] on the element it is styling.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // The active indicator. Centred with auto margins between two zero insets,
   // so the 24dp floor still centres it under a label narrower than that. The
@@ -79,6 +85,14 @@ const styles = stylex.create({
     },
     backgroundColor: colors.primary,
     blockSize: '3px',
+    // Under forced colours, which paint the fill in `Canvas`, the indicator
+    // is a `Highlight` border filling the same 3dp instead: it is the only
+    // mark of which tab is open, since the active label differs from the
+    // others in colour alone, which the mode takes too. The divider under
+    // the bar is decoration and stays a shadow.
+    borderBlockStartColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderBlockStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockStartWidth: { default: null, [FORCED_COLORS]: '3px' },
     borderStartEndRadius: radii.pill,
     borderStartStartRadius: radii.pill,
     boxSizing: 'border-box',
