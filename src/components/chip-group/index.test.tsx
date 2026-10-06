@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ChipGroup from '.'
+import { rippleStyles } from '../../styles/ripple'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -336,5 +337,88 @@ describe('chip group', () => {
         (slot?.left ?? 0) - second.getBoundingClientRect().left - border,
       ).toBe(8)
     })
+  })
+})
+
+// A keyboard's focus draws the container's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  unselected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+// A primary mouse button going down over the element's centre, which is the
+// press a ripple answers.
+function pressDown(element: Element) {
+  const rect = element.getBoundingClientRect()
+  fireEvent(
+    element,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      buttons: 1,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+    }),
+  )
+}
+
+// The ripple's inner span carries these classes only while it is pressed.
+const PRESSED_RIPPLE = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+function ripplesIn(element: Element) {
+  const ripple = element.querySelector('span[aria-hidden="true"] > span')
+  return (
+    ripple !== null &&
+    PRESSED_RIPPLE.length > 0 &&
+    PRESSED_RIPPLE.every((name) => ripple.classList.contains(name))
+  )
+}
+
+describe('focus layer and ripple', () => {
+  it('lays the focus layer over a chip for a keyboard', () => {
+    const view = setup({ selectionMode: 'multiple' })
+    const [first] = view.getAllByRole('row')
+    const classes = classesOf(stylex.props(focusProbeStyles.unselected))
+    expect(hasClasses(first, classes)).toBe(false)
+
+    focusByKeyboard(first)
+
+    expect(hasClasses(first, classes)).toBe(true)
+  })
+
+  it('ripples a chip the group lets be selected', () => {
+    const view = setup({ selectionMode: 'multiple' })
+    const [first] = view.getAllByRole('row')
+
+    pressDown(first)
+
+    expect(ripplesIn(first)).toBe(true)
+  })
+
+  // A chip in a group that selects nothing changes nothing when pressed, and
+  // React Aria reports no press on it either.
+  it('draws no ripple on a chip a press does nothing to', () => {
+    const view = setup()
+    const [first] = view.getAllByRole('row')
+
+    pressDown(first)
+
+    expect(first.querySelector('span[aria-hidden="true"]')).toBeNull()
   })
 })
