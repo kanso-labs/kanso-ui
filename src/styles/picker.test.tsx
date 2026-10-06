@@ -29,13 +29,15 @@ afterAll(async () => {
 // the page resolves it, so a case compares computed colour with computed
 // colour.
 const probeStyles = stylex.create({
-  elevation: { boxShadow: shadows.elevation2 },
+  elevation2: { boxShadow: shadows.elevation2 },
+  elevation3: { boxShadow: shadows.elevation3 },
   scrim: { color: `color-mix(in srgb, ${colors.scrim} 32%, transparent)` },
+  surfaceContainerHigh: { backgroundColor: colors.surfaceContainerHigh },
 })
 
-// The surface's own elevation, which it casts at every width.
-function elevation() {
-  const view = render(<span {...stylex.props(probeStyles.elevation)} />)
+// A surface's own elevation, which it casts at every width.
+function elevation(level: 'elevation2' | 'elevation3') {
+  const view = render(<span {...stylex.props(probeStyles[level])} />)
   const shadow = getComputedStyle(view.container.firstElementChild!).boxShadow
   view.unmount()
   return shadow
@@ -69,15 +71,27 @@ function surfaceOf(element: ReactElement) {
 }
 
 // The three pickers share one surface style, which is the point: the swap
-// from docked to modal is written once for all of them.
-const PICKERS: ReadonlyArray<{ element: ReactElement; name: string }> = [
-  { element: <DatePicker defaultOpen label="Label" />, name: 'DatePicker' },
+// from docked to modal is written once for all of them. The date pickers
+// raise theirs to the docked container's level 3; the colour picker's stays
+// at the menu surface's 2.
+const PICKERS: ReadonlyArray<{
+  element: ReactElement
+  level: 'elevation2' | 'elevation3'
+  name: string
+}> = [
+  {
+    element: <DatePicker defaultOpen label="Label" />,
+    level: 'elevation3',
+    name: 'DatePicker',
+  },
   {
     element: <DateRangePicker defaultOpen label="Label" />,
+    level: 'elevation3',
     name: 'DateRangePicker',
   },
   {
     element: <ColorPicker defaultOpen defaultValue="#6750A4" label="Label" />,
+    level: 'elevation2',
     name: 'ColorPicker',
   },
 ]
@@ -86,14 +100,14 @@ describe('a picker opened below the medium breakpoint', () => {
   // The date pickers page puts the picker in a dialog on a compact window,
   // and the dialogs page draws a dialog over a scrim — the same one Sheet
   // and Dialog paint.
-  it.each(PICKERS)('dims the page behind $name', async ({ element }) => {
+  it.each(PICKERS)('dims the page behind $name', async ({ element, level }) => {
     await page.viewport(COMPACT, 900)
     const shadow = getComputedStyle(surfaceOf(element)).boxShadow
 
     expect(shadow).toContain(scrimColour())
     // The scrim is added to the surface's elevation rather than put in its
     // place, so the surface still lifts off the dimmed page.
-    expect(shadow.startsWith(elevation())).toBe(true)
+    expect(shadow.startsWith(elevation(level))).toBe(true)
   })
 
   // A scrim that stopped at the surface's edge would dim nothing but a
@@ -176,13 +190,55 @@ describe('a picker opened at the medium breakpoint and above', () => {
   // asked for.
   it.each(PICKERS)(
     'leaves the page behind $name undimmed',
-    async ({ element }) => {
+    async ({ element, level }) => {
       await page.viewport(MEDIUM, 900)
 
       // Its elevation and nothing else, as it was before the scrim existed.
-      expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(elevation())
+      expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(
+        elevation(level),
+      )
     },
   )
+})
+
+// A date picker's surface is the calendar's own, the page's docked
+// container: one fill and one corner, so the surface clips nothing of the
+// calendar and no second surface shows at its corners.
+describe("a date picker's surface", () => {
+  it.each(PICKERS.slice(0, 2))(
+    'takes the fill and the corner of the calendar in $name',
+    async ({ element }) => {
+      await page.viewport(MEDIUM, 900)
+      const surface = surfaceOf(element)
+      const calendar = surface.querySelector('[role="dialog"] > *')
+      if (calendar === null) {
+        throw new Error('expected a calendar inside the dialog')
+      }
+      const outer = getComputedStyle(surface)
+      const inner = getComputedStyle(calendar)
+
+      expect(outer.backgroundColor).toBe(inner.backgroundColor)
+      expect(outer.borderTopLeftRadius).toBe(inner.borderTopLeftRadius)
+      expect(outer.borderTopLeftRadius).toBe('16px')
+    },
+  )
+
+  it('leaves the colour picker on the menu surface', async () => {
+    await page.viewport(MEDIUM, 900)
+    const surface = surfaceOf(
+      <ColorPicker defaultOpen defaultValue="#6750A4" label="Label" />,
+    )
+    const probe = render(
+      <span {...stylex.props(probeStyles.surfaceContainerHigh)} />,
+    )
+    const high = getComputedStyle(
+      probe.container.firstElementChild!,
+    ).backgroundColor
+    probe.unmount()
+
+    expect(getComputedStyle(surface).backgroundColor).not.toBe(high)
+    expect(getComputedStyle(surface).borderTopLeftRadius).toBe('12px')
+  })
 })
 
 // `visibleDuration` reaches each date picker's calendar, which draws its
