@@ -10,12 +10,13 @@
 // oxlint-disable react-perf/jsx-no-new-function-as-prop
 // oxlint-disable react-perf/jsx-no-new-object-as-prop
 
+import type { RenderResult } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { render, renderHook } from '@testing-library/react'
+import { act, fireEvent, render, renderHook } from '@testing-library/react'
 import { isValidElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import Button from '../components/button'
 import List from '../components/list'
@@ -24,7 +25,6 @@ import Table from '../components/table'
 import Tree from '../components/tree'
 import { colors } from '../tokens/design.tokens.stylex'
 import { useDragAndDrop } from './hooks'
-import { dragStyles } from './styles'
 
 // Hoisted so the identity is stable, which is what the case below compares.
 const OURS = () => <span />
@@ -52,10 +52,33 @@ function Draggable({ children }: { children: (hooks: Hooks) => ReactNode }) {
   return <>{children(dragAndDropHooks)}</>
 }
 
+// The indicators React Aria has drawn: rows it adds between the collection's
+// own, each holding the button a screen reader lands on, and each carrying
+// the classes this library gives it.
+function indicatorsIn(container: HTMLElement) {
+  return [
+    ...container.querySelectorAll('[aria-roledescription="drop indicator"]'),
+  ].map((button) => {
+    const row = button.closest('[role="row"]')
+    if (!(row instanceof HTMLElement)) {
+      throw new Error('expected the indicator to be drawn as a row')
+    }
+    return row
+  })
+}
+
+// A key pressed on whatever has focus, as a keyboard would.
+function press(key: string) {
+  const target = document.activeElement ?? document.body
+  fireEvent.keyDown(target, { key })
+  fireEvent.keyUp(target, { key })
+}
+
 // The preview the wrapper installs, for the items named. React Aria draws it
-// only while a drag is in flight, which a test cannot start, so this calls
-// the renderer and renders what it returns — the element React Aria would
-// draw under the pointer.
+// only when a pointer starts the drag, as the image the browser drags under
+// it; the keyboard drags the cases below drive draw none. So this calls the
+// renderer and renders what it returns — the element React Aria would draw
+// under the pointer.
 function preview(labels: string[]) {
   const { result } = renderHook(() =>
     useDragAndDrop({ getItems: () => [], onReorder: () => undefined }),
@@ -79,6 +102,69 @@ function probe(style: stylex.StyleXStyles) {
   const read = getComputedStyle(view.getByTestId('probe')).color
   view.unmount()
   return read
+}
+
+// Three rows that reorder. A collection draws drop indicators only where
+// something may land, which is what `onReorder` declares.
+function Reorderable() {
+  const { dragAndDropHooks } = useDragAndDrop({
+    getItems: (keys) => [...keys].map((key) => ({ 'text/plain': String(key) })),
+    onReorder: () => undefined,
+  })
+
+  return (
+    <List aria-label="Label" dragAndDropHooks={dragAndDropHooks}>
+      <List.Item id="first" leading={DRAG}>
+        First item
+      </List.Item>
+      <List.Item id="second" leading={DRAG}>
+        Second item
+      </List.Item>
+      <List.Item id="third" leading={DRAG}>
+        Third item
+      </List.Item>
+    </List>
+  )
+}
+
+// Where each of the collection's own rows sits, read so a case can tell
+// whether anything moved them.
+function rowTops(container: HTMLElement) {
+  const rows = [...container.querySelectorAll('[role="row"][data-key]')]
+  // An empty list would compare equal to any other empty list, whatever
+  // moved.
+  if (rows.length === 0) {
+    throw new Error('expected the collection to draw its rows')
+  }
+  return rows.map((row) => row.getBoundingClientRect().top)
+}
+
+// Starts a drag of the first row as a keyboard user does, with Enter on its
+// handle. React Aria puts focus on the first place the row could land, and
+// starts listening for the keys that move and drop it, a frame later — so
+// this waits that frame out.
+async function startKeyboardDrag(view: RenderResult) {
+  const handle = view.getByRole('button', { name: 'Drag First item' })
+  act(() => {
+    handle.focus()
+  })
+  press('Enter')
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        resolve()
+      })
+    })
+  })
+}
+
+// The indicator React Aria has marked as where the row would land now.
+function targetIn(container: HTMLElement) {
+  const target = container.querySelector('[data-drop-target]')
+  if (!(target instanceof HTMLElement)) {
+    throw new Error('expected a drop indicator to be the target')
+  }
+  return target
 }
 
 describe('drag and drop', () => {
@@ -169,10 +255,11 @@ describe('drag and drop', () => {
       )
       const hooks = result.current.dragAndDropHooks
 
-      // React Aria renders both only while a drag is in flight, which a test
-      // cannot start — so what is checked is that the wrapper put them there
-      // at all. Without this, dropping either default from the wrapper is a
-      // change nothing notices.
+      // React Aria draws the preview only when a pointer starts the drag,
+      // which no case here does, so what is checked for it is that the
+      // wrapper put it there at all — without this, dropping it from the
+      // wrapper is a change nothing notices. The indicator is drawn for real
+      // under "the drop indicator" below.
       expect(typeof hooks.renderDropIndicator).toBe('function')
       expect(typeof hooks.renderDragPreview).toBe('function')
     })
@@ -235,58 +322,79 @@ describe('drag and drop', () => {
     })
   })
 
+  // Drawn during a drag driven from the keyboard, as a keyboard or screen
+  // reader user drags: Enter on a row's handle starts it, the arrow keys move
+  // between the places the row could land, and Enter drops it.
   describe('the drop indicator', () => {
-    it('takes no room in the list until it is the target', () => {
-      const view = render(
-        <Draggable>
-          {(hooks) => (
-            <List aria-label="Label" dragAndDropHooks={hooks}>
-              <List.Item id="first" leading={DRAG}>
-                First item
-              </List.Item>
-              <List.Item id="second" leading={DRAG}>
-                Second item
-              </List.Item>
-            </List>
-          )}
-        </Draggable>,
-      )
-
-      // React Aria draws the indicators only while a drag is in flight, so a
-      // list at rest has none at all — which is the strongest form of taking
-      // no room.
-      expect(
-        view.container.querySelectorAll('[data-drop-target]'),
-      ).toHaveLength(0)
+    // React Aria keeps one drag session for the whole document and refuses to
+    // begin a second while one is in flight, so each case's drag ends here —
+    // even one an assertion stopped partway.
+    afterEach(() => {
+      press('Escape')
     })
 
-    it('is the primary role, and drawn as a line rather than a box', () => {
-      const view = render(
-        <span
-          className={
-            stylex.props(dragStyles.indicator, dragStyles.indicatorActive)
-              .className
-          }
-          data-testid="line"
-        />,
-      )
-      const line = getComputedStyle(view.getByTestId('line'))
+    it('is not drawn while nothing is dragged', () => {
+      const view = render(<Reorderable />)
+
+      expect(indicatorsIn(view.container)).toHaveLength(0)
+    })
+
+    // Every gap between two rows gains an indicator once a drag starts, so a
+    // line that took room would push the rows apart the moment one began.
+    it('keeps the rows where they are while a drag passes between them', async () => {
+      const view = render(<Reorderable />)
+      const resting = rowTops(view.container)
+
+      await startKeyboardDrag(view)
+
+      expect(indicatorsIn(view.container)).toHaveLength(4)
+      expect(rowTops(view.container)).toEqual(resting)
+
+      press('ArrowDown')
+
+      expect(rowTops(view.container)).toEqual(resting)
+    })
+
+    it('draws the target as a 2dp line in the primary role', async () => {
+      const view = render(<Reorderable />)
+      await startKeyboardDrag(view)
+
+      const line = getComputedStyle(targetIn(view.container))
 
       expect(line.backgroundColor).toBe(probe(probeStyles.primary))
       expect(line.blockSize).toBe('2px')
     })
 
-    it('is invisible while it is not the target', () => {
-      const view = render(
-        <span
-          className={stylex.props(dragStyles.indicator).className}
-          data-testid="line"
-        />,
+    it('leaves every other place the row could land invisible', async () => {
+      const view = render(<Reorderable />)
+      await startKeyboardDrag(view)
+
+      // One before the first row and one after each, less the target.
+      const others = indicatorsIn(view.container).filter(
+        (indicator) => !indicator.hasAttribute('data-drop-target'),
       )
 
-      expect(getComputedStyle(view.getByTestId('line')).backgroundColor).toBe(
-        'rgba(0, 0, 0, 0)',
+      expect(others).toHaveLength(3)
+      for (const other of others) {
+        expect(getComputedStyle(other).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+      }
+    })
+
+    // The colour belongs to the state rather than to a place, so it moves
+    // with the target as the arrow keys do.
+    it('moves the line with the target', async () => {
+      const view = render(<Reorderable />)
+      await startKeyboardDrag(view)
+      const before = targetIn(view.container)
+
+      press('ArrowDown')
+      const after = targetIn(view.container)
+
+      expect(after).not.toBe(before)
+      expect(getComputedStyle(after).backgroundColor).toBe(
+        probe(probeStyles.primary),
       )
+      expect(getComputedStyle(before).backgroundColor).toBe('rgba(0, 0, 0, 0)')
     })
   })
 })
