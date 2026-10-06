@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ButtonGroup from '.'
+import { hasRipple } from '../../hooks/useRipple.testing'
 import Button from '../button'
 import IconButton from '../icon-button'
 
@@ -115,12 +116,28 @@ describe('button group', () => {
       expect(third).toHaveAttribute('aria-pressed', 'true')
     })
 
-    it('disables every button in it', () => {
-      render(<Group isDisabled />)
-      for (const button of screen.getAllByRole('button')) {
-        expect(button).toBeDisabled()
-      }
-    })
+    // A selecting group disables its buttons through React Aria's group
+    // state rather than the context a plain one uses, and the ripple has to
+    // hear of it either way: a press on a disabled button that started one
+    // would wait for a click that never comes.
+    it.each([
+      ['a plain', {}],
+      ['a single-selecting', { selectionMode: 'single' }],
+      ['a multiple-selecting', { selectionMode: 'multiple' }],
+    ] as const)(
+      'disables every button in %s group, ripple included',
+      (_name, props) => {
+        const view = render(<Group isDisabled {...props} />)
+        const buttons = [...view.container.querySelectorAll('button')]
+
+        expect(buttons).toHaveLength(3)
+        for (const button of buttons) {
+          expect(button).toBeDisabled()
+          // The surface is drawn only while a press could start a ripple.
+          expect(hasRipple(button)).toBe(false)
+        }
+      },
+    )
   })
 
   describe('size', () => {
