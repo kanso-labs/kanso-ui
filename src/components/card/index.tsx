@@ -235,6 +235,6 @@ function Card({
   })
 }
 
-export type { CardProps }
+export type { CardProps, CardVariant }
 
 export default Card

@@ -437,7 +437,6 @@ NavigationTree.Item = NavigationTreeItem
 NavigationTree.Section = NavigationTreeSection
 
 export type {
-  NavigationTreeHeaderProps,
   NavigationTreeItemProps,
   NavigationTreeProps,
   NavigationTreeSectionProps,

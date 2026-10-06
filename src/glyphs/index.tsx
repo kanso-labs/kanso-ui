@@ -125,8 +125,6 @@ function SearchGlyph(props: GlyphProps) {
   )
 }
 
-export type { GlyphProps }
-
 export {
   ArrowDownwardGlyph,
   ArrowUpwardGlyph,
