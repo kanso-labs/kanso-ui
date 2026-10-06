@@ -514,10 +514,21 @@ it they fall back to a tokenless upload, which this repository being public
 makes possible but rate-limited, so a report lands intermittently rather than
 not at all — which reads as a flaky uploader rather than as a missing secret.
 
-Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
-branches that no test can exercise, and attributes them to source lines holding
-no conditional. Treat an uncovered branch with no matching source conditional as
-an artifact rather than a gap to close.
+**Statement and branch coverage count the compiler's code as well as yours, and
+neither can reach 100%.** The suite runs what the React Compiler emits, and the
+source maps Babel writes for it attribute the memoization the compiler
+synthesizes to the source lines around it: every cache check is a branch, and
+the arm that reuses a cached value runs only when a component re-renders with
+nothing changed, which most tests never do. That is why the summary prints about
+88% of statements and 72% of branches against 98.5% of lines. Codecov counts a
+line holding an uncovered branch as partial, which puts its figure near 82%.
+
+Line records are attributed the same way, so they carry the same artifact: a
+zero-hit record on a comment, a blank line or a property of a style object —
+`tabs`, `popover` and `drag/hooks` each carry one. Treat an uncovered branch,
+statement or line with nothing in the source to run as an artifact rather than a
+gap to close, and read the line figure for how much of the library the suite
+reaches.
 
 Barrel files always report 100% because re-exports compile to bindings with no
 executable statements, so the figure is structural rather than earned and no
