@@ -8,6 +8,7 @@ import * as components from '.'
 import {
   AppBar,
   Avatar,
+  Badge,
   Breadcrumbs,
   Button,
   Calendar,
@@ -114,6 +115,7 @@ SNACKBARS.add('First item')
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
+  { element: <Badge {...PROBE}>Label</Badge>, name: 'Badge' },
   {
     element: (
       <Breadcrumbs {...PROBE} aria-label="Label">

@@ -279,6 +279,38 @@ function insertSorted(text, { after, before, line }) {
   return text.slice(0, from) + lines.join('\n') + text.slice(end)
 }
 
+// Inserts `entry` into an object literal whose entries each begin on a line
+// indented four spaces, before the first entry whose key sorts after `key` by
+// code unit — the order `Object.keys` reports. An entry oxfmt has wrapped
+// over several lines is passed over whole, where a scan line by line would
+// have landed inside it.
+/**
+ * @param {string} text
+ * @param {{ after: string; before: string; entry: string; key: string }} options
+ * @returns {string}
+ */
+function insertEntry(text, { after, before, entry, key }) {
+  const start = text.indexOf(after)
+  if (start === -1) {
+    throw new Error(`could not find ${JSON.stringify(after)}`)
+  }
+  const from = start + after.length
+  const end = text.indexOf(before, from)
+  if (end === -1) {
+    throw new Error(`could not find ${JSON.stringify(before)}`)
+  }
+  const lines = text.slice(from, end).split('\n')
+  let at = lines.findIndex((line) => {
+    const name = /^ {4}([A-Za-z]\w*):/.exec(line)?.[1]
+    return name !== undefined && name > key
+  })
+  if (at === -1) {
+    at = lines.length
+  }
+  lines.splice(at, 0, entry)
+  return text.slice(0, from) + lines.join('\n') + text.slice(end)
+}
+
 // Inserts `block` after the last block whose first line contains `marker`.
 /**
  * @param {string} text
@@ -359,11 +391,14 @@ function addToComponentsTest({ component, directory }) {
     before: '    ])',
     line: `      '${component}',`,
   })
-  text = insertAfterLast(
-    text,
-    ' as the same reference as its own module',
-    `  it('re-exports ${component} as the same reference as its own module', () => {\n    expect(components.${component}).toBe(${component}Default)\n  })\n`,
-  )
+  // One map pins every barrel name to its own module's, and a case fails when
+  // the barrel holds a name the map does not.
+  text = insertEntry(text, {
+    after: '  const OWN_MODULE = {\n',
+    before: '\n  }\n',
+    entry: `    ${component}: [components.${component}, ${component}Default],`,
+    key: component,
+  })
   text = insertAfterLast(
     text,
     'Props type',
@@ -390,11 +425,13 @@ function addToEntryTest({ component }) {
     before: '    ])',
     line: `      '${component}',`,
   })
-  text = insertAfterLast(
-    text,
-    ' as the same reference as the components barrel',
-    `  it('forwards ${component} as the same reference as the components barrel', () => {\n    expect(publicApi.${component}).toBe(Components${component})\n  })\n`,
-  )
+  // The same for the entry, against the components barrel.
+  text = insertEntry(text, {
+    after: '  const COMPONENT_FORWARDS = {\n',
+    before: '\n  }\n',
+    entry: `    ${component}: [publicApi.${component}, Components${component}],`,
+    key: component,
+  })
   writeFileSync(path, text)
   return path
 }
