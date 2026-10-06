@@ -17,6 +17,12 @@ const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
 const styles = stylex.create({
+  // A panel beside a vertical bar, given a height so the bar has a length to
+  // run, and set off from the divider as the horizontal one is from below it.
+  besideBar: {
+    minBlockSize: '200px',
+    paddingInlineStart: spacing.lg,
+  },
   header: {
     display: 'flex',
     flexDirection: 'column',
@@ -70,6 +76,16 @@ const DOT = (
     <circle cx="12" cy="12" r="6" />
   </svg>
 )
+
+// More tabs than a phone's width has room for at their labels' widths.
+const SCROLLING = [
+  ['first', 'First item'],
+  ['second', 'Second item'],
+  ['third', 'Third item'],
+  ['fourth', 'Fourth item'],
+  ['fifth', 'Fifth item'],
+  ['sixth', 'Sixth item'],
+] as const
 
 const meta = {
   args: {
@@ -219,6 +235,80 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Scrollable
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `layout="scrollable"` gives each tab its label&apos;s width, between
+            72dp and 264dp, in a bar that scrolls without a scrollbar. The tabs
+            cut off at the edge say there is more, and the selected tab is
+            scrolled into view. Equal sections stay the default.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.phone)}>
+          <Tabs defaultSelectedKey="fifth" layout="scrollable">
+            <Tabs.List>
+              {SCROLLING.map(([id, label]) => (
+                <Tabs.Tab id={id} key={id}>
+                  {label}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Vertical
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `orientation="vertical"` stands the bar beside its panels. The page
+            draws no vertical tabs, so this is the horizontal bar on its side:
+            the divider and the indicator move to the bar&apos;s inline end, and
+            the up and down arrows move between the tabs.
+          </Text>
+        </div>
+        <Tabs defaultSelectedKey="first" orientation="vertical">
+          <Tabs.List>
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab id="second">Second item</Tabs.Tab>
+            <Tabs.Tab id="third">Third item</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel
+            {...stylex.props(styles.panel, styles.besideBar)}
+            id="first"
+          >
+            <Text tone="muted" variant="bodyMedium">
+              The first panel.
+            </Text>
+          </Tabs.Panel>
+          <Tabs.Panel
+            {...stylex.props(styles.panel, styles.besideBar)}
+            id="second"
+          >
+            <Text tone="muted" variant="bodyMedium">
+              The second panel.
+            </Text>
+          </Tabs.Panel>
+          <Tabs.Panel
+            {...stylex.props(styles.panel, styles.besideBar)}
+            id="third"
+          >
+            <Text tone="muted" variant="bodyMedium">
+              The third panel.
+            </Text>
+          </Tabs.Panel>
+        </Tabs>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Disabled
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -328,6 +418,54 @@ const WithIcons: Story = {
 }
 
 // The strip under a primary bar.
+// A bar with more tabs than the room has sections for, opened on one the
+// bar has to scroll to.
+const Scrollable: Story = {
+  args: { defaultSelectedKey: 'fifth', layout: 'scrollable' },
+  render: (args) => (
+    <div {...stylex.props(styles.phone)}>
+      <Tabs {...args}>
+        <Tabs.List>
+          {SCROLLING.map(([id, label]) => (
+            <Tabs.Tab id={id} key={id}>
+              {label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs>
+    </div>
+  ),
+}
+
+// The bar on its side, beside its panels.
+const Vertical: Story = {
+  args: { orientation: 'vertical' },
+  render: (args) => (
+    <Tabs {...args}>
+      <Tabs.List>
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+        <Tabs.Tab id="third">Third item</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel {...stylex.props(styles.panel, styles.besideBar)} id="first">
+        <Text tone="muted" variant="bodyMedium">
+          The first panel.
+        </Text>
+      </Tabs.Panel>
+      <Tabs.Panel {...stylex.props(styles.panel, styles.besideBar)} id="second">
+        <Text tone="muted" variant="bodyMedium">
+          The second panel.
+        </Text>
+      </Tabs.Panel>
+      <Tabs.Panel {...stylex.props(styles.panel, styles.besideBar)} id="third">
+        <Text tone="muted" variant="bodyMedium">
+          The third panel.
+        </Text>
+      </Tabs.Panel>
+    </Tabs>
+  ),
+}
+
 const Secondary: Story = {
   args: { variant: 'secondary' },
   render: (args) => (
@@ -398,7 +536,9 @@ export {
   AnimatedPanels,
   Default,
   Overview,
+  Scrollable,
   Secondary,
+  Vertical,
   WithIcons,
   WithoutPanels,
 }

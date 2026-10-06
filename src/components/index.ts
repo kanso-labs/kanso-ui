@@ -280,6 +280,7 @@ export {
   TableRow,
 } from './table'
 export type {
+  TabsLayout,
   TabsListProps,
   TabsPanelProps,
   TabsPanelsProps,

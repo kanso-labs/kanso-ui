@@ -121,6 +121,54 @@ function probe(style: stylex.StyleXStyles) {
   return colour
 }
 
+// More tabs than a phone's width has room for at their labels' widths.
+const MANY = [
+  'First item',
+  'Second item',
+  'Third item',
+  'Fourth item',
+  'Fifth item',
+  'Sixth item',
+]
+
+// A scrollable bar at a phone's width, on the tab `selectedKey` names.
+function setupScrollable(selectedKey: string) {
+  return render(
+    <div {...stylex.props(probeStyles.phone)}>
+      <Tabs layout="scrollable" selectedKey={selectedKey}>
+        <Tabs.List>
+          {MANY.map((key) => (
+            <Tabs.Tab id={key} key={key}>
+              {key}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs>
+    </div>,
+  )
+}
+
+// A vertical bar beside a panel taller than its tabs, in `dir`.
+function setupVertical(
+  props: Partial<Parameters<typeof Tabs>[0]> = {},
+  dir: 'ltr' | 'rtl' = 'ltr',
+) {
+  return render(
+    <div dir={dir}>
+      <Tabs defaultSelectedKey="first" orientation="vertical" {...props}>
+        <Tabs.List>
+          <Tabs.Tab id="first">First item</Tabs.Tab>
+          <Tabs.Tab id="second">Second item</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel data-testid="panel" id="first">
+          <div style={TALL}>First item</div>
+        </Tabs.Panel>
+        <Tabs.Panel id="second">Second item</Tabs.Panel>
+      </Tabs>
+    </div>,
+  )
+}
+
 // A two-tab bar whose tabs both take `tab`, in the style `props` names.
 function setupWith(
   props: Partial<Parameters<typeof Tabs>[0]> = {},
@@ -764,6 +812,179 @@ describe('tabs', () => {
           relatedTarget: document.body,
         })
       }
+    })
+  })
+
+  // The page's scrollable tabs, which a bar takes only when asked: each tab
+  // its label's width, within MDC-Android's 72dp and 264dp, in a bar that
+  // scrolls without a scrollbar and keeps its selected tab in view.
+  describe('scrollable', () => {
+    it("gives each tab its label's width rather than an equal share", () => {
+      const view = setupScrollable('First item')
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const text = textBoxOf(tab, 'First item')
+
+      expect(tab.getBoundingClientRect().width).toBeCloseTo(text.width + 32, 0)
+    })
+
+    it('holds a tab between 72dp and 264dp', () => {
+      const view = render(
+        <Tabs defaultSelectedKey="short" layout="scrollable">
+          <Tabs.List>
+            <Tabs.Tab id="short">A</Tabs.Tab>
+            <Tabs.Tab id="long">
+              A label long enough that it has nowhere left to go on one line
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>,
+      )
+      const [short, long] = view.getAllByRole('tab')
+
+      expect(short.getBoundingClientRect().width).toBe(72)
+      expect(long.getBoundingClientRect().width).toBe(264)
+    })
+
+    it('scrolls the bar rather than squeezing it, with no scrollbar', () => {
+      const view = setupScrollable('First item')
+      const list = view.getByRole('tablist')
+
+      expect(list.scrollWidth).toBeGreaterThan(list.clientWidth)
+      expect(getComputedStyle(list).overflowX).toBe('auto')
+      expect(getComputedStyle(list).scrollbarWidth).toBe('none')
+    })
+
+    it('opens on its selected tab, scrolled into view', () => {
+      const view = setupScrollable('Sixth item')
+      const list = view.getByRole('tablist')
+      const tab = view.getByRole('tab', { name: 'Sixth item' })
+
+      expect(list.scrollLeft).toBeGreaterThan(0)
+      expect(tab.getBoundingClientRect().right).toBeLessThanOrEqual(
+        list.getBoundingClientRect().right + 1,
+      )
+    })
+
+    it('brings a newly selected tab into view', async () => {
+      const view = setupScrollable('First item')
+      const list = view.getByRole('tablist')
+      expect(list.scrollLeft).toBe(0)
+
+      view.rerender(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs layout="scrollable" selectedKey="Sixth item">
+            <Tabs.List>
+              {MANY.map((key) => (
+                <Tabs.Tab id={key} key={key}>
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+      const tab = view.getByRole('tab', { name: 'Sixth item' })
+
+      await waitFor(() => {
+        expect(tab.getBoundingClientRect().right).toBeLessThanOrEqual(
+          list.getBoundingClientRect().right + 1,
+        )
+      })
+    })
+  })
+
+  // The page draws no vertical tabs, so a vertical bar is the horizontal
+  // one on its side: the tabs stack beside the panels, and the divider and
+  // the indicator move to the bar's inline end.
+  describe('vertical', () => {
+    it('stacks its tabs down the bar, beside the panel', () => {
+      const view = setupVertical()
+      const [first, second] = view.getAllByRole('tab')
+      const list = view.getByRole('tablist').getBoundingClientRect()
+
+      expect(second.getBoundingClientRect().top).toBeCloseTo(
+        first.getBoundingClientRect().bottom,
+        0,
+      )
+      // The panel is 200px tall, and the tabs stay the 48dp they are rather
+      // than sharing the bar's height between them.
+      expect(first.getBoundingClientRect().height).toBe(48)
+      expect(second.getBoundingClientRect().height).toBe(48)
+      expect(view.getByTestId('panel').getBoundingClientRect().left).toBe(
+        list.right,
+      )
+      expect(
+        textBoxOf(first, 'First item').left -
+          first.getBoundingClientRect().left,
+      ).toBe(16)
+    })
+
+    // Matched from the space before the offset, since `-1px 0px…` holds
+    // `1px 0px…` whole.
+    it.each([
+      ['ltr', / -1px 0px 0px 0px inset/],
+      ['rtl', / 1px 0px 0px 0px inset/],
+    ] as const)(
+      'runs the divider down the inline end under %s',
+      (dir, shadow) => {
+        const view = setupVertical({}, dir)
+
+        expect(getComputedStyle(view.getByRole('tablist')).boxShadow).toMatch(
+          shadow,
+        )
+      },
+    )
+
+    it.each([
+      ['ltr', 'right'],
+      ['rtl', 'left'],
+    ] as const)(
+      'lays a 3dp indicator along the inline end under %s, rounded toward the tab',
+      (dir, edge) => {
+        const view = setupVertical({}, dir)
+        const [first] = view.getAllByRole('tab')
+        const indicator = indicatorOf(first)
+        if (indicator === null) {
+          throw new Error('expected the active tab to carry an indicator')
+        }
+        const box = indicator.getBoundingClientRect()
+        const tab = first.getBoundingClientRect()
+
+        expect(box.width).toBe(3)
+        expect(box.height).toBeCloseTo(tab.height - 4, 0)
+        expect(box[edge]).toBe(tab[edge])
+        expect(getComputedStyle(indicator).borderStartStartRadius).not.toBe(
+          '0px',
+        )
+        expect(getComputedStyle(indicator).borderStartEndRadius).toBe('0px')
+      },
+    )
+
+    it('lays a secondary bar its 2dp square indicator along the whole tab', () => {
+      const view = setupVertical({ variant: 'secondary' })
+      const [first] = view.getAllByRole('tab')
+      const indicator = indicatorOf(first)
+      if (indicator === null) {
+        throw new Error('expected the active tab to carry an indicator')
+      }
+      const box = indicator.getBoundingClientRect()
+
+      expect(box.width).toBe(2)
+      expect(box.height).toBe(first.getBoundingClientRect().height)
+      expect(getComputedStyle(indicator).borderTopLeftRadius).toBe('0px')
+    })
+
+    // React Aria moves between a vertical bar's tabs with the up and down
+    // arrows, which it can only do when it is told the bar is vertical.
+    it('moves between the tabs with the up and down arrows', () => {
+      const view = setupVertical()
+      const [first, second] = view.getAllByRole('tab')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+      expect(second).toHaveFocus()
     })
   })
 
