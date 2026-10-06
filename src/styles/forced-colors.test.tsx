@@ -119,8 +119,8 @@ function firstChildOf(element: Element, what: string): Element {
  * breakpoint as well reaches the element only at the widths it names, and a
  * case sets the viewport to read one side of it.
  */
-function forcedColorRules(element: Element) {
-  return declarationsHeld(element, FORCED_COLORS)
+function forcedColorRules(element: Element, pseudoElement = '') {
+  return declarationsHeld(element, FORCED_COLORS, pseudoElement)
 }
 
 /**
@@ -460,9 +460,11 @@ describe('a boundary drawn in a shadow or a fill', () => {
     },
   )
 
-  // Under forced colours every outline is repainted in one system colour, so
-  // a hover ring the same shape as the selection ring would read as a second
-  // chosen swatch. Dashed there, it cannot.
+  // Under forced colours every ring is repainted in one system colour, so a
+  // hover ring the same shape as the selection ring would read as a second
+  // chosen swatch. Dashed there, it cannot. Both are the border of the box
+  // after the swatch, which is what keeps the swatch's outline free for the
+  // focus ring.
   it('draws a hovered swatch its ring dashed, apart from the chosen one', () => {
     const view = render(
       <ColorSwatchPicker aria-label="Label" defaultValue="#6750A4">
@@ -474,8 +476,12 @@ describe('a boundary drawn in a shadow or a fill', () => {
 
     fireEvent.pointerOver(other, { pointerType: 'mouse' })
 
-    expect(forcedColorRules(other).get('outline-style')).toBe('dashed')
-    expect(forcedColorRules(chosen).get('outline-style')).toBeUndefined()
+    expect(forcedColorRules(other, 'after').get('border-top-style')).toBe(
+      'dashed',
+    )
+    expect(
+      forcedColorRules(chosen, 'after').get('border-top-style'),
+    ).toBeUndefined()
   })
 
   // Every anchored overlay is drawn on the one surface in overlay.ts, whose

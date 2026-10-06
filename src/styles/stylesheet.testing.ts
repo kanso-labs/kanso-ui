@@ -22,6 +22,12 @@ interface ReachingRule {
    * `focus-within` for `.abc.abc:focus-within`, and `''` for none.
    */
   pseudo: string
+  /**
+   * The pseudo-element the selector names, `after` for `.abc.abc::after`,
+   * and `''` for none. Such a rule styles a box drawn for the element rather
+   * than the element itself, which `pseudo` alone does not say.
+   */
+  pseudoElement: string
   /** The rule's own declarations. */
   style: CSSStyleDeclaration
 }
@@ -31,14 +37,24 @@ interface ReachingRule {
  * keyed by property, with the pseudo-class appended where a rule reaches it
  * through one: `outline-style:focus-within`. Where two set one key the later
  * wins.
+ *
+ * The element's own box by default; name `pseudoElement`, `after` for
+ * `::after`, to read the box drawn for it instead. A rule styling a
+ * pseudo-element used to be read as the element's own, since its selector
+ * still carries the element's class.
  */
-function declarationsHeld(element: Element, holding: string) {
+function declarationsHeld(
+  element: Element,
+  holding: string,
+  pseudoElement = '',
+) {
   const found = new Map<string, string>()
 
-  for (const { held, pseudo, style } of rulesReaching(element, { holding })) {
-    if (!held) {
+  for (const rule of rulesReaching(element, { holding })) {
+    if (!rule.held || rule.pseudoElement !== pseudoElement) {
       continue
     }
+    const { pseudo, style } = rule
 
     for (const property of style) {
       found.set(
@@ -131,7 +147,8 @@ function rulesReaching(
         const className = selector.split('.').find(Boolean)
 
         if (className !== undefined && element.classList.contains(className)) {
-          found.push({ held, pseudo, style: rule.style })
+          const pseudoElement = /::([\w-]+)/u.exec(selectorText)?.[1] ?? ''
+          found.push({ held, pseudo, pseudoElement, style: rule.style })
           break
         }
       }
