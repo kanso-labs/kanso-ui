@@ -461,4 +461,6 @@ export type {
   TabsTabProps,
 }
 
+export { TabsList, TabsPanel, TabsPanels, TabsTab }
+
 export default Tabs

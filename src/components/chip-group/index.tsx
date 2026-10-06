@@ -250,4 +250,6 @@ ChipGroup.Chip = ChipGroupChip
 
 export type { ChipGroupChipProps, ChipGroupProps }
 
+export { ChipGroupChip }
+
 export default ChipGroup

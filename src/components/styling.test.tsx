@@ -1003,9 +1003,22 @@ describe('the case list', () => {
       CASES.map((testCase) => testCase.name.split(/[. ]/)[0]),
     )
 
-    const uncovered = Object.keys(components).filter(
-      (name) => !covered.has(name) && !EXEMPT.has(name),
-    )
+    // A part the barrel also exports by name is covered where its component
+    // is, as its static always was: `DialogContent` is `Dialog.Content`.
+    // `List.Item` is exported as `ListRow`, since the standalone `ListItem`
+    // already has that name.
+    const ownerOf = new Map<string, string>()
+    for (const [owner, value] of Object.entries(components)) {
+      for (const part of Object.keys(value)) {
+        const named =
+          owner === 'List' && part === 'Item' ? 'ListRow' : `${owner}${part}`
+        ownerOf.set(named, owner)
+      }
+    }
+
+    const uncovered = Object.keys(components)
+      .map((name) => ownerOf.get(name) ?? name)
+      .filter((name) => !covered.has(name) && !EXEMPT.has(name))
 
     expect(uncovered).toEqual([])
   })

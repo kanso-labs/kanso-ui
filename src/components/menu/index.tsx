@@ -582,4 +582,13 @@ export type {
   MenuSubmenuProps,
 }
 
+export {
+  MenuContent,
+  MenuItem,
+  MenuLoadMore,
+  MenuSection,
+  MenuSeparator,
+  MenuSubmenu,
+}
+
 export default Menu

@@ -235,4 +235,6 @@ ColorSwatchPicker.Item = ColorSwatchPickerItem
 
 export type { ColorSwatchPickerItemProps, ColorSwatchPickerProps }
 
+export { ColorSwatchPickerItem }
+
 export default ColorSwatchPicker

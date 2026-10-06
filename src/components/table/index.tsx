@@ -902,4 +902,14 @@ export type {
   TableRowProps,
 }
 
+export {
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableFooter,
+  TableHeader,
+  TableLoadMore,
+  TableRow,
+}
+
 export default Table

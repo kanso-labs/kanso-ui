@@ -481,4 +481,6 @@ Tree.Section = TreeSection
 
 export type { TreeItemProps, TreeLoadMoreProps, TreeProps, TreeSectionProps }
 
+export { TreeItem, TreeLoadMore, TreeSection }
+
 export default Tree

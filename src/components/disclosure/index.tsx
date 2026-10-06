@@ -361,4 +361,6 @@ Disclosure.Panel = DisclosurePanel
 
 export type { DisclosureHeaderProps, DisclosurePanelProps, DisclosureProps }
 
+export { DisclosureHeader, DisclosurePanel }
+
 export default Disclosure

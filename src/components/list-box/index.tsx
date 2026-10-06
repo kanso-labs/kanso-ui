@@ -296,4 +296,6 @@ export type {
   ListBoxSectionProps,
 }
 
+export { ListBoxItem, ListBoxLoadMore, ListBoxSection }
+
 export default ListBox

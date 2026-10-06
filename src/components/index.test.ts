@@ -144,21 +144,23 @@ import { CalendarDate, Time } from '../date'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
-import BreadcrumbsDefault from './breadcrumbs'
+import BreadcrumbsDefault, { BreadcrumbsItem } from './breadcrumbs'
 import ButtonDefault from './button'
 import CalendarDefault from './calendar'
 import CardDefault from './card'
 import CheckboxDefault from './checkbox'
 import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
-import ChipGroupDefault from './chip-group'
+import ChipGroupDefault, { ChipGroupChip } from './chip-group'
 import CodeDefault from './code'
 import ColorAreaDefault from './color-area'
 import ColorFieldDefault from './color-field'
 import ColorPickerDefault from './color-picker'
 import ColorSliderDefault from './color-slider'
 import ColorSwatchDefault from './color-swatch'
-import ColorSwatchPickerDefault from './color-swatch-picker'
+import ColorSwatchPickerDefault, {
+  ColorSwatchPickerItem,
+} from './color-swatch-picker'
 import ColorWheelDefault from './color-wheel'
 import ComboBoxDefault from './combo-box'
 import ContainerDefault from './container'
@@ -167,8 +169,17 @@ import CurrencyDefault from './currency'
 import DateFieldDefault from './date-field'
 import DatePickerDefault from './date-picker'
 import DateRangePickerDefault from './date-range-picker'
-import DialogDefault from './dialog'
-import DisclosureDefault from './disclosure'
+import DialogDefault, {
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './dialog'
+import DisclosureDefault, {
+  DisclosureHeader,
+  DisclosurePanel,
+} from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
 import DropZoneDefault, { FileTrigger as FileTriggerNamed } from './drop-zone'
 import FeedDefault from './feed'
@@ -176,31 +187,66 @@ import FormDefault from './form'
 import IconButtonDefault from './icon-button'
 import KeycapDefault from './keycap'
 import LinkDefault from './link'
-import ListDefault from './list'
-import ListBoxDefault from './list-box'
+import ListDefault, { ListLoadMore, ListRow, ListSection } from './list'
+import ListBoxDefault, {
+  ListBoxItem,
+  ListBoxLoadMore,
+  ListBoxSection,
+} from './list-box'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
-import MenuDefault from './menu'
+import MenuDefault, {
+  MenuContent,
+  MenuItem,
+  MenuLoadMore,
+  MenuSection,
+  MenuSeparator,
+  MenuSubmenu,
+} from './menu'
 import MeterDefault from './meter'
-import NavigationTreeDefault from './navigation-tree'
+import NavigationTreeDefault, {
+  NavigationTreeItem,
+  NavigationTreeSection,
+} from './navigation-tree'
 import NumberFieldDefault from './number-field'
-import PopoverDefault from './popover'
+import PopoverDefault, {
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+} from './popover'
 import ProductIconDefault from './product-icon'
 import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
 import RangeCalendarDefault from './range-calendar'
 import SearchFieldDefault from './search-field'
-import SegmentedButtonDefault from './segmented-button'
+import SegmentedButtonDefault, {
+  SegmentedButtonSegment,
+} from './segmented-button'
 import SelectDefault from './select'
 import SeparatorDefault from './separator'
-import SheetDefault from './sheet'
+import SheetDefault, {
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHandle,
+  SheetHeader,
+  SheetTitle,
+} from './sheet'
 import SliderDefault from './slider'
 import SnackbarDefault from './snackbar'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import SwitchDefault from './switch'
-import TableDefault from './table'
-import TabsDefault from './tabs'
+import TableDefault, {
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableFooter,
+  TableHeader,
+  TableLoadMore,
+  TableRow,
+} from './table'
+import TabsDefault, { TabsList, TabsPanel, TabsPanels, TabsTab } from './tabs'
 import TagDefault from './tag'
 import TextDefault from './text'
 import TextAreaDefault from './text-area'
@@ -209,7 +255,7 @@ import TimeFieldDefault from './time-field'
 import TokenFieldDefault from './token-field'
 import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
-import TreeDefault from './tree'
+import TreeDefault, { TreeItem, TreeLoadMore, TreeSection } from './tree'
 
 // Hoisted rather than written inside its case: a function declared in a test
 // that captures nothing is what `consistent-function-scoping` is after.
@@ -276,6 +322,7 @@ describe('components barrel', () => {
       'Autocomplete',
       'Avatar',
       'Breadcrumbs',
+      'BreadcrumbsItem',
       'Button',
       'Calendar',
       'Card',
@@ -283,6 +330,7 @@ describe('components barrel', () => {
       'CheckboxGroup',
       'Chip',
       'ChipGroup',
+      'ChipGroupChip',
       'Code',
       'ColorArea',
       'ColorField',
@@ -290,6 +338,7 @@ describe('components barrel', () => {
       'ColorSlider',
       'ColorSwatch',
       'ColorSwatchPicker',
+      'ColorSwatchPickerItem',
       'ColorWheel',
       'ComboBox',
       'Container',
@@ -299,8 +348,15 @@ describe('components barrel', () => {
       'DatePicker',
       'DateRangePicker',
       'Dialog',
+      'DialogBody',
+      'DialogContent',
+      'DialogFooter',
+      'DialogHeader',
+      'DialogTitle',
       'Disclosure',
       'DisclosureGroup',
+      'DisclosureHeader',
+      'DisclosurePanel',
       'DropZone',
       'Feed',
       'FileTrigger',
@@ -310,13 +366,30 @@ describe('components barrel', () => {
       'Link',
       'List',
       'ListBox',
+      'ListBoxItem',
+      'ListBoxLoadMore',
+      'ListBoxSection',
       'ListDetail',
       'ListItem',
+      'ListLoadMore',
+      'ListRow',
+      'ListSection',
       'Menu',
+      'MenuContent',
+      'MenuItem',
+      'MenuLoadMore',
+      'MenuSection',
+      'MenuSeparator',
+      'MenuSubmenu',
       'Meter',
       'NavigationTree',
+      'NavigationTreeItem',
+      'NavigationTreeSection',
       'NumberField',
       'Popover',
+      'PopoverContent',
+      'PopoverDescription',
+      'PopoverTitle',
       'ProductIcon',
       'ProgressIndicator',
       'Radio',
@@ -324,16 +397,34 @@ describe('components barrel', () => {
       'RangeCalendar',
       'SearchField',
       'SegmentedButton',
+      'SegmentedButtonSegment',
       'Select',
       'Separator',
       'Sheet',
+      'SheetBody',
+      'SheetContent',
+      'SheetFooter',
+      'SheetHandle',
+      'SheetHeader',
+      'SheetTitle',
       'Slider',
       'Snackbar',
       'Stack',
       'SupportingPane',
       'Switch',
       'Table',
+      'TableBody',
+      'TableCell',
+      'TableColumn',
+      'TableFooter',
+      'TableHeader',
+      'TableLoadMore',
+      'TableRow',
       'Tabs',
+      'TabsList',
+      'TabsPanel',
+      'TabsPanels',
+      'TabsTab',
       'Tag',
       'Text',
       'TextArea',
@@ -343,6 +434,9 @@ describe('components barrel', () => {
       'Toolbar',
       'Tooltip',
       'Tree',
+      'TreeItem',
+      'TreeLoadMore',
+      'TreeSection',
     ])
   })
 
@@ -359,6 +453,7 @@ describe('components barrel', () => {
     Autocomplete: [components.Autocomplete, AutocompleteDefault],
     Avatar: [components.Avatar, AvatarDefault],
     Breadcrumbs: [components.Breadcrumbs, BreadcrumbsDefault],
+    BreadcrumbsItem: [components.BreadcrumbsItem, BreadcrumbsItem],
     Button: [components.Button, ButtonDefault],
     Calendar: [components.Calendar, CalendarDefault],
     Card: [components.Card, CardDefault],
@@ -366,6 +461,7 @@ describe('components barrel', () => {
     CheckboxGroup: [components.CheckboxGroup, CheckboxGroupDefault],
     Chip: [components.Chip, ChipDefault],
     ChipGroup: [components.ChipGroup, ChipGroupDefault],
+    ChipGroupChip: [components.ChipGroupChip, ChipGroupChip],
     Code: [components.Code, CodeDefault],
     ColorArea: [components.ColorArea, ColorAreaDefault],
     ColorField: [components.ColorField, ColorFieldDefault],
@@ -373,6 +469,10 @@ describe('components barrel', () => {
     ColorSlider: [components.ColorSlider, ColorSliderDefault],
     ColorSwatch: [components.ColorSwatch, ColorSwatchDefault],
     ColorSwatchPicker: [components.ColorSwatchPicker, ColorSwatchPickerDefault],
+    ColorSwatchPickerItem: [
+      components.ColorSwatchPickerItem,
+      ColorSwatchPickerItem,
+    ],
     ColorWheel: [components.ColorWheel, ColorWheelDefault],
     ComboBox: [components.ComboBox, ComboBoxDefault],
     Container: [components.Container, ContainerDefault],
@@ -382,8 +482,15 @@ describe('components barrel', () => {
     DatePicker: [components.DatePicker, DatePickerDefault],
     DateRangePicker: [components.DateRangePicker, DateRangePickerDefault],
     Dialog: [components.Dialog, DialogDefault],
+    DialogBody: [components.DialogBody, DialogBody],
+    DialogContent: [components.DialogContent, DialogContent],
+    DialogFooter: [components.DialogFooter, DialogFooter],
+    DialogHeader: [components.DialogHeader, DialogHeader],
+    DialogTitle: [components.DialogTitle, DialogTitle],
     Disclosure: [components.Disclosure, DisclosureDefault],
     DisclosureGroup: [components.DisclosureGroup, DisclosureGroupDefault],
+    DisclosureHeader: [components.DisclosureHeader, DisclosureHeader],
+    DisclosurePanel: [components.DisclosurePanel, DisclosurePanel],
     DropZone: [components.DropZone, DropZoneDefault],
     Feed: [components.Feed, FeedDefault],
     FileTrigger: [components.FileTrigger, FileTriggerNamed],
@@ -393,13 +500,33 @@ describe('components barrel', () => {
     Link: [components.Link, LinkDefault],
     List: [components.List, ListDefault],
     ListBox: [components.ListBox, ListBoxDefault],
+    ListBoxItem: [components.ListBoxItem, ListBoxItem],
+    ListBoxLoadMore: [components.ListBoxLoadMore, ListBoxLoadMore],
+    ListBoxSection: [components.ListBoxSection, ListBoxSection],
     ListDetail: [components.ListDetail, ListDetailDefault],
     ListItem: [components.ListItem, ListItemDefault],
+    ListLoadMore: [components.ListLoadMore, ListLoadMore],
+    ListRow: [components.ListRow, ListRow],
+    ListSection: [components.ListSection, ListSection],
     Menu: [components.Menu, MenuDefault],
+    MenuContent: [components.MenuContent, MenuContent],
+    MenuItem: [components.MenuItem, MenuItem],
+    MenuLoadMore: [components.MenuLoadMore, MenuLoadMore],
+    MenuSection: [components.MenuSection, MenuSection],
+    MenuSeparator: [components.MenuSeparator, MenuSeparator],
+    MenuSubmenu: [components.MenuSubmenu, MenuSubmenu],
     Meter: [components.Meter, MeterDefault],
     NavigationTree: [components.NavigationTree, NavigationTreeDefault],
+    NavigationTreeItem: [components.NavigationTreeItem, NavigationTreeItem],
+    NavigationTreeSection: [
+      components.NavigationTreeSection,
+      NavigationTreeSection,
+    ],
     NumberField: [components.NumberField, NumberFieldDefault],
     Popover: [components.Popover, PopoverDefault],
+    PopoverContent: [components.PopoverContent, PopoverContent],
+    PopoverDescription: [components.PopoverDescription, PopoverDescription],
+    PopoverTitle: [components.PopoverTitle, PopoverTitle],
     ProductIcon: [components.ProductIcon, ProductIconDefault],
     ProgressIndicator: [components.ProgressIndicator, ProgressIndicatorDefault],
     Radio: [components.Radio, Radio],
@@ -407,16 +534,37 @@ describe('components barrel', () => {
     RangeCalendar: [components.RangeCalendar, RangeCalendarDefault],
     SearchField: [components.SearchField, SearchFieldDefault],
     SegmentedButton: [components.SegmentedButton, SegmentedButtonDefault],
+    SegmentedButtonSegment: [
+      components.SegmentedButtonSegment,
+      SegmentedButtonSegment,
+    ],
     Select: [components.Select, SelectDefault],
     Separator: [components.Separator, SeparatorDefault],
     Sheet: [components.Sheet, SheetDefault],
+    SheetBody: [components.SheetBody, SheetBody],
+    SheetContent: [components.SheetContent, SheetContent],
+    SheetFooter: [components.SheetFooter, SheetFooter],
+    SheetHandle: [components.SheetHandle, SheetHandle],
+    SheetHeader: [components.SheetHeader, SheetHeader],
+    SheetTitle: [components.SheetTitle, SheetTitle],
     Slider: [components.Slider, SliderDefault],
     Snackbar: [components.Snackbar, SnackbarDefault],
     Stack: [components.Stack, StackDefault],
     SupportingPane: [components.SupportingPane, SupportingPaneDefault],
     Switch: [components.Switch, SwitchDefault],
     Table: [components.Table, TableDefault],
+    TableBody: [components.TableBody, TableBody],
+    TableCell: [components.TableCell, TableCell],
+    TableColumn: [components.TableColumn, TableColumn],
+    TableFooter: [components.TableFooter, TableFooter],
+    TableHeader: [components.TableHeader, TableHeader],
+    TableLoadMore: [components.TableLoadMore, TableLoadMore],
+    TableRow: [components.TableRow, TableRow],
     Tabs: [components.Tabs, TabsDefault],
+    TabsList: [components.TabsList, TabsList],
+    TabsPanel: [components.TabsPanel, TabsPanel],
+    TabsPanels: [components.TabsPanels, TabsPanels],
+    TabsTab: [components.TabsTab, TabsTab],
     Tag: [components.Tag, TagDefault],
     Text: [components.Text, TextDefault],
     TextArea: [components.TextArea, TextAreaDefault],
@@ -426,6 +574,9 @@ describe('components barrel', () => {
     Toolbar: [components.Toolbar, ToolbarDefault],
     Tooltip: [components.Tooltip, TooltipDefault],
     Tree: [components.Tree, TreeDefault],
+    TreeItem: [components.TreeItem, TreeItem],
+    TreeLoadMore: [components.TreeLoadMore, TreeLoadMore],
+    TreeSection: [components.TreeSection, TreeSection],
   }
 
   // The map has to cover the same surface the exact-name case pins, or it

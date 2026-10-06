@@ -238,6 +238,22 @@ function List<T extends object>({
 }
 
 /**
+ * The row the list shows while it is fetching more. React Aria calls
+ * `onLoadMore` when this comes into view, and draws it only while
+ * `isLoading`.
+ */
+function ListLoadMore({ label, ...props }: ListLoadMoreProps) {
+  return (
+    <RACGridListLoadMoreItem
+      {...props}
+      {...mergeStyles(stylex.props(collectionStyles.loading), props)}
+    >
+      <CollectionLoadMore label={label} size="24px" />
+    </RACGridListLoadMoreItem>
+  )
+}
+
+/**
  * One row. Its slots are the row's: `leading`, the headline as children,
  * `supporting` under it, and `trailing`. Give every row an `id` — that is
  * the key selection is reported by.
@@ -245,7 +261,7 @@ function List<T extends object>({
  * A list that selects with checkboxes draws one before whatever `leading`
  * holds, from the state React Aria reports rather than from a prop here.
  */
-function ListItem<T extends object = object>({
+function ListRow<T extends object = object>({
   children,
   leading,
   onContextMenu,
@@ -297,22 +313,6 @@ function ListItem<T extends object = object>({
 }
 
 /**
- * The row the list shows while it is fetching more. React Aria calls
- * `onLoadMore` when this comes into view, and draws it only while
- * `isLoading`.
- */
-function ListLoadMore({ label, ...props }: ListLoadMoreProps) {
-  return (
-    <RACGridListLoadMoreItem
-      {...props}
-      {...mergeStyles(stylex.props(collectionStyles.loading), props)}
-    >
-      <CollectionLoadMore label={label} size="24px" />
-    </RACGridListLoadMoreItem>
-  )
-}
-
-/**
  * A named group of rows. `header` names it, and is what a screen reader
  * reads before the rows inside.
  */
@@ -336,10 +336,12 @@ function ListSection<T extends object = object>({
   )
 }
 
-List.Item = ListItem
+List.Item = ListRow
 List.LoadMore = ListLoadMore
 List.Section = ListSection
 
 export type { ListLoadMoreProps, ListProps, ListRowProps, ListSectionProps }
+
+export { ListLoadMore, ListRow, ListSection }
 
 export default List
