@@ -17,7 +17,10 @@ export default defineConfig([
   // type-checked by scripts/check-package.mjs rather than linted here.
   globalIgnores([
     '.claude',
+    '.design-sync',
+    '.ds-sync',
     'dist',
+    'ds-bundle',
     'scripts/consumer-types',
     'storybook-static',
   ]),
