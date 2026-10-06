@@ -93,11 +93,15 @@ const styles = stylex.create({
     transitionProperty: 'translate, inline-size',
     transitionTimingFunction: motion.easingEmphasized,
   },
+  // No wider than the tab's own share of the bar, so a long label narrows to
+  // fit inside it rather than pushing out past its padding.
   label: {
     alignItems: 'center',
     blockSize: '100%',
     boxSizing: 'border-box',
     display: 'inline-flex',
+    maxInlineSize: '100%',
+    minInlineSize: 0,
     position: 'relative',
   },
   // The divider is drawn inside the bar as an inset shadow, so it is part of
@@ -204,6 +208,21 @@ const styles = stylex.create({
     },
     color: colors.onSurfaceVariant,
   },
+  // A label longer than its section, which German, Finnish and Dutch reach
+  // with a single word. The word breaks inside itself where it cannot break
+  // at a space — hyphenated where the page's language allows — and a label
+  // of several words stops at two lines with an ellipsis, which fits the
+  // 48dp tab. Clamped rather than hidden, so the name a screen reader reads
+  // stays whole.
+  text: {
+    display: '-webkit-box',
+    hyphens: 'auto',
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
+    textAlign: 'center',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: 2,
+  },
 })
 
 const NO_PANELS: ReadonlySet<Key> = new Set()
@@ -237,7 +256,9 @@ type TabsProps = Omit<RACTabsProps, 'children'> & {
 function tabContent(children: TabProps['children']) {
   return (state: TabRenderProps & { defaultChildren: ReactNode }) => (
     <span {...stylex.props(styles.label)}>
-      {typeof children === 'function' ? children(state) : children}
+      <span {...stylex.props(styles.text)}>
+        {typeof children === 'function' ? children(state) : children}
+      </span>
       <RACSelectionIndicator {...stylex.props(styles.indicator)} />
     </span>
   )

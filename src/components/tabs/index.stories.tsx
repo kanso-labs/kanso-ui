@@ -38,6 +38,11 @@ const styles = stylex.create({
   panel: {
     paddingBlockStart: spacing.md,
   },
+  // A phone's width, narrower than either long label below on one line.
+  phone: {
+    inlineSize: '360px',
+    maxInlineSize: '100%',
+  },
   section: {
     display: 'flex',
     flexDirection: 'column',
@@ -134,6 +139,39 @@ const Overview: Story = {
             <Tabs.Tab id="third">Third item</Tabs.Tab>
           </Tabs.List>
         </Tabs>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Long labels
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A label has its tab&apos;s equal share of the bar and no more. A
+            word longer than that breaks inside itself, hyphenated where its
+            language allows, and a label of several words takes two lines and
+            then ends in an ellipsis, so neither runs into its neighbours or out
+            of the bar. A screen reader still reads the whole label.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.phone)}>
+          <Tabs defaultSelectedKey="first">
+            <Tabs.List>
+              {/* Marked as German, which is what lets the browser hyphenate it
+                  where it breaks — in a German app the page's own language does
+                  that. */}
+              <Tabs.Tab id="first">
+                <span lang="de">Unterstützungszeile</span>
+              </Tabs.Tab>
+              <Tabs.Tab id="second">
+                A label long enough that it has nowhere left to go on one line
+              </Tabs.Tab>
+              <Tabs.Tab id="third">Third item</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </div>
       </section>
     </div>
   ),
