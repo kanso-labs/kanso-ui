@@ -2,12 +2,11 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
         "hooks": [
           {
-            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-setup.sh",
-            "timeout": 600
+            "timeout": 600,
+            "type": "command"
           }
         ]
       }

@@ -31,6 +31,22 @@ lockfile carries for Linux builds — a rewrite with no visible symptom until a
 Linux runner installs the wrong native binary. If `node --version` disagrees,
 prefix the command: `mise exec node@24.21.0 -- npm install`.
 
+**A Claude Code session checks both when it starts**, through
+`.claude/hooks/session-setup.sh`. It puts the pinned Node first on `PATH`
+through `$CLAUDE_ENV_FILE`: mise's copy where mise is installed, otherwise the
+release from nodejs.org, checked against its `SHASUMS256.txt` and cached under
+`~/.cache/kanso-ui`. It installs with `npm ci --ignore-scripts` and husky when
+`node_modules` is missing, since `prepare`'s `--with-deps` needs root. And it
+runs `playwright install chromium` when the revision Playwright pins is not
+installed.
+
+The hook runs on every SessionStart rather than on `startup` alone, because a
+resumed or cleared session is handed a fresh `$CLAUDE_ENV_FILE` and would
+otherwise be back on the shell's Node. What it cannot put right it prints at the
+start of the session, with the hosts a proxy has to allow. It never links an
+older Chromium in place of the pinned one: the tests read computed styles, and
+an older browser changes which CSS features exist.
+
 ## Conventions
 
 Shared with the other `kanso-labs` repositories. The canonical text is
