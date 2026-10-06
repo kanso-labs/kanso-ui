@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.35.0](https://github.com/kanso-labs/kanso-ui/compare/v0.34.16...v0.35.0) (2026-10-06)
+
+
+### Features
+
+* mark the component modules as client modules so a server component can render them ([#1256](https://github.com/kanso-labs/kanso-ui/issues/1256)) ([94041b5](https://github.com/kanso-labs/kanso-ui/commit/94041b5eb04d25cfde9be99d8c5c1e3f54b2bde7))
+
+
+### Bug Fixes
+
+* **card:** clip its overflow rather than hide it, so a flex column cannot squash it below its content ([#1254](https://github.com/kanso-labs/kanso-ui/issues/1254)) ([59d7677](https://github.com/kanso-labs/kanso-ui/commit/59d76772d78166c5fa102def565c587b33677e37))
+* **package:** type the stylesheet subpaths and drop the CSS import from the published index.d.ts ([#1259](https://github.com/kanso-labs/kanso-ui/issues/1259)) ([be632b2](https://github.com/kanso-labs/kanso-ui/commit/be632b2930aea05b70726f7425626ad41ff580df))
+* **styles:** name the library's cascade layer so an app can order Tailwind and its reset around it ([#1258](https://github.com/kanso-labs/kanso-ui/issues/1258)) ([e521c07](https://github.com/kanso-labs/kanso-ui/commit/e521c077ca6e9b2eb47301d3d1cb7d1a612d945b))
+* **token-field:** associate the error message with the editable area ([#1255](https://github.com/kanso-labs/kanso-ui/issues/1255)) ([971dee0](https://github.com/kanso-labs/kanso-ui/commit/971dee0d079e73a998b4c7761afef6362cf18082))
+* **types:** accept ref on the components whose props types reject it ([#1260](https://github.com/kanso-labs/kanso-ui/issues/1260)) ([057154c](https://github.com/kanso-labs/kanso-ui/commit/057154cd6348c94301a8b78096796cea14ff13e5))
+
 ## [0.34.16](https://github.com/kanso-labs/kanso-ui/compare/v0.34.15...v0.34.16) (2026-10-05)
 
 
