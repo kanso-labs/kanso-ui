@@ -2,7 +2,7 @@ import type { StyleXStyles } from '@stylexjs/stylex'
 import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { createElement } from 'react'
 import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
@@ -814,5 +814,46 @@ describe('icon button', () => {
       expect(button.hasAttribute('disabled')).toBe(false)
       expect(button.getAttribute('aria-disabled')).toBe('true')
     })
+  })
+})
+
+// A keyboard's focus draws the variant's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainer})`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+describe('focus layer', () => {
+  it('lays it over the container for a keyboard', () => {
+    const { button } = setup({ variant: 'filled' })
+    const classes = classesOf(focusProbeStyles.filled)
+    expect(classes.every((name) => button.classList.contains(name))).toBe(false)
+
+    focusByKeyboard(button)
+
+    expect(classes.every((name) => button.classList.contains(name))).toBe(true)
+  })
+
+  it("lays it over a toggle's own container", () => {
+    const { button } = setup({ isSelected: false, variant: 'filled' })
+    const classes = classesOf(focusProbeStyles.filledToggle)
+
+    focusByKeyboard(button)
+
+    expect(classes.every((name) => button.classList.contains(name))).toBe(true)
   })
 })

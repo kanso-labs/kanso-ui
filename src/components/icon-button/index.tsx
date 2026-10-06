@@ -316,12 +316,14 @@ const styles = stylex.create({
   },
 })
 
-// The hover and pressed layers, one style per container, applied from React
-// Aria's render state rather than from `:hover` and `:active`, for Button's
-// reasons — see its header: a hover layer stayed on after a tap, and no
-// pressed layer or corner showed for a press made from the keyboard. A
-// chosen toggle's layer keeps its forced-colours `Highlight`, since a later
-// style replaces the property whole.
+// The hover, focus and pressed layers, one style per container, applied from
+// React Aria's render state rather than from `:hover`, `:focus-visible` and
+// `:active`, for Button's reasons — see its header: a hover layer stayed on
+// after a tap, and no pressed layer or corner showed for a press made from
+// the keyboard. In the order they are applied, so where two hold the later
+// wins, as the page draws one layer at a time: focus over hover, and a press
+// over both. A chosen toggle's layer keeps its forced-colours `Highlight`,
+// since a later style replaces the property whole.
 const hovered = stylex.create({
   filled: {
     backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
@@ -359,6 +361,48 @@ const hovered = stylex.create({
   tonalToggleSelected: {
     backgroundColor: {
       default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+const focused = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.focus} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondary})`,
       [FORCED_COLORS]: 'Highlight',
     },
   },
@@ -630,6 +674,7 @@ function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
       styles[size],
       variant === 'outlined' && outlineWidths[size],
       state.isHovered && hovered[variant],
+      state.isFocusVisible && focused[variant],
       state.isPressed && pressed[variant],
       state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
@@ -660,6 +705,7 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
         state.isSelected !== true &&
         outlineWidths[size],
       state.isHovered && hovered[container],
+      state.isFocusVisible && focused[container],
       state.isPressed && pressed[container],
       state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,

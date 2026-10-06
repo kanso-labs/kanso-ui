@@ -47,15 +47,16 @@ function chipLabel(children: ReactNode): ReactNode {
  * uncontrolled chip styles itself without keeping a copy of its state.
  *
  * Shared for the reason `chipGlyph` is: the order is the precedence. The
- * hover and pressed layers come from the render state over the container, a
- * press over a hover, and disabled comes last so it wins over all of them,
- * since StyleX replaces a property whole. `inGroup` is a ChipGroup's
+ * hover, focus and pressed layers come from the render state over the
+ * container — focus over hover, and a press over both — and disabled comes
+ * last so it wins over all of them, since StyleX replaces a property whole. `inGroup` is a ChipGroup's
  * chip, whose touch target reaches only halfway across the gap to the next
  * row; see `targetInGroup` in `./styles`.
  */
 function chipPropsFor(
   state: {
     isDisabled: boolean
+    isFocusVisible: boolean
     isHovered: boolean
     isPressed: boolean
     isSelected: boolean
@@ -72,6 +73,10 @@ function chipPropsFor(
       (state.isSelected
         ? chipLayers.selectedHovered
         : chipLayers.unselectedHovered),
+    state.isFocusVisible &&
+      (state.isSelected
+        ? chipLayers.selectedFocused
+        : chipLayers.unselectedFocused),
     state.isPressed &&
       (state.isSelected
         ? chipLayers.selectedPressed

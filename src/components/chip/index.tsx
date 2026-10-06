@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefAttributes } from 'react'
 import type {
+  FocusableElement,
   ToggleButtonProps as RACToggleButtonProps,
   ToggleButtonRenderProps,
 } from 'react-aria-components'
@@ -9,6 +10,7 @@ import type {
 import { ToggleButton } from 'react-aria-components'
 
 import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
+import { useRipple } from '../../hooks/useRipple'
 import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -26,6 +28,9 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // the handler asks otherwise, which is its convention rather than the DOM's;
 // on the element the handler bubbles, so an Escape pressed on a chip inside
 // a dialog still reaches the dialog.
+//
+// A press ripples, as it does on every other pressable control here: the
+// chips page names the ripple as the pressed state, beside the layer.
 
 type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
   /**
@@ -45,33 +50,53 @@ type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
  */
 function Chip({
   children,
+  onContextMenu,
   onKeyDown,
   onKeyUp,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   render,
   ...props
 }: ChipProps & RefAttributes<HTMLButtonElement>) {
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+  // Off while disabled: React Aria still forwards pointer events to a
+  // disabled element, and a press that changes nothing should not look like
+  // one. Typed as Button's ripple is, since React Aria types a toggle
+  // button's pointer events against a <div> rather than the <button> it
+  // renders.
+  const ripple = useRipple<FocusableElement>(props.isDisabled !== true, {
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
 
   return (
     <ToggleButton
       render={toggleButtonRenderer(element, render)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(chipPropsFor, props)}
     >
-      {chipContent(children)}
+      {chipContent(children, ripple.surface)}
     </ToggleButton>
   )
 }
 
 // What the chip draws, from React Aria's render state: the check while it is
-// selected, then the label. Built by a call rather than written inline at
-// the prop, which is what react-perf's no-new-function-as-prop is after; the
-// React Compiler memoises the result on its input.
-function chipContent(children: ReactNode) {
+// selected, then the label, and the ripple over both. Built by a call rather
+// than written inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after; the React Compiler memoises the result on
+// its inputs.
+function chipContent(children: ReactNode, surface: ReactNode) {
   return (state: ToggleButtonRenderProps) => (
     <>
       {chipGlyph(state.isSelected)}
       {chipLabel(children)}
+      {surface}
     </>
   )
 }

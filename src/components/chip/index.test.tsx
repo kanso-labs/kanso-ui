@@ -1,12 +1,17 @@
 import type { ComponentProps } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Chip from '.'
-import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import { rippleStyles } from '../../styles/ripple'
+import {
+  colors,
+  spacing,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -364,5 +369,95 @@ describe('chip', () => {
 
       expect(checkIn(chip)?.getAttribute('aria-hidden')).toBe('true')
     })
+  })
+})
+
+// A keyboard's focus draws the container's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  selected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
+  unselected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+// A primary mouse button going down over the element's centre, which is the
+// press a ripple answers.
+function pressDown(element: Element) {
+  const rect = element.getBoundingClientRect()
+  fireEvent(
+    element,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      buttons: 1,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+    }),
+  )
+}
+
+// The ripple's inner span carries these classes only while it is pressed.
+const PRESSED_RIPPLE = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+function ripplesIn(element: Element) {
+  const ripple = element.querySelector('span[aria-hidden="true"] > span')
+  return (
+    ripple !== null &&
+    PRESSED_RIPPLE.length > 0 &&
+    PRESSED_RIPPLE.every((name) => ripple.classList.contains(name))
+  )
+}
+
+describe('focus layer and ripple', () => {
+  it.each([
+    ['an unselected', {}, focusProbeStyles.unselected],
+    ['a selected', { defaultSelected: true }, focusProbeStyles.selected],
+  ] as const)(
+    'lays the focus layer over %s chip for a keyboard',
+    (_name, props, layer) => {
+      const { chip } = setup(props)
+      const classes = classesOf(stylex.props(layer))
+      expect(hasClasses(chip, classes)).toBe(false)
+
+      focusByKeyboard(chip)
+
+      expect(hasClasses(chip, classes)).toBe(true)
+    },
+  )
+
+  // The chips page names the ripple as the pressed state, as every other
+  // pressable control here draws it.
+  it('ripples under a press', () => {
+    const { chip } = setup()
+    expect(ripplesIn(chip)).toBe(false)
+
+    pressDown(chip)
+
+    expect(ripplesIn(chip)).toBe(true)
+  })
+
+  it('draws no ripple while disabled', () => {
+    const { chip } = setup({ isDisabled: true })
+
+    pressDown(chip)
+
+    expect(chip.querySelector('span[aria-hidden="true"]')).toBeNull()
   })
 })

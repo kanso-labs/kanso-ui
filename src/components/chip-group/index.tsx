@@ -29,6 +29,7 @@ import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
 import { groupStyles } from '../../field/styles'
 import { CloseGlyph } from '../../glyphs'
+import { useRipple } from '../../hooks/useRipple'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -133,11 +134,22 @@ type ChipGroupProps<T extends object = object> = {
 // draw the same one. The close target is drawn only where the group allows
 // removing, which React Aria reports rather than the call site saying so on
 // every chip.
-function chipContent(children: ReactNode, removeLabel: string | undefined) {
+//
+// The ripple is drawn only on a chip a press does something to: one the
+// group lets be selected, and not disabled. A chip in a group that selects
+// nothing is a control only for its close target, and React Aria reports
+// neither hover nor press on it, so a ripple there would answer a press that
+// changes nothing.
+function chipContent(
+  children: ReactNode,
+  removeLabel: string | undefined,
+  surface: ReactNode,
+) {
   return (state: TagRenderProps) => (
     <>
       {chipGlyph(state.isSelected)}
       {chipLabel(children)}
+      {state.selectionMode !== 'none' && !state.isDisabled ? surface : null}
       {state.allowsRemoving ? (
         <RACButton
           aria-label={removeLabel}
@@ -226,16 +238,39 @@ function ChipGroup<T extends object = object>({
  * One chip. Give every chip an `id` — that is the key selection and removal
  * are reported by.
  */
-function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
+function ChipGroupChip({
+  children,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
+  ...props
+}: ChipGroupChipProps) {
   const removeLabel = useContext(RemoveLabelContext)
+  // The press ripple a list's rows draw — see ListItem there. A chip in a
+  // group is a collection row, whose clicks React Aria keeps for itself, so
+  // the press ends when the pointer is released rather than on a click.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
 
   return (
     <RACTag
       textValue={props.textValue ?? textOf(children)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(groupChipPropsFor, props)}
     >
-      {chipContent(children, removeLabel)}
+      {chipContent(children, removeLabel, ripple.surface)}
     </RACTag>
   )
 }

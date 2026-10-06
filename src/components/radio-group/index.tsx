@@ -139,6 +139,16 @@ const hoverLayers = stylex.create({
   },
 })
 
+// A keyboard's focus draws the hover layer's colour at the focus opacity.
+const focusLayers = stylex.create({
+  selected: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  unselected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
 const pressedLayers = stylex.create({
   selected: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
@@ -210,6 +220,7 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
             state.isReadOnly && controlStyles.controlReadOnly,
             state.isDisabled && controlStyles.controlDisabled,
             interactive && state.isHovered && hoverLayers[tone],
+            interactive && state.isFocusVisible && focusLayers[tone],
             interactive && state.isPressed && pressedLayers[tone],
             state.isFocusVisible && focus.ringVisible,
           )}
