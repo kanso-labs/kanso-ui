@@ -152,8 +152,11 @@ const styles = stylex.create({
   },
   // Drawn inside the cell's edges, so a focused header or row shows its
   // whole ring rather than having the outer half clipped by the table.
+  //
+  // In the text's own colour under forced colours, as a row's is — see
+  // `focusVisible` in src/row/styles.ts.
   focus: {
-    outlineColor: colors.primary,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'currentColor' },
     outlineOffset: '-2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
@@ -305,13 +308,24 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+    // Back to the mode, which a selected row opts out of.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
   // The row's layers composite over `transparent` rather than a container
   // colour, so the row tints whatever the table is sitting on. The selected
-  // state is the one that brings a container of its own.
+  // state is the one that brings a container of its own, and under forced
+  // colours it is `Highlight` under `HighlightText`, out of the mode's
+  // adjusting, for the reasons `selectedList` in src/row/styles.ts gives.
   rowSelected: {
-    backgroundColor: colors.primaryContainer,
-    color: colors.onPrimaryContainer,
+    backgroundColor: {
+      default: colors.primaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   // Wide enough for the checkbox and its 16dp on each side, and no wider —
   // a selection column holds one control and should not take the room a

@@ -105,6 +105,12 @@ const rise = stylex.keyframes({
   to: { opacity: 1, transform: 'translateY(0)' },
 })
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // The action: a text button in the page's inverse primary, at the label
   // large the page gives it.
@@ -232,7 +238,15 @@ const styles = stylex.create({
     animationName: rise,
     animationTimingFunction: motion.easingEmphasizedDecelerate,
     backgroundColor: colors.inverseSurface,
+    // What the strip's edge becomes under forced colours, where the
+    // `boxShadow` below is gone and the fill is painted in `Canvas`: a
+    // `CanvasText` border, as `popup` in src/styles/overlay.ts draws for
+    // every anchored surface. Without it the message sat on the page with
+    // nothing at its edge. Inside the size, since the strip is `border-box`.
+    borderColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderRadius: radii.xs,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxShadow: shadows.elevation3,
     boxSizing: 'border-box',
     display: 'flex',

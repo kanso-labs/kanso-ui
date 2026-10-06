@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 
-import { fireEvent, render } from '@testing-library/react'
+import * as stylex from '@stylexjs/stylex'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
@@ -11,8 +12,11 @@ import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
 import Dialog from '../components/dialog'
 import IconButton from '../components/icon-button'
+import List from '../components/list'
+import ListBox from '../components/list-box'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
+import NavigationTree from '../components/navigation-tree'
 import Popover from '../components/popover'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
@@ -21,9 +25,15 @@ import SearchField from '../components/search-field'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
+import Snackbar from '../components/snackbar'
 import Switch from '../components/switch'
+import Table from '../components/table'
+import Tabs from '../components/tabs'
 import Tooltip from '../components/tooltip'
+import Tree from '../components/tree'
 import { CalendarDate } from '../date'
+import { dragStyles } from '../drag/styles'
+import { rowStyles } from '../row/styles'
 import { declarationsHeld } from './stylesheet.testing'
 
 const FORCED_COLORS = 'forced-colors: active'
@@ -816,5 +826,258 @@ describe('a state told by a fill alone', () => {
 
     expect(rules.get('background-color')).toBe('highlight')
     expect(rules.get('color')).toBe('highlighttext')
+  })
+})
+
+// A selection drawn as a fill alone: forced colours paint the fill in
+// `Canvas` and the text in `CanvasText`, so a chosen option, the current
+// page in a drawer and the open tab looked like everything around them.
+// Each is drawn in `Highlight` instead, a row under `HighlightText` and out
+// of the mode's adjusting, as the calendar's chosen dates are.
+const FIRST_KEY = ['first']
+
+/** The row a selecting list draws for its first, selected, item. */
+function selectedRowOf(element: ReactElement, role: string): Element {
+  const view = render(element)
+  const row = view
+    .getAllByRole(role)
+    .find((candidate) => candidate.getAttribute('aria-selected') === 'true')
+
+  if (row === undefined) {
+    throw new Error(`expected a selected ${role}`)
+  }
+
+  return row
+}
+
+const SELECTED_ROWS: ReadonlyArray<{ name: string; row: () => Element }> = [
+  {
+    name: 'a ListBox option',
+    row: () =>
+      selectedRowOf(
+        <ListBox
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <ListBox.Item id="first">First item</ListBox.Item>
+          <ListBox.Item id="second">Second item</ListBox.Item>
+        </ListBox>,
+        'option',
+      ),
+  },
+  {
+    name: 'a List row',
+    row: () =>
+      selectedRowOf(
+        <List
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <List.Item id="first">First item</List.Item>
+          <List.Item id="second">Second item</List.Item>
+        </List>,
+        'row',
+      ),
+  },
+  {
+    name: 'a Tree row',
+    row: () =>
+      selectedRowOf(
+        <Tree
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <Tree.Item headline="First item" id="first" />
+          <Tree.Item headline="Second item" id="second" />
+        </Tree>,
+        'row',
+      ),
+  },
+  {
+    name: 'a Table row',
+    row: () =>
+      selectedRowOf(
+        <Table
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <Table.Header>
+            <Table.Column id="colName" isRowHeader>
+              Label
+            </Table.Column>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row id="first">
+              <Table.Cell>First item</Table.Cell>
+            </Table.Row>
+            <Table.Row id="second">
+              <Table.Cell>Second item</Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>,
+        'row',
+      ),
+  },
+  {
+    name: 'a Menu item',
+    row: () => {
+      render(
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Menu.Content defaultSelectedKeys={FIRST_KEY} selectionMode="single">
+            <Menu.Item id="first">First item</Menu.Item>
+            <Menu.Item id="second">Second item</Menu.Item>
+          </Menu.Content>
+        </Menu>,
+      )
+      const item = screen
+        .getAllByRole('menuitemradio')
+        .find((candidate) => candidate.getAttribute('aria-checked') === 'true')
+      if (item === undefined) {
+        throw new Error('expected a checked menu item')
+      }
+      return item
+    },
+  },
+  {
+    name: "a NavigationTree's current row",
+    row: () => {
+      const view = render(
+        <NavigationTree aria-label="Label" selectedRoute="#first">
+          <NavigationTree.Item href="#first" id="first" label="First item" />
+          <NavigationTree.Item href="#second" id="second" label="Second item" />
+        </NavigationTree>,
+      )
+      const row = view
+        .getAllByRole('row')
+        .find((candidate) => candidate.getAttribute('data-current') === 'true')
+      if (row === undefined) {
+        throw new Error('expected a current row')
+      }
+      return row
+    },
+  },
+]
+
+describe('a selection told by a fill alone', () => {
+  it.each(SELECTED_ROWS)('draws $name in Highlight', ({ row }) => {
+    const rules = forcedColorRules(row())
+
+    expect(rules.get('background-color')).toBe('highlight')
+    expect(rules.get('color')).toBe('highlighttext')
+    expect(rules.get('forced-color-adjust')).toBe('none')
+  })
+
+  // Out of the mode's adjusting, a child naming a colour of its own keeps
+  // it, so the supporting line under a selected row names one too.
+  it("draws a selected row's supporting line in HighlightText", () => {
+    const view = render(
+      <ListBox
+        aria-label="Label"
+        defaultSelectedKeys={FIRST_KEY}
+        selectionMode="single"
+      >
+        <ListBox.Item id="first" supporting="Supporting line">
+          First item
+        </ListBox.Item>
+      </ListBox>,
+    )
+
+    expect(
+      forcedColorRules(view.getByText('Supporting line')).get('color'),
+    ).toBe('highlighttext')
+  })
+
+  // A row's ring takes its text's colour, which is `HighlightText` on a
+  // selected row and whatever the mode gives the text on any other.
+  it("draws a row's focus ring in the row's own colour", () => {
+    const view = render(<div {...stylex.props(rowStyles.focusVisible)} />)
+    const ring = view.container.firstElementChild
+
+    if (ring === null) {
+      throw new Error('expected the probe to render')
+    }
+
+    expect(forcedColorRules(ring).get('outline-color')).toBe('currentcolor')
+  })
+
+  // A disabled row hands its colours back to the mode, whatever it was.
+  it('hands a disabled selected row back to the mode', () => {
+    const view = render(
+      <ListBox
+        aria-label="Label"
+        defaultSelectedKeys={FIRST_KEY}
+        disabledKeys={FIRST_KEY}
+        selectionMode="single"
+      >
+        <ListBox.Item id="first">First item</ListBox.Item>
+      </ListBox>,
+    )
+
+    expect(
+      forcedColorRules(view.getByRole('option')).get('forced-color-adjust'),
+    ).toBe('auto')
+  })
+
+  // The indicator is the only mark of the open tab: the active label
+  // differs from the others in colour alone, which the mode takes too.
+  it("draws the open tab's indicator as a Highlight border", () => {
+    const view = render(
+      <Tabs defaultSelectedKey="first">
+        <Tabs.List aria-label="Label">
+          <Tabs.Tab id="first">First item</Tabs.Tab>
+          <Tabs.Tab id="second">Second item</Tabs.Tab>
+        </Tabs.List>
+      </Tabs>,
+    )
+    const tab = view.getByRole('tab', { name: 'First item' })
+    const indicator = [...tab.querySelectorAll('*')].find(
+      (element) =>
+        forcedColorRules(element).get('border-top-color') === 'highlight',
+    )
+
+    expect(indicator).toBeDefined()
+    expect(forcedColorRules(indicator!).get('border-top-width')).toBe('3px')
+  })
+
+  // React Aria draws a drop line only while a drag is in flight, which a
+  // test cannot start, so the line's styles are applied directly.
+  it('draws the line a drag will land on as a Highlight border', () => {
+    const view = render(
+      <div
+        {...stylex.props(dragStyles.indicator, dragStyles.indicatorActive)}
+      />,
+    )
+    const line = view.container.firstElementChild
+
+    if (line === null) {
+      throw new Error('expected the probe to render')
+    }
+
+    const rules = forcedColorRules(line)
+    expect(rules.get('border-top-style')).toBe('solid')
+    expect(rules.get('border-top-color')).toBe('highlight')
+  })
+
+  // The strip is an inverse fill under a shadow, and the mode removes both,
+  // so the message sat on the page with nothing at its edge.
+  it("gives a snackbar's strip a CanvasText border", () => {
+    const queue = new Snackbar.Queue()
+    queue.add('First item')
+    render(<Snackbar queue={queue} />)
+    const strip = screen.getByText('First item').closest('[role="alertdialog"]')
+
+    if (strip === null) {
+      throw new Error('expected the message to sit in its strip')
+    }
+
+    const rules = forcedColorRules(strip)
+    expect(rules.get('border-top-style')).toBe('solid')
+    expect(rules.get('border-top-width')).toBe('1px')
+    expect(rules.get('border-top-color')).toBe('canvastext')
   })
 })
