@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Badge from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 import Separator from '../separator'
 import Text from '../text'
@@ -23,8 +23,11 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xs,
   },
+  // The colour a standard icon button gives its icon, so a bare one reads
+  // on the surface in either theme.
   icon: {
     blockSize: '24px',
+    color: colors.onSurfaceVariant,
     inlineSize: '24px',
   },
   intro: {
