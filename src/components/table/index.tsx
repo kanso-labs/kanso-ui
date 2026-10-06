@@ -382,7 +382,8 @@ type TableLoadMoreProps = Omit<RACTableLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
@@ -795,10 +796,7 @@ function TableHeader<T extends object = object>(props: TableHeaderProps<T>) {
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`. It goes inside `Table.Body`, after the rows.
  */
-function TableLoadMore({
-  label = 'Loading more',
-  ...props
-}: TableLoadMoreProps) {
+function TableLoadMore({ label, ...props }: TableLoadMoreProps) {
   return (
     <RACTableLoadMoreItem
       {...props}

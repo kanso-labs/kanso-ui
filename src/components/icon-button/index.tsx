@@ -21,6 +21,7 @@ import {
 import type { ButtonDOMProps, ButtonState } from '../button'
 
 import { useRipple } from '../../hooks/useRipple'
+import { useMessages } from '../../i18n'
 import {
   ariaAttributesOf,
   buttonRenderer,
@@ -473,8 +474,8 @@ type IconButtonProps = {
   onChange?: (isSelected: boolean) => void
   /**
    * The name of the ring shown while the button is pending, for a screen
-   * reader. The label it replaces is hidden while it shows.
-   * @default 'Loading'
+   * reader. The label it replaces is hidden while it shows. Left out, it is
+   * the word for it in the I18nProvider's locale — "Loading" in English.
    */
   pendingLabel?: string
   /** The link's `rel`, when `href` is set. */
@@ -589,7 +590,7 @@ function IconButton({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
-  pendingLabel = 'Loading',
+  pendingLabel,
   ref,
   rel,
   render,
@@ -598,6 +599,8 @@ function IconButton({
   variant = 'standard',
   ...props
 }: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  const messages = useMessages()
+
   // A field's context may disable the button — a number field's stepper at
   // the end of its range, a search field's clear button with the field — and
   // React Aria takes a prop over its context, so a default of `false` here
@@ -702,7 +705,7 @@ function IconButton({
       {...props}
       {...styleProps}
     >
-      {buttonContent(children, pendingLabel, ripple)}
+      {buttonContent(children, pendingLabel ?? messages.loading, ripple)}
     </RACButton>
   )
 }

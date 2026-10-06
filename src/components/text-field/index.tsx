@@ -32,8 +32,9 @@ type TextFieldProps = Omit<
    * How the limit is said to a screen reader, where there is a `maxLength`.
    * Read with the field on focus rather than as the value changes, so it
    * names the limit and not what is left of it. The visible count is hidden
-   * from the tree, which is what this replaces.
-   * @default `Up to ${maxLength} characters`, singular for a limit of one
+   * from the tree, which is what this replaces. Left out, it is the
+   * sentence for it in the I18nProvider's locale — "Up to 20 characters" in
+   * English, singular for a limit of one.
    */
   characterLimitLabel?: string
   /**
