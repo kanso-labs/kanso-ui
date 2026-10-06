@@ -370,44 +370,50 @@ export { colorsDarkTheme }
 
 const typography = stylex.defineVars({
   bodyLargeFont:
-    "var(--kui-typography-body-large-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-body-large-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   bodyLargeLineHeight: 'var(--kui-typography-body-large-line-height, 24px)',
   bodyLargeSize: 'var(--kui-typography-body-large-size, 16px)',
   bodyLargeTracking: 'var(--kui-typography-body-large-tracking, 0.5px)',
-  bodyLargeWeight: 'var(--kui-typography-body-large-weight, 400)',
+  bodyLargeWeight:
+    'var(--kui-typography-body-large-weight, var(--kui-typography-weight-regular, 400))',
   bodyMediumFont:
-    "var(--kui-typography-body-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-body-medium-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   bodyMediumLineHeight: 'var(--kui-typography-body-medium-line-height, 20px)',
   bodyMediumSize: 'var(--kui-typography-body-medium-size, 14px)',
   bodyMediumTracking: 'var(--kui-typography-body-medium-tracking, 0.25px)',
-  bodyMediumWeight: 'var(--kui-typography-body-medium-weight, 400)',
+  bodyMediumWeight:
+    'var(--kui-typography-body-medium-weight, var(--kui-typography-weight-regular, 400))',
   bodySmallFont:
-    "var(--kui-typography-body-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-body-small-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   bodySmallLineHeight: 'var(--kui-typography-body-small-line-height, 16px)',
   bodySmallSize: 'var(--kui-typography-body-small-size, 12px)',
   bodySmallTracking: 'var(--kui-typography-body-small-tracking, 0.4px)',
-  bodySmallWeight: 'var(--kui-typography-body-small-weight, 400)',
+  bodySmallWeight:
+    'var(--kui-typography-body-small-weight, var(--kui-typography-weight-regular, 400))',
   displayLargeFont:
-    "var(--kui-typography-display-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-display-large-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   displayLargeLineHeight:
     'var(--kui-typography-display-large-line-height, 64px)',
   displayLargeSize: 'var(--kui-typography-display-large-size, 57px)',
   displayLargeTracking: 'var(--kui-typography-display-large-tracking, -0.25px)',
-  displayLargeWeight: 'var(--kui-typography-display-large-weight, 400)',
+  displayLargeWeight:
+    'var(--kui-typography-display-large-weight, var(--kui-typography-weight-regular, 400))',
   displayMediumFont:
-    "var(--kui-typography-display-medium-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-display-medium-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   displayMediumLineHeight:
     'var(--kui-typography-display-medium-line-height, 52px)',
   displayMediumSize: 'var(--kui-typography-display-medium-size, 45px)',
   displayMediumTracking: 'var(--kui-typography-display-medium-tracking, 0px)',
-  displayMediumWeight: 'var(--kui-typography-display-medium-weight, 400)',
+  displayMediumWeight:
+    'var(--kui-typography-display-medium-weight, var(--kui-typography-weight-regular, 400))',
   displaySmallFont:
-    "var(--kui-typography-display-small-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-display-small-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   displaySmallLineHeight:
     'var(--kui-typography-display-small-line-height, 44px)',
   displaySmallSize: 'var(--kui-typography-display-small-size, 36px)',
   displaySmallTracking: 'var(--kui-typography-display-small-tracking, 0px)',
-  displaySmallWeight: 'var(--kui-typography-display-small-weight, 400)',
+  displaySmallWeight:
+    'var(--kui-typography-display-small-weight, var(--kui-typography-weight-regular, 400))',
   fontFamilyBrand:
     "var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
   fontFamilyMono:
@@ -415,62 +421,71 @@ const typography = stylex.defineVars({
   fontFamilyPlain:
     "var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
   headlineLargeFont:
-    "var(--kui-typography-headline-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-headline-large-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   headlineLargeLineHeight:
     'var(--kui-typography-headline-large-line-height, 40px)',
   headlineLargeSize: 'var(--kui-typography-headline-large-size, 32px)',
   headlineLargeTracking: 'var(--kui-typography-headline-large-tracking, 0px)',
-  headlineLargeWeight: 'var(--kui-typography-headline-large-weight, 400)',
+  headlineLargeWeight:
+    'var(--kui-typography-headline-large-weight, var(--kui-typography-weight-regular, 400))',
   headlineMediumFont:
-    "var(--kui-typography-headline-medium-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-headline-medium-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   headlineMediumLineHeight:
     'var(--kui-typography-headline-medium-line-height, 36px)',
   headlineMediumSize: 'var(--kui-typography-headline-medium-size, 28px)',
   headlineMediumTracking: 'var(--kui-typography-headline-medium-tracking, 0px)',
-  headlineMediumWeight: 'var(--kui-typography-headline-medium-weight, 400)',
+  headlineMediumWeight:
+    'var(--kui-typography-headline-medium-weight, var(--kui-typography-weight-regular, 400))',
   headlineSmallFont:
-    "var(--kui-typography-headline-small-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-headline-small-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   headlineSmallLineHeight:
     'var(--kui-typography-headline-small-line-height, 32px)',
   headlineSmallSize: 'var(--kui-typography-headline-small-size, 24px)',
   headlineSmallTracking: 'var(--kui-typography-headline-small-tracking, 0px)',
-  headlineSmallWeight: 'var(--kui-typography-headline-small-weight, 400)',
+  headlineSmallWeight:
+    'var(--kui-typography-headline-small-weight, var(--kui-typography-weight-regular, 400))',
   labelLargeFont:
-    "var(--kui-typography-label-large-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-label-large-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   labelLargeLineHeight: 'var(--kui-typography-label-large-line-height, 20px)',
   labelLargeSize: 'var(--kui-typography-label-large-size, 14px)',
   labelLargeTracking: 'var(--kui-typography-label-large-tracking, 0.1px)',
-  labelLargeWeight: 'var(--kui-typography-label-large-weight, 500)',
+  labelLargeWeight:
+    'var(--kui-typography-label-large-weight, var(--kui-typography-weight-medium, 500))',
   labelMediumFont:
-    "var(--kui-typography-label-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-label-medium-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   labelMediumLineHeight: 'var(--kui-typography-label-medium-line-height, 16px)',
   labelMediumSize: 'var(--kui-typography-label-medium-size, 12px)',
   labelMediumTracking: 'var(--kui-typography-label-medium-tracking, 0.5px)',
-  labelMediumWeight: 'var(--kui-typography-label-medium-weight, 500)',
+  labelMediumWeight:
+    'var(--kui-typography-label-medium-weight, var(--kui-typography-weight-medium, 500))',
   labelSmallFont:
-    "var(--kui-typography-label-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-label-small-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   labelSmallLineHeight: 'var(--kui-typography-label-small-line-height, 16px)',
   labelSmallSize: 'var(--kui-typography-label-small-size, 11px)',
   labelSmallTracking: 'var(--kui-typography-label-small-tracking, 0.5px)',
-  labelSmallWeight: 'var(--kui-typography-label-small-weight, 500)',
+  labelSmallWeight:
+    'var(--kui-typography-label-small-weight, var(--kui-typography-weight-medium, 500))',
   titleLargeFont:
-    "var(--kui-typography-title-large-font, 'Roboto Serif', 'Iowan Old Style', Georgia, serif)",
+    "var(--kui-typography-title-large-font, var(--kui-typography-font-family-brand, 'Roboto Serif', 'Iowan Old Style', Georgia, serif))",
   titleLargeLineHeight: 'var(--kui-typography-title-large-line-height, 28px)',
   titleLargeSize: 'var(--kui-typography-title-large-size, 22px)',
   titleLargeTracking: 'var(--kui-typography-title-large-tracking, 0px)',
-  titleLargeWeight: 'var(--kui-typography-title-large-weight, 400)',
+  titleLargeWeight:
+    'var(--kui-typography-title-large-weight, var(--kui-typography-weight-regular, 400))',
   titleMediumFont:
-    "var(--kui-typography-title-medium-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-title-medium-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   titleMediumLineHeight: 'var(--kui-typography-title-medium-line-height, 24px)',
   titleMediumSize: 'var(--kui-typography-title-medium-size, 16px)',
   titleMediumTracking: 'var(--kui-typography-title-medium-tracking, 0.15px)',
-  titleMediumWeight: 'var(--kui-typography-title-medium-weight, 500)',
+  titleMediumWeight:
+    'var(--kui-typography-title-medium-weight, var(--kui-typography-weight-medium, 500))',
   titleSmallFont:
-    "var(--kui-typography-title-small-font, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+    "var(--kui-typography-title-small-font, var(--kui-typography-font-family-plain, 'Roboto Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif))",
   titleSmallLineHeight: 'var(--kui-typography-title-small-line-height, 20px)',
   titleSmallSize: 'var(--kui-typography-title-small-size, 14px)',
   titleSmallTracking: 'var(--kui-typography-title-small-tracking, 0.1px)',
-  titleSmallWeight: 'var(--kui-typography-title-small-weight, 500)',
+  titleSmallWeight:
+    'var(--kui-typography-title-small-weight, var(--kui-typography-weight-medium, 500))',
   weightBold: 'var(--kui-typography-weight-bold, 700)',
   weightMedium: 'var(--kui-typography-weight-medium, 500)',
   weightRegular: 'var(--kui-typography-weight-regular, 400)',
