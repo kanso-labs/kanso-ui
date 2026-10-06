@@ -138,12 +138,14 @@ import type {
   TooltipSide,
   TreeProps,
 } from '.'
+import type { BadgeProps } from './badge'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
+import BadgeDefault from './badge'
 import BreadcrumbsDefault, { BreadcrumbsItem } from './breadcrumbs'
 import ButtonDefault from './button'
 import CalendarDefault from './calendar'
@@ -321,6 +323,7 @@ describe('components barrel', () => {
       'AppBar',
       'Autocomplete',
       'Avatar',
+      'Badge',
       'Breadcrumbs',
       'BreadcrumbsItem',
       'Button',
@@ -452,6 +455,7 @@ describe('components barrel', () => {
     AppBar: [components.AppBar, AppBarDefault],
     Autocomplete: [components.Autocomplete, AutocompleteDefault],
     Avatar: [components.Avatar, AvatarDefault],
+    Badge: [components.Badge, BadgeDefault],
     Breadcrumbs: [components.Breadcrumbs, BreadcrumbsDefault],
     BreadcrumbsItem: [components.BreadcrumbsItem, BreadcrumbsItem],
     Button: [components.Button, ButtonDefault],
@@ -1306,5 +1310,10 @@ describe('components barrel', () => {
       isFocused: false,
     }
     expect(state.isFocused).toBe(false)
+  })
+
+  it('re-exports the BadgeProps type', () => {
+    const props: BadgeProps = { children: 'test' }
+    expect(props.children).toBe('test')
   })
 })

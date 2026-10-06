@@ -194,6 +194,15 @@ export type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
 };
 
 // @public
+export function Badge(input: BadgeProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+
+// @public (undocumented)
+export type BadgeProps = RenderComponentProps<'span'> & {
+    count?: number;
+    max?: number;
+};
+
+// @public
 export function Breadcrumbs<T extends object = object>(props: BreadcrumbsProps<T> & RefAttributes<HTMLOListElement>): JSX;
 
 // @public (undocumented)

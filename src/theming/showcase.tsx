@@ -32,6 +32,7 @@ import type { DemoThemeName } from './themes'
 import AppBar from '../components/app-bar'
 import Autocomplete from '../components/autocomplete'
 import Avatar from '../components/avatar'
+import Badge from '../components/badge'
 import Breadcrumbs from '../components/breadcrumbs'
 import Button from '../components/button'
 import Calendar from '../components/calendar'
@@ -519,6 +520,24 @@ function Showcase({ name }: ShowcaseProps) {
                 <Avatar key={tone} name="Ada Lovelace" tone={tone} />
               ))}
               <Avatar name="Grace Hopper" size="lg" />
+            </div>
+          </Section>
+
+          <Section
+            description="The error pair, which a scheme sets like any other role, on the corner of an icon: the small dot, and the large badge holding a count. Each sits on an icon button whose name carries what the mark says."
+            title="Badge"
+          >
+            <div {...stylex.props(styles.inline)}>
+              <IconButton aria-label="Label, new">
+                <Badge>
+                  <MenuIcon />
+                </Badge>
+              </IconButton>
+              <IconButton aria-label="Label, 3 new">
+                <Badge count={3}>
+                  <MenuIcon />
+                </Badge>
+              </IconButton>
             </div>
           </Section>
 
