@@ -30,6 +30,7 @@ import {
   TextArea,
   TextAreaContext,
   TextContext,
+  useLocale,
   useSlottedContext,
   VisuallyHidden,
 } from 'react-aria-components'
@@ -170,7 +171,8 @@ interface FieldMessageProps {
   /**
    * Whether to count the characters the control holds at the end of the
    * line, against `maxLength` where there is one. The count is read off the
-   * field's own input or text area context.
+   * field's own input or text area context, and written in the locale's
+   * digits and grouping.
    * @default false
    */
   characterCount?: boolean
@@ -786,6 +788,7 @@ function FieldMessage({
 }: FieldMessageProps) {
   const validation = useContext(FieldErrorContext)
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
+  const { locale } = useLocale()
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
   const insideForm = useInsideForm()
@@ -925,11 +928,33 @@ function FieldMessage({
             invalid && fieldChromeStyles.messageError,
           )}
         >
-          {maxLength === undefined ? length : `${length}/${maxLength}`}
+          {countIn(locale, length, maxLength)}
         </span>
       ) : null}
     </div>
   )
+}
+
+// The count in the reader's digits and grouping, as React Aria writes a
+// number field's value and a meter's percentage beside it — Arabic-Indic
+// under ar-EG, `1 200` under fr-FR, and `1,200` in English. One formatter per
+// locale, for the reason Currency keeps its own: building one is about ten
+// times dearer than reusing it, and the count changes on every keystroke.
+const counterFormatters = new Map<string, Intl.NumberFormat>()
+
+function countIn(
+  locale: string,
+  length: number,
+  maxLength: number | undefined,
+) {
+  let formatter = counterFormatters.get(locale)
+  if (formatter === undefined) {
+    formatter = new Intl.NumberFormat(locale)
+    counterFormatters.set(locale, formatter)
+  }
+  return maxLength === undefined
+    ? formatter.format(length)
+    : `${formatter.format(length)}/${formatter.format(maxLength)}`
 }
 
 export type {

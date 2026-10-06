@@ -1,6 +1,7 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
+import { useLocale } from 'react-aria-components'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -53,8 +54,9 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    */
   currency?: string
   /**
-   * BCP 47 locale to format for. Defaults to the runtime's own locale, so an
-   * app that has not chosen one still formats the way its reader expects.
+   * BCP 47 locale to format for. Defaults to React Aria's `I18nProvider`, as
+   * the date and number fields do, so an amount reads in the locale the app
+   * set — and to the browser's language where there is no provider.
    */
   locale?: string
   /**
@@ -94,11 +96,20 @@ function Currency({
   value,
   ...props
 }: CurrencyProps) {
+  // React Aria holds the locale steady through hydration, where the runtime's
+  // default differs between the server and the browser and the amount's text
+  // would not match.
+  const provided = useLocale().locale
+
   return useRender({
     defaultTagName: 'span',
     props: {
       ...props,
-      children: formatCurrency(value, { currency, locale, sign }),
+      children: formatCurrency(value, {
+        currency,
+        locale: locale ?? provided,
+        sign,
+      }),
       ...mergeStyles(
         stylex.props(styles.base, tones[resolveTone(value, tone)]),
         props,
@@ -135,7 +146,7 @@ function formatCurrency(
   value: number,
   options: {
     currency: string
-    locale: string | undefined
+    locale: string
     sign: CurrencySignDisplay
   },
 ) {
@@ -146,14 +157,14 @@ function formatCurrency(
 }
 
 function formatterFor(
-  locale: string | undefined,
+  locale: string,
   currency: string,
   sign: CurrencySignDisplay,
 ) {
   // Neither a BCP 47 locale nor an ISO 4217 code can contain a vertical bar
   // and `sign` is one of three known words, so joining on one cannot make two
   // different option sets share a key.
-  const key = `${locale ?? ''}|${currency}|${sign}`
+  const key = `${locale}|${currency}|${sign}`
   const cached = formatters.get(key)
   if (cached) {
     return cached
