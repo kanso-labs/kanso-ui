@@ -423,6 +423,11 @@ function boxStyles(
         (outlined
           ? fieldChromeStyles.boxOutlinedError
           : fieldChromeStyles.boxError),
+      outlined &&
+        state.isHovered &&
+        (state.isInvalid
+          ? fieldChromeStyles.boxOutlinedErrorHovered
+          : fieldChromeStyles.boxOutlinedHovered),
       state.isDisabled &&
         (outlined
           ? fieldChromeStyles.boxOutlinedDisabled

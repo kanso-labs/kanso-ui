@@ -286,14 +286,24 @@ function DisclosurePanel({ children, ...props }: DisclosurePanelProps) {
 // follows is its own page, and that page gives a headline and a supporting
 // line — the three-line item belongs to the lists page, which `List.Item`
 // and `ListBox.Item` draw.
+//
+// The hover and pressed layers come from the trigger's render state, like
+// every other row React Aria hosts — see `focusVisible` in
+// `src/row/styles.ts` for the order they are drawn in.
 function headerClassName(supporting: ReactNode) {
-  return (state: { isDisabled: boolean }) =>
+  return (state: {
+    isDisabled: boolean
+    isHovered: boolean
+    isPressed: boolean
+  }) =>
     stylex.props(
       rowStyles.base,
       rowStyles.list,
       rowStyles.interactive,
       styles.header,
       supporting !== undefined && rowStyles.twoLine,
+      state.isHovered && rowStyles.hovered,
+      state.isPressed && rowStyles.pressed,
       state.isDisabled && rowStyles.disabled,
     ).className ?? ''
 }

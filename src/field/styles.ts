@@ -328,7 +328,6 @@ const fieldChromeStyles = stylex.create({
     boxShadow: 'none',
     color: {
       ':focus-within': colors.primary,
-      ':hover': colors.onSurface,
       default: colors.outline,
     },
     paddingBlockEnd: spacing.lg,
@@ -347,10 +346,13 @@ const fieldChromeStyles = stylex.create({
     },
   },
   boxOutlinedError: {
+    color: colors.error,
+  },
+  // The hovered outline with an error — see `boxOutlinedHovered`.
+  boxOutlinedErrorHovered: {
     color: {
       ':focus-within': colors.error,
-      ':hover': colors.onErrorContainer,
-      default: colors.error,
+      default: colors.onErrorContainer,
     },
   },
   // The resting label's line is the box less 16dp above and below, which
@@ -361,6 +363,17 @@ const fieldChromeStyles = stylex.create({
       ':has(:is(input, textarea):not(:placeholder-shown))':
         typography.bodySmallLineHeight,
       default: `calc(${BOX_OUTLINED_BLOCK_SIZE} - 2 * ${spacing.lg})`,
+    },
+  },
+  // The hovered outline, in on surface. From the box's render state rather
+  // than `:hover`, which stayed on after a tap, and it repeats the focused
+  // colour because StyleX replaces a property whole and focus wins over
+  // hover. `boxStyles` applies it after the error style, so an invalid box
+  // takes `boxOutlinedErrorHovered` in its place.
+  boxOutlinedHovered: {
+    color: {
+      ':focus-within': colors.primary,
+      default: colors.onSurface,
     },
   },
   // Outlined and multi-line: the outlined box's 16dp above and below the

@@ -17,15 +17,37 @@ import {
 // literals, so the assertions pin which role each variant reaches for without
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  // The hover and pressed tints, each the variant's icon colour over its
+  // container, written as the component writes them so they hash to the same
+  // atomic classes. Outlined and standard share theirs, since both draw the
+  // muted icon over nothing.
+  hoverFilled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+  },
+  hoverMuted: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  hoverTonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
   inversePair: {
     backgroundColor: colors.inverseSurface,
     color: colors.inverseOnSurface,
   },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { borderColor: colors.outlineVariant },
-  pressedLarge: { borderRadius: { ':active': radii.lg, default: radii.pill } },
-  pressedMedium: { borderRadius: { ':active': radii.md, default: radii.pill } },
-  pressedSmall: { borderRadius: { ':active': radii.sm, default: radii.pill } },
+  pressedLarge: { borderRadius: radii.lg },
+  pressedMedium: { borderRadius: radii.md },
+  pressedSmall: { borderRadius: radii.sm },
+  pressFilled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+  },
+  pressMuted: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  pressTonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+  },
   primary: { backgroundColor: colors.primary },
   primaryText: { color: colors.primary },
   radiusFull: { borderRadius: radii.pill },
@@ -33,31 +55,6 @@ const probeStyles = stylex.create({
   secondary: { backgroundColor: colors.secondary },
   secondaryContainer: { backgroundColor: colors.secondaryContainer },
   surfaceContainer: { backgroundColor: colors.surfaceContainer },
-  // The hover and pressed tints alone, each the variant's icon colour over its
-  // container, written as the component writes them so they hash to the same
-  // atomic classes. Outlined and standard share one, since both draw the muted
-  // icon over nothing.
-  tintFilled: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: null,
-    },
-  },
-  tintMuted: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: null,
-    },
-  },
-  tintTonal: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: null,
-    },
-  },
 })
 
 // An empty list would make the `every` below vacuously true, so it is a
@@ -229,15 +226,13 @@ describe('icon button', () => {
         expect(computed.width).toBe(edge)
         expect(computed.height).toBe(edge)
         expect(computed.fontSize).toBe(icon)
-        // The pressed corner is a `:active` branch, so it is pinned by class
-        // rather than by a computed value nothing here can press for.
-        const pressedClasses = (stylex.props(pressed).className ?? '')
-          .split(' ')
-          .filter(Boolean)
-        expect(pressedClasses.length).toBeGreaterThan(0)
+        // Pressed from the keyboard, which React Aria reports as a press
+        // like any other: the corner comes from that render state.
+        fireEvent.keyDown(button, { key: ' ' })
         expect(
-          pressedClasses.every((name) => button.classList.contains(name)),
+          classesOf(pressed).every((name) => button.classList.contains(name)),
         ).toBe(true)
+        fireEvent.keyUp(button, { key: ' ' })
         unmount()
       }
     })
@@ -290,30 +285,55 @@ describe('icon button', () => {
     // the two branches, as the pressed corners above are.
     it('tints each variant with its own icon colour on hover and press', () => {
       const cases = [
-        ['filled', probeStyles.tintFilled],
-        ['outlined', probeStyles.tintMuted],
-        ['standard', probeStyles.tintMuted],
-        ['tonal', probeStyles.tintTonal],
+        ['filled', probeStyles.hoverFilled, probeStyles.pressFilled],
+        ['outlined', probeStyles.hoverMuted, probeStyles.pressMuted],
+        ['standard', probeStyles.hoverMuted, probeStyles.pressMuted],
+        ['tonal', probeStyles.hoverTonal, probeStyles.pressTonal],
       ] as const
 
-      // Collected by variant, so a failure names the one that drifted.
+      // Collected by variant, so a failure names the one that drifted. Hovered
+      // with a mouse and pressed from the keyboard, both of which React Aria
+      // reports in the render state the layers are drawn from.
       const tinted = Object.fromEntries(
-        cases.map(([variant, tint]) => {
+        cases.map(([variant, hover, press]) => {
           const { button, unmount } = setup({ variant })
-          const carries = classesOf(tint).every((name) =>
-            button.classList.contains(name),
-          )
+          const has = (style: StyleXStyles) =>
+            classesOf(style).every((name) => button.classList.contains(name))
+
+          fireEvent.pointerOver(button, { pointerType: 'mouse' })
+          const hovered = has(hover)
+          fireEvent.keyDown(button, { key: ' ' })
+          const pressedLayer = has(press)
+          fireEvent.keyUp(button, { key: ' ' })
           unmount()
-          return [variant, carries]
+          return [variant, { hovered, pressed: pressedLayer }]
         }),
       )
 
+      const both = { hovered: true, pressed: true }
       expect(tinted).toEqual({
-        filled: true,
-        outlined: true,
-        standard: true,
-        tonal: true,
+        filled: both,
+        outlined: both,
+        standard: both,
+        tonal: both,
       })
+    })
+
+    // A tap on a touch screen leaves the browser's `:hover` on the button,
+    // which kept the layer drawn after the tap had ended; React Aria ignores
+    // a touch for hover, and the layer is drawn from what it reports.
+    it('draws no hover layer for a touch', () => {
+      const { button } = setup({ variant: 'filled' })
+
+      fireEvent.pointerOver(button, { pointerType: 'touch' })
+      fireEvent.pointerDown(button, { pointerType: 'touch' })
+      fireEvent.pointerUp(button, { pointerType: 'touch' })
+
+      expect(
+        classesOf(probeStyles.hoverFilled).some((name) =>
+          button.classList.contains(name),
+        ),
+      ).toBe(false)
     })
 
     // The page's outlined icon button: transparent with a rule around it and

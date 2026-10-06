@@ -17,7 +17,7 @@ import {
 
 import { CalendarGridHeader, CalendarHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
-import { calendarStyles } from '../../calendar/styles'
+import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -120,10 +120,14 @@ function Calendar<T extends DateValue>(
 //
 // The order matters. `selected` is applied after `today`, so a selected today
 // takes the fill rather than the outline — a circle already says where you
-// are, and two rings would say it twice. `disabled` is last of all, and
-// StyleX replaces a property whole, so it takes the hover branches with it.
+// are, and two rings would say it twice. The hover and pressed layers come
+// next, over whichever ground the date has, a press over a hover.
+// `unavailable` and `disabled` come last, and StyleX replaces a property
+// whole, so they take the layers with them.
 function cellClassName(state: {
   isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
   isSelected: boolean
   isToday: boolean
   isUnavailable: boolean
@@ -134,6 +138,14 @@ function cellClassName(state: {
       focus.ring,
       state.isToday && calendarStyles.cellToday,
       state.isSelected && calendarStyles.cellSelected,
+      state.isHovered &&
+        (state.isSelected
+          ? dateLayers.selectedHovered
+          : dateLayers.plainHovered),
+      state.isPressed &&
+        (state.isSelected
+          ? dateLayers.selectedPressed
+          : dateLayers.plainPressed),
       state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''

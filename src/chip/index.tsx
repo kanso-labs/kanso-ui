@@ -4,7 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { CheckGlyph } from '../glyphs'
 import { focus } from '../styles/focus'
-import { chipStyles } from './styles'
+import { chipLayers, chipStyles } from './styles'
 
 /**
  * The check a selected chip draws before its label, and nothing at all while
@@ -46,14 +46,20 @@ function chipLabel(children: ReactNode): ReactNode {
  * container is chosen here rather than in CSS — which is also why an
  * uncontrolled chip styles itself without keeping a copy of its state.
  *
- * Shared for the reason `chipGlyph` is: the order is the precedence. Disabled
- * comes last so it wins over both containers, and StyleX replaces a property
- * whole, so it takes their hover branches with it. `inGroup` is a ChipGroup's
+ * Shared for the reason `chipGlyph` is: the order is the precedence. The
+ * hover and pressed layers come from the render state over the container, a
+ * press over a hover, and disabled comes last so it wins over all of them,
+ * since StyleX replaces a property whole. `inGroup` is a ChipGroup's
  * chip, whose touch target reaches only halfway across the gap to the next
  * row; see `targetInGroup` in `./styles`.
  */
 function chipPropsFor(
-  state: { isDisabled: boolean; isSelected: boolean },
+  state: {
+    isDisabled: boolean
+    isHovered: boolean
+    isPressed: boolean
+    isSelected: boolean
+  },
   inGroup = false,
 ) {
   return stylex.props(
@@ -62,6 +68,14 @@ function chipPropsFor(
     inGroup && chipStyles.targetInGroup,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
+    state.isHovered &&
+      (state.isSelected
+        ? chipLayers.selectedHovered
+        : chipLayers.unselectedHovered),
+    state.isPressed &&
+      (state.isSelected
+        ? chipLayers.selectedPressed
+        : chipLayers.unselectedPressed),
     state.isDisabled && chipStyles.disabled,
     state.isDisabled &&
       (state.isSelected
@@ -70,4 +84,23 @@ function chipPropsFor(
   )
 }
 
-export { chipGlyph, chipLabel, chipPropsFor }
+/**
+ * The close target's class, from its button's own render state, so its
+ * hover and pressed layers follow React Aria's report rather than `:hover`
+ * and `:active` — see `chipLayers`. A function, which React Aria's
+ * `className` takes alongside a string.
+ */
+function chipRemoveClassName(state: {
+  isHovered: boolean
+  isPressed: boolean
+}) {
+  return (
+    stylex.props(
+      chipStyles.remove,
+      state.isHovered && chipLayers.removeHovered,
+      state.isPressed && chipLayers.removePressed,
+    ).className ?? ''
+  )
+}
+
+export { chipGlyph, chipLabel, chipPropsFor, chipRemoveClassName }

@@ -17,7 +17,12 @@ import {
   TagList as RACTagList,
 } from 'react-aria-components'
 
-import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
+import {
+  chipGlyph,
+  chipLabel,
+  chipPropsFor,
+  chipRemoveClassName,
+} from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { textOf } from '../../collection/text'
 import { FieldLabel, FieldMessage } from '../../field'
@@ -136,8 +141,8 @@ function chipContent(children: ReactNode, removeLabel: string | undefined) {
       {state.allowsRemoving ? (
         <RACButton
           aria-label={removeLabel}
+          className={chipRemoveClassName}
           slot="remove"
-          {...stylex.props(chipStyles.remove)}
         >
           <CloseGlyph {...stylex.props(chipStyles.removeGlyph)} />
         </RACButton>

@@ -17,7 +17,7 @@ import {
 
 import { CalendarGridHeader, CalendarHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
-import { calendarStyles } from '../../calendar/styles'
+import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -61,12 +61,16 @@ type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
 //
 // The order is what makes a range read as one shape. Every selected day takes
 // the band; the two ends then take the circle over it, and round the outer
-// edge the band does not continue past. `unavailable` comes after those, so a
+// edge the band does not continue past. The hover and pressed layers come
+// next, each written for the ground under it — the circle, the band, or
+// nothing — a press over a hover. `unavailable` comes after those, so a
 // ruled-out day inside a range keeps the band and takes the strikethrough
 // over it. `disabled` is last of all, and StyleX replaces a property whole,
 // so it takes the branches above it with it.
 function cellClassName(state: {
   isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
   isSelected: boolean
   isSelectionEnd: boolean
   isSelectionStart: boolean
@@ -87,6 +91,18 @@ function cellClassName(state: {
         calendarStyles.cellRangeStart,
       state.isSelected && state.isSelectionEnd && calendarStyles.cellRangeEnd,
       isEnd && calendarStyles.cellSelected,
+      state.isHovered &&
+        (isEnd
+          ? dateLayers.selectedHovered
+          : state.isSelected
+            ? dateLayers.inRangeHovered
+            : dateLayers.plainHovered),
+      state.isPressed &&
+        (isEnd
+          ? dateLayers.selectedPressed
+          : state.isSelected
+            ? dateLayers.inRangePressed
+            : dateLayers.plainPressed),
       state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
