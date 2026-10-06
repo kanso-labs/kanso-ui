@@ -1,8 +1,9 @@
 import type { StyleXStyles } from '@stylexjs/stylex'
-import type { ReactElement } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
 import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -92,6 +93,24 @@ function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
     </IconButton>,
   )
   return { ...view, button: view.getByRole('button') }
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the render state it was handed beside the props.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isDisabled: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-disabled': String(state.isDisabled),
+  })
 }
 
 describe('icon button', () => {
@@ -205,6 +224,79 @@ describe('icon button', () => {
           expect(handler).toHaveBeenCalledOnce()
         }
       })
+    })
+  })
+
+  // React Aria's `render` is how a call site swaps in an element of its own,
+  // and what the component adds past React Aria has to reach that element
+  // too. The button and the toggle each hand it on through a renderer of
+  // their own, so each is checked; a link takes no `render`.
+  describe.each([
+    ['as a button', {}],
+    ['as a toggle', { defaultSelected: false }],
+  ] as const)('a render function from the call site, %s', (_, props) => {
+    it('renders the element it returns, with the classes the button carries', () => {
+      const plain = setup(props)
+      const classes = plain.button.className
+      plain.unmount()
+      // Two empty class lists would compare equal however the styles were
+      // lost.
+      expect(classes).not.toBe('')
+
+      const { button } = setup({ ...props, render: wrapped })
+
+      expect(button).toHaveAttribute('data-wrapped')
+      expect(button.className).toBe(classes)
+    })
+
+    it('hands it the render state', () => {
+      const { button } = setup({
+        ...props,
+        isDisabled: true,
+        render: wrappedWithState,
+      })
+
+      expect(button).toHaveAttribute('data-state-disabled', 'true')
+    })
+
+    it('hands it the aria attributes React Aria would drop', () => {
+      const view = render(
+        <IconButton
+          aria-keyshortcuts="Alt+A"
+          aria-label="Add"
+          render={wrapped}
+          {...props}
+        >
+          <svg />
+        </IconButton>,
+      )
+
+      expect(view.getByRole('button')).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Alt+A',
+      )
+    })
+
+    it('hands it keyboard handlers that bubble', () => {
+      const inner = vi.fn<() => void>()
+      const outer = vi.fn<() => void>()
+      const view = render(
+        <div onKeyDown={outer} role="presentation">
+          <IconButton
+            aria-label="Add"
+            onKeyDown={inner}
+            render={wrapped}
+            {...props}
+          >
+            <svg />
+          </IconButton>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+      expect(inner).toHaveBeenCalledOnce()
+      expect(outer).toHaveBeenCalledOnce()
     })
   })
 

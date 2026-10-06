@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
@@ -183,6 +184,24 @@ function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   }
 
   return { ...view, button, isPressed, rippleSurface }
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the render state it was handed beside the props.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isDisabled: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-disabled': String(state.isDisabled),
+  })
 }
 
 describe('appearance', () => {
@@ -405,6 +424,75 @@ describe('as a link', () => {
     const view = render(<Button>Button</Button>)
 
     expect(view.getByRole('button')).toHaveAttribute('type', 'button')
+  })
+})
+
+// React Aria's `render` is how a call site swaps in an element of its own, and
+// it is handed the props React Aria would have put on the <button>. What
+// Button adds past React Aria — the aria-* props it would drop, the keyboard
+// handlers it would wrap, the styles — has to reach that element too.
+describe('a render function from the call site', () => {
+  it('renders the element it returns, with the classes the button carries', () => {
+    const plain = render(<Button variant="tonal">Button</Button>)
+    const classes = plain.getByRole('button').className
+    plain.unmount()
+    // Two empty class lists would compare equal however the styles were lost.
+    expect(classes).not.toBe('')
+
+    const view = render(
+      <Button render={wrapped} variant="tonal">
+        Button
+      </Button>,
+    )
+    const button = view.getByRole('button')
+
+    expect(button).toHaveAttribute('data-wrapped')
+    expect(button.className).toBe(classes)
+  })
+
+  it('hands it the render state', () => {
+    const view = render(
+      <Button isDisabled render={wrappedWithState}>
+        Button
+      </Button>,
+    )
+
+    expect(view.getByRole('button')).toHaveAttribute(
+      'data-state-disabled',
+      'true',
+    )
+  })
+
+  it('hands it the aria attributes React Aria would drop', () => {
+    const view = render(
+      <Button aria-keyshortcuts="Alt+A" render={wrapped}>
+        Button
+      </Button>,
+    )
+
+    expect(view.getByRole('button')).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Alt+A',
+    )
+  })
+
+  // On the element directly, an Escape pressed on the button inside a dialog
+  // still reaches the dialog.
+  it('hands it keyboard handlers that bubble', () => {
+    const inner = vi.fn<() => void>()
+    const outer = vi.fn<() => void>()
+    const view = render(
+      <div onKeyDown={outer} role="presentation">
+        <Button onKeyDown={inner} render={wrapped}>
+          Button
+        </Button>
+      </div>,
+    )
+
+    fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+    expect(inner).toHaveBeenCalledOnce()
+    expect(outer).toHaveBeenCalledOnce()
   })
 })
 

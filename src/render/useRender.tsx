@@ -11,6 +11,10 @@ import type {
 
 import { cloneElement, createElement, isValidElement, useMemo } from 'react'
 
+// A ref the hook can write through. React reads a `null` ref as none at all,
+// and `refOf` turns one into `undefined` before a merge sees it.
+type AttachableRef = NonNullable<Ref<Element>>
+
 type Handler = (...args: ReadonlyArray<unknown>) => unknown
 
 type IntrinsicTag = keyof JSX.IntrinsicElements
@@ -51,10 +55,7 @@ interface UseRenderParameters {
   render?: RenderProp | undefined
 }
 
-function attach(ref: Ref<Element>, node: Element | null): () => void {
-  if (ref === null) {
-    return () => {}
-  }
+function attach(ref: AttachableRef, node: Element | null): () => void {
   if (typeof ref === 'function') {
     const cleanup = ref(node)
     return typeof cleanup === 'function'
@@ -132,9 +133,9 @@ function mergeElementProps(
  * the merged callback returns one that does the same for each of the two.
  */
 function mergeRefs(
-  a: Ref<Element> | undefined,
-  b: Ref<Element> | undefined,
-): Ref<Element> | undefined {
+  a: AttachableRef | undefined,
+  b: AttachableRef | undefined,
+): AttachableRef | undefined {
   if (a === undefined) {
     return b
   }
@@ -161,7 +162,7 @@ function mergeStyleObjects(
   return { ...ours, ...theirs }
 }
 
-function refOf(value: unknown): Ref<Element> | undefined {
+function refOf(value: unknown): AttachableRef | undefined {
   if (isRefCallback(value) || isRefObject(value)) {
     return value
   }
