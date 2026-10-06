@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import {
   colors,
+  media,
   radii,
   sizing,
   spacing,
@@ -351,10 +352,21 @@ const calendarStyles = stylex.create({
   // date inside it — February's four weeks drew at a 60px pitch against a
   // six-week month's 40. Two months of different lengths top-align for the
   // same reason.
+  //
+  // Below the expanded breakpoint the months stack, one under another. Two
+  // side by side come to 720dp with the calendar's padding, wider than a
+  // compact window and most of a medium one, so they sit side by side only
+  // from the expanded window size up, whether a picker holding them is
+  // docked or modal. Stacked, each sits in a row of its own holding the same
+  // six weeks of room, so a short month does not draw the one under it up.
   months: {
     alignItems: 'start',
-    display: 'flex',
+    display: { default: 'flex', [media.belowExpanded]: 'grid' },
     gap: spacing.xl,
+    gridAutoRows: {
+      default: null,
+      [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    },
     // The weekday row plus six weeks of dates. Left to the month the grid is
     // as tall as its weeks, so the calendar grew by 80px between February
     // 2026 and May, taking whatever sat under it down the page — and inside a

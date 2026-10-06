@@ -103,8 +103,9 @@ type CalendarProps<T extends DateValue = DateValue> = Omit<
  *
  * `minValue` and `maxValue` bound it, `isDateUnavailable` rules individual
  * dates out, and `visibleDuration` of `{ months: 2 }` draws two months side
- * by side. Name it with `aria-label` or `aria-labelledby`; React Aria
- * composes the visible month into that name itself.
+ * by side, stacked below the expanded breakpoint. Name it with `aria-label`
+ * or `aria-labelledby`; React Aria composes the visible month into that name
+ * itself.
  *
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
