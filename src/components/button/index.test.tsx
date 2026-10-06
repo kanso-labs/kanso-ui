@@ -15,6 +15,11 @@ import { motionDurationMs } from '../../tokens/values'
 // resolve to today. The pairs are the buttons spec page's.
 // One probe per type role a size takes, compared by computed value so the
 // assertion pins the role rather than the numbers it resolves to today.
+// Narrower than a long label on one line at every size, so it has to wrap.
+const layoutProbeStyles = stylex.create({
+  narrow: { inlineSize: '240px' },
+})
+
 const typeProbeStyles = stylex.create({
   headlineLarge: {
     fontFamily: typography.headlineLargeFont,
@@ -782,4 +787,60 @@ describe('pending', () => {
     expect(button.hasAttribute('disabled')).toBe(false)
     expect(button.getAttribute('aria-disabled')).toBe('true')
   })
+})
+
+// A label the row is too narrow for wraps, as a German one does at phone
+// widths where the English beside it fits. The container grows to hold every
+// line rather than keeping its height and leaving the lines past the second
+// outside the fill — where, on a filled button, they are drawn in on primary
+// over the page and cannot be read.
+describe('a label longer than one line', () => {
+  const LONG = 'A label long enough that it wraps onto more lines than one'
+  // The five sizes' container heights, which a label on one line still
+  // draws exactly — the outlined button's border included.
+  const HEIGHTS = { lg: 56, md: 40, xl: 96, xs: 32, xxl: 136 } as const
+  const SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
+  const CASES = SIZES.flatMap((size) =>
+    (['filled', 'outlined'] as const).map(
+      (variant) => [size, variant, HEIGHTS[size]] as const,
+    ),
+  )
+
+  it.each(CASES)(
+    'keeps the %s %s button at %ipx with one line',
+    (size, variant, height) => {
+      const view = render(
+        <Button size={size} variant={variant}>
+          Label
+        </Button>,
+      )
+      expect(view.getByRole('button').getBoundingClientRect().height).toBe(
+        height,
+      )
+    },
+  )
+
+  it.each(CASES)(
+    'grows the %s %s button around a label that wraps',
+    (size, variant, height) => {
+      const view = render(
+        <div {...stylex.props(layoutProbeStyles.narrow)}>
+          <Button size={size} variant={variant}>
+            {LONG}
+          </Button>
+        </div>,
+      )
+      const button = view.getByRole('button')
+      const box = button.getBoundingClientRect()
+      // The label's text alone: the button also holds the ripple's surface,
+      // which covers the whole container.
+      const range = document.createRange()
+      range.selectNodeContents(view.getByText(LONG))
+      const text = range.getBoundingClientRect()
+
+      expect(box.height).toBeGreaterThan(height)
+      expect(text.top).toBeGreaterThan(box.top)
+      expect(text.bottom).toBeLessThan(box.bottom)
+    },
+  )
 })
