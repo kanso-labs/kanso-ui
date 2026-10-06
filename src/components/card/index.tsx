@@ -52,7 +52,18 @@ const styles = stylex.create({
     // and outline are drawn outside its border box and are unaffected, which
     // is what keeps the elevated variant's shadow and the interactive
     // variant's focus ring intact.
-    overflow: 'hidden',
+    //
+    // `clip` rather than `hidden`, which clips to the same rounded edge but
+    // also makes the card a scroll container, and a scroll container's
+    // automatic minimum size as a flex or grid item is zero rather than its
+    // content's. In a column that runs short of room — a sheet's body once
+    // the sheet reaches its cap — the card would then be the item that gives
+    // way, shrinking below its content and hiding the rest, while the column
+    // around it, left with nothing to overflow, never scrolls. Under `clip`
+    // the card keeps its content's size and the column scrolls instead. A
+    // card that should give way, because it scrolls content of its own, asks
+    // for it with `minBlockSize: 0`, as any flex item does.
+    overflow: 'clip',
     // Positioning context for the ripple surface, which fills the card.
     position: 'relative',
     textDecoration: 'none',
