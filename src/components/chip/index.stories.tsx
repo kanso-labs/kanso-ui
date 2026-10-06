@@ -19,6 +19,21 @@ const PARAGRAPH = <p />
 
 const FILTERS = ['First filter', 'Second filter', 'Third filter'] as const
 
+// An icon slot takes any node; a plain glyph keeps the sample generic. The
+// library's own glyphs are private to it, so a story draws its own, `1em`
+// square as the README asks.
+const DOT = (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="6" />
+  </svg>
+)
+
 const styles = stylex.create({
   header: {
     display: 'flex',
@@ -179,6 +194,46 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Icons
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            An icon sits before the label in the page&apos;s 18dp slot, in the
+            primary role. Once the chip is selected the check takes its place,
+            so the chip keeps its width; disabled, the icon fades with the
+            label.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Chip icon={DOT}>Label</Chip>
+            <Text tone="muted" variant="labelSmall">
+              icon
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Chip defaultSelected icon={DOT}>
+              Label
+            </Chip>
+            <Text tone="muted" variant="labelSmall">
+              defaultSelected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Chip icon={DOT} isDisabled>
+              Label
+            </Chip>
+            <Text tone="muted" variant="labelSmall">
+              isDisabled
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Selection
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -215,6 +270,10 @@ const Overview: Story = {
 
 const Default: Story = {}
 
+const WithIcon: Story = {
+  args: { icon: DOT },
+}
+
 // Its own story because the interaction is the point: a snapshot can only show
 // which chip is selected at rest, and what matters is that picking one clears
 // the last. Overview covers the states visually.
@@ -222,6 +281,6 @@ const Controlled: Story = {
   render: () => <SingleSelect />,
 }
 
-export { Controlled, Default, Overview }
+export { Controlled, Default, Overview, WithIcon }
 
 export default meta

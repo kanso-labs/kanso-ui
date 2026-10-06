@@ -302,6 +302,7 @@ the icon inherits it:
 | Slot                                       | Size an `em` icon takes                              |
 | ------------------------------------------ | ---------------------------------------------------- |
 | `Button`'s `icon`                          | 20px, 20px, 24px, 32px and 40px across `xs` to `xxl` |
+| `Chip`'s and `ChipGroup.Chip`'s `icon`     | 18px                                                 |
 | `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
 | A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
 | `SegmentedButton.Segment`'s `icon`         | 18px                                                 |

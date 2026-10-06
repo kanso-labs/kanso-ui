@@ -88,6 +88,12 @@ type ChipGroupChipProps = Omit<
   children?: ReactNode
   /** A function may compute the class from the chip's render state. */
   className?: RACTagProps['className']
+  /**
+   * An icon before the label, in the page's 18dp slot and the primary role.
+   * The check takes its place while the chip is chosen, so the chip keeps
+   * its width. An icon drawn in `em` takes its size from the slot.
+   */
+  icon?: ReactNode
   /** A function may compute the style from the chip's render state. */
   style?: RACTagProps['style']
 }
@@ -130,10 +136,10 @@ type ChipGroupProps<T extends object = object> = {
 // no-new-function-as-prop is after; the React Compiler memoises the result on
 // its inputs.
 //
-// The check is the chip module's, so a chip in a group and a chip on its own
-// draw the same one. The close target is drawn only where the group allows
-// removing, which React Aria reports rather than the call site saying so on
-// every chip.
+// The check and the icon it replaces are the chip module's, so a chip in a
+// group and a chip on its own draw the same ones. The close target is drawn
+// only where the group allows removing, which React Aria reports rather than
+// the call site saying so on every chip.
 //
 // The ripple is drawn only on a chip a press does something to: one the
 // group lets be selected, and not disabled. A chip in a group that selects
@@ -142,12 +148,13 @@ type ChipGroupProps<T extends object = object> = {
 // changes nothing.
 function chipContent(
   children: ReactNode,
+  icon: ReactNode,
   removeLabel: string | undefined,
   surface: ReactNode,
 ) {
   return (state: TagRenderProps) => (
     <>
-      {chipGlyph(state.isSelected)}
+      {chipGlyph(state, icon)}
       {chipLabel(children)}
       {state.selectionMode !== 'none' && !state.isDisabled ? surface : null}
       {state.allowsRemoving ? (
@@ -240,6 +247,7 @@ function ChipGroup<T extends object = object>({
  */
 function ChipGroupChip({
   children,
+  icon,
   onContextMenu,
   onPointerCancel,
   onPointerDown,
@@ -270,7 +278,7 @@ function ChipGroupChip({
       {...props}
       {...mergeStatefulStyles(groupChipPropsFor, props)}
     >
-      {chipContent(children, removeLabel, ripple.surface)}
+      {chipContent(children, icon, removeLabel, ripple.surface)}
     </RACTag>
   )
 }

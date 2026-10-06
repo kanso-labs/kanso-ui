@@ -57,7 +57,8 @@ import {
 // row that wraps, so nothing around it has a width to hold. A segmented
 // button's segments are equal columns of one track, which is a different
 // geometry answering a different question, and the two should not be read
-// across.
+// across. A chip given an icon does not widen, since the check takes the
+// icon's place in the same slot.
 //
 // Apart from any component so a chip in a group and a chip on its own cannot
 // drift; see `src/row` for the same arrangement around a list's row.
@@ -108,11 +109,11 @@ const chipStyles = stylex.create({
     backgroundColor: 'transparent',
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
-  // The check a selected chip carries: the page's 18dp icon, before the
-  // label, in a slot of its own so the SVG has a box to fill. `fontSize` as
-  // well as the box, so a glyph drawn in `em` or an icon font lands at the
-  // size an SVG does — the same slot a segmented button's segments draw
-  // their check in.
+  // The check a selected chip carries, or the icon an unselected one does:
+  // the page's 18dp icon, before the label, in a slot of its own so the SVG
+  // has a box to fill. `fontSize` as well as the box, so a glyph drawn in
+  // `em` or an icon font lands at the size an SVG does — the same slot a
+  // segmented button's segments draw their check in.
   glyph: {
     alignItems: 'center',
     blockSize: '18px',
@@ -130,6 +131,14 @@ const chipStyles = stylex.create({
   glyphSvg: {
     blockSize: '100%',
     inlineSize: '100%',
+  },
+  // An unselected chip's own icon, in the primary role the page gives a
+  // filter chip's leading icon at rest, hovered, focused and pressed alike.
+  // Left off a disabled chip, whose icon fades with the label in the chip's
+  // own content colour; a selected chip draws the check in its place, in
+  // that colour too.
+  icon: {
+    color: colors.primary,
   },
   // The label, on one line and ending in an ellipsis where the pill does.
   // `overflow: hidden` does two jobs: `text-overflow` draws nothing without

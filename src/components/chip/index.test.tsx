@@ -20,6 +20,7 @@ import {
 // the styles, with no dependency on the browser having applied a rule that
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
+  icon: { color: colors.primary },
   padding: { paddingInline: spacing.lg },
   selectedBackground: { backgroundColor: colors.secondaryContainer },
   selectedBorder: { borderColor: 'transparent' },
@@ -44,6 +45,7 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  icon: classesOf(stylex.props(probeStyles.icon)),
   padding: classesOf(stylex.props(probeStyles.padding)),
   selectedBackground: classesOf(stylex.props(probeStyles.selectedBackground)),
   selectedBorder: classesOf(stylex.props(probeStyles.selectedBorder)),
@@ -64,6 +66,45 @@ function checkIn(chip: HTMLElement) {
 
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// An icon as the README asks for one: hidden from assistive technology,
+// drawn in `currentColor`, and `1em` square so the slot's size is its own.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+)
+
+function iconIn(chip: HTMLElement) {
+  return chip.querySelector('[data-testid="icon"]')
+}
+
+// The slot the icon is drawn in, which is the element carrying its colour.
+function iconSlotOf(chip: HTMLElement) {
+  const slot = iconIn(chip)?.parentElement
+  if (!(slot instanceof HTMLElement)) {
+    throw new Error('expected the chip to draw its icon in a slot')
+  }
+  return slot
+}
+
+// The span holding the label's text.
+function labelOf(chip: HTMLElement) {
+  const label = [...chip.querySelectorAll('span')].find(
+    (span) => span.textContent === 'Label',
+  )
+  if (label === undefined) {
+    throw new Error('expected the chip to carry a label')
+  }
+  return label
 }
 
 function setup(props: Partial<Parameters<typeof Chip>[0]> = {}) {
@@ -368,6 +409,66 @@ describe('chip', () => {
       const { chip } = setup({ defaultSelected: true })
 
       expect(checkIn(chip)?.getAttribute('aria-hidden')).toBe('true')
+    })
+  })
+
+  // The chips page draws an optional leading icon on a filter chip, in the
+  // slot the check is drawn in, and the check takes its place once the chip
+  // is selected.
+  describe('the icon', () => {
+    it("draws it before the label, in the page's 18dp slot inset by 8dp", () => {
+      const { chip } = setup({ icon: ICON })
+      const slot = iconSlotOf(chip)
+      const box = slot.getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(chip).borderLeftWidth)
+
+      expect([box.width, box.height]).toEqual([18, 18])
+      // Drawn in `em`, so the slot's font size is what sizes the icon.
+      expect(iconIn(chip)?.getBoundingClientRect().width).toBe(18)
+      expect(box.left - chip.getBoundingClientRect().left - border).toBe(8)
+      expect(
+        slot.compareDocumentPosition(labelOf(chip)) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
+    })
+
+    it('gives its place to the check while the chip is selected', () => {
+      const { chip } = setup({ icon: ICON })
+
+      fireEvent.click(chip)
+      expect(iconIn(chip)).toBeNull()
+      expect(checkIn(chip)).not.toBeNull()
+
+      fireEvent.click(chip)
+      expect(iconIn(chip)).not.toBeNull()
+    })
+
+    // The check takes the icon's slot rather than adding one of its own, so
+    // this chip does not grow the way one without an icon does.
+    it('keeps the chip its width when the check takes its place', () => {
+      const { chip } = setup({ icon: ICON })
+      const unselected = chip.getBoundingClientRect().width
+
+      fireEvent.click(chip)
+
+      expect(chip.getBoundingClientRect().width).toBe(unselected)
+    })
+
+    // The page draws a filter chip's icon in the primary role where its
+    // label is on-surface variant, and fades it with the label once the chip
+    // is disabled.
+    it('draws it in the primary role until the chip is disabled', () => {
+      const { chip, unmount } = setup({ icon: ICON })
+      expect(hasClasses(iconSlotOf(chip), CLASSES.icon)).toBe(true)
+      unmount()
+
+      const { chip: disabled } = setup({ icon: ICON, isDisabled: true })
+      const slot = iconSlotOf(disabled)
+
+      expect(hasClasses(slot, CLASSES.icon)).toBe(false)
+      expect(getComputedStyle(slot).color).toBe(
+        getComputedStyle(disabled).color,
+      )
     })
   })
 })
