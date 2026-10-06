@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.38.0](https://github.com/kanso-labs/kanso-ui/compare/v0.37.0...v0.38.0) (2026-10-06)
+
+
+### Features
+
+* **carousel:** add Carousel with the multi-browse and hero layouts ([#1330](https://github.com/kanso-labs/kanso-ui/issues/1330)) ([691e8fd](https://github.com/kanso-labs/kanso-ui/commit/691e8fde9f73e571144d9f8180ec9c5d7ae24490))
+* **date-range-picker:** open the calendar at more than one month ([#1333](https://github.com/kanso-labs/kanso-ui/issues/1333)) ([a7fdfb3](https://github.com/kanso-labs/kanso-ui/commit/a7fdfb31d55e7814674dbfa1654eb3b641ad90be))
+* **slider:** add the sizes, the stops configuration and the inset icon ([#1331](https://github.com/kanso-labs/kanso-ui/issues/1331)) ([4564235](https://github.com/kanso-labs/kanso-ui/commit/456423516e80e00c50ed98672114aee1edf92e1b))
+
+
+### Bug Fixes
+
+* **color-slider:** draw a vertical strip when orientation is vertical ([#1335](https://github.com/kanso-labs/kanso-ui/issues/1335)) ([44380c9](https://github.com/kanso-labs/kanso-ui/commit/44380c9312f0306639a647ec20ad5a8a033565be))
+* **date-picker,date-range-picker:** open the calendar on the docked container's own surface ([#1334](https://github.com/kanso-labs/kanso-ui/issues/1334)) ([2ed0d2a](https://github.com/kanso-labs/kanso-ui/commit/2ed0d2a747da74837aa22829383ee5493c98e72d))
+
 ## [0.37.0](https://github.com/kanso-labs/kanso-ui/compare/v0.36.0...v0.37.0) (2026-10-06)
 
 
