@@ -63,6 +63,11 @@
       ]
     },
     {
+      "description": "The runtime the components import and the compiler that rewrites those imports release together, and each pins the next exactly: @stylexjs/unplugin pins @stylexjs/babel-plugin, which pins @stylexjs/stylex. Bumped apart, the components would run one release's runtime over styles another release compiled, and the lockfile would carry a second copy of the runtime to satisfy the compiler's pin. Renovate's monorepo presets do not cover facebook/stylex, so nothing else groups them: @stylexjs/unplugin 0.19.1 arrived as a pull request of its own.",
+      "groupName": "stylex",
+      "matchPackageNames": ["@stylexjs/**"]
+    },
+    {
       "groupName": "vitest",
       "matchPackageNames": ["@vitest/**", "vitest"]
     }

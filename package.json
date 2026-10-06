@@ -89,6 +89,7 @@
     "@storybook/addon-vitest": "10.6.1",
     "@storybook/builder-vite": "10.6.1",
     "@storybook/react-vite": "10.6.1",
+    "@stylexjs/stylex": "0.19.1",
     "@stylexjs/unplugin": "0.19.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
