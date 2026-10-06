@@ -129,6 +129,12 @@ const overlay = stylex.create({
     boxSizing: 'border-box',
     color: colors.onSurface,
     overflowY: 'auto',
+    // A scroll that reaches the surface's end stays inside it. Left to chain,
+    // the next swipe or wheel turn scrolled the page instead, and React Aria
+    // closes a non-modal surface — a popover, a combo box's list — when its
+    // anchor scrolls, so one flick past the end lost the surface. The page
+    // still scrolls when it is scrolled directly.
+    overscrollBehavior: 'contain',
   },
   // The element with the dialog role inside an anchored surface. React Aria
   // focuses the dialog itself when nothing inside it takes focus, so it is a
