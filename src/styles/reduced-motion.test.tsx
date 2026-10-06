@@ -12,6 +12,7 @@ import ColorSlider from '../components/color-slider'
 import ComboBox from '../components/combo-box'
 import Disclosure from '../components/disclosure'
 import DropZone from '../components/drop-zone'
+import FabMenu from '../components/fab-menu'
 import IconButton from '../components/icon-button'
 import Link from '../components/link'
 import ListBox from '../components/list-box'
@@ -127,6 +128,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Disclosure',
   },
   { element: <DropZone label="Drop a file here" />, name: 'DropZone' },
+  // The FAB's change into the menu's close button.
+  {
+    element: (
+      <FabMenu aria-label="Label" icon={null}>
+        <FabMenu.Item id="first">First item</FabMenu.Item>
+      </FabMenu>
+    ),
+    name: 'FabMenu',
+  },
   {
     element: <IconButton aria-label="Label">{null}</IconButton>,
     name: 'IconButton',

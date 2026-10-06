@@ -60,6 +60,8 @@ import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
 import DropZone, { FileTrigger } from '../components/drop-zone'
+import Fab from '../components/fab'
+import FabMenu from '../components/fab-menu'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -902,6 +904,39 @@ function Showcase({ name }: ShowcaseProps) {
                 <Button variant="outlined">Label</Button>
               </FileTrigger>
             </DropZone>
+          </Section>
+
+          <Section
+            description="Each tone reads its container off a colour role, its corner off the radius scale and its lift off the shadow scale, the extended form's label off the type scale as well."
+            title="Fab"
+          >
+            <div {...stylex.props(styles.row)}>
+              <Fab aria-label="Label">
+                <PlusIcon />
+              </Fab>
+              <Fab aria-label="Label" tone="secondary" variant="filled">
+                <PlusIcon />
+              </Fab>
+              <Fab label="Label" tone="tertiary">
+                <PlusIcon />
+              </Fab>
+            </div>
+          </Section>
+
+          <Section
+            description="Closed, the menu is a FAB on the tone's container a scheme sets; open, its close button takes the tone and its actions the container."
+            title="FabMenu"
+          >
+            <div {...stylex.props(styles.row)}>
+              <FabMenu aria-label="Label" icon={<PlusIcon />}>
+                <FabMenu.Item id="first">First item</FabMenu.Item>
+                <FabMenu.Item id="second">Second item</FabMenu.Item>
+              </FabMenu>
+              <FabMenu aria-label="Label" icon={<PlusIcon />} tone="tertiary">
+                <FabMenu.Item id="first">First item</FabMenu.Item>
+                <FabMenu.Item id="second">Second item</FabMenu.Item>
+              </FabMenu>
+            </div>
           </Section>
 
           <Section
