@@ -22,6 +22,27 @@ function cornersOf(element: HTMLElement) {
   }
 }
 
+// Whether the corners fit the box as written. CSS scales every corner down
+// together when two on one side add up to more than the side is long, which
+// is what turned an 8px inner corner square beside a 9999px round end —
+// and `getComputedStyle` reports the corners as written, before that.
+function fitsAsWritten(element: HTMLElement) {
+  const computed = getComputedStyle(element)
+  const box = element.getBoundingClientRect()
+  const [topLeft, topRight, bottomRight, bottomLeft] = [
+    computed.borderTopLeftRadius,
+    computed.borderTopRightRadius,
+    computed.borderBottomRightRadius,
+    computed.borderBottomLeftRadius,
+  ].map((value) => Number.parseFloat(value))
+  return (
+    topLeft + topRight <= box.width &&
+    bottomLeft + bottomRight <= box.width &&
+    topLeft + bottomLeft <= box.height &&
+    topRight + bottomRight <= box.height
+  )
+}
+
 function halves() {
   return {
     action: screen.getByRole('button', { name: 'Label' }),
@@ -138,8 +159,10 @@ describe('split button', () => {
       render(<Split />)
       const { action, trigger } = halves()
 
-      expect(cornersOf(action)).toEqual({ left: '9999px', right: '4px' })
-      expect(cornersOf(trigger)).toEqual({ left: '4px', right: '9999px' })
+      expect(cornersOf(action)).toEqual({ left: '20px', right: '4px' })
+      expect(cornersOf(trigger)).toEqual({ left: '4px', right: '20px' })
+      expect(fitsAsWritten(action)).toBe(true)
+      expect(fitsAsWritten(trigger)).toBe(true)
     })
 
     it.each([
@@ -165,7 +188,8 @@ describe('split button', () => {
 
       fireEvent.click(trigger)
 
-      expect(cornersOf(trigger)).toEqual({ left: '9999px', right: '9999px' })
+      expect(cornersOf(trigger)).toEqual({ left: '20px', right: '20px' })
+      expect(fitsAsWritten(trigger)).toBe(true)
     })
 
     it('keeps the round ends at the outside under right-to-left', () => {
@@ -176,7 +200,7 @@ describe('split button', () => {
       )
       const { action } = halves()
 
-      expect(cornersOf(action)).toEqual({ left: '4px', right: '9999px' })
+      expect(cornersOf(action)).toEqual({ left: '4px', right: '20px' })
     })
   })
 

@@ -20,7 +20,7 @@ import type { ButtonProps, ButtonSize } from '../button'
 import { ButtonGroupItemContext } from '../../button/context'
 import { ChevronDownGlyph } from '../../glyphs'
 import { mergeStyles } from '../../styles/merge'
-import { radii, spacing } from '../../tokens/design.tokens.stylex'
+import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Menu from '../menu'
 
@@ -111,6 +111,20 @@ const INNER = {
   xxl: radii.md,
 }
 
+// The round end at each size: half the button's height. Not the pill's
+// 9999px: CSS scales every corner of a box down together when two on one
+// side add up to more than the side is long, so a 9999px end beside an 8px
+// inner corner shrank the inner one to nothing. Half the height fits as
+// written. A label that wraps makes a button taller than this, and its ends
+// a little less than round.
+const ROUND = {
+  lg: `calc(${sizing.controlLg} / 2)`,
+  md: `calc(${sizing.controlSm} / 2)`,
+  xl: `calc(${sizing.controlXl} / 2)`,
+  xs: `calc(${sizing.controlXs} / 2)`,
+  xxl: `calc(${sizing.controlXxl} / 2)`,
+}
+
 const INNER_ACTIVE = {
   lg: radii.md,
   md: radii.md,
@@ -191,7 +205,7 @@ function leadingItem(size: GroupSize): ButtonGroupItem {
     styles: (state: ButtonState) => [
       leading[size],
       corners.shape(
-        radii.pill,
+        ROUND[size],
         isActive(state) ? INNER_ACTIVE[size] : INNER[size],
       ),
     ],
@@ -309,11 +323,11 @@ function trailingItem(size: GroupSize, isOpen: boolean): ButtonGroupItem {
       trailing.padding(`${padding - offset}px`, `${padding + offset}px`),
       corners.shape(
         isOpen
-          ? radii.pill
+          ? ROUND[size]
           : isActive(state)
             ? INNER_ACTIVE[size]
             : INNER[size],
-        radii.pill,
+        ROUND[size],
       ),
     ],
   }

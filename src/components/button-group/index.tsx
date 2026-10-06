@@ -17,7 +17,7 @@ import type { ButtonShape, ButtonSize } from '../button'
 
 import { ButtonGroupItemContext } from '../../button/context'
 import { mergeStyles } from '../../styles/merge'
-import { radii, spacing } from '../../tokens/design.tokens.stylex'
+import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 
 // The button groups page's two groups, around Buttons and IconButtons placed
 // inside: the standard group, buttons set apart by the page's 18dp, 12dp, 8dp,
@@ -98,6 +98,20 @@ const INNER = {
   xl: radii.lg,
   xs: radii.xs,
   xxl: '20px',
+}
+
+// The round end at each size: half the button's height. Not the pill's
+// 9999px: CSS scales every corner of a box down together when two on one
+// side add up to more than the side is long, so a 9999px end beside an 8px
+// inner corner shrank the inner one to nothing. Half the height fits as
+// written. A label that wraps makes a button taller than this, and its ends
+// a little less than round.
+const ROUND = {
+  lg: `calc(${sizing.controlLg} / 2)`,
+  md: `calc(${sizing.controlSm} / 2)`,
+  xl: `calc(${sizing.controlXl} / 2)`,
+  xs: `calc(${sizing.controlXs} / 2)`,
+  xxl: `calc(${sizing.controlXxl} / 2)`,
 }
 
 const INNER_PRESSED = {
@@ -246,11 +260,11 @@ function connectedStyles(
   shape: ButtonShape,
   state: ButtonState,
 ) {
-  const outer = shape === 'square' ? INNER[size] : radii.pill
+  const outer = shape === 'square' ? INNER[size] : ROUND[size]
   const inner = state.isPressed
     ? INNER_PRESSED[size]
     : state.isSelected === true
-      ? radii.pill
+      ? ROUND[size]
       : INNER[size]
   const start = index === 0 ? outer : inner
   const end = index === count - 1 ? outer : inner

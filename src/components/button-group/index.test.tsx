@@ -32,6 +32,27 @@ function Group(props: Partial<ComponentProps<typeof ButtonGroup>>) {
 const FIRST = ['first']
 const SECOND = ['second']
 
+// Whether the corners fit the box as written. CSS scales every corner down
+// together when two on one side add up to more than the side is long, which
+// is what turned an 8px inner corner square beside a 9999px round end —
+// and `getComputedStyle` reports the corners as written, before that.
+function fitsAsWritten(element: HTMLElement) {
+  const computed = getComputedStyle(element)
+  const box = element.getBoundingClientRect()
+  const [topLeft, topRight, bottomRight, bottomLeft] = [
+    computed.borderTopLeftRadius,
+    computed.borderTopRightRadius,
+    computed.borderBottomRightRadius,
+    computed.borderBottomLeftRadius,
+  ].map((value) => Number.parseFloat(value))
+  return (
+    topLeft + topRight <= box.width &&
+    bottomLeft + bottomRight <= box.width &&
+    topLeft + bottomLeft <= box.height &&
+    topRight + bottomRight <= box.height
+  )
+}
+
 // Lets every transition on `element` run to its end, so a test reads the
 // value it settles at rather than one on the way there.
 function settle(element: Element) {
@@ -220,9 +241,12 @@ describe('button group', () => {
       render(<Group variant="connected" />)
       const [first, second, third] = screen.getAllByRole('button')
 
-      expect(cornersOf(first)).toEqual({ left: '9999px', right: '8px' })
+      expect(cornersOf(first)).toEqual({ left: '20px', right: '8px' })
       expect(cornersOf(second)).toEqual({ left: '8px', right: '8px' })
-      expect(cornersOf(third)).toEqual({ left: '8px', right: '9999px' })
+      expect(cornersOf(third)).toEqual({ left: '8px', right: '20px' })
+      for (const button of [first, second, third]) {
+        expect(fitsAsWritten(button)).toBe(true)
+      }
     })
 
     it.each([
@@ -263,7 +287,8 @@ describe('button group', () => {
       )
       const second = screen.getByRole('radio', { name: 'Second item' })
 
-      expect(cornersOf(second)).toEqual({ left: '9999px', right: '9999px' })
+      expect(cornersOf(second)).toEqual({ left: '20px', right: '20px' })
+      expect(fitsAsWritten(second)).toBe(true)
     })
 
     it('keeps the round end at the start under right-to-left', () => {
@@ -274,7 +299,7 @@ describe('button group', () => {
       )
       const [first] = screen.getAllByRole('button')
 
-      expect(cornersOf(first)).toEqual({ left: '8px', right: '9999px' })
+      expect(cornersOf(first)).toEqual({ left: '8px', right: '20px' })
     })
 
     it('gives XS and S buttons the 48px touch target as a minimum width', () => {
