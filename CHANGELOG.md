@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.37.0](https://github.com/kanso-labs/kanso-ui/compare/v0.36.0...v0.37.0) (2026-10-06)
+
+
+### Features
+
+* **button-group:** add ButtonGroup, the standard and connected groups, and SplitButton on it ([#1314](https://github.com/kanso-labs/kanso-ui/issues/1314)) ([0df1e80](https://github.com/kanso-labs/kanso-ui/commit/0df1e80034dfdb77bc7b2b2f4f487f84f58ec7aa))
+* **chip,chip-group:** add the leading icon slot the chips page draws ([#1317](https://github.com/kanso-labs/kanso-ui/issues/1317)) ([f7190c5](https://github.com/kanso-labs/kanso-ui/commit/f7190c5cd6019df7393f00a842de3367d8cdb444))
+* **chip:** add the assist and suggestion chips ([#1319](https://github.com/kanso-labs/kanso-ui/issues/1319)) ([303cbb0](https://github.com/kanso-labs/kanso-ui/commit/303cbb0703a41d78ffbf9b4ece42ef55a14b72dc))
+* **drag:** draw the dragged row and the row or list a drop lands on ([#1327](https://github.com/kanso-labs/kanso-ui/issues/1327)) ([64df4ec](https://github.com/kanso-labs/kanso-ui/commit/64df4ec1db2e2b4d43441073c6f35097926d4ff5))
+* **search-view:** add SearchView, the search page's full-screen and docked results surface ([#1329](https://github.com/kanso-labs/kanso-ui/issues/1329)) ([fe5b59e](https://github.com/kanso-labs/kanso-ui/commit/fe5b59ea0fa01532ba371b8c6653eaf20cbb9b8c))
+* **tabs:** add icon tabs and secondary tabs ([#1318](https://github.com/kanso-labs/kanso-ui/issues/1318)) ([1f4afc1](https://github.com/kanso-labs/kanso-ui/commit/1f4afc1458cfc570b5a137e5ba26276befc065f2))
+* **tabs:** add scrollable tabs, and draw the vertical orientation Tabs already accepts ([#1326](https://github.com/kanso-labs/kanso-ui/issues/1326)) ([e0b28b7](https://github.com/kanso-labs/kanso-ui/commit/e0b28b750c7129e1ad74e11c554b3895b446cf69))
+
+
+### Bug Fixes
+
+* **chip-group,combo-box:** accept an item renderer wherever items is accepted ([#1328](https://github.com/kanso-labs/kanso-ui/issues/1328)) ([eb59d6f](https://github.com/kanso-labs/kanso-ui/commit/eb59d6fafdb2629b930bbc765e9dc8550007b4cc))
+* draw the focus state layer on IconButton, Chip and the selection controls, and ripple a chip on press ([#1310](https://github.com/kanso-labs/kanso-ui/issues/1310)) ([42118b2](https://github.com/kanso-labs/kanso-ui/commit/42118b24b2cda2bd2bea94b9eb7333adc3194056))
+* **segmented-button:** keep the ripple off in a disabled group, and put keyboard handlers and non-labelling aria-* back on the segment ([#1316](https://github.com/kanso-labs/kanso-ui/issues/1316)) ([45a44fb](https://github.com/kanso-labs/kanso-ui/commit/45a44fb29148e6a536fda57d33948adddcb2a93d))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.18 ([#1313](https://github.com/kanso-labs/kanso-ui/issues/1313)) ([923a444](https://github.com/kanso-labs/kanso-ui/commit/923a44446cd63faf9b54f4cd891a2083f0fd5039))
+* update dependency @microsoft/api-extractor to v7.59.4 ([#1311](https://github.com/kanso-labs/kanso-ui/issues/1311)) ([3111010](https://github.com/kanso-labs/kanso-ui/commit/3111010ba12a30fa8e1afcbe0f2887cff1616b8d))
+
 ## [0.36.0](https://github.com/kanso-labs/kanso-ui/compare/v0.35.0...v0.36.0) (2026-10-06)
 
 
