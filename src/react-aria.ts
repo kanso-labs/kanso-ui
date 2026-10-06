@@ -1,3 +1,5 @@
+'use client'
+
 export { useDragAndDrop } from './drag/hooks'
 // The React Aria utilities a consumer reaches for around the components:
 // the providers that give them a locale and a router, the collection and

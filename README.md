@@ -51,9 +51,33 @@ positioned from the call site like any other element:
 <Card className="col-span-2" style={{ marginBlockStart: '2rem' }} />
 ```
 
-StyleX compiles the library's own rules into a CSS `@layer`, and your app's
-stylesheet is unlayered, so your rules win the cascade wherever the two meet —
-no specificity contest, and no `!important`.
+### Ordering the library's rules
+
+StyleX compiles the library's own rules into one CSS cascade layer, named
+`kanso`. A stylesheet of your own that is not layered beats every rule in it
+wherever the two meet — no specificity contest, and no `!important`.
+
+CSS that is layered takes its place from the order its layers are named in, so
+an app whose CSS is layered names the order. Tailwind v4 writes its preflight
+into `base` and its utilities into `utilities`; put `kanso` between them, so a
+utility on the call site wins and the preflight does not empty a button:
+
+```css
+@layer theme, base, kanso, components, utilities;
+@import 'tailwindcss';
+```
+
+A reset that is not layered — Tailwind v3's preflight, or a normalize sheet —
+beats every layered rule, the library's included, and turns a filled button
+transparent. Give it a layer ordered before `kanso`:
+
+```css
+@layer reset, kanso;
+@import 'modern-normalize.css' layer(reset);
+```
+
+A layer's place is fixed where it is first named, so the statement goes at the
+top of the stylesheet your app loads first, ahead of the library's.
 
 ### React Aria utilities
 
@@ -265,6 +289,38 @@ An SVG with a `viewBox` and no size at all has no size to shrink from, so what
 it does next belongs to the slot rather than to the icon. In an `IconButton` it
 fills the button edge to edge; in a field's icon slot it collapses and draws
 nothing. Sizing it is what avoids both.
+
+### Server components
+
+Every component is a client module, so a server component — a page or a layout
+in the Next.js App Router — imports and renders one directly:
+
+```tsx
+// app/page.tsx
+import { Button } from '@kanso-labs/kanso-ui'
+
+export default function Page() {
+  return <Button href="/start">Start</Button>
+}
+```
+
+Four things follow from where that boundary falls.
+
+- **Only serialisable props cross it.** A string, a number or a plain object
+  reaches the component from a server component; a function does not, so
+  `onPress` and a `render` callback belong in a client component of your own.
+  Neither does a class instance, so a `CalendarDate` for a date component is
+  built on the client side too.
+- **A sub-part is reached through its component**, as in `Dialog.Title` or
+  `Menu.Item`, and a server component cannot reach into a client module that
+  way. Compose those in a client component and render that.
+- **The React Aria utilities the package re-exports are client-only** —
+  `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes` is
+  a plain value and works on either side.
+- **A server-rendered app wraps its tree in `I18nProvider`** with the request's
+  locale. React Aria reads the browser's locale on the client and has none on
+  the server, so without it a date or a number can render differently on the two
+  and fail hydration.
 
 ## Theming
 

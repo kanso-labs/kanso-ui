@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TokenFieldProps as RACTokenFieldProps,
   TokenInputProps as RACTokenInputProps,
@@ -6,7 +8,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import {
   Token as RACToken,
   TokenField as RACTokenField,
@@ -260,7 +262,7 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
   trailingIcon,
   variant = 'filled',
   ...props
-}: TokenFieldProps<T>) {
+}: RefAttributes<HTMLDivElement> & TokenFieldProps<T>) {
   // A copy of what the field holds, kept only so the label can float from
   // it. React Aria's token field reports `isDisabled` and `isReadOnly`
   // through its render props and not its value, and it hands its state down
@@ -273,9 +275,34 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
   const [held, setHeld] = useState(props.defaultValue)
   const populated = isPopulated(props.value ?? held)
 
+  // The error, said to a screen reader. React Aria's token field wires up a
+  // description slot and no error one, so it generates no error id and its
+  // editable area is never told the message exists. The field names the
+  // message itself and adds it to the area's `aria-describedby`, which React
+  // Aria merges with the description's id and with any the call site passed.
+  //
+  // `aria-invalid` cannot take the same road: the token input filters it out
+  // of the props it is given, so it is written onto the area once React Aria
+  // has drawn it, and taken off again when the error goes.
+  const errorId = useId()
+  const invalid = invalidFrom(error) === true
+  const describedBy =
+    [props['aria-describedby'], invalid ? errorId : undefined]
+      .filter(Boolean)
+      .join(' ') || undefined
+  const area = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (invalid) {
+      area.current?.setAttribute('aria-invalid', 'true')
+    } else {
+      area.current?.removeAttribute('aria-invalid')
+    }
+  }, [invalid])
+
   return (
     <RACTokenField<T>
       {...props}
+      aria-describedby={describedBy}
       onChange={changeHandler(setHeld, props.onChange)}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
@@ -294,6 +321,7 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
         variant={variant}
       >
         <RACTokenInput<T>
+          ref={area}
           {...stylex.props(
             styles.input,
             variant === 'filled' && styles.inputUnderLabel,
@@ -302,7 +330,7 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
           {tokenContent(renderToken)}
         </RACTokenInput>
       </FieldBox>
-      <FieldMessage description={description} error={error} />
+      <FieldMessage description={description} error={error} errorId={errorId} />
     </RACTokenField>
   )
 }

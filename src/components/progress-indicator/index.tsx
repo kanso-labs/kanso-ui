@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ProgressBarRenderProps,
   ProgressBarProps as RACProgressBarProps,
@@ -706,7 +708,7 @@ function ProgressIndicator({
   tone = 'primary',
   variant = 'linear',
   ...props
-}: ProgressIndicatorProps) {
+}: ProgressIndicatorProps & RefAttributes<HTMLDivElement>) {
   return (
     <ProgressBar
       maxValue={maxValue}

@@ -1,5 +1,7 @@
+'use client'
+
 import type { CalendarDate } from '@internationalized/date'
-import type { ReactElement } from 'react'
+import type { ReactElement, RefAttributes } from 'react'
 import type {
   DateValue,
   RangeCalendarProps as RACRangeCalendarProps,
@@ -122,7 +124,9 @@ function gridCell(date: CalendarDate): ReactElement {
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function RangeCalendar<T extends DateValue>(props: RangeCalendarProps<T>) {
+function RangeCalendar<T extends DateValue>(
+  props: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>,
+) {
   return (
     <RACRangeCalendar<T>
       {...props}

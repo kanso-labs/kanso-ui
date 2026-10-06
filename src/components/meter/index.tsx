@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   MeterRenderProps,
   MeterProps as RACMeterProps,
@@ -91,7 +93,7 @@ function Meter({
   showValue = true,
   tone = 'primary',
   ...props
-}: MeterProps) {
+}: MeterProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACMeter
       maxValue={maxValue}

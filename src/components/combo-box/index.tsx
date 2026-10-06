@@ -1,4 +1,6 @@
-import type { ReactNode, RefObject } from 'react'
+'use client'
+
+import type { ReactNode, Ref, RefAttributes, RefObject } from 'react'
 import type { ComboBoxProps as RACComboBoxProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -178,6 +180,11 @@ type ComboBoxProps<
    */
   floatingLabel?: boolean
   /**
+   * A ref to the field's own `<input>`, which is the element a call site moves
+   * focus to — after a server's error, say. `ref` is the field as a whole.
+   */
+  inputRef?: Ref<HTMLInputElement>
+  /**
    * What the field is for. Required rather than optional: a combo box with
    * no label is a box a screen reader cannot name.
    */
@@ -266,13 +273,14 @@ function ComboBox<
   description,
   error,
   floatingLabel = true,
+  inputRef,
   isDisabled = false,
   label,
   leadingIcon,
   options,
   variant = 'filled',
   ...props
-}: ComboBoxProps<T, M>) {
+}: ComboBoxProps<T, M> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
   // What the list is anchored to and takes its width from: the box, not the
   // button inside it, which is a 24dp icon.
@@ -289,6 +297,7 @@ function ComboBox<
       <ComboBoxBox
         boxRef={boxRef}
         floatingLabel={floatingLabel}
+        inputRef={inputRef}
         isDisabled={isDisabled}
         isInvalid={invalidFrom(error)}
         label={label}
@@ -320,6 +329,7 @@ function ComboBox<
 function ComboBoxBox({
   boxRef,
   floatingLabel,
+  inputRef,
   isDisabled,
   isInvalid,
   label,
@@ -329,6 +339,7 @@ function ComboBoxBox({
 }: {
   boxRef: RefObject<HTMLDivElement | null>
   floatingLabel: boolean
+  inputRef: Ref<HTMLInputElement> | undefined
   isDisabled: boolean
   isInvalid: boolean | undefined
   label: string
@@ -357,10 +368,10 @@ function ComboBoxBox({
       {multiple ? (
         <span {...stylex.props(styles.chosenLine)}>
           <ChosenValues />
-          <FieldInput />
+          <FieldInput ref={inputRef} />
         </span>
       ) : (
-        <FieldInput />
+        <FieldInput ref={inputRef} />
       )}
     </FieldBox>
   )

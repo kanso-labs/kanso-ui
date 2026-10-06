@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   DropZoneProps as RACDropZoneProps,
   FileTriggerProps as RACFileTriggerProps,
@@ -113,7 +115,11 @@ function content(
  * The call site's `className` and `style` land on the target itself, which
  * is the element a layout positions.
  */
-function DropZone({ children, label, ...props }: DropZoneProps) {
+function DropZone({
+  children,
+  label,
+  ...props
+}: DropZoneProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACDropZone
       aria-label={props['aria-label'] ?? label}

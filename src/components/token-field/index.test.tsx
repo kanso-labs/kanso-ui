@@ -73,6 +73,21 @@ const MANY = new TaggedValue(
   ]).flat(),
 )
 
+/**
+ * What `element`'s `aria-describedby` reads as: the text of each element it
+ * names, in order, joined the way a screen reader joins them. An id that
+ * names nothing in the document reads as nothing, which is how a dangling id
+ * fails here rather than passing on the attribute alone.
+ */
+function describedBy(element: Element) {
+  return (element.getAttribute('aria-describedby') ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map((id) => document.getElementById(id)?.textContent ?? '')
+    .filter(Boolean)
+    .join(' ')
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -255,6 +270,43 @@ describe('token field', () => {
     it('shows the description when there is no error', () => {
       const view = setup({ description: 'Supporting line' })
       expect(view.getByText('Supporting line')).not.toBeNull()
+    })
+
+    // React Aria's token field generates no error id of its own, so the field
+    // names the message itself and points the editable area at it. Without
+    // that a screen reader saw the underline turn and was never told why.
+    it('announces the error as the editable area describes itself', () => {
+      const view = setup({ error: 'Add at least one tag' })
+      const control = view.getByRole('textbox', { name: 'Label' })
+
+      expect(describedBy(control)).toBe('Add at least one tag')
+      expect(control.getAttribute('aria-invalid')).toBe('true')
+    })
+
+    it('keeps a description of its own beside the error', () => {
+      const view = render(
+        <>
+          <TokenField
+            aria-describedby="elsewhere"
+            defaultValue={TAGGED}
+            error="Add at least one tag"
+            label="Label"
+          />
+          <p id="elsewhere">Said elsewhere</p>
+        </>,
+      )
+      const control = view.getByRole('textbox', { name: 'Label' })
+
+      expect(describedBy(control)).toBe('Said elsewhere Add at least one tag')
+    })
+
+    it('stops calling the area invalid once the error is gone', () => {
+      const view = setup({ error: 'Add at least one tag' })
+      view.rerender(<TokenField defaultValue={TAGGED} label="Label" />)
+      const control = view.getByRole('textbox', { name: 'Label' })
+
+      expect(control.hasAttribute('aria-invalid')).toBe(false)
+      expect(describedBy(control)).toBe('')
     })
   })
 

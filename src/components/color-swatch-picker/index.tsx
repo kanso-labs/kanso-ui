@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ColorSwatchPickerItemProps as RACColorSwatchPickerItemProps,
   ColorSwatchPickerProps as RACColorSwatchPickerProps,
@@ -151,7 +153,9 @@ type ColorSwatchPickerProps = Omit<
  * The call site's `className` and `style` land on the picker, which is the
  * element a layout positions.
  */
-function ColorSwatchPicker(props: ColorSwatchPickerProps) {
+function ColorSwatchPicker(
+  props: ColorSwatchPickerProps & RefAttributes<HTMLDivElement>,
+) {
   return (
     <RACColorSwatchPicker
       {...props}

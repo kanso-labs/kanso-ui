@@ -1,4 +1,6 @@
-import type { ReactNode, RefObject } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes, RefObject } from 'react'
 import type {
   SelectProps as RACSelectProps,
   SelectRenderProps,
@@ -208,7 +210,7 @@ function Select<T extends object = object>({
   options,
   variant = 'filled',
   ...props
-}: SelectProps<T>) {
+}: RefAttributes<HTMLDivElement> & SelectProps<T>) {
   const validationBehavior = useFieldValidationBehavior()
   // What the list is anchored to and takes its width from — see the note at
   // the top of the file.

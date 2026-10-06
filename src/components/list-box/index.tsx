@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ListBoxItemRenderProps,
   ListBoxItemProps as RACListBoxItemProps,
@@ -182,7 +184,9 @@ function itemContent(
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
  */
-function ListBox<T extends object>(props: ListBoxProps<T>) {
+function ListBox<T extends object>(
+  props: ListBoxProps<T> & RefAttributes<HTMLDivElement>,
+) {
   return (
     <RACListBox
       {...props}

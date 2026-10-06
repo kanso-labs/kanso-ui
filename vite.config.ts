@@ -3,9 +3,10 @@
 import type { Plugin, ServerHook } from 'vite'
 
 import styleDictionary from '@kanso-labs/unplugin-style-dictionary'
+import babel from '@rolldown/plugin-babel'
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
 import stylex from '@stylexjs/unplugin'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { Features } from 'lightningcss'
 import { Server } from 'node:http'
@@ -167,13 +168,26 @@ export default defineConfig(({ command }) => ({
         exclude: Features.DirSelector,
       },
       runtimeInjection: false,
-      useCSSLayers: true,
+      // The package build's named layer, for the reason tsdown.config.ts
+      // gives, so the cascade the tests read is the one a consumer orders.
+      useCSSLayers: { prefix: 'kanso' },
     }),
-    // The same panic threshold the package build runs under, so a function
-    // the compiler cannot compile fails here too — at the story or the test
-    // that renders it, rather than only at `npm run build`. See the comment
-    // beside it in tsdown.config.ts for why it is `all_errors`.
-    react({ compiler: { panicThreshold: 'all_errors' } }),
+    react(),
+    // The React Compiler the package is built with — the same Babel preset at
+    // the same panic threshold as tsdown.config.ts — so the stories, the tests
+    // and Chromatic render the code a consumer installs, and a function the
+    // compiler cannot compile fails here too, at the story or the test that
+    // renders it, rather than only at `npm run build`. See the comment beside
+    // it in tsdown.config.ts for why the threshold is `all_errors`.
+    //
+    // Not plugin-react's own `compiler` option: that runs
+    // `oxc-transform-react`, a Rust port of the compiler the package build
+    // never uses, so the suite would be checking output nobody ships.
+    // `src/components/compiler.test.ts` fails if the components stop
+    // arriving compiled.
+    babel({
+      presets: [reactCompilerPreset({ panicThreshold: 'all_errors' })],
+    }),
   ],
   test: {
     coverage: {

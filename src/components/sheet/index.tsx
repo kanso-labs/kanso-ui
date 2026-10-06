@@ -1,4 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+'use client'
+
+import type { HTMLAttributes, ReactNode, RefAttributes } from 'react'
 import type {
   ClassNameOrFunction,
   DialogProps,
@@ -305,9 +307,10 @@ function SheetContent({
   container,
   isDismissable = true,
   isKeyboardDismissDisabled,
+  ref,
   style,
   ...props
-}: SheetContentProps) {
+}: RefAttributes<HTMLDivElement> & SheetContentProps) {
   return (
     <ModalOverlay
       isDismissable={isDismissable}
@@ -317,6 +320,9 @@ function SheetContent({
       {...stylex.props(overlay.scrim)}
     >
       <Modal
+        // The panel, where the call site's class and style land, rather than
+        // the dialog inside it, which takes the rest of the props.
+        ref={ref}
         {...mergeStatefulStyles(stylex.props(styles.content), {
           className,
           style,

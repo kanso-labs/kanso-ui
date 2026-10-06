@@ -1,4 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+'use client'
+
+import type { HTMLAttributes, ReactNode, RefAttributes } from 'react'
 import type {
   ClassNameOrFunction,
   DialogTriggerProps,
@@ -287,9 +289,10 @@ function DialogContent({
   container,
   isDismissable = true,
   isKeyboardDismissDisabled,
+  ref,
   style,
   ...props
-}: DialogContentProps) {
+}: DialogContentProps & RefAttributes<HTMLDivElement>) {
   return (
     <ModalOverlay
       isDismissable={isDismissable}
@@ -299,6 +302,9 @@ function DialogContent({
       {...stylex.props(overlay.scrim, styles.centre)}
     >
       <Modal
+        // The panel, where the call site's class and style land, rather than
+        // the dialog inside it, which takes the rest of the props.
+        ref={ref}
         {...mergeStatefulStyles(stylex.props(styles.container), {
           className,
           style,

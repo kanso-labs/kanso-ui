@@ -1,4 +1,6 @@
-import type { HTMLAttributes } from 'react'
+'use client'
+
+import type { HTMLAttributes, RefAttributes } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -141,7 +143,7 @@ function CopyField({
   onCopyFailed,
   value,
   ...props
-}: CopyFieldProps) {
+}: CopyFieldProps & RefAttributes<HTMLDivElement>) {
   const [copied, setCopied] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 

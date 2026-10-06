@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ColumnRenderProps,
   ColumnResizerRenderProps,
@@ -645,7 +647,7 @@ function Table({
   selectLabel = 'Select',
   stickyHeader = false,
   ...props
-}: TableProps) {
+}: RefAttributes<HTMLTableElement> & TableProps) {
   const table = (
     <RACTable
       {...props}

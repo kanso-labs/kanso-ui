@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   GridListItemRenderProps,
   GridListItemProps as RACGridListItemProps,
@@ -221,7 +223,7 @@ function leadingFor(
 function List<T extends object>({
   selectLabel = 'Select',
   ...props
-}: ListProps<T>) {
+}: ListProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <SelectLabelContext value={selectLabel}>
       <RACGridList

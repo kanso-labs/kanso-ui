@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   CheckboxGroupRenderProps,
   CheckboxGroupProps as RACCheckboxGroupProps,
@@ -67,7 +69,7 @@ function CheckboxGroup({
   error,
   label,
   ...props
-}: CheckboxGroupProps) {
+}: CheckboxGroupProps & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (

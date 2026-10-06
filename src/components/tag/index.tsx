@@ -1,3 +1,5 @@
+'use client'
+
 import * as stylex from '@stylexjs/stylex'
 
 import type { RenderComponentProps } from '../../render/useRender'
@@ -158,6 +160,6 @@ function Tag({
   })
 }
 
-export type { TagProps }
+export type { TagProps, TagTone, TagVariant }
 
 export default Tag

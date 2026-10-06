@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TreeItemProps as RACTreeItemProps,
   TreeLoadMoreItemProps as RACTreeLoadMoreItemProps,
@@ -338,7 +340,7 @@ function textValueFor(textValue: string | undefined, headline: ReactNode) {
 function Tree<T extends object>({
   selectLabel = 'Select',
   ...props
-}: TreeProps<T>) {
+}: RefAttributes<HTMLDivElement> & TreeProps<T>) {
   return (
     <SelectLabelContext value={selectLabel}>
       <RACTree<T>
@@ -469,12 +471,6 @@ Tree.Item = TreeItem
 Tree.LoadMore = TreeLoadMore
 Tree.Section = TreeSection
 
-export type {
-  TreeHeaderProps,
-  TreeItemProps,
-  TreeLoadMoreProps,
-  TreeProps,
-  TreeSectionProps,
-}
+export type { TreeItemProps, TreeLoadMoreProps, TreeProps, TreeSectionProps }
 
 export default Tree

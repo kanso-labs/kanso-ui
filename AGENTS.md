@@ -11,16 +11,16 @@ are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command                           | Notes                                                                    |
-| ---------- | --------------------------------- | ------------------------------------------------------------------------ |
-| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)           |
-| Test       | `npm test`                        | Vitest in headless Chromium                                              |
-| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`         |
-| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                         |
-| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                      |
-| Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs           |
-| Verify     | `npm run package:check`           | publint, then `scripts/check-package.mjs`; reads `dist/`, so build first |
-| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"   |
+| Task       | Command                           | Notes                                                                          |
+| ---------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)                 |
+| Test       | `npm test`                        | Vitest in headless Chromium                                                    |
+| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`               |
+| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                               |
+| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                            |
+| Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs                 |
+| Verify     | `npm run package:check`           | publint, attw, then `scripts/check-package.mjs`; reads `dist/`, so build first |
+| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"         |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
@@ -30,6 +30,22 @@ from that file, and an older npm silently drops the platform entries the
 lockfile carries for Linux builds — a rewrite with no visible symptom until a
 Linux runner installs the wrong native binary. If `node --version` disagrees,
 prefix the command: `mise exec node@24.21.0 -- npm install`.
+
+**A Claude Code session checks both when it starts**, through
+`.claude/hooks/session-setup.sh`. It puts the pinned Node first on `PATH`
+through `$CLAUDE_ENV_FILE`: mise's copy where mise is installed, otherwise the
+release from nodejs.org, checked against its `SHASUMS256.txt` and cached under
+`~/.cache/kanso-ui`. It installs with `npm ci --ignore-scripts` and husky when
+`node_modules` is missing, since `prepare`'s `--with-deps` needs root. And it
+runs `playwright install chromium` when the revision Playwright pins is not
+installed.
+
+The hook runs on every SessionStart rather than on `startup` alone, because a
+resumed or cleared session is handed a fresh `$CLAUDE_ENV_FILE` and would
+otherwise be back on the shell's Node. What it cannot put right it prints at the
+start of the session, with the hosts a proxy has to allow. It never links an
+older Chromium in place of the pinned one: the tests read computed styles, and
+an older browser changes which CSS features exist.
 
 ## Conventions
 
@@ -89,6 +105,11 @@ Specific to this repository:
   showcase section to you: its place there is alphabetical, but what it shows
   and the sentence under its headline are judgements, which is why the script
   prints the reminder rather than guessing.
+- **Every component's `index.tsx` opens with `'use client'`**, which is what
+  lets a server component render it — see "Server components" in the README. The
+  scaffold writes it, `src/client-boundary.test.ts` fails a component without
+  it, and `npm run package:check` fails a build that dropped it. The entry,
+  `src/layout.ts` and `src/date.ts` stay server modules and must not take it.
 - Public API is exported from `src/index.ts`: the components barrel, and the
   curated React Aria utilities in `src/react-aria.ts`. **`react-aria-components`
   stays a pinned dependency, never a peer**, and that module is why. A consumer
@@ -153,6 +174,15 @@ Specific to this repository:
   state plus `defaultClassName`, the other the state plus `defaultStyle`), both
   in `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
   exported component and fails if a new one forgets.
+- **A component takes a `ref` where it takes its `className`.** React 19 passes
+  `ref` as a prop, so a component's signature adds `RefAttributes<E>` for the
+  element its class lands on — React Aria's own props types leave `ref` out, as
+  React Aria puts it on the component. An overlay whose root renders nothing
+  takes it on its content part, and a component rendering one of two elements
+  hands it to each through `refCallback` in `src/render/ref.ts`. A field also
+  takes `inputRef` for its own control. `src/components/refs.test.ts` fails the
+  build on a component whose props reject `ref`, and `styling.test.tsx` fails
+  one whose ref lands anywhere but beside the class.
 - **React Aria supplies behaviour and nothing visual.** Four of its habits shape
   how a component here is written. Its `render` prop is a function that must
   return the element it would have rendered itself — a `Button` cannot become an
@@ -500,10 +530,21 @@ it they fall back to a tokenless upload, which this repository being public
 makes possible but rate-limited, so a report lands intermittently rather than
 not at all — which reads as a flaky uploader rather than as a missing secret.
 
-Branch coverage cannot reach 100%. The React Compiler synthesizes memoization
-branches that no test can exercise, and attributes them to source lines holding
-no conditional. Treat an uncovered branch with no matching source conditional as
-an artifact rather than a gap to close.
+**Statement and branch coverage count the compiler's code as well as yours, and
+neither can reach 100%.** The suite runs what the React Compiler emits, and the
+source maps Babel writes for it attribute the memoization the compiler
+synthesizes to the source lines around it: every cache check is a branch, and
+the arm that reuses a cached value runs only when a component re-renders with
+nothing changed, which most tests never do. That is why the summary prints about
+88% of statements and 72% of branches against 98.5% of lines. Codecov counts a
+line holding an uncovered branch as partial, which puts its figure near 82%.
+
+Line records are attributed the same way, so they carry the same artifact: a
+zero-hit record on a comment, a blank line or a property of a style object —
+`tabs`, `popover` and `drag/hooks` each carry one. Treat an uncovered branch,
+statement or line with nothing in the source to run as an artifact rather than a
+gap to close, and read the line figure for how much of the library the suite
+reaches.
 
 Barrel files always report 100% because re-exports compile to bindings with no
 executable statements, so the figure is structural rather than earned and no
@@ -655,15 +696,16 @@ appear in; this one has no equivalent.
 than the label on it, so keep the job name and the ruleset in sync in one
 change.
 
-Ruleset `18125383` ("Default") requires four contexts that workflows post —
-`Build`, `Lint`, `Test`, and `Run visual regression tests` — and it matches them
-by exact string. A job renamed without the ruleset renamed alongside it stops
-reporting the context the ruleset still waits on, so every open pull request
-sits on a check nothing will ever post. The ruleset is editable and a clearer
-job name is worth having, so this is not a rule against renaming — it is a rule
-against renaming only one half, and against forgetting the pull requests already
-open, which run the workflow files from their own branches and so keep reporting
-the old name until they are refreshed.
+Ruleset `18125383` ("Default") requires five contexts that workflows post —
+`Build`, `Check pull request title`, `Lint`, `Test`, and
+`Run visual regression tests` — and it matches them by exact string. A job
+renamed without the ruleset renamed alongside it stops reporting the context the
+ruleset still waits on, so every open pull request sits on a check nothing will
+ever post. The ruleset is editable and a clearer job name is worth having, so
+this is not a rule against renaming — it is a rule against renaming only one
+half, and against forgetting the pull requests already open, which run the
+workflow files from their own branches and so keep reporting the old name until
+they are refreshed.
 
 Two further required contexts, `Storybook Publish` and `UI Tests`, are posted by
 Chromatic as commit statuses rather than by any workflow. Grepping
@@ -767,6 +809,13 @@ would match the sibling repositories, but a pull request opened against any
 other base would then post none of the checks the ruleset requires, which reads
 as a hang rather than a failure because nothing will ever report.
 
+**`Check pull request title` runs on pull requests alone, and on every edit of
+one.** It lints the title against `.commitlintrc.json`, and a push to `main` has
+no title to lint. Its trigger names `edited` beside the default three because a
+retitle changes no commit, so nothing else would re-run it. A description edit
+re-runs it too, on purpose: a job skipped by an `if:` reports success, and that
+run would replace a failing one on the same commit and let the bad title merge.
+
 **`Chromatic` is grouped per ref, and cancels only off `main`.** On a branch the
 newest commit is the one the pull request is gated on, so a run for an older
 commit is answering a question nobody is asking. On `main` each build advances
@@ -848,6 +897,10 @@ branch commit messages are discarded by the squash and never reach history.
 
 **The pull request title is therefore the one that has to be right.** It is what
 `release-please` parses to pick the next version and write the changelog line.
+`Check pull request title` holds it to `.commitlintrc.json`, which is
+`@commitlint/config-conventional` with two changes: `deps` is admitted as a
+type, and the header has no length limit. A title copied from an issue runs past
+the preset's 100 characters, and release-please reads one of any length.
 
 Write branch commits conventionally anyway. They are what a reviewer reads while
 the pull request is open, even though only the title survives the merge. That
@@ -1065,9 +1118,10 @@ allows now, rebase merging included. Rebasing would be equally safe — it adds 
 merge commit to double-count — so it is the one to turn on if a pull request
 whose individual commits each deserve a changelog line ever needs it.
 
-**commitlint is installed but never runs.** `@commitlint/cli`,
-`@commitlint/config-conventional` and `.commitlintrc.json` are all present, and
-`.husky/` carries a `pre-commit` hook — but that hook runs lint-staged, not
-commitlint. There is no `commit-msg` hook and no workflow invoking one, so a
-malformed type reaches `main` unnoticed and lands in the changelog, and the pull
-request title is on the author to get right.
+**commitlint checks the pull request title and nothing else.** `.husky/` carries
+a `pre-commit` hook running lint-staged and no `commit-msg` hook, so no branch
+commit is ever linted — which costs nothing, since the squash discards them. Two
+things still pass the check. A breaking change written without its `!` is a
+well-formed title that commitlint has no way to see through, and still ships as
+a patch. A title commitlint ignores by default passes unread, such as one
+opening `Revert "` — which is what GitHub's revert button writes.

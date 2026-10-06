@@ -68,6 +68,7 @@
     ".ds-sync",
     "dist",
     "ds-bundle",
+    "scripts/consumer-types",
     "storybook-static"
   ]
 }

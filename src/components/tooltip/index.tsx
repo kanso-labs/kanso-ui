@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ClassNameOrFunction,
   StyleOrFunction,
@@ -131,11 +133,12 @@ function Tooltip({
   className,
   container,
   label,
+  ref,
   side = 'top',
   sideOffset = DEFAULT_SIDE_OFFSET,
   style,
   ...props
-}: TooltipProps) {
+}: RefAttributes<HTMLDivElement> & TooltipProps) {
   return (
     <TooltipTrigger {...props}>
       {children}
@@ -143,6 +146,9 @@ function Tooltip({
         crossOffset={alignOffset}
         offset={sideOffset}
         placement={placementOf(side, align)}
+        // The trigger renders no element of its own, so the ref lands on
+        // the surface, as the call site's class and style do.
+        ref={ref}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
         {...mergeStatefulStyles(

@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   RadioGroupProps as RACRadioGroupProps,
   RadioButtonRenderProps,
@@ -263,7 +265,11 @@ function groupContent(
  * The call site's `className` and `style` land on the option as a whole,
  * which is the element a layout positions.
  */
-function Radio({ children, description, ...props }: RadioProps) {
+function Radio({
+  children,
+  description,
+  ...props
+}: RadioProps & RefAttributes<HTMLDivElement>) {
   const ripple = useRipple<HTMLSpanElement>()
 
   return (
@@ -299,7 +305,7 @@ function RadioGroup({
   label,
   orientation = 'vertical',
   ...props
-}: RadioGroupProps) {
+}: RadioGroupProps & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (

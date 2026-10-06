@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   DateValue,
   DatePickerProps as RACDatePickerProps,
@@ -147,7 +149,7 @@ function DatePicker<T extends DateValue>({
   triggerLabel = 'Choose a date',
   variant = 'filled',
   ...props
-}: DatePickerProps<T>) {
+}: DatePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (

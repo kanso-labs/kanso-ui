@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react'
+'use client'
+
+import type { CSSProperties, RefAttributes } from 'react'
 import type { ColorAreaProps as RACColorAreaProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -115,14 +117,18 @@ type ColorAreaProps = Omit<
  * reason `ColorSwatch` does not take them: the element they would read
  * state for is not the one a layout reaches.
  */
+// The ref lands on the chequered ground, the element the call site's class
+// and style do, rather than on React Aria's area inside it.
 function ColorArea({
   className,
   isDisabled = false,
+  ref,
   style,
   ...props
-}: ColorAreaProps) {
+}: ColorAreaProps & RefAttributes<HTMLDivElement>) {
   return (
     <div
+      ref={ref}
       {...mergeStyles(
         stylex.props(styles.ground, isDisabled && styles.groundDisabled),
         { className, style },

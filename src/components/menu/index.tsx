@@ -1,4 +1,11 @@
-import type { ComponentProps, ReactElement, ReactNode } from 'react'
+'use client'
+
+import type {
+  ComponentProps,
+  ReactElement,
+  ReactNode,
+  RefAttributes,
+} from 'react'
 import type {
   ClassNameOrFunction,
   MenuItemRenderProps,
@@ -386,12 +393,13 @@ function MenuContent<T extends object = object>({
   alignOffset,
   className,
   container,
+  ref,
   search,
   side,
   sideOffset,
   style,
   ...props
-}: MenuContentProps<T>) {
+}: MenuContentProps<T> & RefAttributes<HTMLElement>) {
   return (
     <RACPopover
       crossOffset={alignOffset}
@@ -401,6 +409,9 @@ function MenuContent<T extends object = object>({
           ? undefined
           : placementOf(side ?? 'bottom', align ?? 'start')
       }
+      // The surface, where the call site's class and style land, rather than
+      // the menu inside it, which takes the rest of the props.
+      ref={ref}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(surfaceStyles, { className, style })}

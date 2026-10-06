@@ -1,3 +1,5 @@
+'use client'
+
 // React's event types are aliased because `useHandleDrag` also constructs a
 // DOM `PointerEvent`. Imported unaliased, the name shadows that constructor:
 // TypeScript still resolves the call to the global, since a type-only import
@@ -7,6 +9,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   ReactNode,
   PointerEvent as ReactPointerEvent,
+  RefAttributes,
 } from 'react'
 import type {
   SwitchFieldProps as RACSwitchFieldProps,
@@ -433,7 +436,7 @@ function Switch({
   error,
   icon = false,
   ...props
-}: SwitchProps) {
+}: RefAttributes<HTMLDivElement> & SwitchProps) {
   const ripple = useRipple<HTMLSpanElement>()
   const drag = useHandleDrag()
 

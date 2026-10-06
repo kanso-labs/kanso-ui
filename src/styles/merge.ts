@@ -101,9 +101,10 @@ function mergeStyleObjects(
  * position a component from outside it and no warning that the prop had gone.
  *
  * Order is presentational rather than load-bearing. StyleX compiles into
- * `@layer` (see `useCSSLayers` in tsdown.config.ts) and a consumer's own
- * stylesheet is unlayered, so the cascade already gives the call site the
- * last word whichever way round the two class strings are written.
+ * the `kanso` layer (see `useCSSLayers` in tsdown.config.ts), which an
+ * unlayered stylesheet beats and a layered one is ordered around, so the
+ * cascade rather than this order decides between the call site's class and
+ * the component's, whichever way round the two class strings are written.
  *
  * The call site's `style` is applied over the compiled one, which is the
  * order that matters: both are inline, so nothing but source order separates

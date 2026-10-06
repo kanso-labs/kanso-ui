@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react'
+'use client'
+
+import type { CSSProperties, ReactNode, RefAttributes } from 'react'
 import type {
   ButtonRenderProps,
   ColorPickerProps as RACColorPickerProps,
@@ -185,9 +187,10 @@ function ColorPicker({
   isOpen,
   label,
   onOpenChange,
+  ref,
   style,
   ...props
-}: ColorPickerProps) {
+}: ColorPickerProps & RefAttributes<HTMLButtonElement>) {
   return (
     <RACColorPicker {...props}>
       <RACDialogTrigger
@@ -197,6 +200,9 @@ function ColorPicker({
       >
         <RACButton
           isDisabled={isDisabled}
+          // React Aria's picker renders no element of its own, so the ref
+          // lands on the trigger, as the call site's class and style do.
+          ref={ref}
           {...mergeStatefulStyles(
             // A function of the state rather than a fixed class, since the
             // trigger is the element a layout positions and the call site's

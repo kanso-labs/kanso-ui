@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type { DisclosureGroupProps as RACDisclosureGroupProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -78,7 +80,7 @@ function DisclosureGroup({
   children,
   divided = true,
   ...props
-}: DisclosureGroupProps) {
+}: DisclosureGroupProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACDisclosureGroup
       {...props}

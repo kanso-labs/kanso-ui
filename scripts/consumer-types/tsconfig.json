@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noUncheckedSideEffectImports": true,
+    "skipLibCheck": false,
+    "strict": true,
+    "target": "es2022",
+    "types": []
+  },
+  "files": ["consumer.tsx"]
+}

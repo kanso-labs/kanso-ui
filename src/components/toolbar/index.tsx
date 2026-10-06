@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ToolbarProps as RACToolbarProps,
   SeparatorProps,
@@ -147,7 +149,7 @@ function Toolbar({
   orientation = 'horizontal',
   tone = 'neutral',
   ...props
-}: ToolbarProps) {
+}: RefAttributes<HTMLDivElement> & ToolbarProps) {
   // The rule runs across the toolbar rather than along it. Memoised because
   // a fresh object here would be a new context value on every render, which
   // is what react-perf's no-new-object-as-prop is after.

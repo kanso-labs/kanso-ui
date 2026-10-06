@@ -9,8 +9,10 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   renameSync,
   rmdirSync,
+  writeFileSync,
 } from 'node:fs'
 import { defineConfig } from 'tsdown'
 
@@ -65,7 +67,15 @@ export default defineConfig({
       // `scripts/check-package.mjs` checks that it reached dist/styles.css.
       lightningcssOptions: { exclude: Features.DirSelector },
       runtimeInjection: false,
-      useCSSLayers: true,
+      // The library's rules land in `kanso.priority1` onward rather than in
+      // bare `priorityN` layers, so an app whose own CSS is layered can order
+      // the library by one name: Tailwind v4's `base` before it and its
+      // `utilities` after, which no import order manages with the bare ones.
+      // The name is a public contract — see "Ordering the library's rules"
+      // in the README — and `scripts/check-package.mjs` fails if it changes.
+      // `vite.config.ts` uses it too, so the tests read the layers a consumer
+      // gets.
+      useCSSLayers: { prefix: 'kanso' },
     }),
     // The threshold is `all_errors` rather than the default. Left to itself
     // the compiler skips a function it cannot compile and says nothing, so a
@@ -89,6 +99,43 @@ export default defineConfig({
     // output format (esm, cjs); copying to the same dist/tokens.css both
     // times is redundant but harmless, and simpler than detecting "first
     // format wins".
+    // The published types, made to stand without a `*.css` declaration of a
+    // consumer's own. TypeScript 6 turns `noUncheckedSideEffectImports` on by
+    // default, which makes a side-effect import of a file with no
+    // declaration error TS2882 — and the entry's declaration kept
+    // `import "./styles.css"` from src/index.ts, which types never need, while
+    // the README tells a consumer to write two such imports of its own.
+    //
+    // So the import is taken out of `dist/index.d.ts` and left in
+    // `dist/index.js`, where it carries the stylesheet, and the two
+    // stylesheet subpaths take a `types` condition pointing at an empty
+    // declaration this writes. `scripts/check-package.mjs` type-checks a
+    // consumer of both under TypeScript 6's defaults.
+    {
+      closeBundle() {
+        const entry = 'dist/index.d.ts'
+
+        if (!existsSync(entry)) {
+          return
+        }
+
+        writeFileSync(
+          entry,
+          readFileSync(entry, 'utf8').replace(
+            /^import "\.\/styles\.css";\n/mu,
+            '',
+          ),
+        )
+      },
+      name: 'type-stylesheets',
+      writeBundle() {
+        mkdirSync('dist', { recursive: true })
+        writeFileSync(
+          'dist/stylesheet.d.ts',
+          '// The declaration behind the ./styles.css and ./tokens.css subpaths,\n// which a side-effect import resolves to. A stylesheet exports nothing.\nexport {}\n',
+        )
+      },
+    },
     {
       name: 'copy-tokens-css',
       writeBundle() {
@@ -171,6 +218,12 @@ export default defineConfig({
     }),
   ],
   sourcemap: true,
+  // Rolldown warns that a module's "use client" may not survive bundling,
+  // once per component. It survives here: `unbundle` writes every module to
+  // a file of its own, and rolldown keeps a leading directive in the file
+  // its module lands in — which scripts/check-package.mjs asserts of the
+  // built package, so the warning would only be noise on every build.
+  suppressWarnings: /module level directive "use client"/,
   tsconfig: 'tsconfig.lib.json',
   unbundle: true,
 })

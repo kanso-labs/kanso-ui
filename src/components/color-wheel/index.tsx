@@ -1,3 +1,6 @@
+'use client'
+
+import type { RefAttributes } from 'react'
 import type { ColorWheelProps as RACColorWheelProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -114,7 +117,7 @@ function ColorWheel({
   style,
   thickness = DEFAULT_THICKNESS,
   ...props
-}: ColorWheelProps) {
+}: ColorWheelProps & RefAttributes<HTMLDivElement>) {
   const innerRadius = Math.max(0, outerRadius - thickness)
 
   return (

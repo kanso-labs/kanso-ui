@@ -1,4 +1,6 @@
-import type { ReactNode, RefObject } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes, RefObject } from 'react'
 import type {
   ClassNameOrFunction,
   DialogProps,
@@ -238,12 +240,13 @@ function PopoverContent({
   children,
   className,
   container,
+  ref,
   side = 'bottom',
   sideOffset = DEFAULT_SIDE_OFFSET,
   style,
   triggerRef,
   ...props
-}: PopoverContentProps) {
+}: PopoverContentProps & RefAttributes<HTMLElement>) {
   const { modal, size } = useContext(PopoverContext)
 
   const descriptionId = useId()
@@ -265,6 +268,9 @@ function PopoverContent({
       isNonModal={!modal}
       offset={sideOffset}
       placement={placementOf(side, align)}
+      // The surface, where the call site's class and style land, rather than
+      // the dialog inside it, which takes the rest of the props.
+      ref={ref}
       triggerRef={triggerRef}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}

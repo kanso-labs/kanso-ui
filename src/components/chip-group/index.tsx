@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TagGroupProps as RACTagGroupProps,
   TagListProps as RACTagListProps,
@@ -15,14 +17,13 @@ import {
   TagList as RACTagList,
 } from 'react-aria-components'
 
-import { chipGlyph, chipLabel } from '../../chip'
+import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { textOf } from '../../collection/text'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
 import { groupStyles } from '../../field/styles'
 import { CloseGlyph } from '../../glyphs'
-import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -184,7 +185,7 @@ function ChipGroup<T extends object = object>({
   removeLabel = 'Remove',
   renderEmptyState,
   ...props
-}: ChipGroupProps<T>) {
+}: ChipGroupProps<T> & RefAttributes<HTMLDivElement>) {
   const invalid = invalidFrom(error)
 
   return (
@@ -226,30 +227,17 @@ function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
     <RACTag
       textValue={props.textValue ?? textOf(children)}
       {...props}
-      {...mergeStatefulStyles(chipPropsFor, props)}
+      {...mergeStatefulStyles(groupChipPropsFor, props)}
     >
       {chipContent(children, removeLabel)}
     </RACTag>
   )
 }
 
-// StyleX cannot target `[data-selected]` on the element it is styling, so a
-// chip's state comes from the render state React Aria hands its className.
-// Disabled is applied last so it wins over both containers, and StyleX
-// replaces a property whole, so it takes their hover branches with it.
-function chipPropsFor(state: TagRenderProps) {
-  return stylex.props(
-    chipStyles.base,
-    chipStyles.target,
-    chipStyles.targetInGroup,
-    focus.ring,
-    state.isSelected ? chipStyles.selected : chipStyles.unselected,
-    state.isDisabled && chipStyles.disabled,
-    state.isDisabled &&
-      (state.isSelected
-        ? chipStyles.disabledSelected
-        : chipStyles.disabledUnselected),
-  )
+// The pill a standalone Chip draws, from `src/chip`, with the touch target a
+// chip in a group takes instead.
+function groupChipPropsFor(state: TagRenderProps) {
+  return chipPropsFor(state, true)
 }
 
 ChipGroup.Chip = ChipGroupChip
