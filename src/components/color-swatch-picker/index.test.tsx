@@ -29,9 +29,6 @@ function colourOf(style: stylex.StyleXStyles) {
   return colour
 }
 
-// A mouse arriving over the swatch, and a press starting on it. React Aria
-// takes hover from `pointerover`, the bubbling event React derives
-// `onPointerEnter` from, and press from a primary `pointerdown`.
 function hover(element: Element) {
   fireEvent.pointerOver(element, { pointerType: 'mouse' })
 }
@@ -63,6 +60,29 @@ function press(element: Element, pointerType: 'mouse' | 'touch' = 'mouse') {
   })
 }
 
+// A mouse arriving over the swatch, and a press starting on it. React Aria
+// takes hover from `pointerover`, the bubbling event React derives
+// `onPointerEnter` from, and press from a primary `pointerdown`.
+/**
+ * The selection ring, which is the border of the box after the swatch, and
+ * the focus ring, which is the swatch's own outline. Two properties, so a
+ * swatch that is chosen and focused can draw both.
+ */
+function ringsOf(element: Element) {
+  const ring = getComputedStyle(element, '::after')
+  const outline = getComputedStyle(element)
+  return {
+    focus: {
+      offset: outline.outlineOffset,
+      style: outline.outlineStyle,
+    },
+    selection: {
+      color: ring.borderTopColor,
+      style: ring.borderTopStyle,
+    },
+  }
+}
+
 describe('color swatch picker', () => {
   it('is a listbox of colours, one option each', () => {
     const view = render(picker())
@@ -84,8 +104,9 @@ describe('color swatch picker', () => {
     const [first, second] = view.getAllByRole('option')
 
     expect(first.getAttribute('aria-selected')).toBe('true')
-    expect(getComputedStyle(first).outlineStyle).toBe('solid')
-    expect(getComputedStyle(second).outlineStyle).toBe('none')
+    expect(ringsOf(first).selection.style).toBe('solid')
+    expect(ringsOf(first).selection.color).toBe(colourOf(probeStyles.primary))
+    expect(ringsOf(second).selection.style).toBe('none')
   })
 
   it('reports the colour chosen from it', () => {
@@ -121,28 +142,50 @@ describe('color swatch picker', () => {
     expect(view.getAllByRole('option')[1].getAttribute('tabindex')).toBe('0')
   })
 
-  it('keeps the focus ring clear of the selection ring', () => {
+  // Arrowing moves focus without choosing, and arrowing back onto the
+  // chosen colour lands focus on it. Both rings were the swatch's one
+  // outline, so the focus ring replaced the selection one there, and the
+  // chosen swatch looked exactly like an unchosen one with focus.
+  it('draws both rings on a chosen swatch that has focus', () => {
     const view = render(picker())
-    const [first] = view.getAllByRole('option')
-    const selectedOffset = getComputedStyle(first).outlineOffset
+    const listbox = view.getByRole('listbox')
+    const [first, second] = view.getAllByRole('option')
+
+    fireEvent.focus(listbox)
+    fireEvent.keyDown(listbox, { key: 'ArrowRight' })
+    fireEvent.keyUp(listbox, { key: 'ArrowRight' })
+
+    // Focused and not chosen: the focus ring alone.
+    expect(second.getAttribute('data-focus-visible')).toBe('true')
+    expect(ringsOf(second).focus).toEqual({ offset: '6px', style: 'solid' })
+    expect(ringsOf(second).selection.style).toBe('none')
+
+    fireEvent.keyDown(listbox, { key: 'ArrowLeft' })
+    fireEvent.keyUp(listbox, { key: 'ArrowLeft' })
+
+    // Focused and chosen: both, the focus ring outside the selection one.
+    expect(first.getAttribute('data-focus-visible')).toBe('true')
+    expect(ringsOf(first)).toEqual({
+      focus: { offset: '6px', style: 'solid' },
+      selection: { color: colourOf(probeStyles.primary), style: 'solid' },
+    })
+  })
+
+  // Forced colours drop a box shadow outright, so neither ring may be one:
+  // the selection ring is a border and the focus ring an outline, both of
+  // which the mode keeps.
+  it('draws both rings in properties forced colours keep', () => {
+    const view = render(picker())
+    const first = view.getAllByRole('option')[0]
 
     fireEvent.focus(view.getByRole('listbox'))
-    fireEvent.keyDown(view.getByRole('listbox'), { key: 'ArrowRight' })
-    fireEvent.keyUp(view.getByRole('listbox'), { key: 'ArrowRight' })
     fireEvent.keyDown(view.getByRole('listbox'), { key: 'ArrowLeft' })
     fireEvent.keyUp(view.getByRole('listbox'), { key: 'ArrowLeft' })
 
-    // Both rings land on a swatch that is chosen and focused, so the focus
-    // one sits further out — at the same offset they would paint over each
-    // other and whichever came second would be the only one seen.
-    const focusedOffset = getComputedStyle(
-      view.getAllByRole('option')[0],
-    ).outlineOffset
-
-    expect(first.getAttribute('data-focus-visible')).toBe('true')
-    expect(Number.parseInt(focusedOffset, 10)).toBeGreaterThan(
-      Number.parseInt(selectedOffset, 10),
-    )
+    expect(getComputedStyle(first, '::after').borderTopWidth).toBe('2px')
+    expect(getComputedStyle(first, '::after').boxShadow).toBe('none')
+    expect(getComputedStyle(first).outlineWidth).toBe('2px')
+    expect(getComputedStyle(first).boxShadow).toBe('none')
   })
 
   // src/components/styling.test.tsx pins the plain-string form of both props
@@ -169,7 +212,7 @@ describe('color swatch picker', () => {
     // The item's own rings are compiled classes, so a merge that kept only
     // the call site's function would pass the two assertions above and leave
     // every swatch unstyled.
-    expect(getComputedStyle(first).outlineStyle).toBe('solid')
+    expect(ringsOf(first).selection.style).toBe('solid')
   })
 
   it('fades a colour that cannot be chosen, and refuses it', () => {
@@ -209,10 +252,10 @@ describe('color swatch picker', () => {
 
       hover(second)
 
-      const style = getComputedStyle(second)
-      expect(style.outlineStyle).toBe('solid')
-      expect(style.outlineOffset).toBe('2px')
-      expect(style.outlineColor).toBe(colourOf(probeStyles.outlineVariant))
+      expect(ringsOf(second).selection).toEqual({
+        color: colourOf(probeStyles.outlineVariant),
+        style: 'solid',
+      })
     })
 
     // A mouse selects the moment it presses, so the held press a reader
@@ -225,10 +268,11 @@ describe('color swatch picker', () => {
 
       press(second, 'touch')
 
-      const style = getComputedStyle(second)
       expect(second.getAttribute('aria-selected')).toBe('false')
-      expect(style.outlineStyle).toBe('solid')
-      expect(style.outlineColor).toBe(colourOf(probeStyles.outline))
+      expect(ringsOf(second).selection).toEqual({
+        color: colourOf(probeStyles.outline),
+        style: 'solid',
+      })
     })
 
     // Hover is applied before selection, so a chosen swatch keeps the ring
@@ -240,9 +284,10 @@ describe('color swatch picker', () => {
       hover(first)
       press(first)
 
-      const style = getComputedStyle(first)
-      expect(style.outlineColor).toBe(colourOf(probeStyles.primary))
-      expect(style.outlineOffset).toBe('2px')
+      expect(ringsOf(first).selection).toEqual({
+        color: colourOf(probeStyles.primary),
+        style: 'solid',
+      })
     })
 
     // A guard on React Aria rather than on this component: `itemStyles` draws
@@ -256,7 +301,8 @@ describe('color swatch picker', () => {
       hover(second)
       press(second)
 
-      expect(getComputedStyle(second).outlineStyle).toBe('none')
+      expect(ringsOf(second).selection.style).toBe('none')
+      expect(ringsOf(second).focus.style).toBe('none')
     })
   })
 })
