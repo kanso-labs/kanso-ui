@@ -130,6 +130,20 @@ const PAGE_MEASURE = '1040px'
 
 // The page draws the icons it needs, sized in `em` so each follows the font
 // size its control sets.
+function CircleIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <circle cx="12" cy="12" r="6" />
+    </svg>
+  )
+}
+
 function CloseIcon() {
   return (
     <svg
@@ -669,12 +683,14 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own."
+            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, and an icon takes the primary role."
             title="Chip"
           >
             <div {...stylex.props(styles.row)}>
-              <Chip>First item</Chip>
-              <Chip defaultSelected>Second item</Chip>
+              <Chip icon={<CircleIcon />}>First item</Chip>
+              <Chip defaultSelected icon={<CircleIcon />}>
+                Second item
+              </Chip>
               <Chip>Third item</Chip>
             </div>
           </Section>

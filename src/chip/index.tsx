@@ -7,10 +7,15 @@ import { focus } from '../styles/focus'
 import { chipLayers, chipStyles } from './styles'
 
 /**
- * The check a selected chip draws before its label, and nothing at all while
- * it is not selected. Returns a node rather than letting the type be
- * inferred, since `ReactNode` is a union that includes a promise and an
- * inferred one has to be `async`.
+ * What a chip draws before its label: the check while it is selected, its own
+ * icon while it is not, and nothing for an unselected chip with no icon.
+ * Returns a node rather than letting the type be inferred, since `ReactNode`
+ * is a union that includes a promise and an inferred one has to be `async`.
+ *
+ * The check takes the icon's place rather than joining it, as the chips page
+ * draws a filter chip and as a segmented button's segments do. So a chip with
+ * an icon keeps its width when it is chosen, where one without grows by the
+ * slot.
  *
  * Shared rather than written at each of the two call sites: Chip and
  * ChipGroup's chip draw the same pill from `./styles`, and a check written
@@ -18,13 +23,25 @@ import { chipLayers, chipStyles } from './styles'
  * library's own and not exported from the package; see `src/row` for the
  * same arrangement around a list's row.
  */
-function chipGlyph(isSelected: boolean): ReactNode {
-  if (!isSelected) {
+function chipGlyph(
+  state: { isDisabled: boolean; isSelected: boolean },
+  icon?: ReactNode,
+): ReactNode {
+  if (state.isSelected) {
+    return (
+      <span {...stylex.props(chipStyles.glyph)}>
+        <CheckGlyph {...stylex.props(chipStyles.glyphSvg)} />
+      </span>
+    )
+  }
+  if (icon === undefined || icon === null) {
     return null
   }
   return (
-    <span {...stylex.props(chipStyles.glyph)}>
-      <CheckGlyph {...stylex.props(chipStyles.glyphSvg)} />
+    <span
+      {...stylex.props(chipStyles.glyph, !state.isDisabled && chipStyles.icon)}
+    >
+      {icon}
     </span>
   )
 }

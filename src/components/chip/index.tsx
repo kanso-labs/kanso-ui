@@ -40,6 +40,12 @@ type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
    * chip narrows it the same way, for the same reason.
    */
   children?: ReactNode
+  /**
+   * An icon before the label, in the page's 18dp slot and the primary role.
+   * The check takes its place while the chip is selected, so the chip keeps
+   * its width. An icon drawn in `em` takes its size from the slot.
+   */
+  icon?: ReactNode
 }
 
 /**
@@ -50,6 +56,7 @@ type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
  */
 function Chip({
   children,
+  icon,
   onContextMenu,
   onKeyDown,
   onKeyUp,
@@ -81,20 +88,20 @@ function Chip({
       {...props}
       {...mergeStatefulStyles(chipPropsFor, props)}
     >
-      {chipContent(children, ripple.surface)}
+      {chipContent(children, icon, ripple.surface)}
     </ToggleButton>
   )
 }
 
 // What the chip draws, from React Aria's render state: the check while it is
-// selected, then the label, and the ripple over both. Built by a call rather
-// than written inline at the prop, which is what react-perf's
-// no-new-function-as-prop is after; the React Compiler memoises the result on
-// its inputs.
-function chipContent(children: ReactNode, surface: ReactNode) {
+// selected or its icon while it is not, then the label, and the ripple over
+// both. Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after; the React Compiler memoises
+// the result on its inputs.
+function chipContent(children: ReactNode, icon: ReactNode, surface: ReactNode) {
   return (state: ToggleButtonRenderProps) => (
     <>
-      {chipGlyph(state.isSelected)}
+      {chipGlyph(state, icon)}
       {chipLabel(children)}
       {surface}
     </>

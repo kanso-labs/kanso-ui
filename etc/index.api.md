@@ -343,6 +343,7 @@ export function ChipGroupChip(input: ChipGroupChipProps): JSX;
 export type ChipGroupChipProps = Omit<TagProps_2, 'children' | 'className' | 'style'> & {
     children?: ReactNode;
     className?: TagProps_2['className'];
+    icon?: ReactNode;
     style?: TagProps_2['style'];
 };
 
@@ -358,6 +359,7 @@ export type ChipGroupProps<T extends object = object> = {
 // @public (undocumented)
 export type ChipProps = Omit<ToggleButtonProps, 'children'> & {
     children?: ReactNode;
+    icon?: ReactNode;
 };
 
 // @public

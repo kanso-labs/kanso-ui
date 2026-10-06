@@ -30,6 +30,35 @@ const CHIPS = (
   </>
 )
 
+// An icon slot takes any node; a plain glyph keeps the sample generic. The
+// library's own glyphs are private to it, so a story draws its own, `1em`
+// square as the README asks.
+const DOT = (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="6" />
+  </svg>
+)
+
+const ICON_CHIPS = (
+  <>
+    <ChipGroup.Chip icon={DOT} id="first">
+      First item
+    </ChipGroup.Chip>
+    <ChipGroup.Chip icon={DOT} id="second">
+      Second item
+    </ChipGroup.Chip>
+    <ChipGroup.Chip icon={DOT} id="third">
+      Third item
+    </ChipGroup.Chip>
+  </>
+)
+
 const styles = stylex.create({
   column: {
     display: 'flex',
@@ -148,6 +177,30 @@ const Overview: Story = {
             selectionMode="multiple"
           >
             {CHIPS}
+          </ChipGroup>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Icons
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A chip given an icon draws it before the label in the primary role,
+            in the slot the check is drawn in. A chosen chip draws the check in
+            its place, so choosing one moves nothing else in the row.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.column)}>
+          <ChipGroup
+            defaultSelectedKeys={SECOND}
+            label="With icons"
+            selectionMode="multiple"
+          >
+            {ICON_CHIPS}
           </ChipGroup>
         </div>
       </section>
@@ -282,6 +335,15 @@ const Disabled: Story = {
   render: Default.render,
 }
 
+const WithIcons: Story = {
+  args: {
+    children: ICON_CHIPS,
+    defaultSelectedKeys: SECOND,
+    selectionMode: 'multiple',
+  },
+  render: Default.render,
+}
+
 // The story shows the close target rather than what pressing it does, which
 // the Removable section of the overview covers instead.
 function noop(_keys: Selection) {}
@@ -295,6 +357,7 @@ export {
   Removing,
   SingleSelection,
   WithDescription,
+  WithIcons,
 }
 
 export default meta
