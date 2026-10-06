@@ -6,13 +6,10 @@ import type {
   ToggleButtonRenderProps,
 } from 'react-aria-components'
 
-import * as stylex from '@stylexjs/stylex'
 import { ToggleButton } from 'react-aria-components'
 
-import { chipGlyph, chipLabel } from '../../chip'
-import { chipStyles } from '../../chip/styles'
+import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
 import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
-import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
 // The pill, its two containers, its check and its disabled treatment are the
@@ -59,7 +56,7 @@ function Chip({
     <ToggleButton
       render={toggleButtonRenderer(element, render)}
       {...props}
-      {...mergeStatefulStyles(propsFor, props)}
+      {...mergeStatefulStyles(chipPropsFor, props)}
     >
       {chipContent(children)}
     </ToggleButton>
@@ -76,28 +73,6 @@ function chipContent(children: ReactNode) {
       {chipGlyph(state.isSelected)}
       {chipLabel(children)}
     </>
-  )
-}
-
-// StyleX has no way to target [data-selected] on the element it is styling,
-// so the selected styles cannot be chosen in CSS. React Aria's answer is to
-// let className and style be functions of the component's own render state,
-// which is what this is — and it is why an uncontrolled chip styles itself
-// correctly without this component keeping a copy of the state.
-//
-// mergeStatefulStyles takes the function rather than a computed result for
-// exactly that reason, and combines it with whatever the call site passed.
-function propsFor(state: ToggleButtonRenderProps) {
-  return stylex.props(
-    chipStyles.base,
-    chipStyles.target,
-    focus.ring,
-    state.isSelected ? chipStyles.selected : chipStyles.unselected,
-    state.isDisabled && chipStyles.disabled,
-    state.isDisabled &&
-      (state.isSelected
-        ? chipStyles.disabledSelected
-        : chipStyles.disabledUnselected),
   )
 }
 
