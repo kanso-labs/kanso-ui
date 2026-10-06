@@ -8,15 +8,11 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { ToggleButton as RACToggleButton } from 'react-aria-components'
 
 import type { ButtonDOMProps, ButtonState } from '../../button'
 
-import { ButtonBase } from '../../button'
-import { useButtonBase } from '../../button/hooks'
-import { toggleButtonRenderer } from '../../render/aria'
+import { ButtonBase, ToggleButtonBase } from '../../button'
 import { focus } from '../../styles/focus'
-import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -92,11 +88,9 @@ import {
 // for the reason Button's comment gives: the browser greys a disabled
 // `<button>` there, but not the `<span>` a disabled link is.
 //
-// What every button does past its own styles — the ripple, the link form,
-// the pending ring, a parent's disabled state — is `src/button`'s, shared
-// with Button. The toggle is React Aria's `ToggleButton`, which that module
-// does not render, so it is drawn here and takes the same wiring from
-// `useButtonBase`.
+// What every button does past its own styles — the ripple, the link and
+// toggle forms, the pending ring, a parent's disabled state — is
+// `src/button`'s, shared with Button.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -553,11 +547,9 @@ type IconButtonProps = {
 type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
 // The render state a call site's `className`, `style` or `render` function is
-// handed. `isSelected` is optional because only the toggle form has one, and
-// one function has to be accepted by both: React Aria hands the plain button
-// a state without it and the toggle a state with it, and a parameter type
-// this wide accepts either.
-type IconButtonState = ButtonState & { isSelected?: boolean }
+// handed: the one every button shares, whose `isSelected` only the toggle
+// form fills in — see `ButtonState` in src/button.
+type IconButtonState = ButtonState
 
 type IconButtonVariant = 'filled' | 'outlined' | 'standard' | 'tonal'
 
@@ -600,14 +592,13 @@ function IconButton({
     onChange !== undefined
   ) {
     return (
-      <IconToggleButton
+      <ToggleButtonBase
         {...props}
+        classes={toggleStyleProps(size, variant)}
         defaultSelected={defaultSelected}
         isPending={isPending}
         isSelected={isSelected}
         onChange={onChange}
-        size={size}
-        variant={variant}
       />
     )
   }
@@ -644,66 +635,6 @@ function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )
-}
-
-// The toggle form, given what IconButton resolved. A component of its own so
-// the shared wiring is called on every render of it, which a hook has to be.
-// `isPending` reaches it only to keep the ripple off, as it does for the
-// plain button: React Aria's toggle has no pending state to hand it to.
-function IconToggleButton({
-  children,
-  defaultSelected,
-  isPending = false,
-  isSelected,
-  onChange,
-  render,
-  size,
-  variant,
-  ...input
-}: Omit<
-  IconButtonProps,
-  'href' | 'pendingLabel' | 'rel' | 'size' | 'target' | 'variant'
-> &
-  RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
-    size: IconButtonSize
-    variant: IconButtonVariant
-  }) {
-  const { disabled, element, props, ref, ripple } = useButtonBase(
-    input,
-    isPending,
-  )
-
-  return (
-    <RACToggleButton
-      defaultSelected={defaultSelected}
-      isDisabled={disabled}
-      isSelected={isSelected}
-      onChange={onChange}
-      ref={ref}
-      render={toggleButtonRenderer(element, render)}
-      {...ripple.handlers}
-      {...props}
-      {...mergeStatefulStyles(toggleStyleProps(size, variant), props)}
-    >
-      {toggleContent(children, ripple.surface)}
-    </RACToggleButton>
-  )
-}
-
-// What a toggle draws: its icon and the ripple. No pending ring — React
-// Aria's toggle button has no pending state, and a control reporting which of
-// two states it is in has nothing to be pending about.
-//
-// Built by a call rather than written inline at the prop, which is what
-// react-perf's no-new-function-as-prop is after; the React Compiler memoises
-// the result on its inputs.
-function toggleContent(children: ReactNode, surface: ReactNode) {
-  return () => (
-    <>
-      {children}
-      {surface}
-    </>
-  )
 }
 
 // A toggle's styles, from React Aria's render state. The chosen shape is

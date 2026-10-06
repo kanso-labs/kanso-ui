@@ -8,7 +8,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, shadows, typography } from '../../tokens/design.tokens.stylex'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+} from '../../styles/stylesheet.testing'
+import {
+  colors,
+  radii,
+  shadows,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
 // The variant assertions compare against an element styled straight from
@@ -61,6 +70,32 @@ const tokenProbeStyles = stylex.create({
   },
 })
 
+// The pairs a toggle moves between, which are not the plain button's.
+const toggleProbeStyles = stylex.create({
+  inversePair: {
+    backgroundColor: colors.inverseSurface,
+    color: colors.inverseOnSurface,
+  },
+  primaryPair: { backgroundColor: colors.primary, color: colors.onPrimary },
+  secondaryPair: {
+    backgroundColor: colors.secondary,
+    color: colors.onSecondary,
+  },
+  surfaceContainerPair: {
+    backgroundColor: colors.surfaceContainer,
+    color: colors.onSurfaceVariant,
+  },
+})
+
+// The corners the page's size token sets name, by the shape scale's steps.
+const shapeProbeStyles = stylex.create({
+  extraLarge: { borderRadius: radii.xl },
+  large: { borderRadius: radii.lg },
+  medium: { borderRadius: radii.md },
+  pill: { borderRadius: radii.pill },
+  small: { borderRadius: radii.sm },
+})
+
 // Named here for the waits below to read as intent, but derived from the same
 // tokens useRipple spends rather than copied as numbers — a retuned token
 // moves the hook and these waits together. What is still mirrored by hand is
@@ -82,6 +117,12 @@ async function advance(ms: number) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms)
   })
+}
+
+// The classes a style compiles to, for asserting that a state's style reached
+// the button without reading a value a transition is still moving.
+function classesOf(style: stylex.StyleXStyles) {
+  return (stylex.props(style).className ?? '').split(' ').filter(Boolean)
 }
 
 /**
@@ -164,6 +205,19 @@ function pointerInit(target: Element, init: PointerEventInit = {}) {
   }
 }
 
+// What a probe style resolves to in the page, with the probe torn down again.
+function resolved(style: stylex.StyleXStyles) {
+  const view = render(<div data-testid="probe" {...stylex.props(style)} />)
+  const computed = getComputedStyle(view.getByTestId('probe'))
+  const values = {
+    background: computed.backgroundColor,
+    color: computed.color,
+    radius: computed.borderTopLeftRadius,
+  }
+  view.unmount()
+  return values
+}
+
 function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   const view = render(<Button {...props}>Button</Button>)
   const button = view.getByRole('button')
@@ -202,6 +256,18 @@ function wrappedWithState(
   return createElement('button', {
     ...props,
     'data-state-disabled': String(state.isDisabled),
+  })
+}
+
+// The same for a toggle, writing down the two keys its state differs in.
+function wrappedWithToggleState(
+  props: ComponentProps<'button'>,
+  state: { isPending: boolean; isSelected?: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-pending': String(state.isPending),
+    'data-state-selected': String(state.isSelected),
   })
 }
 
@@ -986,4 +1052,237 @@ describe('a label longer than one line', () => {
       expect(text.bottom).toBeLessThan(box.bottom)
     },
   )
+})
+
+// Given any of `isSelected`, `defaultSelected` or `onChange` the button is
+// React Aria's ToggleButton instead of its Button, which reports the state
+// through `aria-pressed` rather than a role of its own.
+describe('toggle', () => {
+  it('reports no state until one of the three props makes it a toggle', () => {
+    const { button } = setup()
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
+  })
+
+  it.each([
+    ['defaultSelected', { defaultSelected: true }],
+    ['isSelected', { isSelected: true }],
+  ])('reports its state when given %s', (_name, props) => {
+    const { button } = setup(props)
+    expect(button.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('becomes a toggle from onChange alone, keeping its own state', () => {
+    const onChange = vi.fn<(isSelected: boolean) => void>()
+    const { button } = setup({ onChange })
+    expect(button.getAttribute('aria-pressed')).toBe('false')
+
+    fireEvent.click(button)
+
+    expect(button.getAttribute('aria-pressed')).toBe('true')
+    expect(onChange).toHaveBeenCalledWith(true)
+  })
+
+  // The page gives text no selected pair, so there would be nothing to show
+  // the state with.
+  it('stays a plain button as text', () => {
+    const { button } = setup({ isSelected: true, variant: 'text' })
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
+  })
+
+  // A call site's `render` is written for the button's render state, which
+  // says whether it is pending; the toggle's says nothing of it.
+  it('hands a render function its state, selected and never pending', () => {
+    const view = render(
+      <Button isSelected render={wrappedWithToggleState}>
+        Button
+      </Button>,
+    )
+    const button = view.getByRole('button')
+
+    expect(button.dataset.statePending).toBe('false')
+    expect(button.dataset.stateSelected).toBe('true')
+  })
+
+  // The page gives four of the five styles a second pair of colour roles for
+  // the toggle, and they are not the plain button's.
+  describe('colour', () => {
+    it('rests an unselected filled toggle on surface container, taking primary once selected', () => {
+      const unselectedPair = resolved(toggleProbeStyles.surfaceContainerPair)
+      const selectedPair = resolved(toggleProbeStyles.primaryPair)
+      expect(unselectedPair.background).not.toBe(selectedPair.background)
+
+      const unselected = setup({ isSelected: false })
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        unselectedPair.background,
+      )
+      expect(getComputedStyle(unselected.button).color).toBe(
+        unselectedPair.color,
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        selectedPair.background,
+      )
+      expect(getComputedStyle(button).color).toBe(selectedPair.color)
+    })
+
+    it('moves a selected tonal toggle from its container to secondary', () => {
+      const selectedPair = resolved(toggleProbeStyles.secondaryPair)
+      const unselectedPair = resolved(tokenProbeStyles.tonalPair)
+      expect(selectedPair.background).not.toBe(unselectedPair.background)
+
+      const unselected = setup({ isSelected: false, variant: 'tonal' })
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        unselectedPair.background,
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'tonal' })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        selectedPair.background,
+      )
+      expect(getComputedStyle(button).color).toBe(selectedPair.color)
+    })
+
+    it('gives a selected elevated toggle primary, keeping its shadow', () => {
+      const selectedPair = resolved(toggleProbeStyles.primaryPair)
+      const probe = render(
+        <div data-testid="probe" {...stylex.props(tokenProbeStyles.liftOne)} />,
+      )
+      const lift = getComputedStyle(probe.getByTestId('probe')).boxShadow
+      probe.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'elevated' })
+      const style = getComputedStyle(button)
+
+      expect(style.backgroundColor).toBe(selectedPair.background)
+      expect(style.color).toBe(selectedPair.color)
+      expect(style.boxShadow).toBe(lift)
+    })
+
+    // The rule goes when the container arrives, but keeps its width, drawn
+    // transparent: a toggle that changed size as it was selected would move
+    // whatever sat beside it.
+    it('swaps a selected outlined toggle rule for the inverse surface pair, at the same width', () => {
+      const selectedPair = resolved(toggleProbeStyles.inversePair)
+
+      const unselected = setup({ isSelected: false, variant: 'outlined' })
+      const unselectedWidth = unselected.button.getBoundingClientRect().width
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)',
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'outlined' })
+      const style = getComputedStyle(button)
+
+      expect(style.backgroundColor).toBe(selectedPair.background)
+      expect(style.color).toBe(selectedPair.color)
+      expect(style.borderTopColor).toBe('rgba(0, 0, 0, 0)')
+      expect(button.getBoundingClientRect().width).toBe(unselectedWidth)
+    })
+
+    // The mode paints author backgrounds in a system colour, which left a
+    // selected toggle looking like an unselected one.
+    it.each(['elevated', 'filled', 'outlined', 'tonal'] as const)(
+      'fills a selected %s toggle with Highlight under forced colours',
+      (variant) => {
+        const plain = setup({ variant })
+        expect(
+          declarationsHeld(plain.button, 'forced-colors: active').get(
+            'background-color',
+          ),
+        ).toBeUndefined()
+        plain.unmount()
+
+        const { button } = setup({ isSelected: true, variant })
+        expect(
+          declarationsHeld(button, 'forced-colors: active').get(
+            'background-color',
+          ),
+        ).toBe('highlight')
+      },
+    )
+  })
+})
+
+// The page's two shapes and its shape morph, from its size token sets.
+describe('shape', () => {
+  it('rests as the pill by default', () => {
+    const { button } = setup()
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(
+      resolved(shapeProbeStyles.pill).radius,
+    )
+  })
+
+  it.each([
+    ['xs', shapeProbeStyles.medium],
+    ['md', shapeProbeStyles.medium],
+    ['lg', shapeProbeStyles.large],
+    ['xl', shapeProbeStyles.extraLarge],
+    ['xxl', shapeProbeStyles.extraLarge],
+  ] as const)(
+    'rests a square %s button at its square corner',
+    (size, corner) => {
+      const expected = resolved(corner).radius
+      const { button } = setup({ shape: 'square', size })
+      expect(getComputedStyle(button).borderTopLeftRadius).toBe(expected)
+    },
+  )
+
+  // Pressed from the keyboard, which React Aria reports as a press like any
+  // other. Read off the classes rather than the computed corner, which the
+  // transition is still moving when the assertion runs.
+  it.each([
+    ['xs', shapeProbeStyles.small],
+    ['md', shapeProbeStyles.small],
+    ['lg', shapeProbeStyles.medium],
+    ['xl', shapeProbeStyles.large],
+    ['xxl', shapeProbeStyles.large],
+  ] as const)(
+    'tightens a %s button to its pressed corner, round or square',
+    (size, corner) => {
+      for (const shape of ['round', 'square'] as const) {
+        const { button, unmount } = setup({ shape, size })
+        const pressedCorner = () =>
+          classesOf(corner).every((name) => button.classList.contains(name))
+
+        expect(pressedCorner()).toBe(false)
+        fireEvent.keyDown(button, { key: ' ' })
+        expect(pressedCorner()).toBe(true)
+        fireEvent.keyUp(button, { key: ' ' })
+        unmount()
+      }
+    },
+  )
+
+  it('trades a round toggle for the square corner once selected, and a square one for the pill', () => {
+    const square = resolved(shapeProbeStyles.medium).radius
+    const pill = resolved(shapeProbeStyles.pill).radius
+    expect(square).not.toBe(pill)
+
+    const round = setup({ isSelected: true })
+    expect(getComputedStyle(round.button).borderTopLeftRadius).toBe(square)
+    round.unmount()
+
+    const { button } = setup({ isSelected: true, shape: 'square' })
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(pill)
+  })
+
+  // Which of the two states a disabled toggle is in should still be readable.
+  it('keeps the selected shape while disabled', () => {
+    const square = resolved(shapeProbeStyles.medium).radius
+    const { button } = setup({ isDisabled: true, isSelected: true })
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(square)
+  })
+
+  it('eases the corner, and moves it at once for reduced motion', () => {
+    const { button } = setup()
+    const computed = getComputedStyle(button)
+
+    expect(computed.transitionProperty).toBe('border-radius')
+    expect(Number.parseFloat(computed.transitionDuration)).toBeGreaterThan(0)
+    expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
+  })
 })
