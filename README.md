@@ -301,6 +301,7 @@ the icon inherits it:
 
 | Slot                                       | Size an `em` icon takes                              |
 | ------------------------------------------ | ---------------------------------------------------- |
+| `Button`'s `icon`                          | 20px, 20px, 24px, 32px and 40px across `xs` to `xxl` |
 | `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
 | A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
 | `SegmentedButton.Segment`'s `icon`         | 18px                                                 |
@@ -316,8 +317,8 @@ those a size of its own:
 
 An SVG with a `viewBox` and no size at all has no size to shrink from, so what
 it does next belongs to the slot rather than to the icon. In an `IconButton` it
-fills the button edge to edge; in a field's icon slot it collapses and draws
-nothing. Sizing it is what avoids both.
+fills the button edge to edge; in a field's icon slot or a `Button`'s it
+collapses and draws nothing. Sizing it is what avoids both.
 
 ### Server components
 

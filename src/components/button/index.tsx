@@ -210,6 +210,15 @@ const styles = stylex.create({
     backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
   },
+  // The slot an icon is drawn in, before the label. Its size is the font
+  // size `iconSizes` sets, which an icon drawn in `em` follows, as it does in
+  // IconButton and a field's icon slot.
+  icon: {
+    alignItems: 'center',
+    display: 'inline-flex',
+    flexShrink: 0,
+    justifyContent: 'center',
+  },
   // The five sizes are the buttons spec page's, XS to XL, from its size token
   // sets: the container height, the inline padding, the gap before an icon,
   // and the type role — label-large for the two small sizes, then
@@ -372,6 +381,17 @@ const outlineWidths = stylex.create({
   xl: { borderWidth: '2px' },
   xs: { borderWidth: '1px' },
   xxl: { borderWidth: '3px' },
+})
+
+// The icon each size draws, from the page's size token sets: 20dp for the
+// two small sizes, then 24, 32 and 40. The gap before it is the size's own,
+// which `base`, `xl` and `xxl` already set as the page gives them.
+const iconSizes = stylex.create({
+  lg: { fontSize: '24px' },
+  md: { fontSize: '20px' },
+  xl: { fontSize: '32px' },
+  xs: { fontSize: '20px' },
+  xxl: { fontSize: '40px' },
 })
 
 // The square corner each size rests at, and a round toggle once selected.
@@ -590,6 +610,13 @@ type ButtonProps = {
    */
   href?: string
   /**
+   * An icon before the label, at the page's icon size for the button's size:
+   * 20px at `xs` and `md`, 24px at `lg`, 32px at `xl` and 40px at `xxl`. Draw
+   * it `1em` square in `currentColor`, as every icon here is, and it follows.
+   * Hidden with the label while the button is pending.
+   */
+  icon?: ReactNode
+  /**
    * Whether a toggle is selected, when the call site holds the state. Pass
    * it with `onChange`; passing this, `defaultSelected` or `onChange` is what
    * makes the button a toggle, `text` excepted.
@@ -665,8 +692,10 @@ type ToggleVariant = keyof typeof toggleContainers
  * ```
  */
 function Button({
+  children,
   defaultSelected,
   href,
+  icon,
   isPending,
   isSelected,
   onChange,
@@ -678,6 +707,18 @@ function Button({
   variant = 'filled',
   ...props
 }: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  // The icon goes in with the label, inside what ButtonBase hides while the
+  // button is pending, so the ring takes the place of both.
+  const content =
+    icon === undefined ? (
+      children
+    ) : (
+      <>
+        <span {...stylex.props(styles.icon, iconSizes[size])}>{icon}</span>
+        {children}
+      </>
+    )
+
   // The three props that make this a toggle, read as IconButton reads them,
   // for every style the page gives a toggle's colours to.
   if (
@@ -694,7 +735,9 @@ function Button({
         isPending={isPending}
         isSelected={isSelected}
         onChange={onChange}
-      />
+      >
+        {content}
+      </ToggleButtonBase>
     )
   }
 
@@ -707,7 +750,9 @@ function Button({
       pendingLabel={pendingLabel}
       rel={rel}
       target={target}
-    />
+    >
+      {content}
+    </ButtonBase>
   )
 }
 

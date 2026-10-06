@@ -85,6 +85,30 @@ const styles = stylex.create({
   },
 })
 
+// A plain shape rather than an icon set, so the stories show the button
+// alone. Drawn `1em` square in `currentColor`, as the README asks of every
+// icon, so it takes the size and colour the button's slot sets.
+function PlusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="1em"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+// Hoisted so it is one stable element per render, which is what react-perf's
+// no-jsx-as-prop is after.
+const PLUS = <PlusIcon />
+
 const meta = {
   args: {
     children: 'Button',
@@ -547,6 +571,29 @@ const Square: Story = {
   args: { shape: 'square' },
 }
 
-export { Default, Elevated, Overview, Pending, Pressed, Square, Toggle }
+// An icon before the label at each of the five sizes, where it takes the
+// page's icon size for that size and the gap the size sets before the label.
+const WithIcon: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.inline)}>
+      <Button {...args} icon={PLUS} size="xs" />
+      <Button {...args} icon={PLUS} size="md" />
+      <Button {...args} icon={PLUS} size="lg" />
+      <Button {...args} icon={PLUS} size="xl" />
+      <Button {...args} icon={PLUS} size="xxl" />
+    </div>
+  ),
+}
+
+export {
+  Default,
+  Elevated,
+  Overview,
+  Pending,
+  Pressed,
+  Square,
+  Toggle,
+  WithIcon,
+}
 
 export default meta
