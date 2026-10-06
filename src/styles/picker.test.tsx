@@ -8,6 +8,7 @@ import { page } from 'vitest/browser'
 import ColorPicker from '../components/color-picker'
 import DatePicker from '../components/date-picker'
 import DateRangePicker from '../components/date-range-picker'
+import { CalendarDate } from '../date'
 import { colors, shadows } from '../tokens/design.tokens.stylex'
 
 // One pixel either side of the medium breakpoint the three pickers swap at,
@@ -28,13 +29,15 @@ afterAll(async () => {
 // the page resolves it, so a case compares computed colour with computed
 // colour.
 const probeStyles = stylex.create({
-  elevation: { boxShadow: shadows.elevation2 },
+  elevation2: { boxShadow: shadows.elevation2 },
+  elevation3: { boxShadow: shadows.elevation3 },
   scrim: { color: `color-mix(in srgb, ${colors.scrim} 32%, transparent)` },
+  surfaceContainerHigh: { backgroundColor: colors.surfaceContainerHigh },
 })
 
-// The surface's own elevation, which it casts at every width.
-function elevation() {
-  const view = render(<span {...stylex.props(probeStyles.elevation)} />)
+// A surface's own elevation, which it casts at every width.
+function elevation(level: 'elevation2' | 'elevation3') {
+  const view = render(<span {...stylex.props(probeStyles[level])} />)
   const shadow = getComputedStyle(view.container.firstElementChild!).boxShadow
   view.unmount()
   return shadow
@@ -68,15 +71,27 @@ function surfaceOf(element: ReactElement) {
 }
 
 // The three pickers share one surface style, which is the point: the swap
-// from docked to modal is written once for all of them.
-const PICKERS: ReadonlyArray<{ element: ReactElement; name: string }> = [
-  { element: <DatePicker defaultOpen label="Label" />, name: 'DatePicker' },
+// from docked to modal is written once for all of them. The date pickers
+// raise theirs to the docked container's level 3; the colour picker's stays
+// at the menu surface's 2.
+const PICKERS: ReadonlyArray<{
+  element: ReactElement
+  level: 'elevation2' | 'elevation3'
+  name: string
+}> = [
+  {
+    element: <DatePicker defaultOpen label="Label" />,
+    level: 'elevation3',
+    name: 'DatePicker',
+  },
   {
     element: <DateRangePicker defaultOpen label="Label" />,
+    level: 'elevation3',
     name: 'DateRangePicker',
   },
   {
     element: <ColorPicker defaultOpen defaultValue="#6750A4" label="Label" />,
+    level: 'elevation2',
     name: 'ColorPicker',
   },
 ]
@@ -85,14 +100,14 @@ describe('a picker opened below the medium breakpoint', () => {
   // The date pickers page puts the picker in a dialog on a compact window,
   // and the dialogs page draws a dialog over a scrim — the same one Sheet
   // and Dialog paint.
-  it.each(PICKERS)('dims the page behind $name', async ({ element }) => {
+  it.each(PICKERS)('dims the page behind $name', async ({ element, level }) => {
     await page.viewport(COMPACT, 900)
     const shadow = getComputedStyle(surfaceOf(element)).boxShadow
 
     expect(shadow).toContain(scrimColour())
     // The scrim is added to the surface's elevation rather than put in its
     // place, so the surface still lifts off the dimmed page.
-    expect(shadow.startsWith(elevation())).toBe(true)
+    expect(shadow.startsWith(elevation(level))).toBe(true)
   })
 
   // A scrim that stopped at the surface's edge would dim nothing but a
@@ -175,11 +190,157 @@ describe('a picker opened at the medium breakpoint and above', () => {
   // asked for.
   it.each(PICKERS)(
     'leaves the page behind $name undimmed',
-    async ({ element }) => {
+    async ({ element, level }) => {
       await page.viewport(MEDIUM, 900)
 
       // Its elevation and nothing else, as it was before the scrim existed.
-      expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(elevation())
+      expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(
+        elevation(level),
+      )
     },
   )
+})
+
+// A date picker's surface is the calendar's own, the page's docked
+// container: one fill and one corner, so the surface clips nothing of the
+// calendar and no second surface shows at its corners.
+describe("a date picker's surface", () => {
+  it.each(PICKERS.slice(0, 2))(
+    'takes the fill and the corner of the calendar in $name',
+    async ({ element }) => {
+      await page.viewport(MEDIUM, 900)
+      const surface = surfaceOf(element)
+      const calendar = surface.querySelector('[role="dialog"] > *')
+      if (calendar === null) {
+        throw new Error('expected a calendar inside the dialog')
+      }
+      const outer = getComputedStyle(surface)
+      const inner = getComputedStyle(calendar)
+
+      expect(outer.backgroundColor).toBe(inner.backgroundColor)
+      expect(outer.borderTopLeftRadius).toBe(inner.borderTopLeftRadius)
+      expect(outer.borderTopLeftRadius).toBe('16px')
+    },
+  )
+
+  it('leaves the colour picker on the menu surface', async () => {
+    await page.viewport(MEDIUM, 900)
+    const surface = surfaceOf(
+      <ColorPicker defaultOpen defaultValue="#6750A4" label="Label" />,
+    )
+    const probe = render(
+      <span {...stylex.props(probeStyles.surfaceContainerHigh)} />,
+    )
+    const high = getComputedStyle(
+      probe.container.firstElementChild!,
+    ).backgroundColor
+    probe.unmount()
+
+    expect(getComputedStyle(surface).backgroundColor).not.toBe(high)
+    expect(getComputedStyle(surface).borderTopLeftRadius).toBe('12px')
+  })
+})
+
+// `visibleDuration` reaches each date picker's calendar, which draws its
+// months side by side from the expanded breakpoint up and stacks them below
+// it: two side by side come to 720 with the calendar's padding. One pixel
+// either side of that breakpoint, as of the medium one above.
+const BELOW_EXPANDED = 839
+const EXPANDED = 841
+const TWO_MONTHS = { months: 2 }
+
+// Hoisted so it is one stable object, which is what react-perf's
+// no-new-object-as-prop is after: a range in February 2026.
+const FEBRUARY = {
+  end: new CalendarDate(2026, 2, 5),
+  start: new CalendarDate(2026, 2, 3),
+}
+
+const TWO_MONTH_PICKERS: ReadonlyArray<{
+  element: ReactElement
+  name: string
+}> = [
+  {
+    element: (
+      <DatePicker defaultOpen label="Label" visibleDuration={TWO_MONTHS} />
+    ),
+    name: 'DatePicker',
+  },
+  {
+    element: (
+      <DateRangePicker defaultOpen label="Label" visibleDuration={TWO_MONTHS} />
+    ),
+    name: 'DateRangePicker',
+  },
+]
+
+// The month grids a surface holds, as their boxes.
+function monthsIn(surface: HTMLElement) {
+  return [...surface.querySelectorAll('[role="grid"]')].map((grid) =>
+    grid.getBoundingClientRect(),
+  )
+}
+
+describe('a date picker showing two months', () => {
+  it.each(TWO_MONTH_PICKERS)(
+    'draws the months of $name side by side from the expanded breakpoint',
+    async ({ element }) => {
+      await page.viewport(EXPANDED, 900)
+      const [first, second, ...rest] = monthsIn(surfaceOf(element))
+
+      expect(rest).toHaveLength(0)
+      expect(second.top).toBe(first.top)
+      expect(second.left).toBeGreaterThan(first.right)
+    },
+  )
+
+  // Docked still, at a medium width, but with no room for both.
+  it.each(TWO_MONTH_PICKERS)(
+    'stacks the months of $name below it, inside the window',
+    async ({ element }) => {
+      await page.viewport(BELOW_EXPANDED, 900)
+      const surface = surfaceOf(element)
+      const [first, second] = monthsIn(surface)
+      const box = surface.getBoundingClientRect()
+
+      expect(second.left).toBe(first.left)
+      expect(second.top).toBeGreaterThan(first.bottom)
+      expect(box.right).toBeLessThanOrEqual(BELOW_EXPANDED)
+    },
+  )
+
+  it.each(TWO_MONTH_PICKERS)(
+    'stacks the months of $name once it is modal, inside the window',
+    async ({ element }) => {
+      await page.viewport(COMPACT, 900)
+      const surface = surfaceOf(element)
+      const [first, second] = monthsIn(surface)
+      const box = surface.getBoundingClientRect()
+
+      expect(second.left).toBe(first.left)
+      expect(second.top).toBeGreaterThan(first.bottom)
+      expect(box.left).toBeGreaterThanOrEqual(0)
+      expect(box.right).toBeLessThanOrEqual(COMPACT)
+    },
+  )
+
+  // February 2026 runs four weeks and March five. Stacked, each month still
+  // sits in six weeks of room, so March is where it would be under a
+  // six-week February: the weekday row and six weeks of 40, then the gap.
+  it('keeps the room of six weeks for each stacked month', async () => {
+    await page.viewport(COMPACT, 900)
+    const [first, second] = monthsIn(
+      surfaceOf(
+        <DateRangePicker
+          defaultOpen
+          defaultValue={FEBRUARY}
+          label="Label"
+          visibleDuration={TWO_MONTHS}
+        />,
+      ),
+    )
+
+    expect(first.height).toBe(200)
+    expect(second.top - first.top).toBe(7 * 40 + 24)
+  })
 })

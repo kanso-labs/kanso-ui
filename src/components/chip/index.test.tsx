@@ -1,9 +1,28 @@
+import type { ComponentProps } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { act, fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { ChipFilterProps } from '.'
 
 import Chip from '.'
-import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
+import { rippleStyles } from '../../styles/ripple'
+import {
+  colors,
+  shadows,
+  spacing,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -12,6 +31,12 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // the styles, with no dependency on the browser having applied a rule that
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
+  assistColor: { color: colors.onSurface },
+  elevatedBackground: { backgroundColor: colors.surfaceContainerLow },
+  elevation1: { boxShadow: shadows.elevation1 },
+  elevation2: { boxShadow: shadows.elevation2 },
+  grounded: { boxShadow: 'none' },
+  icon: { color: colors.primary },
   padding: { paddingInline: spacing.lg },
   selectedBackground: { backgroundColor: colors.secondaryContainer },
   selectedBorder: { borderColor: 'transparent' },
@@ -36,6 +61,12 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  assistColor: classesOf(stylex.props(probeStyles.assistColor)),
+  elevatedBackground: classesOf(stylex.props(probeStyles.elevatedBackground)),
+  elevation1: classesOf(stylex.props(probeStyles.elevation1)),
+  elevation2: classesOf(stylex.props(probeStyles.elevation2)),
+  grounded: classesOf(stylex.props(probeStyles.grounded)),
+  icon: classesOf(stylex.props(probeStyles.icon)),
   padding: classesOf(stylex.props(probeStyles.padding)),
   selectedBackground: classesOf(stylex.props(probeStyles.selectedBackground)),
   selectedBorder: classesOf(stylex.props(probeStyles.selectedBorder)),
@@ -58,9 +89,67 @@ function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
-function setup(props: Partial<Parameters<typeof Chip>[0]> = {}) {
+// An icon as the README asks for one: hidden from assistive technology,
+// drawn in `currentColor`, and `1em` square so the slot's size is its own.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+)
+
+function iconIn(chip: HTMLElement) {
+  return chip.querySelector('[data-testid="icon"]')
+}
+
+// The slot the icon is drawn in, which is the element carrying its colour.
+function iconSlotOf(chip: HTMLElement) {
+  const slot = iconIn(chip)?.parentElement
+  if (!(slot instanceof HTMLElement)) {
+    throw new Error('expected the chip to draw its icon in a slot')
+  }
+  return slot
+}
+
+// The span holding the label's text.
+function labelOf(chip: HTMLElement) {
+  const label = [...chip.querySelectorAll('span')].find(
+    (span) => span.textContent === 'Label',
+  )
+  if (label === undefined) {
+    throw new Error('expected the chip to carry a label')
+  }
+  return label
+}
+
+function setup(props: Partial<ChipFilterProps> = {}) {
   const view = render(<Chip {...props}>Label</Chip>)
   return { ...view, chip: view.getByRole('button') }
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the selected state it was handed beside the props —
+// the one a toggle's render state has and a plain button's does not.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isSelected: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-selected': String(state.isSelected),
+  })
 }
 
 describe('chip', () => {
@@ -168,6 +257,64 @@ describe('chip', () => {
       expect(chip.getAttribute('aria-label')).toBe('Label')
       // The state React Aria manages itself still reaches the element too.
       expect(chip.getAttribute('aria-pressed')).toBe('false')
+    })
+  })
+
+  // React Aria's `render` is how a call site swaps in an element of its own,
+  // and what the chip adds past React Aria — the props above, and its
+  // styles — has to reach that element too.
+  describe('a render function from the call site', () => {
+    it('renders the element it returns, with the classes the chip carries', () => {
+      const plain = setup()
+      const classes = plain.chip.className
+      plain.unmount()
+      // Two empty class lists would compare equal however the styles were
+      // lost.
+      expect(classes).not.toBe('')
+
+      const { chip } = setup({ render: wrapped })
+
+      expect(chip).toHaveAttribute('data-wrapped')
+      expect(chip.className).toBe(classes)
+    })
+
+    it('hands it the render state', () => {
+      const { chip } = setup({
+        defaultSelected: true,
+        render: wrappedWithState,
+      })
+
+      expect(chip).toHaveAttribute('data-state-selected', 'true')
+    })
+
+    it('hands it the aria attributes React Aria would drop', () => {
+      const view = render(
+        <Chip aria-keyshortcuts="Control+K" render={wrapped}>
+          Label
+        </Chip>,
+      )
+
+      expect(view.getByRole('button')).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Control+K',
+      )
+    })
+
+    it('hands it keyboard handlers that bubble', () => {
+      const inner = vi.fn<() => void>()
+      const outer = vi.fn<() => void>()
+      const view = render(
+        <div onKeyDown={outer} role="presentation">
+          <Chip onKeyDown={inner} render={wrapped}>
+            Label
+          </Chip>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+      expect(inner).toHaveBeenCalledOnce()
+      expect(outer).toHaveBeenCalledOnce()
     })
   })
 
@@ -284,5 +431,355 @@ describe('chip', () => {
 
       expect(checkIn(chip)?.getAttribute('aria-hidden')).toBe('true')
     })
+  })
+
+  // The chips page draws an optional leading icon on a filter chip, in the
+  // slot the check is drawn in, and the check takes its place once the chip
+  // is selected.
+  describe('the icon', () => {
+    it("draws it before the label, in the page's 18dp slot inset by 8dp", () => {
+      const { chip } = setup({ icon: ICON })
+      const slot = iconSlotOf(chip)
+      const box = slot.getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(chip).borderLeftWidth)
+
+      expect([box.width, box.height]).toEqual([18, 18])
+      // Drawn in `em`, so the slot's font size is what sizes the icon.
+      expect(iconIn(chip)?.getBoundingClientRect().width).toBe(18)
+      expect(box.left - chip.getBoundingClientRect().left - border).toBe(8)
+      expect(
+        slot.compareDocumentPosition(labelOf(chip)) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
+    })
+
+    it('gives its place to the check while the chip is selected', () => {
+      const { chip } = setup({ icon: ICON })
+
+      fireEvent.click(chip)
+      expect(iconIn(chip)).toBeNull()
+      expect(checkIn(chip)).not.toBeNull()
+
+      fireEvent.click(chip)
+      expect(iconIn(chip)).not.toBeNull()
+    })
+
+    // The check takes the icon's slot rather than adding one of its own, so
+    // this chip does not grow the way one without an icon does.
+    it('keeps the chip its width when the check takes its place', () => {
+      const { chip } = setup({ icon: ICON })
+      const unselected = chip.getBoundingClientRect().width
+
+      fireEvent.click(chip)
+
+      expect(chip.getBoundingClientRect().width).toBe(unselected)
+    })
+
+    // The page draws a filter chip's icon in the primary role where its
+    // label is on-surface variant, and fades it with the label once the chip
+    // is disabled.
+    it('draws it in the primary role until the chip is disabled', () => {
+      const { chip, unmount } = setup({ icon: ICON })
+      expect(hasClasses(iconSlotOf(chip), CLASSES.icon)).toBe(true)
+      unmount()
+
+      const { chip: disabled } = setup({ icon: ICON, isDisabled: true })
+      const slot = iconSlotOf(disabled)
+
+      expect(hasClasses(slot, CLASSES.icon)).toBe(false)
+      expect(getComputedStyle(slot).color).toBe(
+        getComputedStyle(disabled).color,
+      )
+    })
+  })
+})
+
+// A keyboard's focus draws the container's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  selected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
+  unselected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+// A primary mouse button going down over the element's centre, which is the
+// press a ripple answers.
+function pressDown(element: Element) {
+  const rect = element.getBoundingClientRect()
+  fireEvent(
+    element,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      buttons: 1,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+    }),
+  )
+}
+
+// The ripple's inner span carries these classes only while it is pressed.
+const PRESSED_RIPPLE = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+function ripplesIn(element: Element) {
+  const ripple = element.querySelector('span[aria-hidden="true"] > span')
+  return (
+    ripple !== null &&
+    PRESSED_RIPPLE.length > 0 &&
+    PRESSED_RIPPLE.every((name) => ripple.classList.contains(name))
+  )
+}
+
+describe('focus layer and ripple', () => {
+  it.each([
+    ['an unselected', {}, focusProbeStyles.unselected],
+    ['a selected', { defaultSelected: true }, focusProbeStyles.selected],
+  ] as const)(
+    'lays the focus layer over %s chip for a keyboard',
+    (_name, props, layer) => {
+      const { chip } = setup(props)
+      const classes = classesOf(stylex.props(layer))
+      expect(hasClasses(chip, classes)).toBe(false)
+
+      focusByKeyboard(chip)
+
+      expect(hasClasses(chip, classes)).toBe(true)
+    },
+  )
+
+  // The chips page names the ripple as the pressed state, as every other
+  // pressable control here draws it.
+  it('ripples under a press', () => {
+    const { chip } = setup()
+    expect(ripplesIn(chip)).toBe(false)
+
+    pressDown(chip)
+
+    expect(ripplesIn(chip)).toBe(true)
+  })
+
+  it('draws no ripple while disabled', () => {
+    const { chip } = setup({ isDisabled: true })
+
+    pressDown(chip)
+
+    expect(chip.querySelector('span[aria-hidden="true"]')).toBeNull()
+  })
+})
+
+// The chips page's two action chips: plain buttons, pressed rather than
+// selected, which is what `aria-pressed` and the selected container would
+// misreport.
+describe('assist and suggestion chips', () => {
+  it.each(['assist', 'suggestion'] as const)(
+    'renders the %s chip as a plain button, announcing no pressed state',
+    (variant) => {
+      const view = render(<Chip variant={variant}>Label</Chip>)
+      const chip = view.getByRole('button', { name: 'Label' })
+
+      expect(chip.tagName).toBe('BUTTON')
+      expect(chip).not.toHaveAttribute('aria-pressed')
+    },
+  )
+
+  it('runs its press and is never selected', () => {
+    const onPress = vi.fn<() => void>()
+    const view = render(
+      <Chip onPress={onPress} variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.click(chip)
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(chip).not.toHaveAttribute('aria-pressed')
+    expect(hasClasses(chip, CLASSES.unselectedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(false)
+    expect(checkIn(chip)).toBeNull()
+  })
+
+  // The one role the page changes between the two.
+  it('draws an assist label in on surface and a suggestion label in on surface variant', () => {
+    const assist = render(<Chip variant="assist">Label</Chip>)
+    expect(hasClasses(assist.getByRole('button'), CLASSES.assistColor)).toBe(
+      true,
+    )
+    assist.unmount()
+
+    const suggestion = render(<Chip variant="suggestion">Label</Chip>)
+    const chip = suggestion.getByRole('button')
+    expect(hasClasses(chip, CLASSES.unselectedColor)).toBe(true)
+    expect(hasClasses(chip, CLASSES.assistColor)).toBe(false)
+  })
+
+  it('draws its icon in the primary role', () => {
+    const view = render(
+      <Chip icon={ICON} variant="assist">
+        Label
+      </Chip>,
+    )
+
+    expect(hasClasses(iconSlotOf(view.getByRole('button')), CLASSES.icon)).toBe(
+      true,
+    )
+  })
+
+  // As on the filter chip and every other button here: React Aria drops a
+  // non-labelling `aria-*` and wraps a keyboard handler so it stops there.
+  it('puts the aria attributes and keyboard handlers on the element', () => {
+    const onAncestorKeyDown = vi.fn<() => void>()
+    const onKeyDown = vi.fn<() => void>()
+    const view = render(
+      // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- the listener is the subject of the test
+      <div onKeyDown={onAncestorKeyDown}>
+        <Chip
+          aria-keyshortcuts="Control+K"
+          onKeyDown={onKeyDown}
+          variant="assist"
+        >
+          Label
+        </Chip>
+      </div>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.keyDown(chip, { key: 'Escape' })
+
+    expect(chip).toHaveAttribute('aria-keyshortcuts', 'Control+K')
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
+    expect(onAncestorKeyDown).toHaveBeenCalledTimes(1)
+  })
+
+  it('draws no ripple while disabled', () => {
+    const view = render(
+      <Chip isDisabled variant="assist">
+        Label
+      </Chip>,
+    )
+    expect(hasRipple(view.getByRole('button'))).toBe(false)
+  })
+
+  // On a mouse press the ripple waits for the click that ends it, so a call
+  // site's `onClick` has to go through the ripple rather than beside it.
+  describe('a press with an onClick of its own', () => {
+    let restore: () => void
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restore = installFakeAnimate()
+    })
+    afterEach(() => {
+      restore()
+      vi.useRealTimers()
+    })
+
+    it('ends its ripple and calls the handler', async () => {
+      const onClick = vi.fn<() => void>()
+      const view = render(
+        <Chip onClick={onClick} variant="assist">
+          Label
+        </Chip>,
+      )
+      const chip = view.getByRole('button')
+
+      firePointer(chip, 'pointerdown', { buttons: 1 })
+      expect(isPressed(chip)).toBe(true)
+      firePointer(chip, 'pointerup', { buttons: 0 })
+      fireEvent.click(chip)
+      await advance(MINIMUM_PRESS_MS * 4)
+
+      expect(isPressed(chip)).toBe(false)
+      expect(onClick).toHaveBeenCalled()
+    })
+  })
+})
+
+// The page's elevated chips: a container at elevation 1 in place of the
+// outline, raised to 2 under a hovering pointer.
+describe('elevated chips', () => {
+  it('trades the outline for surface container low at elevation 1', () => {
+    const view = render(
+      <Chip elevated variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    expect(hasClasses(chip, CLASSES.elevatedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.selectedBorder)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('raises to elevation 2 under a hovering pointer', () => {
+    const view = render(
+      <Chip elevated variant="suggestion">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation2)).toBe(true)
+  })
+
+  // A selected filter chip keeps its secondary container and takes the
+  // shadow with it.
+  it('keeps a selected filter chip on the secondary container, raised', () => {
+    const { chip } = setup({ defaultSelected: true, elevated: true })
+
+    expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevatedBackground)).toBe(false)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('comes down to the page while disabled', () => {
+    const view = render(
+      <Chip elevated isDisabled variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    expect(hasClasses(chip, CLASSES.grounded)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  // The selected container has no shadow of its own to override the raised
+  // one, so this is the case that shows the shadow follows the disabled state.
+  it('comes down to the page while disabled and selected', () => {
+    const { chip } = setup({
+      defaultSelected: true,
+      elevated: true,
+      isDisabled: true,
+    })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  // Elevated is a choice of the call site's, never the default.
+  it('is not raised unless asked', () => {
+    const { chip } = setup()
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+    expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
   })
 })

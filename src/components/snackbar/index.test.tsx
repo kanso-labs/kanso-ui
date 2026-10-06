@@ -298,9 +298,9 @@ describe('snackbar', () => {
       expect(view.queryByRole('button', { name: 'Close' })).toBeNull()
     })
 
-    // The region's own name is React Aria's, and localized in some thirty
-    // languages. Without this the button inside it was announced in English
-    // whatever the locale around it, with no API to say otherwise.
+    // Left unnamed, the button takes React Aria's own name in the reader's
+    // locale, as localised-names.test.tsx pins; a call site that wants other
+    // words names it here.
     it('lets the close button be named by the call site', async () => {
       const { queue, view } = setup({ closeLabel: 'Fermer' })
       act(() => {

@@ -219,4 +219,6 @@ Breadcrumbs.Item = BreadcrumbsItem
 
 export type { BreadcrumbsItemProps, BreadcrumbsProps }
 
+export { BreadcrumbsItem }
+
 export default Breadcrumbs

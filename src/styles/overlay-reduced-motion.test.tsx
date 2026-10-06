@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import Button from '../components/button'
 import Dialog from '../components/dialog'
+import FabMenu from '../components/fab-menu'
 import Popover from '../components/popover'
 import Sheet from '../components/sheet'
 import Snackbar from '../components/snackbar'
@@ -52,6 +53,17 @@ function openDialog() {
   )
 
   return animatedAncestor(view.getByRole('dialog'))
+}
+
+// The surface carries no role of its own; the menu inside it does.
+function openFabMenu() {
+  const view = render(
+    <FabMenu aria-label="Label" defaultOpen icon={null}>
+      <FabMenu.Item id="first">First item</FabMenu.Item>
+    </FabMenu>,
+  )
+
+  return animatedAncestor(view.getByRole('menu'))
 }
 
 function openPopover() {
@@ -108,6 +120,7 @@ const OVERLAYS: ReadonlyArray<{ name: string; open: () => HTMLElement }> = [
   { name: "a dialog's container", open: openDialog },
   { name: "a snackbar's strip", open: showSnackbar },
   { name: "a popover's surface", open: openPopover },
+  { name: "a FAB menu's actions", open: openFabMenu },
   { name: "a tooltip's container", open: openTooltip },
 ]
 

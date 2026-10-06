@@ -15,9 +15,9 @@ import {
   CalendarGridBody as RACCalendarGridBody,
 } from 'react-aria-components'
 
-import { CalendarGridHeader, CalendarHeader } from '../../calendar'
+import { CalendarFrame, CalendarGridHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
-import { calendarStyles } from '../../calendar/styles'
+import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -34,7 +34,19 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // and a shorter month leaves its last rows empty. `months` in
 // `src/calendar/styles.ts` is where the room is reserved.
 //
-// Four things are this component's own.
+// `showMonthYearMenus` draws the page's docked header instead of one heading:
+// the month's menu button between the chevrons that step it and the year's
+// after them, each opening its list where the grid was. The parts are in
+// `src/calendar`, shared with RangeCalendar.
+//
+// Five things are this component's own.
+//
+// **The year menu has no chevrons of its own.** The page draws a pair either
+// side of it that step a year, which would need two names React Aria has no
+// message for — the library writes a word of its own only behind a prop that
+// can replace it, and it would take a pair on four components. The year list
+// reaches any year the bounds allow in one press, and Shift with Page Up or
+// Page Down steps a year from the keyboard.
 //
 // **The cell is a circle in a square.** The page gives the date a 48dp
 // container and a 40dp state layer, which is a 40dp circle with 4dp of room
@@ -65,6 +77,14 @@ type CalendarProps<T extends DateValue = DateValue> = Omit<
 > & {
   /** A function may compute the class from the calendar's render state. */
   className?: RACCalendarProps<T>['className']
+  /**
+   * Whether the header draws the month and the year as menu buttons, each
+   * opening a list of them in the grid's place, as the docked date picker's
+   * header does, rather than one heading between the chevrons. For a date
+   * far from the one shown, such as a date of birth.
+   * @default false
+   */
+  showMonthYearMenus?: boolean
   /** A function may compute the style from the calendar's render state. */
   style?: RACCalendarProps<T>['style']
 }
@@ -83,33 +103,36 @@ type CalendarProps<T extends DateValue = DateValue> = Omit<
  *
  * `minValue` and `maxValue` bound it, `isDateUnavailable` rules individual
  * dates out, and `visibleDuration` of `{ months: 2 }` draws two months side
- * by side. Name it with `aria-label` or `aria-labelledby`; React Aria
- * composes the visible month into that name itself.
+ * by side, stacked below the expanded breakpoint. Name it with `aria-label`
+ * or `aria-labelledby`; React Aria composes the visible month into that name
+ * itself.
  *
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function Calendar<T extends DateValue>(
-  props: CalendarProps<T> & RefAttributes<HTMLDivElement>,
-) {
+function Calendar<T extends DateValue>({
+  showMonthYearMenus = false,
+  ...props
+}: CalendarProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACCalendar<T>
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarHeader />
-      <div {...stylex.props(calendarStyles.months)}>
-        {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-          <RACCalendarGrid
-            key={offset.months}
-            offset={offset}
-            {...stylex.props(calendarStyles.grid)}
-          >
-            <CalendarGridHeader />
-            <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-          </RACCalendarGrid>
-        ))}
-      </div>
+      <CalendarFrame showMonthYearMenus={showMonthYearMenus}>
+        <div {...stylex.props(calendarStyles.months)}>
+          {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
+            <RACCalendarGrid
+              key={offset.months}
+              offset={offset}
+              {...stylex.props(calendarStyles.grid)}
+            >
+              <CalendarGridHeader />
+              <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+            </RACCalendarGrid>
+          ))}
+        </div>
+      </CalendarFrame>
     </RACCalendar>
   )
 }
@@ -120,10 +143,14 @@ function Calendar<T extends DateValue>(
 //
 // The order matters. `selected` is applied after `today`, so a selected today
 // takes the fill rather than the outline — a circle already says where you
-// are, and two rings would say it twice. `disabled` is last of all, and
-// StyleX replaces a property whole, so it takes the hover branches with it.
+// are, and two rings would say it twice. The hover and pressed layers come
+// next, over whichever ground the date has, a press over a hover.
+// `unavailable` and `disabled` come last, and StyleX replaces a property
+// whole, so they take the layers with them.
 function cellClassName(state: {
   isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
   isSelected: boolean
   isToday: boolean
   isUnavailable: boolean
@@ -134,6 +161,14 @@ function cellClassName(state: {
       focus.ring,
       state.isToday && calendarStyles.cellToday,
       state.isSelected && calendarStyles.cellSelected,
+      state.isHovered &&
+        (state.isSelected
+          ? dateLayers.selectedHovered
+          : dateLayers.plainHovered),
+      state.isPressed &&
+        (state.isSelected
+          ? dateLayers.selectedPressed
+          : dateLayers.plainPressed),
       state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''

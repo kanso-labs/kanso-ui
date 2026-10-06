@@ -8,10 +8,13 @@ import * as components from '.'
 import {
   AppBar,
   Avatar,
+  Badge,
   Breadcrumbs,
   Button,
+  ButtonGroup,
   Calendar,
   Card,
+  Carousel,
   Checkbox,
   CheckboxGroup,
   Chip,
@@ -35,6 +38,8 @@ import {
   Disclosure,
   DisclosureGroup,
   DropZone,
+  Fab,
+  FabMenu,
   Feed,
   Form,
   IconButton,
@@ -46,6 +51,8 @@ import {
   ListItem,
   Menu,
   Meter,
+  NavigationBar,
+  NavigationRail,
   NavigationTree,
   NumberField,
   Popover,
@@ -55,12 +62,14 @@ import {
   RadioGroup,
   RangeCalendar,
   SearchField,
+  SearchView,
   SegmentedButton,
   Select,
   Separator,
   Sheet,
   Slider,
   Snackbar,
+  SplitButton,
   Stack,
   SupportingPane,
   Switch,
@@ -94,9 +103,9 @@ const SNACKBARS = new Snackbar.Queue()
 SNACKBARS.add('First item')
 
 // Autocomplete has no case: it renders no element of its own, so there is
-// nothing for a className or a style to land on. Sheet, Menu, Dialog and
-// Popover are absent for the same reason — each is a trigger whose parts are
-// listed instead.
+// nothing for a className or a style to land on. Sheet, Menu, Dialog, Popover
+// and SearchView are absent for the same reason — each is a trigger whose
+// parts are listed instead.
 //
 // FileTrigger is absent for the first reason too: it renders a hidden file
 // input and takes no `className` or `style` at all — whatever it wraps is
@@ -114,6 +123,7 @@ SNACKBARS.add('First item')
 const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <AppBar {...PROBE} headline="Headline" />, name: 'AppBar' },
   { element: <Avatar {...PROBE} name="Ada Lovelace" />, name: 'Avatar' },
+  { element: <Badge {...PROBE}>Label</Badge>, name: 'Badge' },
   {
     element: (
       <Breadcrumbs {...PROBE} aria-label="Label">
@@ -135,6 +145,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Breadcrumbs.Item',
   },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
+  // The class, the style and the ref land on the group's own element.
+  {
+    element: (
+      <ButtonGroup {...PROBE} aria-label="Label">
+        <Button>Label</Button>
+      </ButtonGroup>
+    ),
+    name: 'ButtonGroup',
+  },
   { element: <Calendar {...PROBE} aria-label="Label" />, name: 'Calendar' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
   {
@@ -145,12 +164,36 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     ),
     name: 'Card (interactive)',
   },
+  {
+    element: (
+      <Carousel {...PROBE} label="Label">
+        <Carousel.Item>First item</Carousel.Item>
+      </Carousel>
+    ),
+    name: 'Carousel',
+  },
+  {
+    element: (
+      <Carousel label="Label">
+        <Carousel.Item {...PROBE}>First item</Carousel.Item>
+      </Carousel>
+    ),
+    name: 'Carousel.Item',
+  },
   { element: <Checkbox {...PROBE}>Label</Checkbox>, name: 'Checkbox' },
   {
     element: <CheckboxGroup {...PROBE} label="Label" />,
     name: 'CheckboxGroup',
   },
   { element: <Chip {...PROBE}>Label</Chip>, name: 'Chip' },
+  {
+    element: (
+      <Chip {...PROBE} variant="assist">
+        Label
+      </Chip>
+    ),
+    name: 'Chip (assist)',
+  },
   {
     element: (
       <ChipGroup {...PROBE} label="Label">
@@ -286,6 +329,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     element: <DropZone {...PROBE} label="Drop here" />,
     name: 'DropZone',
   },
+  { element: <Fab {...PROBE}>Label</Fab>, name: 'Fab' },
+  // The class, the style and the ref all land on the FAB, which is what a
+  // layout positions.
+  {
+    element: (
+      <FabMenu {...PROBE} aria-label="Label" icon={null}>
+        <FabMenu.Item id="first">First item</FabMenu.Item>
+      </FabMenu>
+    ),
+    name: 'FabMenu',
+  },
   {
     element: (
       <Feed {...PROBE}>
@@ -420,6 +474,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   { element: <Meter {...PROBE} label="Label" value={40} />, name: 'Meter' },
   {
+    element: <NavigationBar {...PROBE}>Label</NavigationBar>,
+    name: 'NavigationBar',
+  },
+  {
+    element: <NavigationRail {...PROBE}>Label</NavigationRail>,
+    name: 'NavigationRail',
+  },
+  {
     element: (
       <NavigationTree {...PROBE} aria-label="Label">
         <NavigationTree.Item href="#first" id="first" label="First item" />
@@ -503,6 +565,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'RangeCalendar',
   },
   { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
+  {
+    element: (
+      <SearchView defaultOpen>
+        <Button>Open</Button>
+        <SearchView.Content {...PROBE} label="Label">
+          First item
+        </SearchView.Content>
+      </SearchView>
+    ),
+    name: 'SearchView.Content',
+  },
   {
     element: (
       <SegmentedButton {...PROBE} aria-label="Label">
@@ -601,6 +674,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Slider',
   },
   { element: <Snackbar {...PROBE} queue={SNACKBARS} />, name: 'Snackbar' },
+  // The class, the style and the ref land on the group around the halves.
+  {
+    element: (
+      <SplitButton {...PROBE}>
+        <SplitButton.Action>Label</SplitButton.Action>
+      </SplitButton>
+    ),
+    name: 'SplitButton',
+  },
   { element: <Stack {...PROBE}>First item</Stack>, name: 'Stack' },
   {
     element: (
@@ -1003,9 +1085,22 @@ describe('the case list', () => {
       CASES.map((testCase) => testCase.name.split(/[. ]/)[0]),
     )
 
-    const uncovered = Object.keys(components).filter(
-      (name) => !covered.has(name) && !EXEMPT.has(name),
-    )
+    // A part the barrel also exports by name is covered where its component
+    // is, as its static always was: `DialogContent` is `Dialog.Content`.
+    // `List.Item` is exported as `ListRow`, since the standalone `ListItem`
+    // already has that name.
+    const ownerOf = new Map<string, string>()
+    for (const [owner, value] of Object.entries(components)) {
+      for (const part of Object.keys(value)) {
+        const named =
+          owner === 'List' && part === 'Item' ? 'ListRow' : `${owner}${part}`
+        ownerOf.set(named, owner)
+      }
+    }
+
+    const uncovered = Object.keys(components)
+      .map((name) => ownerOf.get(name) ?? name)
+      .filter((name) => !covered.has(name) && !EXEMPT.has(name))
 
     expect(uncovered).toEqual([])
   })

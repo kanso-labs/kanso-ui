@@ -165,6 +165,22 @@ function byPath(allTokens, ...path) {
   return token.$value
 }
 
+// The token a value is an alias of — `{typography.fontFamily.brand}` names
+// typography.fontFamily.brand — or undefined for a value that aliases none.
+// Read off the token's original value, since style-dictionary has already
+// resolved `$value` to the literal the alias stands for.
+/** @param {TransformedToken[]} allTokens @param {...string} path @returns {string[] | undefined} */
+function aliasOf(allTokens, ...path) {
+  const joined = path.join('.')
+  const token = allTokens.find((t) => t.path.join('.') === joined)
+  if (!token) throw new Error(`Missing token: {${joined}}`)
+  /** @type {unknown} */
+  const original = token.original.$value
+  const match =
+    typeof original === 'string' ? /^\{([^}]+)\}$/u.exec(original) : null
+  return match?.[1]?.split('.')
+}
+
 /** @param {unknown} value @returns {value is string[]} */
 function isStringArray(value) {
   return Array.isArray(value) && value.every((v) => typeof v === 'string')
@@ -254,18 +270,26 @@ export { ${exportName} }`
 }
 
 // A stylex.createTheme() pair per themed var group: overrideable classes
-// that pin every var to an explicit light or dark value, regardless of the
+// that pin every var to its light or its dark value, regardless of the
 // OS-level prefers-color-scheme media query design.tokens.css defaults to.
-// A manual toggle (Storybook's dark-mode addon, or any future in-app theme
-// switcher) needs both directions — forcing dark isn't enough on its own,
-// since forcing *light* against a dark OS preference is exactly as common a
-// case and would otherwise silently fall through to the media query.
+// An app's own scheme switch — the package exports these as `colorScheme`,
+// and Storybook's Theme control uses them too — needs both directions:
+// forcing dark isn't enough on its own, since forcing *light* against a dark
+// OS preference is exactly as common a case and would otherwise silently
+// fall through to the media query.
+//
+// Each value goes through the same `var(--kui-color-*, value)` the default
+// vars do, so a consumer's `--kui-color-*` override still applies under a
+// pinned scheme. A bare literal here would win over it.
 /** @param {string} exportName @param {ThemedEntry[]} entries @returns {string} */
 function themeOverrideBlocks(exportName, entries) {
   /** @param {'light' | 'dark'} mode @param {0 | 1} valueIndex @returns {string} */
   const build = (mode, valueIndex) => {
     const lines = entries
-      .map(([name, ...values]) => `  ${name}: '${values[valueIndex]}',`)
+      .map(
+        ([name, ...values]) =>
+          `  ${name}: ${JSON.stringify(`var(${cssVarName('colors', name)}, ${values[valueIndex]})`)},`,
+      )
       .toSorted((a, b) => a.trim().localeCompare(b.trim()))
     const themeExportName = `${exportName}${pascalCase(mode)}Theme`
     return `const ${themeExportName} = stylex.createTheme(${exportName}, {
@@ -347,6 +371,22 @@ function typographyEntries(allTokens) {
       `'${byPath(allTokens, 'typography', 'fontWeight', key)}'`,
     ])
   }
+  // A scale style's font and weight alias a typeface role and a weight —
+  // display, headline and title the brand face, body and label the plain
+  // one. The alias stays in the fallback, so the role's own var is read
+  // first, then the typeface or weight it aliases, then the literal: a
+  // consumer setting `--kui-typography-font-family-brand` on `:root` changes
+  // every style that uses the brand face, where flattening the alias to its
+  // literal had left that var read by nothing.
+  /** @param {string} style @param {string} field @param {string} group @param {string} value @returns {string} */
+  const throughAlias = (style, field, group, value) => {
+    const alias = aliasOf(allTokens, 'typography', 'scale', style, field)
+    if (alias?.[0] !== 'typography' || alias[1] !== group || !alias[2]) {
+      return value
+    }
+    const key = `${group === 'fontFamily' ? 'fontFamily' : 'weight'}${pascalCase(alias[2])}`
+    return `var(${cssVarName('typography', key)}, ${value})`
+  }
   for (const style of SCALE_STYLES) {
     /** @type {unknown} */
     const font = byPath(allTokens, 'typography', 'scale', style, 'font')
@@ -355,13 +395,24 @@ function typographyEntries(allTokens) {
         `Expected string[] for typography.scale.${style}.font`,
       )
     }
-    entries.push([`${style}Font`, `"${font.map(quoteIfNeeded).join(', ')}"`])
-    for (const field of ['size', 'lineHeight', 'tracking', 'weight']) {
+    const stack = font.map(quoteIfNeeded).join(', ')
+    entries.push([
+      `${style}Font`,
+      `"${throughAlias(style, 'font', 'fontFamily', stack)}"`,
+    ])
+    for (const field of ['size', 'lineHeight', 'tracking']) {
       entries.push([
         `${style}${pascalCase(field)}`,
         `'${byPath(allTokens, 'typography', 'scale', style, field)}'`,
       ])
     }
+    const weight = String(
+      byPath(allTokens, 'typography', 'scale', style, 'weight'),
+    )
+    entries.push([
+      `${style}Weight`,
+      `'${throughAlias(style, 'weight', 'fontWeight', weight)}'`,
+    ])
   }
   return entries
 }

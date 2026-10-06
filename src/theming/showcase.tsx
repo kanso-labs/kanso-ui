@@ -32,10 +32,13 @@ import type { DemoThemeName } from './themes'
 import AppBar from '../components/app-bar'
 import Autocomplete from '../components/autocomplete'
 import Avatar from '../components/avatar'
+import Badge from '../components/badge'
 import Breadcrumbs from '../components/breadcrumbs'
 import Button from '../components/button'
+import ButtonGroup from '../components/button-group'
 import Calendar from '../components/calendar'
 import Card from '../components/card'
+import Carousel from '../components/carousel'
 import Checkbox from '../components/checkbox'
 import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
@@ -59,6 +62,8 @@ import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
 import DropZone, { FileTrigger } from '../components/drop-zone'
+import Fab from '../components/fab'
+import FabMenu from '../components/fab-menu'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -70,6 +75,8 @@ import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
+import NavigationBar from '../components/navigation-bar'
+import NavigationRail from '../components/navigation-rail'
 import NavigationTree from '../components/navigation-tree'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
@@ -78,12 +85,14 @@ import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import RangeCalendar from '../components/range-calendar'
 import SearchField from '../components/search-field'
+import SearchView from '../components/search-view'
 import SegmentedButton from '../components/segmented-button'
 import Select from '../components/select'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
 import Snackbar from '../components/snackbar'
+import SplitButton from '../components/split-button'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Switch from '../components/switch'
@@ -111,6 +120,10 @@ import { demoThemes } from './themes'
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
+// The ButtonGroup section's selection. Hoisted so it is one stable array per
+// render, which is what react-perf's jsx-no-new-array-as-prop is after.
+const FIRST_KEY = ['first']
+
 // The measure the page runs at, and the gutter Container pads it with. The bar
 // is told both so its row lines up with the content beneath it rather than
 // starting at Material Design's own margin — see app-bar/index.stories.tsx.
@@ -119,6 +132,20 @@ const PAGE_MEASURE = '1040px'
 
 // The page draws the icons it needs, sized in `em` so each follows the font
 // size its control sets.
+function CircleIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <circle cx="12" cy="12" r="6" />
+    </svg>
+  )
+}
+
 function CloseIcon() {
   return (
     <svg
@@ -200,6 +227,16 @@ const styles = stylex.create({
     inlineSize: '360px',
     maxInlineSize: '100%',
   },
+  // What a carousel item holds here: a block of a container role, its label
+  // at the bottom, standing in for the image an item usually is.
+  carouselTile: {
+    alignItems: 'flex-end',
+    blockSize: '160px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    padding: spacing.lg,
+    whiteSpace: 'nowrap',
+  },
   glyph: {
     blockSize: '1em',
     inlineSize: '1em',
@@ -238,6 +275,12 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     padding: spacing.md,
   },
+  // Two rails side by side, as tall as a short window.
+  rails: {
+    blockSize: '320px',
+    display: 'flex',
+    gap: spacing.lg,
+  },
   row: {
     alignItems: 'center',
     display: 'flex',
@@ -263,6 +306,36 @@ const styles = stylex.create({
     paddingBlockStart: spacing.xxl,
   },
 })
+
+// The container pairs, in turn, so neighbouring carousel items read apart.
+const carouselTones = stylex.create({
+  primary: {
+    backgroundColor: colors.primaryContainer,
+    color: colors.onPrimaryContainer,
+  },
+  secondary: {
+    backgroundColor: colors.secondaryContainer,
+    color: colors.onSecondaryContainer,
+  },
+  tertiary: {
+    backgroundColor: colors.tertiaryContainer,
+    color: colors.onTertiaryContainer,
+  },
+})
+
+const CAROUSEL_TONES = [
+  carouselTones.primary,
+  carouselTones.secondary,
+  carouselTones.tertiary,
+]
+
+const CAROUSEL_LABELS = [
+  'First item',
+  'Second item',
+  'Third item',
+  'Fourth item',
+  'Fifth item',
+]
 
 const AVATAR_TONES = [
   'primary',
@@ -358,8 +431,20 @@ type SectionProps = {
 }
 
 type ShowcaseProps = {
-  /** Which scheme the page names — the same one its story pins the toolbar to. */
-  name: DemoThemeName
+  /**
+   * Which scheme the page names — the same one its story pins the toolbar
+   * to. `dark` is the library's own dark theme, which the accessibility
+   * check renders the page in; see `dark.stories.tsx`.
+   */
+  name: 'dark' | DemoThemeName
+}
+
+// What the page says about the library's own dark theme, which is no demo
+// scheme and so has no entry beside them.
+const LIBRARY_DARK = {
+  description:
+    "The library's own dark theme: the default tokens' dark half, with nothing overridden.",
+  label: 'Dark',
 }
 
 function DetailPane() {
@@ -443,7 +528,8 @@ function Section({ children, description, title }: SectionProps) {
  * a token moved.
  */
 function Showcase({ name }: ShowcaseProps) {
-  const { description, label } = demoThemes[name]
+  const { description, label } =
+    name === 'dark' ? LIBRARY_DARK : demoThemes[name]
 
   return (
     <div {...stylex.props(styles.page)}>
@@ -510,6 +596,24 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="The error pair, which a scheme sets like any other role, on the corner of an icon: the small dot, and the large badge holding a count. Each sits on an icon button whose name carries what the mark says."
+            title="Badge"
+          >
+            <div {...stylex.props(styles.inline)}>
+              <IconButton aria-label="Label, new">
+                <Badge>
+                  <MenuIcon />
+                </Badge>
+              </IconButton>
+              <IconButton aria-label="Label, 3 new">
+                <Badge count={3}>
+                  <MenuIcon />
+                </Badge>
+              </IconButton>
+            </div>
+          </Section>
+
+          <Section
             description="The trail leans on the muted role, with the page you are on at full strength."
             title="Breadcrumbs"
           >
@@ -521,7 +625,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="Every variant reads its container off a colour role and its corner off the radius scale, so a scheme moves all of them at once — the elevated button off its shadow scale as well."
+            description="Every variant reads its container off a colour role and its corner off the radius scale, a square button's and a selected toggle's among them, so a scheme moves all of them at once — the elevated button off its shadow scale as well."
             title="Button"
           >
             <div {...stylex.props(styles.row)}>
@@ -530,8 +634,39 @@ function Showcase({ name }: ShowcaseProps) {
               <Button variant="elevated">Label</Button>
               <Button variant="outlined">Label</Button>
               <Button variant="text">Label</Button>
+              <Button shape="square" variant="tonal">
+                Label
+              </Button>
+              <Button defaultSelected variant="outlined">
+                Label
+              </Button>
               <Button isDisabled>Label</Button>
               <Button isPending>Label</Button>
+            </div>
+          </Section>
+
+          <Section
+            description="A group draws nothing of its own: what a scheme reaches is the buttons' containers and their corners, which a connected group squares off where its buttons meet."
+            title="ButtonGroup"
+          >
+            <div {...stylex.props(styles.row)}>
+              <ButtonGroup aria-label="Label">
+                <Button variant="tonal">First item</Button>
+                <Button variant="tonal">Second item</Button>
+              </ButtonGroup>
+              <ButtonGroup
+                aria-label="Label"
+                defaultSelectedKeys={FIRST_KEY}
+                selectionMode="single"
+                variant="connected"
+              >
+                <Button id="first" variant="outlined">
+                  First item
+                </Button>
+                <Button id="second" variant="outlined">
+                  Second item
+                </Button>
+              </ButtonGroup>
             </div>
           </Section>
 
@@ -565,6 +700,28 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="Every item is cut to the extra-large corner, the spacing scale sets the gaps between items and the padding at either end, and previous and next are standard icon buttons on the on-surface-variant role."
+            title="Carousel"
+          >
+            <Carousel itemSize={200} label="Label">
+              {CAROUSEL_LABELS.map((item, index) => (
+                <Carousel.Item key={item}>
+                  <div
+                    {...stylex.props(
+                      styles.carouselTile,
+                      CAROUSEL_TONES[index % CAROUSEL_TONES.length],
+                    )}
+                  >
+                    <Text tone="inherit" variant="titleMedium">
+                      {item}
+                    </Text>
+                  </div>
+                </Carousel.Item>
+              ))}
+            </Carousel>
+          </Section>
+
+          <Section
             description="The box takes the on-surface-variant role while empty and the primary pair once marked, and the indeterminate dash takes that same pair."
             title="Checkbox"
           >
@@ -590,13 +747,18 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own."
+            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, and an elevated assist chip sits on the low container at elevation 1."
             title="Chip"
           >
             <div {...stylex.props(styles.row)}>
-              <Chip>First item</Chip>
-              <Chip defaultSelected>Second item</Chip>
+              <Chip icon={<CircleIcon />}>First item</Chip>
+              <Chip defaultSelected icon={<CircleIcon />}>
+                Second item
+              </Chip>
               <Chip>Third item</Chip>
+              <Chip elevated icon={<CircleIcon />} variant="assist">
+                Fourth item
+              </Chip>
             </div>
           </Section>
 
@@ -859,6 +1021,39 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="Each tone reads its container off a colour role, its corner off the radius scale and its lift off the shadow scale, the extended form's label off the type scale as well."
+            title="Fab"
+          >
+            <div {...stylex.props(styles.row)}>
+              <Fab aria-label="Label">
+                <PlusIcon />
+              </Fab>
+              <Fab aria-label="Label" tone="secondary" variant="filled">
+                <PlusIcon />
+              </Fab>
+              <Fab label="Label" tone="tertiary">
+                <PlusIcon />
+              </Fab>
+            </div>
+          </Section>
+
+          <Section
+            description="Closed, the menu is a FAB on the tone's container a scheme sets; open, its close button takes the tone and its actions the container."
+            title="FabMenu"
+          >
+            <div {...stylex.props(styles.row)}>
+              <FabMenu aria-label="Label" icon={<PlusIcon />}>
+                <FabMenu.Item id="first">First item</FabMenu.Item>
+                <FabMenu.Item id="second">Second item</FabMenu.Item>
+              </FabMenu>
+              <FabMenu aria-label="Label" icon={<PlusIcon />} tone="tertiary">
+                <FabMenu.Item id="first">First item</FabMenu.Item>
+                <FabMenu.Item id="second">Second item</FabMenu.Item>
+              </FabMenu>
+            </div>
+          </Section>
+
+          <Section
             description="A grid described by its cell rather than by its columns, which is what lets it reflow with the pane it sits in. It paints nothing, so what a scheme reaches is the gap between the cells."
             title="Feed"
           >
@@ -1029,6 +1224,56 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="The current destination's pill is the secondary container a scheme sets, its label the secondary role; at this width each destination is a horizontal pill, and below 600px each turns vertical."
+            title="NavigationBar"
+          >
+            <NavigationBar aria-label="First label" selectedRoute="#first">
+              <NavigationBar.Item href="#first" icon={<MenuIcon />}>
+                First item
+              </NavigationBar.Item>
+              <NavigationBar.Item
+                aria-label="Second item, 3 new"
+                badge={3}
+                href="#second"
+                icon={<MoreIcon />}
+              >
+                Second item
+              </NavigationBar.Item>
+              <NavigationBar.Item href="#third" icon={<PlusIcon />}>
+                Third item
+              </NavigationBar.Item>
+            </NavigationBar>
+          </Section>
+
+          <Section
+            description="The same destinations down the leading edge, collapsed and expanded, on the surface role a scheme sets."
+            title="NavigationRail"
+          >
+            <div {...stylex.props(styles.rails)}>
+              <NavigationRail aria-label="Second label" selectedRoute="#first">
+                <NavigationRail.Item href="#first" icon={<MenuIcon />}>
+                  First item
+                </NavigationRail.Item>
+                <NavigationRail.Item href="#second" icon={<MoreIcon />}>
+                  Second item
+                </NavigationRail.Item>
+              </NavigationRail>
+              <NavigationRail
+                aria-label="Third label"
+                isExpanded
+                selectedRoute="#first"
+              >
+                <NavigationRail.Item href="#first" icon={<MenuIcon />}>
+                  First item
+                </NavigationRail.Item>
+                <NavigationRail.Item href="#second" icon={<MoreIcon />}>
+                  Second item
+                </NavigationRail.Item>
+              </NavigationRail>
+            </div>
+          </Section>
+
+          <Section
             description="The route you are on sits on a container of its own, and each depth indents by the caret's own width."
             title="NavigationTree"
           >
@@ -1153,6 +1398,22 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="Opens on the search bar's surface container high, its header over a divider in the outline role and its back and clear icons in the on-surface pair the bar's own take."
+            title="SearchView"
+          >
+            <SearchView>
+              <Button variant="outlined">Open search</Button>
+              <SearchView.Content label="Label" placeholder="Supporting text">
+                <ListBox aria-label="Label">
+                  <ListBox.Item id="first">First item</ListBox.Item>
+                  <ListBox.Item id="second">Second item</ListBox.Item>
+                  <ListBox.Item id="third">Third item</ListBox.Item>
+                </ListBox>
+              </SearchView.Content>
+            </SearchView>
+          </Section>
+
+          <Section
             description="One container for the whole strip, with the chosen segment on a pair of its own and a rule between each pair of segments."
             title="SegmentedButton"
           >
@@ -1234,10 +1495,18 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The filled half of the track takes primary and the rest its container, with the handle on primary again."
+            description="The filled half of the track takes primary and the rest its container, with the handle on primary again, and the stops on each take on primary and on secondary container. At the medium size the track takes the medium corner and the inset icon on primary."
             title="Slider"
           >
-            <Slider defaultValue={40} label="Label" />
+            <Stack gap="lg">
+              <Slider defaultValue={40} label="Label" showStops step={10} />
+              <Slider
+                defaultValue={40}
+                icon={<CircleIcon />}
+                label="Label"
+                size="md"
+              />
+            </Stack>
           </Section>
 
           <Section
@@ -1271,6 +1540,26 @@ function Showcase({ name }: ShowcaseProps) {
               main={<MainContent />}
               supporting={<SupportingContent />}
             />
+          </Section>
+
+          <Section
+            description="Both halves read their containers off the variant's colour roles, and the corner where they meet off the radius scale."
+            title="SplitButton"
+          >
+            <div {...stylex.props(styles.row)}>
+              <SplitButton>
+                <SplitButton.Action>Label</SplitButton.Action>
+                <SplitButton.Menu aria-label="More options">
+                  <Menu.Item id="first">First item</Menu.Item>
+                </SplitButton.Menu>
+              </SplitButton>
+              <SplitButton variant="tonal">
+                <SplitButton.Action>Label</SplitButton.Action>
+                <SplitButton.Menu aria-label="More options">
+                  <Menu.Item id="first">First item</Menu.Item>
+                </SplitButton.Menu>
+              </SplitButton>
+            </div>
           </Section>
 
           <Section
@@ -1318,7 +1607,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The selected tab sits on a container of its own, and the indicator under the strip takes the primary role."
+            description="The active tab's label and the indicator under it take the primary role. The secondary strip keeps its active label on surface and runs a primary line across the tab, with each icon in its tab's own colour."
             title="Tabs"
           >
             <Tabs defaultSelectedKey="First item">
@@ -1336,6 +1625,15 @@ function Showcase({ name }: ShowcaseProps) {
                   </Text>
                 </Tabs.Panel>
               ))}
+            </Tabs>
+            <Tabs defaultSelectedKey="First item" variant="secondary">
+              <Tabs.List>
+                {TABS.map((tab) => (
+                  <Tabs.Tab icon={<CircleIcon />} id={tab} key={tab}>
+                    {tab}
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
             </Tabs>
           </Section>
 

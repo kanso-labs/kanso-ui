@@ -20,13 +20,15 @@ import { colors } from '../tokens/design.tokens.stylex'
 // - A different colour, because the surface underneath is not the default
 //   one: Snackbar's action and close, and Chip's remove.
 // - A negative offset, drawing the ring inside the element rather than
-//   around it: DropZone, NumberField, Table, a Tab, the shared row, and the
-//   body of a Dialog or a Sheet while it scrolls.
+//   around it: DropZone, NumberField, Table, a Tab and its panel, the shared
+//   row, and the body of a Dialog or a Sheet while it scrolls.
 // - An offset of its own, sized to what the ring surrounds: the colour
 //   thumb at 4px, the swatch at 6px, Chip's remove at 1px.
 // - A base of `outlineStyle: 'none'` that a separate style turns solid,
 //   which is a different mechanism rather than a different value: the slider
 //   thumb, the colour swatch picker, and the shared colour styles.
+// - An `outlineStyle` keyed on a breakpoint, for a ring that moves from one
+//   element to another as the window widens: a navigation bar's destination.
 const focus = stylex.create({
   ring: {
     outlineColor: colors.primary,

@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
@@ -22,6 +22,14 @@ const probeStyles = stylex.create({
   },
   divider: { boxShadow: `inset 0 -1px 0 0 ${colors.outlineVariant}` },
   inactiveColor: { color: colors.onSurfaceVariant },
+  onSurfaceColor: { color: colors.onSurface },
+  // A phone's width: three equal sections of about 109px each, narrower than
+  // either long label below on one line.
+  phone: { inlineSize: '360px' },
+  primary: { backgroundColor: colors.primary },
+  secondaryHover: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
   titleSmall: { fontSize: typography.titleSmallSize },
   transparent: { backgroundColor: 'transparent' },
 })
@@ -41,12 +49,47 @@ const CLASSES = {
   disabledColor: classesOf(stylex.props(probeStyles.disabledColor)),
   divider: classesOf(stylex.props(probeStyles.divider)),
   inactiveColor: classesOf(stylex.props(probeStyles.inactiveColor)),
+  onSurfaceColor: classesOf(stylex.props(probeStyles.onSurfaceColor)),
+  secondaryHover: classesOf(stylex.props(probeStyles.secondaryHover)),
   titleSmall: classesOf(stylex.props(probeStyles.titleSmall)),
   transparent: classesOf(stylex.props(probeStyles.transparent)),
 }
 
+// An icon as the README asks for one: hidden from assistive technology,
+// drawn in `currentColor`, and `1em` square so the slot's size is its own.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+)
+
+function centreOf(box: {
+  bottom: number
+  left: number
+  right: number
+  top: number
+}) {
+  return { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 }
+}
+
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// The slot a tab draws its icon in: the first thing in its label.
+function iconSlotOf(tab: HTMLElement) {
+  const slot = tab.firstElementChild?.firstElementChild
+  if (!(slot instanceof HTMLElement) || slot.querySelector('svg') === null) {
+    throw new Error('expected the tab to draw an icon slot first')
+  }
+  return slot
 }
 
 // The active indicator is the label span's `::after`, so it is read as the
@@ -59,6 +102,103 @@ function hasClasses(element: HTMLElement, classes: string[]) {
 function indicatorOf(tab: HTMLElement) {
   const found = tab.querySelector('[data-rac]:not([data-exiting])')
   return found instanceof HTMLElement ? found : null
+}
+
+// The badge's mark, which is hidden from assistive technology.
+function markIn(tab: HTMLElement) {
+  const mark = tab.querySelector('span[aria-hidden="true"]')
+  if (!(mark instanceof HTMLElement)) {
+    throw new Error('expected the tab to draw a badge')
+  }
+  return mark
+}
+
+// A colour as the browser resolves it, read off an element drawn in it.
+function probe(style: stylex.StyleXStyles) {
+  const view = render(<span data-testid="probe" {...stylex.props(style)} />)
+  const colour = getComputedStyle(view.getByTestId('probe')).backgroundColor
+  view.unmount()
+  return colour
+}
+
+// More tabs than a phone's width has room for at their labels' widths.
+const MANY = [
+  'First item',
+  'Second item',
+  'Third item',
+  'Fourth item',
+  'Fifth item',
+  'Sixth item',
+]
+
+// A scrollable bar at a phone's width, on the tab `selectedKey` names.
+function setupScrollable(selectedKey: string) {
+  return render(
+    <div {...stylex.props(probeStyles.phone)}>
+      <Tabs layout="scrollable" selectedKey={selectedKey}>
+        <Tabs.List>
+          {MANY.map((key) => (
+            <Tabs.Tab id={key} key={key}>
+              {key}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs>
+    </div>,
+  )
+}
+
+// A vertical bar beside a panel taller than its tabs, in `dir`.
+function setupVertical(
+  props: Partial<Parameters<typeof Tabs>[0]> = {},
+  dir: 'ltr' | 'rtl' = 'ltr',
+) {
+  return render(
+    <div dir={dir}>
+      <Tabs defaultSelectedKey="first" orientation="vertical" {...props}>
+        <Tabs.List>
+          <Tabs.Tab id="first">First item</Tabs.Tab>
+          <Tabs.Tab id="second">Second item</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel data-testid="panel" id="first">
+          <div style={TALL}>First item</div>
+        </Tabs.Panel>
+        <Tabs.Panel id="second">Second item</Tabs.Panel>
+      </Tabs>
+    </div>,
+  )
+}
+
+// A two-tab bar whose tabs both take `tab`, in the style `props` names.
+function setupWith(
+  props: Partial<Parameters<typeof Tabs>[0]> = {},
+  tab: Partial<Parameters<typeof Tabs.Tab>[0]> = {},
+) {
+  return render(
+    <Tabs defaultSelectedKey="first" {...props}>
+      <Tabs.List>
+        <Tabs.Tab id="first" {...tab}>
+          First item
+        </Tabs.Tab>
+        <Tabs.Tab id="second" {...tab}>
+          Second item
+        </Tabs.Tab>
+      </Tabs.List>
+    </Tabs>,
+  )
+}
+
+// The box a label's text is laid out in: its line, which is what the page
+// measures the icon and the badge from.
+function textBoxOf(tab: HTMLElement, text: string) {
+  const span = [...tab.querySelectorAll('span')].find(
+    (element) =>
+      element.childElementCount === 0 && element.textContent === text,
+  )
+  if (span === undefined) {
+    throw new Error(`expected the tab to carry the text "${text}"`)
+  }
+  return span.getBoundingClientRect()
 }
 
 // Hoisted, which is what react-perf's no-new-object-as-prop is after.
@@ -77,6 +217,27 @@ function indicatorStyleOf(tab: HTMLElement) {
     throw new Error('expected the tab to carry an indicator')
   }
   return getComputedStyle(indicator)
+}
+
+/**
+ * The box a tab's label is painted in: its text's own extent, cut to any
+ * element inside the tab that clips what overflows it. A clamped label
+ * still lays out the lines it hides, and those are not painted.
+ */
+function paintedTextOf(tab: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(tab)
+  let { bottom, left, right, top } = range.getBoundingClientRect()
+  for (const element of tab.querySelectorAll('*')) {
+    if (getComputedStyle(element).overflow !== 'visible') {
+      const clip = element.getBoundingClientRect()
+      bottom = Math.min(bottom, clip.bottom)
+      left = Math.max(left, clip.left)
+      right = Math.min(right, clip.right)
+      top = Math.max(top, clip.top)
+    }
+  }
+  return { bottom, height: bottom - top, left, right, top }
 }
 
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
@@ -399,7 +560,34 @@ describe('tabs', () => {
 
       expect(getComputedStyle(box).blockSize).toBe('321px')
       expect(getComputedStyle(box).blockSize).not.toBe(natural)
-      expect(getComputedStyle(box).overflow).toBe('hidden')
+      expect(getComputedStyle(box).overflow).toBe('clip')
+    })
+
+    // A control flush with a panel's edge keeps its whole ring: a ring
+    // reaches 4px past its control, and the box clips 4px past its own edge.
+    it("clips 4px past its edge, where a flush control's ring ends", () => {
+      const box = getComputedStyle(withPanels().getByTestId('panels'))
+
+      expect(box.overflow).toBe('clip')
+      expect(box.overflowClipMargin).toBe('4px')
+    })
+
+    // A panel with nothing focusable inside it takes focus itself. Drawn
+    // around the panel, its ring fell wholly outside the box above, which
+    // clips — a keyboard reaching the panel saw no ring at all.
+    it("draws a focused panel's ring inside the panel", () => {
+      const panel = withPanels().getByRole('tabpanel')
+
+      fireEvent.keyDown(document.body, { key: 'Tab' })
+      act(() => {
+        panel.focus()
+      })
+      const computed = getComputedStyle(panel)
+
+      expect(panel.matches(':focus-visible')).toBe(true)
+      expect(computed.outlineStyle).toBe('solid')
+      expect(computed.outlineWidth).toBe('2px')
+      expect(computed.outlineOffset).toBe('-2px')
     })
 
     // The line that makes it animate, and the one most easily lost: React
@@ -436,6 +624,412 @@ describe('tabs', () => {
 
       expect(view.queryByTestId('panels')).toBeNull()
       expect(view.getByRole('tabpanel')).not.toBeNull()
+    })
+  })
+
+  // A label has only its tab's equal share of the bar. A single word longer
+  // than that — common in German, Finnish and Dutch — cannot break at a
+  // space, and a sentence wraps to as many lines as it takes; neither may
+  // leave the tab, run into a neighbour or spill out of the 48dp bar.
+  describe('a label longer than its section', () => {
+    const LONG_WORD = 'Unterstützungszeile'
+    const LONG_SENTENCE =
+      'A label long enough that it has nowhere left to go on one line'
+
+    function setupLong() {
+      const view = render(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs defaultSelectedKey="first">
+            <Tabs.List>
+              <Tabs.Tab id="first">{LONG_WORD}</Tabs.Tab>
+              <Tabs.Tab id="second">{LONG_SENTENCE}</Tabs.Tab>
+              <Tabs.Tab id="third">Third item</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+      return view
+    }
+
+    it.each([LONG_WORD, LONG_SENTENCE])('keeps "%s" inside its tab', (name) => {
+      const view = setupLong()
+      const tab = view.getByRole('tab', { name })
+      const box = tab.getBoundingClientRect()
+      const text = paintedTextOf(tab)
+
+      expect(text.left).toBeGreaterThanOrEqual(box.left)
+      expect(text.right).toBeLessThanOrEqual(box.right)
+      expect(text.top).toBeGreaterThanOrEqual(box.top)
+      expect(text.bottom).toBeLessThanOrEqual(box.bottom)
+    })
+
+    // Two lines at most, then an ellipsis, which is what MDC-Android's tab
+    // allows; the name a screen reader reads stays whole.
+    it('cuts a long sentence at two lines, keeping its whole name', () => {
+      const view = setupLong()
+      const tab = view.getByRole('tab', { name: LONG_SENTENCE })
+      const lineHeight = Number.parseFloat(getComputedStyle(tab).lineHeight)
+
+      expect(paintedTextOf(tab).height).toBeLessThanOrEqual(lineHeight * 2 + 1)
+      expect(tab.textContent).toBe(LONG_SENTENCE)
+    })
+
+    // Under a stacked icon the 64dp tab has room for one line.
+    it('cuts it at one line under an icon', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs defaultSelectedKey="first">
+            <Tabs.List>
+              <Tabs.Tab icon={ICON} id="first">
+                {LONG_SENTENCE}
+              </Tabs.Tab>
+              <Tabs.Tab icon={ICON} id="second">
+                Second item
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+      const tab = view.getByRole('tab', { name: LONG_SENTENCE })
+      const lineHeight = Number.parseFloat(getComputedStyle(tab).lineHeight)
+
+      expect(paintedTextOf(tab).height).toBeLessThanOrEqual(lineHeight + 1)
+      expect(tab.getBoundingClientRect().height).toBe(64)
+    })
+  })
+
+  // The page's tab with an icon: 24dp, stacked over the label on a primary
+  // tab, which is 64dp tall, and set before it on a secondary one, which
+  // stays 48.
+  describe('icons', () => {
+    it("stacks a primary tab's icon over its label, 2dp apart, at 64", () => {
+      const view = setupWith({}, { icon: ICON })
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const icon = iconSlotOf(tab).getBoundingClientRect()
+      const text = textBoxOf(tab, 'First item')
+
+      expect(tab.getBoundingClientRect().height).toBe(64)
+      expect([icon.width, icon.height]).toEqual([24, 24])
+      expect(text.top - icon.bottom).toBeCloseTo(2, 0)
+      expect(centreOf(icon).x).toBeCloseTo(centreOf(text).x, 0)
+    })
+
+    // The list stretches every tab to the tallest, so one icon is enough to
+    // make the whole bar the page's 64.
+    it('grows the whole bar with one stacked tab', () => {
+      const view = render(
+        <Tabs defaultSelectedKey="first">
+          <Tabs.List>
+            <Tabs.Tab icon={ICON} id="first">
+              First item
+            </Tabs.Tab>
+            <Tabs.Tab id="second">Second item</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>,
+      )
+
+      expect(view.getByRole('tablist').getBoundingClientRect().height).toBe(64)
+      for (const tab of view.getAllByRole('tab')) {
+        expect(tab.getBoundingClientRect().height).toBe(64)
+      }
+    })
+
+    it("sets a secondary tab's icon before its label, 8dp from it, at 48", () => {
+      const view = setupWith({ variant: 'secondary' }, { icon: ICON })
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const icon = iconSlotOf(tab).getBoundingClientRect()
+      const text = textBoxOf(tab, 'First item')
+
+      expect(tab.getBoundingClientRect().height).toBe(48)
+      expect(text.left - icon.right).toBeCloseTo(8, 0)
+      expect(centreOf(icon).y).toBeCloseTo(centreOf(text).y, 0)
+    })
+
+    // The page gives the icon the label's role in every state of both
+    // styles, so it takes the tab's own colour rather than one of its own.
+    it("draws the icon in the tab's own colour", () => {
+      const view = setupWith({}, { icon: ICON })
+      const [first, second] = view.getAllByRole('tab')
+
+      for (const tab of [first, second]) {
+        expect(getComputedStyle(iconSlotOf(tab)).color).toBe(
+          getComputedStyle(tab).color,
+        )
+      }
+    })
+  })
+
+  // The page's secondary tabs, for a strip under a primary one: the active
+  // label stays on surface, and the indicator is a 2dp line across the tab.
+  describe('secondary', () => {
+    it('draws the active label in on surface and an inactive one in on surface variant', () => {
+      const view = setupWith({ variant: 'secondary' })
+      const [first, second] = view.getAllByRole('tab')
+
+      expect(hasClasses(first, CLASSES.onSurfaceColor)).toBe(true)
+      expect(hasClasses(first, CLASSES.activeColor)).toBe(false)
+      expect(hasClasses(second, CLASSES.inactiveColor)).toBe(true)
+    })
+
+    it('draws a 2dp primary indicator across the whole tab', () => {
+      const view = setupWith({ variant: 'secondary' })
+      const [first, second] = view.getAllByRole('tab')
+      const indicator = indicatorOf(first)
+      if (indicator === null) {
+        throw new Error('expected the active tab to carry an indicator')
+      }
+      const style = getComputedStyle(indicator)
+
+      expect(style.height).toBe('2px')
+      expect(style.backgroundColor).toBe(probe(probeStyles.primary))
+      expect(style.borderTopLeftRadius).toBe('0px')
+      expect(indicator.getBoundingClientRect().width).toBe(
+        first.getBoundingClientRect().width,
+      )
+      expect(indicatorOf(second)).toBeNull()
+    })
+
+    it('slides on the properties the primary one does', () => {
+      const view = setupWith({ variant: 'secondary' })
+      const [first] = view.getAllByRole('tab')
+      const style = indicatorStyleOf(first)
+
+      expect(style.transitionProperty).toContain('translate')
+      expect(style.transitionDuration).not.toBe('0s')
+    })
+
+    // The page's secondary layers are on surface over an active tab and an
+    // inactive one alike, where a primary active tab's are primary.
+    it('lays the on-surface layer under a hovering pointer, active or not', () => {
+      const view = setupWith({ variant: 'secondary' })
+      const [first, second] = view.getAllByRole('tab')
+
+      for (const tab of [first, second]) {
+        fireEvent.pointerOver(tab, { pointerType: 'mouse' })
+        expect(hasClasses(tab, CLASSES.secondaryHover)).toBe(true)
+        fireEvent.pointerOut(tab, {
+          pointerType: 'mouse',
+          relatedTarget: document.body,
+        })
+      }
+    })
+  })
+
+  // The page's scrollable tabs, which a bar takes only when asked: each tab
+  // its label's width, within MDC-Android's 72dp and 264dp, in a bar that
+  // scrolls without a scrollbar and keeps its selected tab in view.
+  describe('scrollable', () => {
+    it("gives each tab its label's width rather than an equal share", () => {
+      const view = setupScrollable('First item')
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const text = textBoxOf(tab, 'First item')
+
+      expect(tab.getBoundingClientRect().width).toBeCloseTo(text.width + 32, 0)
+    })
+
+    it('holds a tab between 72dp and 264dp', () => {
+      const view = render(
+        <Tabs defaultSelectedKey="short" layout="scrollable">
+          <Tabs.List>
+            <Tabs.Tab id="short">A</Tabs.Tab>
+            <Tabs.Tab id="long">
+              A label long enough that it has nowhere left to go on one line
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>,
+      )
+      const [short, long] = view.getAllByRole('tab')
+
+      expect(short.getBoundingClientRect().width).toBe(72)
+      expect(long.getBoundingClientRect().width).toBe(264)
+    })
+
+    it('scrolls the bar rather than squeezing it, with no scrollbar', () => {
+      const view = setupScrollable('First item')
+      const list = view.getByRole('tablist')
+
+      expect(list.scrollWidth).toBeGreaterThan(list.clientWidth)
+      expect(getComputedStyle(list).overflowX).toBe('auto')
+      expect(getComputedStyle(list).scrollbarWidth).toBe('none')
+    })
+
+    it('opens on its selected tab, scrolled into view', () => {
+      const view = setupScrollable('Sixth item')
+      const list = view.getByRole('tablist')
+      const tab = view.getByRole('tab', { name: 'Sixth item' })
+
+      expect(list.scrollLeft).toBeGreaterThan(0)
+      expect(tab.getBoundingClientRect().right).toBeLessThanOrEqual(
+        list.getBoundingClientRect().right + 1,
+      )
+    })
+
+    it('brings a newly selected tab into view', async () => {
+      const view = setupScrollable('First item')
+      const list = view.getByRole('tablist')
+      expect(list.scrollLeft).toBe(0)
+
+      view.rerender(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs layout="scrollable" selectedKey="Sixth item">
+            <Tabs.List>
+              {MANY.map((key) => (
+                <Tabs.Tab id={key} key={key}>
+                  {key}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+      const tab = view.getByRole('tab', { name: 'Sixth item' })
+
+      await waitFor(() => {
+        expect(tab.getBoundingClientRect().right).toBeLessThanOrEqual(
+          list.getBoundingClientRect().right + 1,
+        )
+      })
+    })
+  })
+
+  // The page draws no vertical tabs, so a vertical bar is the horizontal
+  // one on its side: the tabs stack beside the panels, and the divider and
+  // the indicator move to the bar's inline end.
+  describe('vertical', () => {
+    it('stacks its tabs down the bar, beside the panel', () => {
+      const view = setupVertical()
+      const [first, second] = view.getAllByRole('tab')
+      const list = view.getByRole('tablist').getBoundingClientRect()
+
+      expect(second.getBoundingClientRect().top).toBeCloseTo(
+        first.getBoundingClientRect().bottom,
+        0,
+      )
+      // The panel is 200px tall, and the tabs stay the 48dp they are rather
+      // than sharing the bar's height between them.
+      expect(first.getBoundingClientRect().height).toBe(48)
+      expect(second.getBoundingClientRect().height).toBe(48)
+      expect(view.getByTestId('panel').getBoundingClientRect().left).toBe(
+        list.right,
+      )
+      expect(
+        textBoxOf(first, 'First item').left -
+          first.getBoundingClientRect().left,
+      ).toBe(16)
+    })
+
+    // Matched from the space before the offset, since `-1px 0px…` holds
+    // `1px 0px…` whole.
+    it.each([
+      ['ltr', / -1px 0px 0px 0px inset/],
+      ['rtl', / 1px 0px 0px 0px inset/],
+    ] as const)(
+      'runs the divider down the inline end under %s',
+      (dir, shadow) => {
+        const view = setupVertical({}, dir)
+
+        expect(getComputedStyle(view.getByRole('tablist')).boxShadow).toMatch(
+          shadow,
+        )
+      },
+    )
+
+    it.each([
+      ['ltr', 'right'],
+      ['rtl', 'left'],
+    ] as const)(
+      'lays a 3dp indicator along the inline end under %s, rounded toward the tab',
+      (dir, edge) => {
+        const view = setupVertical({}, dir)
+        const [first] = view.getAllByRole('tab')
+        const indicator = indicatorOf(first)
+        if (indicator === null) {
+          throw new Error('expected the active tab to carry an indicator')
+        }
+        const box = indicator.getBoundingClientRect()
+        const tab = first.getBoundingClientRect()
+
+        expect(box.width).toBe(3)
+        expect(box.height).toBeCloseTo(tab.height - 4, 0)
+        expect(box[edge]).toBe(tab[edge])
+        expect(getComputedStyle(indicator).borderStartStartRadius).not.toBe(
+          '0px',
+        )
+        expect(getComputedStyle(indicator).borderStartEndRadius).toBe('0px')
+      },
+    )
+
+    it('lays a secondary bar its 2dp square indicator along the whole tab', () => {
+      const view = setupVertical({ variant: 'secondary' })
+      const [first] = view.getAllByRole('tab')
+      const indicator = indicatorOf(first)
+      if (indicator === null) {
+        throw new Error('expected the active tab to carry an indicator')
+      }
+      const box = indicator.getBoundingClientRect()
+
+      expect(box.width).toBe(2)
+      expect(box.height).toBe(first.getBoundingClientRect().height)
+      expect(getComputedStyle(indicator).borderTopLeftRadius).toBe('0px')
+    })
+
+    // React Aria moves between a vertical bar's tabs with the up and down
+    // arrows, which it can only do when it is told the bar is vertical.
+    it('moves between the tabs with the up and down arrows', () => {
+      const view = setupVertical()
+      const [first, second] = view.getAllByRole('tab')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+      expect(second).toHaveFocus()
+    })
+  })
+
+  // The page's badge: on a stacked icon where there is one, and 4dp after
+  // the label anywhere else. Hidden from assistive technology, so the tab's
+  // name is its label alone.
+  describe('badges', () => {
+    it('puts a badge on a stacked icon', () => {
+      const view = setupWith({}, { badge: 3, icon: ICON })
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const mark = markIn(tab)
+      const anchor = tab.querySelector('[data-testid="icon"]')?.parentElement
+
+      expect(mark.textContent).toBe('3')
+      expect(anchor?.contains(mark)).toBe(true)
+      expect(iconSlotOf(tab).contains(mark)).toBe(true)
+    })
+
+    it('puts a badge 4dp after a label with no icon over it', () => {
+      const view = setupWith({}, { badge: true })
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const mark = markIn(tab).getBoundingClientRect()
+      const text = textBoxOf(tab, 'First item')
+
+      expect([mark.width, mark.height]).toEqual([6, 6])
+      expect(mark.left - text.right).toBeCloseTo(4, 0)
+      expect(centreOf(mark).y).toBeCloseTo(centreOf(text).y, 0)
+    })
+
+    it("puts it after a secondary tab's label, past its icon", () => {
+      const view = setupWith({ variant: 'secondary' }, { badge: 3, icon: ICON })
+      const tab = view.getByRole('tab', { name: 'First item' })
+      const mark = markIn(tab)
+
+      expect(iconSlotOf(tab).contains(mark)).toBe(false)
+      expect(
+        mark.getBoundingClientRect().left - textBoxOf(tab, 'First item').right,
+      ).toBeCloseTo(4, 0)
+    })
+
+    it('draws none for false', () => {
+      const view = setupWith({}, { badge: false })
+      const tab = view.getByRole('tab', { name: 'First item' })
+
+      expect(tab.querySelector('span[aria-hidden="true"]')).toBeNull()
     })
   })
 })

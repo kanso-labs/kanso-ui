@@ -105,6 +105,12 @@ const rise = stylex.keyframes({
   to: { opacity: 1, transform: 'translateY(0)' },
 })
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // The action: a text button in the page's inverse primary, at the label
   // large the page gives it.
@@ -137,12 +143,7 @@ const styles = stylex.create({
   // two of them at their two different colours.
   control: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':focus-visible': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
@@ -156,6 +157,21 @@ const styles = stylex.create({
     outlineWidth: '2px',
     overflow: 'hidden',
     position: 'relative',
+  },
+  // A control's three layers, from React Aria's render state rather than
+  // `:hover`, `:focus-visible` and `:active`, for Button's reasons — see its
+  // header: a hover layer stayed on after a tap, and no pressed layer showed
+  // for a press made from the keyboard. `controlClassName` applies them in
+  // the order the pages draw one layer at a time: focus over hover, and a
+  // press over both.
+  controlFocused: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  controlHovered: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  controlPressed: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   // The message: body-medium in inverse on surface, with the page's 8dp
   // either side of it inside the container's own 8dp, and the 14dp above and
@@ -182,6 +198,13 @@ const styles = stylex.create({
   // The region: a landmark pinned to the bottom of the screen with the
   // page's 8dp of margin, and transparent to the pointer so the strip it
   // occupies stays clickable when nothing is in it.
+  //
+  // The margin is counted from the device's safe area on the three edges the
+  // region is pinned to, so a snackbar clears the home indicator. The region
+  // is portalled to the body, so a consumer's own safe-area padding never
+  // reaches it, and `env()` reads 0 without `viewport-fit=cover`, which
+  // leaves every other page as it was. Left and right rather than logical,
+  // since the insets are physical.
   region: {
     alignItems: 'center',
     boxSizing: 'border-box',
@@ -191,7 +214,10 @@ const styles = stylex.create({
     insetBlockEnd: 0,
     insetInline: 0,
     outlineStyle: 'none',
-    padding: spacing.sm,
+    paddingBlockEnd: `calc(${spacing.sm} + env(safe-area-inset-bottom, 0px))`,
+    paddingBlockStart: spacing.sm,
+    paddingLeft: `calc(${spacing.sm} + env(safe-area-inset-left, 0px))`,
+    paddingRight: `calc(${spacing.sm} + env(safe-area-inset-right, 0px))`,
     pointerEvents: 'none',
     position: 'fixed',
     zIndex: 1000,
@@ -212,7 +238,15 @@ const styles = stylex.create({
     animationName: rise,
     animationTimingFunction: motion.easingEmphasizedDecelerate,
     backgroundColor: colors.inverseSurface,
+    // What the strip's edge becomes under forced colours, where the
+    // `boxShadow` below is gone and the fill is painted in `Canvas`: a
+    // `CanvasText` border, as `popup` in src/styles/overlay.ts draws for
+    // every anchored surface. Without it the message sat on the page with
+    // nothing at its edge. Inside the size, since the strip is `border-box`.
+    borderColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderRadius: radii.xs,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxShadow: shadows.elevation3,
     boxSizing: 'border-box',
     display: 'flex',
@@ -291,8 +325,8 @@ type SnackbarProps = {
   /**
    * What a screen reader calls the button that dismisses a snackbar. It sits
    * here rather than on a message's own options because it does not vary by
-   * message, so putting it there would make every `add` call repeat it.
-   * @default 'Close'
+   * message, so putting it there would make every `add` call repeat it. Left
+   * out, React Aria names it in the reader's locale — "Close" in English.
    */
   closeLabel?: string
   /** The queue the region shows messages from. */
@@ -378,6 +412,22 @@ function closeToast(queue: SnackbarQueue, key: string) {
   }
 }
 
+// A control's classes, from its own render state — see `controlFocused`.
+function controlClassName(style: stylex.StyleXStyles) {
+  return (state: {
+    isFocusVisible: boolean
+    isHovered: boolean
+    isPressed: boolean
+  }) =>
+    stylex.props(
+      styles.control,
+      style,
+      state.isHovered && styles.controlHovered,
+      state.isFocusVisible && styles.controlFocused,
+      state.isPressed && styles.controlPressed,
+    ).className ?? ''
+}
+
 /**
  * A brief message at the bottom of the screen, with an optional action. Mount
  * one of these with a `Snackbar.Queue`, and call the queue's `add` to show a
@@ -397,7 +447,7 @@ function closeToast(queue: SnackbarQueue, key: string) {
  * element a layout positions.
  */
 function Snackbar({
-  closeLabel = 'Close',
+  closeLabel,
   queue,
   ...props
 }: RefAttributes<HTMLDivElement> & SnackbarProps) {
@@ -435,7 +485,7 @@ function SnackbarButton({
     <RACButton
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.control, style)}
+      className={controlClassName(style)}
     >
       {children}
       {ripple.surface}
@@ -443,7 +493,7 @@ function SnackbarButton({
   )
 }
 
-function snackbarContent(queue: SnackbarQueue, closeLabel: string) {
+function snackbarContent(queue: SnackbarQueue, closeLabel: string | undefined) {
   return ({ toast }: { toast: SnackbarToastItem }) => (
     <SnackbarToast
       close={closeToast(queue, toast.key)}
@@ -462,7 +512,7 @@ function SnackbarControls({
 }: {
   action: SnackbarAction | undefined
   close: () => void
-  closeLabel: string
+  closeLabel: string | undefined
   showCloseButton: boolean
 }) {
   return (
@@ -495,7 +545,7 @@ function SnackbarToast({
   toast,
 }: {
   close: () => void
-  closeLabel: string
+  closeLabel: string | undefined
   toast: SnackbarToastItem
 }) {
   const { action, message, showCloseButton } = toast.content

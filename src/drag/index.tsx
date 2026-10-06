@@ -16,12 +16,20 @@ import { indicatorClassName } from './styles'
 // one name it does put on the public surface is `useDragAndDrop`, which
 // `src/react-aria.ts` exports in place of React Aria's own.
 //
-// Two things are this module's own, since the design carries no page for
-// either — it has no drag and drop at all.
+// The lists page draws one part of a drag: the dragged row, lifted to
+// elevation 4 under a pressed layer, which the row a drag started from takes
+// as `dragging` in `src/row` — in List, ListBox and Tree through
+// `rowItemStyles`, and in Table's own row. Three things are this library's
+// own, since no page draws them.
 //
 // **The line between two items is the primary role, 2dp.** It is the same
 // weight and colour a focus ring takes, which is the nearest thing the
 // system has to "this is where the thing you are moving will land".
+//
+// **A row or a whole collection a drop lands on draws that line around
+// itself**, as an outline inside its edges over a primary layer at the hover
+// opacity — `dropTarget` in `src/row` and in `src/collection`, which Table's
+// own row and box take too.
 //
 // **The preview is the row's own type on a raised surface.** A drag preview
 // that looked nothing like the row it came from would read as a second

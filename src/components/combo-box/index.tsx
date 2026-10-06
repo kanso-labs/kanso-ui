@@ -1,6 +1,12 @@
 'use client'
 
-import type { ReactNode, Ref, RefAttributes, RefObject } from 'react'
+import type {
+  ReactElement,
+  ReactNode,
+  Ref,
+  RefAttributes,
+  RefObject,
+} from 'react'
 import type { ComboBoxProps as RACComboBoxProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -197,9 +203,11 @@ type ComboBoxProps<
   leadingIcon?: ReactNode
   /**
    * The options. `ListBox.Item` for each, and `ListBox.Section` to group
-   * them — the list inside is a ListBox, and takes everything one does.
+   * them — the list inside is a ListBox, and takes everything one does. With
+   * `items` or `defaultItems`, a function from an item to its option, which
+   * React Aria calls for each item the list shows.
    */
-  options?: ReactNode
+  options?: ((item: T) => ReactElement) | ReactNode
   /**
    * The filled box, or the outlined one, as the text fields page draws them.
    * @default 'filled'
@@ -300,6 +308,7 @@ function ComboBox<
         inputRef={inputRef}
         isDisabled={isDisabled}
         isInvalid={invalidFrom(error)}
+        isRequired={props.isRequired ?? false}
         label={label}
         leadingIcon={leadingIcon}
         multiple={props.selectionMode === 'multiple'}
@@ -312,7 +321,7 @@ function ComboBox<
         UNSTABLE_portalContainer={container}
         {...stylex.props(overlay.popup, styles.list)}
       >
-        <ListBox>{options}</ListBox>
+        <ListBox<T>>{options}</ListBox>
       </RACPopover>
     </RACComboBox>
   )
@@ -332,6 +341,7 @@ function ComboBoxBox({
   inputRef,
   isDisabled,
   isInvalid,
+  isRequired,
   label,
   leadingIcon,
   multiple,
@@ -342,6 +352,7 @@ function ComboBoxBox({
   inputRef: Ref<HTMLInputElement> | undefined
   isDisabled: boolean
   isInvalid: boolean | undefined
+  isRequired: boolean
   label: string
   leadingIcon: ReactNode
   multiple: boolean
@@ -359,6 +370,7 @@ function ComboBoxBox({
       isDisabled={isDisabled}
       isInvalid={isInvalid}
       isPopulated={chosen ? true : undefined}
+      isRequired={isRequired}
       label={label}
       leading={leadingIcon}
       ref={boxRef}

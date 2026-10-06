@@ -2,7 +2,9 @@ import * as stylex from '@stylexjs/stylex'
 
 import {
   colors,
+  media,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -55,11 +57,7 @@ const calendarStyles = stylex.create({
   // selected date fills and the shape a hover tints.
   cell: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     blockSize: ROW_BLOCK_SIZE,
     borderRadius: radii.circle,
     boxSizing: 'border-box',
@@ -101,8 +99,6 @@ const calendarStyles = stylex.create({
   // stop at a circle.
   cellInRange: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
       default: colors.secondaryContainer,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -138,13 +134,9 @@ const calendarStyles = stylex.create({
   },
   // The date the calendar holds. A filled circle in the primary role, with
   // the on-primary state layer over it while hovered or pressed, which is
-  // what the page gives it. Each branch is written here because StyleX
-  // replaces a property whole: left out, the unselected cell's on-surface
-  // layer over nothing would stand in for the fill on hover.
+  // what the page gives it — see `dateLayers`.
   cellSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -198,6 +190,12 @@ const calendarStyles = stylex.create({
   chevronGlyphPrevious: {
     transform: { ':dir(rtl)': 'scaleX(1)', default: 'scaleX(-1)' },
   },
+  // The chevrons while a month or year list is open, which the page draws
+  // without them. Hidden rather than removed, so the month's menu button
+  // stays where it was, and out of the tab order with it.
+  chevronHidden: {
+    visibility: 'hidden',
+  },
   // The grid. `border-spacing` is what puts the page's 48dp pitch between
   // 40dp circles, rather than a 48dp box drawn around each one.
   grid: {
@@ -232,6 +230,12 @@ const calendarStyles = stylex.create({
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
   },
+  // The month's menu button between the chevrons that step it, for a
+  // calendar with `showMonthYearMenus`.
+  headerGroup: {
+    alignItems: 'center',
+    display: 'flex',
+  },
   // The month and year, between the two chevrons.
   heading: {
     color: colors.onSurfaceVariant,
@@ -243,6 +247,102 @@ const calendarStyles = stylex.create({
     margin: 0,
     textAlign: 'center',
   },
+  // The arrow after a menu button's label, at the page's 18dp. It turns over
+  // while the button's list is open, which says the next press closes it.
+  menuArrow: {
+    blockSize: '18px',
+    flexShrink: 0,
+    inlineSize: '18px',
+  },
+  menuArrowExpanded: {
+    transform: 'rotate(180deg)',
+  },
+  // The date pickers page's menu button: a 40dp pill holding the month or
+  // year in label large, both in on surface variant, with the arrow after
+  // it. Its state layers are the icon buttons' own on-surface-variant pair,
+  // which `src/styles/icon-button.ts` already holds.
+  menuButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    blockSize: sizing.controlSm,
+    borderRadius: radii.pill,
+    borderWidth: 0,
+    boxSizing: 'border-box',
+    color: colors.onSurfaceVariant,
+    cursor: 'pointer',
+    display: 'flex',
+    flexShrink: 0,
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    gap: spacing.xs,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+    paddingInline: spacing.sm,
+  },
+  // The check before the entry the calendar shows, at the page's 24dp, and
+  // the room it takes on every other row — so every label starts at the same
+  // place whether or not its row is the one checked.
+  menuCheck: {
+    blockSize: '24px',
+    color: colors.onSurface,
+    flexShrink: 0,
+    inlineSize: '24px',
+  },
+  // One month or year in the open list: the page's 48dp row, its label in
+  // body large on surface, 16dp in from the container's edge with the check's
+  // column first.
+  menuItem: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    blockSize: sizing.controlMd,
+    boxSizing: 'border-box',
+    color: colors.onSurface,
+    cursor: 'pointer',
+    display: 'flex',
+    fontFamily: typography.bodyLargeFont,
+    fontSize: typography.bodyLargeSize,
+    fontWeight: typography.bodyLargeWeight,
+    gap: spacing.lg,
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+    outlineStyle: 'none',
+    paddingInline: spacing.lg,
+  },
+  // A month the calendar's bounds leave no day of. The 38% every disabled
+  // control here takes, drawn over the container as a date's is.
+  menuItemDisabled: {
+    backgroundColor: 'transparent',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+    cursor: 'not-allowed',
+  },
+  // Inside the row rather than around it: the rows run to the list's edges,
+  // where its scrolling would clip a ring drawn outside them.
+  menuItemFocused: {
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
+  },
+  // The month or year the calendar shows, on the page's surface variant.
+  menuItemSelected: {
+    backgroundColor: colors.surfaceVariant,
+  },
+  // The open list, in the place the months were. It takes their height, so
+  // opening it moves nothing under the calendar, and scrolls inside it. The
+  // negative margin runs its rows to the container's edges, as the page
+  // draws them, and the rule above it is the page's outline variant divider
+  // between the header and the list.
+  menuList: {
+    blockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    borderBlockStartColor: colors.outlineVariant,
+    borderBlockStartStyle: 'solid',
+    borderBlockStartWidth: '1px',
+    boxSizing: 'border-box',
+    marginInline: `calc(${spacing.md} * -1)`,
+    outlineStyle: 'none',
+    overflowY: 'auto',
+  },
   // Two months side by side, for a `visibleDuration` of more than one, and
   // the room the grid is held at.
   //
@@ -252,10 +352,21 @@ const calendarStyles = stylex.create({
   // date inside it — February's four weeks drew at a 60px pitch against a
   // six-week month's 40. Two months of different lengths top-align for the
   // same reason.
+  //
+  // Below the expanded breakpoint the months stack, one under another. Two
+  // side by side come to 720dp with the calendar's padding, wider than a
+  // compact window and most of a medium one, so they sit side by side only
+  // from the expanded window size up, whether a picker holding them is
+  // docked or modal. Stacked, each sits in a row of its own holding the same
+  // six weeks of room, so a short month does not draw the one under it up.
   months: {
     alignItems: 'start',
-    display: 'flex',
+    display: { default: 'flex', [media.belowExpanded]: 'grid' },
     gap: spacing.xl,
+    gridAutoRows: {
+      default: null,
+      [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    },
     // The weekday row plus six weeks of dates. Left to the month the grid is
     // as tall as its weeks, so the calendar grew by 80px between February
     // 2026 and May, taking whatever sat under it down the page — and inside a
@@ -279,4 +390,56 @@ const calendarStyles = stylex.create({
   },
 })
 
-export { calendarStyles }
+// A date's hover and pressed layers, one pair per ground it sits on: nothing,
+// the range band, and the selected circle. From React Aria's render state rather than `:hover` and `:active`, for Button's
+// reasons — see its header: a hover layer stayed on after a tap, and no
+// pressed layer showed for a press made from the keyboard.
+// Each layer is written whole for its ground because StyleX replaces a
+// property whole, and the band and the circle keep their forced-colours
+// `Highlight` under the layer.
+const dateLayers = stylex.create({
+  inRangeHovered: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  inRangePressed: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  plainHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  plainPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  selectedHovered: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  selectedPressed: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+// A list row's hover and pressed layers over the checked row's surface
+// variant. Over nothing a row takes a date's own pair, `dateLayers.plain*`,
+// since the page gives both the same on-surface layer.
+const menuLayers = stylex.create({
+  selectedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceVariant})`,
+  },
+  selectedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceVariant})`,
+  },
+})
+
+export { calendarStyles, dateLayers, menuLayers }

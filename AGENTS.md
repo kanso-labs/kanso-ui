@@ -20,6 +20,7 @@ are developed and documented in Storybook.
 | Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                            |
 | Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs                 |
 | Verify     | `npm run package:check`           | publint, attw, then `scripts/check-package.mjs`; reads `dist/`, so build first |
+| API report | `npm run api:update`              | Rewrites `etc/*.api.md`; `package:check` fails while they differ from `dist/`  |
 | Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"         |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
@@ -89,8 +90,9 @@ imports and union members are sorted by the linter.
 
 The formatter is not shared: **oxfmt formats this repository**, not Prettier, so
 the command is `npm run format` and the check runs inside `npm run lint`.
-`LICENSE.md` is exempt in `.oxfmtrc.json`, beside `CHANGELOG.md` — both are
-owned elsewhere. The mechanics are in the bullets below.
+`LICENSE.md` and the API reports in `etc/` are exempt in `.oxfmtrc.json`, beside
+`CHANGELOG.md` — all three are owned elsewhere. The mechanics are in the bullets
+below.
 
 Specific to this repository:
 
@@ -235,14 +237,16 @@ Specific to this repository:
   `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
   are absent from that entry because neither reads those formats.
 - **That entry's glob excludes lock files on purpose.** It reads
-  `!(*-lock).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because oxfmt
-  exits non-zero when every path handed to it is one of its own ignores —
+  `!(*-lock|*.api).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because
+  oxfmt exits non-zero when every path handed to it is one of its own ignores —
   `Expected at least one target file` — and lock files are among those ignores.
   Under the plain glob, a commit staging nothing but `package-lock.json` failed
   the hook outright, so a manual bump of a transitive dependency could only land
   with `--no-verify`. Renovate never ran into it because it commits through the
   API rather than through husky. Keeping lock files out of the glob is what
-  stops them reaching oxfmt at all, so do not "simplify" the extglob back.
+  stops them reaching oxfmt at all, so do not "simplify" the extglob back. The
+  API reports, `etc/*.api.md`, are out of it for the same reason: oxfmt ignores
+  them, so a commit staging a report alone would fail the same way.
 - `CHANGELOG.md` is exempt from formatting, via `ignorePatterns` in
   `.oxfmtrc.json`. `release-please` writes it, in a style oxfmt disagrees with —
   `*` bullets rather than `-`, and one long line per entry against a
@@ -588,6 +592,40 @@ things: `styles.css` is the library's own compiled rules and is required,
 `tokens.css` is the `--kui-*` override contract and is a reference rather than a
 runtime dependency.
 
+## The API reports
+
+**`etc/index.api.md` and `etc/date.api.md` are the package's public types, as a
+reviewer reads them.** `src/index.test.ts` pins which names the package exports
+but not what their types say, and a prop narrowed from an array to a tuple is a
+compile error for a consumer who passed an array — #1090 did exactly that to
+`MenuSubmenuProps.children`, released as a `fix`. API Extractor reads each
+entry's declarations in `dist/` and writes one report per entry, so the same
+change reaches review as a diff of a committed file rather than as a line in a
+`.d.ts` nobody opens.
+
+`npm run package:check` ends on `scripts/api-report.mjs`, which fails when a
+report no longer matches `dist/` and prints the difference. `npm run api:update`
+rewrites the reports: run it after `npm run build` whenever a public type
+changes on purpose, and commit the reports with the change. CI's `Build` job
+runs `package:check`, so a report left behind fails a required check.
+
+Three things about it are worth knowing:
+
+- **Every message API Extractor raises goes into the report**, not the console,
+  apart from release tags and TSDoc's tag vocabulary, which this library does
+  not use and `etc/api-extractor.json` turns off. Outside `--local`, a console
+  warning fails the run, so that split is what leaves a changed report as the
+  one thing that fails the check. The `ae-forgotten-export` comments in a report
+  name types a public signature uses that the entry does not export.
+- **It analyses with the TypeScript it bundles**, 5.9 against this repository's
+  6.0, and prints a notice saying so on every run. It reads declaration files
+  rather than source, which is why the gap costs nothing today; a declaration
+  the bundled compiler could not read would surface as a compiler message, and
+  that fails the check rather than passing it quietly.
+- **The reports are exempt from oxfmt** and kept out of lint-staged's glob — see
+  "Conventions". API Extractor compares its output with the committed file
+  exactly, and oxfmt would rewrite it.
+
 ## Previewing
 
 There is no demo app — Storybook is the runtime surface. To see a component
@@ -632,6 +670,16 @@ applied by the time the preview module evaluates. A story can be opened straight
 into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
 
+**The Locale control beside it renders a story in another language.** The
+decorator wraps every story in React Aria's `I18nProvider` and puts the locale's
+`lang` and `dir` on `<html>`, which is where a portalled Sheet or Dialog reads
+them. It offers English, German, Arabic (Egypt) and Japanese: long compound
+words, Arabic-Indic digits running right to left, and a script with neither
+spaces nor Latin letters. It defaults to English, and `&globals=locale:ar-EG`
+opens a story straight into one. The stories' own copy stays English, since it
+is the stories' text rather than the library's, so what changes is every name,
+number and direction the components write.
+
 **That control offers more than light and dark**, and the extra entries come
 from `src/theming/themes.ts`: the demo schemes the `Theming` sidebar section is
 built from, which `ThemeWrapper` applies to any story the same way it applies
@@ -652,7 +700,11 @@ Four things about them are worth knowing before adding a sixth:
 - **Every pair a component renders has to clear WCAG AA**, since `a11y.test` is
   `'error'` and a scheme that cannot be read is not worth demonstrating. The
   library's own tokens hold to 4.5:1 for text and about 3:1 for the outline
-  rule; match that rather than eyeballing it.
+  rule; match that rather than eyeballing it. The library's own dark theme is
+  held to it by `Theming/Dark`, a story rendering the showcase in dark and
+  hidden from the sidebar and from Chromatic: every other story renders in the
+  light theme the toolbar opens on, and the dark mode reaches Chromatic only as
+  pixels, so without it a dark pair below AA passed every check.
 - **Each scheme is a story file of its own**, titled `Theming/<Name>`, which is
   what makes Theming a section beside `Components` rather than one page holding
   five stories. Those files carry nothing but the scheme: the page itself is
@@ -932,6 +984,12 @@ server can serve both captures if the branch is switched underneath it and given
 a moment. "After" comes from the branch. Captures go under `.context/`, which is
 ignored so they never land in a commit; the pull request is where they belong,
 uploaded when it is opened.
+
+**A pull request that changes `etc/*.api.md` says what changed for a consumer**,
+and calls out a narrowing — a type that now accepts less than it did — since
+that breaks a call site that compiled before. Whether the title carries `!` is
+still decided in review; the report makes the change visible rather than
+deciding it.
 
 ## Working the coverage plan
 

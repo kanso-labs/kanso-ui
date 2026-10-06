@@ -266,6 +266,7 @@ function selectContent(
         // told outright or its label and its underline never turn.
         isDisabled={state.isDisabled}
         isInvalid={state.isInvalid}
+        isRequired={state.isRequired}
         label={label}
         leading={leadingIcon}
         ref={boxRef}

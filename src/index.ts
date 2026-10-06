@@ -6,6 +6,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- the side effect is the point
 import './styles.css'
 
+export * from './color-scheme'
 export * from './components'
 export * from './layout'
 export * from './react-aria'

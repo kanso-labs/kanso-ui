@@ -10,22 +10,45 @@ export type { AutocompleteFilter, AutocompleteProps } from './autocomplete'
 export { default as Autocomplete } from './autocomplete'
 export type { AvatarProps } from './avatar'
 export { default as Avatar } from './avatar'
+export type { BadgeProps } from './badge'
+export { default as Badge } from './badge'
 export type { BreadcrumbsItemProps, BreadcrumbsProps } from './breadcrumbs'
 export { default as Breadcrumbs } from './breadcrumbs'
-export type { ButtonProps, ButtonSize, ButtonVariant } from './button'
+export { BreadcrumbsItem } from './breadcrumbs'
+export type {
+  ButtonProps,
+  ButtonShape,
+  ButtonSize,
+  ButtonVariant,
+} from './button'
 export { default as Button } from './button'
+export type { ButtonGroupProps, ButtonGroupVariant } from './button-group'
+export { default as ButtonGroup } from './button-group'
 export type { CalendarProps } from './calendar'
 export { default as Calendar } from './calendar'
 export type { CardProps, CardVariant } from './card'
 export { default as Card } from './card'
+export type {
+  CarouselItemProps,
+  CarouselLayout,
+  CarouselProps,
+} from './carousel'
+export { default as Carousel } from './carousel'
+export { CarouselItem } from './carousel'
 export type { CheckboxProps } from './checkbox'
 export { default as Checkbox } from './checkbox'
 export type { CheckboxGroupProps } from './checkbox-group'
 export { default as CheckboxGroup } from './checkbox-group'
-export type { ChipProps } from './chip'
+export type {
+  ChipActionProps,
+  ChipFilterProps,
+  ChipProps,
+  ChipVariant,
+} from './chip'
 export { default as Chip } from './chip'
 export type { ChipGroupChipProps, ChipGroupProps } from './chip-group'
 export { default as ChipGroup } from './chip-group'
+export { ChipGroupChip } from './chip-group'
 export type { CodeProps } from './code'
 export { default as Code } from './code'
 export type { ColorAreaProps } from './color-area'
@@ -43,6 +66,7 @@ export type {
   ColorSwatchPickerProps,
 } from './color-swatch-picker'
 export { default as ColorSwatchPicker } from './color-swatch-picker'
+export { ColorSwatchPickerItem } from './color-swatch-picker'
 export type { ColorWheelProps } from './color-wheel'
 export { default as ColorWheel } from './color-wheel'
 export type { ComboBoxProps, ComboBoxSelectionMode } from './combo-box'
@@ -69,16 +93,28 @@ export type {
   DialogTitleProps,
 } from './dialog'
 export { default as Dialog } from './dialog'
+export {
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './dialog'
 export type {
   DisclosureHeaderProps,
   DisclosurePanelProps,
   DisclosureProps,
 } from './disclosure'
 export { default as Disclosure } from './disclosure'
+export { DisclosureHeader, DisclosurePanel } from './disclosure'
 export type { DisclosureGroupProps } from './disclosure-group'
 export { default as DisclosureGroup } from './disclosure-group'
 export type { DropZoneProps, FileTriggerProps } from './drop-zone'
 export { default as DropZone, FileTrigger } from './drop-zone'
+export type { FabProps, FabSize, FabTone, FabVariant } from './fab'
+export { default as Fab } from './fab'
+export type { FabMenuItemProps, FabMenuProps } from './fab-menu'
+export { default as FabMenu, FabMenuItem } from './fab-menu'
 export type { FeedProps } from './feed'
 export { default as Feed } from './feed'
 export type { FormProps } from './form'
@@ -100,6 +136,7 @@ export type {
   ListSectionProps,
 } from './list'
 export { default as List } from './list'
+export { ListLoadMore, ListRow, ListSection } from './list'
 export type {
   ListBoxItemProps,
   ListBoxLoadMoreProps,
@@ -107,6 +144,7 @@ export type {
   ListBoxSectionProps,
 } from './list-box'
 export { default as ListBox } from './list-box'
+export { ListBoxItem, ListBoxLoadMore, ListBoxSection } from './list-box'
 export type { ListDetailProps } from './list-detail'
 export { default as ListDetail } from './list-detail'
 export type { ListItemProps } from './list-item'
@@ -123,14 +161,35 @@ export type {
   MenuSubmenuProps,
 } from './menu'
 export { default as Menu } from './menu'
+export {
+  MenuContent,
+  MenuItem,
+  MenuLoadMore,
+  MenuSection,
+  MenuSeparator,
+  MenuSubmenu,
+} from './menu'
 export type { MeterProps, MeterTone } from './meter'
 export { default as Meter } from './meter'
+export type {
+  NavigationBarItemProps,
+  NavigationBarProps,
+} from './navigation-bar'
+export { default as NavigationBar } from './navigation-bar'
+export { NavigationBarItem } from './navigation-bar'
+export type {
+  NavigationRailItemProps,
+  NavigationRailProps,
+} from './navigation-rail'
+export { default as NavigationRail } from './navigation-rail'
+export { NavigationRailItem } from './navigation-rail'
 export type {
   NavigationTreeItemProps,
   NavigationTreeProps,
   NavigationTreeSectionProps,
 } from './navigation-tree'
 export { default as NavigationTree } from './navigation-tree'
+export { NavigationTreeItem, NavigationTreeSection } from './navigation-tree'
 export type { NumberFieldProps } from './number-field'
 export { default as NumberField } from './number-field'
 export type {
@@ -144,6 +203,7 @@ export type {
   PopoverTrigger,
 } from './popover'
 export { default as Popover } from './popover'
+export { PopoverContent, PopoverDescription, PopoverTitle } from './popover'
 export type { ProductIconProps } from './product-icon'
 export { default as ProductIcon } from './product-icon'
 export type {
@@ -158,18 +218,30 @@ export type { RangeCalendarProps } from './range-calendar'
 export { default as RangeCalendar } from './range-calendar'
 export type { SearchFieldProps } from './search-field'
 export { default as SearchField } from './search-field'
+export type { SearchViewContentProps, SearchViewProps } from './search-view'
+export { default as SearchView } from './search-view'
+export { SearchViewContent } from './search-view'
 export type {
   SegmentedButtonProps,
   SegmentedButtonSegmentProps,
 } from './segmented-button'
 export { default as SegmentedButton } from './segmented-button'
+export { SegmentedButtonSegment } from './segmented-button'
 export type { SelectProps } from './select'
 export { default as Select } from './select'
 export type { SeparatorInset, SeparatorProps } from './separator'
 export { default as Separator } from './separator'
 export type { SheetContentProps, SheetProps, SheetTitleProps } from './sheet'
 export { default as Sheet } from './sheet'
-export type { SliderProps } from './slider'
+export {
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHandle,
+  SheetHeader,
+  SheetTitle,
+} from './sheet'
+export type { SliderProps, SliderSize } from './slider'
 export { default as Slider } from './slider'
 export type {
   SnackbarAction,
@@ -180,6 +252,17 @@ export type {
   SnackbarRegionRenderProps,
 } from './snackbar'
 export { default as Snackbar } from './snackbar'
+export type {
+  SplitButtonActionProps,
+  SplitButtonMenuProps,
+  SplitButtonProps,
+  SplitButtonVariant,
+} from './split-button'
+export {
+  default as SplitButton,
+  SplitButtonAction,
+  SplitButtonMenu,
+} from './split-button'
 export type { StackAlign, StackGap, StackJustify, StackProps } from './stack'
 export { default as Stack } from './stack'
 export type { SupportingPaneProps } from './supporting-pane'
@@ -197,14 +280,26 @@ export type {
   TableRowProps,
 } from './table'
 export { default as Table } from './table'
+export {
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableFooter,
+  TableHeader,
+  TableLoadMore,
+  TableRow,
+} from './table'
 export type {
+  TabsLayout,
   TabsListProps,
   TabsPanelProps,
   TabsPanelsProps,
   TabsProps,
   TabsTabProps,
+  TabsVariant,
 } from './tabs'
 export { default as Tabs } from './tabs'
+export { TabsList, TabsPanel, TabsPanels, TabsTab } from './tabs'
 export type { TagProps, TagTone, TagVariant } from './tag'
 export { default as Tag } from './tag'
 export type { TextProps } from './text'
@@ -228,3 +323,4 @@ export type {
   TreeSectionProps,
 } from './tree'
 export { default as Tree } from './tree'
+export { TreeItem, TreeLoadMore, TreeSection } from './tree'

@@ -39,9 +39,12 @@ import ColorSwatch from '../color-swatch'
 // colour stays whole — a ring drawn on the swatch would eat two pixels of
 // the thing being chosen.
 //
-// **Focus and selection are drawn at different offsets.** A focused
-// selected swatch would otherwise paint one ring over the other and lose
-// whichever came second, so the focus ring sits outside the selection one.
+// **Focus and selection are drawn by different properties.** An element has
+// one outline, so with both drawn in it the second replaced the first, and a
+// keyboard arrowing onto the chosen colour saw a swatch that looked
+// unchosen. The focus ring is the item's outline, 6px out; the selection
+// ring is a border on a box laid 2px around the swatch, inside it. Both are
+// properties forced colours keep, which a box shadow is not.
 //
 // **Hover and press are a ring too, in the slot selection would take.** Every
 // other interactive element here answers the pointer with a state layer, but
@@ -60,16 +63,31 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 
 const styles = stylex.create({
   // The item a swatch sits in. It carries no colour of its own — the rings
-  // are all it draws.
+  // are all it draws: focus as its outline, and selection, hover and press
+  // as the border of the box after it, 2px wide with 2px clear of the
+  // swatch. That box draws nothing at rest, by style rather than by a
+  // transparent colour, which forced colours would paint in.
+  //
+  // The box's corner follows the swatch's 4px further out, as an outline's
+  // does, and stays square where a scheme squares the swatch: `min()` adds
+  // nothing to a corner of 0.
   item: {
+    '::after': {
+      borderRadius: `calc(${radii.xs} + min(${radii.xs}, 4px))`,
+      borderStyle: 'none',
+      borderWidth: '2px',
+      boxSizing: 'border-box',
+      content: '""',
+      inset: '-4px',
+      pointerEvents: 'none',
+      position: 'absolute',
+    },
     borderRadius: radii.xs,
     boxSizing: 'border-box',
     cursor: 'pointer',
     display: 'inline-flex',
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
     outlineStyle: 'none',
-    outlineWidth: '2px',
+    position: 'relative',
   },
   itemDisabled: {
     cursor: 'default',
@@ -80,26 +98,30 @@ const styles = stylex.create({
     outlineColor: colors.primary,
     outlineOffset: '6px',
     outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // An unselected swatch under the pointer. See the fourth choice above.
   itemHovered: {
-    outlineColor: colors.outlineVariant,
-    outlineOffset: '2px',
-    outlineStyle: { default: 'solid', [FORCED_COLORS]: 'dashed' },
+    '::after': {
+      borderColor: colors.outlineVariant,
+      borderStyle: { default: 'solid', [FORCED_COLORS]: 'dashed' },
+    },
   },
   // The same ring, a step stronger, while a touch or a pen holds the swatch
   // and it is not yet chosen.
   itemPressed: {
-    outlineColor: colors.outline,
-    outlineOffset: '2px',
-    outlineStyle: { default: 'solid', [FORCED_COLORS]: 'dashed' },
+    '::after': {
+      borderColor: colors.outline,
+      borderStyle: { default: 'solid', [FORCED_COLORS]: 'dashed' },
+    },
   },
-  // Primary is stated again rather than left to `item`, since the hover
-  // styles set a colour of their own and come before this one.
+  // Applied after the hover and press rings, which draw on the same border,
+  // so a chosen swatch keeps the ring that says so.
   itemSelected: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: 'solid',
+    '::after': {
+      borderColor: colors.primary,
+      borderStyle: 'solid',
+    },
   },
   // Wraps, so a long palette becomes rows rather than a scrollbar.
   picker: {
@@ -186,12 +208,12 @@ function ColorSwatchPickerItem({
 // `[data-selected]` on the element it is styling, so the state comes from
 // what React Aria hands the className.
 //
-// The order matters. `focused` is applied after `selected`, and StyleX
-// replaces a property whole, so a swatch that is both takes the focus ring's
-// outer offset — which is what keeps the two rings from landing on each
-// other. The hover and press rings come before both, so a chosen or focused
-// swatch keeps the ring that says so. `disabled` is last, so it takes the
-// cursor with it; React Aria reports neither hover nor press on one.
+// The order matters where two styles draw on one property. The hover and
+// press rings come before `selected`, which draws on the same border, so a
+// chosen swatch keeps the ring that says so. `focused` draws on the outline,
+// which nothing else touches, so a swatch that is chosen and focused keeps
+// both. `disabled` is last, so it takes the cursor with it; React Aria
+// reports neither hover nor press on one.
 function itemStyles(state: {
   isDisabled: boolean
   isFocusVisible: boolean
@@ -212,5 +234,7 @@ function itemStyles(state: {
 ColorSwatchPicker.Item = ColorSwatchPickerItem
 
 export type { ColorSwatchPickerItemProps, ColorSwatchPickerProps }
+
+export { ColorSwatchPickerItem }
 
 export default ColorSwatchPicker

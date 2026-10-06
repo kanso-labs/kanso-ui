@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type { ReactElement, ReactNode, RefAttributes } from 'react'
 import type {
   TagGroupProps as RACTagGroupProps,
   TagListProps as RACTagListProps,
@@ -17,13 +17,19 @@ import {
   TagList as RACTagList,
 } from 'react-aria-components'
 
-import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
+import {
+  chipGlyph,
+  chipLabel,
+  chipPropsFor,
+  chipRemoveClassName,
+} from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { textOf } from '../../collection/text'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom } from '../../field/root'
 import { groupStyles } from '../../field/styles'
 import { CloseGlyph } from '../../glyphs'
+import { useRipple } from '../../hooks/useRipple'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -82,13 +88,22 @@ type ChipGroupChipProps = Omit<
   children?: ReactNode
   /** A function may compute the class from the chip's render state. */
   className?: RACTagProps['className']
+  /**
+   * An icon before the label, in the page's 18dp slot and the primary role.
+   * The check takes its place while the chip is chosen, so the chip keeps
+   * its width. An icon drawn in `em` takes its size from the slot.
+   */
+  icon?: ReactNode
   /** A function may compute the style from the chip's render state. */
   style?: RACTagProps['style']
 }
 
 type ChipGroupProps<T extends object = object> = {
-  /** The chips, each with an `id` of its own. */
-  children?: ReactNode
+  /**
+   * The chips, each with an `id` of its own. With `items`, a function from an
+   * item to its chip, which React Aria calls for each item in turn.
+   */
+  children?: ((item: T) => ReactElement) | ReactNode
   /**
    * A hint under the group. Replaced by `error` when there is one, so the
    * two never stack.
@@ -112,8 +127,8 @@ type ChipGroupProps<T extends object = object> = {
   /**
    * What the close target on each chip is called, for a screen reader. React
    * Aria adds the chip's own label after it, so this is the verb rather than
-   * the whole phrase — "Remove" becomes "Remove First item".
-   * @default 'Remove'
+   * the whole phrase — "Remove" becomes "Remove First item". Left out, React
+   * Aria names it in the reader's locale — "Remove" in English.
    */
   removeLabel?: string
 } & Omit<RACTagGroupProps, 'children'> &
@@ -124,20 +139,32 @@ type ChipGroupProps<T extends object = object> = {
 // no-new-function-as-prop is after; the React Compiler memoises the result on
 // its inputs.
 //
-// The check is the chip module's, so a chip in a group and a chip on its own
-// draw the same one. The close target is drawn only where the group allows
-// removing, which React Aria reports rather than the call site saying so on
-// every chip.
-function chipContent(children: ReactNode, removeLabel: string) {
+// The check and the icon it replaces are the chip module's, so a chip in a
+// group and a chip on its own draw the same ones. The close target is drawn
+// only where the group allows removing, which React Aria reports rather than
+// the call site saying so on every chip.
+//
+// The ripple is drawn only on a chip a press does something to: one the
+// group lets be selected, and not disabled. A chip in a group that selects
+// nothing is a control only for its close target, and React Aria reports
+// neither hover nor press on it, so a ripple there would answer a press that
+// changes nothing.
+function chipContent(
+  children: ReactNode,
+  icon: ReactNode,
+  removeLabel: string | undefined,
+  surface: ReactNode,
+) {
   return (state: TagRenderProps) => (
     <>
-      {chipGlyph(state.isSelected)}
+      {chipGlyph(state, icon)}
       {chipLabel(children)}
+      {state.selectionMode !== 'none' && !state.isDisabled ? surface : null}
       {state.allowsRemoving ? (
         <RACButton
           aria-label={removeLabel}
+          className={chipRemoveClassName}
           slot="remove"
-          {...stylex.props(chipStyles.remove)}
         >
           <CloseGlyph {...stylex.props(chipStyles.removeGlyph)} />
         </RACButton>
@@ -169,8 +196,9 @@ function chipContent(children: ReactNode, removeLabel: string) {
  */
 // What each chip calls its close target. A context rather than a prop on the
 // chip, since it is the group's decision and repeating it on every chip is
-// how the two drift.
-const RemoveLabelContext = createContext('Remove')
+// how the two drift. Undefined unless the group is given one, which leaves
+// the name React Aria gives in the reader's locale.
+const RemoveLabelContext = createContext<string | undefined>(undefined)
 
 // Hoisted so neither is a new object on every render.
 const LABEL_STATE_VALID = { isInvalid: false }
@@ -182,7 +210,7 @@ function ChipGroup<T extends object = object>({
   error,
   items,
   label,
-  removeLabel = 'Remove',
+  removeLabel,
   renderEmptyState,
   ...props
 }: ChipGroupProps<T> & RefAttributes<HTMLDivElement>) {
@@ -220,16 +248,40 @@ function ChipGroup<T extends object = object>({
  * One chip. Give every chip an `id` — that is the key selection and removal
  * are reported by.
  */
-function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
+function ChipGroupChip({
+  children,
+  icon,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
+  ...props
+}: ChipGroupChipProps) {
   const removeLabel = useContext(RemoveLabelContext)
+  // The press ripple a list's rows draw — see ListItem there. A chip in a
+  // group is a collection row, whose clicks React Aria keeps for itself, so
+  // the press ends when the pointer is released rather than on a click.
+  const ripple = useRipple<HTMLDivElement>(
+    true,
+    {
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
+    true,
+  )
 
   return (
     <RACTag
       textValue={props.textValue ?? textOf(children)}
+      {...ripple.handlers}
       {...props}
       {...mergeStatefulStyles(groupChipPropsFor, props)}
     >
-      {chipContent(children, removeLabel)}
+      {chipContent(children, icon, removeLabel, ripple.surface)}
     </RACTag>
   )
 }
@@ -237,11 +289,13 @@ function ChipGroupChip({ children, ...props }: ChipGroupChipProps) {
 // The pill a standalone Chip draws, from `src/chip`, with the touch target a
 // chip in a group takes instead.
 function groupChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state, true)
+  return chipPropsFor(state, { inGroup: true })
 }
 
 ChipGroup.Chip = ChipGroupChip
 
 export type { ChipGroupChipProps, ChipGroupProps }
+
+export { ChipGroupChip }
 
 export default ChipGroup

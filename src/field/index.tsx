@@ -30,10 +30,12 @@ import {
   TextArea,
   TextAreaContext,
   TextContext,
+  useLocale,
   useSlottedContext,
   VisuallyHidden,
 } from 'react-aria-components'
 
+import { useMessages } from '../i18n'
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import { useInsideForm } from './root'
 import { fieldChromeStyles, groupStyles } from './styles'
@@ -88,6 +90,13 @@ type FieldBoxProps = {
    * say — says so here, and the floating label floats on it.
    */
   isPopulated?: boolean
+  /**
+   * Whether the field must be filled, which marks its label with an
+   * asterisk. The field passes its own `isRequired` on, since the group the
+   * box is reports none.
+   * @default false
+   */
+  isRequired?: boolean
   /** What the field is for. */
   label: string
   /** An icon at the start of the box, before the label and the control. */
@@ -146,6 +155,12 @@ type FieldInputProps = Omit<InputProps, 'prefix'> & {
 
 type FieldLabelProps = LabelProps & {
   /**
+   * Whether the field must be filled, which ends the label in an asterisk in
+   * the label's own colour.
+   * @default false
+   */
+  isRequired?: boolean
+  /**
    * The states the colour follows. Disabled wins over error, and error over
    * focus, so a focused invalid field keeps its error colour.
    */
@@ -170,15 +185,17 @@ interface FieldMessageProps {
   /**
    * Whether to count the characters the control holds at the end of the
    * line, against `maxLength` where there is one. The count is read off the
-   * field's own input or text area context.
+   * field's own input or text area context, and written in the locale's
+   * digits and grouping.
    * @default false
    */
   characterCount?: boolean
   /**
    * How the limit is said to a screen reader, where there is a `maxLength`.
    * It is read with the field on focus rather than as the value changes, so
-   * it names the limit and not what is left of it.
-   * @default `Up to ${maxLength} characters`, singular for a limit of one
+   * it names the limit and not what is left of it. Left out, it is the
+   * sentence for it in the I18nProvider's locale — "Up to 20 characters" in
+   * English, singular for a limit of one.
    */
   characterLimitLabel?: string | undefined
   /**
@@ -259,6 +276,7 @@ function boxContent(
   children: ReactNode,
   floatingLabel: boolean,
   isPopulated: boolean | undefined,
+  isRequired: boolean,
   leading: ReactNode,
   multiline: boolean,
   trailing: ReactNode,
@@ -269,6 +287,7 @@ function boxContent(
     <BoxContent
       floatingLabel={floatingLabel}
       isPopulated={isPopulated}
+      isRequired={isRequired}
       label={label}
       leading={leading}
       multiline={multiline}
@@ -293,6 +312,7 @@ function BoxContent({
   children,
   floatingLabel,
   isPopulated,
+  isRequired,
   label,
   leading,
   multiline,
@@ -304,6 +324,7 @@ function BoxContent({
   children: ReactNode
   floatingLabel: boolean
   isPopulated: boolean | undefined
+  isRequired: boolean
   label: string
   leading: ReactNode
   multiline: boolean
@@ -337,7 +358,12 @@ function BoxContent({
               floated && fieldChromeStyles.outlineNotchOpen,
             )}
           >
-            {floated ? label : null}
+            {floated ? (
+              <>
+                {label}
+                {isRequired ? REQUIRED_MARK : null}
+              </>
+            ) : null}
           </legend>
         </fieldset>
       ) : null}
@@ -365,6 +391,7 @@ function BoxContent({
         )}
       >
         <FieldLabel
+          isRequired={isRequired}
           state={state}
           {...stylex.props(
             fieldChromeStyles.boxLabel,
@@ -419,6 +446,11 @@ function boxStyles(
         (outlined
           ? fieldChromeStyles.boxOutlinedError
           : fieldChromeStyles.boxError),
+      outlined &&
+        state.isHovered &&
+        (state.isInvalid
+          ? fieldChromeStyles.boxOutlinedErrorHovered
+          : fieldChromeStyles.boxOutlinedHovered),
       state.isDisabled &&
         (outlined
           ? fieldChromeStyles.boxOutlinedDisabled
@@ -438,6 +470,7 @@ function FieldBox({
   children,
   floatingLabel = true,
   isPopulated,
+  isRequired = false,
   label,
   leading,
   multiline = false,
@@ -465,6 +498,7 @@ function FieldBox({
         children,
         floatingLabel,
         isPopulated,
+        isRequired,
         leading,
         multiline,
         trailing,
@@ -739,7 +773,17 @@ function useFieldPopulated() {
 // new object on every render.
 const NO_STATE: Partial<FieldLabelState> = {}
 
+// The asterisk after a required field's label, which is how the text fields
+// page marks one, and Material Design's own web text field draws it unless
+// told not to. Hidden from assistive technology: the control already says it
+// is required, and read out as well the label would end in "star". It is in
+// the label rather than beside it, so it floats and takes the label's colour
+// with it — the error role once the field is invalid.
+const REQUIRED_MARK = <span aria-hidden="true">*</span>
+
 function FieldLabel({
+  children,
+  isRequired = false,
   state = NO_STATE,
   variant = 'field',
   ...props
@@ -762,7 +806,10 @@ function FieldLabel({
         ),
         props,
       )}
-    />
+    >
+      {children}
+      {isRequired ? REQUIRED_MARK : null}
+    </Label>
   )
 }
 
@@ -786,6 +833,8 @@ function FieldMessage({
 }: FieldMessageProps) {
   const validation = useContext(FieldErrorContext)
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
+  const { locale } = useLocale()
+  const messages = useMessages()
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
   const insideForm = useInsideForm()
@@ -801,8 +850,7 @@ function FieldMessage({
   const limit =
     maxLength === undefined
       ? undefined
-      : (characterLimitLabel ??
-        `Up to ${maxLength} character${maxLength === 1 ? '' : 's'}`)
+      : (characterLimitLabel ?? messages.characterLimit(maxLength))
 
   const hidden =
     limit === undefined ? null : (
@@ -925,11 +973,33 @@ function FieldMessage({
             invalid && fieldChromeStyles.messageError,
           )}
         >
-          {maxLength === undefined ? length : `${length}/${maxLength}`}
+          {countIn(locale, length, maxLength)}
         </span>
       ) : null}
     </div>
   )
+}
+
+// The count in the reader's digits and grouping, as React Aria writes a
+// number field's value and a meter's percentage beside it — Arabic-Indic
+// under ar-EG, `1 200` under fr-FR, and `1,200` in English. One formatter per
+// locale, for the reason Currency keeps its own: building one is about ten
+// times dearer than reusing it, and the count changes on every keystroke.
+const counterFormatters = new Map<string, Intl.NumberFormat>()
+
+function countIn(
+  locale: string,
+  length: number,
+  maxLength: number | undefined,
+) {
+  let formatter = counterFormatters.get(locale)
+  if (formatter === undefined) {
+    formatter = new Intl.NumberFormat(locale)
+    counterFormatters.set(locale, formatter)
+  }
+  return maxLength === undefined
+    ? formatter.format(length)
+    : `${formatter.format(length)}/${formatter.format(maxLength)}`
 }
 
 export type {

@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   radii,
+  shadows,
   sizing,
   spacing,
   stateLayerOpacity,
@@ -41,6 +42,20 @@ import {
 // colour, because a row's own background is transparent and it therefore
 // tints whatever it happens to be sitting on — a card, a menu, or the page.
 // The two selected states are the ones that bring a container of their own.
+
+// A pointer that can hover, for `interactiveLayers` — a plain element with no
+// render state, so its hover layer is a pseudo-class, and Chromium leaves
+// `:hover` on whatever a touch last tapped. Inside this query a touch screen
+// draws no hover at all; a touchscreen laptop still matches it for its
+// trackpad.
+const HOVER_CAPABLE = '@media (hover: hover)'
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const rowStyles = stylex.create({
   base: {
     alignItems: 'center',
@@ -59,12 +74,34 @@ const rowStyles = stylex.create({
   // Applied from render state rather than `:disabled`, since a collection
   // item is a div React Aria marks with aria-disabled. Listed after the
   // interactive and selected styles so it wins over both, and StyleX replaces
-  // a property whole, so it takes the interactive style's hover branch with
-  // it.
+  // a property whole, so it takes `interactiveLayers`' hover branch with it.
+  //
+  // Under forced colours it hands the row back to the mode, which a selected
+  // row opts out of, so a disabled row is the mode's to colour whatever it
+  // was.
   disabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
+  },
+  // The lists page's dragged row: lifted to elevation 4 under a layer in the
+  // row's own colour at the pressed opacity — material-web's list tokens give
+  // the dragged layer the pressed opacity, not the system's dragged one. It
+  // stands on the surface, since a row's own ground is transparent and a
+  // shadow around a transparent box reads as an outline rather than a lift,
+  // and over its neighbours, so they do not cover its shadow. Listed before
+  // the selected styles, so a selected row keeps its container while it
+  // moves.
+  //
+  // React Aria marks the row a drag started from for as long as the drag
+  // lasts. Under a pointer the preview is what moves; under a keyboard,
+  // which draws no preview, this is the only sign of which row is moving.
+  dragging: {
+    backgroundColor: colors.surface,
+    backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent))`,
+    boxShadow: shadows.elevation4,
+    zIndex: 1,
   },
   // The navigation drawer page's row: the lists page's floor, a menu's label,
   // and a pill rather than a rectangle, since what marks the current row
@@ -77,6 +114,18 @@ const rowStyles = stylex.create({
     inlineSize: 'auto',
     marginInline: spacing.md,
     minBlockSize: sizing.rowSm,
+  },
+  // A row a drop would land on rather than beside it — into a tree's branch,
+  // or onto an item that takes drops. The lists page draws no such state, so
+  // this is the drop indicator's own 2dp primary line, drawn as an outline
+  // inside the row, over a primary layer at the hover opacity. Listed after
+  // the state layers, so it wins over a hover the drag passes through.
+  dropTarget: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent))`,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // The state layers and the focus ring of a row React Aria renders as a
   // collection item — every list, menu, tree and table row — applied from its
@@ -98,7 +147,10 @@ const rowStyles = stylex.create({
   // and a press over both.
   focusVisible: {
     backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent))`,
-    outlineColor: colors.primary,
+    // The row's own text colour under forced colours, as the layers above
+    // are: `HighlightText` on a selected row, which opts out of the mode, and
+    // whatever the mode gives the text on any other.
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'currentColor' },
     // Inside the row, as `interactive`'s is, so a focused row keeps its whole
     // ring inside a container that clips.
     outlineOffset: '-2px',
@@ -133,16 +185,14 @@ const rowStyles = stylex.create({
     backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent))`,
     cursor: 'pointer',
   },
-  // The same layers from pseudo-classes, for a row that is a plain element
-  // rather than a React Aria item: ListItem's button, Disclosure's header.
-  // Each takes real focus, so `:focus-visible` matches it, and each is
-  // interactive by being rendered at all.
+  // A row that is a control of its own rather than a React Aria item:
+  // ListItem's button and Disclosure's header. Each takes real focus, so
+  // `:focus-visible` matches it, and each is interactive by being rendered
+  // at all. Disclosure's header is React Aria's `Button`, so it draws
+  // `hovered` and `pressed` from that button's render state;
+  // `interactiveLayers` is the same pair for ListItem's, which is a plain
+  // element with no render state to read.
   interactive: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
     cursor: 'pointer',
     font: 'inherit',
     outlineColor: colors.primary,
@@ -152,6 +202,24 @@ const rowStyles = stylex.create({
     outlineOffset: '-2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
+  },
+  // The hover and pressed layers from pseudo-classes — see `interactive`,
+  // and `HOVER_CAPABLE` for the query the hover waits on. `:active` is written
+  // twice, bare for a touch and again inside the query: StyleX orders a rule
+  // by the sum of its conditions, so a hover inside the query would
+  // otherwise come after a bare press and win while both held.
+  interactiveLayers: {
+    backgroundColor: {
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      },
+      default: 'transparent',
+    },
   },
   // The lists page's one-line container height. A row whose headline wraps
   // grows past it; nothing truncates.
@@ -193,17 +261,49 @@ const rowStyles = stylex.create({
   // The drawer page's active row. Secondary container rather than the lists
   // page's primary one, which is what keeps a drawer's current row distinct
   // from a selected row in the list beside it.
+  //
+  // Under forced colours, which paint every background in `Canvas`, a
+  // selected row is drawn as the platform draws a selected option:
+  // `Highlight` under `HighlightText`. A fill was all that marked it, so
+  // the chosen option in a list, the current page in a drawer and the
+  // chosen menu item looked exactly like the rows around them. The row opts
+  // out of the mode's adjusting, as the calendar's chosen dates do, since
+  // the `Canvas` backplate the mode lays behind text would leave
+  // `HighlightText` on `Canvas` — black on black in High Contrast Black. A
+  // child that names a colour of its own names a system one too — see the
+  // supporting styles below — and `disabled` hands the row back.
   selectedDrawer: {
-    backgroundColor: colors.secondaryContainer,
-    color: colors.onSecondaryContainer,
+    backgroundColor: {
+      default: colors.secondaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onSecondaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   selectedList: {
-    backgroundColor: colors.primaryContainer,
-    color: colors.onPrimaryContainer,
+    backgroundColor: {
+      default: colors.primaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   selectedMenu: {
-    backgroundColor: colors.tertiaryContainer,
-    color: colors.onTertiaryContainer,
+    backgroundColor: {
+      default: colors.tertiaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onTertiaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   slot: {
     alignItems: 'center',
@@ -229,14 +329,24 @@ const rowStyles = stylex.create({
   supportingInherit: {
     color: 'inherit',
   },
+  // `HighlightText` under forced colours, with the selected row it sits in.
   supportingSelectedDrawer: {
-    color: colors.onSecondaryContainer,
+    color: {
+      default: colors.onSecondaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
   },
   supportingSelectedList: {
-    color: colors.onPrimaryContainer,
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
   },
   supportingSelectedMenu: {
-    color: colors.onTertiaryContainer,
+    color: {
+      default: colors.onTertiaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
   },
   // The lists page's three-line container height, with the leading and
   // trailing slots held at the top rather than centred. Three lines of text

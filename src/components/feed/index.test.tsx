@@ -80,6 +80,17 @@ describe('columns', () => {
     expect(columnsOf(feed)).toHaveLength(1)
   })
 
+  // A lone column narrower than the minimum is the container's width rather
+  // than the minimum's: 260px in a 200px box overflowed it by 60px and pushed
+  // the page sideways. Compose's adaptive grid shares out whatever room there
+  // is the same way.
+  it('keeps a lone column inside a container narrower than the minimum', () => {
+    const { feed } = renderAtWidth('200px', 6, '260px')
+
+    expect(columnsOf(feed)).toEqual([200])
+    expect(feed.scrollWidth).toBe(feed.clientWidth)
+  })
+
   it('never lets a column fall below the minimum', () => {
     const { feed } = renderAtWidth('900px', 6, '260px')
 

@@ -128,6 +128,37 @@ import {
 is a subpath rather than part of the main entry so an app with no date component
 pays nothing for it.
 
+### Localisation
+
+Wrap the app in `I18nProvider`, which this package re-exports, and every word
+the components write follows its locale. React Aria names most of the controls
+they draw, in some thirty languages: an overlay's dismiss button, a field's
+clear button and steppers, a snackbar's close, a chip's remove, a row's
+selection box, a column's resize handle, a picker's trigger and a colour
+picker's strips.
+
+Five strings have no word in React Aria, so this package carries them in the
+same locales React Aria ships:
+
+- the ring a pending `Button` or `IconButton` shows,
+- a collection's loading-more row,
+- `CopyField`'s button and what it announces once it has copied,
+- and a field's character limit.
+
+These translations are the package's own, and a wrong one is worth an issue.
+Every string sits behind a prop for the call site's own words: `pendingLabel`, a
+`LoadMore`'s `label`, `copyLabel`, `copiedLabel` and `characterLimitLabel`. The
+names React Aria gives sit behind `clearLabel`, `closeLabel` and the rest.
+
+Numbers follow the provider too: `Currency` writes its amount, and a field its
+character count, in the locale's digits and grouping.
+
+A bundler includes every language unless told which ones the app supports. React
+Aria's
+[`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
+is how an app says so for React Aria's own tables. This package's table is one
+small module, included whole.
+
 ### Layout
 
 `Container` centres content at a measure, and `Stack` puts one gap from the
@@ -233,10 +264,8 @@ content given `slot="close"`:
 ```
 
 An open overlay carries a visually hidden dismiss button for screen readers,
-whose label React Aria ships in some thirty languages. A bundler includes all of
-them unless told which the app supports; React Aria's
-[`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
-is how an app says so.
+named in the reader's language like every other control here; see
+[Localisation](#localisation).
 
 ### Icons
 
@@ -272,9 +301,12 @@ the icon inherits it:
 
 | Slot                                       | Size an `em` icon takes                              |
 | ------------------------------------------ | ---------------------------------------------------- |
+| `Button`'s `icon`                          | 20px, 20px, 24px, 32px and 40px across `xs` to `xxl` |
+| `Chip`'s and `ChipGroup.Chip`'s `icon`     | 18px                                                 |
 | `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
 | A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
 | `SegmentedButton.Segment`'s `icon`         | 18px                                                 |
+| `Tabs.Tab`'s `icon`                        | 24px                                                 |
 
 **The `leading` and `trailing` slots on a row are different.** A list item, a
 menu item, a tree item and an app bar set no icon size, so an icon there takes
@@ -287,8 +319,8 @@ those a size of its own:
 
 An SVG with a `viewBox` and no size at all has no size to shrink from, so what
 it does next belongs to the slot rather than to the icon. In an `IconButton` it
-fills the button edge to edge; in a field's icon slot it collapses and draws
-nothing. Sizing it is what avoids both.
+fills the button edge to edge; in a field's icon slot or a `Button`'s it
+collapses and draws nothing. Sizing it is what avoids both.
 
 ### Server components
 
@@ -311,9 +343,29 @@ Four things follow from where that boundary falls.
   `onPress` and a `render` callback belong in a client component of your own.
   Neither does a class instance, so a `CalendarDate` for a date component is
   built on the client side too.
-- **A sub-part is reached through its component**, as in `Dialog.Title` or
-  `Menu.Item`, and a server component cannot reach into a client module that
-  way. Compose those in a client component and render that.
+- **A sub-part is rendered by its own name**, as in `DialogTitle` or `MenuItem`.
+  A server component cannot reach into a client module through a property, so
+  `<Dialog.Title>` works only from a client component, while every part is also
+  exported as its component's name followed by the part's: `SheetContent`,
+  `TableRow`, `NavigationTreeItem`. `List.Item` is `ListRow`, since the
+  standalone `ListItem` already has that name:
+
+  ```tsx
+  // app/settings/page.tsx
+  import { Button, Sheet, SheetContent, SheetTitle } from '@kanso-labs/kanso-ui'
+
+  export default function Page() {
+    return (
+      <Sheet>
+        <Button>Open</Button>
+        <SheetContent>
+          <SheetTitle>Headline</SheetTitle>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+  ```
+
 - **The React Aria utilities the package re-exports are client-only** —
   `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes` is
   a plain value and works on either side.
@@ -356,6 +408,35 @@ default value — useful for discovering names, not required at runtime
 ```ts
 import '@kanso-labs/kanso-ui/tokens.css'
 ```
+
+### Pinning light or dark
+
+The colours follow the reader's OS through `prefers-color-scheme` unless the app
+says otherwise. An app with a theme switch of its own pins a scheme with
+`colorScheme`, two class names: put `colorScheme.light` or `colorScheme.dark` on
+the `<html>` element, and remove both to follow the OS again. The `<html>`
+element is the place for it, since overlays are portalled to the body and still
+sit inside it.
+
+Its shape is the one next-themes takes for class names, so a provider is all it
+needs:
+
+```tsx
+import { ThemeProvider } from 'next-themes'
+import { colorScheme } from '@kanso-labs/kanso-ui'
+
+function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider attribute="class" value={colorScheme}>
+      {children}
+    </ThemeProvider>
+  )
+}
+```
+
+A `--kui-color-*` override on `:root` still applies under a pinned scheme. To
+give one scheme a value of its own, key the override on an attribute your switch
+sets beside the class, since the class names are generated.
 
 ### For StyleX consumers
 

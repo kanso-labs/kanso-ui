@@ -1,8 +1,9 @@
 import type { StyleXStyles } from '@stylexjs/stylex'
-import type { ReactElement } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
 import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -17,15 +18,37 @@ import {
 // literals, so the assertions pin which role each variant reaches for without
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  // The hover and pressed tints, each the variant's icon colour over its
+  // container, written as the component writes them so they hash to the same
+  // atomic classes. Outlined and standard share theirs, since both draw the
+  // muted icon over nothing.
+  hoverFilled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+  },
+  hoverMuted: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  hoverTonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
   inversePair: {
     backgroundColor: colors.inverseSurface,
     color: colors.inverseOnSurface,
   },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { borderColor: colors.outlineVariant },
-  pressedLarge: { borderRadius: { ':active': radii.lg, default: radii.pill } },
-  pressedMedium: { borderRadius: { ':active': radii.md, default: radii.pill } },
-  pressedSmall: { borderRadius: { ':active': radii.sm, default: radii.pill } },
+  pressedLarge: { borderRadius: radii.lg },
+  pressedMedium: { borderRadius: radii.md },
+  pressedSmall: { borderRadius: radii.sm },
+  pressFilled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+  },
+  pressMuted: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  pressTonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+  },
   primary: { backgroundColor: colors.primary },
   primaryText: { color: colors.primary },
   radiusFull: { borderRadius: radii.pill },
@@ -33,31 +56,6 @@ const probeStyles = stylex.create({
   secondary: { backgroundColor: colors.secondary },
   secondaryContainer: { backgroundColor: colors.secondaryContainer },
   surfaceContainer: { backgroundColor: colors.surfaceContainer },
-  // The hover and pressed tints alone, each the variant's icon colour over its
-  // container, written as the component writes them so they hash to the same
-  // atomic classes. Outlined and standard share one, since both draw the muted
-  // icon over nothing.
-  tintFilled: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: null,
-    },
-  },
-  tintMuted: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: null,
-    },
-  },
-  tintTonal: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: null,
-    },
-  },
 })
 
 // An empty list would make the `every` below vacuously true, so it is a
@@ -95,6 +93,24 @@ function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
     </IconButton>,
   )
   return { ...view, button: view.getByRole('button') }
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the render state it was handed beside the props.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isDisabled: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-disabled': String(state.isDisabled),
+  })
 }
 
 describe('icon button', () => {
@@ -211,6 +227,79 @@ describe('icon button', () => {
     })
   })
 
+  // React Aria's `render` is how a call site swaps in an element of its own,
+  // and what the component adds past React Aria has to reach that element
+  // too. The button and the toggle each hand it on through a renderer of
+  // their own, so each is checked; a link takes no `render`.
+  describe.each([
+    ['as a button', {}],
+    ['as a toggle', { defaultSelected: false }],
+  ] as const)('a render function from the call site, %s', (_, props) => {
+    it('renders the element it returns, with the classes the button carries', () => {
+      const plain = setup(props)
+      const classes = plain.button.className
+      plain.unmount()
+      // Two empty class lists would compare equal however the styles were
+      // lost.
+      expect(classes).not.toBe('')
+
+      const { button } = setup({ ...props, render: wrapped })
+
+      expect(button).toHaveAttribute('data-wrapped')
+      expect(button.className).toBe(classes)
+    })
+
+    it('hands it the render state', () => {
+      const { button } = setup({
+        ...props,
+        isDisabled: true,
+        render: wrappedWithState,
+      })
+
+      expect(button).toHaveAttribute('data-state-disabled', 'true')
+    })
+
+    it('hands it the aria attributes React Aria would drop', () => {
+      const view = render(
+        <IconButton
+          aria-keyshortcuts="Alt+A"
+          aria-label="Add"
+          render={wrapped}
+          {...props}
+        >
+          <svg />
+        </IconButton>,
+      )
+
+      expect(view.getByRole('button')).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Alt+A',
+      )
+    })
+
+    it('hands it keyboard handlers that bubble', () => {
+      const inner = vi.fn<() => void>()
+      const outer = vi.fn<() => void>()
+      const view = render(
+        <div onKeyDown={outer} role="presentation">
+          <IconButton
+            aria-label="Add"
+            onKeyDown={inner}
+            render={wrapped}
+            {...props}
+          >
+            <svg />
+          </IconButton>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+      expect(inner).toHaveBeenCalledOnce()
+      expect(outer).toHaveBeenCalledOnce()
+    })
+  })
+
   describe('appearance', () => {
     // The five sizes are the icon buttons spec page's size token sets: a
     // square container, the icon it holds, and the corner it presses to.
@@ -229,15 +318,13 @@ describe('icon button', () => {
         expect(computed.width).toBe(edge)
         expect(computed.height).toBe(edge)
         expect(computed.fontSize).toBe(icon)
-        // The pressed corner is a `:active` branch, so it is pinned by class
-        // rather than by a computed value nothing here can press for.
-        const pressedClasses = (stylex.props(pressed).className ?? '')
-          .split(' ')
-          .filter(Boolean)
-        expect(pressedClasses.length).toBeGreaterThan(0)
+        // Pressed from the keyboard, which React Aria reports as a press
+        // like any other: the corner comes from that render state.
+        fireEvent.keyDown(button, { key: ' ' })
         expect(
-          pressedClasses.every((name) => button.classList.contains(name)),
+          classesOf(pressed).every((name) => button.classList.contains(name)),
         ).toBe(true)
+        fireEvent.keyUp(button, { key: ' ' })
         unmount()
       }
     })
@@ -290,30 +377,55 @@ describe('icon button', () => {
     // the two branches, as the pressed corners above are.
     it('tints each variant with its own icon colour on hover and press', () => {
       const cases = [
-        ['filled', probeStyles.tintFilled],
-        ['outlined', probeStyles.tintMuted],
-        ['standard', probeStyles.tintMuted],
-        ['tonal', probeStyles.tintTonal],
+        ['filled', probeStyles.hoverFilled, probeStyles.pressFilled],
+        ['outlined', probeStyles.hoverMuted, probeStyles.pressMuted],
+        ['standard', probeStyles.hoverMuted, probeStyles.pressMuted],
+        ['tonal', probeStyles.hoverTonal, probeStyles.pressTonal],
       ] as const
 
-      // Collected by variant, so a failure names the one that drifted.
+      // Collected by variant, so a failure names the one that drifted. Hovered
+      // with a mouse and pressed from the keyboard, both of which React Aria
+      // reports in the render state the layers are drawn from.
       const tinted = Object.fromEntries(
-        cases.map(([variant, tint]) => {
+        cases.map(([variant, hover, press]) => {
           const { button, unmount } = setup({ variant })
-          const carries = classesOf(tint).every((name) =>
-            button.classList.contains(name),
-          )
+          const has = (style: StyleXStyles) =>
+            classesOf(style).every((name) => button.classList.contains(name))
+
+          fireEvent.pointerOver(button, { pointerType: 'mouse' })
+          const hovered = has(hover)
+          fireEvent.keyDown(button, { key: ' ' })
+          const pressedLayer = has(press)
+          fireEvent.keyUp(button, { key: ' ' })
           unmount()
-          return [variant, carries]
+          return [variant, { hovered, pressed: pressedLayer }]
         }),
       )
 
+      const both = { hovered: true, pressed: true }
       expect(tinted).toEqual({
-        filled: true,
-        outlined: true,
-        standard: true,
-        tonal: true,
+        filled: both,
+        outlined: both,
+        standard: both,
+        tonal: both,
       })
+    })
+
+    // A tap on a touch screen leaves the browser's `:hover` on the button,
+    // which kept the layer drawn after the tap had ended; React Aria ignores
+    // a touch for hover, and the layer is drawn from what it reports.
+    it('draws no hover layer for a touch', () => {
+      const { button } = setup({ variant: 'filled' })
+
+      fireEvent.pointerOver(button, { pointerType: 'touch' })
+      fireEvent.pointerDown(button, { pointerType: 'touch' })
+      fireEvent.pointerUp(button, { pointerType: 'touch' })
+
+      expect(
+        classesOf(probeStyles.hoverFilled).some((name) =>
+          button.classList.contains(name),
+        ),
+      ).toBe(false)
     })
 
     // The page's outlined icon button: transparent with a rule around it and
@@ -702,5 +814,46 @@ describe('icon button', () => {
       expect(button.hasAttribute('disabled')).toBe(false)
       expect(button.getAttribute('aria-disabled')).toBe('true')
     })
+  })
+})
+
+// A keyboard's focus draws the variant's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainer})`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+describe('focus layer', () => {
+  it('lays it over the container for a keyboard', () => {
+    const { button } = setup({ variant: 'filled' })
+    const classes = classesOf(focusProbeStyles.filled)
+    expect(classes.every((name) => button.classList.contains(name))).toBe(false)
+
+    focusByKeyboard(button)
+
+    expect(classes.every((name) => button.classList.contains(name))).toBe(true)
+  })
+
+  it("lays it over a toggle's own container", () => {
+    const { button } = setup({ isSelected: false, variant: 'filled' })
+    const classes = classesOf(focusProbeStyles.filledToggle)
+
+    focusByKeyboard(button)
+
+    expect(classes.every((name) => button.classList.contains(name))).toBe(true)
   })
 })

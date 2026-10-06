@@ -68,6 +68,28 @@ function Basic(props: {
   )
 }
 
+/**
+ * Where the caret's glyph points, as the browser resolved its transform with
+ * the tree inside a `<div>` carrying `dir`: the image of the glyph's own
+ * axis, which points to the inline end at rest. `{ x: 1, y: 0 }` is right and
+ * `{ x: 0, y: 1 }` down.
+ */
+function caretPointsUnder(dir: 'ltr' | 'rtl', expanded: boolean) {
+  const view = render(
+    <div dir={dir}>
+      <Basic expanded={expanded} />
+    </div>,
+  )
+  const name = expanded ? 'Collapse First item' : 'Expand First item'
+  const glyph = view.getByRole('button', { name }).querySelector('svg')
+  if (glyph === null) {
+    throw new Error('expected the caret to draw its glyph')
+  }
+  const { a, b } = new DOMMatrixReadOnly(getComputedStyle(glyph).transform)
+  view.unmount()
+  return { x: Math.round(a), y: Math.round(b) }
+}
+
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -206,6 +228,16 @@ describe('tree', () => {
       const leaf = view.getByText('Second item').getBoundingClientRect().left
 
       expect(leaf).toBe(branch)
+    })
+
+    // The glyph points to the inline end, so a right-to-left direction
+    // mirrors it while the row is closed. Open, it points down either way,
+    // since the block axis does not turn over with the writing direction.
+    it('points to the inline end while closed, and down once open', () => {
+      expect(caretPointsUnder('ltr', false)).toEqual({ x: 1, y: 0 })
+      expect(caretPointsUnder('rtl', false)).toEqual({ x: -1, y: 0 })
+      expect(caretPointsUnder('ltr', true)).toEqual({ x: 0, y: 1 })
+      expect(caretPointsUnder('rtl', true)).toEqual({ x: 0, y: 1 })
     })
   })
 

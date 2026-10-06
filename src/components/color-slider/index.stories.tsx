@@ -46,6 +46,11 @@ const styles = stylex.create({
     gap: spacing.md,
     maxInlineSize: '360px',
   },
+  // Vertical sliders side by side, the way a hue strip sits beside a plane.
+  vertical: {
+    display: 'flex',
+    gap: spacing.xl,
+  },
 })
 
 const BLUE = 'hsl(200, 100%, 50%)'
@@ -139,6 +144,35 @@ const Overview: Story = {
           />
         </div>
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Vertical
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The same strip standing up, with the channel rising from the bottom
+            and the handle centred across it. It is 240px tall until its style
+            says otherwise.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.vertical)}>
+          <ColorSlider
+            channel="hue"
+            defaultValue={BLUE}
+            label="Hue"
+            orientation="vertical"
+          />
+          <ColorSlider
+            channel="alpha"
+            defaultValue={TRANSLUCENT}
+            label="Alpha"
+            orientation="vertical"
+          />
+        </div>
+      </section>
     </div>
   ),
 }
@@ -160,6 +194,12 @@ const Disabled: Story = {
   },
 }
 
-export { Alpha, Default, Disabled, Overview }
+const Vertical: Story = {
+  args: {
+    orientation: 'vertical',
+  },
+}
+
+export { Alpha, Default, Disabled, Overview, Vertical }
 
 export default meta

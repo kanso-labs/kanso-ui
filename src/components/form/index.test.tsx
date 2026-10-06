@@ -174,9 +174,11 @@ describe('form', () => {
       act(() => {
         formOf(view).requestSubmit()
       })
-      expect(view.getByLabelText('First').getAttribute('aria-invalid')).toBe(
-        'true',
-      )
+      expect(
+        view
+          .getByRole('textbox', { name: 'First' })
+          .getAttribute('aria-invalid'),
+      ).toBe('true')
       expect(secondFieldTop(view)).toBe(before)
     })
 
@@ -229,7 +231,7 @@ describe('form', () => {
           <TextField isRequired label="Field" name="field" />
         </Form>,
       )
-      const control = view.getByLabelText('Field')
+      const control = view.getByRole('textbox', { name: 'Field' })
       expect(control.getAttribute('aria-required')).toBe('true')
       expect(control.hasAttribute('required')).toBe(false)
       expect(view.getByRole('form').hasAttribute('novalidate')).toBe(true)
@@ -244,7 +246,9 @@ describe('form', () => {
           </Checkbox>
         </Form>,
       )
-      expect(view.getByLabelText('Field').hasAttribute('required')).toBe(true)
+      expect(
+        view.getByRole('textbox', { name: 'Field' }).hasAttribute('required'),
+      ).toBe(true)
       expect(view.getByRole('checkbox').hasAttribute('required')).toBe(true)
       expect(view.getByRole('form').hasAttribute('novalidate')).toBe(false)
     })
@@ -265,7 +269,7 @@ describe('form', () => {
           <Button type="submit">Submit</Button>
         </Form>,
       )
-      const control = view.getByLabelText('Field')
+      const control = view.getByRole('textbox', { name: 'Field' })
       expect(control.getAttribute('aria-invalid')).not.toBe('true')
 
       act(() => {

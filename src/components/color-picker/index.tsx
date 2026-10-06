@@ -8,11 +8,13 @@ import type {
 
 import * as stylex from '@stylexjs/stylex'
 import {
+  parseColor,
   Button as RACButton,
   ColorPicker as RACColorPicker,
   Dialog as RACDialog,
   DialogTrigger as RACDialogTrigger,
   Popover as RACPopover,
+  useLocale,
 } from 'react-aria-components'
 
 import { focus } from '../../styles/focus'
@@ -91,11 +93,7 @@ const styles = stylex.create({
 const triggerStyles = stylex.create({
   base: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
-      default: colors.surfaceContainerLow,
-    },
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
@@ -115,6 +113,16 @@ const triggerStyles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+  },
+  // The hover and pressed layers over the container, from the trigger's
+  // render state rather than `:hover` and `:active`, for Button's reasons —
+  // see its header: a hover layer stayed on after a tap, and no pressed layer
+  // showed for a press made from the keyboard.
+  hovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+  },
+  pressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
   },
 })
 
@@ -152,6 +160,11 @@ type ColorPickerProps = Omit<RACColorPickerProps, 'children'> & {
   /** Lands on the trigger, as `className` does. */
   style?: CSSProperties
 }
+
+// Any HSL colour names the channels the two strips draw. The labels are read
+// off it in the reader's locale, as React Aria words them, rather than written
+// here in English.
+const CHANNELS = parseColor('hsl(0, 0%, 0%)')
 
 /**
  * A colour picked from a plane, a hue strip and a text field, behind a
@@ -191,6 +204,8 @@ function ColorPicker({
   style,
   ...props
 }: ColorPickerProps & RefAttributes<HTMLButtonElement>) {
+  const { locale } = useLocale()
+
   return (
     <RACColorPicker {...props}>
       <RACDialogTrigger
@@ -212,6 +227,8 @@ function ColorPicker({
               stylex.props(
                 triggerStyles.base,
                 focus.ring,
+                state.isHovered && triggerStyles.hovered,
+                state.isPressed && triggerStyles.pressed,
                 state.isDisabled && triggerStyles.disabled,
               ),
             { className, style },
@@ -254,13 +271,13 @@ function ColorPicker({
                   channel="hue"
                   colorSpace="hsl"
                   isDisabled={isDisabled}
-                  label="Hue"
+                  label={CHANNELS.getChannelName('hue', locale)}
                 />
                 {alpha ? (
                   <ColorSlider
                     channel="alpha"
                     isDisabled={isDisabled}
-                    label="Alpha"
+                    label={CHANNELS.getChannelName('alpha', locale)}
                   />
                 ) : null}
                 <ColorField isDisabled={isDisabled} label={label} />

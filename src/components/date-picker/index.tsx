@@ -1,5 +1,6 @@
 'use client'
 
+import type { DateDuration } from '@internationalized/date'
 import type { ReactNode, RefAttributes } from 'react'
 import type {
   DateValue,
@@ -93,11 +94,19 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
    * in `em` takes that size from the slot.
    */
   leadingIcon?: ReactNode
+  /**
+   * Whether the calendar's header draws the month and the year as menu
+   * buttons, each opening a list of them in the grid's place — see
+   * `Calendar`.
+   * @default false
+   */
+  showMonthYearMenus?: boolean
   /** A function may compute the style from the picker's render state. */
   style?: RACDatePickerProps<T>['style']
   /**
    * What the button that opens the calendar is called, for a screen reader.
-   * @default 'Choose a date'
+   * Left out, React Aria names it in the reader's locale — "Calendar" in
+   * English, followed by the field's own label.
    */
   triggerLabel?: string
   /**
@@ -105,12 +114,19 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
    * @default 'filled'
    */
   variant?: FieldVariant
+  /**
+   * How much of the calendar shows at once: `{ months: 2 }` draws two
+   * months side by side. Below the expanded breakpoint, where two do not
+   * fit, they stack instead — see `Calendar`.
+   * @default { months: 1 }
+   */
+  visibleDuration?: DateDuration
 }
 
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-jsx-as-prop is after — the same reason Select builds its
 // chevron this way.
-function calendarTrigger(triggerLabel: string) {
+function calendarTrigger(triggerLabel: string | undefined) {
   return (
     <RACButton aria-label={triggerLabel} className={triggerClassName}>
       <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
@@ -146,8 +162,10 @@ function DatePicker<T extends DateValue>({
   isDisabled = false,
   label,
   leadingIcon,
-  triggerLabel = 'Choose a date',
+  showMonthYearMenus = false,
+  triggerLabel,
   variant = 'filled',
+  visibleDuration,
   ...props
 }: DatePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
@@ -172,6 +190,7 @@ function DatePicker<T extends DateValue>({
         // this the notch stays shut across segments already showing
         // `mm/dd/yyyy`.
         isPopulated
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         // In the chrome's trailing slot rather than on the segments' line,
@@ -199,10 +218,14 @@ function DatePicker<T extends DateValue>({
       <RACPopover
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.popup, picker.popover)}
+        {...stylex.props(overlay.popup, picker.popover, picker.datePopover)}
       >
         <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
-          <Calendar aria-label={label} />
+          <Calendar
+            aria-label={label}
+            showMonthYearMenus={showMonthYearMenus}
+            visibleDuration={visibleDuration}
+          />
         </RACDialog>
       </RACPopover>
     </RACDatePicker>

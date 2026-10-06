@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Currency from '.'
@@ -85,6 +86,19 @@ describe('currency', () => {
     it('formats as currency in the given locale', () => {
       const { currency } = setup({ value: 1284.32 })
       expect(currency.textContent).toBe('$1,284.32')
+    })
+
+    // Left without a locale, it reads React Aria's provider rather than the
+    // runtime's, as the date and number fields do.
+    it("formats in the I18nProvider's locale when given none", () => {
+      const view = render(
+        <I18nProvider locale="de-DE">
+          <Currency data-testid="currency" value={1234.5} />
+        </I18nProvider>,
+      )
+      expect(view.getByTestId('currency').textContent).toBe(
+        formatted(1234.5, { currency: 'USD', locale: 'de-DE' }),
+      )
     })
 
     it('follows the locale for currency and separators', () => {

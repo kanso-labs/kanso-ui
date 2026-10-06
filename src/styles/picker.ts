@@ -1,6 +1,12 @@
 import * as stylex from '@stylexjs/stylex'
 
-import { colors, media, shadows, spacing } from '../tokens/design.tokens.stylex'
+import {
+  colors,
+  media,
+  radii,
+  shadows,
+  spacing,
+} from '../tokens/design.tokens.stylex'
 import { focus } from './focus'
 import { iconButton } from './icon-button'
 
@@ -15,7 +21,26 @@ import { iconButton } from './icon-button'
 // styles more than one component draws, which is what that directory holds.
 // Geometry belonging to one picker alone stays with that picker.
 
+// The scrim a picker's surface casts below the breakpoint, as a spread shadow
+// added to its elevation — see `popover`.
+const SCRIM = `0 0 0 100vmax color-mix(in srgb, ${colors.scrim} 32%, transparent)`
+
 const picker = stylex.create({
+  // The date pickers' surface, over `popover`: the page's docked container,
+  // surface container high at the large corner and level 3, which is the
+  // modal picker's level too. It is the calendar's own fill and corner, so
+  // the calendar inside it draws no second edge. Over the menu surface and
+  // 12dp corner `popover` takes, the popover clipped the calendar at the
+  // smaller corner and left a wedge of the other surface between the two
+  // arcs at each one. The colour picker keeps `popover` as it is.
+  datePopover: {
+    backgroundColor: colors.surfaceContainerHigh,
+    borderRadius: radii.lg,
+    boxShadow: {
+      default: shadows.elevation3,
+      [media.belowMedium]: `${shadows.elevation3}, ${SCRIM}`,
+    },
+  },
   // The segments and the trigger on one line, which is what makes them read
   // as a single field. A range puts two segment groups and a dash on that
   // line, so what separates them is the dash rather than the gap alone.
@@ -69,7 +94,7 @@ const picker = stylex.create({
     blockSize: { default: null, [media.belowMedium]: 'fit-content' },
     boxShadow: {
       default: shadows.elevation2,
-      [media.belowMedium]: `${shadows.elevation2}, 0 0 0 100vmax color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
+      [media.belowMedium]: `${shadows.elevation2}, ${SCRIM}`,
     },
     inlineSize: { default: null, [media.belowMedium]: 'fit-content' },
     insetBlockEnd: { default: null, [media.belowMedium]: '0 !important' },
@@ -98,11 +123,17 @@ const picker = stylex.create({
 // own, so the fade comes off the state React Aria hands the className. It is
 // the same 38% the segments beside it take, so one disabled field fades as a
 // whole.
-function triggerClassName(state: { isDisabled: boolean }) {
+function triggerClassName(state: {
+  isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
+}) {
   return (
     stylex.props(
       iconButton.chrome,
       focus.ring,
+      state.isHovered && iconButton.chromeHovered,
+      state.isPressed && iconButton.chromePressed,
       state.isDisabled && iconButton.chromeDisabled,
     ).className ?? ''
   )

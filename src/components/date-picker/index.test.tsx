@@ -42,7 +42,9 @@ function segmentsOf(view: ReturnType<typeof render>) {
   return view.getAllByRole('spinbutton')
 }
 
-function triggerOf(view: ReturnType<typeof render>, label = 'Choose a date') {
+// React Aria's own name for the button, "Calendar", composed with the field's
+// label.
+function triggerOf(view: ReturnType<typeof render>, label = 'Calendar') {
   return view.getByRole('button', { name: new RegExp(label) })
 }
 
@@ -125,8 +127,22 @@ describe('date picker', () => {
       const view = render(<DatePicker defaultOpen label="Label" />)
 
       expect(
-        view.getByRole('dialog', { name: 'Choose a date Label' }),
+        view.getByRole('dialog', { name: 'Calendar Label' }),
       ).not.toBeNull()
+    })
+
+    it('hands its calendar the month and year menus', () => {
+      const view = render(
+        <DatePicker
+          defaultOpen
+          defaultValue={DATE}
+          label="Label"
+          showMonthYearMenus
+        />,
+      )
+
+      expect(view.getByRole('button', { name: 'Sep month' })).not.toBeNull()
+      expect(view.getByRole('button', { name: '2026 year' })).not.toBeNull()
     })
 
     it('keeps the calendar closed until the trigger is pressed', () => {

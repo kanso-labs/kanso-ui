@@ -55,6 +55,15 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xxs,
   },
+  // Narrower than the long label below on one line, so it wraps.
+  narrow: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    inlineSize: '240px',
+    maxInlineSize: '100%',
+  },
   page: {
     display: 'flex',
     flexDirection: 'column',
@@ -75,6 +84,30 @@ const styles = stylex.create({
     gap: spacing.lg,
   },
 })
+
+// A plain shape rather than an icon set, so the stories show the button
+// alone. Drawn `1em` square in `currentColor`, as the README asks of every
+// icon, so it takes the size and colour the button's slot sets.
+function PlusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="1em"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+// Hoisted so it is one stable element per render, which is what react-perf's
+// no-jsx-as-prop is after.
+const PLUS = <PlusIcon />
 
 const meta = {
   args: {
@@ -146,6 +179,147 @@ const Overview: Story = {
             <Button variant="text">Button</Button>
             <Text tone="muted" variant="labelSmall">
               text
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Toggle
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Given `isSelected`, `defaultSelected` or `onChange`, a button
+            reports a state through `aria-pressed` and moves between the
+            page&apos;s second pair of colour roles, trading its shape for the
+            other once selected. Each pair below is one toggle unselected and
+            then selected. A text button never toggles: the page gives it no
+            pair.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="filled">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="filled">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              filled · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="tonal">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="tonal">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="elevated">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="elevated">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="outlined">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="outlined">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined · selected
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Shapes
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `round` rests as the pill, as every button above does, and `square`
+            at the size&apos;s square corner, from the page&apos;s size token
+            sets. Either tightens to a smaller corner while pressed.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xs">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xs · 12px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="md">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              md · 12px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="lg">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              lg · 16px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xl">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xl · 28px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xxl">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xxl · 28px
             </Text>
           </div>
         </div>
@@ -295,6 +469,33 @@ const Overview: Story = {
           </div>
         </div>
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Long labels
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A label too long for the row wraps, as a translation often does at a
+            phone&apos;s width, and the container grows to hold every line
+            rather than keeping its height. A label on one line still draws the
+            size&apos;s own height.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.narrow)}>
+          <Button variant="filled">
+            A label long enough that it wraps onto more lines than one
+          </Button>
+          <Button variant="tonal">
+            A label long enough that it wraps onto more lines than one
+          </Button>
+          <Button variant="outlined">
+            A label long enough that it wraps onto more lines than one
+          </Button>
+        </div>
+      </section>
     </div>
   ),
 }
@@ -360,6 +561,39 @@ const Elevated: Story = {
   args: { variant: 'elevated' },
 }
 
-export { Default, Elevated, Overview, Pending, Pressed }
+// A toggle, selected: the tonal pair moved to secondary, and the pill traded
+// for the square corner.
+const Toggle: Story = {
+  args: { defaultSelected: true, variant: 'tonal' },
+}
+
+const Square: Story = {
+  args: { shape: 'square' },
+}
+
+// An icon before the label at each of the five sizes, where it takes the
+// page's icon size for that size and the gap the size sets before the label.
+const WithIcon: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.inline)}>
+      <Button {...args} icon={PLUS} size="xs" />
+      <Button {...args} icon={PLUS} size="md" />
+      <Button {...args} icon={PLUS} size="lg" />
+      <Button {...args} icon={PLUS} size="xl" />
+      <Button {...args} icon={PLUS} size="xxl" />
+    </div>
+  ),
+}
+
+export {
+  Default,
+  Elevated,
+  Overview,
+  Pending,
+  Pressed,
+  Square,
+  Toggle,
+  WithIcon,
+}
 
 export default meta

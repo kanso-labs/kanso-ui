@@ -162,6 +162,31 @@ const styles = stylex.create({
     minInlineSize: { default: '280px', [media.belowMedium]: 'auto' },
     // Clips the body's scroll to the rounded corners.
     overflow: 'hidden',
+    // Full screen, the device's safe area on every edge, so the header
+    // clears the status bar and the actions the home indicator, with the
+    // container's fill running on under both. On the container rather than
+    // on the header and footer, which a dialog may leave out: a body-only
+    // dialog would otherwise run its first line under the status bar. The
+    // container is portalled to the body, so a consumer's own safe-area
+    // padding never reaches it, and `env()` reads 0 without
+    // `viewport-fit=cover`, which leaves every other page as it was. Left and
+    // right rather than logical, since the insets are physical.
+    paddingBlockEnd: {
+      default: null,
+      [media.belowMedium]: 'env(safe-area-inset-bottom, 0px)',
+    },
+    paddingBlockStart: {
+      default: null,
+      [media.belowMedium]: 'env(safe-area-inset-top, 0px)',
+    },
+    paddingLeft: {
+      default: null,
+      [media.belowMedium]: 'env(safe-area-inset-left, 0px)',
+    },
+    paddingRight: {
+      default: null,
+      [media.belowMedium]: 'env(safe-area-inset-right, 0px)',
+    },
   },
   // The page's 24dp between the body and the actions, and 8dp between the
   // buttons themselves. Full screen, the actions are its bottom action bar:
@@ -383,5 +408,7 @@ type DialogContentProps = {
 type DialogTitleProps = HeadingProps
 
 export type { DialogContentProps, DialogProps, DialogTitleProps }
+
+export { DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle }
 
 export default Dialog

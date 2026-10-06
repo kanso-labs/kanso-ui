@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import RangeCalendar from '.'
@@ -14,14 +14,15 @@ const probeStyles = stylex.create({
 })
 
 // The band's state layers, written the way the component writes them, so
-// the classes StyleX hashes from them are the component's own.
+// the classes StyleX hashes from them are the component's own. They are
+// drawn from React Aria's render state, so a case hovers and presses a day
+// rather than finding a pseudo-class branch on it.
 const bandLayers = stylex.create({
-  band: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: null,
-    },
+  hovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
+  pressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
   },
 })
 
@@ -91,6 +92,18 @@ function endFor(view: ReturnType<typeof render>, which: 'end' | 'start') {
   return found
 }
 
+// Lets a frame pass, which is when a month or year list closes after a
+// choice — see src/calendar/index.tsx.
+async function nextFrame() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        resolve()
+      })
+    })
+  })
+}
+
 describe('range calendar', () => {
   describe('the range', () => {
     it('marks every day from the first to the last', () => {
@@ -135,12 +148,13 @@ describe('range calendar', () => {
         <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
       )
       const middle = cellFor(view, 'September 11, 2026')
+      const has = (style: stylex.StyleXStyles) =>
+        classesOf(style).every((name) => middle.classList.contains(name))
 
-      expect(
-        classesOf(bandLayers.band).every((name) =>
-          middle.classList.contains(name),
-        ),
-      ).toBe(true)
+      fireEvent.pointerOver(middle, { pointerType: 'mouse' })
+      expect(has(bandLayers.hovered)).toBe(true)
+      fireEvent.keyDown(middle, { key: ' ' })
+      expect(has(bandLayers.pressed)).toBe(true)
     })
 
     it('squares the band so consecutive days join', () => {
@@ -210,6 +224,25 @@ describe('range calendar', () => {
   })
 
   describe('shared with Calendar', () => {
+    // The same menus Calendar draws, from the same prop, so a range calendar
+    // moves a year on with one choice from the year list.
+    it('draws the month and year menus Calendar does, and moves by them', async () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          showMonthYearMenus
+        />,
+      )
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+      fireEvent.click(view.getByRole('option', { name: '2028' }))
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/September 2028/)
+    })
+
     // The `Bounded` story rules weekends out to show a range stopping at one,
     // and until the cell drew something a reader could see it showed nothing
     // at all. A date inside the range that is ruled out has to be tellable

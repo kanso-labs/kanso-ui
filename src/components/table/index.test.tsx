@@ -29,6 +29,7 @@ import type { TableBodyProps } from '.'
 
 import Table from '.'
 import { rowStyles as rowLayers } from '../../row/styles'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
@@ -181,6 +182,18 @@ function resizerOf(handle: HTMLElement) {
     throw new Error('expected the handle to sit inside a resizer')
   }
   return resizer
+}
+
+// A width for the table's surroundings, hoisted so it is one object.
+const FOUR_HUNDRED_WIDE = { width: '400px' } as const
+
+/** The rule a resizer draws inside its wider target. */
+function ruleOf(resizer: HTMLElement) {
+  const rule = resizer.querySelector(':scope > span')
+  if (!(rule instanceof HTMLElement)) {
+    throw new Error('expected the resizer to draw its rule')
+  }
+  return rule
 }
 
 // A sortable table whose direction can be reversed from outside it, which is
@@ -374,7 +387,7 @@ describe('table', () => {
       // The row boxes take the table's own label, and React Aria composes
       // each one with the row it is in — so the name is the label plus the
       // row's text rather than the label alone.
-      expect(view.getByRole('checkbox', { name: 'Select all' })).not.toBeNull()
+      expect(view.getByRole('checkbox', { name: 'Select All' })).not.toBeNull()
       expect(
         view.getByRole('checkbox', { name: 'Select First item' }),
       ).not.toBeNull()
@@ -791,9 +804,7 @@ describe('table', () => {
 
       // React Aria points the handle's `aria-labelledby` at itself and at the
       // column, so the name is the label plus the column's own text.
-      expect(
-        view.getByRole('slider', { name: 'Resize column Label' }),
-      ).not.toBeNull()
+      expect(view.getByRole('slider', { name: 'Resizer Label' })).not.toBeNull()
     })
 
     it('takes the label the table was given', () => {
@@ -836,19 +847,114 @@ describe('table', () => {
     it('marks the handle while it is being dragged, and lets go after', () => {
       const view = render(<Basic resizable resizableColumns />)
       const resizer = resizerOf(view.getByRole('slider'))
-      const resting = getComputedStyle(resizer).inlineSize
+      const resting = getComputedStyle(ruleOf(resizer)).inlineSize
 
       fireEvent.pointerDown(resizer, DRAG_FROM)
       fireEvent.pointerMove(resizer, DRAG_TO)
 
       // Thickened while it is the boundary being moved, so the one under the
       // pointer is the one that stands out.
-      const dragging = getComputedStyle(resizer).inlineSize
+      const dragging = getComputedStyle(ruleOf(resizer)).inlineSize
 
       fireEvent.pointerUp(resizer, DRAG_TO)
 
       expect(dragging).not.toBe(resting)
-      expect(getComputedStyle(resizer).inlineSize).toBe(resting)
+      expect(getComputedStyle(ruleOf(resizer)).inlineSize).toBe(resting)
+    })
+
+    // A 1px rule was the whole target before, which a mouse could barely
+    // find and a finger could not. The target is now WCAG's 24px, centred on
+    // the boundary, while the rule it draws stays the divider's 1px on the
+    // boundary's inner side.
+    it('gives the handle a 24px target centred on the boundary, around a 1px rule', () => {
+      const view = render(<Basic resizable resizableColumns />)
+      const resizer = resizerOf(view.getByRole('slider'))
+      const edge = view
+        .getAllByRole('columnheader')[0]
+        .getBoundingClientRect().right
+      const target = resizer.getBoundingClientRect()
+      const rule = ruleOf(resizer).getBoundingClientRect()
+
+      expect(target.width).toBe(24)
+      expect(target.left + target.width / 2).toBe(edge)
+      expect(rule.width).toBe(1)
+      expect(rule.right).toBe(edge)
+    })
+
+    // The last column's target reaches half its width past the table's
+    // edge, which widened the container's scroll by 12px; that column clips
+    // it at its edge instead.
+    it('adds no scroll when the last column resizes', () => {
+      const view = render(
+        <div style={FOUR_HUNDRED_WIDE}>
+          <Table aria-label="Label" resizable>
+            <Table.Header>
+              <Table.Column
+                defaultWidth="1fr"
+                id={COLUMNS[0]}
+                isRowHeader
+                resizable
+              >
+                Label
+              </Table.Column>
+              <Table.Column defaultWidth="1fr" id={COLUMNS[1]} resizable>
+                Label
+              </Table.Column>
+            </Table.Header>
+            <Table.Body>
+              <Table.Row id="rowFirst">
+                <Table.Cell>First item</Table.Cell>
+                <Table.Cell>01</Table.Cell>
+              </Table.Row>
+            </Table.Body>
+          </Table>
+        </div>,
+      )
+      const container = view.getByRole('grid').parentElement
+      if (!(container instanceof HTMLElement)) {
+        throw new Error('expected the table to be wrapped in a container')
+      }
+
+      expect(view.getAllByRole('slider')).toHaveLength(2)
+      expect(container.scrollWidth).toBe(container.clientWidth)
+    })
+
+    // Lifted over the next column's header, which would otherwise take the
+    // half of the target that reaches into it.
+    it('takes a press on either side of the boundary', () => {
+      const view = render(<Basic resizable resizableColumns />)
+      const resizer = resizerOf(view.getByRole('slider'))
+      const target = resizer.getBoundingClientRect()
+      const middle = target.left + target.width / 2
+      const y = target.top + target.height / 2
+
+      expect(resizer.contains(document.elementFromPoint(middle - 8, y))).toBe(
+        true,
+      )
+      expect(resizer.contains(document.elementFromPoint(middle + 8, y))).toBe(
+        true,
+      )
+    })
+
+    // Forced colours paint a background in `Canvas`, which took the rule
+    // with it, and its active state with that — the handle's only focus
+    // indicator. A border survives the mode, read here off the stylesheet
+    // since no test can turn the mode on.
+    it('draws the rule as a border under forced colours, Highlight while active', () => {
+      const view = render(<Basic resizable resizableColumns />)
+      const resizer = resizerOf(view.getByRole('slider'))
+      const forced = () =>
+        declarationsHeld(ruleOf(resizer), 'forced-colors: active')
+
+      expect(forced().get('border-inline-end-style')).toBe('solid')
+      expect(forced().get('border-inline-end-color')).toBe('canvastext')
+
+      fireEvent.pointerDown(resizer, DRAG_FROM)
+      fireEvent.pointerMove(resizer, DRAG_TO)
+      const active = forced().get('border-inline-end-color')
+      fireEvent.pointerUp(resizer, DRAG_TO)
+
+      expect(active).toBe('highlight')
     })
   })
 

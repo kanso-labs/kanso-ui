@@ -19,7 +19,11 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
-import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import {
+  collectionStyles,
+  containerClasses,
+  rowItemStyles,
+} from '../../collection/styles'
 import { textOf } from '../../collection/text'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
@@ -90,7 +94,8 @@ type ListBoxLoadMoreProps = Omit<RACListBoxLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
@@ -188,10 +193,7 @@ function ListBox<T extends object>(
   props: ListBoxProps<T> & RefAttributes<HTMLDivElement>,
 ) {
   return (
-    <RACListBox
-      {...props}
-      {...mergeStatefulStyles(stylex.props(collectionStyles.container), props)}
-    />
+    <RACListBox {...props} {...mergeStatefulStyles(containerClasses, props)} />
   )
 }
 
@@ -251,10 +253,7 @@ function ListBoxItem<T extends object = object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading` — so a list that pages as it scrolls needs nothing else.
  */
-function ListBoxLoadMore({
-  label = 'Loading more',
-  ...props
-}: ListBoxLoadMoreProps) {
+function ListBoxLoadMore({ label, ...props }: ListBoxLoadMoreProps) {
   return (
     <RACListBoxLoadMoreItem
       {...props}
@@ -297,5 +296,7 @@ export type {
   ListBoxProps,
   ListBoxSectionProps,
 }
+
+export { ListBoxItem, ListBoxLoadMore, ListBoxSection }
 
 export default ListBox

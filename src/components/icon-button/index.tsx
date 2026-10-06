@@ -2,34 +2,22 @@
 
 import type { ReactNode, RefAttributes } from 'react'
 import type {
-  ButtonRenderProps,
   ClassNameOrFunction,
   DOMRenderFunction,
-  FocusableElement,
   StyleOrFunction,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import {
-  ButtonContext,
-  Button as RACButton,
-  Link as RACLink,
-  ToggleButton as RACToggleButton,
-  useSlottedContext,
-} from 'react-aria-components'
+import { useContext } from 'react'
+import { ToggleGroupStateContext } from 'react-aria-components'
 
-import type { ButtonDOMProps, ButtonState } from '../button'
+import type { ButtonDOMProps, ButtonState } from '../../button'
+import type { ButtonGroupItem } from '../../button/context'
 
-import { useRipple } from '../../hooks/useRipple'
-import {
-  ariaAttributesOf,
-  buttonRenderer,
-  linkRenderer,
-  toggleButtonRenderer,
-} from '../../render/aria'
-import { refCallback } from '../../render/ref'
+import { ButtonBase, ToggleButtonBase } from '../../button'
+import { ButtonGroupItemContext } from '../../button/context'
+import { groupPressHandlers } from '../../button/group'
 import { focus } from '../../styles/focus'
-import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   motion,
@@ -37,7 +25,6 @@ import {
   sizing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
-import ProgressIndicator from '../progress-indicator'
 
 // Each variant composites an 'on-color' over its own container at the
 // interaction state's opacity, rather than swapping in a separate hover
@@ -105,7 +92,10 @@ import ProgressIndicator from '../progress-indicator'
 // icon in `HighlightText`. A disabled button's icon and edge are `GrayText`,
 // for the reason Button's comment gives: the browser greys a disabled
 // `<button>` there, but not the `<span>` a disabled link is.
-type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+//
+// What every button does past its own styles — the ripple, the link and
+// toggle forms, the pending ring, a parent's disabled state — is
+// `src/button`'s, shared with Button.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -143,20 +133,16 @@ const styles = stylex.create({
     // same reason; without it the two disagreed about what a
     // link-as-control looks like.
     textDecoration: 'none',
-    transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}`,
-    transitionProperty: 'background-color, border-radius',
-    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}`,
+    transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}`,
+    transitionProperty: 'background-color, border-radius, inline-size',
+    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingEmphasized}`,
   },
   disabled: {
     borderRadius: radii.pill,
     cursor: 'not-allowed',
   },
   filled: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: colors.primary,
-    },
+    backgroundColor: colors.primary,
     color: colors.onPrimary,
   },
   filledDisabled: {
@@ -171,11 +157,7 @@ const styles = stylex.create({
   // button's: the page rests it on surface container with the muted icon and
   // gives it primary only once it is chosen.
   filledToggle: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainer})`,
-      default: colors.surfaceContainer,
-    },
+    backgroundColor: colors.surfaceContainer,
     color: colors.onSurfaceVariant,
   },
   // The filled toggle once chosen: the plain filled button's colours, and a
@@ -183,22 +165,10 @@ const styles = stylex.create({
   // must not take.
   filledToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
       [FORCED_COLORS]: 'Highlight',
     },
     color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
-  },
-  // While pending, the label stays in the flow so the button keeps its
-  // width, and is hidden — `display: contents` leaves the layout exactly as
-  // it was, and `visibility` is inherited, so the label's own parts go with
-  // it.
-  label: {
-    display: 'contents',
-  },
-  labelPending: {
-    visibility: 'hidden',
   },
   // Square, so one number sets both edges. The five sizes are the icon
   // buttons spec page's, XS to XL, from its size token sets: the container,
@@ -222,7 +192,7 @@ const styles = stylex.create({
   // difference that the reachable half was unreachable instead.
   lg: {
     blockSize: sizing.controlLg,
-    borderRadius: { ':active': radii.md, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlLg,
   },
@@ -235,7 +205,7 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlSm,
-    borderRadius: { ':active': radii.sm, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlSm,
   },
@@ -243,11 +213,7 @@ const styles = stylex.create({
   // border width comes from the size, since the page thickens it as the
   // control grows.
   outlined: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderColor: colors.outlineVariant,
     borderStyle: 'solid',
     color: colors.onSurfaceVariant,
@@ -268,8 +234,6 @@ const styles = stylex.create({
   // inverts rather than tints.
   outlinedToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
-      ':hover': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
       default: colors.inverseSurface,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -279,24 +243,12 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'HighlightText',
     },
   },
-  // The ring sits over the hidden label, centred in the button.
-  pending: {
-    alignItems: 'center',
-    display: 'flex',
-    inset: 0,
-    justifyContent: 'center',
-    position: 'absolute',
-  },
   // Transparent, so it tints whatever it is sitting on rather than carrying a
   // container of its own, as ListItem's rows do. The tint is its icon's
   // on-surface-variant, which is this variant's state layer on the page,
   // where a row's is the on-surface its headline is drawn in.
   standard: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
     borderWidth: 0,
     color: colors.onSurfaceVariant,
@@ -314,8 +266,6 @@ const styles = stylex.create({
   // filled instead — see the header.
   standardToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
       [FORCED_COLORS]: 'Highlight',
     },
@@ -323,11 +273,7 @@ const styles = stylex.create({
     color: { default: colors.primary, [FORCED_COLORS]: 'HighlightText' },
   },
   tonal: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
+    backgroundColor: colors.secondaryContainer,
     color: colors.onSecondaryContainer,
   },
   tonalDisabled: {
@@ -343,8 +289,6 @@ const styles = stylex.create({
   // toggle's chosen state is darker than the plain button's.
   tonalToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
       default: colors.secondary,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -352,7 +296,7 @@ const styles = stylex.create({
   },
   xl: {
     blockSize: sizing.controlXl,
-    borderRadius: { ':active': radii.lg, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '32px',
     inlineSize: sizing.controlXl,
   },
@@ -365,15 +309,149 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlXs,
-    borderRadius: { ':active': radii.sm, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '20px',
     inlineSize: sizing.controlXs,
   },
   xxl: {
     blockSize: sizing.controlXxl,
-    borderRadius: { ':active': radii.lg, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '40px',
     inlineSize: sizing.controlXxl,
+  },
+})
+
+// The hover, focus and pressed layers, one style per container, applied from
+// React Aria's render state rather than from `:hover`, `:focus-visible` and
+// `:active`, for Button's reasons — see its header: a hover layer stayed on
+// after a tap, and no pressed layer or corner showed for a press made from
+// the keyboard. In the order they are applied, so where two hold the later
+// wins, as the page draws one layer at a time: focus over hover, and a press
+// over both. A chosen toggle's layer keeps its forced-colours `Highlight`,
+// since a later style replaces the property whole.
+const hovered = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+const focused = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.focus} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+const pressed = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
   },
 })
 
@@ -388,10 +466,27 @@ const outlineWidths = stylex.create({
   xxl: { borderWidth: '3px' },
 })
 
-// A chosen toggle rests at the corner its size presses to, which is the
-// page's round-to-square morph. A style per size rather than a value inside
-// each size style, since StyleX replaces the property whole and this one has
-// to beat both the size's `:active` branch and the disabled style's circle.
+// Each size's edge again, for the one place it is read at runtime: a standard
+// ButtonGroup widening a pressed button by adding to it. The size styles
+// above write the same values.
+const EDGES = {
+  lg: sizing.controlLg,
+  md: sizing.controlSm,
+  xl: sizing.controlXl,
+  xs: sizing.controlXs,
+  xxl: sizing.controlXxl,
+}
+
+// The width a standard group sets while it widens or narrows the button.
+const shifted = stylex.create({
+  width: (value: string) => ({ inlineSize: value }),
+})
+
+// The corner each size presses to, which is the page's round-to-square
+// morph, and the corner a chosen toggle rests at. A style per size rather than
+// a value inside each size style, since StyleX replaces the property whole:
+// it comes after the size's circle while pressed, and after the disabled
+// style's circle too for a chosen toggle, which keeps its corner disabled.
 const selectedShapes = stylex.create({
   lg: { borderRadius: radii.md },
   md: { borderRadius: radii.sm },
@@ -420,6 +515,14 @@ const toggleStyles = {
   tonal: { selected: styles.tonalToggleSelected, unselected: styles.tonal },
 }
 
+// The same containers by name, for the layers above.
+const toggleContainers = {
+  filled: { selected: 'filledToggleSelected', unselected: 'filledToggle' },
+  outlined: { selected: 'outlinedToggleSelected', unselected: 'outlined' },
+  standard: { selected: 'standardToggleSelected', unselected: 'standard' },
+  tonal: { selected: 'tonalToggleSelected', unselected: 'tonal' },
+} as const
+
 const disabledStyles = {
   filled: styles.filledDisabled,
   outlined: styles.outlinedDisabled,
@@ -432,8 +535,13 @@ type IconButtonProps = {
    * What the button does, in words. Required rather than optional: an icon
    * on its own has no accessible name, so without this the control announces
    * nothing at all.
+   *
+   * `undefined` is for a button inside a React Aria component that names it
+   * itself — a search field's clear button, a number field's steppers. React
+   * Aria takes a prop over its context, so a name written here would replace
+   * the one it gives in the reader's locale, and undefined leaves that stand.
    */
-  'aria-label': string
+  'aria-label': string | undefined
   children?: ReactNode
   /** A function may compute the class from the button's render state. */
   className?: ClassNameOrFunction<IconButtonState>
@@ -468,8 +576,8 @@ type IconButtonProps = {
   onChange?: (isSelected: boolean) => void
   /**
    * The name of the ring shown while the button is pending, for a screen
-   * reader. The label it replaces is hidden while it shows.
-   * @default 'Loading'
+   * reader. The label it replaces is hidden while it shows. Left out, it is
+   * the word for it in the I18nProvider's locale — "Loading" in English.
    */
   pendingLabel?: string
   /** The link's `rel`, when `href` is set. */
@@ -504,53 +612,30 @@ type IconButtonProps = {
 type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
 // The render state a call site's `className`, `style` or `render` function is
-// handed. `isSelected` is optional because only the toggle form has one, and
-// one function has to be accepted by both: React Aria hands the plain button
-// a state without it and the toggle a state with it, and a parameter type
-// this wide accepts either.
-type IconButtonState = ButtonState & { isSelected?: boolean }
+// handed: the one every button shares, whose `isSelected` only the toggle
+// form fills in — see `ButtonState` in src/button.
+type IconButtonState = ButtonState
 
 type IconButtonVariant = 'filled' | 'outlined' | 'standard' | 'tonal'
 
-// What the button draws: its label, hidden while the button is pending, with
-// the ring over it. The ring takes the button's own content colour rather
-// than the progress page's primary, which on a filled button is the fill
-// itself and so invisible. The label stays in the flow so the button keeps its
-// width, which is what stops a form jumping the moment it is submitted.
-// React Aria wants the progress bar in the accessibility tree as soon as the
-// button goes pending, so it is rendered from the render state rather than
-// after a delay.
-//
-// Built by a call rather than written inline at the prop, which is what
-// react-perf's no-new-function-as-prop is after; the React Compiler
-// memoises the result on its inputs.
-function buttonContent(
-  children: ReactNode,
-  pendingLabel: string,
-  ripple: Ripple,
+// What a group lays over the button: its own styles for the button's state,
+// last so a connected group's corners hold whatever the button's own shape
+// would be, and the standard group's widening or narrowing as extra width.
+function groupStyles(
+  group: ButtonGroupItem | null,
+  size: IconButtonSize,
+  state: ButtonState,
 ) {
-  return (state: ButtonRenderProps) => (
-    <>
-      <span
-        {...stylex.props(styles.label, state.isPending && styles.labelPending)}
-      >
-        {children}
-      </span>
-      {state.isPending ? (
-        <span {...stylex.props(styles.pending)}>
-          <ProgressIndicator
-            aria-label={pendingLabel}
-            isIndeterminate
-            size="1em"
-            tone="inherit"
-            variant="circular"
-          />
-        </span>
-      ) : null}
-      {ripple.surface}
-    </>
-  )
+  if (group === null) {
+    return null
+  }
+  return [
+    group.styles?.(state),
+    group.shift !== 0 &&
+      shifted.width(`calc(${EDGES[size]} + ${group.shift}px)`),
+  ]
 }
+
 /**
  * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
@@ -568,163 +653,106 @@ function buttonContent(
  * ```
  */
 function IconButton({
-  children,
   defaultSelected,
-  disableRipple = false,
   href,
-  isDisabled,
-  isPending = false,
+  isPending,
   isSelected,
   onChange,
-  onClick,
-  onContextMenu,
-  onKeyDown,
-  onKeyUp,
-  onPointerCancel,
-  onPointerDown,
-  onPointerLeave,
-  onPointerUp,
-  pendingLabel = 'Loading',
-  ref,
+  pendingLabel,
   rel,
-  render,
-  size = 'md',
+  size: ownSize,
   target,
   variant = 'standard',
   ...props
 }: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
-  // A field's context may disable the button — a number field's stepper at
-  // the end of its range, a search field's clear button with the field — and
-  // React Aria takes a prop over its context, so a default of `false` here
-  // would keep every one of them enabled. The call site's own prop still
-  // wins where it is given; the context is read for the ripple, which has
-  // to know before the render state does.
-  const context = useSlottedContext(ButtonContext, props.slot)
-  const disabled = isDisabled ?? context?.isDisabled ?? false
-
-  // `props` (className/style, etc.) is spread separately: `className` and
-  // `style` there may be functions of render state, which ripple's own
-  // handler-only merge doesn't need to know about. It is also why the styles
-  // below merge through mergeStatefulStyles rather than the plain
-  // mergeStyles. The ripple is off while disabled, and while pending, as in
-  // Button — and pending for the same second reason given there: React Aria
-  // suppresses the click that would end a press but not the pointer events
-  // that start one, so a ripple begun while pending was never ended.
-  const ripple = useRipple<FocusableElement>(
-    !disableRipple && !disabled && !isPending,
-    {
-      onClick,
-      onContextMenu,
-      onPointerCancel,
-      onPointerDown,
-      onPointerLeave,
-      onPointerUp,
-    },
-  )
-
-  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
-  // The element is a toggle, a link or a button, so the ref is typed as a link
-  // or a button and handed to each as the callback all three accept — see
-  // src/render/ref.ts.
-  const forwarded = refCallback(ref)
+  // A ButtonGroup around the button hands it a size, its shape at the
+  // group's inner edges and the press interaction, as it does Button's; see
+  // src/button/context.ts. A size named here still wins.
+  const group = useContext(ButtonGroupItemContext)
+  const size = ownSize ?? group?.size ?? 'md'
+  const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
+  const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
 
   // The three props that make this a toggle. Read together rather than behind
   // a `toggle` word of its own, the way `href` already turns the button into
   // a link: a button given none of them has no state to report, and one given
-  // any of them has nothing else it could mean.
+  // any of them has nothing else it could mean. A selecting ButtonGroup
+  // around it makes it one as well, to take part in the group's selection.
   if (
+    inSelectingGroup ||
     defaultSelected !== undefined ||
     isSelected !== undefined ||
     onChange !== undefined
   ) {
     return (
-      <RACToggleButton
+      <ToggleButtonBase
+        {...props}
+        {...press}
+        classes={toggleStyleProps(size, variant, group)}
         defaultSelected={defaultSelected}
-        isDisabled={disabled}
+        isPending={isPending}
         isSelected={isSelected}
         onChange={onChange}
-        ref={forwarded}
-        render={toggleButtonRenderer(element, render)}
-        {...ripple.handlers}
-        {...props}
-        {...mergeStatefulStyles(toggleStyleProps(size, variant), props)}
-      >
-        {toggleContent(children, ripple)}
-      </RACToggleButton>
-    )
-  }
-
-  const styleProps = mergeStatefulStyles(
-    (state: ButtonState) =>
-      stylex.props(
-        styles.base,
-        focus.ring,
-        styles[variant],
-        styles[size],
-        variant === 'outlined' && outlineWidths[size],
-        state.isDisabled && styles.disabled,
-        state.isDisabled && disabledStyles[variant],
-      ),
-    props,
-  )
-
-  if (href !== undefined) {
-    return (
-      <RACLink
-        href={href}
-        isDisabled={disabled}
-        ref={forwarded}
-        rel={rel}
-        render={linkRenderer(element)}
-        target={target}
-        {...ripple.handlers}
-        {...props}
-        {...styleProps}
-      >
-        {children}
-        {ripple.surface}
-      </RACLink>
+      />
     )
   }
 
   return (
-    <RACButton
-      isDisabled={disabled}
-      isPending={isPending}
-      ref={forwarded}
-      render={buttonRenderer(element, render)}
-      {...ripple.handlers}
+    <ButtonBase
       {...props}
-      {...styleProps}
-    >
-      {buttonContent(children, pendingLabel, ripple)}
-    </RACButton>
+      {...press}
+      classes={iconButtonClasses(size, variant, group)}
+      href={href}
+      isPending={isPending}
+      pendingLabel={pendingLabel}
+      rel={rel}
+      target={target}
+    />
   )
 }
 
-// What a toggle draws: its icon and the ripple. No pending ring — React
-// Aria's toggle button has no pending state, and a control reporting which of
-// two states it is in has nothing to be pending about.
-//
-// Built by a call rather than written inline at the prop, which is what
-// react-perf's no-new-function-as-prop is after; the React Compiler memoises
-// the result on its inputs.
-function toggleContent(children: ReactNode, ripple: Ripple) {
-  return () => (
-    <>
-      {children}
-      {ripple.surface}
-    </>
-  )
+// The plain button's classes, from React Aria's render state — see the hover
+// and pressed layers above for why that and not the pseudo-classes. Built by
+// a call rather than written inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after; the React Compiler memoises the result on
+// its inputs.
+function iconButtonClasses(
+  size: IconButtonSize,
+  variant: IconButtonVariant,
+  group: ButtonGroupItem | null,
+) {
+  return (state: ButtonState) =>
+    stylex.props(
+      styles.base,
+      focus.ring,
+      styles[variant],
+      styles[size],
+      variant === 'outlined' && outlineWidths[size],
+      state.isHovered && hovered[variant],
+      state.isFocusVisible && focused[variant],
+      state.isPressed && pressed[variant],
+      state.isPressed && selectedShapes[size],
+      state.isDisabled && styles.disabled,
+      state.isDisabled && disabledStyles[variant],
+      groupStyles(group, size, state),
+    )
 }
 
 // A toggle's styles, from React Aria's render state. The chosen shape is
 // applied after the disabled styles so it survives them: which of the two
 // states a disabled toggle is in should still be readable, and the disabled
 // style otherwise forces the circle back.
-function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
-  return (state: IconButtonState) =>
-    stylex.props(
+function toggleStyleProps(
+  size: IconButtonSize,
+  variant: IconButtonVariant,
+  group: ButtonGroupItem | null,
+) {
+  return (state: IconButtonState) => {
+    const container =
+      toggleContainers[variant][
+        state.isSelected === true ? 'selected' : 'unselected'
+      ]
+    return stylex.props(
       styles.base,
       focus.ring,
       state.isSelected === true
@@ -736,10 +764,16 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
       variant === 'outlined' &&
         state.isSelected !== true &&
         outlineWidths[size],
+      state.isHovered && hovered[container],
+      state.isFocusVisible && focused[container],
+      state.isPressed && pressed[container],
+      state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
+      groupStyles(group, size, state),
     )
+  }
 }
 
 export type {

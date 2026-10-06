@@ -533,3 +533,33 @@ describe('switch', () => {
     })
   })
 })
+
+// A keyboard's focus draws the hover layer's colour at the focus opacity,
+// as Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  off: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+describe('focus layer', () => {
+  it('lays it over the handle for a keyboard', () => {
+    const { input } = setup()
+    const { layer } = partsOf(input)
+    const classes = classesOf(stylex.props(focusProbeStyles.off))
+    expect(hasClasses(layer, classes)).toBe(false)
+
+    focusByKeyboard(input)
+
+    expect(hasClasses(layer, classes)).toBe(true)
+  })
+})

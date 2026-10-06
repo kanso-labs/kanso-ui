@@ -190,8 +190,9 @@ const styles = stylex.create({
 
 type NumberFieldProps = {
   /**
-   * The name of the stepper that lowers the value, for a screen reader.
-   * @default 'Decrease'
+   * The name of the stepper that lowers the value, for a screen reader. Left
+   * out, React Aria names it in the reader's locale, followed by the field's
+   * own label — "Decrease Quantity" in English.
    */
   decrementLabel?: string
   /**
@@ -217,8 +218,9 @@ type NumberFieldProps = {
    */
   floatingLabel?: boolean
   /**
-   * The name of the stepper that raises the value, for a screen reader.
-   * @default 'Increase'
+   * The name of the stepper that raises the value, for a screen reader. Left
+   * out, React Aria names it in the reader's locale, followed by the field's
+   * own label — "Increase Quantity" in English.
    */
   incrementLabel?: string
   /**
@@ -267,11 +269,11 @@ type NumberFieldProps = {
  * are the field chrome in `src/field`, shared with every other field.
  */
 function NumberField({
-  decrementLabel = 'Decrease',
+  decrementLabel,
   description,
   error,
   floatingLabel = true,
-  incrementLabel = 'Increase',
+  incrementLabel,
   inputRef,
   isDisabled = false,
   label,
@@ -292,7 +294,12 @@ function NumberField({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox floatingLabel={floatingLabel} label={label} variant={variant}>
+      <FieldBox
+        floatingLabel={floatingLabel}
+        isRequired={props.isRequired}
+        label={label}
+        variant={variant}
+      >
         <div {...stylex.props(styles.row, inline && styles.rowInline)}>
           <FieldInput numeric={numeric} ref={inputRef} />
           <div
@@ -352,7 +359,7 @@ function StackedStepper({
   slot,
 }: {
   children: ReactNode
-  label: string
+  label: string | undefined
   outlined: boolean
   slot: 'decrement' | 'increment'
 }) {

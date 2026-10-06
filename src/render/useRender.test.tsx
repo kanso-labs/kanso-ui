@@ -211,3 +211,98 @@ describe('render as a function', () => {
     expect(ref.current?.tagName).toBe('A')
   })
 })
+
+// Two refs, the component's and the element's own, are merged into one
+// callback that attaches and detaches each side by its own contract.
+//
+// These read the first argument of a ref's last call rather than the whole
+// call: React's development build detaches a lone ref through a helper that
+// passes it four more arguments, all undefined.
+describe('a callback ref', () => {
+  it('is handed the node, and null once it detaches', () => {
+    const ref = vi.fn<(node: Element | null) => void>()
+    const view = render(<Probe ref={ref}>Label</Probe>)
+
+    expect(ref.mock.lastCall?.[0]).toBe(view.getByText('Label'))
+
+    view.unmount()
+
+    expect(ref.mock.lastCall?.[0]).toBeNull()
+  })
+
+  it('is fed beside a ref the element carries itself', () => {
+    const ours = vi.fn<(node: Element | null) => void>()
+    const theirs = createRef<HTMLElement>()
+    const view = render(
+      <Probe ref={ours} render={emphasisWithRef(theirs)}>
+        Label
+      </Probe>,
+    )
+    const node = view.getByText('Label')
+
+    expect(ours.mock.lastCall?.[0]).toBe(node)
+    expect(theirs.current).toBe(node)
+
+    view.unmount()
+
+    expect(ours.mock.lastCall?.[0]).toBeNull()
+    expect(theirs.current).toBeNull()
+  })
+
+  it('may be the one the element carries', () => {
+    const ours = createRef<HTMLButtonElement>()
+    const theirs = vi.fn<(node: Element | null) => void>()
+    const view = render(
+      <Probe ref={ours} render={emphasisWithRef(theirs)}>
+        Label
+      </Probe>,
+    )
+    const node = view.getByText('Label')
+
+    expect(theirs.mock.lastCall?.[0]).toBe(node)
+    expect(ours.current).toBe(node)
+
+    view.unmount()
+
+    expect(theirs.mock.lastCall?.[0]).toBeNull()
+    expect(ours.current).toBeNull()
+  })
+
+  // React 19 calls the function a callback ref returns on detach, in place of
+  // calling the ref again with null.
+  it('has the cleanup it returns run in place of a call with null', () => {
+    const cleanup = vi.fn<() => void>()
+    const ours = vi.fn<(node: Element | null) => () => void>(() => cleanup)
+    const theirs = createRef<HTMLElement>()
+    const view = render(
+      <Probe ref={ours} render={emphasisWithRef(theirs)}>
+        Label
+      </Probe>,
+    )
+
+    view.unmount()
+
+    expect(cleanup).toHaveBeenCalledOnce()
+    expect(ours).toHaveBeenCalledOnce()
+    expect(theirs.current).toBeNull()
+  })
+})
+
+describe('a null ref', () => {
+  it('renders as though there were none', () => {
+    const view = render(<Probe ref={null}>Label</Probe>)
+
+    expect(view.getByText('Label').tagName).toBe('SPAN')
+  })
+
+  it("leaves the element's own ref to attach", () => {
+    const theirs = createRef<HTMLElement>()
+    render(
+      <Probe ref={null} render={emphasisWithRef(theirs)}>
+        Label
+      </Probe>,
+    )
+
+    expect(theirs.current?.tagName).toBe('EM')
+  })
+})

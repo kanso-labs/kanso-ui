@@ -15,9 +15,9 @@ import {
   RangeCalendar as RACRangeCalendar,
 } from 'react-aria-components'
 
-import { CalendarGridHeader, CalendarHeader } from '../../calendar'
+import { CalendarFrame, CalendarGridHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
-import { calendarStyles } from '../../calendar/styles'
+import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -51,6 +51,12 @@ type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
 > & {
   /** A function may compute the class from the calendar's render state. */
   className?: RACRangeCalendarProps<T>['className']
+  /**
+   * Whether the header draws the month and the year as menu buttons, each
+   * opening a list of them in the grid's place, as `Calendar`'s does.
+   * @default false
+   */
+  showMonthYearMenus?: boolean
   /** A function may compute the style from the calendar's render state. */
   style?: RACRangeCalendarProps<T>['style']
 }
@@ -61,12 +67,16 @@ type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
 //
 // The order is what makes a range read as one shape. Every selected day takes
 // the band; the two ends then take the circle over it, and round the outer
-// edge the band does not continue past. `unavailable` comes after those, so a
+// edge the band does not continue past. The hover and pressed layers come
+// next, each written for the ground under it — the circle, the band, or
+// nothing — a press over a hover. `unavailable` comes after those, so a
 // ruled-out day inside a range keeps the band and takes the strikethrough
 // over it. `disabled` is last of all, and StyleX replaces a property whole,
 // so it takes the branches above it with it.
 function cellClassName(state: {
   isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
   isSelected: boolean
   isSelectionEnd: boolean
   isSelectionStart: boolean
@@ -87,6 +97,18 @@ function cellClassName(state: {
         calendarStyles.cellRangeStart,
       state.isSelected && state.isSelectionEnd && calendarStyles.cellRangeEnd,
       isEnd && calendarStyles.cellSelected,
+      state.isHovered &&
+        (isEnd
+          ? dateLayers.selectedHovered
+          : state.isSelected
+            ? dateLayers.inRangeHovered
+            : dateLayers.plainHovered),
+      state.isPressed &&
+        (isEnd
+          ? dateLayers.selectedPressed
+          : state.isSelected
+            ? dateLayers.inRangePressed
+            : dateLayers.plainPressed),
       state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
@@ -124,27 +146,29 @@ function gridCell(date: CalendarDate): ReactElement {
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function RangeCalendar<T extends DateValue>(
-  props: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>,
-) {
+function RangeCalendar<T extends DateValue>({
+  showMonthYearMenus = false,
+  ...props
+}: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACRangeCalendar<T>
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarHeader />
-      <div {...stylex.props(calendarStyles.months)}>
-        {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-          <RACCalendarGrid
-            key={offset.months}
-            offset={offset}
-            {...stylex.props(calendarStyles.grid)}
-          >
-            <CalendarGridHeader />
-            <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-          </RACCalendarGrid>
-        ))}
-      </div>
+      <CalendarFrame showMonthYearMenus={showMonthYearMenus}>
+        <div {...stylex.props(calendarStyles.months)}>
+          {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
+            <RACCalendarGrid
+              key={offset.months}
+              offset={offset}
+              {...stylex.props(calendarStyles.grid)}
+            >
+              <CalendarGridHeader />
+              <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+            </RACCalendarGrid>
+          ))}
+        </div>
+      </CalendarFrame>
     </RACRangeCalendar>
   )
 }

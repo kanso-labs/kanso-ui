@@ -1,6 +1,7 @@
 import type { Color } from 'react-aria-components'
 
 import { fireEvent, render } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import ColorSlider from '.'
@@ -16,6 +17,28 @@ function groundOf(view: ReturnType<typeof render>) {
     throw new Error('expected the track to sit in a strip')
   }
   return ground
+}
+
+// A vertical slider under a direction and a locale, as an app sets both:
+// React Aria reads the locale, and the stylesheet `dir`.
+function setupVertical(dir: 'ltr' | 'rtl' = 'ltr') {
+  const view = render(
+    <I18nProvider locale={dir === 'rtl' ? 'he-IL' : 'en-US'}>
+      <div dir={dir}>
+        <ColorSlider
+          channel="hue"
+          defaultValue={BLUE}
+          label="Label"
+          orientation="vertical"
+        />
+      </div>
+    </I18nProvider>,
+  )
+  const thumb = trackOf(view).querySelector('div[style*="top"]')
+  if (!(thumb instanceof HTMLElement)) {
+    throw new Error('expected React Aria to place a handle')
+  }
+  return { ...view, input: view.getByRole('slider'), thumb }
 }
 
 function thumbOf(view: ReturnType<typeof render>) {
@@ -225,6 +248,65 @@ describe('color slider', () => {
         Number.parseFloat(getComputedStyle(view.getByText('Label')).opacity),
       ).toBe(1)
       expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  // Standing up: React Aria paints the channel from the bottom and moves the
+  // handle by its `top`, so the strip has to be the one running that way.
+  describe('vertical', () => {
+    it('stands the strip up, 16 across and as long as the slider allows', () => {
+      const view = setupVertical()
+      const ground = groundOf(view).getBoundingClientRect()
+      // The slider's own root is the first element React Aria marks with
+      // the orientation; the track inside it is marked too.
+      const root = view.container.querySelector('[data-orientation]')
+
+      expect(ground.width).toBe(16)
+      expect(root?.getBoundingClientRect().height).toBe(240)
+      expect(ground.height).toBeGreaterThan(200)
+      expect(getComputedStyle(trackOf(view)).backgroundImage).toContain(
+        'to top',
+      )
+    })
+
+    it('moves the handle along the whole strip', () => {
+      const view = setupVertical()
+      const strip = groundOf(view).getBoundingClientRect()
+      const centre = () => {
+        const box = view.thumb.getBoundingClientRect()
+        return Math.round(box.top + box.height / 2 - strip.top)
+      }
+
+      fireEvent.keyDown(view.input, { key: 'End' })
+      expect(centre()).toBe(0)
+
+      fireEvent.keyDown(view.input, { key: 'Home' })
+      expect(centre()).toBe(Math.round(strip.height))
+    })
+
+    it.each(['ltr', 'rtl'] as const)(
+      'centres the handle across the strip, %s',
+      (dir) => {
+        const view = setupVertical(dir)
+        const strip = groundOf(view).getBoundingClientRect()
+        const box = view.thumb.getBoundingClientRect()
+
+        expect(box.left + box.width / 2 - (strip.left + strip.width / 2)).toBe(
+          0,
+        )
+      },
+    )
+
+    // Across rather than along, so a press just beside the standing strip
+    // still lands on the slider.
+    it('keeps the 44dp press target across the strip', () => {
+      const view = setupVertical()
+      const track = trackOf(view)
+      const box = track.getBoundingClientRect()
+
+      expect(
+        document.elementFromPoint(box.right + 10, box.top + box.height / 2),
+      ).toBe(track)
     })
   })
 })

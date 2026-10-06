@@ -115,13 +115,13 @@ describe('search field', () => {
     it('shows the clear button only while it holds something, and clears from it', () => {
       const onClear = vi.fn<() => void>()
       const view = setup({ onClear })
-      expect(view.queryByRole('button', { name: 'Clear' })).toBeNull()
+      expect(view.queryByRole('button', { name: 'Clear search' })).toBeNull()
 
       fireEvent.change(view.input, { target: { value: 'typed' } })
-      fireEvent.click(view.getByRole('button', { name: 'Clear' }))
+      fireEvent.click(view.getByRole('button', { name: 'Clear search' }))
       expect(view.input).toHaveProperty('value', '')
       expect(onClear).toHaveBeenCalledTimes(1)
-      expect(view.queryByRole('button', { name: 'Clear' })).toBeNull()
+      expect(view.queryByRole('button', { name: 'Clear search' })).toBeNull()
     })
 
     it('takes another name for the clear button', () => {
@@ -138,7 +138,7 @@ describe('search field', () => {
     it('disables the input and the clear button', () => {
       const view = setup({ defaultValue: 'typed', isDisabled: true })
       expect(view.input).toHaveProperty('disabled', true)
-      expect(view.getByRole('button', { name: 'Clear' })).toHaveProperty(
+      expect(view.getByRole('button', { name: 'Clear search' })).toHaveProperty(
         'disabled',
         true,
       )

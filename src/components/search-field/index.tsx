@@ -37,6 +37,13 @@ import IconButton from '../icon-button'
 // module, and the generated one holds design tokens rather than queries.
 const FORCED_COLORS = '@media (forced-colors: active)'
 
+// A pointer that can hover: a mouse or a trackpad, not a finger. The bar is a
+// plain element around the input rather than a part React Aria hosts, so its
+// hover layer is a pseudo-class, and Chromium leaves `:hover` on whatever a
+// touch last tapped. Inside this query a touch screen draws no hover at all;
+// a touchscreen laptop still matches it for its trackpad.
+const HOVER_CAPABLE = '@media (hover: hover)'
+
 // The search page's search bar, on its own: a 56dp container with a full
 // corner on surface container high, a 24dp magnifier in on surface variant
 // at the start, the supporting text in on surface variant and the input
@@ -71,9 +78,19 @@ const styles = stylex.create({
   bar: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
+    // `:active` is written twice, bare for a touch and again inside the
+    // query: StyleX orders a rule by the sum of its conditions, so a hover
+    // inside the query would otherwise come after a bare press and win while
+    // both held.
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHigh})`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHigh})`,
+      },
       default: colors.surfaceContainerHigh,
     },
     blockSize: sizing.controlLg,
@@ -160,7 +177,8 @@ const styles = stylex.create({
 type SearchFieldProps = {
   /**
    * The name of the button that clears the field, for a screen reader.
-   * @default 'Clear'
+   * Left out, React Aria names it in the reader's locale — "Clear search" in
+   * English.
    */
   clearLabel?: string
   /**
@@ -199,7 +217,7 @@ type SearchFieldProps = {
 function fieldContent(
   label: string,
   placeholder: string | undefined,
-  clearLabel: string,
+  clearLabel: string | undefined,
   description: string | undefined,
   error: string | undefined,
   inputRef: Ref<HTMLInputElement> | undefined,
@@ -243,7 +261,7 @@ function fieldContent(
  * share.
  */
 function SearchField({
-  clearLabel = 'Clear',
+  clearLabel,
   description,
   error,
   inputRef,

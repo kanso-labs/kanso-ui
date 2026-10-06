@@ -6,6 +6,7 @@
     ".ds-sync",
     "CHANGELOG.md",
     "ds-bundle",
+    "etc/*.api.md",
     "LICENSE.md"
   ],
   "printWidth": 80,

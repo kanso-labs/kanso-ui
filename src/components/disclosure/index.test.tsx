@@ -11,6 +11,7 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import { rulesReaching } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -24,7 +25,10 @@ const probeStyles = stylex.create({
   },
   open: { gridTemplateRows: '1fr' },
   turned: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
 })
 
@@ -235,13 +239,17 @@ describe('disclosure', () => {
 
     // Read as the browser resolved it rather than as a class, since what is
     // under test is that the rule reaches an element whose direction is set
-    // by `dir` — the only thing `:dir()` reads.
-    it('mirrors under a right-to-left direction, open or closed', () => {
+    // by `dir` — the only thing `:dir()` reads. The glyph points to the
+    // inline end, so it mirrors while closed; open, it points down either
+    // way, since the block axis does not turn over with the writing
+    // direction. `{ a: 0, b: -1 }` was up, which is what the turn alone did
+    // to the unmirrored glyph.
+    it('points to the inline end while closed, and down once open', () => {
       expect(chevronUnder({ dir: 'ltr' })).toEqual({ a: 1, b: 0 })
       expect(chevronUnder({ dir: 'rtl' })).toEqual({ a: -1, b: 0 })
 
       expect(chevronUnder({ dir: 'ltr' }, true)).toEqual({ a: 0, b: 1 })
-      expect(chevronUnder({ dir: 'rtl' }, true)).toEqual({ a: 0, b: -1 })
+      expect(chevronUnder({ dir: 'rtl' }, true)).toEqual({ a: 0, b: 1 })
     })
 
     // A language does not reverse a document's text on its own, so it must
@@ -249,6 +257,38 @@ describe('disclosure', () => {
     it('follows the direction rather than the language', () => {
       expect(chevronUnder({ lang: 'ar' })).toEqual({ a: 1, b: 0 })
       expect(chevronUnder({ dir: 'rtl', lang: 'en' })).toEqual({ a: -1, b: 0 })
+    })
+  })
+
+  // The panel clips while it opens and closes, and a focusable first child
+  // sits flush with its top, so the clip has to leave room for that child's
+  // ring — 2px outside it and 2px wide.
+  describe("a focused child's ring", () => {
+    it('clips 4px past the panel, where the ring ends', () => {
+      const panel = setup({ defaultExpanded: true }).panel()
+      if (panel === null) {
+        throw new Error('expected the open section to draw its panel')
+      }
+      const computed = getComputedStyle(panel)
+
+      expect(computed.overflow).toBe('clip')
+      expect(computed.overflowClipMargin).toBe('4px')
+    })
+
+    // A browser without the clip margin clips at the very edge, so the
+    // content steps 4px down there instead. This runner has the margin, so
+    // the step is written and draws nothing here — the pair is what says it
+    // is a fallback rather than a gap every browser shows.
+    it('steps the content down only where the clip margin is missing', () => {
+      const inner = setup({ defaultExpanded: true }).getByText('Panel body')
+      const fallback = rulesReaching(inner).some((rule) =>
+        ['padding-top', 'padding-block-start'].some(
+          (property) => rule.style.getPropertyValue(property) === '4px',
+        ),
+      )
+
+      expect(fallback).toBe(true)
+      expect(getComputedStyle(inner).paddingTop).toBe('0px')
     })
   })
 

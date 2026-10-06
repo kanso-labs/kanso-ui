@@ -7,7 +7,7 @@ import type {
 } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { rippleStyles } from '../styles/ripple'
 import { motionDurationMs, motionEasing, spacingPx } from '../tokens/values'
@@ -150,6 +150,9 @@ function useRipple<HostElement extends Element = Element>(
   )
   const initialSize = useRef(0)
   const rippleScale = useRef('1')
+  // Removes the listeners a press keeps on its host's document, while one is
+  // in flight — see `listenBeyondHost`.
+  const removeDocumentListeners = useRef<(() => void) | undefined>(undefined)
 
   // Whether `event` comes from the pointer a press would follow: the primary
   // one, and the one that started the press already in flight, if any.
@@ -257,6 +260,8 @@ function useRipple<HostElement extends Element = Element>(
   )
 
   const endPressAnimation = useCallback(async () => {
+    removeDocumentListeners.current?.()
+    removeDocumentListeners.current = undefined
     rippleStartEvent.current = undefined
     state.current = RippleState.Inactive
 
@@ -284,6 +289,50 @@ function useRipple<HostElement extends Element = Element>(
     setPressed(false)
   }, [])
 
+  // A press can end somewhere other than its host. React Aria's press
+  // handling releases the capture a touch takes on its pointerdown, so that a
+  // finger can leave the element, and a press that turns into a scroll — or
+  // a finger that slides off and lifts — then ends with a pointercancel or
+  // pointerup on whatever is under it, which the host never hears. Left to
+  // the host's handlers alone, the ripple held at its pressed opacity until
+  // the next press on that host finished a cycle.
+  //
+  // So the press listens on its host's document, in the capture phase, for
+  // its own pointer, the way React Aria's own press handling does. An end the
+  // host does hear is left to the host's handlers, which run after these.
+  const listenBeyondHost = useCallback(
+    (host: HostElement, pointerId: number) => {
+      removeDocumentListeners.current?.()
+      const document = host.ownerDocument
+
+      const handleEnd = (event: globalThis.PointerEvent) => {
+        if (
+          event.pointerId !== pointerId ||
+          event.composedPath().includes(host)
+        ) {
+          return
+        }
+        void endPressAnimation()
+      }
+
+      document.addEventListener('pointercancel', handleEnd, true)
+      document.addEventListener('pointerup', handleEnd, true)
+      removeDocumentListeners.current = () => {
+        document.removeEventListener('pointercancel', handleEnd, true)
+        document.removeEventListener('pointerup', handleEnd, true)
+      }
+    },
+    [endPressAnimation],
+  )
+
+  // A host unmounted mid-press leaves nothing listening behind it.
+  useEffect(
+    () => () => {
+      removeDocumentListeners.current?.()
+    },
+    [],
+  )
+
   // Reads through a function so a stale narrowing of `state.current` from
   // before the `await` below isn't (incorrectly) carried across it — the
   // ref can change via a different handler while this one is suspended.
@@ -297,6 +346,7 @@ function useRipple<HostElement extends Element = Element>(
 
       rippleStartEvent.current = event
       const target = event.currentTarget
+      listenBeyondHost(target, event.pointerId)
 
       if (!isTouch(event)) {
         state.current = RippleState.WaitingForClick
@@ -318,7 +368,7 @@ function useRipple<HostElement extends Element = Element>(
       state.current = RippleState.Holding
       startPressAnimation(target, event)
     },
-    [getState, shouldReactToEvent, startPressAnimation],
+    [getState, listenBeyondHost, shouldReactToEvent, startPressAnimation],
   )
 
   const handlePointerDown = useCallback(

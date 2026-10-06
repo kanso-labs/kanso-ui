@@ -61,20 +61,27 @@ import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 const styles = stylex.create({
   // Points at what the section opens, so it turns a quarter to point down
   // once it is open. It mirrors under a right-to-left writing mode, as every
-  // chevron here does.
+  // chevron here does. Open, the turn goes over the mirror rather than in place of it,
+  // which is what points it down under right-to-left: the turn alone, on the
+  // unmirrored glyph, pointed it up. Both states are written as a turn then a
+  // mirror, so the transition between them turns the glyph rather than
+  // interpolating a matrix that flips it on the way.
   chevron: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     color: colors.onSurfaceVariant,
     flexShrink: 0,
     inlineSize: '24px',
-    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
+    transform: { ':dir(rtl)': 'rotate(0deg) scaleX(-1)', default: 'none' },
     transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
   },
   chevronExpanded: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
   // The header row. `textAlign: start` because a button centres its label and
   // a row's headline runs from the leading edge.
@@ -94,17 +101,33 @@ const styles = stylex.create({
   // is what makes the closed track measure nothing. `hidden="until-found"`
   // skips an element's contents but keeps its own box, so padding on the
   // panel would leave the closed section a band of empty space tall.
+  //
+  // The 4px above the content is for a browser without
+  // `overflow-clip-margin`, which clips the panel at its very edge — see
+  // `panel`. It keeps a focusable first child's ring inside the box there,
+  // and a browser with the margin draws no gap at all.
   inner: {
     boxSizing: 'border-box',
     paddingBlockEnd: spacing.lg,
+    paddingBlockStart: {
+      '@supports not (overflow-clip-margin: 4px)': '4px',
+      default: null,
+    },
     paddingInline: spacing.lg,
   },
   // What React Aria hides while the section is closed. `minBlockSize: 0` is
   // what lets the grid track above shrink past the content's own minimum.
+  //
+  // Clipped rather than hidden, and 4px past the edge: a focus ring sits 2px
+  // outside its control and is 2px wide, so a focusable first child flush
+  // with the panel's top keeps its whole ring rather than losing the top of
+  // it. `clip` is also not a scroll container, so focusing something inside
+  // cannot scroll the panel out from under it.
   panel: {
     boxSizing: 'border-box',
     minBlockSize: 0,
-    overflow: 'hidden',
+    overflow: 'clip',
+    overflowClipMargin: '4px',
   },
   root: {
     boxSizing: 'border-box',
@@ -286,14 +309,24 @@ function DisclosurePanel({ children, ...props }: DisclosurePanelProps) {
 // follows is its own page, and that page gives a headline and a supporting
 // line — the three-line item belongs to the lists page, which `List.Item`
 // and `ListBox.Item` draw.
+//
+// The hover and pressed layers come from the trigger's render state, like
+// every other row React Aria hosts — see `focusVisible` in
+// `src/row/styles.ts` for the order they are drawn in.
 function headerClassName(supporting: ReactNode) {
-  return (state: { isDisabled: boolean }) =>
+  return (state: {
+    isDisabled: boolean
+    isHovered: boolean
+    isPressed: boolean
+  }) =>
     stylex.props(
       rowStyles.base,
       rowStyles.list,
       rowStyles.interactive,
       styles.header,
       supporting !== undefined && rowStyles.twoLine,
+      state.isHovered && rowStyles.hovered,
+      state.isPressed && rowStyles.pressed,
       state.isDisabled && rowStyles.disabled,
     ).className ?? ''
 }
@@ -327,5 +360,7 @@ Disclosure.Header = DisclosureHeader
 Disclosure.Panel = DisclosurePanel
 
 export type { DisclosureHeaderProps, DisclosurePanelProps, DisclosureProps }
+
+export { DisclosureHeader, DisclosurePanel }
 
 export default Disclosure

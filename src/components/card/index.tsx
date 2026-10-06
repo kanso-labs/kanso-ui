@@ -103,30 +103,65 @@ const styles = stylex.create({
   },
 })
 
+// A pointer that can hover: a mouse or a trackpad, not a finger. An
+// interactive card is a plain element React Aria does not host, so it has no
+// `isHovered` to draw its hover layer from, and Chromium leaves `:hover` on
+// whatever a touch last tapped — a card tapped and then navigated back to
+// stayed lifted. Inside this query a touch screen draws no hover at all. A
+// touchscreen laptop still matches it for its trackpad, which is the limit of
+// asking the device rather than the event.
+const HOVER_CAPABLE = '@media (hover: hover)'
+
+// The state layers, from pseudo-classes, since the card has no render state
+// to read — see `HOVER_CAPABLE`.
+// `:active` is written twice, bare for a touch and again inside the query.
+// StyleX orders a rule by the sum of its conditions, so a hover inside the
+// query would otherwise come after a bare press and win while both held.
 const interactionStyles = stylex.create({
   elevated: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+      },
       default: colors.surfaceContainerLow,
     },
     boxShadow: {
-      ':active': shadows.elevation1,
-      ':hover': shadows.elevation2,
+      ':active': {
+        default: shadows.elevation1,
+        [HOVER_CAPABLE]: shadows.elevation1,
+      },
+      ':hover': { default: null, [HOVER_CAPABLE]: shadows.elevation2 },
       default: shadows.elevation1,
     },
   },
   filled: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHighest})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHighest})`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHighest})`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHighest})`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHighest})`,
+      },
       default: colors.surfaceContainerHighest,
     },
   },
   outlined: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surface})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surface})`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surface})`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surface})`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surface})`,
+      },
       default: colors.surface,
     },
   },

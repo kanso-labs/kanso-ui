@@ -2,11 +2,22 @@ import type { ComponentProps } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
+import { ButtonContext } from 'react-aria-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, shadows, typography } from '../../tokens/design.tokens.stylex'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+} from '../../styles/stylesheet.testing'
+import {
+  colors,
+  radii,
+  shadows,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
 // The variant assertions compare against an element styled straight from
@@ -15,6 +26,11 @@ import { motionDurationMs } from '../../tokens/values'
 // resolve to today. The pairs are the buttons spec page's.
 // One probe per type role a size takes, compared by computed value so the
 // assertion pins the role rather than the numbers it resolves to today.
+// Narrower than a long label on one line at every size, so it has to wrap.
+const layoutProbeStyles = stylex.create({
+  narrow: { inlineSize: '240px' },
+})
+
 const typeProbeStyles = stylex.create({
   headlineLarge: {
     fontFamily: typography.headlineLargeFont,
@@ -54,6 +70,32 @@ const tokenProbeStyles = stylex.create({
   },
 })
 
+// The pairs a toggle moves between, which are not the plain button's.
+const toggleProbeStyles = stylex.create({
+  inversePair: {
+    backgroundColor: colors.inverseSurface,
+    color: colors.inverseOnSurface,
+  },
+  primaryPair: { backgroundColor: colors.primary, color: colors.onPrimary },
+  secondaryPair: {
+    backgroundColor: colors.secondary,
+    color: colors.onSecondary,
+  },
+  surfaceContainerPair: {
+    backgroundColor: colors.surfaceContainer,
+    color: colors.onSurfaceVariant,
+  },
+})
+
+// The corners the page's size token sets name, by the shape scale's steps.
+const shapeProbeStyles = stylex.create({
+  extraLarge: { borderRadius: radii.xl },
+  large: { borderRadius: radii.lg },
+  medium: { borderRadius: radii.md },
+  pill: { borderRadius: radii.pill },
+  small: { borderRadius: radii.sm },
+})
+
 // Named here for the waits below to read as intent, but derived from the same
 // tokens useRipple spends rather than copied as numbers — a retuned token
 // moves the hook and these waits together. What is still mirrored by hand is
@@ -62,6 +104,20 @@ const tokenProbeStyles = stylex.create({
 // hook waiting on a different step fails here rather than passing loosely.
 const TOUCH_DELAY_MS = motionDurationMs.short2
 const MINIMUM_PRESS_MS = motionDurationMs.medium1
+
+// An icon as the README asks for one: `1em` square in `currentColor`, hidden
+// from assistive technology. Hoisted, since react-perf rejects an element
+// built at the prop.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  />
+)
 
 // The ripple's inner span carries the classes from `rippleStyles.pressed` only
 // while the hook considers itself pressed, so their presence is an observable
@@ -75,6 +131,12 @@ async function advance(ms: number) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms)
   })
+}
+
+// The classes a style compiles to, for asserting that a state's style reached
+// the button without reading a value a transition is still moving.
+function classesOf(style: stylex.StyleXStyles) {
+  return (stylex.props(style).className ?? '').split(' ').filter(Boolean)
 }
 
 /**
@@ -157,6 +219,19 @@ function pointerInit(target: Element, init: PointerEventInit = {}) {
   }
 }
 
+// What a probe style resolves to in the page, with the probe torn down again.
+function resolved(style: stylex.StyleXStyles) {
+  const view = render(<div data-testid="probe" {...stylex.props(style)} />)
+  const computed = getComputedStyle(view.getByTestId('probe'))
+  const values = {
+    background: computed.backgroundColor,
+    color: computed.color,
+    radius: computed.borderTopLeftRadius,
+  }
+  view.unmount()
+  return values
+}
+
 function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   const view = render(<Button {...props}>Button</Button>)
   const button = view.getByRole('button')
@@ -178,6 +253,50 @@ function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   }
 
   return { ...view, button, isPressed, rippleSurface }
+}
+
+// The label's text alone, measured from its glyphs. The icon's slot sits
+// inside the same span, so the span's own box would start at the icon.
+function textBox(element: HTMLElement) {
+  const text = [...element.childNodes].find(
+    (node) => node.nodeType === Node.TEXT_NODE,
+  )
+  if (text === undefined) {
+    throw new Error('expected the label to hold its text directly')
+  }
+  const range = document.createRange()
+  range.selectNode(text)
+  return range.getBoundingClientRect()
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the render state it was handed beside the props.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isDisabled: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-disabled': String(state.isDisabled),
+  })
+}
+
+// The same for a toggle, writing down the two keys its state differs in.
+function wrappedWithToggleState(
+  props: ComponentProps<'button'>,
+  state: { isPending: boolean; isSelected?: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-pending': String(state.isPending),
+    'data-state-selected': String(state.isSelected),
+  })
 }
 
 describe('appearance', () => {
@@ -400,6 +519,128 @@ describe('as a link', () => {
     const view = render(<Button>Button</Button>)
 
     expect(view.getByRole('button')).toHaveAttribute('type', 'button')
+  })
+})
+
+// Hoisted so each context value is one stable object rather than a fresh one
+// per render, which is what react-perf's no-new-object-as-prop is after.
+const DISABLED_CONTEXT = { isDisabled: true }
+const SLOTTED_CONTEXT = { slots: { first: { isDisabled: true }, second: {} } }
+
+// A parent may disable the buttons it gives a context to, as React Aria's own
+// fields do, and React Aria takes a prop over its context — so a default of
+// the button's own would keep it enabled whatever the parent said.
+describe('disabled by a button context', () => {
+  it('takes its disabled state from the context, ripple included', () => {
+    const view = render(
+      <ButtonContext value={DISABLED_CONTEXT}>
+        <Button>Button</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button')).toHaveProperty('disabled', true)
+    // The ripple's surface is drawn only while a press could start one.
+    expect(view.container.querySelector('span[aria-hidden="true"]')).toBeNull()
+  })
+
+  it('reads the slot it sits in', () => {
+    const view = render(
+      <ButtonContext value={SLOTTED_CONTEXT}>
+        <Button slot="first">First</Button>
+        <Button slot="second">Second</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button', { name: 'First' })).toHaveProperty(
+      'disabled',
+      true,
+    )
+    expect(view.getByRole('button', { name: 'Second' })).toHaveProperty(
+      'disabled',
+      false,
+    )
+  })
+
+  it('lets its own prop win over the context', () => {
+    const view = render(
+      <ButtonContext value={DISABLED_CONTEXT}>
+        <Button isDisabled={false}>Button</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button')).toHaveProperty('disabled', false)
+    expect(
+      view.container.querySelector('span[aria-hidden="true"]'),
+    ).not.toBeNull()
+  })
+})
+
+// React Aria's `render` is how a call site swaps in an element of its own, and
+// it is handed the props React Aria would have put on the <button>. What
+// Button adds past React Aria — the aria-* props it would drop, the keyboard
+// handlers it would wrap, the styles — has to reach that element too.
+describe('a render function from the call site', () => {
+  it('renders the element it returns, with the classes the button carries', () => {
+    const plain = render(<Button variant="tonal">Button</Button>)
+    const classes = plain.getByRole('button').className
+    plain.unmount()
+    // Two empty class lists would compare equal however the styles were lost.
+    expect(classes).not.toBe('')
+
+    const view = render(
+      <Button render={wrapped} variant="tonal">
+        Button
+      </Button>,
+    )
+    const button = view.getByRole('button')
+
+    expect(button).toHaveAttribute('data-wrapped')
+    expect(button.className).toBe(classes)
+  })
+
+  it('hands it the render state', () => {
+    const view = render(
+      <Button isDisabled render={wrappedWithState}>
+        Button
+      </Button>,
+    )
+
+    expect(view.getByRole('button')).toHaveAttribute(
+      'data-state-disabled',
+      'true',
+    )
+  })
+
+  it('hands it the aria attributes React Aria would drop', () => {
+    const view = render(
+      <Button aria-keyshortcuts="Alt+A" render={wrapped}>
+        Button
+      </Button>,
+    )
+
+    expect(view.getByRole('button')).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Alt+A',
+    )
+  })
+
+  // On the element directly, an Escape pressed on the button inside a dialog
+  // still reaches the dialog.
+  it('hands it keyboard handlers that bubble', () => {
+    const inner = vi.fn<() => void>()
+    const outer = vi.fn<() => void>()
+    const view = render(
+      <div onKeyDown={outer} role="presentation">
+        <Button onKeyDown={inner} render={wrapped}>
+          Button
+        </Button>
+      </div>,
+    )
+
+    fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+    expect(inner).toHaveBeenCalledOnce()
+    expect(outer).toHaveBeenCalledOnce()
   })
 })
 
@@ -656,7 +897,8 @@ describe('press behaviour', () => {
   })
 
   describe('opting out', () => {
-    // `isDisabled` gates interaction; the surface itself still renders.
+    // `isDisabled` gates interaction, and turns the ripple off with it: no
+    // surface is drawn for a press to start one on.
     it('neither fires handlers nor ripples while disabled', async () => {
       const onClick = vi.fn<() => void>()
       const { button, isPressed } = setup({ isDisabled: true, onClick })
@@ -781,5 +1023,353 @@ describe('pending', () => {
     expect(onPress).not.toHaveBeenCalled()
     expect(button.hasAttribute('disabled')).toBe(false)
     expect(button.getAttribute('aria-disabled')).toBe('true')
+  })
+})
+
+// A label the row is too narrow for wraps, as a German one does at phone
+// widths where the English beside it fits. The container grows to hold every
+// line rather than keeping its height and leaving the lines past the second
+// outside the fill — where, on a filled button, they are drawn in on primary
+// over the page and cannot be read.
+describe('a label longer than one line', () => {
+  const LONG = 'A label long enough that it wraps onto more lines than one'
+  // The five sizes' container heights, which a label on one line still
+  // draws exactly — the outlined button's border included.
+  const HEIGHTS = { lg: 56, md: 40, xl: 96, xs: 32, xxl: 136 } as const
+  const SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
+  const CASES = SIZES.flatMap((size) =>
+    (['filled', 'outlined'] as const).map(
+      (variant) => [size, variant, HEIGHTS[size]] as const,
+    ),
+  )
+
+  it.each(CASES)(
+    'keeps the %s %s button at %ipx with one line',
+    (size, variant, height) => {
+      const view = render(
+        <Button size={size} variant={variant}>
+          Label
+        </Button>,
+      )
+      expect(view.getByRole('button').getBoundingClientRect().height).toBe(
+        height,
+      )
+    },
+  )
+
+  it.each(CASES)(
+    'grows the %s %s button around a label that wraps',
+    (size, variant, height) => {
+      const view = render(
+        <div {...stylex.props(layoutProbeStyles.narrow)}>
+          <Button size={size} variant={variant}>
+            {LONG}
+          </Button>
+        </div>,
+      )
+      const button = view.getByRole('button')
+      const box = button.getBoundingClientRect()
+      // The label's text alone: the button also holds the ripple's surface,
+      // which covers the whole container.
+      const range = document.createRange()
+      range.selectNodeContents(view.getByText(LONG))
+      const text = range.getBoundingClientRect()
+
+      expect(box.height).toBeGreaterThan(height)
+      expect(text.top).toBeGreaterThan(box.top)
+      expect(text.bottom).toBeLessThan(box.bottom)
+    },
+  )
+})
+
+// Given any of `isSelected`, `defaultSelected` or `onChange` the button is
+// React Aria's ToggleButton instead of its Button, which reports the state
+// through `aria-pressed` rather than a role of its own.
+describe('toggle', () => {
+  it('reports no state until one of the three props makes it a toggle', () => {
+    const { button } = setup()
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
+  })
+
+  it.each([
+    ['defaultSelected', { defaultSelected: true }],
+    ['isSelected', { isSelected: true }],
+  ])('reports its state when given %s', (_name, props) => {
+    const { button } = setup(props)
+    expect(button.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('becomes a toggle from onChange alone, keeping its own state', () => {
+    const onChange = vi.fn<(isSelected: boolean) => void>()
+    const { button } = setup({ onChange })
+    expect(button.getAttribute('aria-pressed')).toBe('false')
+
+    fireEvent.click(button)
+
+    expect(button.getAttribute('aria-pressed')).toBe('true')
+    expect(onChange).toHaveBeenCalledWith(true)
+  })
+
+  // The page gives text no selected pair, so there would be nothing to show
+  // the state with.
+  it('stays a plain button as text', () => {
+    const { button } = setup({ isSelected: true, variant: 'text' })
+    expect(button.hasAttribute('aria-pressed')).toBe(false)
+  })
+
+  // A call site's `render` is written for the button's render state, which
+  // says whether it is pending; the toggle's says nothing of it.
+  it('hands a render function its state, selected and never pending', () => {
+    const view = render(
+      <Button isSelected render={wrappedWithToggleState}>
+        Button
+      </Button>,
+    )
+    const button = view.getByRole('button')
+
+    expect(button.dataset.statePending).toBe('false')
+    expect(button.dataset.stateSelected).toBe('true')
+  })
+
+  // The page gives four of the five styles a second pair of colour roles for
+  // the toggle, and they are not the plain button's.
+  describe('colour', () => {
+    it('rests an unselected filled toggle on surface container, taking primary once selected', () => {
+      const unselectedPair = resolved(toggleProbeStyles.surfaceContainerPair)
+      const selectedPair = resolved(toggleProbeStyles.primaryPair)
+      expect(unselectedPair.background).not.toBe(selectedPair.background)
+
+      const unselected = setup({ isSelected: false })
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        unselectedPair.background,
+      )
+      expect(getComputedStyle(unselected.button).color).toBe(
+        unselectedPair.color,
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        selectedPair.background,
+      )
+      expect(getComputedStyle(button).color).toBe(selectedPair.color)
+    })
+
+    it('moves a selected tonal toggle from its container to secondary', () => {
+      const selectedPair = resolved(toggleProbeStyles.secondaryPair)
+      const unselectedPair = resolved(tokenProbeStyles.tonalPair)
+      expect(selectedPair.background).not.toBe(unselectedPair.background)
+
+      const unselected = setup({ isSelected: false, variant: 'tonal' })
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        unselectedPair.background,
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'tonal' })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        selectedPair.background,
+      )
+      expect(getComputedStyle(button).color).toBe(selectedPair.color)
+    })
+
+    it('gives a selected elevated toggle primary, keeping its shadow', () => {
+      const selectedPair = resolved(toggleProbeStyles.primaryPair)
+      const probe = render(
+        <div data-testid="probe" {...stylex.props(tokenProbeStyles.liftOne)} />,
+      )
+      const lift = getComputedStyle(probe.getByTestId('probe')).boxShadow
+      probe.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'elevated' })
+      const style = getComputedStyle(button)
+
+      expect(style.backgroundColor).toBe(selectedPair.background)
+      expect(style.color).toBe(selectedPair.color)
+      expect(style.boxShadow).toBe(lift)
+    })
+
+    // The rule goes when the container arrives, but keeps its width, drawn
+    // transparent: a toggle that changed size as it was selected would move
+    // whatever sat beside it.
+    it('swaps a selected outlined toggle rule for the inverse surface pair, at the same width', () => {
+      const selectedPair = resolved(toggleProbeStyles.inversePair)
+
+      const unselected = setup({ isSelected: false, variant: 'outlined' })
+      const unselectedWidth = unselected.button.getBoundingClientRect().width
+      expect(getComputedStyle(unselected.button).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)',
+      )
+      unselected.unmount()
+
+      const { button } = setup({ isSelected: true, variant: 'outlined' })
+      const style = getComputedStyle(button)
+
+      expect(style.backgroundColor).toBe(selectedPair.background)
+      expect(style.color).toBe(selectedPair.color)
+      expect(style.borderTopColor).toBe('rgba(0, 0, 0, 0)')
+      expect(button.getBoundingClientRect().width).toBe(unselectedWidth)
+    })
+
+    // The mode paints author backgrounds in a system colour, which left a
+    // selected toggle looking like an unselected one.
+    it.each(['elevated', 'filled', 'outlined', 'tonal'] as const)(
+      'fills a selected %s toggle with Highlight under forced colours',
+      (variant) => {
+        const plain = setup({ variant })
+        expect(
+          declarationsHeld(plain.button, 'forced-colors: active').get(
+            'background-color',
+          ),
+        ).toBeUndefined()
+        plain.unmount()
+
+        const { button } = setup({ isSelected: true, variant })
+        expect(
+          declarationsHeld(button, 'forced-colors: active').get(
+            'background-color',
+          ),
+        ).toBe('highlight')
+      },
+    )
+  })
+})
+
+// The page's two shapes and its shape morph, from its size token sets.
+describe('shape', () => {
+  it('rests as the pill by default', () => {
+    const { button } = setup()
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(
+      resolved(shapeProbeStyles.pill).radius,
+    )
+  })
+
+  it.each([
+    ['xs', shapeProbeStyles.medium],
+    ['md', shapeProbeStyles.medium],
+    ['lg', shapeProbeStyles.large],
+    ['xl', shapeProbeStyles.extraLarge],
+    ['xxl', shapeProbeStyles.extraLarge],
+  ] as const)(
+    'rests a square %s button at its square corner',
+    (size, corner) => {
+      const expected = resolved(corner).radius
+      const { button } = setup({ shape: 'square', size })
+      expect(getComputedStyle(button).borderTopLeftRadius).toBe(expected)
+    },
+  )
+
+  // Pressed from the keyboard, which React Aria reports as a press like any
+  // other. Read off the classes rather than the computed corner, which the
+  // transition is still moving when the assertion runs.
+  it.each([
+    ['xs', shapeProbeStyles.small],
+    ['md', shapeProbeStyles.small],
+    ['lg', shapeProbeStyles.medium],
+    ['xl', shapeProbeStyles.large],
+    ['xxl', shapeProbeStyles.large],
+  ] as const)(
+    'tightens a %s button to its pressed corner, round or square',
+    (size, corner) => {
+      for (const shape of ['round', 'square'] as const) {
+        const { button, unmount } = setup({ shape, size })
+        const pressedCorner = () =>
+          classesOf(corner).every((name) => button.classList.contains(name))
+
+        expect(pressedCorner()).toBe(false)
+        fireEvent.keyDown(button, { key: ' ' })
+        expect(pressedCorner()).toBe(true)
+        fireEvent.keyUp(button, { key: ' ' })
+        unmount()
+      }
+    },
+  )
+
+  it('trades a round toggle for the square corner once selected, and a square one for the pill', () => {
+    const square = resolved(shapeProbeStyles.medium).radius
+    const pill = resolved(shapeProbeStyles.pill).radius
+    expect(square).not.toBe(pill)
+
+    const round = setup({ isSelected: true })
+    expect(getComputedStyle(round.button).borderTopLeftRadius).toBe(square)
+    round.unmount()
+
+    const { button } = setup({ isSelected: true, shape: 'square' })
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(pill)
+  })
+
+  // Which of the two states a disabled toggle is in should still be readable.
+  it('keeps the selected shape while disabled', () => {
+    const square = resolved(shapeProbeStyles.medium).radius
+    const { button } = setup({ isDisabled: true, isSelected: true })
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(square)
+  })
+
+  it('eases the corner, and moves it at once for reduced motion', () => {
+    const { button } = setup()
+    const computed = getComputedStyle(button)
+
+    // The corner for the shape morph, and the padding a standard ButtonGroup
+    // widens a pressed button by.
+    expect(computed.transitionProperty).toBe('border-radius, padding')
+    expect(Number.parseFloat(computed.transitionDuration)).toBeGreaterThan(0)
+    expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
+  })
+})
+
+// The page's icon size and the gap before the label, per button size.
+describe('an icon', () => {
+  const SIZES = [
+    ['xs', 20, 8],
+    ['md', 20, 8],
+    ['lg', 24, 8],
+    ['xl', 32, 12],
+    ['xxl', 40, 16],
+  ] as const
+
+  it.each(SIZES)(
+    'draws a %s button icon at %ipx, %ipx before the label',
+    (size, edge, gap) => {
+      const view = render(
+        <Button icon={ICON} size={size}>
+          Label
+        </Button>,
+      )
+      const icon = view.getByTestId('icon').getBoundingClientRect()
+      const label = textBox(view.getByText('Label'))
+
+      expect([icon.width, icon.height]).toEqual([edge, edge])
+      expect(label.left - icon.right).toBeCloseTo(gap, 0)
+    },
+  )
+
+  it('hides the icon with the label while pending', () => {
+    const view = render(
+      <Button icon={ICON} isPending>
+        Label
+      </Button>,
+    )
+    expect(getComputedStyle(view.getByTestId('icon')).visibility).toBe('hidden')
+  })
+
+  it('draws the icon in a toggle too', () => {
+    const view = render(
+      <Button defaultSelected icon={ICON}>
+        Label
+      </Button>,
+    )
+    expect(view.getByTestId('icon').getBoundingClientRect().width).toBe(20)
+  })
+
+  it('leads the label from the other side under right-to-left', () => {
+    const view = render(
+      <div dir="rtl">
+        <Button icon={ICON}>Label</Button>
+      </div>,
+    )
+    const icon = view.getByTestId('icon').getBoundingClientRect()
+    const label = textBox(view.getByText('Label'))
+
+    expect(icon.left).toBeGreaterThan(label.right)
   })
 })

@@ -22,8 +22,12 @@ const DEFAULT_MIN_ITEM_WIDTH = '180px'
 //
 // Material Design describes the grid by its cell rather than by its columns:
 // Compose spells it `GridCells.Adaptive(minSize)`, meaning every column is at
-// least that wide and the grid fits as many as it can.
-// `repeat(auto-fill, minmax(…, 1fr))` is the same sentence in CSS.
+// least that wide and the grid fits as many as it can — and always at least
+// one, which shares out whatever room there is, so a lone column narrower
+// than the minimum is still the container's width rather than wider than it.
+// `repeat(auto-fill, minmax(min(…, 100%), 1fr))` is the same sentence in
+// CSS; without the `min()`, a lone column stayed the minimum wide and pushed
+// the page sideways.
 //
 // So there are no breakpoints here, and that is the point rather than an
 // omission. The layout answers to the room it is given instead of to the width
@@ -45,7 +49,7 @@ const styles = stylex.create({
     // so a row holding fewer items than it has room for leaves the remainder
     // empty. auto-fit collapses those empty tracks and stretches what is left,
     // which turns a feed of two into two enormous cards.
-    gridTemplateColumns: `repeat(auto-fill, minmax(${minItemWidth}, 1fr))`,
+    gridTemplateColumns: `repeat(auto-fill, minmax(min(${minItemWidth}, 100%), 1fr))`,
   }),
 })
 
@@ -54,7 +58,8 @@ type FeedProps = {
    * How narrow a cell may get before the grid drops a column. Every column is
    * at least this wide and the grid fits as many as the space allows, which is
    * how Material Design describes an adaptive grid — by its cell rather than
-   * by a column count per breakpoint.
+   * by a column count per breakpoint. In a container narrower than this, the
+   * one column takes the container's width rather than overflowing it.
    *
    * Worth setting. The default is the figure Material Design's own example
    * uses, and it is a floor rather than advice: only the contents know how

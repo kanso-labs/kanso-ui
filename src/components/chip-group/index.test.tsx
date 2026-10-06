@@ -1,8 +1,11 @@
+import type { Selection } from 'react-aria-components'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ChipGroup from '.'
+import { rippleStyles } from '../../styles/ripple'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -15,6 +18,7 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   error: { color: colors.error },
+  icon: { color: colors.primary },
   selected: { color: colors.onSecondaryContainer },
   unselected: { color: colors.onSurfaceVariant },
 })
@@ -32,6 +36,7 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   disabled: classesOf(stylex.props(probeStyles.disabled)),
   error: classesOf(stylex.props(probeStyles.error)),
+  icon: classesOf(stylex.props(probeStyles.icon)),
   selected: classesOf(stylex.props(probeStyles.selected)),
   unselected: classesOf(stylex.props(probeStyles.unselected)),
 }
@@ -49,12 +54,66 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+// An icon as the README asks for one: hidden from assistive technology,
+// drawn in `currentColor`, and `1em` square so the slot's size is its own.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+)
+
+function iconIn(chip: Element) {
+  return chip.querySelector('[data-testid="icon"]')
+}
+
+// The slot the icon is drawn in, which is the element carrying its colour.
+function iconSlotOf(chip: Element) {
+  const slot = iconIn(chip)?.parentElement
+  if (!(slot instanceof HTMLElement)) {
+    throw new Error('expected the chip to draw its icon in a slot')
+  }
+  return slot
+}
+
 function setup(props: Partial<Parameters<typeof ChipGroup<object>>[0]> = {}) {
   return render(
     <ChipGroup label="Label" {...props}>
       <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
       <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
       <ChipGroup.Chip id="third">Third item</ChipGroup.Chip>
+    </ChipGroup>,
+  )
+}
+
+// A set from data, and the function React Aria calls for each item in it.
+const ITEMS = [
+  { id: 'first', name: 'First item' },
+  { id: 'second', name: 'Second item' },
+  { id: 'third', name: 'Third item' },
+]
+
+function chipFor(item: (typeof ITEMS)[number]) {
+  return <ChipGroup.Chip id={item.id}>{item.name}</ChipGroup.Chip>
+}
+
+function setupWithIcons(
+  props: Partial<Parameters<typeof ChipGroup<object>>[0]> = {},
+) {
+  return render(
+    <ChipGroup label="Label" {...props}>
+      <ChipGroup.Chip icon={ICON} id="first">
+        First item
+      </ChipGroup.Chip>
+      <ChipGroup.Chip icon={ICON} id="second">
+        Second item
+      </ChipGroup.Chip>
     </ChipGroup>,
   )
 }
@@ -336,5 +395,167 @@ describe('chip group', () => {
         (slot?.left ?? 0) - second.getBoundingClientRect().left - border,
       ).toBe(8)
     })
+  })
+
+  // React Aria reads `items` only when the chips are a function of each
+  // item, so without that form the prop could never take effect.
+  describe('from data', () => {
+    it('renders a chip for each item, selected by its id', () => {
+      const onSelectionChange = vi.fn<(keys: Selection) => void>()
+      const view = render(
+        <ChipGroup
+          items={ITEMS}
+          label="Label"
+          onSelectionChange={onSelectionChange}
+          selectionMode="multiple"
+        >
+          {chipFor}
+        </ChipGroup>,
+      )
+      const rows = view.getAllByRole('row')
+
+      expect(rows.map((row) => row.textContent)).toEqual([
+        'First item',
+        'Second item',
+        'Third item',
+      ])
+      fireEvent.click(rows[1])
+      // React Aria's selection is a Set of its own, so its keys are compared.
+      const keys = onSelectionChange.mock.calls[0]?.[0]
+      expect(keys instanceof Set ? Array.from(keys) : keys).toEqual(['second'])
+    })
+  })
+
+  // The icon slot is the chip module's, so this asks what chip/index.test.tsx
+  // asks of a chip on its own, of a chip that is also one of a set: the
+  // icon is drawn in the check's slot, and gives its place up to the check.
+  describe('the icon', () => {
+    it('draws it before the label, with the close target after it', () => {
+      const view = setupWithIcons({ onRemove: vi.fn<() => void>() })
+      const [first] = view.getAllByRole('row')
+      const icon = iconIn(first)
+      const close = view.getByRole('button', { name: 'Remove First item' })
+      if (icon === null) {
+        throw new Error('expected the chip to draw its icon')
+      }
+      const slot = icon.parentElement?.getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(first).borderLeftWidth)
+
+      expect([slot?.width, slot?.height]).toEqual([18, 18])
+      expect(
+        (slot?.left ?? 0) - first.getBoundingClientRect().left - border,
+      ).toBe(8)
+      expect(
+        icon.compareDocumentPosition(close) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
+    })
+
+    it('gives its place to the check on the chosen chips alone', () => {
+      const view = setupWithIcons({ selectionMode: 'single' })
+      const [first, second] = view.getAllByRole('row')
+
+      fireEvent.click(first)
+      expect(iconIn(first)).toBeNull()
+      expect(checkIn(first)).not.toBeNull()
+      expect(iconIn(second)).not.toBeNull()
+
+      fireEvent.click(second)
+      expect(iconIn(first)).not.toBeNull()
+      expect(iconIn(second)).toBeNull()
+    })
+
+    // The group hands the chip's whole render state to the slot, disabled
+    // included, so a disabled chip's icon fades with its label rather than
+    // keeping the primary role.
+    it('fades it with a disabled chip', () => {
+      const view = setupWithIcons({ disabledKeys: SECOND })
+      const [first, second] = view.getAllByRole('row')
+
+      expect(hasClasses(iconSlotOf(first), CLASSES.icon)).toBe(true)
+      expect(hasClasses(iconSlotOf(second), CLASSES.icon)).toBe(false)
+    })
+  })
+})
+
+// A keyboard's focus draws the container's layer at the focus opacity, as
+// Button's does, where it once drew the ring alone.
+const focusProbeStyles = stylex.create({
+  unselected: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+})
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer is drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
+// A primary mouse button going down over the element's centre, which is the
+// press a ripple answers.
+function pressDown(element: Element) {
+  const rect = element.getBoundingClientRect()
+  fireEvent(
+    element,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      buttons: 1,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+    }),
+  )
+}
+
+// The ripple's inner span carries these classes only while it is pressed.
+const PRESSED_RIPPLE = (stylex.props(rippleStyles.pressed).className ?? '')
+  .split(' ')
+  .filter(Boolean)
+
+function ripplesIn(element: Element) {
+  const ripple = element.querySelector('span[aria-hidden="true"] > span')
+  return (
+    ripple !== null &&
+    PRESSED_RIPPLE.length > 0 &&
+    PRESSED_RIPPLE.every((name) => ripple.classList.contains(name))
+  )
+}
+
+describe('focus layer and ripple', () => {
+  it('lays the focus layer over a chip for a keyboard', () => {
+    const view = setup({ selectionMode: 'multiple' })
+    const [first] = view.getAllByRole('row')
+    const classes = classesOf(stylex.props(focusProbeStyles.unselected))
+    expect(hasClasses(first, classes)).toBe(false)
+
+    focusByKeyboard(first)
+
+    expect(hasClasses(first, classes)).toBe(true)
+  })
+
+  it('ripples a chip the group lets be selected', () => {
+    const view = setup({ selectionMode: 'multiple' })
+    const [first] = view.getAllByRole('row')
+
+    pressDown(first)
+
+    expect(ripplesIn(first)).toBe(true)
+  })
+
+  // A chip in a group that selects nothing changes nothing when pressed, and
+  // React Aria reports no press on it either.
+  it('draws no ripple on a chip a press does nothing to', () => {
+    const view = setup()
+    const [first] = view.getAllByRole('row')
+
+    pressDown(first)
+
+    expect(first.querySelector('span[aria-hidden="true"]')).toBeNull()
   })
 })

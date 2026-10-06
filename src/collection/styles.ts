@@ -7,6 +7,7 @@ import {
   colors,
   sizing,
   spacing,
+  stateLayerOpacity,
   typography,
 } from '../tokens/design.tokens.stylex'
 
@@ -27,6 +28,12 @@ import {
 //   than a title role, and an inset that lines up with pill-shaped rows.
 //   Those are the specs disagreeing rather than the code drifting, so each
 //   stays where its comment explaining it is.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const collectionStyles = stylex.create({
   container: {
     boxSizing: 'border-box',
@@ -36,6 +43,17 @@ const collectionStyles = stylex.create({
     // row draws its own ring inside its edges.
     outlineStyle: 'none',
     paddingBlock: spacing.sm,
+  },
+  // A collection a drop would land on as a whole — an empty one, or one
+  // that takes a drop anywhere in it. The drop target a row draws, over the
+  // whole box: the drop indicator's 2dp primary as an outline inside it, on
+  // a primary layer at the hover opacity.
+  dropTarget: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // The lists page's subhead. Menu's and NavigationTree's are their own.
   header: {
@@ -72,10 +90,26 @@ const collectionStyles = stylex.create({
  */
 type CollectionItemState = {
   isDisabled: boolean
+  /** Reported only where the collection drags; see `dragging` in `src/row`. */
+  isDragging?: boolean
+  /** Reported only where the collection takes drops onto its items. */
+  isDropTarget?: boolean
   isFocusVisible: boolean
   isHovered: boolean
   isPressed: boolean
   isSelected: boolean
+}
+
+/**
+ * A collection's own box, as the function React Aria's `className` prop
+ * wants: the container, and the drop target while a drop would land on the
+ * collection as a whole. List, ListBox and Tree each draw it.
+ */
+function containerClasses(state: { isDropTarget: boolean }) {
+  return stylex.props(
+    collectionStyles.container,
+    state.isDropTarget && collectionStyles.dropTarget,
+  )
 }
 
 /**
@@ -112,13 +146,15 @@ function rowItemStyles(
       extra,
       lines === 1 && rowStyles.twoLine,
       lines === 2 && rowStyles.threeLine,
+      state.isDragging === true && rowStyles.dragging,
       state.isSelected && rowStyles.selectedList,
       state.isHovered && rowStyles.hovered,
       state.isFocusVisible && rowStyles.focusVisible,
       state.isPressed && rowStyles.pressed,
+      state.isDropTarget === true && rowStyles.dropTarget,
       state.isDisabled && rowStyles.disabled,
     )
 }
 
 export type { CollectionItemState }
-export { collectionStyles, rowItemStyles }
+export { collectionStyles, containerClasses, rowItemStyles }

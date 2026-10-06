@@ -15,6 +15,7 @@ import type {
   ResizableTableContainerProps,
   RowRenderProps,
   TableBodyRenderProps,
+  TableRenderProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -33,6 +34,7 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
+import { collectionStyles } from '../../collection/styles'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
 import { rowStyles as rowLayers } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -44,6 +46,12 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
+
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
 
 // A grid of rows and columns, with sorting and selection. The design system
 // carries no data table page — it was dropped after Material Design 2 — so
@@ -94,8 +102,8 @@ import Checkbox from '../checkbox'
 // column, so `resizable` on the table is what brings the container and
 // `resizable` on a column is what draws its handle. The archived page has no
 // resizer to take a treatment from — it predates the feature — so the handle
-// is the divider's own rule, thickening and taking the primary role while it
-// is dragged.
+// draws the divider's own rule, thickening and taking the primary role while
+// it is dragged, over a target far wider than the rule.
 //
 // **A resizable table stops filling its width.** The container sets
 // `table-layout: fixed` and `width: min-content` on the table as inline
@@ -113,9 +121,10 @@ import Checkbox from '../checkbox'
 
 // What the selection checkboxes are called. A context rather than a prop on
 // every column and cell, since it is the table's decision and repeating it
-// per row is how the two drift.
-const SelectAllLabelContext = createContext('Select all')
-const SelectLabelContext = createContext('Select')
+// per row is how the two drift. Undefined unless the table is given one,
+// which leaves the names React Aria gives in the reader's locale.
+const SelectAllLabelContext = createContext<string | undefined>(undefined)
+const SelectLabelContext = createContext<string | undefined>(undefined)
 
 const styles = stylex.create({
   // The cell every column and row draws: the page's 16dp on each side, which
@@ -145,8 +154,11 @@ const styles = stylex.create({
   },
   // Drawn inside the cell's edges, so a focused header or row shows its
   // whole ring rather than having the outer half clipped by the table.
+  //
+  // In the text's own colour under forced colours, as a row's is — see
+  // `focusVisible` in src/row/styles.ts.
   focus: {
-    outlineColor: colors.primary,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'currentColor' },
     outlineOffset: '-2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
@@ -174,6 +186,11 @@ const styles = stylex.create({
     fontWeight: typography.labelLargeWeight,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    // The last column's resize handle reaches half its target past the
+    // table's edge, where it would only widen the container's scroll by
+    // 12px. Clipped there, the half inside the column is its whole target.
+    // A cell's own ring is not clipped by its own overflow.
+    overflow: { ':last-child': 'clip', default: null },
     // The resize handle is positioned against this cell's trailing edge.
     position: 'relative',
   },
@@ -193,12 +210,17 @@ const styles = stylex.create({
     borderBlockEndWidth: '1px',
   },
   // A sortable header is pressable, so it takes the same layers a row does.
+  // From React Aria's render state rather than `:hover` and `:active`, for Button's
+  // reasons — see its header: a hover layer stayed on after a tap, and no
+  // pressed layer showed for a press made from the keyboard.
+  headerHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  headerPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
   headerSortable: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     cursor: 'pointer',
   },
   // The ring shown while more rows are being fetched, centred across the
@@ -224,24 +246,52 @@ const styles = stylex.create({
     inlineSize: '100%',
     overflowX: 'auto',
   },
-  // The handle at a column's trailing edge, drawn as the divider's own rule
-  // so a column boundary is one line whether or not it can be dragged. It is
-  // positioned against the header cell, which is why that cell is relative.
+  // The handle at a column's trailing edge: a target 24px wide, centred on
+  // the boundary, that draws nothing itself. A 1px rule was the whole target
+  // before, which a mouse could barely find and a finger could not, and 24px
+  // is WCAG's minimum target size — no spacing exception applies, since the
+  // handle meets the header cell, which is a target of its own when it
+  // sorts. It is positioned against the header cell, which is why that cell
+  // is relative, and lifted over the next column's cell, which would
+  // otherwise take the half of the target that reaches into it.
   resizer: {
-    backgroundColor: colors.outlineVariant,
     blockSize: '100%',
     boxSizing: 'border-box',
     cursor: 'col-resize',
-    inlineSize: '1px',
+    inlineSize: '24px',
     insetBlockStart: 0,
-    insetInlineEnd: 0,
+    insetInlineEnd: '-12px',
     position: 'absolute',
     touchAction: 'none',
+    zIndex: 1,
+  },
+  // The divider's own rule, drawn inside the handle on the inner side of the
+  // boundary, so a column boundary is one line whether or not it can be
+  // dragged. Under forced colours, which paint a background in `Canvas`, the
+  // rule is a `CanvasText` border instead, and its colour is named rather
+  // than forced so the active state's `Highlight` survives — it is the
+  // handle's only focus indicator.
+  resizerRule: {
+    backgroundColor: colors.outlineVariant,
+    blockSize: '100%',
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderInlineEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '1px' },
+    boxSizing: 'border-box',
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
+    inlineSize: '1px',
+    insetBlockStart: 0,
+    insetInlineEnd: '12px',
+    pointerEvents: 'none',
+    position: 'absolute',
   },
   // Thickened and in the primary role while it is being dragged or focused,
-  // so the boundary being moved is the one that stands out.
-  resizerActive: {
+  // so the boundary being moved is the one that stands out — inward, into
+  // the column being sized.
+  resizerRuleActive: {
     backgroundColor: colors.primary,
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '2px' },
     inlineSize: '2px',
   },
   // The page's 52dp row, and the rule above it — dropped on the first row of
@@ -260,13 +310,24 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+    // Back to the mode, which a selected row opts out of.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
   // The row's layers composite over `transparent` rather than a container
   // colour, so the row tints whatever the table is sitting on. The selected
-  // state is the one that brings a container of its own.
+  // state is the one that brings a container of its own, and under forced
+  // colours it is `Highlight` under `HighlightText`, out of the mode's
+  // adjusting, for the reasons `selectedList` in src/row/styles.ts gives.
   rowSelected: {
-    backgroundColor: colors.primaryContainer,
-    color: colors.onPrimaryContainer,
+    backgroundColor: {
+      default: colors.primaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   // Wide enough for the checkbox and its 16dp on each side, and no wider —
   // a selection column holds one control and should not take the room a
@@ -381,12 +442,13 @@ type TableLoadMoreProps = Omit<RACTableLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
 
-type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
+type TableProps = {
   /** A function may compute the class from the table's render state. */
   className?: RACTableProps['className']
   /** Called as a column is dragged, with every column's width. */
@@ -402,19 +464,20 @@ type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
   resizable?: boolean
   /**
    * What the resize handle is called, for a screen reader. React Aria
-   * composes it with the column's own name.
-   * @default 'Resize column'
+   * composes it with the column's own name. Left out, React Aria names it in
+   * the reader's locale — "Resizer" in English.
    */
   resizeLabel?: string
   /**
-   * What the select-all checkbox is called, for a screen reader.
-   * @default 'Select all'
+   * What the select-all checkbox is called, for a screen reader. Left out,
+   * React Aria names it in the reader's locale — "Select All" in English.
    */
   selectAllLabel?: string
   /**
    * What each row's selection checkbox is called, for a screen reader. The
    * row's own text is what names the row; this names the box inside it.
-   * @default 'Select'
+   * Left out, React Aria names it in the reader's locale — "Select" in
+   * English.
    */
   selectLabel?: string
   /**
@@ -425,7 +488,7 @@ type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
   stickyHeader?: boolean
   /** A function may compute the style from the table's render state. */
   style?: RACTableProps['style']
-}
+} & Omit<RACTableProps, 'className' | 'style'>
 
 type TableRowProps<T extends object = object> = Omit<
   RACRowProps<T>,
@@ -439,8 +502,8 @@ type TableRowProps<T extends object = object> = Omit<
 
 // What the resize handles are called, for the same reason the selection
 // labels travel this way: it is the table's decision, and repeating it per
-// column is how the two drift.
-const ResizeLabelContext = createContext('Resize column')
+// column is how the two drift. Undefined by default, as they are.
+const ResizeLabelContext = createContext<string | undefined>(undefined)
 
 // Whether the table brought the container. React Aria's resizer throws
 // outright without one — "Wrap your <Table> in a <ResizableTableContainer>",
@@ -463,7 +526,7 @@ const StickyHeaderContext = createContext(false)
 function cellContent(
   children: ReactNode,
   selection: boolean,
-  label: string,
+  label: string | undefined,
 ): ReactNode {
   if (!selection) {
     return children
@@ -478,9 +541,9 @@ function cellStyles(selection: boolean) {
 function columnContent(
   children: ReactNode,
   selection: boolean,
-  label: string,
+  label: string | undefined,
   resizable: boolean,
-  resizeLabel: string,
+  resizeLabel: string | undefined,
 ): RACColumnProps['children'] {
   if (selection) {
     return <Checkbox aria-label={label} slot="selection" />
@@ -497,8 +560,10 @@ function columnContent(
       {resizable ? (
         <RACColumnResizer
           aria-label={resizeLabel}
-          className={resizerClassName}
-        />
+          {...stylex.props(styles.resizer)}
+        >
+          {resizerRule}
+        </RACColumnResizer>
       ) : null}
     </>
   )
@@ -513,6 +578,8 @@ function columnStyles(selection: boolean, sticky: boolean) {
       sticky && styles.sticky,
       selection && styles.selection,
       state.allowsSorting && styles.headerSortable,
+      state.allowsSorting && state.isHovered && styles.headerHovered,
+      state.allowsSorting && state.isPressed && styles.headerPressed,
     )
 }
 
@@ -560,14 +627,16 @@ function resizableContainerClassName() {
   return stylex.props(styles.resizableContainer).className ?? ''
 }
 
-// The handle's classes, from React Aria's own render state — it reports the
-// drag and the keyboard focus separately, and the two get one treatment.
-function resizerClassName(state: ColumnResizerRenderProps) {
+// The rule a handle draws, from React Aria's own render state — it reports
+// the drag and the keyboard focus separately, and the two get one treatment.
+function resizerRule(state: ColumnResizerRenderProps): ReactNode {
   return (
-    stylex.props(
-      styles.resizer,
-      (state.isResizing || state.isFocusVisible) && styles.resizerActive,
-    ).className ?? ''
+    <span
+      {...stylex.props(
+        styles.resizerRule,
+        (state.isResizing || state.isFocusVisible) && styles.resizerRuleActive,
+      )}
+    />
   )
 }
 
@@ -581,6 +650,11 @@ function rowStyles(state: RowRenderProps) {
     // through without it: a colour and an offset the rest of the table does
     // not use, and one no forced-colours mode is obliged to keep.
     styles.focus,
+    // The lists page's dragged row and the drop target a row draws, from
+    // `src/row` as every other collection's row takes them — the dragged one
+    // before the selected container, so a selected row keeps it while it
+    // moves.
+    state.isDragging && rowLayers.dragging,
     state.isSelected && styles.rowSelected,
     // The state layers come from the render state, which is what makes a
     // row that only runs an action — `onRowAction`, a row's `onAction` or
@@ -589,6 +663,7 @@ function rowStyles(state: RowRenderProps) {
     // that is selecting it, running its action or dragging it.
     state.isHovered && rowLayers.hovered,
     state.isPressed && rowLayers.pressed,
+    state.isDropTarget && rowLayers.dropTarget,
     state.isDisabled && styles.rowDisabled,
   )
 }
@@ -642,17 +717,14 @@ function Table({
   onResize,
   onResizeEnd,
   resizable = false,
-  resizeLabel = 'Resize column',
-  selectAllLabel = 'Select all',
-  selectLabel = 'Select',
+  resizeLabel,
+  selectAllLabel,
+  selectLabel,
   stickyHeader = false,
   ...props
 }: RefAttributes<HTMLTableElement> & TableProps) {
   const table = (
-    <RACTable
-      {...props}
-      {...mergeStatefulStyles(stylex.props(styles.table), props)}
-    />
+    <RACTable {...props} {...mergeStatefulStyles(tableClasses, props)} />
   )
 
   return (
@@ -716,6 +788,15 @@ function TableCell({ children, selection = false, ...props }: TableCellProps) {
     <RACCell {...props} {...mergeStatefulStyles(cellStyles(selection), props)}>
       {cellContent(children, selection, label)}
     </RACCell>
+  )
+}
+
+// The table's own classes, with the drop target the other collections'
+// boxes draw while a drop would land on the table as a whole.
+function tableClasses(state: TableRenderProps) {
+  return stylex.props(
+    styles.table,
+    state.isDropTarget && collectionStyles.dropTarget,
   )
 }
 
@@ -793,10 +874,7 @@ function TableHeader<T extends object = object>(props: TableHeaderProps<T>) {
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`. It goes inside `Table.Body`, after the rows.
  */
-function TableLoadMore({
-  label = 'Loading more',
-  ...props
-}: TableLoadMoreProps) {
+function TableLoadMore({ label, ...props }: TableLoadMoreProps) {
   return (
     <RACTableLoadMoreItem
       {...props}
@@ -836,6 +914,16 @@ export type {
   TableLoadMoreProps,
   TableProps,
   TableRowProps,
+}
+
+export {
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableFooter,
+  TableHeader,
+  TableLoadMore,
+  TableRow,
 }
 
 export default Table

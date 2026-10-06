@@ -21,7 +21,11 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
-import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import {
+  collectionStyles,
+  containerClasses,
+  rowItemStyles,
+} from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
@@ -76,8 +80,9 @@ type RACTreeSectionProps<T> = Parameters<typeof RACTreeSection<T>>[0]
 
 // What each row's selection checkbox is called. A context rather than a prop
 // on the row, since it is the tree's decision and repeating it per row is
-// how the two drift.
-const SelectLabelContext = createContext('Select')
+// how the two drift. Undefined unless the tree is given one, which leaves
+// the name React Aria gives in the reader's locale.
+const SelectLabelContext = createContext<string | undefined>(undefined)
 
 const styles = stylex.create({
   // The caret that opens a row. A bare button: the row around it already
@@ -100,15 +105,23 @@ const styles = stylex.create({
     padding: 0,
   },
   chevronExpanded: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
-  // Points at what the row opens, so it turns a quarter once it is open. It
-  // mirrors under a right-to-left writing mode, as every chevron here does.
+  // Points at what the row opens, so it turns a quarter to point down once it
+  // is open. It mirrors under a right-to-left writing mode, as every chevron
+  // here does. Open, the turn goes over the mirror rather than in place of it,
+  // which is what points it down under right-to-left: the turn alone, on the
+  // unmirrored glyph, pointed it up. Both states are written as a turn then a
+  // mirror, so the transition between them turns the glyph rather than
+  // interpolating a matrix that flips it on the way.
   chevronGlyph: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     inlineSize: '24px',
-    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
+    transform: { ':dir(rtl)': 'rotate(0deg) scaleX(-1)', default: 'none' },
     transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
@@ -175,26 +188,25 @@ type TreeLoadMoreProps = Omit<RACTreeLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
 
-type TreeProps<T extends object = object> = Omit<
-  RACTreeProps<T>,
-  'className' | 'style'
-> & {
+type TreeProps<T extends object = object> = {
   /** A function may compute the class from the tree's render state. */
   className?: RACTreeProps<T>['className']
   /**
    * What each row's selection checkbox is called, for a screen reader. The
    * row's own text is what names the row; this names the box inside it.
-   * @default 'Select'
+   * Left out, React Aria names it in the reader's locale — "Select" in
+   * English.
    */
   selectLabel?: string
   /** A function may compute the style from the tree's render state. */
   style?: RACTreeProps<T>['style']
-}
+} & Omit<RACTreeProps<T>, 'className' | 'style'>
 
 type TreeSectionProps<T extends object = object> = Omit<
   RACTreeSectionProps<T>,
@@ -250,7 +262,7 @@ function itemContent(
   leading: ReactNode,
   supporting: ReactNode,
   trailing: ReactNode,
-  selectLabel: string,
+  selectLabel: string | undefined,
   ripple: ReactNode,
 ) {
   return (state: TreeItemRenderProps): ReactNode => (
@@ -291,7 +303,7 @@ function itemContent(
 function leadingFor(
   state: TreeItemRenderProps,
   leading: ReactNode,
-  selectLabel: string,
+  selectLabel: string | undefined,
 ): ReactNode {
   const selects =
     state.selectionBehavior === 'toggle' && state.selectionMode !== 'none'
@@ -338,17 +350,14 @@ function textValueFor(textValue: string | undefined, headline: ReactNode) {
  * the element a layout positions.
  */
 function Tree<T extends object>({
-  selectLabel = 'Select',
+  selectLabel,
   ...props
 }: RefAttributes<HTMLDivElement> & TreeProps<T>) {
   return (
     <SelectLabelContext value={selectLabel}>
       <RACTree<T>
         {...props}
-        {...mergeStatefulStyles(
-          stylex.props(collectionStyles.container),
-          props,
-        )}
+        {...mergeStatefulStyles(containerClasses, props)}
       />
     </SelectLabelContext>
   )
@@ -437,7 +446,7 @@ function TreeItem<T extends object = object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`.
  */
-function TreeLoadMore({ label = 'Loading more', ...props }: TreeLoadMoreProps) {
+function TreeLoadMore({ label, ...props }: TreeLoadMoreProps) {
   return (
     <RACTreeLoadMoreItem
       {...props}
@@ -472,5 +481,7 @@ Tree.LoadMore = TreeLoadMore
 Tree.Section = TreeSection
 
 export type { TreeItemProps, TreeLoadMoreProps, TreeProps, TreeSectionProps }
+
+export { TreeItem, TreeLoadMore, TreeSection }
 
 export default Tree

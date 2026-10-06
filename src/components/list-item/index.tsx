@@ -167,6 +167,7 @@ function ListItem({
           rowStyles.base,
           rowStyles.list,
           rowStyles.interactive,
+          rowStyles.interactiveLayers,
           twoLine && rowStyles.twoLine,
           threeLine && rowStyles.threeLine,
           isDisabled && rowStyles.disabled,

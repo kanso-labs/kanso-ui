@@ -8,7 +8,7 @@ import IconButton from '../components/icon-button'
 import ProgressIndicator from '../components/progress-indicator'
 import Snackbar from '../components/snackbar'
 import { rulesReaching } from '../styles/stylesheet.testing'
-import { motion, sizing, spacing } from './design.tokens.stylex'
+import { motion, sizing, spacing, typography } from './design.tokens.stylex'
 
 // `--kui-*` is the documented override contract, so a consumer who resizes or
 // retimes one of these expects everything drawn from it to follow. A value
@@ -177,3 +177,103 @@ function maxInlineSizesOf(element: Element): string[] {
     .map((rule) => rule.style.getPropertyValue('max-width'))
     .filter((value) => value !== '')
 }
+
+// The typeface roles and the regular weight are part of the contract too, and
+// every style of the scale aliases one of them: display, headline and title
+// the brand face, body and label the plain one, and most of them the regular
+// weight. The aliases used to be flattened to their literals, so setting the
+// brand face — the obvious one-line retheme — changed nothing, and a scheme
+// had to restate every role instead.
+//
+// Set on `:root`, as the README asks of a consumer: the vars resolve there, so
+// a scoped override is what `stylex.createTheme` is for, and the demo schemes
+// keep restating each role for that reason.
+const typeStyles = stylex.create({
+  body: {
+    fontFamily: typography.bodyLargeFont,
+    fontWeight: typography.bodyLargeWeight,
+  },
+  display: {
+    fontFamily: typography.displayLargeFont,
+    fontWeight: typography.displayLargeWeight,
+  },
+})
+
+/** What the two probes resolve to with `property` set to `value` on `:root`. */
+function typeUnder(property: string, value: string) {
+  const root = document.documentElement
+  root.style.setProperty(property, value)
+
+  try {
+    const view = render(
+      <>
+        <span data-testid="display" {...stylex.props(typeStyles.display)} />
+        <span data-testid="body" {...stylex.props(typeStyles.body)} />
+      </>,
+    )
+    const read = (id: string) => getComputedStyle(view.getByTestId(id))
+    const result = {
+      body: {
+        family: read('body').fontFamily,
+        weight: read('body').fontWeight,
+      },
+      display: {
+        family: read('display').fontFamily,
+        weight: read('display').fontWeight,
+      },
+    }
+    view.unmount()
+    return result
+  } finally {
+    root.style.removeProperty(property)
+  }
+}
+
+describe('a typeface a consumer moved', () => {
+  it('reaches every style that uses the brand face, and only those', () => {
+    const { body, display } = typeUnder(
+      '--kui-typography-font-family-brand',
+      'Courier',
+    )
+
+    expect(display.family).toBe('Courier')
+    expect(body.family).not.toBe('Courier')
+  })
+
+  it('reaches every style that uses the plain face, and only those', () => {
+    const { body, display } = typeUnder(
+      '--kui-typography-font-family-plain',
+      'Courier',
+    )
+
+    expect(body.family).toBe('Courier')
+    expect(display.family).not.toBe('Courier')
+  })
+
+  it('reaches every style that uses the regular weight', () => {
+    const { body, display } = typeUnder(
+      '--kui-typography-weight-regular',
+      '300',
+    )
+
+    expect(display.weight).toBe('300')
+    expect(body.weight).toBe('300')
+  })
+
+  // The role's own var is still read first, so a consumer who set one role
+  // keeps it whatever the face it aliases says.
+  it("lets a role's own override win over its typeface", () => {
+    const root = document.documentElement
+    root.style.setProperty('--kui-typography-display-large-font', 'Georgia')
+
+    try {
+      const { display } = typeUnder(
+        '--kui-typography-font-family-brand',
+        'Courier',
+      )
+      expect(display.family).toBe('Georgia')
+    } finally {
+      root.style.removeProperty('--kui-typography-display-large-font')
+    }
+  })
+})
