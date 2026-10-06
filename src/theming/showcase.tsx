@@ -71,6 +71,8 @@ import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
+import NavigationBar from '../components/navigation-bar'
+import NavigationRail from '../components/navigation-rail'
 import NavigationTree from '../components/navigation-tree'
 import NumberField from '../components/number-field'
 import Popover from '../components/popover'
@@ -238,6 +240,12 @@ const styles = stylex.create({
     borderWidth: '1px',
     boxSizing: 'border-box',
     padding: spacing.md,
+  },
+  // Two rails side by side, as tall as a short window.
+  rails: {
+    blockSize: '320px',
+    display: 'flex',
+    gap: spacing.lg,
   },
   row: {
     alignItems: 'center',
@@ -1058,6 +1066,56 @@ function Showcase({ name }: ShowcaseProps) {
           >
             <Meter label="Label" value={60} />
             <Meter label="Label" tone="negative" value={94} />
+          </Section>
+
+          <Section
+            description="The current destination's pill is the secondary container a scheme sets, its label the secondary role; at this width each destination is a horizontal pill, and below 600px each turns vertical."
+            title="NavigationBar"
+          >
+            <NavigationBar aria-label="First label" selectedRoute="#first">
+              <NavigationBar.Item href="#first" icon={<MenuIcon />}>
+                First item
+              </NavigationBar.Item>
+              <NavigationBar.Item
+                aria-label="Second item, 3 new"
+                badge={3}
+                href="#second"
+                icon={<MoreIcon />}
+              >
+                Second item
+              </NavigationBar.Item>
+              <NavigationBar.Item href="#third" icon={<PlusIcon />}>
+                Third item
+              </NavigationBar.Item>
+            </NavigationBar>
+          </Section>
+
+          <Section
+            description="The same destinations down the leading edge, collapsed and expanded, on the surface role a scheme sets."
+            title="NavigationRail"
+          >
+            <div {...stylex.props(styles.rails)}>
+              <NavigationRail aria-label="Second label" selectedRoute="#first">
+                <NavigationRail.Item href="#first" icon={<MenuIcon />}>
+                  First item
+                </NavigationRail.Item>
+                <NavigationRail.Item href="#second" icon={<MoreIcon />}>
+                  Second item
+                </NavigationRail.Item>
+              </NavigationRail>
+              <NavigationRail
+                aria-label="Third label"
+                isExpanded
+                selectedRoute="#first"
+              >
+                <NavigationRail.Item href="#first" icon={<MenuIcon />}>
+                  First item
+                </NavigationRail.Item>
+                <NavigationRail.Item href="#second" icon={<MoreIcon />}>
+                  Second item
+                </NavigationRail.Item>
+              </NavigationRail>
+            </div>
           </Section>
 
           <Section
