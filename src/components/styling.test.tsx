@@ -36,6 +36,7 @@ import {
   Disclosure,
   DisclosureGroup,
   DropZone,
+  Fab,
   Feed,
   Form,
   IconButton,
@@ -290,6 +291,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     element: <DropZone {...PROBE} label="Drop here" />,
     name: 'DropZone',
   },
+  { element: <Fab {...PROBE}>Label</Fab>, name: 'Fab' },
   {
     element: (
       <Feed {...PROBE}>

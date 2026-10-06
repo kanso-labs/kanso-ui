@@ -139,6 +139,7 @@ import type {
   TreeProps,
 } from '.'
 import type { BadgeProps } from './badge'
+import type { FabProps } from './fab'
 import type { NavigationBarProps } from './navigation-bar'
 import type { NavigationRailProps } from './navigation-rail'
 
@@ -186,6 +187,7 @@ import DisclosureDefault, {
 } from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
 import DropZoneDefault, { FileTrigger as FileTriggerNamed } from './drop-zone'
+import FabDefault from './fab'
 import FeedDefault from './feed'
 import FormDefault from './form'
 import IconButtonDefault from './icon-button'
@@ -365,6 +367,7 @@ describe('components barrel', () => {
       'DisclosureHeader',
       'DisclosurePanel',
       'DropZone',
+      'Fab',
       'Feed',
       'FileTrigger',
       'Form',
@@ -504,6 +507,7 @@ describe('components barrel', () => {
     DisclosureHeader: [components.DisclosureHeader, DisclosureHeader],
     DisclosurePanel: [components.DisclosurePanel, DisclosurePanel],
     DropZone: [components.DropZone, DropZoneDefault],
+    Fab: [components.Fab, FabDefault],
     Feed: [components.Feed, FeedDefault],
     FileTrigger: [components.FileTrigger, FileTriggerNamed],
     Form: [components.Form, FormDefault],
@@ -1336,6 +1340,11 @@ describe('components barrel', () => {
 
   it('re-exports the NavigationRailProps type', () => {
     const props: NavigationRailProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the FabProps type', () => {
+    const props: FabProps = { children: 'test' }
     expect(props.children).toBe('test')
   })
 })

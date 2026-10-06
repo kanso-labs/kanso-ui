@@ -60,6 +60,7 @@ import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
 import DropZone, { FileTrigger } from '../components/drop-zone'
+import Fab from '../components/fab'
 import Feed from '../components/feed'
 import Form from '../components/form'
 import IconButton from '../components/icon-button'
@@ -902,6 +903,23 @@ function Showcase({ name }: ShowcaseProps) {
                 <Button variant="outlined">Label</Button>
               </FileTrigger>
             </DropZone>
+          </Section>
+
+          <Section
+            description="Each tone reads its container off a colour role, its corner off the radius scale and its lift off the shadow scale, the extended form's label off the type scale as well."
+            title="Fab"
+          >
+            <div {...stylex.props(styles.row)}>
+              <Fab aria-label="Label">
+                <PlusIcon />
+              </Fab>
+              <Fab aria-label="Label" tone="secondary" variant="filled">
+                <PlusIcon />
+              </Fab>
+              <Fab label="Label" tone="tertiary">
+                <PlusIcon />
+              </Fab>
+            </div>
           </Section>
 
           <Section
