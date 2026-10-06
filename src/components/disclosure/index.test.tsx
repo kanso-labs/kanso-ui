@@ -24,7 +24,10 @@ const probeStyles = stylex.create({
   },
   open: { gridTemplateRows: '1fr' },
   turned: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
 })
 
@@ -235,13 +238,17 @@ describe('disclosure', () => {
 
     // Read as the browser resolved it rather than as a class, since what is
     // under test is that the rule reaches an element whose direction is set
-    // by `dir` — the only thing `:dir()` reads.
-    it('mirrors under a right-to-left direction, open or closed', () => {
+    // by `dir` — the only thing `:dir()` reads. The glyph points to the
+    // inline end, so it mirrors while closed; open, it points down either
+    // way, since the block axis does not turn over with the writing
+    // direction. `{ a: 0, b: -1 }` was up, which is what the turn alone did
+    // to the unmirrored glyph.
+    it('points to the inline end while closed, and down once open', () => {
       expect(chevronUnder({ dir: 'ltr' })).toEqual({ a: 1, b: 0 })
       expect(chevronUnder({ dir: 'rtl' })).toEqual({ a: -1, b: 0 })
 
       expect(chevronUnder({ dir: 'ltr' }, true)).toEqual({ a: 0, b: 1 })
-      expect(chevronUnder({ dir: 'rtl' }, true)).toEqual({ a: 0, b: -1 })
+      expect(chevronUnder({ dir: 'rtl' }, true)).toEqual({ a: 0, b: 1 })
     })
 
     // A language does not reverse a document's text on its own, so it must

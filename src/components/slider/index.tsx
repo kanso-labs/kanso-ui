@@ -102,7 +102,12 @@ const styles = stylex.create({
     minInlineSize: '48px',
     paddingInline: spacing.md,
     position: 'absolute',
-    transform: 'translateX(-50%)',
+    // Back by half its own width, to centre it on the handle. The inset that
+    // puts its start edge at the handle's centre is logical and the
+    // translate is physical, so under right-to-left, where that start edge is
+    // the right one, it moves the other way: a single physical translate put
+    // the indicator a whole width to the left of the handle there.
+    transform: { ':dir(rtl)': 'translateX(50%)', default: 'translateX(-50%)' },
     whiteSpace: 'nowrap',
   },
   indicatorVertical: {

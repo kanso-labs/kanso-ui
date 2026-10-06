@@ -101,15 +101,23 @@ const styles = stylex.create({
     padding: 0,
   },
   chevronExpanded: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
-  // Points at what the row opens, so it turns a quarter once it is open. It
-  // mirrors under a right-to-left writing mode, as every chevron here does.
+  // Points at what the row opens, so it turns a quarter to point down once it
+  // is open. It mirrors under a right-to-left writing mode, as every chevron
+  // here does. Open, the turn goes over the mirror rather than in place of it,
+  // which is what points it down under right-to-left: the turn alone, on the
+  // unmirrored glyph, pointed it up. Both states are written as a turn then a
+  // mirror, so the transition between them turns the glyph rather than
+  // interpolating a matrix that flips it on the way.
   chevronGlyph: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     inlineSize: '24px',
-    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
+    transform: { ':dir(rtl)': 'rotate(0deg) scaleX(-1)', default: 'none' },
     transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,

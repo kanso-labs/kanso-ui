@@ -61,20 +61,27 @@ import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 const styles = stylex.create({
   // Points at what the section opens, so it turns a quarter to point down
   // once it is open. It mirrors under a right-to-left writing mode, as every
-  // chevron here does.
+  // chevron here does. Open, the turn goes over the mirror rather than in place of it,
+  // which is what points it down under right-to-left: the turn alone, on the
+  // unmirrored glyph, pointed it up. Both states are written as a turn then a
+  // mirror, so the transition between them turns the glyph rather than
+  // interpolating a matrix that flips it on the way.
   chevron: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '24px',
     color: colors.onSurfaceVariant,
     flexShrink: 0,
     inlineSize: '24px',
-    transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
+    transform: { ':dir(rtl)': 'rotate(0deg) scaleX(-1)', default: 'none' },
     transitionDuration: motion.durationShort3,
     transitionProperty: 'transform',
     transitionTimingFunction: motion.easingStandard,
   },
   chevronExpanded: {
-    transform: { ':dir(rtl)': 'rotate(-90deg)', default: 'rotate(90deg)' },
+    transform: {
+      ':dir(rtl)': 'rotate(-90deg) scaleX(-1)',
+      default: 'rotate(90deg)',
+    },
   },
   // The header row. `textAlign: start` because a button centres its label and
   // a row's headline runs from the leading edge.
