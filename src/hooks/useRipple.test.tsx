@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '../components/button'
@@ -19,6 +19,17 @@ const HOST_STYLE = {
   position: 'relative',
   width: '100px',
 } as const
+
+/** A host that ends its press on its click, as a button does. */
+function ClickHost() {
+  const ripple = useRipple<HTMLDivElement>()
+
+  return (
+    <div data-testid="host" style={HOST_STYLE} {...ripple.handlers}>
+      {ripple.surface}
+    </div>
+  )
+}
 
 /** Presses `button` with a mouse, which is what starts the growth. */
 function press(button: Element) {
@@ -204,5 +215,107 @@ describe('a press that ends on its release', () => {
     firePointer(host, 'pointerup', { pointerType: 'touch' })
     await advance(MINIMUM_PRESS_MS)
     expect(isPressed(host)).toBe(false)
+  })
+})
+
+// React Aria's press handling releases the capture a touch takes, so a press
+// that turns into a scroll, or a finger that slides off the host and lifts,
+// ends on whatever element is under it. The host hears none of that, and the
+// ripple held at its pressed opacity until the next press on it.
+describe('a press that ends away from its host', () => {
+  let restoreAnimate: () => void
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    restoreAnimate = installFakeAnimate()
+  })
+
+  afterEach(() => {
+    restoreAnimate()
+    vi.useRealTimers()
+  })
+
+  it('lets a held touch go when the touch is cancelled elsewhere', async () => {
+    const view = render(<ClickHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+    expect(isPressed(host)).toBe(true)
+
+    firePointer(document.body, 'pointercancel', { pointerType: 'touch' })
+    await advance(MINIMUM_PRESS_MS)
+    expect(isPressed(host)).toBe(false)
+  })
+
+  it('lets a held touch go when the finger lifts elsewhere', async () => {
+    const view = render(<ClickHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+    firePointer(document.body, 'pointerup', { pointerType: 'touch' })
+    await advance(MINIMUM_PRESS_MS)
+
+    expect(isPressed(host)).toBe(false)
+  })
+
+  // A quick flick cancels before the delay is out, and the delay used to
+  // start the ripple regardless, since nothing on the host had said so.
+  it('starts no ripple for a touch cancelled elsewhere during the delay', async () => {
+    const view = render(<ClickHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    firePointer(document.body, 'pointercancel', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+
+    expect(isPressed(host)).toBe(false)
+  })
+
+  it('keeps the press through the end of another pointer', async () => {
+    const view = render(<ClickHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+    firePointer(document.body, 'pointercancel', {
+      pointerId: 2,
+      pointerType: 'touch',
+    })
+    await advance(MINIMUM_PRESS_MS)
+
+    expect(isPressed(host)).toBe(true)
+  })
+
+  // A release on the host is the host's own to handle: the press waits for
+  // the click that follows it, as it always has.
+  it('leaves a release on the host to the host', async () => {
+    const view = render(<ClickHost />)
+    const host = view.getByTestId('host')
+
+    firePointer(host, 'pointerdown', { pointerType: 'touch' })
+    await advance(motionDurationMs.short2)
+    firePointer(host, 'pointerup', { pointerType: 'touch' })
+    await advance(MINIMUM_PRESS_MS)
+    expect(isPressed(host)).toBe(true)
+
+    fireEvent.click(host)
+    await advance(MINIMUM_PRESS_MS)
+    expect(isPressed(host)).toBe(false)
+  })
+
+  it('stops listening once the host is gone', () => {
+    const remove = vi.spyOn(document, 'removeEventListener')
+    const view = render(<ClickHost />)
+
+    firePointer(view.getByTestId('host'), 'pointerdown', {
+      pointerType: 'touch',
+    })
+    view.unmount()
+
+    expect(new Set(remove.mock.calls.map(([type]) => type))).toEqual(
+      new Set(['pointercancel', 'pointerup']),
+    )
   })
 })
