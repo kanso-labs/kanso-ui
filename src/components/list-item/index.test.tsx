@@ -21,6 +21,9 @@ import {
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 
+// The query the row's hover waits on, spelled as src/row/styles.ts spells it.
+const HOVER_CAPABLE = '@media (hover: hover)'
+
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
   bodyMedium: { fontSize: typography.bodyMediumSize },
@@ -30,11 +33,19 @@ const probeStyles = stylex.create({
   labelSmall: { fontSize: typography.labelSmallSize },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   // The interactive row's two tints and nothing else, written as the row
-  // module writes them so they hash to the same atomic classes.
+  // module writes them so they hash to the same atomic classes: the hover
+  // inside the query for a pointer that can hover, and the press both bare
+  // and inside it.
   tints: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      },
       default: null,
     },
   },
