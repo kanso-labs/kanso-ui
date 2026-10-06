@@ -65,7 +65,15 @@ export default defineConfig({
       // `scripts/check-package.mjs` checks that it reached dist/styles.css.
       lightningcssOptions: { exclude: Features.DirSelector },
       runtimeInjection: false,
-      useCSSLayers: true,
+      // The library's rules land in `kanso.priority1` onward rather than in
+      // bare `priorityN` layers, so an app whose own CSS is layered can order
+      // the library by one name: Tailwind v4's `base` before it and its
+      // `utilities` after, which no import order manages with the bare ones.
+      // The name is a public contract — see "Ordering the library's rules"
+      // in the README — and `scripts/check-package.mjs` fails if it changes.
+      // `vite.config.ts` uses it too, so the tests read the layers a consumer
+      // gets.
+      useCSSLayers: { prefix: 'kanso' },
     }),
     // The threshold is `all_errors` rather than the default. Left to itself
     // the compiler skips a function it cannot compile and says nothing, so a

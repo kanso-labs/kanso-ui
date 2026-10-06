@@ -97,6 +97,10 @@ const THEMING = `:root {
 
 const STYLESHEET = `import '@kanso-labs/kanso-ui/styles.css'`
 
+const LAYERS = `/* Tailwind v4: the preflight before the library, utilities after it */
+@layer theme, base, kanso, components, utilities;
+@import 'tailwindcss';`
+
 const styles = stylex.create({
   header: {
     display: 'flex',
@@ -240,11 +244,20 @@ function GettingStartedPage() {
         </Card>
         <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The library&apos;s own rules compile into a CSS <Code>@layer</Code>{' '}
-            and an app&apos;s stylesheet is unlayered, so your rules win
-            wherever the two meet — no specificity contest, and no{' '}
-            <Code>!important</Code>.
+            The library&apos;s own rules compile into one CSS cascade layer,{' '}
+            <Code>kanso</Code>, so a stylesheet of yours that is not layered
+            wins wherever the two meet — no specificity contest, and no{' '}
+            <Code>!important</Code>. An app whose CSS is layered, as Tailwind
+            v4&apos;s is, names where <Code>kanso</Code> goes, at the top of the
+            stylesheet it loads first.
           </Text>
+        </div>
+        <Card variant="filled">
+          <pre {...stylex.props(styles.snippet)}>
+            <Code>{LAYERS}</Code>
+          </pre>
+        </Card>
+        <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             No component carries a margin of its own. The space between two
             things belongs to whatever holds both of them, which is what{' '}
