@@ -1,8 +1,12 @@
+import type { ComponentProps } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
+import { firePointer } from '../../hooks/useRipple.testing'
 import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -219,6 +223,24 @@ async function widthAfterPressing(segment: Element) {
   fireEvent.click(segment)
   await settle(track)
   return track.getBoundingClientRect().width
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the selected state it was handed beside the props.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isSelected: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-selected': String(state.isSelected),
+  })
 }
 
 describe('segmented button', () => {
@@ -680,6 +702,229 @@ describe('segmented button', () => {
       expect(
         view.container.querySelector('span[aria-hidden="true"]'),
       ).toBeNull()
+    })
+
+    // A disabled set disables its segments through React Aria's group state
+    // rather than their props, and the ripple has to hear of it: a press
+    // that started one on a disabled segment waited for a click the segment
+    // never receives.
+    it('renders none while the whole set is disabled', () => {
+      const view = setup({ isDisabled: true })
+      expect(
+        view.container.querySelector('span[aria-hidden="true"]'),
+      ).toBeNull()
+    })
+
+    // The ripple runs its own handling first and then the call site's
+    // handler of the same name. Spread beside the ripple's own, the call
+    // site's were written over, and none of the six ran.
+    it('calls every pointer handler the call site passed', () => {
+      const handlers = {
+        onClick: vi.fn<() => void>(),
+        onContextMenu: vi.fn<() => void>(),
+        onPointerCancel: vi.fn<() => void>(),
+        onPointerDown: vi.fn<() => void>(),
+        onPointerLeave: vi.fn<() => void>(),
+        onPointerUp: vi.fn<() => void>(),
+      }
+      const view = setup(
+        {},
+        <SegmentedButton.Segment id="first" {...handlers}>
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const segment = view.getByRole('radio')
+
+      firePointer(segment, 'pointerdown', { buttons: 1 })
+      // React derives a leave from the bubbling `pointerout`.
+      firePointer(segment, 'pointerout', {
+        buttons: 1,
+        relatedTarget: document.body,
+      })
+      firePointer(segment, 'pointercancel', { buttons: 1 })
+      firePointer(segment, 'pointerup', { buttons: 0 })
+      fireEvent.click(segment)
+      fireEvent.contextMenu(segment)
+
+      for (const handler of Object.values(handlers)) {
+        expect(handler).toHaveBeenCalled()
+      }
+    })
+  })
+
+  // React Aria builds a toggle button's DOM props from an allowlist: no
+  // keyboard handler is on it, and of the `aria-*` props only the labelling
+  // four and the state it manages itself. Everything else a call site passes
+  // is dropped before it reaches the element, which is what
+  // `src/render/aria.tsx` exists to put back. Chip's tests, copied.
+  describe('what it puts on the element', () => {
+    it('calls a keyboard handler the call site passed', () => {
+      const onKeyDown = vi.fn<() => void>()
+      const onKeyUp = vi.fn<() => void>()
+      const view = setup(
+        {},
+        <SegmentedButton.Segment
+          id="first"
+          onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
+        >
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const segment = view.getByRole('radio')
+
+      fireEvent.keyDown(segment, { key: 'a' })
+      fireEvent.keyUp(segment, { key: 'a' })
+
+      expect(onKeyDown).toHaveBeenCalledTimes(1)
+      expect(onKeyUp).toHaveBeenCalledTimes(1)
+    })
+
+    // React Aria wraps a handler it is given so that it stops propagation
+    // unless the handler asks otherwise, which is its convention rather than
+    // the DOM's. On the element directly it bubbles, so an Escape pressed on
+    // a segment inside a dialog still reaches the dialog.
+    //
+    // The segment has to carry its own handler for this to mean anything:
+    // React Aria installs no wrapper when there is none to wrap, so a segment
+    // without one bubbles either way.
+    it('lets that handler bubble to an ancestor', () => {
+      const onAncestorKeyDown = vi.fn<() => void>()
+      const onKeyDown = vi.fn<() => void>()
+      const view = render(
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- the listener is the subject of the test
+        <div onKeyDown={onAncestorKeyDown}>
+          <SegmentedButton aria-label="Label">
+            <SegmentedButton.Segment id="first" onKeyDown={onKeyDown}>
+              First item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('radio'), { key: 'Escape' })
+
+      expect(onKeyDown).toHaveBeenCalledTimes(1)
+      expect(onAncestorKeyDown).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps the non-labelling aria attributes the call site set', () => {
+      const view = setup(
+        {},
+        <SegmentedButton.Segment
+          aria-controls="panel"
+          aria-keyshortcuts="Control+K"
+          id="first"
+        >
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const segment = view.getByRole('radio')
+
+      expect(segment).toHaveAttribute('aria-controls', 'panel')
+      expect(segment).toHaveAttribute('aria-keyshortcuts', 'Control+K')
+    })
+
+    // The labelling four are React Aria's own, and may combine with what a
+    // parent gives through context, so they are left to it rather than
+    // written over with the call site's copy.
+    it('leaves the labelling attributes to React Aria', () => {
+      const view = setup(
+        {},
+        <SegmentedButton.Segment aria-label="Label" id="first">
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const segment = view.getByRole('radio')
+
+      expect(segment).toHaveAttribute('aria-label', 'Label')
+      // The state React Aria manages itself still reaches the element too.
+      expect(segment).toHaveAttribute('aria-checked', 'false')
+    })
+  })
+
+  // React Aria's `render` is how a call site swaps in an element of its own,
+  // and what the segment adds past React Aria — the props above, and its
+  // styles — has to reach that element too.
+  describe('a render function from the call site', () => {
+    it('renders the element it returns, with the classes the segment carries', () => {
+      const plain = setup(
+        {},
+        <SegmentedButton.Segment id="first">
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const classes = plain.getByRole('radio').className
+      plain.unmount()
+      // Two empty class lists would compare equal however the styles were
+      // lost.
+      expect(classes).not.toBe('')
+
+      const view = setup(
+        {},
+        <SegmentedButton.Segment id="first" render={wrapped}>
+          First item
+        </SegmentedButton.Segment>,
+      )
+      const segment = view.getByRole('radio')
+
+      expect(segment).toHaveAttribute('data-wrapped')
+      expect(segment.className).toBe(classes)
+    })
+
+    it('hands it the render state', () => {
+      const view = setup(
+        { defaultSelectedKeys: FIRST },
+        <SegmentedButton.Segment id="first" render={wrappedWithState}>
+          First item
+        </SegmentedButton.Segment>,
+      )
+
+      expect(view.getByRole('radio')).toHaveAttribute(
+        'data-state-selected',
+        'true',
+      )
+    })
+
+    it('hands it the aria attributes React Aria would drop', () => {
+      const view = setup(
+        {},
+        <SegmentedButton.Segment
+          aria-keyshortcuts="Control+K"
+          id="first"
+          render={wrapped}
+        >
+          First item
+        </SegmentedButton.Segment>,
+      )
+
+      expect(view.getByRole('radio')).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Control+K',
+      )
+    })
+
+    it('hands it keyboard handlers that bubble', () => {
+      const inner = vi.fn<() => void>()
+      const outer = vi.fn<() => void>()
+      const view = render(
+        <div onKeyDown={outer} role="presentation">
+          <SegmentedButton aria-label="Label">
+            <SegmentedButton.Segment
+              id="first"
+              onKeyDown={inner}
+              render={wrapped}
+            >
+              First item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('radio'), { key: 'Escape' })
+
+      expect(inner).toHaveBeenCalledOnce()
+      expect(outer).toHaveBeenCalledOnce()
     })
   })
 

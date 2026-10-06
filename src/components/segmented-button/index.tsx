@@ -19,6 +19,8 @@ import {
 
 import { CheckGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { useToggleGroupDisabled } from '../../hooks/useToggleGroupDisabled'
+import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -646,20 +648,48 @@ function SegmentedButtonSegment({
   children,
   disableRipple = false,
   icon,
+  onClick,
+  onContextMenu,
+  onKeyDown,
+  onKeyUp,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
+  render,
   ...props
 }: SegmentedButtonSegmentProps) {
   const selectionMode = useContext(SelectionModeContext)
   const showSelectedIcon = useContext(ShowSelectedIconContext)
+  // The `aria-*` props React Aria would drop and the keyboard handlers it
+  // would wrap go on the element itself, as they do on Chip, Button and
+  // IconButton; see src/render/aria.tsx.
+  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
   // Off while disabled, as in Button: a control that cannot be pressed
-  // should not answer a press with an animation.
+  // should not answer a press with an animation. A disabled set disables
+  // its segments through React Aria's group state rather than their props,
+  // so the group is read as well.
+  const disabledByGroup = useToggleGroupDisabled(props.id)
+  // The call site's pointer handlers go through the ripple, which calls
+  // them after its own. Spread beside the ripple's, one of the two sets
+  // would write over the other.
   const ripple = useRipple<FocusableElement>(
-    !disableRipple && props.isDisabled !== true,
+    !disableRipple && props.isDisabled !== true && !disabledByGroup,
+    {
+      onClick,
+      onContextMenu,
+      onPointerCancel,
+      onPointerDown,
+      onPointerLeave,
+      onPointerUp,
+    },
   )
 
   return (
     <RACToggleButton
-      {...props}
+      render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
+      {...props}
       {...mergeStatefulStyles(segmentStyles, props)}
     >
       {segmentContent(children, icon, ripple, selectionMode, showSelectedIcon)}
