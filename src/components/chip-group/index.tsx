@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type { ReactElement, ReactNode, RefAttributes } from 'react'
 import type {
   TagGroupProps as RACTagGroupProps,
   TagListProps as RACTagListProps,
@@ -99,8 +99,11 @@ type ChipGroupChipProps = Omit<
 }
 
 type ChipGroupProps<T extends object = object> = {
-  /** The chips, each with an `id` of its own. */
-  children?: ReactNode
+  /**
+   * The chips, each with an `id` of its own. With `items`, a function from an
+   * item to its chip, which React Aria calls for each item in turn.
+   */
+  children?: ((item: T) => ReactElement) | ReactNode
   /**
    * A hint under the group. Replaced by `error` when there is one, so the
    * two never stack.

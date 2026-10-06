@@ -131,6 +131,17 @@ function setupMultiple(
   }
 }
 
+// A list from data, and the function React Aria calls for each item in it.
+const ITEMS = [
+  { id: 'first', name: 'First item' },
+  { id: 'second', name: 'Second item' },
+  { id: 'third', name: 'Third item' },
+]
+
+function optionFor(item: (typeof ITEMS)[number]) {
+  return <ListBox.Item id={item.id}>{item.name}</ListBox.Item>
+}
+
 // Matches from the start of the text rather than anywhere in it, which the
 // default contains filter does not.
 function startsWith(textValue: string, inputValue: string) {
@@ -209,6 +220,51 @@ describe('combo box', () => {
 
       await waitFor(() => {
         expect(view.queryAllByRole('option')).toHaveLength(0)
+      })
+    })
+  })
+
+  // React Aria pairs `items` and `defaultItems` with a function from an item
+  // to its option. `options` takes that function, so the data is passed
+  // once rather than once more inside a `Collection`.
+  describe('from data', () => {
+    it('renders an option for each item, and filters them as typed', async () => {
+      const view = render(
+        <div style={WIDTH}>
+          <ComboBox defaultItems={ITEMS} label="Label" options={optionFor} />
+        </div>,
+      )
+
+      fireEvent.click(view.getByRole('button'))
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+      act(() => {
+        fireEvent.change(inputOf(view), { target: { value: 'Sec' } })
+      })
+
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(1)
+      })
+      expect(view.getByRole('option', { name: 'Second item' })).not.toBeNull()
+    })
+
+    // `items` is what a list fetched with `useAsyncList` arrives as, and it
+    // turns React Aria's own filtering off: the call site filters.
+    it('shows every item given as items, leaving the filtering to the call site', async () => {
+      const view = render(
+        <div style={WIDTH}>
+          <ComboBox items={ITEMS} label="Label" options={optionFor} />
+        </div>,
+      )
+
+      fireEvent.click(view.getByRole('button'))
+      act(() => {
+        fireEvent.change(inputOf(view), { target: { value: 'Sec' } })
+      })
+
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
       })
     })
   })
