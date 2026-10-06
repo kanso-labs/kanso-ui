@@ -17,6 +17,7 @@ import type {
   ButtonVariant,
   CalendarProps,
   CardProps,
+  CardVariant,
   CheckboxGroupProps,
   CheckboxProps,
   ChipGroupChipProps,
@@ -36,6 +37,8 @@ import type {
   ContainerProps,
   CopyFieldProps,
   CurrencyProps,
+  CurrencySignDisplay,
+  CurrencyTone,
   DateFieldProps,
   DatePickerProps,
   DateRangePickerProps,
@@ -96,6 +99,7 @@ import type {
   RangeCalendarProps,
   SearchFieldProps,
   SegmentedButtonProps,
+  SegmentedButtonSegmentProps,
   SelectProps,
   SeparatorInset,
   SeparatorProps,
@@ -119,6 +123,8 @@ import type {
   TabsProps,
   TabsTabProps,
   TagProps,
+  TagTone,
+  TagVariant,
   TextAreaProps,
   TextFieldProps,
   TextProps,
@@ -665,6 +671,11 @@ describe('components barrel', () => {
     expect(props['aria-label']).toBe('Label')
   })
 
+  it('re-exports the SegmentedButtonSegmentProps type', () => {
+    const props: SegmentedButtonSegmentProps = { id: 'first' }
+    expect(props.id).toBe('first')
+  })
+
   it('re-exports the TextAreaProps type', () => {
     const props: TextAreaProps = { label: 'Label' }
     expect(props.label).toBe('Label')
@@ -849,9 +860,24 @@ describe('components barrel', () => {
     expect(value).toBe('filled')
   })
 
+  it('re-exports the CardVariant type', () => {
+    const value: CardVariant = 'outlined'
+    expect(value).toBe('outlined')
+  })
+
   it('re-exports the ComboBoxSelectionMode type', () => {
     const value: ComboBoxSelectionMode = 'single'
     expect(value).toBe('single')
+  })
+
+  it('re-exports the CurrencySignDisplay type', () => {
+    const value: CurrencySignDisplay = 'always'
+    expect(value).toBe('always')
+  })
+
+  it('re-exports the CurrencyTone type', () => {
+    const value: CurrencyTone = 'auto'
+    expect(value).toBe('auto')
   })
 
   it('re-exports the FieldVariant type', () => {
@@ -927,6 +953,16 @@ describe('components barrel', () => {
   it('re-exports the SeparatorInset type', () => {
     const value: SeparatorInset = 'none'
     expect(value).toBe('none')
+  })
+
+  it('re-exports the TagTone type', () => {
+    const value: TagTone = 'positive'
+    expect(value).toBe('positive')
+  })
+
+  it('re-exports the TagVariant type', () => {
+    const value: TagVariant = 'outlined'
+    expect(value).toBe('outlined')
   })
 
   it('re-exports the ToolbarTone type', () => {

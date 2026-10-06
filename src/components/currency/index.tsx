@@ -64,7 +64,7 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * only where the direction is already stated some other way.
    * @default 'auto'
    */
-  sign?: SignDisplay
+  sign?: CurrencySignDisplay
   /**
    * Which colour role to render in. `auto` follows the sign of `value`, with
    * zero reading as neutral.
@@ -76,14 +76,14 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * a custom theme placing one there has to check that pair itself.
    * @default 'auto'
    */
-  tone?: Tone
+  tone?: CurrencyTone
   /** The amount, in the currency's major units. */
   value: number
 }
 
-type SignDisplay = 'always' | 'auto' | 'never'
+type CurrencySignDisplay = 'always' | 'auto' | 'never'
 
-type Tone = 'auto' | 'negative' | 'neutral' | 'positive'
+type CurrencyTone = 'auto' | 'negative' | 'neutral' | 'positive'
 
 function Currency({
   currency = 'USD',
@@ -133,7 +133,11 @@ const formatters = new Map<string, Intl.NumberFormat>()
 // parentheses have no minus to swap at all — both of which this leaves alone.
 function formatCurrency(
   value: number,
-  options: { currency: string; locale: string | undefined; sign: SignDisplay },
+  options: {
+    currency: string
+    locale: string | undefined
+    sign: CurrencySignDisplay
+  },
 ) {
   return formatterFor(options.locale, options.currency, options.sign)
     .formatToParts(value)
@@ -144,7 +148,7 @@ function formatCurrency(
 function formatterFor(
   locale: string | undefined,
   currency: string,
-  sign: SignDisplay,
+  sign: CurrencySignDisplay,
 ) {
   // Neither a BCP 47 locale nor an ISO 4217 code can contain a vertical bar
   // and `sign` is one of three known words, so joining on one cannot make two
@@ -167,7 +171,7 @@ function formatterFor(
 // Zero is neither owed nor owing, so it takes the neutral role rather than
 // being forced into one of the two. Negative zero lands here too, which is
 // what a rounded-away debt should read as.
-function resolveTone(value: number, tone: Tone) {
+function resolveTone(value: number, tone: CurrencyTone) {
   if (tone !== 'auto') {
     return tone
   }
@@ -180,6 +184,6 @@ function resolveTone(value: number, tone: Tone) {
   return 'neutral'
 }
 
-export type { CurrencyProps }
+export type { CurrencyProps, CurrencySignDisplay, CurrencyTone }
 
 export default Currency

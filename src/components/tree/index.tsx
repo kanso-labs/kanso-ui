@@ -471,12 +471,6 @@ Tree.Item = TreeItem
 Tree.LoadMore = TreeLoadMore
 Tree.Section = TreeSection
 
-export type {
-  TreeHeaderProps,
-  TreeItemProps,
-  TreeLoadMoreProps,
-  TreeProps,
-  TreeSectionProps,
-}
+export type { TreeItemProps, TreeLoadMoreProps, TreeProps, TreeSectionProps }
 
 export default Tree

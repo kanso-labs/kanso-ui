@@ -160,6 +160,6 @@ function Tag({
   })
 }
 
-export type { TagProps }
+export type { TagProps, TagTone, TagVariant }
 
 export default Tag

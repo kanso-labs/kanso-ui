@@ -16,7 +16,7 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from './button'
 export { default as Button } from './button'
 export type { CalendarProps } from './calendar'
 export { default as Calendar } from './calendar'
-export type { CardProps } from './card'
+export type { CardProps, CardVariant } from './card'
 export { default as Card } from './card'
 export type { CheckboxProps } from './checkbox'
 export { default as Checkbox } from './checkbox'
@@ -51,7 +51,11 @@ export type { ContainerProps } from './container'
 export { default as Container } from './container'
 export type { CopyFieldProps } from './copy-field'
 export { default as CopyField } from './copy-field'
-export type { CurrencyProps } from './currency'
+export type {
+  CurrencyProps,
+  CurrencySignDisplay,
+  CurrencyTone,
+} from './currency'
 export { default as Currency } from './currency'
 export type { DateFieldProps } from './date-field'
 export { default as DateField } from './date-field'
@@ -122,7 +126,6 @@ export { default as Menu } from './menu'
 export type { MeterProps, MeterTone } from './meter'
 export { default as Meter } from './meter'
 export type {
-  NavigationTreeHeaderProps,
   NavigationTreeItemProps,
   NavigationTreeProps,
   NavigationTreeSectionProps,
@@ -202,7 +205,7 @@ export type {
   TabsTabProps,
 } from './tabs'
 export { default as Tabs } from './tabs'
-export type { TagProps } from './tag'
+export type { TagProps, TagTone, TagVariant } from './tag'
 export { default as Tag } from './tag'
 export type { TextProps } from './text'
 export { default as Text } from './text'
@@ -219,7 +222,6 @@ export { default as Toolbar } from './toolbar'
 export type { TooltipAlign, TooltipProps, TooltipSide } from './tooltip'
 export { default as Tooltip } from './tooltip'
 export type {
-  TreeHeaderProps,
   TreeItemProps,
   TreeLoadMoreProps,
   TreeProps,
