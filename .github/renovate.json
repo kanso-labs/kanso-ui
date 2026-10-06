@@ -20,6 +20,11 @@
       "matchPackageNames": ["@vitest/**", "vitest"]
     },
     {
+      "allowedVersions": "<7",
+      "description": "typescript-eslint peers on typescript >=4.8.4 <6.1.0. Renovate's lockfile update fails on that conflict, so its TypeScript 7 pull request carries package.json alone and fails npm ci, and npm resolves it locally only by overriding the peer. It would not work if it did resolve: TypeScript 7 is the native Go port and has no compiler API yet, which typescript-eslint is built on, so admitting it is upstream work rather than a range to widen — typescript-eslint/typescript-eslint#10940. The eslint group matches typescript-eslint but not typescript, so this one name needs a rule of its own. Lift this once a released typescript-eslint admits TypeScript 7.",
+      "matchPackageNames": ["typescript"]
+    },
+    {
       "description": "Grouped in .github/dependabot.yml under a duplicate 'react' key, so YAML dropped it and these were never actually grouped.",
       "groupName": "commitlint",
       "matchPackageNames": ["@commitlint/**"]
