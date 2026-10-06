@@ -170,6 +170,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <Chip {...PROBE}>Label</Chip>, name: 'Chip' },
   {
     element: (
+      <Chip {...PROBE} variant="assist">
+        Label
+      </Chip>
+    ),
+    name: 'Chip (assist)',
+  },
+  {
+    element: (
       <ChipGroup {...PROBE} label="Label">
         <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
       </ChipGroup>

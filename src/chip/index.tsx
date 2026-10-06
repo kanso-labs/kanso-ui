@@ -56,9 +56,36 @@ function chipLabel(children: ReactNode): ReactNode {
   return <span {...stylex.props(chipStyles.label)}>{children}</span>
 }
 
+// The three containers a chip can be on, with the layers and the disabled
+// treatment each takes. A table rather than a branch per state, so the
+// containers cannot differ in which states they answer.
+const CONTAINERS = {
+  elevated: {
+    disabled: chipStyles.elevatedDisabled,
+    focused: chipLayers.elevatedFocused,
+    hovered: chipLayers.elevatedHovered,
+    pressed: chipLayers.elevatedPressed,
+  },
+  selected: {
+    disabled: chipStyles.disabledSelected,
+    focused: chipLayers.selectedFocused,
+    hovered: chipLayers.selectedHovered,
+    pressed: chipLayers.selectedPressed,
+  },
+  unselected: {
+    disabled: chipStyles.disabledUnselected,
+    focused: chipLayers.unselectedFocused,
+    hovered: chipLayers.unselectedHovered,
+    pressed: chipLayers.unselectedPressed,
+  },
+}
+
+/** Which of the page's chips a pill is drawn as. */
+type ChipKind = 'assist' | 'filter' | 'suggestion'
+
 /**
  * The pill's styles in the render state React Aria hands a chip's
- * `className`, for Chip's toggle button and ChipGroup's tag alike. StyleX
+ * `className`, for Chip's two buttons and ChipGroup's tag alike. StyleX
  * cannot target `[data-selected]` on the element it is styling, so the
  * container is chosen here rather than in CSS — which is also why an
  * uncontrolled chip styles itself without keeping a copy of its state.
@@ -66,9 +93,12 @@ function chipLabel(children: ReactNode): ReactNode {
  * Shared for the reason `chipGlyph` is: the order is the precedence. The
  * hover, focus and pressed layers come from the render state over the
  * container — focus over hover, and a press over both — and disabled comes
- * last so it wins over all of them, since StyleX replaces a property whole. `inGroup` is a ChipGroup's
- * chip, whose touch target reaches only halfway across the gap to the next
- * row; see `targetInGroup` in `./styles`.
+ * last so it wins over all of them, since StyleX replaces a property whole.
+ *
+ * `elevated` raises the chip off the page on a container of its own, and
+ * `kind` names which of the page's chips it is, which decides the label's
+ * role. `inGroup` is a ChipGroup's chip, whose touch target reaches only
+ * halfway across the gap to the next row; see `targetInGroup` in `./styles`.
  */
 function chipPropsFor(
   state: {
@@ -78,31 +108,30 @@ function chipPropsFor(
     isPressed: boolean
     isSelected: boolean
   },
-  inGroup = false,
+  {
+    elevated = false,
+    inGroup = false,
+    kind = 'filter',
+  }: { elevated?: boolean; inGroup?: boolean; kind?: ChipKind } = {},
 ) {
+  const roles = CONTAINERS[containerOf(state.isSelected, elevated)]
+  const raised = elevated && !state.isDisabled
+
   return stylex.props(
     chipStyles.base,
     chipStyles.target,
     inGroup && chipStyles.targetInGroup,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
-    state.isHovered &&
-      (state.isSelected
-        ? chipLayers.selectedHovered
-        : chipLayers.unselectedHovered),
-    state.isFocusVisible &&
-      (state.isSelected
-        ? chipLayers.selectedFocused
-        : chipLayers.unselectedFocused),
-    state.isPressed &&
-      (state.isSelected
-        ? chipLayers.selectedPressed
-        : chipLayers.unselectedPressed),
+    elevated && !state.isSelected && chipStyles.elevated,
+    kind === 'assist' && chipStyles.assist,
+    raised && chipStyles.raised,
+    state.isHovered && roles.hovered,
+    raised && state.isHovered && chipStyles.raisedHovered,
+    state.isFocusVisible && roles.focused,
+    state.isPressed && roles.pressed,
     state.isDisabled && chipStyles.disabled,
-    state.isDisabled &&
-      (state.isSelected
-        ? chipStyles.disabledSelected
-        : chipStyles.disabledUnselected),
+    state.isDisabled && roles.disabled,
   )
 }
 
@@ -124,5 +153,16 @@ function chipRemoveClassName(state: {
     ).className ?? ''
   )
 }
+
+// Which container a chip is on: the secondary container while selected,
+// elevated or not, and otherwise the elevated one or the outline.
+function containerOf(isSelected: boolean, elevated: boolean) {
+  if (isSelected) {
+    return 'selected'
+  }
+  return elevated ? 'elevated' : 'unselected'
+}
+
+export type { ChipKind }
 
 export { chipGlyph, chipLabel, chipPropsFor, chipRemoveClassName }

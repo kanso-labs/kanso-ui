@@ -683,7 +683,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, and an icon takes the primary role."
+            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, and an elevated assist chip sits on the low container at elevation 1."
             title="Chip"
           >
             <div {...stylex.props(styles.row)}>
@@ -692,6 +692,9 @@ function Showcase({ name }: ShowcaseProps) {
                 Second item
               </Chip>
               <Chip>Third item</Chip>
+              <Chip elevated icon={<CircleIcon />} variant="assist">
+                Fourth item
+              </Chip>
             </div>
           </Section>
 

@@ -4,6 +4,7 @@ import {
   colors,
   motion,
   radii,
+  shadows,
   sizing,
   spacing,
   stateLayerOpacity,
@@ -11,13 +12,25 @@ import {
 } from '../tokens/design.tokens.stylex'
 
 // The pill the chips page draws, shared by the three components that draw
-// one: Chip, which is a toggle on its own; ChipGroup's chip, which is one of
-// a set that can also be removed; and TokenField's token, which takes `base`
-// and `unselected` alone — a token is not selectable, so it reaches for
-// neither the selected container nor the check below. The measurements and
-// roles are the page's filter chip — a 32dp container with an 8dp corner and
-// 16dp of inline padding, an outline variant border while unselected, the
-// secondary container pair once selected.
+// one: Chip, which is a toggle on its own or one of the page's two action
+// chips; ChipGroup's chip, which is one of a set that can also be removed;
+// and TokenField's token, which takes `base` and `unselected` alone — a token
+// is not selectable, so it reaches for neither the selected container nor
+// the check below. The measurements and roles are the page's filter chip — a
+// 32dp container with an 8dp corner and 16dp of inline padding, an outline
+// variant border while unselected, the secondary container pair once
+// selected.
+//
+// The assist and suggestion chips are that unselected pill, never selected.
+// The page's only difference between them is the label: on surface on an
+// assist chip, on surface variant on a suggestion chip as on a filter one.
+//
+// **An elevated chip trades the outline for a container**, surface container
+// low at the page's elevation 1, raised to 2 under a hovering pointer. A
+// selected one keeps the secondary container and takes the shadow with it.
+// Its 1px border stays, transparent, as every chip's does: a forced-colours
+// mode paints a transparent border in its text colour and drops the shadow
+// and the fill, so the border is the boundary left there.
 //
 // **A label with no room on one line is cut short, never wrapped.** The
 // container is a fixed 32dp, so a second line has nowhere to go but out of
@@ -68,6 +81,11 @@ import {
 const TARGET_SIZE = '48px'
 
 const chipStyles = stylex.create({
+  // An assist chip's label, the one role the page draws it in that a
+  // suggestion chip does not.
+  assist: {
+    color: colors.onSurface,
+  },
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
@@ -109,6 +127,17 @@ const chipStyles = stylex.create({
     backgroundColor: 'transparent',
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
+  // An unselected elevated chip's container, in place of the outline.
+  elevated: {
+    backgroundColor: colors.surfaceContainerLow,
+    borderColor: 'transparent',
+  },
+  // A disabled elevated chip comes down to the page, on the surface at 12%.
+  elevatedDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    borderColor: 'transparent',
+    boxShadow: 'none',
+  },
   // The check a selected chip carries, or the icon an unselected one does:
   // the page's 18dp icon, before the label, in a slot of its own so the SVG
   // has a box to fill. `fontSize` as well as the box, so a glyph drawn in
@@ -149,6 +178,16 @@ const chipStyles = stylex.create({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  // An elevated chip's shadow: the page's elevation 1 at rest, focused and
+  // pressed, and 2 under a hovering pointer. The transition takes the shadow
+  // as well as the colours `base` names.
+  raised: {
+    boxShadow: shadows.elevation1,
+    transitionProperty: 'background-color, border-color, box-shadow, color',
+  },
+  raisedHovered: {
+    boxShadow: shadows.elevation2,
   },
   // The trailing close target the page draws on an input chip: an 18dp glyph
   // in the content role, in a target of its own so a press on it removes the
@@ -241,6 +280,16 @@ const chipStyles = stylex.create({
 // Aria reports neither state for one, since it is text the caret moves
 // through rather than a control a press acts on.
 const chipLayers = stylex.create({
+  // An unselected elevated chip's, over its own container.
+  elevatedFocused: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainerLow})`,
+  },
+  elevatedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+  },
+  elevatedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
+  },
   removeHovered: {
     backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
