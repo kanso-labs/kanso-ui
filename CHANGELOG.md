@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.16](https://github.com/kanso-labs/kanso-ui/compare/v0.34.15...v0.34.16) (2026-10-05)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.17 ([#1252](https://github.com/kanso-labs/kanso-ui/issues/1252)) ([3d2abef](https://github.com/kanso-labs/kanso-ui/commit/3d2abef19995d2de357ee96a1aa55c9fa574f5e7))
+* update oxlint to v1.87.0 ([#1250](https://github.com/kanso-labs/kanso-ui/issues/1250)) ([daa2b5d](https://github.com/kanso-labs/kanso-ui/commit/daa2b5d1ad5fd811c0cc30a81f80e37371c2c375))
+
 ## [0.34.15](https://github.com/kanso-labs/kanso-ui/compare/v0.34.14...v0.34.15) (2026-10-05)
 
 
