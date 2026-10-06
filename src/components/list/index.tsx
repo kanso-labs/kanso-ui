@@ -62,8 +62,9 @@ import Checkbox from '../checkbox'
 
 // What each row's selection checkbox is called. A context rather than a prop
 // on the row, since it is the list's decision and repeating it on every row
-// is how the two drift.
-const SelectLabelContext = createContext('Select')
+// is how the two drift. Undefined unless the list is given one, which
+// leaves the name React Aria gives in the reader's locale.
+const SelectLabelContext = createContext<string | undefined>(undefined)
 
 type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   /**
@@ -74,21 +75,19 @@ type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type ListProps<T extends object = object> = Omit<
-  RACGridListProps<T>,
-  'className' | 'style'
-> & {
+type ListProps<T extends object = object> = {
   /** A function may compute the class from the list's render state. */
   className?: RACGridListProps<T>['className']
   /**
    * What each row's selection checkbox is called, for a screen reader. The
    * row's own text is what names the row; this names the box inside it.
-   * @default 'Select'
+   * Left out, React Aria names it in the reader's locale — "Select" in
+   * English.
    */
   selectLabel?: string
   /** A function may compute the style from the list's render state. */
   style?: RACGridListProps<T>['style']
-}
+} & Omit<RACGridListProps<T>, 'className' | 'style'>
 
 // `Row` rather than `Item`, though the component is `List.Item`, because
 // `ListItemProps` is the standalone `ListItem` component's and both are
@@ -148,7 +147,7 @@ function itemContent(
   overline: ReactNode,
   supporting: ReactNode,
   trailing: ReactNode,
-  selectLabel: string,
+  selectLabel: string | undefined,
   ripple: ReactNode,
 ) {
   return (state: GridListItemRenderProps) => (
@@ -189,7 +188,7 @@ function itemContent(
 function leadingFor(
   state: GridListItemRenderProps,
   leading: ReactNode,
-  selectLabel: string,
+  selectLabel: string | undefined,
 ): ReactNode {
   if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
     return leading
@@ -221,7 +220,7 @@ function leadingFor(
  * the element a layout positions.
  */
 function List<T extends object>({
-  selectLabel = 'Select',
+  selectLabel,
   ...props
 }: ListProps<T> & RefAttributes<HTMLDivElement>) {
   return (

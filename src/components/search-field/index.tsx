@@ -160,7 +160,8 @@ const styles = stylex.create({
 type SearchFieldProps = {
   /**
    * The name of the button that clears the field, for a screen reader.
-   * @default 'Clear'
+   * Left out, React Aria names it in the reader's locale — "Clear search" in
+   * English.
    */
   clearLabel?: string
   /**
@@ -199,7 +200,7 @@ type SearchFieldProps = {
 function fieldContent(
   label: string,
   placeholder: string | undefined,
-  clearLabel: string,
+  clearLabel: string | undefined,
   description: string | undefined,
   error: string | undefined,
   inputRef: Ref<HTMLInputElement> | undefined,
@@ -243,7 +244,7 @@ function fieldContent(
  * share.
  */
 function SearchField({
-  clearLabel = 'Clear',
+  clearLabel,
   description,
   error,
   inputRef,

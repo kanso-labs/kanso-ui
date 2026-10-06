@@ -291,8 +291,8 @@ type SnackbarProps = {
   /**
    * What a screen reader calls the button that dismisses a snackbar. It sits
    * here rather than on a message's own options because it does not vary by
-   * message, so putting it there would make every `add` call repeat it.
-   * @default 'Close'
+   * message, so putting it there would make every `add` call repeat it. Left
+   * out, React Aria names it in the reader's locale — "Close" in English.
    */
   closeLabel?: string
   /** The queue the region shows messages from. */
@@ -397,7 +397,7 @@ function closeToast(queue: SnackbarQueue, key: string) {
  * element a layout positions.
  */
 function Snackbar({
-  closeLabel = 'Close',
+  closeLabel,
   queue,
   ...props
 }: RefAttributes<HTMLDivElement> & SnackbarProps) {
@@ -443,7 +443,7 @@ function SnackbarButton({
   )
 }
 
-function snackbarContent(queue: SnackbarQueue, closeLabel: string) {
+function snackbarContent(queue: SnackbarQueue, closeLabel: string | undefined) {
   return ({ toast }: { toast: SnackbarToastItem }) => (
     <SnackbarToast
       close={closeToast(queue, toast.key)}
@@ -462,7 +462,7 @@ function SnackbarControls({
 }: {
   action: SnackbarAction | undefined
   close: () => void
-  closeLabel: string
+  closeLabel: string | undefined
   showCloseButton: boolean
 }) {
   return (
@@ -495,7 +495,7 @@ function SnackbarToast({
   toast,
 }: {
   close: () => void
-  closeLabel: string
+  closeLabel: string | undefined
   toast: SnackbarToastItem
 }) {
   const { action, message, showCloseButton } = toast.content

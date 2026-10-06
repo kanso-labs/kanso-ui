@@ -432,8 +432,13 @@ type IconButtonProps = {
    * What the button does, in words. Required rather than optional: an icon
    * on its own has no accessible name, so without this the control announces
    * nothing at all.
+   *
+   * `undefined` is for a button inside a React Aria component that names it
+   * itself — a search field's clear button, a number field's steppers. React
+   * Aria takes a prop over its context, so a name written here would replace
+   * the one it gives in the reader's locale, and undefined leaves that stand.
    */
-  'aria-label': string
+  'aria-label': string | undefined
   children?: ReactNode
   /** A function may compute the class from the button's render state. */
   className?: ClassNameOrFunction<IconButtonState>

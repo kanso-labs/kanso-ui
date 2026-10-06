@@ -97,7 +97,8 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
   style?: RACDatePickerProps<T>['style']
   /**
    * What the button that opens the calendar is called, for a screen reader.
-   * @default 'Choose a date'
+   * Left out, React Aria names it in the reader's locale — "Calendar" in
+   * English, followed by the field's own label.
    */
   triggerLabel?: string
   /**
@@ -110,7 +111,7 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-jsx-as-prop is after — the same reason Select builds its
 // chevron this way.
-function calendarTrigger(triggerLabel: string) {
+function calendarTrigger(triggerLabel: string | undefined) {
   return (
     <RACButton aria-label={triggerLabel} className={triggerClassName}>
       <CalendarGlyph {...stylex.props(picker.triggerGlyph)} />
@@ -146,7 +147,7 @@ function DatePicker<T extends DateValue>({
   isDisabled = false,
   label,
   leadingIcon,
-  triggerLabel = 'Choose a date',
+  triggerLabel,
   variant = 'filled',
   ...props
 }: DatePickerProps<T> & RefAttributes<HTMLDivElement>) {

@@ -233,8 +233,13 @@ content given `slot="close"`:
 ```
 
 An open overlay carries a visually hidden dismiss button for screen readers,
-whose label React Aria ships in some thirty languages. A bundler includes all of
-them unless told which the app supports; React Aria's
+whose label React Aria ships in some thirty languages. So do the controls the
+components draw inside themselves: a field's clear button and steppers, a
+snackbar's close, a chip's remove, a row's selection box, a column's resize
+handle, a picker's trigger and a colour picker's strips are all named in the
+reader's locale. Each component takes a prop to name them otherwise, such as
+`clearLabel` on a `SearchField`. A bundler includes every language unless told
+which the app supports; React Aria's
 [`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
 is how an app says so.
 
