@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 import { ListLayout, useListData, Virtualizer } from 'react-aria-components'
+import { expect, waitFor } from 'storybook/test'
 
 import List from '.'
 import { useDragAndDrop } from '../../drag/hooks'
@@ -325,11 +326,35 @@ const Loading: Story = {
 
 // Its own story because reordering is a behaviour rather than a state: the
 // line between two rows is drawn only while a drag is in flight, so a
-// snapshot shows the list at rest and the drag itself has to be tried.
+// snapshot shows the list at rest. The `play` reorders it first, from the
+// keyboard as a keyboard or screen reader user would, which is also what
+// checks that a reorder works at all: Enter on the first row's handle starts
+// the drag, the arrow key moves the line to the next gap, and Enter drops the
+// row there.
 //
 // The hooks come from this package rather than from React Aria, which is what
 // gives the drag its styled line and preview without wiring either.
 const Reorderable: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const [handle] = canvas.getAllByRole('button', { name: 'Reorder' })
+    handle.focus()
+    await userEvent.keyboard('{Enter}')
+    // React Aria puts focus on the first place the row could land a frame
+    // after the drag starts, and only then listens for the keys that move
+    // and drop it.
+    await waitFor(async () => {
+      await expect(document.activeElement).toHaveAttribute(
+        'aria-roledescription',
+        'drop indicator',
+      )
+    })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    await waitFor(async () => {
+      await expect(
+        canvas.getAllByRole('row').map((row) => row.getAttribute('aria-label')),
+      ).toEqual(['Second item', 'First item', 'Third item'])
+    })
+  },
   render: function Reorderable() {
     const rows = useListData({
       initialItems: [
