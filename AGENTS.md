@@ -662,7 +662,11 @@ Four things about them are worth knowing before adding a sixth:
 - **Every pair a component renders has to clear WCAG AA**, since `a11y.test` is
   `'error'` and a scheme that cannot be read is not worth demonstrating. The
   library's own tokens hold to 4.5:1 for text and about 3:1 for the outline
-  rule; match that rather than eyeballing it.
+  rule; match that rather than eyeballing it. The library's own dark theme is
+  held to it by `Theming/Dark`, a story rendering the showcase in dark and
+  hidden from the sidebar and from Chromatic: every other story renders in the
+  light theme the toolbar opens on, and the dark mode reaches Chromatic only as
+  pixels, so without it a dark pair below AA passed every check.
 - **Each scheme is a story file of its own**, titled `Theming/<Name>`, which is
   what makes Theming a section beside `Components` rather than one page holding
   five stories. Those files carry nothing but the scheme: the page itself is

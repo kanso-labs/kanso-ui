@@ -358,8 +358,20 @@ type SectionProps = {
 }
 
 type ShowcaseProps = {
-  /** Which scheme the page names — the same one its story pins the toolbar to. */
-  name: DemoThemeName
+  /**
+   * Which scheme the page names — the same one its story pins the toolbar
+   * to. `dark` is the library's own dark theme, which the accessibility
+   * check renders the page in; see `dark.stories.tsx`.
+   */
+  name: 'dark' | DemoThemeName
+}
+
+// What the page says about the library's own dark theme, which is no demo
+// scheme and so has no entry beside them.
+const LIBRARY_DARK = {
+  description:
+    "The library's own dark theme: the default tokens' dark half, with nothing overridden.",
+  label: 'Dark',
 }
 
 function DetailPane() {
@@ -443,7 +455,8 @@ function Section({ children, description, title }: SectionProps) {
  * a token moved.
  */
 function Showcase({ name }: ShowcaseProps) {
-  const { description, label } = demoThemes[name]
+  const { description, label } =
+    name === 'dark' ? LIBRARY_DARK : demoThemes[name]
 
   return (
     <div {...stylex.props(styles.page)}>
