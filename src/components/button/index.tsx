@@ -53,13 +53,21 @@ import ProgressIndicator from '../progress-indicator'
 // directly as property values, and a call to an externally-defined function
 // isn't one of them.
 //
+// The hover, focus and pressed layers come from React Aria's render state,
+// `isHovered`, `isFocusVisible` and `isPressed`, rather than from `:hover`,
+// `:focus-visible` and `:active`. On a touch screen Chromium leaves `:hover`
+// on the last element tapped, so the layer and its lifted shadow stayed on a
+// button after the tap had ended, where React Aria ignores the emulated mouse
+// events that follow a touch. And React Aria prevents the default of the
+// keydown that presses a button with Space or Enter, so `:active` never
+// matched a keyboard press, which `isPressed` reports like any other.
+//
 // Disabled is a style of its own per variant rather than a `:disabled`
 // branch inside each property: a button given `href` renders as a link,
 // which React Aria turns into a <span> while disabled, and neither matches
 // the pseudo-class. The disabled styles are applied last from the render
-// state's `isDisabled`, and StyleX replaces a property whole, so they also
-// take the hover and pressed branches with them — which is what keeps a
-// hovered disabled button from lighting up.
+// state's `isDisabled`, and StyleX replaces a property whole, so they win
+// over any state layer applied before them.
 //
 // **Under forced colours a container is drawn as a rule.** That mode drops
 // the shadow and paints author backgrounds in a system colour, which left a
@@ -135,17 +143,8 @@ const styles = stylex.create({
     cursor: 'not-allowed',
   },
   elevated: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
-      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainerLow})`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
-      default: colors.surfaceContainerLow,
-    },
-    boxShadow: {
-      ':active': shadows.elevation1,
-      ':hover': shadows.elevation2,
-      default: shadows.elevation1,
-    },
+    backgroundColor: colors.surfaceContainerLow,
+    boxShadow: shadows.elevation1,
     color: colors.primary,
   },
   elevatedDisabled: {
@@ -158,17 +157,8 @@ const styles = stylex.create({
     },
   },
   filled: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':focus-visible': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: colors.primary,
-    },
-    boxShadow: {
-      ':active': 'none',
-      ':hover': shadows.elevation1,
-      default: 'none',
-    },
+    backgroundColor: colors.primary,
+    boxShadow: 'none',
     color: colors.onPrimary,
   },
   filledDisabled: {
@@ -234,12 +224,7 @@ const styles = stylex.create({
     paddingInline: spacing.lg,
   },
   outlined: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':focus-visible': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderColor: colors.outlineVariant,
     borderStyle: 'solid',
     borderWidth: '1px',
@@ -265,12 +250,7 @@ const styles = stylex.create({
     position: 'absolute',
   },
   text: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':focus-visible': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
     borderWidth: 0,
     color: colors.primary,
@@ -283,17 +263,8 @@ const styles = stylex.create({
     },
   },
   tonal: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':focus-visible': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
-    boxShadow: {
-      ':active': 'none',
-      ':hover': shadows.elevation1,
-      default: 'none',
-    },
+    backgroundColor: colors.secondaryContainer,
+    boxShadow: 'none',
     color: colors.onSecondaryContainer,
   },
   tonalDisabled: {
@@ -352,6 +323,72 @@ const outlineWidths = stylex.create({
   xl: { borderWidth: '2px' },
   xs: { borderWidth: '1px' },
   xxl: { borderWidth: '3px' },
+})
+
+// The interaction state layers, one style per variant for each state, applied
+// from React Aria's render state — see the header for why that and not the
+// pseudo-classes. In the order they are applied, so where two hold the later
+// wins, as the page draws one layer at a time: focus over hover, and a press
+// over both. Hover lifts filled and tonal off the page and raises elevated a
+// level, and a press brings each back to where it rests.
+const hovered = stylex.create({
+  elevated: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+    boxShadow: shadows.elevation2,
+  },
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+    boxShadow: shadows.elevation1,
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  text: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+    boxShadow: shadows.elevation1,
+  },
+})
+
+const focused = stylex.create({
+  elevated: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), ${colors.surfaceContainerLow})`,
+  },
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.focus} * 100%), ${colors.primary})`,
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  text: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
+})
+
+const pressed = stylex.create({
+  elevated: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
+    boxShadow: shadows.elevation1,
+  },
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+    boxShadow: 'none',
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  text: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+    boxShadow: 'none',
+  },
 })
 
 const disabledStyles = {
@@ -505,6 +542,9 @@ function Button({
         styles[variant],
         styles[size],
         variant === 'outlined' && outlineWidths[size],
+        state.isHovered && hovered[variant],
+        state.isFocusVisible && focused[variant],
+        state.isPressed && pressed[variant],
         state.isDisabled && styles.disabled,
         state.isDisabled && disabledStyles[variant],
       ),

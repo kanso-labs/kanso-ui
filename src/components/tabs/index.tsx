@@ -179,16 +179,18 @@ const styles = stylex.create({
     transitionProperty: 'background-color, color',
     transitionTimingFunction: motion.easingStandard,
   },
-  // The state layer over the bar's surface: primary for the active tab, on
-  // surface for an inactive one at rest and primary once pressed, as the
-  // page gives them.
   tabActive: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     color: colors.primary,
+  },
+  // The state layer over the bar's surface: primary for the active tab, on
+  // surface for an inactive one at rest, and primary for either once pressed,
+  // as the page gives them. From React Aria's render state rather than
+  // `:hover` and `:active`, for Button's reasons — see its header: a hover
+  // layer stayed on after a tap, and no pressed layer showed for a press made
+  // from the keyboard.
+  tabActiveHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
   // Applied from the tab's own state rather than through `:disabled`, which
   // never matches: React Aria marks a disabled tab with aria-disabled and
@@ -201,12 +203,14 @@ const styles = stylex.create({
     cursor: 'not-allowed',
   },
   tabInactive: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     color: colors.onSurfaceVariant,
+  },
+  tabInactiveHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  tabPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   // A label longer than its section, which German, Finnish and Dutch reach
   // with a single word. The word breaks inside itself where it cannot break
@@ -401,6 +405,9 @@ function tabStyles(state: TabRenderProps) {
   return stylex.props(
     styles.tab,
     state.isSelected ? styles.tabActive : styles.tabInactive,
+    state.isHovered &&
+      (state.isSelected ? styles.tabActiveHovered : styles.tabInactiveHovered),
+    state.isPressed && styles.tabPressed,
     state.isDisabled && styles.tabDisabled,
   )
 }

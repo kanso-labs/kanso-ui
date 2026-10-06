@@ -65,12 +65,18 @@ function calendarHeaderCell(day: string): ReactElement {
 // disables one when the month it would move to is outside `minValue` and
 // `maxValue`, or the whole calendar is disabled, and a press on it then does
 // nothing — so it takes the shared fade, which drops the state layer too.
-function chevronClassName(state: { isDisabled: boolean }) {
+function chevronClassName(state: {
+  isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
+}) {
   return (
     stylex.props(
       iconButton.chrome,
       calendarStyles.chevron,
       focus.ring,
+      state.isHovered && iconButton.chromeHovered,
+      state.isPressed && iconButton.chromePressed,
       state.isDisabled && iconButton.chromeDisabled,
     ).className ?? ''
   )

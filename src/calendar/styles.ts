@@ -55,11 +55,7 @@ const calendarStyles = stylex.create({
   // selected date fills and the shape a hover tints.
   cell: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     blockSize: ROW_BLOCK_SIZE,
     borderRadius: radii.circle,
     boxSizing: 'border-box',
@@ -101,8 +97,6 @@ const calendarStyles = stylex.create({
   // stop at a circle.
   cellInRange: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
       default: colors.secondaryContainer,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -138,13 +132,9 @@ const calendarStyles = stylex.create({
   },
   // The date the calendar holds. A filled circle in the primary role, with
   // the on-primary state layer over it while hovered or pressed, which is
-  // what the page gives it. Each branch is written here because StyleX
-  // replaces a property whole: left out, the unselected cell's on-surface
-  // layer over nothing would stand in for the fill on hover.
+  // what the page gives it — see `dateLayers`.
   cellSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -279,4 +269,44 @@ const calendarStyles = stylex.create({
   },
 })
 
-export { calendarStyles }
+// A date's hover and pressed layers, one pair per ground it sits on: nothing,
+// the range band, and the selected circle. From React Aria's render state rather than `:hover` and `:active`, for Button's
+// reasons — see its header: a hover layer stayed on after a tap, and no
+// pressed layer showed for a press made from the keyboard.
+// Each layer is written whole for its ground because StyleX replaces a
+// property whole, and the band and the circle keep their forced-colours
+// `Highlight` under the layer.
+const dateLayers = stylex.create({
+  inRangeHovered: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  inRangePressed: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  plainHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  plainPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  selectedHovered: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  selectedPressed: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+export { calendarStyles, dateLayers }

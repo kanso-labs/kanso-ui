@@ -137,12 +137,7 @@ const styles = stylex.create({
   // two of them at their two different colours.
   control: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':focus-visible': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
@@ -156,6 +151,21 @@ const styles = stylex.create({
     outlineWidth: '2px',
     overflow: 'hidden',
     position: 'relative',
+  },
+  // A control's three layers, from React Aria's render state rather than
+  // `:hover`, `:focus-visible` and `:active`, for Button's reasons — see its
+  // header: a hover layer stayed on after a tap, and no pressed layer showed
+  // for a press made from the keyboard. `controlClassName` applies them in
+  // the order the pages draw one layer at a time: focus over hover, and a
+  // press over both.
+  controlFocused: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
+  controlHovered: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  controlPressed: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   // The message: body-medium in inverse on surface, with the page's 8dp
   // either side of it inside the container's own 8dp, and the 14dp above and
@@ -378,6 +388,22 @@ function closeToast(queue: SnackbarQueue, key: string) {
   }
 }
 
+// A control's classes, from its own render state — see `controlFocused`.
+function controlClassName(style: stylex.StyleXStyles) {
+  return (state: {
+    isFocusVisible: boolean
+    isHovered: boolean
+    isPressed: boolean
+  }) =>
+    stylex.props(
+      styles.control,
+      style,
+      state.isHovered && styles.controlHovered,
+      state.isFocusVisible && styles.controlFocused,
+      state.isPressed && styles.controlPressed,
+    ).className ?? ''
+}
+
 /**
  * A brief message at the bottom of the screen, with an optional action. Mount
  * one of these with a `Snackbar.Queue`, and call the queue's `add` to show a
@@ -435,7 +461,7 @@ function SnackbarButton({
     <RACButton
       {...ripple.handlers}
       {...props}
-      {...stylex.props(styles.control, style)}
+      className={controlClassName(style)}
     >
       {children}
       {ripple.surface}

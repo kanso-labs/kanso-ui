@@ -93,11 +93,7 @@ const styles = stylex.create({
 const triggerStyles = stylex.create({
   base: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
-      default: colors.surfaceContainerLow,
-    },
+    backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
@@ -117,6 +113,16 @@ const triggerStyles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
+  },
+  // The hover and pressed layers over the container, from the trigger's
+  // render state rather than `:hover` and `:active`, for Button's reasons —
+  // see its header: a hover layer stayed on after a tap, and no pressed layer
+  // showed for a press made from the keyboard.
+  hovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerLow})`,
+  },
+  pressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
   },
 })
 
@@ -221,6 +227,8 @@ function ColorPicker({
               stylex.props(
                 triggerStyles.base,
                 focus.ring,
+                state.isHovered && triggerStyles.hovered,
+                state.isPressed && triggerStyles.pressed,
                 state.isDisabled && triggerStyles.disabled,
               ),
             { className, style },

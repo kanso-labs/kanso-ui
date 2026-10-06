@@ -98,11 +98,17 @@ const picker = stylex.create({
 // own, so the fade comes off the state React Aria hands the className. It is
 // the same 38% the segments beside it take, so one disabled field fades as a
 // whole.
-function triggerClassName(state: { isDisabled: boolean }) {
+function triggerClassName(state: {
+  isDisabled: boolean
+  isHovered: boolean
+  isPressed: boolean
+}) {
   return (
     stylex.props(
       iconButton.chrome,
       focus.ring,
+      state.isHovered && iconButton.chromeHovered,
+      state.isPressed && iconButton.chromePressed,
       state.isDisabled && iconButton.chromeDisabled,
     ).className ?? ''
   )

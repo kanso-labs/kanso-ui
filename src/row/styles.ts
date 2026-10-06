@@ -59,8 +59,7 @@ const rowStyles = stylex.create({
   // Applied from render state rather than `:disabled`, since a collection
   // item is a div React Aria marks with aria-disabled. Listed after the
   // interactive and selected styles so it wins over both, and StyleX replaces
-  // a property whole, so it takes the interactive style's hover branch with
-  // it.
+  // a property whole, so it takes `interactiveLayers`' hover branch with it.
   disabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -133,16 +132,14 @@ const rowStyles = stylex.create({
     backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent))`,
     cursor: 'pointer',
   },
-  // The same layers from pseudo-classes, for a row that is a plain element
-  // rather than a React Aria item: ListItem's button, Disclosure's header.
-  // Each takes real focus, so `:focus-visible` matches it, and each is
-  // interactive by being rendered at all.
+  // A row that is a control of its own rather than a React Aria item:
+  // ListItem's button and Disclosure's header. Each takes real focus, so
+  // `:focus-visible` matches it, and each is interactive by being rendered
+  // at all. Disclosure's header is React Aria's `Button`, so it draws
+  // `hovered` and `pressed` from that button's render state;
+  // `interactiveLayers` is the same pair for ListItem's, which is a plain
+  // element with no render state to read.
   interactive: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
     cursor: 'pointer',
     font: 'inherit',
     outlineColor: colors.primary,
@@ -152,6 +149,14 @@ const rowStyles = stylex.create({
     outlineOffset: '-2px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
+  },
+  // The hover and pressed layers from pseudo-classes — see `interactive`.
+  interactiveLayers: {
+    backgroundColor: {
+      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      default: 'transparent',
+    },
   },
   // The lists page's one-line container height. A row whose headline wraps
   // grows past it; nothing truncates.

@@ -155,11 +155,7 @@ const chipStyles = stylex.create({
       position: 'absolute',
     },
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     blockSize: '18px',
     borderRadius: radii.pill,
     borderWidth: 0,
@@ -188,11 +184,7 @@ const chipStyles = stylex.create({
     inlineSize: '18px',
   },
   selected: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
+    backgroundColor: colors.secondaryContainer,
     borderColor: 'transparent',
     color: colors.onSecondaryContainer,
   },
@@ -225,14 +217,39 @@ const chipStyles = stylex.create({
     },
   },
   unselected: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderColor: colors.outlineVariant,
     color: colors.onSurfaceVariant,
   },
 })
 
-export { chipStyles }
+// The hover and pressed layers, applied from React Aria's render state rather
+// than from `:hover` and `:active`, for Button's reasons — see its header: a
+// hover layer stayed on after a tap, and no pressed layer showed for a press
+// made from the keyboard. One pair per container, the pressed after the
+// hovered so a press wins, and one for the close target, whose own render
+// state is its button's. A token in a TokenField draws none of them: React
+// Aria reports neither state for one, since it is text the caret moves
+// through rather than a control a press acts on.
+const chipLayers = stylex.create({
+  removeHovered: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  removePressed: {
+    backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  selectedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
+  selectedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+  },
+  unselectedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  unselectedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+})
+
+export { chipLayers, chipStyles }

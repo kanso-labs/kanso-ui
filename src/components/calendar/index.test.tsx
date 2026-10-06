@@ -20,25 +20,24 @@ const probeStyles = stylex.create({
 
 // The declarations a state is drawn with, written the way the component
 // writes them, so the classes StyleX hashes from them are the component's
-// own. `default: null` leaves each to the state it names.
+// own. The layers are drawn from React Aria's render state, so a case hovers
+// and presses the element rather than finding a pseudo-class branch on it.
 const stateStyles = stylex.create({
   chevronFaded: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
     cursor: 'default',
   },
-  chevronLayers: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: null,
-    },
+  chevronHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
-  selectedLayers: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: null,
-    },
+  chevronPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  selectedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+  },
+  selectedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
   },
 })
 
@@ -232,13 +231,12 @@ describe('calendar', () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
       )
+      const cell = cellFor(view, 'Tuesday, September 15, 2026')
 
-      expect(
-        hasClasses(
-          cellFor(view, 'Tuesday, September 15, 2026'),
-          stateStyles.selectedLayers,
-        ),
-      ).toBe(true)
+      fireEvent.pointerOver(cell, { pointerType: 'mouse' })
+      expect(hasClasses(cell, stateStyles.selectedHovered)).toBe(true)
+      fireEvent.keyDown(cell, { key: ' ' })
+      expect(hasClasses(cell, stateStyles.selectedPressed)).toBe(true)
     })
 
     it('reports the date that was pressed', () => {
@@ -438,10 +436,11 @@ describe('calendar', () => {
 
       for (const label of ['Previous', 'Next']) {
         const chevron = headerButton(view, label)
+        fireEvent.pointerOver(chevron, { pointerType: 'mouse' })
 
         expect(chevron.hasAttribute('disabled')).toBe(true)
         expect(hasClasses(chevron, stateStyles.chevronFaded)).toBe(true)
-        expect(hasClasses(chevron, stateStyles.chevronLayers)).toBe(false)
+        expect(hasClasses(chevron, stateStyles.chevronHovered)).toBe(false)
       }
     })
 
@@ -450,9 +449,12 @@ describe('calendar', () => {
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
       )
       const chevron = headerButton(view, 'Next')
-
       expect(hasClasses(chevron, stateStyles.chevronFaded)).toBe(false)
-      expect(hasClasses(chevron, stateStyles.chevronLayers)).toBe(true)
+
+      fireEvent.pointerOver(chevron, { pointerType: 'mouse' })
+      expect(hasClasses(chevron, stateStyles.chevronHovered)).toBe(true)
+      fireEvent.keyDown(chevron, { key: ' ' })
+      expect(hasClasses(chevron, stateStyles.chevronPressed)).toBe(true)
     })
   })
 

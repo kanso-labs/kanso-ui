@@ -14,14 +14,15 @@ const probeStyles = stylex.create({
 })
 
 // The band's state layers, written the way the component writes them, so
-// the classes StyleX hashes from them are the component's own.
+// the classes StyleX hashes from them are the component's own. They are
+// drawn from React Aria's render state, so a case hovers and presses a day
+// rather than finding a pseudo-class branch on it.
 const bandLayers = stylex.create({
-  band: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: null,
-    },
+  hovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
+  pressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
   },
 })
 
@@ -135,12 +136,13 @@ describe('range calendar', () => {
         <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
       )
       const middle = cellFor(view, 'September 11, 2026')
+      const has = (style: stylex.StyleXStyles) =>
+        classesOf(style).every((name) => middle.classList.contains(name))
 
-      expect(
-        classesOf(bandLayers.band).every((name) =>
-          middle.classList.contains(name),
-        ),
-      ).toBe(true)
+      fireEvent.pointerOver(middle, { pointerType: 'mouse' })
+      expect(has(bandLayers.hovered)).toBe(true)
+      fireEvent.keyDown(middle, { key: ' ' })
+      expect(has(bandLayers.pressed)).toBe(true)
     })
 
     it('squares the band so consecutive days join', () => {

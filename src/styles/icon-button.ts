@@ -21,7 +21,11 @@ import {
 // 48dp column, so it adds the 4dp either side. Both take `chromeDisabled`
 // when React Aria disables them — a trigger when the field around it is
 // disabled, a chevron when there is no month to move to — and each reads
-// that from its own render state.
+// that from its own render state, along with the hover and press that pick
+// `chromeHovered` and `chromePressed`. Those come from React Aria rather
+// than `:hover` and `:active`, for Button's reasons — see its header: a
+// hover layer stayed on after a tap, and no pressed layer showed for a press
+// made from the keyboard.
 //
 // This is deliberately narrow. Five other buttons in the library draw a bare
 // icon — a tree's caret, a navigation tree's, a combo box's toggle, a chip's
@@ -33,11 +37,7 @@ import {
 const iconButton = stylex.create({
   chrome: {
     alignItems: 'center',
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     blockSize: sizing.controlSm,
     borderRadius: radii.pill,
     borderWidth: 0,
@@ -52,13 +52,18 @@ const iconButton = stylex.create({
   },
   // The 38% the segments of a picker's field take, so a disabled trigger
   // fades with the field around it and a disabled chevron with the calendar.
-  // StyleX replaces a property whole, which is what lets this drop the hover
-  // and pressed branches rather than having to restate each as
-  // `transparent`.
+  // Applied after the layers, and StyleX replaces a property whole, which is
+  // what lets this drop them rather than having to clear each one.
   chromeDisabled: {
     backgroundColor: 'transparent',
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
     cursor: 'default',
+  },
+  chromeHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  chromePressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
 })
 

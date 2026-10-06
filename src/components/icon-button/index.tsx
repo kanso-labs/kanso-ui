@@ -153,11 +153,7 @@ const styles = stylex.create({
     cursor: 'not-allowed',
   },
   filled: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
-      default: colors.primary,
-    },
+    backgroundColor: colors.primary,
     color: colors.onPrimary,
   },
   filledDisabled: {
@@ -172,11 +168,7 @@ const styles = stylex.create({
   // button's: the page rests it on surface container with the muted icon and
   // gives it primary only once it is chosen.
   filledToggle: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainer})`,
-      default: colors.surfaceContainer,
-    },
+    backgroundColor: colors.surfaceContainer,
     color: colors.onSurfaceVariant,
   },
   // The filled toggle once chosen: the plain filled button's colours, and a
@@ -184,8 +176,6 @@ const styles = stylex.create({
   // must not take.
   filledToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-      ':hover': `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
       default: colors.primary,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -223,7 +213,7 @@ const styles = stylex.create({
   // difference that the reachable half was unreachable instead.
   lg: {
     blockSize: sizing.controlLg,
-    borderRadius: { ':active': radii.md, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlLg,
   },
@@ -236,7 +226,7 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlSm,
-    borderRadius: { ':active': radii.sm, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlSm,
   },
@@ -244,11 +234,7 @@ const styles = stylex.create({
   // border width comes from the size, since the page thickens it as the
   // control grows.
   outlined: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     borderColor: colors.outlineVariant,
     borderStyle: 'solid',
     color: colors.onSurfaceVariant,
@@ -269,8 +255,6 @@ const styles = stylex.create({
   // inverts rather than tints.
   outlinedToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
-      ':hover': `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
       default: colors.inverseSurface,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -293,11 +277,7 @@ const styles = stylex.create({
   // on-surface-variant, which is this variant's state layer on the page,
   // where a row's is the on-surface its headline is drawn in.
   standard: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
     borderWidth: 0,
     color: colors.onSurfaceVariant,
@@ -315,8 +295,6 @@ const styles = stylex.create({
   // filled instead — see the header.
   standardToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
       default: 'transparent',
       [FORCED_COLORS]: 'Highlight',
     },
@@ -324,11 +302,7 @@ const styles = stylex.create({
     color: { default: colors.primary, [FORCED_COLORS]: 'HighlightText' },
   },
   tonal: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
-      default: colors.secondaryContainer,
-    },
+    backgroundColor: colors.secondaryContainer,
     color: colors.onSecondaryContainer,
   },
   tonalDisabled: {
@@ -344,8 +318,6 @@ const styles = stylex.create({
   // toggle's chosen state is darker than the plain button's.
   tonalToggleSelected: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
-      ':hover': `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
       default: colors.secondary,
       [FORCED_COLORS]: 'Highlight',
     },
@@ -353,7 +325,7 @@ const styles = stylex.create({
   },
   xl: {
     blockSize: sizing.controlXl,
-    borderRadius: { ':active': radii.lg, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '32px',
     inlineSize: sizing.controlXl,
   },
@@ -366,15 +338,105 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlXs,
-    borderRadius: { ':active': radii.sm, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '20px',
     inlineSize: sizing.controlXs,
   },
   xxl: {
     blockSize: sizing.controlXxl,
-    borderRadius: { ':active': radii.lg, default: radii.pill },
+    borderRadius: radii.pill,
     fontSize: '40px',
     inlineSize: sizing.controlXxl,
+  },
+})
+
+// The hover and pressed layers, one style per container, applied from React
+// Aria's render state rather than from `:hover` and `:active`, for Button's
+// reasons — see its header: a hover layer stayed on after a tap, and no
+// pressed layer or corner showed for a press made from the keyboard. A
+// chosen toggle's layer keeps its forced-colours `Highlight`, since a later
+// style replaces the property whole.
+const hovered = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+})
+
+const pressed = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+  },
+  filledToggle: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
+  },
+  filledToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  outlined: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  outlinedToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.inverseOnSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.inverseSurface})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  standard: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  standardToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  tonal: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+  },
+  tonalToggleSelected: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSecondary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondary})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
   },
 })
 
@@ -389,10 +451,11 @@ const outlineWidths = stylex.create({
   xxl: { borderWidth: '3px' },
 })
 
-// A chosen toggle rests at the corner its size presses to, which is the
-// page's round-to-square morph. A style per size rather than a value inside
-// each size style, since StyleX replaces the property whole and this one has
-// to beat both the size's `:active` branch and the disabled style's circle.
+// The corner each size presses to, which is the page's round-to-square
+// morph, and the corner a chosen toggle rests at. A style per size rather than
+// a value inside each size style, since StyleX replaces the property whole:
+// it comes after the size's circle while pressed, and after the disabled
+// style's circle too for a chosen toggle, which keeps its corner disabled.
 const selectedShapes = stylex.create({
   lg: { borderRadius: radii.md },
   md: { borderRadius: radii.sm },
@@ -420,6 +483,14 @@ const toggleStyles = {
   },
   tonal: { selected: styles.tonalToggleSelected, unselected: styles.tonal },
 }
+
+// The same containers by name, for the layers above.
+const toggleContainers = {
+  filled: { selected: 'filledToggleSelected', unselected: 'filledToggle' },
+  outlined: { selected: 'outlinedToggleSelected', unselected: 'outlined' },
+  standard: { selected: 'standardToggleSelected', unselected: 'standard' },
+  tonal: { selected: 'tonalToggleSelected', unselected: 'tonal' },
+} as const
 
 const disabledStyles = {
   filled: styles.filledDisabled,
@@ -670,6 +741,9 @@ function IconButton({
         styles[variant],
         styles[size],
         variant === 'outlined' && outlineWidths[size],
+        state.isHovered && hovered[variant],
+        state.isPressed && pressed[variant],
+        state.isPressed && selectedShapes[size],
         state.isDisabled && styles.disabled,
         state.isDisabled && disabledStyles[variant],
       ),
@@ -731,8 +805,12 @@ function toggleContent(children: ReactNode, ripple: Ripple) {
 // states a disabled toggle is in should still be readable, and the disabled
 // style otherwise forces the circle back.
 function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
-  return (state: IconButtonState) =>
-    stylex.props(
+  return (state: IconButtonState) => {
+    const container =
+      toggleContainers[variant][
+        state.isSelected === true ? 'selected' : 'unselected'
+      ]
+    return stylex.props(
       styles.base,
       focus.ring,
       state.isSelected === true
@@ -744,10 +822,14 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
       variant === 'outlined' &&
         state.isSelected !== true &&
         outlineWidths[size],
+      state.isHovered && hovered[container],
+      state.isPressed && pressed[container],
+      state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
     )
+  }
 }
 
 export type {

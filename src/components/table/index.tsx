@@ -194,12 +194,17 @@ const styles = stylex.create({
     borderBlockEndWidth: '1px',
   },
   // A sortable header is pressable, so it takes the same layers a row does.
+  // From React Aria's render state rather than `:hover` and `:active`, for Button's
+  // reasons — see its header: a hover layer stayed on after a tap, and no
+  // pressed layer showed for a press made from the keyboard.
+  headerHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  headerPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
   headerSortable: {
-    backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
-      default: 'transparent',
-    },
+    backgroundColor: 'transparent',
     cursor: 'pointer',
   },
   // The ring shown while more rows are being fetched, centred across the
@@ -516,6 +521,8 @@ function columnStyles(selection: boolean, sticky: boolean) {
       sticky && styles.sticky,
       selection && styles.selection,
       state.allowsSorting && styles.headerSortable,
+      state.allowsSorting && state.isHovered && styles.headerHovered,
+      state.allowsSorting && state.isPressed && styles.headerPressed,
     )
 }
 
