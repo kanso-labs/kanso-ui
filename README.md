@@ -266,6 +266,38 @@ it does next belongs to the slot rather than to the icon. In an `IconButton` it
 fills the button edge to edge; in a field's icon slot it collapses and draws
 nothing. Sizing it is what avoids both.
 
+### Server components
+
+Every component is a client module, so a server component — a page or a layout
+in the Next.js App Router — imports and renders one directly:
+
+```tsx
+// app/page.tsx
+import { Button } from '@kanso-labs/kanso-ui'
+
+export default function Page() {
+  return <Button href="/start">Start</Button>
+}
+```
+
+Four things follow from where that boundary falls.
+
+- **Only serialisable props cross it.** A string, a number or a plain object
+  reaches the component from a server component; a function does not, so
+  `onPress` and a `render` callback belong in a client component of your own.
+  Neither does a class instance, so a `CalendarDate` for a date component is
+  built on the client side too.
+- **A sub-part is reached through its component**, as in `Dialog.Title` or
+  `Menu.Item`, and a server component cannot reach into a client module that
+  way. Compose those in a client component and render that.
+- **The React Aria utilities the package re-exports are client-only** —
+  `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes` is
+  a plain value and works on either side.
+- **A server-rendered app wraps its tree in `I18nProvider`** with the request's
+  locale. React Aria reads the browser's locale on the client and has none on
+  the server, so without it a date or a number can render differently on the two
+  and fail hydration.
+
 ## Theming
 
 Every design token — color, spacing, radii, sizing, shadows, typography,

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Checks the three things about the built package that publint cannot see.
+// Checks the four things about the built package that publint cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
@@ -25,8 +25,16 @@
 // writing direction, and the build turns that rewrite off in
 // tsdown.config.ts. The tests read the dev server's stylesheet rather than
 // this one, so this is the only place the build's half is checked.
+//
+// The fourth is the client boundary a server component meets. Every component
+// module has to open with "use client" in dist, not only in src, since that is
+// the file a consumer's bundler reads — and rolldown warns that it may not
+// keep a module's directive, a warning the build suppresses on the strength of
+// this check. The other side matters as much: the entry and the modules it
+// reaches without crossing that line run on the server, so none of them may
+// import React or React Aria, which a server bundle cannot evaluate.
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
@@ -120,6 +128,106 @@ check('dist/styles.css mirrors on dir rather than on lang', () => {
     throw new Error(
       'no :dir(rtl) rule survived the build, so nothing mirrors under dir="rtl"',
     )
+  }
+})
+
+const DIST = new URL('../dist/', import.meta.url)
+
+/** @param {string} path */
+function distSource(path) {
+  return readFileSync(new URL(path, DIST), 'utf8')
+}
+
+/** @param {string} path */
+function isClientModule(path) {
+  return /^"use client";?\n/u.test(distSource(path))
+}
+
+check('every client module opens with "use client" in dist', () => {
+  const components = readdirSync(new URL('components/', DIST))
+    .map((name) => `components/${name}/index.js`)
+    .filter((path) => existsSync(new URL(path, DIST)))
+
+  if (components.length < 60) {
+    throw new Error(
+      `found ${components.length} component modules, expected every one`,
+    )
+  }
+
+  const missing = [...components, 'react-aria.js', 'drag/hooks.js'].filter(
+    (path) => !isClientModule(path),
+  )
+
+  if (missing.length > 0) {
+    throw new Error(`no directive at the top of ${missing.join(', ')}`)
+  }
+})
+
+// What a server component's bundle evaluates when it imports the package: the
+// entries, and every module they reach without crossing into a client one.
+// A client module is a reference on that side, so the walk stops at it.
+const CLIENT_ONLY =
+  /^(?:react|react-dom|react-aria|react-aria-components|react-stately|client-only|@react-aria\/|@react-stately\/)(?:\/|$)/u
+
+check('the server side of the entries imports no client code', () => {
+  const reached = new Set()
+  /** @type {string[]} */
+  const offending = []
+  const queue = ['index.js', 'date.js']
+
+  for (let path = queue.shift(); path !== undefined; path = queue.shift()) {
+    if (reached.has(path) || isClientModule(path)) {
+      continue
+    }
+
+    reached.add(path)
+
+    const specifiers = [
+      ...distSource(path).matchAll(/(?:from|import)\s*"([^"]+)"/gu),
+    ].map((match) => match[1])
+
+    for (const specifier of specifiers) {
+      if (specifier.startsWith('.')) {
+        if (specifier.endsWith('.js')) {
+          queue.push(
+            new URL(specifier, new URL(path, DIST)).href.slice(
+              DIST.href.length,
+            ),
+          )
+        }
+      } else if (CLIENT_ONLY.test(specifier)) {
+        offending.push(`${path} imports ${specifier}`)
+      }
+    }
+  }
+
+  if (!reached.has('layout.js')) {
+    throw new Error('the walk never reached layout.js, so it proves nothing')
+  }
+
+  if (offending.length > 0) {
+    throw new Error(offending.join('; '))
+  }
+})
+
+// The constants a virtualized collection is laid out with are the one thing
+// in the entry a server component needs as a value rather than a reference,
+// and they live in a module plain Node can run.
+check('collectionSizes is a value a server can read', () => {
+  /** @type {unknown} */
+  const layout = require('../dist/layout.js')
+  const sizes =
+    typeof layout === 'object' && layout !== null && 'collectionSizes' in layout
+      ? layout.collectionSizes
+      : undefined
+
+  if (
+    typeof sizes !== 'object' ||
+    sizes === null ||
+    !('listRow' in sizes) ||
+    typeof sizes.listRow !== 'number'
+  ) {
+    throw new TypeError('dist/layout.js did not hand back collectionSizes')
   }
 })
 

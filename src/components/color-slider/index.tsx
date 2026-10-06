@@ -1,3 +1,5 @@
+'use client'
+
 import type { ColorSliderProps as RACColorSliderProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'

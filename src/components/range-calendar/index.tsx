@@ -1,3 +1,5 @@
+'use client'
+
 import type { CalendarDate } from '@internationalized/date'
 import type { ReactElement } from 'react'
 import type {

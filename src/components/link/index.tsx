@@ -1,3 +1,5 @@
+'use client'
+
 import type { AriaAttributes, DOMAttributes, ReactNode } from 'react'
 import type {
   ClassNameOrFunction,

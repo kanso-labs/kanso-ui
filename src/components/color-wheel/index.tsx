@@ -1,3 +1,5 @@
+'use client'
+
 import type { ColorWheelProps as RACColorWheelProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'

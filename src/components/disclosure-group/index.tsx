@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import type { DisclosureGroupProps as RACDisclosureGroupProps } from 'react-aria-components'
 

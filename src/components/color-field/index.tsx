@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import type { ColorFieldProps as RACColorFieldProps } from 'react-aria-components'
 
