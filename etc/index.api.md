@@ -1746,6 +1746,9 @@ export namespace Tabs {
     Tab: typeof TabsTab;
 }
 
+// @public
+export type TabsLayout = 'fixed' | 'scrollable';
+
 // @public (undocumented)
 export function TabsList(props: TabsListProps): JSX;
 
@@ -1769,6 +1772,7 @@ export type TabsPanelsProps = Omit<TabPanelsProps<object>, 'children'> & {
 // @public (undocumented)
 export type TabsProps = Omit<TabsProps_2, 'children'> & {
     children?: ReactNode;
+    layout?: TabsLayout;
     variant?: TabsVariant;
 };
 

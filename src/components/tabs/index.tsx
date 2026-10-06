@@ -17,6 +17,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 import {
@@ -60,6 +61,20 @@ import Badge from '../badge'
 // A badge sits on the icon where a primary tab stacks one, placed as the
 // badges page places it, and 4dp after the label anywhere else.
 //
+// **The bar is equal sections unless `layout` says otherwise.**
+// `layout="scrollable"` is the page's scrollable tabs: each tab as wide as
+// its label, between MDC-Android's 72dp and 264dp, in a bar that scrolls
+// without a scrollbar and brings the selected tab into view, as
+// material-web's does.
+//
+// **`orientation="vertical"` turns the bar on its side.** The page draws no
+// vertical tabs, so this follows the horizontal bar's own measurements: the
+// tabs stack, the divider runs down the bar's inline end, and each
+// indicator lies along that edge — 3dp and rounded toward the tab on a
+// primary bar, 2dp and square on a secondary one — spanning the tab rather
+// than a label that no longer runs along it. The bar sits beside the panels
+// rather than above them.
+//
 // The indicator is React Aria's `SelectionIndicator`, which is a shared
 // element: it is rendered inside every tab but drawn in the selected one,
 // and on a change it keeps the old one until it has finished moving to the
@@ -68,11 +83,11 @@ import Badge from '../badge'
 // worth knowing because the primitive throws outside a scope when it is put
 // anywhere else.
 //
-// The label is wrapped in a span of its own so the indicator has the label's
-// width to follow: it is the span's `::after`, and the span is as tall as the
-// tab so the indicator reaches the bottom of the bar. Which tab carries it
-// comes from React Aria's render state rather than a selector, since StyleX
-// cannot target [data-selected] on the element it is styling.
+// The label is wrapped in a span of its own so a primary indicator has the
+// label's width to follow: it is drawn inside the span, and the span is as
+// tall as the tab so the indicator reaches the bottom of the bar. Which tab
+// carries it comes from React Aria's render state rather than a selector,
+// since StyleX cannot target [data-selected] on the element it is styling.
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -157,6 +172,49 @@ const styles = stylex.create({
     transitionProperty: 'translate, inline-size',
     transitionTimingFunction: motion.easingEmphasized,
   },
+  // A secondary indicator on a vertical bar: 2dp along the tab's inline end.
+  indicatorSecondaryVertical: {
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
+    },
+    backgroundColor: colors.primary,
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderInlineEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '2px' },
+    boxSizing: 'border-box',
+    inlineSize: '2px',
+    insetBlock: 0,
+    insetInlineEnd: 0,
+    position: 'absolute',
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'translate, block-size',
+    transitionTimingFunction: motion.easingEmphasized,
+  },
+  // A primary indicator on a vertical bar: 3dp along the tab's inline end,
+  // inset 2dp from its ends and never shorter than 24dp, with its rounded
+  // side toward the tab, which is the horizontal one turned on its side.
+  indicatorVertical: {
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
+    },
+    backgroundColor: colors.primary,
+    blockSize: `calc(100% - 2 * ${spacing.xxs})`,
+    borderEndStartRadius: radii.pill,
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderInlineEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '3px' },
+    borderStartStartRadius: radii.pill,
+    boxSizing: 'border-box',
+    inlineSize: '3px',
+    insetBlock: 0,
+    insetInlineEnd: 0,
+    marginBlock: 'auto',
+    minBlockSize: '24px',
+    position: 'absolute',
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'translate, block-size',
+    transitionTimingFunction: motion.easingEmphasized,
+  },
   // No wider than the tab's own share of the bar, so a long label narrows to
   // fit inside it rather than pushing out past its padding.
   label: {
@@ -195,8 +253,36 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
   },
+  // A bar wider than its room scrolls rather than squeezing its tabs, with
+  // no scrollbar, as material-web's does: the tabs cut off at its edge are
+  // what says there is more. Smooth unless the reader asked for less motion.
+  listScrollable: {
+    '::-webkit-scrollbar': {
+      display: 'none',
+    },
+    overflow: 'auto',
+    scrollbarWidth: 'none',
+    scrollBehavior: {
+      '@media (prefers-reduced-motion: reduce)': 'auto',
+      default: 'smooth',
+    },
+  },
+  // A vertical bar: the tabs stack, and the divider runs down its inline
+  // end, flipped under right-to-left since a shadow's offset is physical.
+  listVertical: {
+    boxShadow: {
+      ':dir(rtl)': `inset 1px 0 0 0 ${colors.outlineVariant}`,
+      default: `inset -1px 0 0 0 ${colors.outlineVariant}`,
+    },
+    flexDirection: 'column',
+    flexShrink: 0,
+  },
   panel: {
     boxSizing: 'border-box',
+    // Beside a vertical bar the panel takes the rest of the row; above or
+    // below a horizontal one it is a block, and these do nothing.
+    flexGrow: 1,
+    minInlineSize: 0,
     // The panel is focusable so keyboard users can reach its content after
     // the tab strip, which is what React Aria's roving focus hands off to.
     // Its ring is drawn inside it rather than around it, as a tab's is: the
@@ -227,6 +313,8 @@ const styles = stylex.create({
     },
     blockSize: 'var(--tab-panel-height, auto)',
     boxSizing: 'border-box',
+    flexGrow: 1,
+    minInlineSize: 0,
     // While the box is smaller than the panel inside it, which is half of
     // every change, the overflow has to go somewhere. Clipped rather than
     // hidden, and 4px past the edge: a focus ring sits 2px outside its
@@ -317,6 +405,16 @@ const styles = stylex.create({
   tabPressed: {
     backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
+  // A scrollable bar's tab, as wide as its label: MDC-Android's 72dp at the
+  // least and 264dp at the most, past which the label wraps and clamps as it
+  // does in a section.
+  tabScrollable: {
+    flexBasis: 'auto',
+    flexGrow: 0,
+    flexShrink: 0,
+    maxInlineSize: '264px',
+    minInlineSize: '72px',
+  },
   // A secondary tab's layers are on surface whether it is active or not.
   tabSecondaryHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
@@ -328,6 +426,14 @@ const styles = stylex.create({
   // sizing token holds 64.
   tabStacked: {
     minBlockSize: '64px',
+  },
+  // A vertical bar's tab: one row of it, as tall as its content and no
+  // taller, with its label at the start.
+  tabVertical: {
+    flexBasis: 'auto',
+    flexGrow: 0,
+    flexShrink: 0,
+    justifyContent: 'flex-start',
   },
   // A label longer than its section, which German, Finnish and Dutch reach
   // with a single word. The word breaks inside itself where it cannot break
@@ -349,6 +455,18 @@ const styles = stylex.create({
   textStacked: {
     WebkitLineClamp: 1,
   },
+  textVertical: {
+    textAlign: 'start',
+  },
+})
+
+// A vertical bar beside its panels, which take the rest of the row. A style
+// of its own rather than one of the list's, since it is the root that holds
+// the two.
+const rootStyles = stylex.create({
+  vertical: {
+    display: 'flex',
+  },
 })
 
 /** The tabs page's two styles of tab bar. */
@@ -361,22 +479,46 @@ const VARIANTS = {
     active: styles.tabActive,
     activeHovered: styles.tabActiveHovered,
     inactiveHovered: styles.tabInactiveHovered,
-    indicator: styles.indicator,
+    indicator: {
+      horizontal: styles.indicator,
+      vertical: styles.indicatorVertical,
+    },
     pressed: styles.tabPressed,
   },
   secondary: {
     active: styles.tabActiveSecondary,
     activeHovered: styles.tabSecondaryHovered,
     inactiveHovered: styles.tabSecondaryHovered,
-    indicator: styles.indicatorSecondary,
+    indicator: {
+      horizontal: styles.indicatorSecondary,
+      vertical: styles.indicatorSecondaryVertical,
+    },
     pressed: styles.tabSecondaryPressed,
   },
 } satisfies Record<TabsVariant, unknown>
 
-// Which style the bar draws, from the root to every tab in it. A context
-// rather than a prop on each tab, since it is the bar's decision and
-// repeating it on every tab is how the two drift.
-const VariantContext = createContext<TabsVariant>('primary')
+// The bar's three decisions, from the root to the list and every tab in it.
+// A context rather than props on each part, since they are the bar's and
+// repeating them on every tab is how the two drift.
+type Bar = {
+  layout: TabsLayout
+  orientation: Orientation
+  variant: TabsVariant
+}
+
+type Orientation = NonNullable<RACTabsProps['orientation']>
+
+/** How the bar shares its room among the tabs. */
+type TabsLayout = 'fixed' | 'scrollable'
+
+const BarContext = createContext<Bar>({
+  layout: 'fixed',
+  orientation: 'horizontal',
+  variant: 'primary',
+})
+
+// The bars a reveal has already scrolled, so that only the first is instant.
+const revealed = new WeakSet<Element>()
 
 const NO_PANELS: ReadonlySet<Key> = new Set()
 
@@ -400,6 +542,13 @@ const RegisterPanelContext = createContext<(id: Key) => () => void>(
 // and then fails to render.
 type TabsProps = Omit<RACTabsProps, 'children'> & {
   children?: ReactNode
+  /**
+   * How the bar shares its room: `fixed` divides it into equal sections, and
+   * `scrollable` gives each tab its label's width in a bar that scrolls,
+   * which is the page's choice for more tabs than the room has sections for.
+   * @default 'fixed'
+   */
+  layout?: TabsLayout
   /**
    * Which of the page's two tab bars this is: `primary` for the main one,
    * `secondary` for a strip under a primary one.
@@ -428,17 +577,47 @@ function badgeFor(
   )
 }
 
+// Scrolls a scrollable bar just far enough to show its selected tab whole,
+// handed to the selected tab's label as a ref so it runs as that tab
+// becomes the selected one. The bar alone, never the page: `scrollIntoView`
+// would scroll every scrolling ancestor, the window included, to bring a
+// bar below the fold up to it. The first reveal is instant, so a bar opens
+// on its selected tab rather than sliding to it; the rest take the bar's own
+// smooth scrolling.
+function revealInBar(element: HTMLElement | null) {
+  const tab = element?.closest('[role="tab"]')
+  const bar = tab?.closest('[role="tablist"]')
+  if (tab === undefined || tab === null || bar === undefined || bar === null) {
+    return
+  }
+  const first = !revealed.has(bar)
+  revealed.add(bar)
+
+  const box = tab.getBoundingClientRect()
+  const room = bar.getBoundingClientRect()
+  const left =
+    Math.min(0, box.left - room.left) + Math.max(0, box.right - room.right)
+  const top =
+    Math.min(0, box.top - room.top) + Math.max(0, box.bottom - room.bottom)
+  if (left !== 0 || top !== 0) {
+    bar.scrollBy({ behavior: first ? 'instant' : 'auto', left, top })
+  }
+}
+
 // StyleX cannot target [data-selected] on the element it is styling, so the
 // active tab cannot be chosen in CSS. React Aria's answer is a className that
 // is a function of the tab's own state, the same mechanism Chip uses —
 // mergeStatefulStyles wraps this one so a tab still keeps a className the call
 // site passed.
-function tabClasses(variant: TabsVariant, stacked: boolean) {
+function tabClasses({ layout, orientation, variant }: Bar, stacked: boolean) {
   const roles = VARIANTS[variant]
+  const vertical = orientation === 'vertical'
 
   return (state: TabRenderProps) =>
     stylex.props(
       styles.tab,
+      layout === 'scrollable' && !vertical && styles.tabScrollable,
+      vertical && styles.tabVertical,
       stacked && styles.tabStacked,
       state.isSelected ? roles.active : styles.tabInactive,
       state.isHovered &&
@@ -456,7 +635,7 @@ function tabClasses(variant: TabsVariant, stacked: boolean) {
 // function too.
 function tabContent(
   children: TabProps['children'],
-  variant: TabsVariant,
+  { layout, orientation, variant }: Bar,
   icon: ReactNode,
   badge: boolean | number | undefined,
 ) {
@@ -464,12 +643,23 @@ function tabContent(
   const stacked = hasIcon && variant === 'primary'
   const after = stacked ? null : badgeFor(badge)
   const indicator = (
-    <RACSelectionIndicator {...stylex.props(VARIANTS[variant].indicator)} />
+    <RACSelectionIndicator
+      {...stylex.props(VARIANTS[variant].indicator[orientation])}
+    />
   )
+  // A primary indicator follows the label along a horizontal bar, and lies
+  // along the tab's edge everywhere else.
+  const underLabel = variant === 'primary' && orientation === 'horizontal'
 
   return (state: TabRenderProps & { defaultChildren: ReactNode }) => {
     const text = (
-      <span {...stylex.props(styles.text, stacked && styles.textStacked)}>
+      <span
+        {...stylex.props(
+          styles.text,
+          stacked && styles.textStacked,
+          orientation === 'vertical' && styles.textVertical,
+        )}
+      >
         {typeof children === 'function' ? children(state) : children}
       </span>
     )
@@ -477,6 +667,11 @@ function tabContent(
     return (
       <>
         <span
+          ref={
+            layout === 'scrollable' && state.isSelected
+              ? revealInBar
+              : undefined
+          }
           {...stylex.props(
             styles.label,
             hasIcon && (stacked ? styles.labelStacked : styles.labelInline),
@@ -495,9 +690,9 @@ function tabContent(
               {after}
             </span>
           )}
-          {variant === 'primary' ? indicator : null}
+          {underLabel ? indicator : null}
         </span>
-        {variant === 'secondary' ? indicator : null}
+        {underLabel ? null : indicator}
       </>
     )
   }
@@ -540,9 +735,15 @@ function tabRenderer(
  */
 function Tabs({
   children,
+  layout = 'fixed',
+  orientation = 'horizontal',
   variant = 'primary',
   ...props
 }: RefAttributes<HTMLDivElement> & TabsProps) {
+  const bar = useMemo(
+    () => ({ layout, orientation, variant }),
+    [layout, orientation, variant],
+  )
   const [panels, setPanels] = useState<ReadonlySet<Key>>(NO_PANELS)
 
   const register = useCallback((id: Key) => {
@@ -567,10 +768,17 @@ function Tabs({
   }, [])
 
   return (
-    <RACTabs {...props}>
+    <RACTabs
+      {...props}
+      orientation={orientation}
+      {...mergeStatefulStyles(
+        stylex.props(orientation === 'vertical' && rootStyles.vertical),
+        props,
+      )}
+    >
       <RegisterPanelContext value={register}>
         <PanelsContext value={panels}>
-          <VariantContext value={variant}>{children}</VariantContext>
+          <BarContext value={bar}>{children}</BarContext>
         </PanelsContext>
       </RegisterPanelContext>
     </RACTabs>
@@ -578,10 +786,19 @@ function Tabs({
 }
 
 function TabsList(props: TabsListProps) {
+  const { layout, orientation } = useContext(BarContext)
+
   return (
     <TabList
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.list), props)}
+      {...mergeStatefulStyles(
+        stylex.props(
+          styles.list,
+          layout === 'scrollable' && styles.listScrollable,
+          orientation === 'vertical' && styles.listVertical,
+        ),
+        props,
+      )}
     />
   )
 }
@@ -621,17 +838,18 @@ function TabsPanels(props: TabsPanelsProps) {
 
 function TabsTab({ badge, children, icon, render, ...props }: TabsTabProps) {
   const panels = useContext(PanelsContext)
-  const variant = useContext(VariantContext)
+  const bar = useContext(BarContext)
   const hasPanel = props.id !== undefined && panels.has(props.id)
-  const stacked = icon !== undefined && icon !== null && variant === 'primary'
+  const stacked =
+    icon !== undefined && icon !== null && bar.variant === 'primary'
 
   return (
     <Tab
       {...props}
       render={tabRenderer(hasPanel, render)}
-      {...mergeStatefulStyles(tabClasses(variant, stacked), props)}
+      {...mergeStatefulStyles(tabClasses(bar, stacked), props)}
     >
-      {tabContent(children, variant, icon, badge)}
+      {tabContent(children, bar, icon, badge)}
     </Tab>
   )
 }
@@ -666,6 +884,7 @@ type TabsTabProps = {
 } & TabProps
 
 export type {
+  TabsLayout,
   TabsListProps,
   TabsPanelProps,
   TabsPanelsProps,

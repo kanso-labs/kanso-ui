@@ -120,6 +120,7 @@ import type {
   SupportingPaneProps,
   SwitchProps,
   TableLoadMoreProps,
+  TabsLayout,
   TabsListProps,
   TabsPanelProps,
   TabsPanelsProps,
@@ -1173,6 +1174,11 @@ describe('components barrel', () => {
   it('re-exports the TagTone type', () => {
     const value: TagTone = 'positive'
     expect(value).toBe('positive')
+  })
+
+  it('re-exports the TabsLayout type', () => {
+    const value: TabsLayout = 'scrollable'
+    expect(value).toBe('scrollable')
   })
 
   it('re-exports the TabsVariant type', () => {
