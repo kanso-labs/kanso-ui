@@ -632,6 +632,16 @@ applied by the time the preview module evaluates. A story can be opened straight
 into one theme with `&globals=theme:dark` on the URL — that is also the
 mechanism Chromatic's modes use.
 
+**The Locale control beside it renders a story in another language.** The
+decorator wraps every story in React Aria's `I18nProvider` and puts the locale's
+`lang` and `dir` on `<html>`, which is where a portalled Sheet or Dialog reads
+them. It offers English, German, Arabic (Egypt) and Japanese: long compound
+words, Arabic-Indic digits running right to left, and a script with neither
+spaces nor Latin letters. It defaults to English, and `&globals=locale:ar-EG`
+opens a story straight into one. The stories' own copy stays English, since it
+is the stories' text rather than the library's, so what changes is every name,
+number and direction the components write.
+
 **That control offers more than light and dark**, and the extra entries come
 from `src/theming/themes.ts`: the demo schemes the `Theming` sidebar section is
 built from, which `ThemeWrapper` applies to any story the same way it applies
