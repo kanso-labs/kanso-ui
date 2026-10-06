@@ -294,7 +294,12 @@ function NumberField({
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
-      <FieldBox floatingLabel={floatingLabel} label={label} variant={variant}>
+      <FieldBox
+        floatingLabel={floatingLabel}
+        isRequired={props.isRequired}
+        label={label}
+        variant={variant}
+      >
         <div {...stylex.props(styles.row, inline && styles.rowInline)}>
           <FieldInput numeric={numeric} ref={inputRef} />
           <div

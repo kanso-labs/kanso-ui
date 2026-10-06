@@ -158,6 +158,7 @@ function TextArea({
     >
       <FieldBox
         floatingLabel={floatingLabel}
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         multiline

@@ -130,6 +130,7 @@ function TimeField<T extends TimeValue>({
         // box reads an `<input>` to decide, and a segmented field has none —
         // its segments hold the value's line from the first render.
         isPopulated
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         trailing={trailingIcon}

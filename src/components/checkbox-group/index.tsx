@@ -96,7 +96,7 @@ function groupContent(
 ) {
   return (state: CheckboxGroupRenderProps) => (
     <>
-      <FieldLabel state={state} variant="group">
+      <FieldLabel isRequired={state.isRequired} state={state} variant="group">
         {label}
       </FieldLabel>
       <div {...stylex.props(styles.items)}>{children}</div>

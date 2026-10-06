@@ -300,6 +300,7 @@ function ComboBox<
         inputRef={inputRef}
         isDisabled={isDisabled}
         isInvalid={invalidFrom(error)}
+        isRequired={props.isRequired ?? false}
         label={label}
         leadingIcon={leadingIcon}
         multiple={props.selectionMode === 'multiple'}
@@ -332,6 +333,7 @@ function ComboBoxBox({
   inputRef,
   isDisabled,
   isInvalid,
+  isRequired,
   label,
   leadingIcon,
   multiple,
@@ -342,6 +344,7 @@ function ComboBoxBox({
   inputRef: Ref<HTMLInputElement> | undefined
   isDisabled: boolean
   isInvalid: boolean | undefined
+  isRequired: boolean
   label: string
   leadingIcon: ReactNode
   multiple: boolean
@@ -359,6 +362,7 @@ function ComboBoxBox({
       isDisabled={isDisabled}
       isInvalid={isInvalid}
       isPopulated={chosen ? true : undefined}
+      isRequired={isRequired}
       label={label}
       leading={leadingIcon}
       ref={boxRef}
