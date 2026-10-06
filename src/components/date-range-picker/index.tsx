@@ -248,7 +248,7 @@ function DateRangePicker<T extends DateValue>({
       <RACPopover
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.popup, picker.popover)}
+        {...stylex.props(overlay.popup, picker.popover, picker.datePopover)}
       >
         <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
           <RangeCalendar
