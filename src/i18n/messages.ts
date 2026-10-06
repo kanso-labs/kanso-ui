@@ -5,8 +5,8 @@ import type {
 
 // The words the library writes itself and React Aria has no message for: the
 // pending ring's name, a collection's loading-more row, CopyField's button and
-// its announcement, a field's character limit, and a search view's back
-// button. Everything else a control
+// its announcement, a field's character limit, a search view's back button,
+// and what a carousel calls itself, its slides and its two buttons. Everything else a control
 // says comes from React Aria's own tables, so these are the strings this table
 // has to carry.
 //
@@ -22,11 +22,16 @@ import type {
 
 type LibraryMessage =
   | 'back'
+  | 'carousel'
   | 'characterLimit'
   | 'copied'
   | 'copy'
   | 'loading'
   | 'loadingMore'
+  | 'nextSlide'
+  | 'previousSlide'
+  | 'slide'
+  | 'slideLabel'
 
 type PluralForms = Partial<
   Record<Intl.LDMLPluralRule, (count: string) => string>
@@ -50,6 +55,7 @@ function plural(forms: PluralForms): LocalizedString {
 const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
   'ar-AE': {
     back: 'رجوع',
+    carousel: 'عرض دوّار',
     characterLimit: plural({
       few: (n) => `حتى ${n} أحرف`,
       many: (n) => `حتى ${n} حرفًا`,
@@ -62,9 +68,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'نسخ',
     loading: 'جارٍ التحميل',
     loadingMore: 'جارٍ تحميل المزيد',
+    nextSlide: 'الشريحة التالية',
+    previousSlide: 'الشريحة السابقة',
+    slide: 'شريحة',
+    slideLabel: (args) => `${args?.index} من ${args?.count}`,
   },
   'bg-BG': {
     back: 'Назад',
+    carousel: 'въртележка',
     characterLimit: plural({
       one: (n) => `До ${n} знак`,
       other: (n) => `До ${n} знака`,
@@ -73,9 +84,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Копиране',
     loading: 'Зареждане',
     loadingMore: 'Зареждане на още',
+    nextSlide: 'Следващ слайд',
+    previousSlide: 'Предишен слайд',
+    slide: 'слайд',
+    slideLabel: (args) => `${args?.index} от ${args?.count}`,
   },
   'cs-CZ': {
     back: 'Zpět',
+    carousel: 'karusel',
     characterLimit: plural({
       few: (n) => `Nejvýše ${n} znaky`,
       many: (n) => `Nejvýše ${n} znaku`,
@@ -86,25 +102,40 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopírovat',
     loading: 'Načítání',
     loadingMore: 'Načítání dalších',
+    nextSlide: 'Další snímek',
+    previousSlide: 'Předchozí snímek',
+    slide: 'snímek',
+    slideLabel: (args) => `${args?.index} z ${args?.count}`,
   },
   'da-DK': {
     back: 'Tilbage',
+    carousel: 'karrusel',
     characterLimit: plural({ other: (n) => `Op til ${n} tegn` }),
     copied: 'Kopieret',
     copy: 'Kopiér',
     loading: 'Indlæser',
     loadingMore: 'Indlæser flere',
+    nextSlide: 'Næste dias',
+    previousSlide: 'Forrige dias',
+    slide: 'dias',
+    slideLabel: (args) => `${args?.index} af ${args?.count}`,
   },
   'de-DE': {
     back: 'Zurück',
+    carousel: 'Karussell',
     characterLimit: plural({ other: (n) => `Bis zu ${n} Zeichen` }),
     copied: 'Kopiert',
     copy: 'Kopieren',
     loading: 'Wird geladen',
     loadingMore: 'Weitere werden geladen',
+    nextSlide: 'Nächste Folie',
+    previousSlide: 'Vorherige Folie',
+    slide: 'Folie',
+    slideLabel: (args) => `${args?.index} von ${args?.count}`,
   },
   'el-GR': {
     back: 'Πίσω',
+    carousel: 'καρουζέλ',
     characterLimit: plural({
       one: (n) => `Έως ${n} χαρακτήρας`,
       other: (n) => `Έως ${n} χαρακτήρες`,
@@ -113,9 +144,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Αντιγραφή',
     loading: 'Φόρτωση',
     loadingMore: 'Φόρτωση περισσότερων',
+    nextSlide: 'Επόμενη διαφάνεια',
+    previousSlide: 'Προηγούμενη διαφάνεια',
+    slide: 'διαφάνεια',
+    slideLabel: (args) => `${args?.index} από ${args?.count}`,
   },
   'en-US': {
     back: 'Back',
+    carousel: 'carousel',
     characterLimit: plural({
       one: (n) => `Up to ${n} character`,
       other: (n) => `Up to ${n} characters`,
@@ -124,9 +160,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copy',
     loading: 'Loading',
     loadingMore: 'Loading more',
+    nextSlide: 'Next slide',
+    previousSlide: 'Previous slide',
+    slide: 'slide',
+    slideLabel: (args) => `${args?.index} of ${args?.count}`,
   },
   'es-ES': {
     back: 'Atrás',
+    carousel: 'carrusel',
     characterLimit: plural({
       one: (n) => `Hasta ${n} carácter`,
       other: (n) => `Hasta ${n} caracteres`,
@@ -135,9 +176,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copiar',
     loading: 'Cargando',
     loadingMore: 'Cargando más',
+    nextSlide: 'Diapositiva siguiente',
+    previousSlide: 'Diapositiva anterior',
+    slide: 'diapositiva',
+    slideLabel: (args) => `${args?.index} de ${args?.count}`,
   },
   'et-EE': {
     back: 'Tagasi',
+    carousel: 'karussell',
     characterLimit: plural({
       one: (n) => `Kuni ${n} märk`,
       other: (n) => `Kuni ${n} märki`,
@@ -146,9 +192,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopeeri',
     loading: 'Laadimine',
     loadingMore: 'Laaditakse veel',
+    nextSlide: 'Järgmine slaid',
+    previousSlide: 'Eelmine slaid',
+    slide: 'slaid',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'fi-FI': {
     back: 'Takaisin',
+    carousel: 'karuselli',
     characterLimit: plural({
       one: (n) => `Enintään ${n} merkki`,
       other: (n) => `Enintään ${n} merkkiä`,
@@ -157,9 +208,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopioi',
     loading: 'Ladataan',
     loadingMore: 'Ladataan lisää',
+    nextSlide: 'Seuraava dia',
+    previousSlide: 'Edellinen dia',
+    slide: 'dia',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'fr-FR': {
     back: 'Retour',
+    carousel: 'carrousel',
     characterLimit: plural({
       one: (n) => `Jusqu’à ${n} caractère`,
       other: (n) => `Jusqu’à ${n} caractères`,
@@ -168,9 +224,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copier',
     loading: 'Chargement',
     loadingMore: 'Chargement de la suite',
+    nextSlide: 'Diapositive suivante',
+    previousSlide: 'Diapositive précédente',
+    slide: 'diapositive',
+    slideLabel: (args) => `${args?.index} sur ${args?.count}`,
   },
   'he-IL': {
     back: 'חזרה',
+    carousel: 'קרוסלה',
     characterLimit: plural({
       one: () => 'עד תו אחד',
       other: (n) => `עד ${n} תווים`,
@@ -180,9 +241,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'העתק',
     loading: 'טוען',
     loadingMore: 'טוען עוד',
+    nextSlide: 'השקופית הבאה',
+    previousSlide: 'השקופית הקודמת',
+    slide: 'שקופית',
+    slideLabel: (args) => `${args?.index} מתוך ${args?.count}`,
   },
   'hr-HR': {
     back: 'Natrag',
+    carousel: 'vrtuljak',
     characterLimit: plural({
       few: (n) => `Najviše ${n} znaka`,
       one: (n) => `Najviše ${n} znak`,
@@ -192,17 +258,27 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopiraj',
     loading: 'Učitavanje',
     loadingMore: 'Učitava se još',
+    nextSlide: 'Sljedeći slajd',
+    previousSlide: 'Prethodni slajd',
+    slide: 'slajd',
+    slideLabel: (args) => `${args?.index} od ${args?.count}`,
   },
   'hu-HU': {
     back: 'Vissza',
+    carousel: 'körhinta',
     characterLimit: plural({ other: (n) => `Legfeljebb ${n} karakter` }),
     copied: 'Másolva',
     copy: 'Másolás',
     loading: 'Betöltés',
     loadingMore: 'Továbbiak betöltése',
+    nextSlide: 'Következő dia',
+    previousSlide: 'Előző dia',
+    slide: 'dia',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'it-IT': {
     back: 'Indietro',
+    carousel: 'carosello',
     characterLimit: plural({
       one: (n) => `Fino a ${n} carattere`,
       other: (n) => `Fino a ${n} caratteri`,
@@ -211,25 +287,40 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copia',
     loading: 'Caricamento',
     loadingMore: 'Caricamento di altri elementi',
+    nextSlide: 'Diapositiva successiva',
+    previousSlide: 'Diapositiva precedente',
+    slide: 'diapositiva',
+    slideLabel: (args) => `${args?.index} di ${args?.count}`,
   },
   'ja-JP': {
     back: '戻る',
+    carousel: 'カルーセル',
     characterLimit: plural({ other: (n) => `最大 ${n} 文字` }),
     copied: 'コピーしました',
     copy: 'コピー',
     loading: '読み込み中',
     loadingMore: 'さらに読み込み中',
+    nextSlide: '次のスライド',
+    previousSlide: '前のスライド',
+    slide: 'スライド',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'ko-KR': {
     back: '뒤로',
+    carousel: '캐러셀',
     characterLimit: plural({ other: (n) => `최대 ${n}자` }),
     copied: '복사됨',
     copy: '복사',
     loading: '로드 중',
     loadingMore: '더 로드하는 중',
+    nextSlide: '다음 슬라이드',
+    previousSlide: '이전 슬라이드',
+    slide: '슬라이드',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'lt-LT': {
     back: 'Atgal',
+    carousel: 'karuselė',
     characterLimit: plural({
       few: (n) => `Ne daugiau kaip ${n} simboliai`,
       many: (n) => `Ne daugiau kaip ${n} simbolio`,
@@ -240,9 +331,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopijuoti',
     loading: 'Įkeliama',
     loadingMore: 'Įkeliama daugiau',
+    nextSlide: 'Kita skaidrė',
+    previousSlide: 'Ankstesnė skaidrė',
+    slide: 'skaidrė',
+    slideLabel: (args) => `${args?.index} iš ${args?.count}`,
   },
   'lv-LV': {
     back: 'Atpakaļ',
+    carousel: 'karuselis',
     characterLimit: plural({
       one: (n) => `Līdz ${n} rakstzīmei`,
       other: (n) => `Līdz ${n} rakstzīmēm`,
@@ -252,17 +348,27 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopēt',
     loading: 'Notiek ielāde',
     loadingMore: 'Notiek papildu ielāde',
+    nextSlide: 'Nākamais slaids',
+    previousSlide: 'Iepriekšējais slaids',
+    slide: 'slaids',
+    slideLabel: (args) => `${args?.index} no ${args?.count}`,
   },
   'nb-NO': {
     back: 'Tilbake',
+    carousel: 'karusell',
     characterLimit: plural({ other: (n) => `Opptil ${n} tegn` }),
     copied: 'Kopiert',
     copy: 'Kopier',
     loading: 'Laster inn',
     loadingMore: 'Laster inn flere',
+    nextSlide: 'Neste lysbilde',
+    previousSlide: 'Forrige lysbilde',
+    slide: 'lysbilde',
+    slideLabel: (args) => `${args?.index} av ${args?.count}`,
   },
   'nl-NL': {
     back: 'Terug',
+    carousel: 'carrousel',
     characterLimit: plural({
       one: (n) => `Maximaal ${n} teken`,
       other: (n) => `Maximaal ${n} tekens`,
@@ -271,9 +377,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopiëren',
     loading: 'Laden',
     loadingMore: 'Meer laden',
+    nextSlide: 'Volgende dia',
+    previousSlide: 'Vorige dia',
+    slide: 'dia',
+    slideLabel: (args) => `${args?.index} van ${args?.count}`,
   },
   'pl-PL': {
     back: 'Wstecz',
+    carousel: 'karuzela',
     characterLimit: plural({
       few: (n) => `Maksymalnie ${n} znaki`,
       many: (n) => `Maksymalnie ${n} znaków`,
@@ -284,9 +395,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopiuj',
     loading: 'Ładowanie',
     loadingMore: 'Ładowanie kolejnych',
+    nextSlide: 'Następny slajd',
+    previousSlide: 'Poprzedni slajd',
+    slide: 'slajd',
+    slideLabel: (args) => `${args?.index} z ${args?.count}`,
   },
   'pt-BR': {
     back: 'Voltar',
+    carousel: 'carrossel',
     characterLimit: plural({
       one: (n) => `Até ${n} caractere`,
       other: (n) => `Até ${n} caracteres`,
@@ -295,9 +411,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copiar',
     loading: 'Carregando',
     loadingMore: 'Carregando mais',
+    nextSlide: 'Próximo slide',
+    previousSlide: 'Slide anterior',
+    slide: 'slide',
+    slideLabel: (args) => `${args?.index} de ${args?.count}`,
   },
   'pt-PT': {
     back: 'Voltar',
+    carousel: 'carrossel',
     characterLimit: plural({
       one: (n) => `Até ${n} carácter`,
       other: (n) => `Até ${n} caracteres`,
@@ -306,9 +427,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copiar',
     loading: 'A carregar',
     loadingMore: 'A carregar mais',
+    nextSlide: 'Diapositivo seguinte',
+    previousSlide: 'Diapositivo anterior',
+    slide: 'diapositivo',
+    slideLabel: (args) => `${args?.index} de ${args?.count}`,
   },
   'ro-RO': {
     back: 'Înapoi',
+    carousel: 'carusel',
     characterLimit: plural({
       few: (n) => `Maximum ${n} caractere`,
       one: (n) => `Maximum ${n} caracter`,
@@ -318,9 +444,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Copiați',
     loading: 'Se încarcă',
     loadingMore: 'Se încarcă mai multe',
+    nextSlide: 'Diapozitivul următor',
+    previousSlide: 'Diapozitivul anterior',
+    slide: 'diapozitiv',
+    slideLabel: (args) => `${args?.index} din ${args?.count}`,
   },
   'ru-RU': {
     back: 'Назад',
+    carousel: 'карусель',
     characterLimit: plural({
       few: (n) => `Не более ${n} символов`,
       many: (n) => `Не более ${n} символов`,
@@ -331,9 +462,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Копировать',
     loading: 'Загрузка',
     loadingMore: 'Загрузка ещё',
+    nextSlide: 'Следующий слайд',
+    previousSlide: 'Предыдущий слайд',
+    slide: 'слайд',
+    slideLabel: (args) => `${args?.index} из ${args?.count}`,
   },
   'sk-SK': {
     back: 'Späť',
+    carousel: 'karusel',
     characterLimit: plural({
       few: (n) => `Najviac ${n} znaky`,
       many: (n) => `Najviac ${n} znaku`,
@@ -344,9 +480,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopírovať',
     loading: 'Načítava sa',
     loadingMore: 'Načítavajú sa ďalšie',
+    nextSlide: 'Nasledujúca snímka',
+    previousSlide: 'Predchádzajúca snímka',
+    slide: 'snímka',
+    slideLabel: (args) => `${args?.index} z ${args?.count}`,
   },
   'sl-SI': {
     back: 'Nazaj',
+    carousel: 'vrtiljak',
     characterLimit: plural({
       few: (n) => `Največ ${n} znaki`,
       one: (n) => `Največ ${n} znak`,
@@ -357,9 +498,14 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopiraj',
     loading: 'Nalaganje',
     loadingMore: 'Nalaganje več',
+    nextSlide: 'Naslednji diapozitiv',
+    previousSlide: 'Prejšnji diapozitiv',
+    slide: 'diapozitiv',
+    slideLabel: (args) => `${args?.index} od ${args?.count}`,
   },
   'sr-SP': {
     back: 'Nazad',
+    carousel: 'vrteška',
     characterLimit: plural({
       few: (n) => `Najviše ${n} znaka`,
       one: (n) => `Najviše ${n} znak`,
@@ -369,25 +515,40 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Kopiraj',
     loading: 'Učitavanje',
     loadingMore: 'Učitavanje još',
+    nextSlide: 'Sledeći slajd',
+    previousSlide: 'Prethodni slajd',
+    slide: 'slajd',
+    slideLabel: (args) => `${args?.index} od ${args?.count}`,
   },
   'sv-SE': {
     back: 'Tillbaka',
+    carousel: 'karusell',
     characterLimit: plural({ other: (n) => `Högst ${n} tecken` }),
     copied: 'Kopierat',
     copy: 'Kopiera',
     loading: 'Läser in',
     loadingMore: 'Läser in fler',
+    nextSlide: 'Nästa bild',
+    previousSlide: 'Föregående bild',
+    slide: 'bild',
+    slideLabel: (args) => `${args?.index} av ${args?.count}`,
   },
   'tr-TR': {
     back: 'Geri',
+    carousel: 'karusel',
     characterLimit: plural({ other: (n) => `En fazla ${n} karakter` }),
     copied: 'Kopyalandı',
     copy: 'Kopyala',
     loading: 'Yükleniyor',
     loadingMore: 'Daha fazlası yükleniyor',
+    nextSlide: 'Sonraki slayt',
+    previousSlide: 'Önceki slayt',
+    slide: 'slayt',
+    slideLabel: (args) => `${args?.index}/${args?.count}`,
   },
   'uk-UA': {
     back: 'Назад',
+    carousel: 'карусель',
     characterLimit: plural({
       few: (n) => `Не більше ${n} символів`,
       many: (n) => `Не більше ${n} символів`,
@@ -398,22 +559,36 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copy: 'Копіювати',
     loading: 'Завантаження',
     loadingMore: 'Завантаження ще',
+    nextSlide: 'Наступний слайд',
+    previousSlide: 'Попередній слайд',
+    slide: 'слайд',
+    slideLabel: (args) => `${args?.index} з ${args?.count}`,
   },
   'zh-CN': {
     back: '返回',
+    carousel: '轮播',
     characterLimit: plural({ other: (n) => `最多 ${n} 个字符` }),
     copied: '已复制',
     copy: '复制',
     loading: '正在加载',
     loadingMore: '正在加载更多',
+    nextSlide: '下一张',
+    previousSlide: '上一张',
+    slide: '幻灯片',
+    slideLabel: (args) => `第 ${args?.index} 项，共 ${args?.count} 项`,
   },
   'zh-TW': {
     back: '返回',
+    carousel: '輪播',
     characterLimit: plural({ other: (n) => `最多 ${n} 個字元` }),
     copied: '已複製',
     copy: '複製',
     loading: '正在載入',
     loadingMore: '正在載入更多',
+    nextSlide: '下一張',
+    previousSlide: '上一張',
+    slide: '投影片',
+    slideLabel: (args) => `第 ${args?.index} 項，共 ${args?.count} 項`,
   },
 }
 

@@ -38,6 +38,7 @@ import Button from '../components/button'
 import ButtonGroup from '../components/button-group'
 import Calendar from '../components/calendar'
 import Card from '../components/card'
+import Carousel from '../components/carousel'
 import Checkbox from '../components/checkbox'
 import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
@@ -226,6 +227,16 @@ const styles = stylex.create({
     inlineSize: '360px',
     maxInlineSize: '100%',
   },
+  // What a carousel item holds here: a block of a container role, its label
+  // at the bottom, standing in for the image an item usually is.
+  carouselTile: {
+    alignItems: 'flex-end',
+    blockSize: '160px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    padding: spacing.lg,
+    whiteSpace: 'nowrap',
+  },
   glyph: {
     blockSize: '1em',
     inlineSize: '1em',
@@ -295,6 +306,36 @@ const styles = stylex.create({
     paddingBlockStart: spacing.xxl,
   },
 })
+
+// The container pairs, in turn, so neighbouring carousel items read apart.
+const carouselTones = stylex.create({
+  primary: {
+    backgroundColor: colors.primaryContainer,
+    color: colors.onPrimaryContainer,
+  },
+  secondary: {
+    backgroundColor: colors.secondaryContainer,
+    color: colors.onSecondaryContainer,
+  },
+  tertiary: {
+    backgroundColor: colors.tertiaryContainer,
+    color: colors.onTertiaryContainer,
+  },
+})
+
+const CAROUSEL_TONES = [
+  carouselTones.primary,
+  carouselTones.secondary,
+  carouselTones.tertiary,
+]
+
+const CAROUSEL_LABELS = [
+  'First item',
+  'Second item',
+  'Third item',
+  'Fourth item',
+  'Fifth item',
+]
 
 const AVATAR_TONES = [
   'primary',
@@ -656,6 +697,28 @@ function Showcase({ name }: ShowcaseProps) {
                 </Card>
               ))}
             </Feed>
+          </Section>
+
+          <Section
+            description="Every item is cut to the extra-large corner, the spacing scale sets the gaps between items and the padding at either end, and previous and next are standard icon buttons on the on-surface-variant role."
+            title="Carousel"
+          >
+            <Carousel itemSize={200} label="Label">
+              {CAROUSEL_LABELS.map((item, index) => (
+                <Carousel.Item key={item}>
+                  <div
+                    {...stylex.props(
+                      styles.carouselTile,
+                      CAROUSEL_TONES[index % CAROUSEL_TONES.length],
+                    )}
+                  >
+                    <Text tone="inherit" variant="titleMedium">
+                      {item}
+                    </Text>
+                  </div>
+                </Carousel.Item>
+              ))}
+            </Carousel>
           </Section>
 
           <Section

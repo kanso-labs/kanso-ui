@@ -40,8 +40,11 @@ describe('the showcase', () => {
 
     // Scoped to the sections rather than asked of the document, because the
     // page's own scheme label is an h2 too and sits outside every section.
-    const titles = [...container.querySelectorAll('section')].map(
-      (section) => section.querySelector('h2')?.textContent ?? '',
+    // And to the headings a section opens with rather than to every section,
+    // because a component can render a section of its own — a carousel is a
+    // region, which is what a named section is — and that one has no title.
+    const titles = [...container.querySelectorAll('section > div > h2')].map(
+      (heading) => heading.textContent,
     )
 
     // Compared as named differences rather than as whole lists, because two
