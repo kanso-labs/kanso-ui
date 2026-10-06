@@ -1516,7 +1516,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The selected tab sits on a container of its own, and the indicator under the strip takes the primary role."
+            description="The active tab's label and the indicator under it take the primary role. The secondary strip keeps its active label on surface and runs a primary line across the tab, with each icon in its tab's own colour."
             title="Tabs"
           >
             <Tabs defaultSelectedKey="First item">
@@ -1534,6 +1534,15 @@ function Showcase({ name }: ShowcaseProps) {
                   </Text>
                 </Tabs.Panel>
               ))}
+            </Tabs>
+            <Tabs defaultSelectedKey="First item" variant="secondary">
+              <Tabs.List>
+                {TABS.map((tab) => (
+                  <Tabs.Tab icon={<CircleIcon />} id={tab} key={tab}>
+                    {tab}
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
             </Tabs>
           </Section>
 

@@ -1753,13 +1753,20 @@ export type TabsPanelsProps = Omit<TabPanelsProps<object>, 'children'> & {
 // @public (undocumented)
 export type TabsProps = Omit<TabsProps_2, 'children'> & {
     children?: ReactNode;
+    variant?: TabsVariant;
 };
 
 // @public (undocumented)
 export function TabsTab(input: TabsTabProps): JSX;
 
 // @public (undocumented)
-export type TabsTabProps = TabProps;
+export type TabsTabProps = {
+    badge?: boolean | number;
+    icon?: ReactNode;
+} & TabProps;
+
+// @public
+export type TabsVariant = 'primary' | 'secondary';
 
 // @public
 export function Tag(input: TagProps): ReactElement<unknown, string | JSXElementConstructor<any>>;

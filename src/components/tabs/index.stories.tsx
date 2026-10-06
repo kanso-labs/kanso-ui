@@ -56,6 +56,21 @@ const styles = stylex.create({
   },
 })
 
+// An icon slot takes any node; a plain glyph keeps the sample generic. The
+// library's own glyphs are private to it, so a story draws its own, `1em`
+// square as the README asks.
+const DOT = (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="6" />
+  </svg>
+)
+
 const meta = {
   args: {
     defaultSelectedKey: 'first',
@@ -113,6 +128,89 @@ const Overview: Story = {
               The third panel.
             </Text>
           </Tabs.Panel>
+        </Tabs>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Icons and badges
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A tab given an icon stacks it over the label, and the bar grows to
+            64dp. A badge sits on the icon, or 4dp after a label with no icon
+            over it. The badge is hidden from assistive technology, so its tab
+            says what it says in its name.
+          </Text>
+        </div>
+        <Tabs defaultSelectedKey="first">
+          <Tabs.List>
+            <Tabs.Tab icon={DOT} id="first">
+              First item
+            </Tabs.Tab>
+            <Tabs.Tab
+              aria-label="Second item, 3 new"
+              badge={3}
+              icon={DOT}
+              id="second"
+            >
+              Second item
+            </Tabs.Tab>
+            <Tabs.Tab icon={DOT} id="third">
+              Third item
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+        <Tabs defaultSelectedKey="first">
+          <Tabs.List>
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab aria-label="Second item, new" badge id="second">
+              Second item
+            </Tabs.Tab>
+            <Tabs.Tab id="third">Third item</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Secondary
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The strip under a primary bar. Its active label stays on surface,
+            and the indicator is a 2dp line across the whole tab. An icon sits
+            before the label, so the strip keeps its 48dp.
+          </Text>
+        </div>
+        <Tabs defaultSelectedKey="first" variant="secondary">
+          <Tabs.List>
+            <Tabs.Tab id="first">First item</Tabs.Tab>
+            <Tabs.Tab id="second">Second item</Tabs.Tab>
+            <Tabs.Tab id="third">Third item</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+        <Tabs defaultSelectedKey="second" variant="secondary">
+          <Tabs.List>
+            <Tabs.Tab icon={DOT} id="first">
+              First item
+            </Tabs.Tab>
+            <Tabs.Tab icon={DOT} id="second">
+              Second item
+            </Tabs.Tab>
+            <Tabs.Tab
+              aria-label="Third item, 3 new"
+              badge={3}
+              icon={DOT}
+              id="third"
+            >
+              Third item
+            </Tabs.Tab>
+          </Tabs.List>
         </Tabs>
       </section>
 
@@ -204,6 +302,45 @@ const Default: Story = {
   ),
 }
 
+// A primary bar whose tabs carry icons, which grows it to 64dp, with a badge
+// on one of them.
+const WithIcons: Story = {
+  render: (args) => (
+    <Tabs {...args}>
+      <Tabs.List>
+        <Tabs.Tab icon={DOT} id="first">
+          First item
+        </Tabs.Tab>
+        <Tabs.Tab
+          aria-label="Second item, 3 new"
+          badge={3}
+          icon={DOT}
+          id="second"
+        >
+          Second item
+        </Tabs.Tab>
+        <Tabs.Tab icon={DOT} id="third">
+          Third item
+        </Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
+  ),
+}
+
+// The strip under a primary bar.
+const Secondary: Story = {
+  args: { variant: 'secondary' },
+  render: (args) => (
+    <Tabs {...args}>
+      <Tabs.List>
+        <Tabs.Tab id="first">First item</Tabs.Tab>
+        <Tabs.Tab id="second">Second item</Tabs.Tab>
+        <Tabs.Tab id="third">Third item</Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
+  ),
+}
+
 // The bar on its own: tabs that filter the content below rather than
 // swapping a panel.
 const WithoutPanels: Story = {
@@ -257,6 +394,13 @@ const AnimatedPanels: Story = {
   ),
 }
 
-export { AnimatedPanels, Default, Overview, WithoutPanels }
+export {
+  AnimatedPanels,
+  Default,
+  Overview,
+  Secondary,
+  WithIcons,
+  WithoutPanels,
+}
 
 export default meta

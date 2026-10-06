@@ -38,13 +38,27 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import Badge from '../badge'
 
-// The tabs page's primary tabs: a 48dp bar on the surface, divided into equal
-// sections, with a 1dp outline-variant divider inside the bar along its
-// bottom edge and, under the active tab's label, a 3dp primary indicator
-// rounded along its top. The indicator follows the label rather than the
-// tab, inset 2dp from the label's ends and never shorter than 24dp, which is
-// what the page draws.
+// The tabs page's primary and secondary tabs. Both are a 48dp bar on the
+// surface, divided into equal sections, with a 1dp outline-variant divider
+// inside the bar along its bottom edge.
+//
+// **Primary** draws the active tab in the primary role and, under its label,
+// a 3dp primary indicator rounded along its top. The indicator follows the
+// label rather than the tab, inset 2dp from the label's ends and never
+// shorter than 24dp, which is what the page draws. A primary tab given an
+// icon stacks the page's 24dp icon over its label, 2dp apart, and the bar
+// grows to the page's 64dp.
+//
+// **Secondary** is the strip that sits under a primary one. Its active tab
+// keeps the on-surface role, and its 2dp primary indicator spans the whole
+// tab. An icon sits before the label, 8dp from it, which is the page's
+// spacing for an inline icon and material-web's layout for a secondary tab:
+// the strip keeps its 48dp under the primary one either way.
+//
+// A badge sits on the icon where a primary tab stacks one, placed as the
+// badges page places it, and 4dp after the label anywhere else.
 //
 // The indicator is React Aria's `SelectionIndicator`, which is a shared
 // element: it is rendered inside every tab but drawn in the selected one,
@@ -66,6 +80,22 @@ import {
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 const styles = stylex.create({
+  // A badge after the label, which keeps its size while the label narrows.
+  badge: {
+    flexShrink: 0,
+  },
+  // The page's 24dp icon, as a font size too so an icon drawn in `em` takes
+  // it. The tab's own colour is the icon's, which is what the page gives it
+  // in every state of both styles.
+  icon: {
+    alignItems: 'center',
+    blockSize: '24px',
+    display: 'inline-flex',
+    flexShrink: 0,
+    fontSize: '24px',
+    inlineSize: '24px',
+    justifyContent: 'center',
+  },
   // The active indicator. Centred with auto margins between two zero insets,
   // so the 24dp floor still centres it under a label narrower than that. The
   // full radius on a 3dp box resolves to the page's 3, 3, 0, 0.
@@ -106,6 +136,27 @@ const styles = stylex.create({
     transitionProperty: 'translate, inline-size',
     transitionTimingFunction: motion.easingEmphasized,
   },
+  // A secondary tab's indicator: the page's 2dp, across the whole tab rather
+  // than under its label, and square, as material-web and Compose draw it.
+  // It slides the way the primary one does, and takes the same border under
+  // forced colours.
+  indicatorSecondary: {
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
+    },
+    backgroundColor: colors.primary,
+    blockSize: '2px',
+    borderBlockStartColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderBlockStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockStartWidth: { default: null, [FORCED_COLORS]: '2px' },
+    boxSizing: 'border-box',
+    insetBlockEnd: 0,
+    insetInline: 0,
+    position: 'absolute',
+    transitionDuration: motion.durationMedium1,
+    transitionProperty: 'translate, inline-size',
+    transitionTimingFunction: motion.easingEmphasized,
+  },
   // No wider than the tab's own share of the bar, so a long label narrows to
   // fit inside it rather than pushing out past its padding.
   label: {
@@ -113,9 +164,28 @@ const styles = stylex.create({
     blockSize: '100%',
     boxSizing: 'border-box',
     display: 'inline-flex',
+    justifyContent: 'center',
     maxInlineSize: '100%',
     minInlineSize: 0,
     position: 'relative',
+  },
+  // A secondary tab's icon before its label, at the page's 8dp.
+  labelInline: {
+    gap: spacing.sm,
+  },
+  // A primary tab's icon over its label, 2dp apart as material-web sets them.
+  labelStacked: {
+    flexDirection: 'column',
+    gap: spacing.xxs,
+  },
+  // The label's text and the badge after it, the page's 4dp apart.
+  line: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+    gap: spacing.xs,
+    maxInlineSize: '100%',
+    minInlineSize: 0,
   },
   // The divider is drawn inside the bar as an inset shadow, so it is part of
   // the 48 rather than a pixel under it, and the active tab's indicator sits
@@ -169,11 +239,13 @@ const styles = stylex.create({
     transitionProperty: 'block-size',
     transitionTimingFunction: motion.easingEmphasized,
   },
+  // A minimum rather than a height, so the bar takes its tallest tab's: the
+  // list stretches every tab in it to one height, and a bar with one stacked
+  // tab is 64dp throughout rather than 64 under that tab alone.
   tab: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     backgroundColor: 'transparent',
-    blockSize: sizing.controlMd,
     borderWidth: 0,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -190,6 +262,7 @@ const styles = stylex.create({
     justifyContent: 'center',
     letterSpacing: typography.titleSmallTracking,
     lineHeight: typography.titleSmallLineHeight,
+    minBlockSize: sizing.controlMd,
     minInlineSize: 0,
     outlineColor: colors.primary,
     // Drawn inside the tab rather than around it, so a focused tab shows its
@@ -218,6 +291,12 @@ const styles = stylex.create({
   tabActiveHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
+  // A secondary tab keeps the on-surface role while active; its indicator is
+  // what says which tab is open.
+  tabActiveSecondary: {
+    backgroundColor: 'transparent',
+    color: colors.onSurface,
+  },
   // Applied from the tab's own state rather than through `:disabled`, which
   // never matches: React Aria marks a disabled tab with aria-disabled and
   // data-disabled and leaves the native attribute off, so the pseudo-class
@@ -238,6 +317,18 @@ const styles = stylex.create({
   tabPressed: {
     backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
+  // A secondary tab's layers are on surface whether it is active or not.
+  tabSecondaryHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  tabSecondaryPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  // The page's 64dp, for a primary tab with its icon over its label. No
+  // sizing token holds 64.
+  tabStacked: {
+    minBlockSize: '64px',
+  },
   // A label longer than its section, which German, Finnish and Dutch reach
   // with a single word. The word breaks inside itself where it cannot break
   // at a space — hyphenated where the page's language allows — and a label
@@ -253,7 +344,39 @@ const styles = stylex.create({
     WebkitBoxOrient: 'vertical',
     WebkitLineClamp: 2,
   },
+  // Under a stacked icon the 64dp tab has room for one line: two would make
+  // 24 + 2 + 40, past the page's height.
+  textStacked: {
+    WebkitLineClamp: 1,
+  },
 })
+
+/** The tabs page's two styles of tab bar. */
+type TabsVariant = 'primary' | 'secondary'
+
+// What each style draws a tab's states in. A table rather than a branch per
+// state, so the two styles cannot differ in which states they answer.
+const VARIANTS = {
+  primary: {
+    active: styles.tabActive,
+    activeHovered: styles.tabActiveHovered,
+    inactiveHovered: styles.tabInactiveHovered,
+    indicator: styles.indicator,
+    pressed: styles.tabPressed,
+  },
+  secondary: {
+    active: styles.tabActiveSecondary,
+    activeHovered: styles.tabSecondaryHovered,
+    inactiveHovered: styles.tabSecondaryHovered,
+    indicator: styles.indicatorSecondary,
+    pressed: styles.tabSecondaryPressed,
+  },
+} satisfies Record<TabsVariant, unknown>
+
+// Which style the bar draws, from the root to every tab in it. A context
+// rather than a prop on each tab, since it is the bar's decision and
+// repeating it on every tab is how the two drift.
+const VariantContext = createContext<TabsVariant>('primary')
 
 const NO_PANELS: ReadonlySet<Key> = new Set()
 
@@ -277,21 +400,107 @@ const RegisterPanelContext = createContext<(id: Key) => () => void>(
 // and then fails to render.
 type TabsProps = Omit<RACTabsProps, 'children'> & {
   children?: ReactNode
+  /**
+   * Which of the page's two tab bars this is: `primary` for the main one,
+   * `secondary` for a strip under a primary one.
+   * @default 'primary'
+   */
+  variant?: TabsVariant
 }
 
-// The label, wrapped so the indicator has its width to follow. Built by a
-// call for the same reason as `tabRenderer` below; React Aria hands the
+// The badge, which wraps the icon where a primary tab stacks one and stands
+// after the label anywhere else: `true` for the small dot, a number for the
+// large badge, and nothing for `false`.
+function badgeFor(
+  badge: boolean | number | undefined,
+  icon?: ReactNode,
+): ReactNode {
+  if (badge === undefined || badge === false) {
+    return icon ?? null
+  }
+  return (
+    <Badge
+      count={badge === true ? undefined : badge}
+      {...stylex.props(icon === undefined && styles.badge)}
+    >
+      {icon}
+    </Badge>
+  )
+}
+
+// StyleX cannot target [data-selected] on the element it is styling, so the
+// active tab cannot be chosen in CSS. React Aria's answer is a className that
+// is a function of the tab's own state, the same mechanism Chip uses —
+// mergeStatefulStyles wraps this one so a tab still keeps a className the call
+// site passed.
+function tabClasses(variant: TabsVariant, stacked: boolean) {
+  const roles = VARIANTS[variant]
+
+  return (state: TabRenderProps) =>
+    stylex.props(
+      styles.tab,
+      stacked && styles.tabStacked,
+      state.isSelected ? roles.active : styles.tabInactive,
+      state.isHovered &&
+        (state.isSelected ? roles.activeHovered : roles.inactiveHovered),
+      state.isPressed && roles.pressed,
+      state.isDisabled && styles.tabDisabled,
+    )
+}
+
+// The tab's content: the icon, if any, then the label, wrapped so the
+// indicator has its width to follow. A badge after the label shares a line
+// with it, which is the one wrapper a tab without one goes without. Built by
+// a call for the same reason as `tabRenderer` below; React Aria hands the
 // function the tab's state, and it is passed on when the children are a
 // function too.
-function tabContent(children: TabProps['children']) {
-  return (state: TabRenderProps & { defaultChildren: ReactNode }) => (
-    <span {...stylex.props(styles.label)}>
-      <span {...stylex.props(styles.text)}>
+function tabContent(
+  children: TabProps['children'],
+  variant: TabsVariant,
+  icon: ReactNode,
+  badge: boolean | number | undefined,
+) {
+  const hasIcon = icon !== undefined && icon !== null
+  const stacked = hasIcon && variant === 'primary'
+  const after = stacked ? null : badgeFor(badge)
+  const indicator = (
+    <RACSelectionIndicator {...stylex.props(VARIANTS[variant].indicator)} />
+  )
+
+  return (state: TabRenderProps & { defaultChildren: ReactNode }) => {
+    const text = (
+      <span {...stylex.props(styles.text, stacked && styles.textStacked)}>
         {typeof children === 'function' ? children(state) : children}
       </span>
-      <RACSelectionIndicator {...stylex.props(styles.indicator)} />
-    </span>
-  )
+    )
+
+    return (
+      <>
+        <span
+          {...stylex.props(
+            styles.label,
+            hasIcon && (stacked ? styles.labelStacked : styles.labelInline),
+          )}
+        >
+          {hasIcon ? (
+            <span {...stylex.props(styles.icon)}>
+              {stacked ? badgeFor(badge, icon) : icon}
+            </span>
+          ) : null}
+          {after === null ? (
+            text
+          ) : (
+            <span {...stylex.props(styles.line)}>
+              {text}
+              {after}
+            </span>
+          )}
+          {variant === 'primary' ? indicator : null}
+        </span>
+        {variant === 'secondary' ? indicator : null}
+      </>
+    )
+  }
 }
 
 // React Aria renders a tab with `href` as an anchor and any other as a div,
@@ -331,6 +540,7 @@ function tabRenderer(
  */
 function Tabs({
   children,
+  variant = 'primary',
   ...props
 }: RefAttributes<HTMLDivElement> & TabsProps) {
   const [panels, setPanels] = useState<ReadonlySet<Key>>(NO_PANELS)
@@ -359,7 +569,9 @@ function Tabs({
   return (
     <RACTabs {...props}>
       <RegisterPanelContext value={register}>
-        <PanelsContext value={panels}>{children}</PanelsContext>
+        <PanelsContext value={panels}>
+          <VariantContext value={variant}>{children}</VariantContext>
+        </PanelsContext>
       </RegisterPanelContext>
     </RACTabs>
   )
@@ -407,34 +619,20 @@ function TabsPanels(props: TabsPanelsProps) {
   )
 }
 
-function TabsTab({ children, render, ...props }: TabsTabProps) {
+function TabsTab({ badge, children, icon, render, ...props }: TabsTabProps) {
   const panels = useContext(PanelsContext)
+  const variant = useContext(VariantContext)
   const hasPanel = props.id !== undefined && panels.has(props.id)
+  const stacked = icon !== undefined && icon !== null && variant === 'primary'
 
   return (
     <Tab
       {...props}
       render={tabRenderer(hasPanel, render)}
-      {...mergeStatefulStyles(tabStyles, props)}
+      {...mergeStatefulStyles(tabClasses(variant, stacked), props)}
     >
-      {tabContent(children)}
+      {tabContent(children, variant, icon, badge)}
     </Tab>
-  )
-}
-
-// StyleX cannot target [data-selected] on the element it is styling, so the
-// active tab cannot be chosen in CSS. React Aria's answer is a className that
-// is a function of the tab's own state, the same mechanism Chip uses —
-// mergeStatefulStyles wraps this one so a tab still keeps a className the call
-// site passed.
-function tabStyles(state: TabRenderProps) {
-  return stylex.props(
-    styles.tab,
-    state.isSelected ? styles.tabActive : styles.tabInactive,
-    state.isHovered &&
-      (state.isSelected ? styles.tabActiveHovered : styles.tabInactiveHovered),
-    state.isPressed && styles.tabPressed,
-    state.isDisabled && styles.tabDisabled,
   )
 }
 
@@ -451,7 +649,21 @@ type TabsPanelsProps = Omit<TabPanelsProps<object>, 'children'> & {
   children?: ReactNode
 }
 
-type TabsTabProps = TabProps
+type TabsTabProps = {
+  /**
+   * A badge on the tab: `true` for the badges page's small dot, a number for
+   * the large badge holding it. It sits on a primary tab's icon, and after
+   * the label anywhere else. The badge is hidden from assistive technology,
+   * so say what it says in the tab's name too — "First item, 3 new".
+   */
+  badge?: boolean | number
+  /**
+   * An icon with the label, at the page's 24dp: over it on a primary tab,
+   * whose bar grows to 64dp, and before it on a secondary one. An icon drawn
+   * in `em` takes its size from the slot.
+   */
+  icon?: ReactNode
+} & TabProps
 
 export type {
   TabsListProps,
@@ -459,6 +671,7 @@ export type {
   TabsPanelsProps,
   TabsProps,
   TabsTabProps,
+  TabsVariant,
 }
 
 export { TabsList, TabsPanel, TabsPanels, TabsTab }
