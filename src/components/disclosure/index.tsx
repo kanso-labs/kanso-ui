@@ -101,17 +101,33 @@ const styles = stylex.create({
   // is what makes the closed track measure nothing. `hidden="until-found"`
   // skips an element's contents but keeps its own box, so padding on the
   // panel would leave the closed section a band of empty space tall.
+  //
+  // The 4px above the content is for a browser without
+  // `overflow-clip-margin`, which clips the panel at its very edge — see
+  // `panel`. It keeps a focusable first child's ring inside the box there,
+  // and a browser with the margin draws no gap at all.
   inner: {
     boxSizing: 'border-box',
     paddingBlockEnd: spacing.lg,
+    paddingBlockStart: {
+      '@supports not (overflow-clip-margin: 4px)': '4px',
+      default: null,
+    },
     paddingInline: spacing.lg,
   },
   // What React Aria hides while the section is closed. `minBlockSize: 0` is
   // what lets the grid track above shrink past the content's own minimum.
+  //
+  // Clipped rather than hidden, and 4px past the edge: a focus ring sits 2px
+  // outside its control and is 2px wide, so a focusable first child flush
+  // with the panel's top keeps its whole ring rather than losing the top of
+  // it. `clip` is also not a scroll container, so focusing something inside
+  // cannot scroll the panel out from under it.
   panel: {
     boxSizing: 'border-box',
     minBlockSize: 0,
-    overflow: 'hidden',
+    overflow: 'clip',
+    overflowClipMargin: '4px',
   },
   root: {
     boxSizing: 'border-box',
