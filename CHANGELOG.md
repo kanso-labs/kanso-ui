@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.36.0](https://github.com/kanso-labs/kanso-ui/compare/v0.35.0...v0.36.0) (2026-10-06)
+
+
+### Features
+
+* **badge:** add Badge, the small and large notification mark on an icon ([#1303](https://github.com/kanso-labs/kanso-ui/issues/1303)) ([01d8a93](https://github.com/kanso-labs/kanso-ui/commit/01d8a93c4a6561c300c718c5e2b8d619eef4de21))
+* **button:** add an icon slot sized to the spec's icon size at each button size ([#1308](https://github.com/kanso-labs/kanso-ui/issues/1308)) ([5533c90](https://github.com/kanso-labs/kanso-ui/commit/5533c90d461d349ee4d1949a9c7c1a9c0ac349a6))
+* **button:** add the toggle mode, the square shape and the pressed shape morph ([#1307](https://github.com/kanso-labs/kanso-ui/issues/1307)) ([cc873dc](https://github.com/kanso-labs/kanso-ui/commit/cc873dc70185090808ecc9886838cf6aede276a1))
+* **calendar:** add the month and year menus the docked date picker's header draws ([#1302](https://github.com/kanso-labs/kanso-ui/issues/1302)) ([fb2a090](https://github.com/kanso-labs/kanso-ui/commit/fb2a090d06ae4045ccecde1c942c0ca3138ed0f3))
+* export every compound part under its own name so a server component can render it ([#1296](https://github.com/kanso-labs/kanso-ui/issues/1296)) ([dd58d5d](https://github.com/kanso-labs/kanso-ui/commit/dd58d5da1d604c6744f9d0a30517097fedb4d355))
+* **fab:** add the FAB and the extended FAB, with the FAB menu ([#1309](https://github.com/kanso-labs/kanso-ui/issues/1309)) ([9cab064](https://github.com/kanso-labs/kanso-ui/commit/9cab064916f840a4f98b8fa1057f9d522eec6805))
+* **field:** mark a required field's label with an asterisk ([#1292](https://github.com/kanso-labs/kanso-ui/issues/1292)) ([c62462c](https://github.com/kanso-labs/kanso-ui/commit/c62462c27850606facf16281677957e08a22b49d))
+* localise the pending, loading-more, copy and character-limit labels from the I18nProvider locale ([#1277](https://github.com/kanso-labs/kanso-ui/issues/1277)) ([10af23f](https://github.com/kanso-labs/kanso-ui/commit/10af23fcb240dc5cd9c9027a5588ebbdc7df58f7))
+* **navigation-bar,navigation-rail:** add the navigation bar and the collapsed and expanded navigation rail ([#1305](https://github.com/kanso-labs/kanso-ui/issues/1305)) ([42c0ece](https://github.com/kanso-labs/kanso-ui/commit/42c0ece023a2fc515e8db394f00313fa7138e280))
+* **theming:** let an app pin the light or dark scheme instead of following the OS ([#1294](https://github.com/kanso-labs/kanso-ui/issues/1294)) ([bd8440a](https://github.com/kanso-labs/kanso-ui/commit/bd8440a08c26db32b9cc2f6413527ef290cec4d2))
+
+
+### Bug Fixes
+
+* **button:** grow the container for a wrapped label instead of spilling it ([#1280](https://github.com/kanso-labs/kanso-ui/issues/1280)) ([9f67f49](https://github.com/kanso-labs/kanso-ui/commit/9f67f4996d2fa7ba75cfe52210fd3f84b3e5dcc1))
+* **button:** take isDisabled from a slotted ButtonContext, as IconButton does ([#1300](https://github.com/kanso-labs/kanso-ui/issues/1300)) ([59d3e5d](https://github.com/kanso-labs/kanso-ui/commit/59d3e5deae6dc20efd1b0144d5dc113aa4a0af88))
+* **card,list-item,search-field:** stop the hover layer sticking after a tap on elements React Aria does not host ([#1282](https://github.com/kanso-labs/kanso-ui/issues/1282)) ([42cf053](https://github.com/kanso-labs/kanso-ui/commit/42cf05391d00195141cf1e173b77ad6ce9b3c8ab))
+* **color-swatch-picker:** keep the selection ring on a swatch that also has focus ([#1289](https://github.com/kanso-labs/kanso-ui/issues/1289)) ([ac63612](https://github.com/kanso-labs/kanso-ui/commit/ac6361233ac94add00198fa41b5dc2e0106e2605))
+* draw hover and pressed state layers from React Aria's render state rather than :hover and :active ([#1281](https://github.com/kanso-labs/kanso-ui/issues/1281)) ([c89d665](https://github.com/kanso-labs/kanso-ui/commit/c89d665e0b9c4e4535cd2127e7f5a1c74e0a785e))
+* **exports:** export every public prop union from the barrel and settle the two header props types ([#1272](https://github.com/kanso-labs/kanso-ui/issues/1272)) ([c355214](https://github.com/kanso-labs/kanso-ui/commit/c3552146930a02b22d923ba2aad30078fd7dd534))
+* **feed:** keep a lone column inside a container narrower than minItemWidth ([#1290](https://github.com/kanso-labs/kanso-ui/issues/1290)) ([f0f6d0b](https://github.com/kanso-labs/kanso-ui/commit/f0f6d0bc2e9db1ba736aff342ed448a6977fd20c))
+* follow the I18nProvider's locale in Currency, the character counter and Avatar's initials ([#1275](https://github.com/kanso-labs/kanso-ui/issues/1275)) ([b4a7c52](https://github.com/kanso-labs/kanso-ui/commit/b4a7c529fc358570a491cf036b4cf8786d74f3de))
+* keep the selected row, the current drawer row, the active tab, the drop line and the snackbar's edge visible under forced colours ([#1291](https://github.com/kanso-labs/kanso-ui/issues/1291)) ([ac8fcab](https://github.com/kanso-labs/kanso-ui/commit/ac8fcab41ccf194059f52e6efb584ccc5a1862f6))
+* **overlay:** contain overscroll in anchored panels so scrolling one to its end does not scroll the page and close it ([#1284](https://github.com/kanso-labs/kanso-ui/issues/1284)) ([1259f3a](https://github.com/kanso-labs/kanso-ui/commit/1259f3a1047cf47e6496befc415339566ebd1580))
+* **ripple:** end a touch press that is released or cancelled away from its host ([#1283](https://github.com/kanso-labs/kanso-ui/issues/1283)) ([08790db](https://github.com/kanso-labs/kanso-ui/commit/08790db08e68e6d740f62e87aa88d761964de56c))
+* **sheet,dialog,snackbar:** keep edge-pinned surfaces clear of the device's safe-area insets ([#1285](https://github.com/kanso-labs/kanso-ui/issues/1285)) ([e557093](https://github.com/kanso-labs/kanso-ui/commit/e5570930a324e60a125fc223a5fb6d5b95850885))
+* stop overriding React Aria's localised names on the clear, stepper, close, remove, select, resize, colour-channel and picker-trigger controls ([#1274](https://github.com/kanso-labs/kanso-ui/issues/1274)) ([6e33aff](https://github.com/kanso-labs/kanso-ui/commit/6e33aff84ad3a0658f8c32acdd6df92ceb206fa1))
+* **table:** give the column resize handle a wide pointer target and a forced-colours edge ([#1288](https://github.com/kanso-labs/kanso-ui/issues/1288)) ([932d76a](https://github.com/kanso-labs/kanso-ui/commit/932d76a05209a93837b7d9280ca91e57163930a5))
+* **tabs,disclosure:** stop the panel boxes clipping the focus rings inside them ([#1287](https://github.com/kanso-labs/kanso-ui/issues/1287)) ([129e0a0](https://github.com/kanso-labs/kanso-ui/commit/129e0a01d4d3061cccc64eacc5e870b49ba1e3b5))
+* **tabs:** keep a label longer than its section inside the tab ([#1279](https://github.com/kanso-labs/kanso-ui/issues/1279)) ([4884d0f](https://github.com/kanso-labs/kanso-ui/commit/4884d0fe9625c9d5721d7a65308a2e7dda9292e7))
+* **tokens:** make the brand and plain typeface tokens drive the type scale ([#1295](https://github.com/kanso-labs/kanso-ui/issues/1295)) ([994e43d](https://github.com/kanso-labs/kanso-ui/commit/994e43de2e47f7664b293871516004dd9f6ba80d))
+* turn an open chevron down and centre the slider's value indicator under right-to-left ([#1286](https://github.com/kanso-labs/kanso-ui/issues/1286)) ([eac74ed](https://github.com/kanso-labs/kanso-ui/commit/eac74eded7d7cf1da7cadedd6341653e27328f7f))
+
+
+### Dependencies
+
+* update dependency @vitejs/plugin-react to v6.1.2 ([#1246](https://github.com/kanso-labs/kanso-ui/issues/1246)) ([7f71518](https://github.com/kanso-labs/kanso-ui/commit/7f71518922b75916ab5990bb69e6373393a63378))
+* update dependency vite to v8.3.3 ([#1304](https://github.com/kanso-labs/kanso-ui/issues/1304)) ([f2f9525](https://github.com/kanso-labs/kanso-ui/commit/f2f95257ceb2ed60a02e6dac7451bf2f769283db))
+
 ## [0.35.0](https://github.com/kanso-labs/kanso-ui/compare/v0.34.16...v0.35.0) (2026-10-06)
 
 
