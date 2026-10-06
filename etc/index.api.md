@@ -238,15 +238,22 @@ export function Button(input: ButtonProps & RefAttributes<HTMLAnchorElement | HT
 export type ButtonProps = {
     children?: ReactNode;
     className?: ClassNameOrFunction<ButtonState>;
+    defaultSelected?: boolean;
     disableRipple?: boolean;
     href?: string;
+    isSelected?: boolean;
+    onChange?: (isSelected: boolean) => void;
     pendingLabel?: string;
     rel?: string;
+    shape?: ButtonShape;
     size?: ButtonSize;
     style?: StyleOrFunction<ButtonState>;
     target?: string;
     variant?: ButtonVariant;
 } & ButtonDOMProps;
+
+// @public (undocumented)
+export type ButtonShape = 'round' | 'square';
 
 // @public (undocumented)
 export type ButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl';

@@ -15,7 +15,12 @@ export { default as Badge } from './badge'
 export type { BreadcrumbsItemProps, BreadcrumbsProps } from './breadcrumbs'
 export { default as Breadcrumbs } from './breadcrumbs'
 export { BreadcrumbsItem } from './breadcrumbs'
-export type { ButtonProps, ButtonSize, ButtonVariant } from './button'
+export type {
+  ButtonProps,
+  ButtonShape,
+  ButtonSize,
+  ButtonVariant,
+} from './button'
 export { default as Button } from './button'
 export type { CalendarProps } from './calendar'
 export { default as Calendar } from './calendar'

@@ -561,7 +561,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="Every variant reads its container off a colour role and its corner off the radius scale, so a scheme moves all of them at once — the elevated button off its shadow scale as well."
+            description="Every variant reads its container off a colour role and its corner off the radius scale, a square button's and a selected toggle's among them, so a scheme moves all of them at once — the elevated button off its shadow scale as well."
             title="Button"
           >
             <div {...stylex.props(styles.row)}>
@@ -570,6 +570,12 @@ function Showcase({ name }: ShowcaseProps) {
               <Button variant="elevated">Label</Button>
               <Button variant="outlined">Label</Button>
               <Button variant="text">Label</Button>
+              <Button shape="square" variant="tonal">
+                Label
+              </Button>
+              <Button defaultSelected variant="outlined">
+                Label
+              </Button>
               <Button isDisabled>Label</Button>
               <Button isPending>Label</Button>
             </div>

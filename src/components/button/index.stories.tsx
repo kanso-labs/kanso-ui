@@ -165,6 +165,147 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Toggle
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Given `isSelected`, `defaultSelected` or `onChange`, a button
+            reports a state through `aria-pressed` and moves between the
+            page&apos;s second pair of colour roles, trading its shape for the
+            other once selected. Each pair below is one toggle unselected and
+            then selected. A text button never toggles: the page gives it no
+            pair.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="filled">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              filled
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="filled">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              filled · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="tonal">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="tonal">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              tonal · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="elevated">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="elevated">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              elevated · selected
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected={false} variant="outlined">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button defaultSelected variant="outlined">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              outlined · selected
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Shapes
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `round` rests as the pill, as every button above does, and `square`
+            at the size&apos;s square corner, from the page&apos;s size token
+            sets. Either tightens to a smaller corner while pressed.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.inline)}>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xs">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xs · 12px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="md">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              md · 12px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="lg">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              lg · 16px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xl">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xl · 28px
+            </Text>
+          </div>
+          <div {...stylex.props(styles.sample)}>
+            <Button shape="square" size="xxl">
+              Button
+            </Button>
+            <Text tone="muted" variant="labelSmall">
+              xxl · 28px
+            </Text>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Sizes
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -396,6 +537,16 @@ const Elevated: Story = {
   args: { variant: 'elevated' },
 }
 
-export { Default, Elevated, Overview, Pending, Pressed }
+// A toggle, selected: the tonal pair moved to secondary, and the pill traded
+// for the square corner.
+const Toggle: Story = {
+  args: { defaultSelected: true, variant: 'tonal' },
+}
+
+const Square: Story = {
+  args: { shape: 'square' },
+}
+
+export { Default, Elevated, Overview, Pending, Pressed, Square, Toggle }
 
 export default meta
