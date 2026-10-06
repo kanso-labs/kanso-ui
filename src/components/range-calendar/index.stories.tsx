@@ -151,11 +151,19 @@ const Bounded: Story = {
   },
 }
 
+// The docked date picker's header, as `Calendar` draws it with the same
+// prop: the month and the year as menu buttons.
+const MonthAndYearMenus: Story = {
+  args: {
+    showMonthYearMenus: true,
+  },
+}
+
 function isWeekend(date: DateValue) {
   const day = date.toDate(getLocalTimeZone()).getDay()
   return day === 0 || day === 6
 }
 
-export { Bounded, Default, Overview, TwoMonths }
+export { Bounded, Default, MonthAndYearMenus, Overview, TwoMonths }
 
 export default meta

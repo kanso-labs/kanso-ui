@@ -180,12 +180,21 @@ const Open: Story = {
   },
 }
 
+// The docked picker the page draws: open, with the month and the year as
+// menu buttons in the calendar's header.
+const OpenWithMenus: Story = {
+  args: {
+    defaultOpen: true,
+    showMonthYearMenus: true,
+  },
+}
+
 const WithError: Story = {
   args: {
     error: 'Supporting line',
   },
 }
 
-export { Default, Empty, Open, Outlined, Overview, WithError }
+export { Default, Empty, Open, OpenWithMenus, Outlined, Overview, WithError }
 
 export default meta

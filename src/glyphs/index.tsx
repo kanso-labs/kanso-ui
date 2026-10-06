@@ -14,10 +14,11 @@ import { glyphStyles } from './styles'
 // the package.
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
-// close, the right chevron, the two sort arrows and the calendar from
-// Material Symbols on their 24-unit grid, which is what the checkbox page
-// draws at 18dp, the icon buttons page at 20 and the search, menus and date
-// picker pages at 24.
+// close, the right chevron, the two sort arrows, the drop-down arrow and the
+// calendar from Material Symbols on their 24-unit grid, which is what the
+// checkbox page draws at 18dp, the icon buttons page at 20 and the search,
+// menus and date picker pages at 24 — the date picker's menu buttons draw
+// their arrow at 18.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 
@@ -29,6 +30,16 @@ function ArrowDownwardGlyph(props: GlyphProps) {
   return (
     <Glyph {...props}>
       <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
+    </Glyph>
+  )
+}
+
+// What a menu button draws after its label, pointing at the list it opens.
+// Down is down in either writing direction, so it does not mirror.
+function ArrowDropDownGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M7 10l5 5 5-5z" />
     </Glyph>
   )
 }
@@ -127,6 +138,7 @@ function SearchGlyph(props: GlyphProps) {
 
 export {
   ArrowDownwardGlyph,
+  ArrowDropDownGlyph,
   ArrowUpwardGlyph,
   CalendarGlyph,
   CheckGlyph,

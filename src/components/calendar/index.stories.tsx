@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { DateValue } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect } from 'storybook/test'
 
 import Calendar from '.'
 import { CalendarDate, getLocalTimeZone, today } from '../../date'
@@ -123,6 +124,27 @@ const Overview: Story = {
           minValue={MIN}
         />
       </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Month and year menus
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            `showMonthYearMenus` draws the docked date picker&apos;s header: the
+            month and the year as menu buttons, each opening a list of them in
+            the grid&apos;s place with the one shown checked. A date years away
+            is two presses rather than one per month.
+          </Text>
+        </div>
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          showMonthYearMenus
+        />
+      </section>
     </div>
   ),
 }
@@ -156,11 +178,41 @@ const TwoMonths: Story = {
   },
 }
 
+// The docked date picker's header: the month and the year as menu buttons,
+// for a date far from the one shown.
+const MonthAndYearMenus: Story = {
+  args: {
+    showMonthYearMenus: true,
+  },
+}
+
+// The month menu open, which lists the months in the grid's place with the
+// one shown checked. Opened by its `play`, so the snapshot shows the list.
+const MonthList: Story = {
+  args: {
+    showMonthYearMenus: true,
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Sep month' }))
+    await expect(
+      canvas.getByRole('option', { name: 'September' }),
+    ).toHaveAttribute('aria-selected', 'true')
+  },
+}
+
 function isWeekend(date: DateValue) {
   const day = date.toDate(getLocalTimeZone()).getDay()
   return day === 0 || day === 6
 }
 
-export { Bounded, Default, Overview, Today, TwoMonths }
+export {
+  Bounded,
+  Default,
+  MonthAndYearMenus,
+  MonthList,
+  Overview,
+  Today,
+  TwoMonths,
+}
 
 export default meta

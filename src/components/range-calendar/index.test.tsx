@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import RangeCalendar from '.'
@@ -90,6 +90,18 @@ function endFor(view: ReturnType<typeof render>, which: 'end' | 'start') {
     throw new Error(`expected a ${which} of the range`)
   }
   return found
+}
+
+// Lets a frame pass, which is when a month or year list closes after a
+// choice — see src/calendar/index.tsx.
+async function nextFrame() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        resolve()
+      })
+    })
+  })
 }
 
 describe('range calendar', () => {
@@ -212,6 +224,25 @@ describe('range calendar', () => {
   })
 
   describe('shared with Calendar', () => {
+    // The same menus Calendar draws, from the same prop, so a range calendar
+    // moves a year on with one choice from the year list.
+    it('draws the month and year menus Calendar does, and moves by them', async () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          showMonthYearMenus
+        />,
+      )
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+      fireEvent.click(view.getByRole('option', { name: '2028' }))
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/September 2028/)
+    })
+
     // The `Bounded` story rules weekends out to show a range stopping at one,
     // and until the cell drew something a reader could see it showed nothing
     // at all. A date inside the range that is ruled out has to be tellable

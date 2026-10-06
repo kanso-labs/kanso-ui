@@ -15,7 +15,7 @@ import {
   RangeCalendar as RACRangeCalendar,
 } from 'react-aria-components'
 
-import { CalendarGridHeader, CalendarHeader } from '../../calendar'
+import { CalendarFrame, CalendarGridHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
 import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
@@ -51,6 +51,12 @@ type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
 > & {
   /** A function may compute the class from the calendar's render state. */
   className?: RACRangeCalendarProps<T>['className']
+  /**
+   * Whether the header draws the month and the year as menu buttons, each
+   * opening a list of them in the grid's place, as `Calendar`'s does.
+   * @default false
+   */
+  showMonthYearMenus?: boolean
   /** A function may compute the style from the calendar's render state. */
   style?: RACRangeCalendarProps<T>['style']
 }
@@ -140,27 +146,29 @@ function gridCell(date: CalendarDate): ReactElement {
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function RangeCalendar<T extends DateValue>(
-  props: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>,
-) {
+function RangeCalendar<T extends DateValue>({
+  showMonthYearMenus = false,
+  ...props
+}: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACRangeCalendar<T>
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarHeader />
-      <div {...stylex.props(calendarStyles.months)}>
-        {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-          <RACCalendarGrid
-            key={offset.months}
-            offset={offset}
-            {...stylex.props(calendarStyles.grid)}
-          >
-            <CalendarGridHeader />
-            <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-          </RACCalendarGrid>
-        ))}
-      </div>
+      <CalendarFrame showMonthYearMenus={showMonthYearMenus}>
+        <div {...stylex.props(calendarStyles.months)}>
+          {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
+            <RACCalendarGrid
+              key={offset.months}
+              offset={offset}
+              {...stylex.props(calendarStyles.grid)}
+            >
+              <CalendarGridHeader />
+              <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+            </RACCalendarGrid>
+          ))}
+        </div>
+      </CalendarFrame>
     </RACRangeCalendar>
   )
 }
