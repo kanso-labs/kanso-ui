@@ -110,6 +110,7 @@ import type {
   SheetProps,
   SheetTitleProps,
   SliderProps,
+  SliderSize,
   SnackbarAction,
   SnackbarMessage,
   SnackbarOptions,
@@ -886,6 +887,11 @@ describe('components barrel', () => {
   it('re-exports the SliderProps type', () => {
     const props: SliderProps = { defaultValue: 40 }
     expect(props.defaultValue).toBe(40)
+  })
+
+  it('re-exports the SliderSize type', () => {
+    const value: SliderSize = 'md'
+    expect(value).toBe('md')
   })
 
   it('re-exports the NumberFieldProps type', () => {

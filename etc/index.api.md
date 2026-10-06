@@ -1548,10 +1548,16 @@ export function Slider(input: RefAttributes<HTMLDivElement> & SliderProps): JSX;
 
 // @public (undocumented)
 export type SliderProps = Omit<SliderProps_2, 'children' | 'orientation'> & {
+    icon?: ReactNode;
     label?: string;
     orientation?: 'horizontal' | 'vertical';
+    showStops?: boolean;
+    size?: SliderSize;
     thumbLabels?: string[];
 };
+
+// @public (undocumented)
+export type SliderSize = 'lg' | 'md' | 'sm' | 'xl' | 'xs';
 
 // @public
 export function Snackbar(input: RefAttributes<HTMLDivElement> & SnackbarProps): JSX;
