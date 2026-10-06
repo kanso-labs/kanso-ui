@@ -32,7 +32,12 @@ export type { CheckboxProps } from './checkbox'
 export { default as Checkbox } from './checkbox'
 export type { CheckboxGroupProps } from './checkbox-group'
 export { default as CheckboxGroup } from './checkbox-group'
-export type { ChipProps } from './chip'
+export type {
+  ChipActionProps,
+  ChipFilterProps,
+  ChipProps,
+  ChipVariant,
+} from './chip'
 export { default as Chip } from './chip'
 export type { ChipGroupChipProps, ChipGroupProps } from './chip-group'
 export { default as ChipGroup } from './chip-group'

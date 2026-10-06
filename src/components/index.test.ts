@@ -20,9 +20,12 @@ import type {
   CardVariant,
   CheckboxGroupProps,
   CheckboxProps,
+  ChipActionProps,
+  ChipFilterProps,
   ChipGroupChipProps,
   ChipGroupProps,
   ChipProps,
+  ChipVariant,
   CodeProps,
   ColorAreaProps,
   ColorFieldProps,
@@ -698,6 +701,21 @@ describe('components barrel', () => {
   it('re-exports the ChipProps type', () => {
     const props: ChipProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ChipActionProps type', () => {
+    const props: ChipActionProps = { children: 'test', variant: 'assist' }
+    expect(props.variant).toBe('assist')
+  })
+
+  it('re-exports the ChipFilterProps type', () => {
+    const props: ChipFilterProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ChipVariant type', () => {
+    const value: ChipVariant = 'suggestion'
+    expect(value).toBe('suggestion')
   })
 
   it('re-exports the CodeProps type', () => {

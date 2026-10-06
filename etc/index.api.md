@@ -325,7 +325,23 @@ export type CheckboxProps = {
 } & Omit<CheckboxFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>;
 
 // @public
-export function Chip(input: ChipProps & RefAttributes<HTMLButtonElement>): JSX;
+export function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>): JSX;
+
+// @public
+export type ChipActionProps = Omit<ButtonProps_2, 'children' | 'isPending'> & {
+    children?: ReactNode;
+    elevated?: boolean;
+    icon?: ReactNode;
+    variant: 'assist' | 'suggestion';
+};
+
+// @public
+export type ChipFilterProps = Omit<ToggleButtonProps, 'children'> & {
+    children?: ReactNode;
+    elevated?: boolean;
+    icon?: ReactNode;
+    variant?: 'filter';
+};
 
 // @public (undocumented)
 export function ChipGroup<T extends object = object>(input: ChipGroupProps<T> & RefAttributes<HTMLDivElement>): JSX;
@@ -357,10 +373,10 @@ export type ChipGroupProps<T extends object = object> = {
 } & Omit<TagGroupProps, 'children'> & Pick<TagListProps<T>, 'items' | 'renderEmptyState'>;
 
 // @public (undocumented)
-export type ChipProps = Omit<ToggleButtonProps, 'children'> & {
-    children?: ReactNode;
-    icon?: ReactNode;
-};
+export type ChipProps = ChipActionProps | ChipFilterProps;
+
+// @public
+export type ChipVariant = 'assist' | 'filter' | 'suggestion';
 
 // @public
 export function Code(input: CodeProps): ReactElement<unknown, string | JSXElementConstructor<any>>;

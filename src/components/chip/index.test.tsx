@@ -3,12 +3,23 @@ import type { ComponentProps } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { createElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { ChipFilterProps } from '.'
 
 import Chip from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
 import {
   colors,
+  shadows,
   spacing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
@@ -20,6 +31,11 @@ import {
 // the styles, with no dependency on the browser having applied a rule that
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
+  assistColor: { color: colors.onSurface },
+  elevatedBackground: { backgroundColor: colors.surfaceContainerLow },
+  elevation1: { boxShadow: shadows.elevation1 },
+  elevation2: { boxShadow: shadows.elevation2 },
+  grounded: { boxShadow: 'none' },
   icon: { color: colors.primary },
   padding: { paddingInline: spacing.lg },
   selectedBackground: { backgroundColor: colors.secondaryContainer },
@@ -45,6 +61,11 @@ function classesOf(props: { className?: string | undefined }) {
 }
 
 const CLASSES = {
+  assistColor: classesOf(stylex.props(probeStyles.assistColor)),
+  elevatedBackground: classesOf(stylex.props(probeStyles.elevatedBackground)),
+  elevation1: classesOf(stylex.props(probeStyles.elevation1)),
+  elevation2: classesOf(stylex.props(probeStyles.elevation2)),
+  grounded: classesOf(stylex.props(probeStyles.grounded)),
   icon: classesOf(stylex.props(probeStyles.icon)),
   padding: classesOf(stylex.props(probeStyles.padding)),
   selectedBackground: classesOf(stylex.props(probeStyles.selectedBackground)),
@@ -107,7 +128,7 @@ function labelOf(chip: HTMLElement) {
   return label
 }
 
-function setup(props: Partial<Parameters<typeof Chip>[0]> = {}) {
+function setup(props: Partial<ChipFilterProps> = {}) {
   const view = render(<Chip {...props}>Label</Chip>)
   return { ...view, chip: view.getByRole('button') }
 }
@@ -560,5 +581,205 @@ describe('focus layer and ripple', () => {
     pressDown(chip)
 
     expect(chip.querySelector('span[aria-hidden="true"]')).toBeNull()
+  })
+})
+
+// The chips page's two action chips: plain buttons, pressed rather than
+// selected, which is what `aria-pressed` and the selected container would
+// misreport.
+describe('assist and suggestion chips', () => {
+  it.each(['assist', 'suggestion'] as const)(
+    'renders the %s chip as a plain button, announcing no pressed state',
+    (variant) => {
+      const view = render(<Chip variant={variant}>Label</Chip>)
+      const chip = view.getByRole('button', { name: 'Label' })
+
+      expect(chip.tagName).toBe('BUTTON')
+      expect(chip).not.toHaveAttribute('aria-pressed')
+    },
+  )
+
+  it('runs its press and is never selected', () => {
+    const onPress = vi.fn<() => void>()
+    const view = render(
+      <Chip onPress={onPress} variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.click(chip)
+
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(chip).not.toHaveAttribute('aria-pressed')
+    expect(hasClasses(chip, CLASSES.unselectedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(false)
+    expect(checkIn(chip)).toBeNull()
+  })
+
+  // The one role the page changes between the two.
+  it('draws an assist label in on surface and a suggestion label in on surface variant', () => {
+    const assist = render(<Chip variant="assist">Label</Chip>)
+    expect(hasClasses(assist.getByRole('button'), CLASSES.assistColor)).toBe(
+      true,
+    )
+    assist.unmount()
+
+    const suggestion = render(<Chip variant="suggestion">Label</Chip>)
+    const chip = suggestion.getByRole('button')
+    expect(hasClasses(chip, CLASSES.unselectedColor)).toBe(true)
+    expect(hasClasses(chip, CLASSES.assistColor)).toBe(false)
+  })
+
+  it('draws its icon in the primary role', () => {
+    const view = render(
+      <Chip icon={ICON} variant="assist">
+        Label
+      </Chip>,
+    )
+
+    expect(hasClasses(iconSlotOf(view.getByRole('button')), CLASSES.icon)).toBe(
+      true,
+    )
+  })
+
+  // As on the filter chip and every other button here: React Aria drops a
+  // non-labelling `aria-*` and wraps a keyboard handler so it stops there.
+  it('puts the aria attributes and keyboard handlers on the element', () => {
+    const onAncestorKeyDown = vi.fn<() => void>()
+    const onKeyDown = vi.fn<() => void>()
+    const view = render(
+      // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- the listener is the subject of the test
+      <div onKeyDown={onAncestorKeyDown}>
+        <Chip
+          aria-keyshortcuts="Control+K"
+          onKeyDown={onKeyDown}
+          variant="assist"
+        >
+          Label
+        </Chip>
+      </div>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.keyDown(chip, { key: 'Escape' })
+
+    expect(chip).toHaveAttribute('aria-keyshortcuts', 'Control+K')
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
+    expect(onAncestorKeyDown).toHaveBeenCalledTimes(1)
+  })
+
+  it('draws no ripple while disabled', () => {
+    const view = render(
+      <Chip isDisabled variant="assist">
+        Label
+      </Chip>,
+    )
+    expect(hasRipple(view.getByRole('button'))).toBe(false)
+  })
+
+  // On a mouse press the ripple waits for the click that ends it, so a call
+  // site's `onClick` has to go through the ripple rather than beside it.
+  describe('a press with an onClick of its own', () => {
+    let restore: () => void
+    beforeEach(() => {
+      vi.useFakeTimers()
+      restore = installFakeAnimate()
+    })
+    afterEach(() => {
+      restore()
+      vi.useRealTimers()
+    })
+
+    it('ends its ripple and calls the handler', async () => {
+      const onClick = vi.fn<() => void>()
+      const view = render(
+        <Chip onClick={onClick} variant="assist">
+          Label
+        </Chip>,
+      )
+      const chip = view.getByRole('button')
+
+      firePointer(chip, 'pointerdown', { buttons: 1 })
+      expect(isPressed(chip)).toBe(true)
+      firePointer(chip, 'pointerup', { buttons: 0 })
+      fireEvent.click(chip)
+      await advance(MINIMUM_PRESS_MS * 4)
+
+      expect(isPressed(chip)).toBe(false)
+      expect(onClick).toHaveBeenCalled()
+    })
+  })
+})
+
+// The page's elevated chips: a container at elevation 1 in place of the
+// outline, raised to 2 under a hovering pointer.
+describe('elevated chips', () => {
+  it('trades the outline for surface container low at elevation 1', () => {
+    const view = render(
+      <Chip elevated variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    expect(hasClasses(chip, CLASSES.elevatedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.selectedBorder)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('raises to elevation 2 under a hovering pointer', () => {
+    const view = render(
+      <Chip elevated variant="suggestion">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation2)).toBe(true)
+  })
+
+  // A selected filter chip keeps its secondary container and takes the
+  // shadow with it.
+  it('keeps a selected filter chip on the secondary container, raised', () => {
+    const { chip } = setup({ defaultSelected: true, elevated: true })
+
+    expect(hasClasses(chip, CLASSES.selectedBackground)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevatedBackground)).toBe(false)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('comes down to the page while disabled', () => {
+    const view = render(
+      <Chip elevated isDisabled variant="assist">
+        Label
+      </Chip>,
+    )
+    const chip = view.getByRole('button')
+
+    expect(hasClasses(chip, CLASSES.grounded)).toBe(true)
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  // The selected container has no shadow of its own to override the raised
+  // one, so this is the case that shows the shadow follows the disabled state.
+  it('comes down to the page while disabled and selected', () => {
+    const { chip } = setup({
+      defaultSelected: true,
+      elevated: true,
+      isDisabled: true,
+    })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  // Elevated is a choice of the call site's, never the default.
+  it('is not raised unless asked', () => {
+    const { chip } = setup()
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+    expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
   })
 })
