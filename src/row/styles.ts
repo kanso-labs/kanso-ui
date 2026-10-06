@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   radii,
+  shadows,
   sizing,
   spacing,
   stateLayerOpacity,
@@ -84,6 +85,24 @@ const rowStyles = stylex.create({
     cursor: 'not-allowed',
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
+  // The lists page's dragged row: lifted to elevation 4 under a layer in the
+  // row's own colour at the pressed opacity — material-web's list tokens give
+  // the dragged layer the pressed opacity, not the system's dragged one. It
+  // stands on the surface, since a row's own ground is transparent and a
+  // shadow around a transparent box reads as an outline rather than a lift,
+  // and over its neighbours, so they do not cover its shadow. Listed before
+  // the selected styles, so a selected row keeps its container while it
+  // moves.
+  //
+  // React Aria marks the row a drag started from for as long as the drag
+  // lasts. Under a pointer the preview is what moves; under a keyboard,
+  // which draws no preview, this is the only sign of which row is moving.
+  dragging: {
+    backgroundColor: colors.surface,
+    backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent))`,
+    boxShadow: shadows.elevation4,
+    zIndex: 1,
+  },
   // The navigation drawer page's row: the lists page's floor, a menu's label,
   // and a pill rather than a rectangle, since what marks the current row
   // there is a shape as much as a colour.
@@ -95,6 +114,18 @@ const rowStyles = stylex.create({
     inlineSize: 'auto',
     marginInline: spacing.md,
     minBlockSize: sizing.rowSm,
+  },
+  // A row a drop would land on rather than beside it — into a tree's branch,
+  // or onto an item that takes drops. The lists page draws no such state, so
+  // this is the drop indicator's own 2dp primary line, drawn as an outline
+  // inside the row, over a primary layer at the hover opacity. Listed after
+  // the state layers, so it wins over a hover the drag passes through.
+  dropTarget: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent))`,
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // The state layers and the focus ring of a row React Aria renders as a
   // collection item — every list, menu, tree and table row — applied from its

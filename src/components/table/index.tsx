@@ -15,6 +15,7 @@ import type {
   ResizableTableContainerProps,
   RowRenderProps,
   TableBodyRenderProps,
+  TableRenderProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -33,6 +34,7 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
+import { collectionStyles } from '../../collection/styles'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
 import { rowStyles as rowLayers } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -648,6 +650,11 @@ function rowStyles(state: RowRenderProps) {
     // through without it: a colour and an offset the rest of the table does
     // not use, and one no forced-colours mode is obliged to keep.
     styles.focus,
+    // The lists page's dragged row and the drop target a row draws, from
+    // `src/row` as every other collection's row takes them — the dragged one
+    // before the selected container, so a selected row keeps it while it
+    // moves.
+    state.isDragging && rowLayers.dragging,
     state.isSelected && styles.rowSelected,
     // The state layers come from the render state, which is what makes a
     // row that only runs an action — `onRowAction`, a row's `onAction` or
@@ -656,6 +663,7 @@ function rowStyles(state: RowRenderProps) {
     // that is selecting it, running its action or dragging it.
     state.isHovered && rowLayers.hovered,
     state.isPressed && rowLayers.pressed,
+    state.isDropTarget && rowLayers.dropTarget,
     state.isDisabled && styles.rowDisabled,
   )
 }
@@ -716,10 +724,7 @@ function Table({
   ...props
 }: RefAttributes<HTMLTableElement> & TableProps) {
   const table = (
-    <RACTable
-      {...props}
-      {...mergeStatefulStyles(stylex.props(styles.table), props)}
-    />
+    <RACTable {...props} {...mergeStatefulStyles(tableClasses, props)} />
   )
 
   return (
@@ -783,6 +788,15 @@ function TableCell({ children, selection = false, ...props }: TableCellProps) {
     <RACCell {...props} {...mergeStatefulStyles(cellStyles(selection), props)}>
       {cellContent(children, selection, label)}
     </RACCell>
+  )
+}
+
+// The table's own classes, with the drop target the other collections'
+// boxes draw while a drop would land on the table as a whole.
+function tableClasses(state: TableRenderProps) {
+  return stylex.props(
+    styles.table,
+    state.isDropTarget && collectionStyles.dropTarget,
   )
 }
 

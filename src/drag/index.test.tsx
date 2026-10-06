@@ -23,7 +23,11 @@ import List from '../components/list'
 import ListBox from '../components/list-box'
 import Table from '../components/table'
 import Tree from '../components/tree'
-import { colors } from '../tokens/design.tokens.stylex'
+import {
+  colors,
+  shadows,
+  stateLayerOpacity,
+} from '../tokens/design.tokens.stylex'
 import { useDragAndDrop } from './hooks'
 
 // Hoisted so the identity is stable, which is what the case below compares.
@@ -35,14 +39,100 @@ const OURS = () => <span />
 const DRAG = <Button slot="drag">Drag</Button>
 
 const probeStyles = stylex.create({
+  // A collection's own box while a drop would land on it.
+  collectionTarget: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  // The dragged row's lift.
+  lifted: { boxShadow: shadows.elevation4 },
   onSurface: { color: colors.onSurface },
   primary: { color: colors.primary },
+  // A row's layer while a drop would land on it.
+  rowTarget: {
+    backgroundImage: `linear-gradient(color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent))`,
+  },
   surfaceContainerHigh: { color: colors.surfaceContainerHigh },
 })
+
+function classesOf(style: stylex.StyleXStyles) {
+  const classes = (stylex.props(style).className ?? '')
+    .split(' ')
+    .filter(Boolean)
+  // An empty list would make every `every` below vacuously true.
+  if (classes.length === 0) {
+    throw new Error('expected the probe style to generate at least one class')
+  }
+  return classes
+}
+
+const CLASSES = {
+  collectionTarget: classesOf(probeStyles.collectionTarget),
+  lifted: classesOf(probeStyles.lifted),
+  rowTarget: classesOf(probeStyles.rowTarget),
+}
 
 // One set of hooks handed to whichever collection the case is about, which is
 // the whole point of the item: the four share them.
 type Hooks = ReturnType<typeof useDragAndDrop>['dragAndDropHooks']
+
+type Kind = 'List' | 'ListBox' | 'Table' | 'Tree'
+
+// One of the four collections, two rows deep, under the hooks given. Every
+// row but a ListBox option carries a handle; React Aria starts an option's
+// drag from Enter on the option itself.
+function collectionOf(kind: Kind, hooks: Hooks, label = 'Label') {
+  if (kind === 'List') {
+    return (
+      <List aria-label={label} dragAndDropHooks={hooks}>
+        <List.Item id="first" leading={DRAG}>
+          First item
+        </List.Item>
+        <List.Item id="second" leading={DRAG}>
+          Second item
+        </List.Item>
+      </List>
+    )
+  }
+  if (kind === 'ListBox') {
+    return (
+      <ListBox aria-label={label} dragAndDropHooks={hooks}>
+        <ListBox.Item id="first">First item</ListBox.Item>
+        <ListBox.Item id="second">Second item</ListBox.Item>
+      </ListBox>
+    )
+  }
+  if (kind === 'Table') {
+    return (
+      <Table aria-label={label} dragAndDropHooks={hooks}>
+        <Table.Header>
+          <Table.Column id="colName" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>
+              {DRAG}
+              First item
+            </Table.Cell>
+          </Table.Row>
+          <Table.Row id="second">
+            <Table.Cell>
+              {DRAG}
+              Second item
+            </Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    )
+  }
+  return (
+    <Tree aria-label={label} dragAndDropHooks={hooks}>
+      <Tree.Item headline="First item" id="first" leading={DRAG} />
+      <Tree.Item headline="Second item" id="second" leading={DRAG} />
+    </Tree>
+  )
+}
 
 function Draggable({ children }: { children: (hooks: Hooks) => ReactNode }) {
   const { dragAndDropHooks } = useDragAndDrop({
@@ -50,6 +140,10 @@ function Draggable({ children }: { children: (hooks: Hooks) => ReactNode }) {
   })
 
   return <>{children(dragAndDropHooks)}</>
+}
+
+function hasClasses(element: Element, classes: string[]) {
+  return classes.every((name) => element.classList.contains(name))
 }
 
 // The indicators React Aria has drawn: rows it adds between the collection's
@@ -65,6 +159,16 @@ function indicatorsIn(container: HTMLElement) {
     }
     return row
   })
+}
+
+// A collection whose rows take a drop onto themselves, as a tree's branch
+// takes a row into it.
+function ItemDrops({ kind }: { kind: Kind }) {
+  const { dragAndDropHooks } = useDragAndDrop({
+    getItems: (keys) => [...keys].map((key) => ({ 'text/plain': String(key) })),
+    onItemDrop: () => undefined,
+  })
+  return collectionOf(kind, dragAndDropHooks)
 }
 
 // A key pressed on whatever has focus, as a keyboard would.
@@ -127,6 +231,38 @@ function Reorderable() {
   )
 }
 
+// A list to drag from beside a collection that takes a drop as a whole. A
+// collection never offers its own root to a drag that started in it, so the
+// drag has to come from somewhere else.
+function RootDrop({ kind }: { kind: Kind }) {
+  const source = useDragAndDrop({
+    getItems: (keys) => [...keys].map((key) => ({ 'text/plain': String(key) })),
+  })
+  const target = useDragAndDrop({
+    acceptedDragTypes: ['text/plain'],
+    onRootDrop: () => undefined,
+  })
+
+  return (
+    <>
+      <List aria-label="Source" dragAndDropHooks={source.dragAndDropHooks}>
+        <List.Item id="source" leading={DRAG}>
+          Source item
+        </List.Item>
+      </List>
+      {collectionOf(kind, target.dragAndDropHooks, 'Target')}
+    </>
+  )
+}
+
+// The fixture's two rows, by the keys it gives them: React Aria keys a
+// table's column too, and adds keyless indicators between rows in a drag.
+function rowsIn(container: HTMLElement) {
+  return [
+    ...container.querySelectorAll('[data-key="first"], [data-key="second"]'),
+  ]
+}
+
 // Where each of the collection's own rows sits, read so a case can tell
 // whether anything moved them.
 function rowTops(container: HTMLElement) {
@@ -140,14 +276,29 @@ function rowTops(container: HTMLElement) {
 }
 
 // Starts a drag of the first row as a keyboard user does, with Enter on its
-// handle. React Aria puts focus on the first place the row could land, and
-// starts listening for the keys that move and drop it, a frame later — so
-// this waits that frame out.
-async function startKeyboardDrag(view: RenderResult) {
-  const handle = view.getByRole('button', { name: 'Drag First item' })
-  act(() => {
-    handle.focus()
-  })
+// handle, or on a ListBox's option itself. A table moves focus that lands
+// inside a row back to the row, so there the handle is reached from the row
+// with the arrow into it, as a keyboard reaches it. React Aria puts focus on
+// the first place the row could land, and starts listening for the keys
+// that move and drop it, a frame later — so this waits that frame out.
+async function startKeyboardDrag(view: RenderResult, kind: Kind = 'List') {
+  if (kind === 'Table') {
+    const row = view.container.querySelector('[data-key="first"]')
+    act(() => {
+      if (row instanceof HTMLElement) {
+        row.focus()
+      }
+    })
+    press('ArrowRight')
+  } else {
+    const handle =
+      kind === 'ListBox'
+        ? view.getAllByRole('option')[0]
+        : view.getAllByRole('button', { name: /^Drag/ })[0]
+    act(() => {
+      handle.focus()
+    })
+  }
   press('Enter')
   await act(async () => {
     await new Promise<void>((resolve) => {
@@ -396,5 +547,72 @@ describe('drag and drop', () => {
       )
       expect(getComputedStyle(before).backgroundColor).toBe('rgba(0, 0, 0, 0)')
     })
+  })
+
+  // The lists page's dragged row, and the drop target a row or a whole
+  // collection draws. React Aria marks each of them; these are what show it.
+  describe('the row being dragged', () => {
+    afterEach(() => {
+      press('Escape')
+    })
+
+    it.each(['List', 'ListBox', 'Table', 'Tree'] as const)(
+      'lifts the %s row a drag started from, and that row alone',
+      async (kind) => {
+        const view = render(<ItemDrops kind={kind} />)
+        await startKeyboardDrag(view, kind)
+        const [first, second] = rowsIn(view.container)
+
+        expect(first.hasAttribute('data-dragging')).toBe(true)
+        expect(hasClasses(first, CLASSES.lifted)).toBe(true)
+        expect(hasClasses(second, CLASSES.lifted)).toBe(false)
+      },
+    )
+
+    it('sets it down when the drag ends', async () => {
+      const view = render(<ItemDrops kind="List" />)
+      await startKeyboardDrag(view)
+
+      press('Escape')
+
+      const [first] = rowsIn(view.container)
+      expect(hasClasses(first, CLASSES.lifted)).toBe(false)
+    })
+  })
+
+  describe('a drop target', () => {
+    afterEach(() => {
+      press('Escape')
+    })
+
+    it.each(['List', 'ListBox', 'Table', 'Tree'] as const)(
+      'outlines the %s row a drop would land on',
+      async (kind) => {
+        const view = render(<ItemDrops kind={kind} />)
+        await startKeyboardDrag(view, kind)
+        const [first, second] = rowsIn(view.container)
+
+        expect(second.hasAttribute('data-drop-target')).toBe(true)
+        expect(hasClasses(second, CLASSES.rowTarget)).toBe(true)
+        expect(hasClasses(first, CLASSES.rowTarget)).toBe(false)
+      },
+    )
+
+    it.each(['List', 'ListBox', 'Table', 'Tree'] as const)(
+      'outlines a %s a drop would land on as a whole',
+      async (kind) => {
+        const view = render(<RootDrop kind={kind} />)
+        await startKeyboardDrag(view)
+        const target = view.container.querySelector('[aria-label="Target"]')
+        const source = view.container.querySelector('[aria-label="Source"]')
+        if (target === null || source === null) {
+          throw new Error('expected both collections to render')
+        }
+
+        expect(target.hasAttribute('data-drop-target')).toBe(true)
+        expect(hasClasses(target, CLASSES.collectionTarget)).toBe(true)
+        expect(hasClasses(source, CLASSES.collectionTarget)).toBe(false)
+      },
+    )
   })
 })
