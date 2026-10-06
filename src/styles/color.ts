@@ -73,15 +73,21 @@ const colorThumb = stylex.create({
   thumbFocused: {
     outlineStyle: 'solid',
   },
+  // A vertical slider's handle, centred across the strip. React Aria sets
+  // its `top` and translates it back by half its size on both axes, and the
+  // translate is physical, so the other half of the centring is a physical
+  // `left` too: a logical inset is the right edge under right-to-left, where
+  // the same translate would carry the handle a whole width off the strip.
+  thumbVertical: {
+    left: '50%',
+  },
 })
 
-// The handle's classes, from React Aria's render state. StyleX cannot target
-// `[data-dragging]` on the element it is styling, so the state comes from
-// what React Aria hands the className.
-function thumbClassName(state: ColorThumbRenderProps) {
+function thumbClasses(state: ColorThumbRenderProps, vertical: boolean) {
   return (
     stylex.props(
       colorThumb.thumb,
+      vertical && colorThumb.thumbVertical,
       state.isFocusVisible && colorThumb.thumbFocused,
       state.isDragging && colorThumb.thumbDragging,
       state.isDisabled && colorThumb.thumbDisabled,
@@ -89,4 +95,16 @@ function thumbClassName(state: ColorThumbRenderProps) {
   )
 }
 
-export { colorThumb, thumbClassName }
+// The handle's classes, from React Aria's render state. StyleX cannot target
+// `[data-dragging]` on the element it is styling, so the state comes from
+// what React Aria hands the className.
+function thumbClassName(state: ColorThumbRenderProps) {
+  return thumbClasses(state, false)
+}
+
+// A vertical slider's handle classes, centred across the strip as well.
+function verticalThumbClassName(state: ColorThumbRenderProps) {
+  return thumbClasses(state, true)
+}
+
+export { colorThumb, thumbClassName, verticalThumbClassName }

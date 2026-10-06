@@ -14,7 +14,7 @@ import {
 import { FieldLabel } from '../../field'
 import { groupStyles } from '../../field/styles'
 import { chequer } from '../../styles/chequer'
-import { thumbClassName } from '../../styles/color'
+import { thumbClassName, verticalThumbClassName } from '../../styles/color'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -49,6 +49,11 @@ import {
 // end of the inactive part; a channel has no inactive part, so there is no
 // end for it to mark.
 //
+// Vertical, the strip stands up with the channel rising from the bottom, as
+// React Aria paints it, and takes Slider's geometry: 240px tall until the
+// call site's style says otherwise, the press target widened across rather
+// than along, and the handle centred across the strip.
+//
 // The alpha channel is the one that needs a chequer, for the reason
 // `src/styles/chequer.ts` gives: a track fading to transparent over a light
 // surface and one fading to white are the same pixels without it.
@@ -66,6 +71,12 @@ const styles = stylex.create({
   },
   root: {
     inlineSize: '100%',
+  },
+  // A vertical slider needs a height to run along, as Slider's does.
+  rootVertical: {
+    alignItems: 'flex-start',
+    blockSize: '240px',
+    inlineSize: 'auto',
   },
   // The label and the readout on one line, which is what puts the value at
   // the far end of the row rather than under it.
@@ -112,6 +123,23 @@ const styles = stylex.create({
   // rightly, since a disabled control still has to be readable.
   trackGroundDisabled: {
     opacity: stateLayerOpacity.disabledContent,
+  },
+  // Standing up: the strip 16dp across and as long as the slider allows,
+  // with the 14dp either side of it now across rather than along.
+  trackGroundVertical: {
+    blockSize: 'auto',
+    flexGrow: 1,
+    inlineSize: '16px',
+    marginBlock: 0,
+    marginInline: '14px',
+    minBlockSize: 0,
+  },
+  // The press target widened across the standing strip instead.
+  trackVertical: {
+    '::before': {
+      insetBlock: 0,
+      insetInline: '-14px',
+    },
   },
 })
 
@@ -160,12 +188,18 @@ function ColorSlider({
   showValue = true,
   ...props
 }: ColorSliderProps & RefAttributes<HTMLDivElement>) {
+  const vertical = props.orientation === 'vertical'
+
   return (
     <RACColorSlider
       isDisabled={isDisabled}
       {...props}
       {...mergeStatefulStyles(
-        stylex.props(groupStyles.root, styles.root),
+        stylex.props(
+          groupStyles.root,
+          styles.root,
+          vertical && styles.rootVertical,
+        ),
         props,
       )}
     >
@@ -181,13 +215,20 @@ function ColorSlider({
         {...stylex.props(
           chequer.ground,
           styles.trackGround,
+          vertical && styles.trackGroundVertical,
           isDisabled && styles.trackGroundDisabled,
         )}
       >
         <RACSliderTrack
-          {...stylex.props(styles.track, isDisabled && styles.trackDisabled)}
+          {...stylex.props(
+            styles.track,
+            vertical && styles.trackVertical,
+            isDisabled && styles.trackDisabled,
+          )}
         >
-          <RACColorThumb className={thumbClassName} />
+          <RACColorThumb
+            className={vertical ? verticalThumbClassName : thumbClassName}
+          />
         </RACSliderTrack>
       </div>
     </RACColorSlider>
