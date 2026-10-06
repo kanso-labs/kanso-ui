@@ -257,12 +257,15 @@ const collapsedItemStyles = stylex.create({
   indicatorPressedCurrent: {
     backgroundColor: PRESSED_OVER_CURRENT,
   },
+  // 4dp in from either edge of the rail, which leaves a label 88dp of its
+  // 96. At the 16dp a horizontal destination is set in by, a two-word label
+  // was cut short in a rail that had room for it.
   item: {
     flexDirection: 'column',
     gap: spacing.xs,
     inlineSize: '100%',
     justifyContent: 'center',
-    paddingInline: spacing.lg,
+    paddingInline: spacing.xs,
   },
   itemCurrent: {},
   itemFocused: {},
