@@ -63,5 +63,11 @@
     "builtin": true,
     "browser": true
   },
-  "ignorePatterns": ["dist", "storybook-static"]
+  "ignorePatterns": [
+    ".design-sync",
+    ".ds-sync",
+    "dist",
+    "ds-bundle",
+    "storybook-static"
+  ]
 }

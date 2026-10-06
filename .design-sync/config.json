@@ -1,0 +1,199 @@
+{
+  "buildCmd": "npm run build && node .design-sync/gen-docs.mjs",
+  "cssEntry": "dist/tokens.css",
+  "docsDir": ".design-sync/docs",
+  "extraEntries": [
+    "./.design-sync/react-compiler-runtime.mjs",
+    "./dist/date.js"
+  ],
+  "extraFonts": [
+    ".design-sync/fonts/roboto.css"
+  ],
+  "libOverrides": {
+    "story-imports.mjs": "kanso stories call stylex.create, which throws unless StyleX compiles it, so this adds @stylexjs/unplugin/esbuild with the package build options and runtime injection; and it sends imports of kebab-case component folders, and of the source modules re-exporting the root (date, layout, react-aria, drag/hooks), to the shipped bundle"
+  },
+  "overrides": {
+    "AppBar": {
+      "cardMode": "column"
+    },
+    "Autocomplete": {
+      "cardMode": "single",
+      "primaryStory": "Default"
+    },
+    "Breadcrumbs": {
+      "cardMode": "column"
+    },
+    "Button": {
+      "skip": [
+        "components-button--pressed"
+      ]
+    },
+    "Calendar": {
+      "cardMode": "column"
+    },
+    "Card": {
+      "cardMode": "column"
+    },
+    "ChipGroup": {
+      "cardMode": "column"
+    },
+    "ColorPicker": {
+      "cardMode": "single",
+      "primaryStory": "Open"
+    },
+    "ColorSwatchPicker": {
+      "cardMode": "column"
+    },
+    "ComboBox": {
+      "cardMode": "column",
+      "skip": [
+        "components-combobox--open"
+      ]
+    },
+    "CopyField": {
+      "cardMode": "column",
+      "skip": [
+        "components-copyfield--copied"
+      ]
+    },
+    "Currency": {
+      "cardMode": "column"
+    },
+    "DateField": {
+      "cardMode": "single",
+      "primaryStory": "Default"
+    },
+    "DatePicker": {
+      "cardMode": "single",
+      "primaryStory": "Open"
+    },
+    "DateRangePicker": {
+      "cardMode": "single",
+      "primaryStory": "Open"
+    },
+    "Dialog": {
+      "cardMode": "single",
+      "primaryStory": "Default"
+    },
+    "Disclosure": {
+      "cardMode": "column"
+    },
+    "DisclosureGroup": {
+      "cardMode": "column"
+    },
+    "DropZone": {
+      "cardMode": "column"
+    },
+    "Feed": {
+      "cardMode": "column"
+    },
+    "Form": {
+      "cardMode": "column"
+    },
+    "List": {
+      "cardMode": "column"
+    },
+    "ListBox": {
+      "cardMode": "column"
+    },
+    "ListDetail": {
+      "cardMode": "column"
+    },
+    "Menu": {
+      "cardMode": "single",
+      "primaryStory": "Default",
+      "skip": [
+        "components-menu--submenu"
+      ]
+    },
+    "NavigationTree": {
+      "cardMode": "column"
+    },
+    "NumberField": {
+      "cardMode": "column"
+    },
+    "Popover": {
+      "cardMode": "single",
+      "primaryStory": "Default",
+      "skip": [
+        "components-popover--opens-and-closes"
+      ]
+    },
+    "ProgressIndicator": {
+      "cardMode": "column"
+    },
+    "RangeCalendar": {
+      "cardMode": "column"
+    },
+    "SearchField": {
+      "cardMode": "column"
+    },
+    "SegmentedButton": {
+      "cardMode": "column"
+    },
+    "Select": {
+      "cardMode": "single",
+      "primaryStory": "Open"
+    },
+    "Separator": {
+      "cardMode": "column",
+      "skip": [
+        "components-separator--inset",
+        "components-separator--middle-inset"
+      ]
+    },
+    "Sheet": {
+      "cardMode": "single",
+      "primaryStory": "Default",
+      "skip": [
+        "components-sheet--opens-and-closes"
+      ]
+    },
+    "Snackbar": {
+      "cardMode": "single",
+      "primaryStory": "Default"
+    },
+    "SupportingPane": {
+      "cardMode": "column"
+    },
+    "Table": {
+      "cardMode": "column"
+    },
+    "Text": {
+      "cardMode": "column"
+    },
+    "TextArea": {
+      "cardMode": "column"
+    },
+    "TextField": {
+      "cardMode": "column"
+    },
+    "TokenField": {
+      "cardMode": "column",
+      "skip": [
+        "components-tokenfield--typed"
+      ]
+    },
+    "Tooltip": {
+      "cardMode": "single",
+      "primaryStory": "Default"
+    },
+    "Tree": {
+      "cardMode": "column"
+    }
+  },
+  "pkg": "@kanso-labs/kanso-ui",
+  "projectId": "5f42502f-b3f6-4937-9f79-6128387ee2e2",
+  "readmeHeader": ".design-sync/conventions.md",
+  "runtimeFontPrefixes": [
+    "Iowan Old Style"
+  ],
+  "shape": "storybook",
+  "storybookConfigDir": ".storybook",
+  "storybookStatic": ".design-sync/sb-reference",
+  "storyImports": {
+    "shim": [
+      "/node_modules/react-aria-components/"
+    ]
+  }
+}

@@ -13,7 +13,14 @@ export default defineConfig([
   // without this ESLint lints every other branch alongside the current one.
   // It is gitignored, but flat config does not read .gitignore the way oxlint
   // and oxfmt do, so it has to be named here.
-  globalIgnores(['.claude', 'dist', 'storybook-static']),
+  globalIgnores([
+    '.claude',
+    '.design-sync',
+    '.ds-sync',
+    'dist',
+    'ds-bundle',
+    'storybook-static',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

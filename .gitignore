@@ -136,3 +136,14 @@ vite.config.ts.timestamp-*
 
 ### Vitest ###
 .vitest/
+
+### Design sync (claude.ai/design) ###
+# The reference storybook, fan-out learnings, verification state, the fork
+# symlink, the staged converter and its output are rebuilt by every sync;
+# the rest of .design-sync/ is committed so the next sync reuses its fixes.
+.design-sync/sb-reference/
+.design-sync/learnings/
+.design-sync/.cache/
+.design-sync/node_modules
+.ds-sync/
+ds-bundle/
