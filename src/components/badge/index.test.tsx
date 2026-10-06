@@ -86,6 +86,23 @@ describe('badge', () => {
       const { badge } = setup({ id: 'first' })
       expect(badge.id).toBe('first')
     })
+
+    // With nothing to be drawn on, the mark takes a place in the line rather
+    // than one over a corner, so the badge is as big as its mark.
+    it('stands in the line as the mark alone when it wraps nothing', () => {
+      const view = render(<Badge count={3} data-testid="badge" />)
+      const badge = view.getByTestId('badge')
+      const mark = badge.lastElementChild
+      if (!(mark instanceof HTMLElement)) {
+        throw new Error('expected the badge to draw a mark')
+      }
+
+      expect(getComputedStyle(mark).position).toBe('static')
+      expect(badge.getBoundingClientRect().width).toBe(
+        mark.getBoundingClientRect().width,
+      )
+      expect(badge.getBoundingClientRect().height).toBe(16)
+    })
   })
 
   describe('the small badge', () => {

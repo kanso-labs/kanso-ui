@@ -122,6 +122,7 @@ import type {
   TabsPanelsProps,
   TabsProps,
   TabsTabProps,
+  TabsVariant,
   TagProps,
   TagTone,
   TagVariant,
@@ -1154,6 +1155,11 @@ describe('components barrel', () => {
   it('re-exports the TagTone type', () => {
     const value: TagTone = 'positive'
     expect(value).toBe('positive')
+  })
+
+  it('re-exports the TabsVariant type', () => {
+    const value: TabsVariant = 'secondary'
+    expect(value).toBe('secondary')
   })
 
   it('re-exports the TagVariant type', () => {

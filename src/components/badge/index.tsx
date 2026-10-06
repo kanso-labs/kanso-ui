@@ -28,6 +28,10 @@ import {
 // as its count lengthens, to the page's 34dp at "999+". Both are logical
 // insets, so the mark stays on the trailing corner under right-to-left.
 //
+// Given nothing to wrap, the badge is the mark alone, standing in the line
+// rather than over a corner. That is the form the tabs page draws after a
+// label with no icon above it.
+//
 // The mark is hidden from assistive technology. A count read on its own is a
 // number with no subject; it belongs in the name of the control it sits on,
 // where a reader meets it with what it counts — "Notifications, 3 new" — and
@@ -50,6 +54,11 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'inline-flex',
     position: 'relative',
+  },
+  // A badge with nothing to be drawn on: the mark in the line, where the
+  // text before it puts it, so the insets below place nothing.
+  inFlow: {
+    position: 'static',
   },
   // The page's large badge, holding a count: 16dp tall and at least as wide,
   // 4dp either side of its count in label small.
@@ -121,6 +130,9 @@ type BadgeProps = RenderComponentProps<'span'> & {
  * </IconButton>
  * ```
  *
+ * Given no children, the mark stands alone in the line, as a tab draws it
+ * after its label.
+ *
  * The call site's `className` and `style` land on the element wrapping what
  * the badge is drawn on.
  */
@@ -147,6 +159,7 @@ function Badge({ children, count, max = 999, render, ...props }: BadgeProps) {
             {...stylex.props(
               styles.mark,
               label === undefined ? styles.small : styles.large,
+              (children === undefined || children === null) && styles.inFlow,
             )}
           >
             {label}

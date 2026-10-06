@@ -35,6 +35,12 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xxs,
   },
+  // A label and the badge after it, 4dp apart as the tabs page sets them.
+  line: {
+    alignItems: 'center',
+    display: 'inline-flex',
+    gap: spacing.xs,
+  },
   page: {
     display: 'flex',
     flexDirection: 'column',
@@ -144,6 +150,30 @@ const Overview: Story = {
           <Badge count={120} max={99}>
             <StarIcon />
           </Badge>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            In a line
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Given nothing to wrap, the badge is the mark alone and stands in the
+            line, which is how a tab draws one after a label with no icon.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.row)}>
+          <span {...stylex.props(styles.line)}>
+            <Text variant="titleSmall">Label</Text>
+            <Badge />
+          </span>
+          <span {...stylex.props(styles.line)}>
+            <Text variant="titleSmall">Label</Text>
+            <Badge count={3} />
+          </span>
         </div>
       </section>
 

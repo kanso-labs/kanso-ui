@@ -280,6 +280,7 @@ export type {
   TabsPanelsProps,
   TabsProps,
   TabsTabProps,
+  TabsVariant,
 } from './tabs'
 export { default as Tabs } from './tabs'
 export { TabsList, TabsPanel, TabsPanels, TabsTab } from './tabs'

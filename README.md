@@ -306,6 +306,7 @@ the icon inherits it:
 | `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
 | A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
 | `SegmentedButton.Segment`'s `icon`         | 18px                                                 |
+| `Tabs.Tab`'s `icon`                        | 24px                                                 |
 
 **The `leading` and `trailing` slots on a row are different.** A list item, a
 menu item, a tree item and an app bar set no icon size, so an icon there takes
