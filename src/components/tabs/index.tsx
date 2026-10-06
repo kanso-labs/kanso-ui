@@ -28,7 +28,6 @@ import {
   TabPanel,
 } from 'react-aria-components'
 
-import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -116,6 +115,14 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     // The panel is focusable so keyboard users can reach its content after
     // the tab strip, which is what React Aria's roving focus hands off to.
+    // Its ring is drawn inside it rather than around it, as a tab's is: the
+    // box the panels share clips at its edge, and a ring drawn outside the
+    // panel fell wholly outside that box, so a keyboard reaching a panel
+    // with nothing focusable inside it saw no ring at all.
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
   },
   // The box the panels share, which is what gives a change of panel a size
   // to animate between. React Aria measures the new panel, puts the old
@@ -137,8 +144,13 @@ const styles = stylex.create({
     blockSize: 'var(--tab-panel-height, auto)',
     boxSizing: 'border-box',
     // While the box is smaller than the panel inside it, which is half of
-    // every change, the overflow has to go somewhere.
-    overflow: 'hidden',
+    // every change, the overflow has to go somewhere. Clipped rather than
+    // hidden, and 4px past the edge: a focus ring sits 2px outside its
+    // control and is 2px wide, so a control flush with the panel's edge
+    // keeps its whole ring. `clip` is also not a scroll container, so
+    // focusing something inside cannot scroll the box out from under it.
+    overflow: 'clip',
+    overflowClipMargin: '4px',
     transitionDuration: motion.durationMedium1,
     transitionProperty: 'block-size',
     transitionTimingFunction: motion.easingEmphasized,
@@ -362,7 +374,7 @@ function TabsPanel(props: TabsPanelProps) {
   return (
     <TabPanel
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.panel, focus.ring), props)}
+      {...mergeStatefulStyles(stylex.props(styles.panel), props)}
     />
   )
 }

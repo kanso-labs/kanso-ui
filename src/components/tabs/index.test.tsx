@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
@@ -423,7 +423,34 @@ describe('tabs', () => {
 
       expect(getComputedStyle(box).blockSize).toBe('321px')
       expect(getComputedStyle(box).blockSize).not.toBe(natural)
-      expect(getComputedStyle(box).overflow).toBe('hidden')
+      expect(getComputedStyle(box).overflow).toBe('clip')
+    })
+
+    // A control flush with a panel's edge keeps its whole ring: a ring
+    // reaches 4px past its control, and the box clips 4px past its own edge.
+    it("clips 4px past its edge, where a flush control's ring ends", () => {
+      const box = getComputedStyle(withPanels().getByTestId('panels'))
+
+      expect(box.overflow).toBe('clip')
+      expect(box.overflowClipMargin).toBe('4px')
+    })
+
+    // A panel with nothing focusable inside it takes focus itself. Drawn
+    // around the panel, its ring fell wholly outside the box above, which
+    // clips — a keyboard reaching the panel saw no ring at all.
+    it("draws a focused panel's ring inside the panel", () => {
+      const panel = withPanels().getByRole('tabpanel')
+
+      fireEvent.keyDown(document.body, { key: 'Tab' })
+      act(() => {
+        panel.focus()
+      })
+      const computed = getComputedStyle(panel)
+
+      expect(panel.matches(':focus-visible')).toBe(true)
+      expect(computed.outlineStyle).toBe('solid')
+      expect(computed.outlineWidth).toBe('2px')
+      expect(computed.outlineOffset).toBe('-2px')
     })
 
     // The line that makes it animate, and the one most easily lost: React

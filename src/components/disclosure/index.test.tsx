@@ -11,6 +11,7 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import { rulesReaching } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -256,6 +257,38 @@ describe('disclosure', () => {
     it('follows the direction rather than the language', () => {
       expect(chevronUnder({ lang: 'ar' })).toEqual({ a: 1, b: 0 })
       expect(chevronUnder({ dir: 'rtl', lang: 'en' })).toEqual({ a: -1, b: 0 })
+    })
+  })
+
+  // The panel clips while it opens and closes, and a focusable first child
+  // sits flush with its top, so the clip has to leave room for that child's
+  // ring — 2px outside it and 2px wide.
+  describe("a focused child's ring", () => {
+    it('clips 4px past the panel, where the ring ends', () => {
+      const panel = setup({ defaultExpanded: true }).panel()
+      if (panel === null) {
+        throw new Error('expected the open section to draw its panel')
+      }
+      const computed = getComputedStyle(panel)
+
+      expect(computed.overflow).toBe('clip')
+      expect(computed.overflowClipMargin).toBe('4px')
+    })
+
+    // A browser without the clip margin clips at the very edge, so the
+    // content steps 4px down there instead. This runner has the margin, so
+    // the step is written and draws nothing here — the pair is what says it
+    // is a fallback rather than a gap every browser shows.
+    it('steps the content down only where the clip margin is missing', () => {
+      const inner = setup({ defaultExpanded: true }).getByText('Panel body')
+      const fallback = rulesReaching(inner).some((rule) =>
+        ['padding-top', 'padding-block-start'].some(
+          (property) => rule.style.getPropertyValue(property) === '4px',
+        ),
+      )
+
+      expect(fallback).toBe(true)
+      expect(getComputedStyle(inner).paddingTop).toBe('0px')
     })
   })
 
