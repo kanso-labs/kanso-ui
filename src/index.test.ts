@@ -171,6 +171,7 @@ describe('package entry point', () => {
       'VisuallyHidden',
       'WaterfallLayout',
       'collectionSizes',
+      'colorScheme',
       'getColorChannels',
       'isDirectoryDropItem',
       'isFileDropItem',
