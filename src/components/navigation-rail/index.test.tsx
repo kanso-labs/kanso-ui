@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { RouterProvider } from 'react-aria-components'
+import { describe, expect, it, vi } from 'vitest'
 
 import NavigationRail from '.'
 import { declarationsHeld } from '../../styles/stylesheet.testing'
@@ -104,6 +105,22 @@ describe('navigation rail', () => {
       expect(
         view.getByRole('link', { name: 'First item' }),
       ).not.toHaveAttribute('aria-current')
+    })
+
+    // A destination is React Aria's Link, so a press goes through the app's
+    // router rather than reloading the page — see the bar's test for why a
+    // click stands in for Enter.
+    it("routes through the app's RouterProvider", () => {
+      const navigate = vi.fn<(path: string) => void>()
+      const view = render(
+        <RouterProvider navigate={navigate}>
+          <Rail />
+        </RouterProvider>,
+      )
+
+      fireEvent.click(view.getByRole('link', { name: 'Third item' }))
+
+      expect(navigate).toHaveBeenCalledWith('#third', undefined)
     })
   })
 

@@ -139,7 +139,9 @@ describe('navigation bar', () => {
     })
 
     // A destination is React Aria's Link, so a press goes through the app's
-    // router rather than reloading the page.
+    // router rather than reloading the page. The click stands in for Enter
+    // too: on a native link React Aria leaves that key to the browser, whose
+    // activation is this same click.
     it("routes through the app's RouterProvider", () => {
       const navigate = vi.fn<(path: string) => void>()
       const view = render(
