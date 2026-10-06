@@ -1,3 +1,5 @@
+import type { Selection } from 'react-aria-components'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -88,6 +90,17 @@ function setup(props: Partial<Parameters<typeof ChipGroup<object>>[0]> = {}) {
       <ChipGroup.Chip id="third">Third item</ChipGroup.Chip>
     </ChipGroup>,
   )
+}
+
+// A set from data, and the function React Aria calls for each item in it.
+const ITEMS = [
+  { id: 'first', name: 'First item' },
+  { id: 'second', name: 'Second item' },
+  { id: 'third', name: 'Third item' },
+]
+
+function chipFor(item: (typeof ITEMS)[number]) {
+  return <ChipGroup.Chip id={item.id}>{item.name}</ChipGroup.Chip>
 }
 
 function setupWithIcons(
@@ -381,6 +394,35 @@ describe('chip group', () => {
       expect(
         (slot?.left ?? 0) - second.getBoundingClientRect().left - border,
       ).toBe(8)
+    })
+  })
+
+  // React Aria reads `items` only when the chips are a function of each
+  // item, so without that form the prop could never take effect.
+  describe('from data', () => {
+    it('renders a chip for each item, selected by its id', () => {
+      const onSelectionChange = vi.fn<(keys: Selection) => void>()
+      const view = render(
+        <ChipGroup
+          items={ITEMS}
+          label="Label"
+          onSelectionChange={onSelectionChange}
+          selectionMode="multiple"
+        >
+          {chipFor}
+        </ChipGroup>,
+      )
+      const rows = view.getAllByRole('row')
+
+      expect(rows.map((row) => row.textContent)).toEqual([
+        'First item',
+        'Second item',
+        'Third item',
+      ])
+      fireEvent.click(rows[1])
+      // React Aria's selection is a Set of its own, so its keys are compared.
+      const keys = onSelectionChange.mock.calls[0]?.[0]
+      expect(keys instanceof Set ? Array.from(keys) : keys).toEqual(['second'])
     })
   })
 

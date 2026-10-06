@@ -365,7 +365,7 @@ export type ChipGroupChipProps = Omit<TagProps_2, 'children' | 'className' | 'st
 
 // @public (undocumented)
 export type ChipGroupProps<T extends object = object> = {
-    children?: ReactNode;
+    children?: ((item: T) => ReactElement) | ReactNode;
     description?: string;
     error?: string;
     label: string;
@@ -514,7 +514,7 @@ export type ComboBoxProps<T extends object = object, M extends ComboBoxSelection
     inputRef?: Ref<HTMLInputElement>;
     label: string;
     leadingIcon?: ReactNode;
-    options?: ReactNode;
+    options?: ((item: T) => ReactElement) | ReactNode;
     variant?: FieldVariant;
 } & Omit<ComboBoxProps_2<T, M>, 'children' | 'defaultSelectedKey' | 'isInvalid' | 'onSelectionChange' | 'selectedKey' | 'validationBehavior'>;
 
