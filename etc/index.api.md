@@ -29,6 +29,7 @@ import { ComboBoxProps as ComboBoxProps_2 } from 'react-aria-components';
 import { ComponentProps } from 'react';
 import { ComponentPropsWithRef } from 'react';
 import { CSSProperties } from 'react';
+import { DateDuration } from '@internationalized/date';
 import { DateFieldProps as DateFieldProps_2 } from 'react-aria-components';
 import { DatePickerProps as DatePickerProps_2 } from 'react-aria-components';
 import { DateRangePickerProps as DateRangePickerProps_2 } from 'react-aria-components';
@@ -622,6 +623,7 @@ export type DatePickerProps<T extends DateValue = DateValue> = Omit<DatePickerPr
     style?: DatePickerProps_2<T>['style'];
     triggerLabel?: string;
     variant?: FieldVariant;
+    visibleDuration?: DateDuration;
 };
 
 // @public
@@ -641,6 +643,7 @@ export type DateRangePickerProps<T extends DateValue = DateValue> = Omit<DateRan
     style?: DateRangePickerProps_2<T>['style'];
     triggerLabel?: string;
     variant?: FieldVariant;
+    visibleDuration?: DateDuration;
 };
 
 // @public

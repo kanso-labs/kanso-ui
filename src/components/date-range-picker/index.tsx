@@ -1,5 +1,6 @@
 'use client'
 
+import type { DateDuration } from '@internationalized/date'
 import type { ReactNode, RefAttributes } from 'react'
 import type {
   DateValue,
@@ -136,6 +137,14 @@ type DateRangePickerProps<T extends DateValue = DateValue> = Omit<
    * @default 'filled'
    */
   variant?: FieldVariant
+  /**
+   * How much of the calendar shows at once: `{ months: 2 }` draws two
+   * months side by side, which is what a range is usually picked from.
+   * Below the expanded breakpoint, where two do not fit, they stack instead
+   * — see `RangeCalendar`.
+   * @default { months: 1 }
+   */
+  visibleDuration?: DateDuration
 }
 
 // Built by a call rather than written inline at the prop, which is what
@@ -187,6 +196,7 @@ function DateRangePicker<T extends DateValue>({
   showMonthYearMenus = false,
   triggerLabel,
   variant = 'filled',
+  visibleDuration,
   ...props
 }: DateRangePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
@@ -244,6 +254,7 @@ function DateRangePicker<T extends DateValue>({
           <RangeCalendar
             aria-label={label}
             showMonthYearMenus={showMonthYearMenus}
+            visibleDuration={visibleDuration}
           />
         </RACDialog>
       </RACPopover>

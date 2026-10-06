@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import DateRangePicker from '.'
+import { breakpointModes } from '../../../.storybook/modes'
 import { CalendarDate } from '../../date'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Separator from '../separator'
@@ -57,6 +58,15 @@ const RANGE = {
   start: new CalendarDate(2026, 9, 15),
 }
 const MIN = new CalendarDate(2026, 9, 8)
+
+// A range in February 2026 for the two-month story, so the months it shows
+// are fixed and long past: September 2026 and the month after it would put
+// whichever day is today in October in the snapshot. February is also the
+// four-week month, which shows the room each month holds when they stack.
+const FEBRUARY = {
+  end: new CalendarDate(2026, 2, 17),
+  start: new CalendarDate(2026, 2, 10),
+}
 
 const meta = {
   args: {
@@ -184,12 +194,32 @@ const Open: Story = {
   },
 }
 
+// Two months side by side, which is what a range is usually picked from, and
+// the docked surface twice as wide for it. Captured at the medium and the
+// compact width too, where the months stack: docked at the first and modal
+// at the second.
+const OpenTwoMonths: Story = {
+  args: {
+    defaultOpen: true,
+    defaultValue: FEBRUARY,
+    visibleDuration: { months: 2 },
+  },
+  parameters: {
+    chromatic: {
+      modes: {
+        compact: breakpointModes.compact,
+        medium: breakpointModes.medium,
+      },
+    },
+  },
+}
+
 const WithError: Story = {
   args: {
     error: 'Supporting line',
   },
 }
 
-export { Default, Empty, Open, Outlined, Overview, WithError }
+export { Default, Empty, Open, OpenTwoMonths, Outlined, Overview, WithError }
 
 export default meta

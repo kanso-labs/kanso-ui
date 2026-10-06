@@ -8,6 +8,7 @@ import { page } from 'vitest/browser'
 import ColorPicker from '../components/color-picker'
 import DatePicker from '../components/date-picker'
 import DateRangePicker from '../components/date-range-picker'
+import { CalendarDate } from '../date'
 import { colors, shadows } from '../tokens/design.tokens.stylex'
 
 // One pixel either side of the medium breakpoint the three pickers swap at,
@@ -182,4 +183,108 @@ describe('a picker opened at the medium breakpoint and above', () => {
       expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(elevation())
     },
   )
+})
+
+// `visibleDuration` reaches each date picker's calendar, which draws its
+// months side by side from the expanded breakpoint up and stacks them below
+// it: two side by side come to 720 with the calendar's padding. One pixel
+// either side of that breakpoint, as of the medium one above.
+const BELOW_EXPANDED = 839
+const EXPANDED = 841
+const TWO_MONTHS = { months: 2 }
+
+// Hoisted so it is one stable object, which is what react-perf's
+// no-new-object-as-prop is after: a range in February 2026.
+const FEBRUARY = {
+  end: new CalendarDate(2026, 2, 5),
+  start: new CalendarDate(2026, 2, 3),
+}
+
+const TWO_MONTH_PICKERS: ReadonlyArray<{
+  element: ReactElement
+  name: string
+}> = [
+  {
+    element: (
+      <DatePicker defaultOpen label="Label" visibleDuration={TWO_MONTHS} />
+    ),
+    name: 'DatePicker',
+  },
+  {
+    element: (
+      <DateRangePicker defaultOpen label="Label" visibleDuration={TWO_MONTHS} />
+    ),
+    name: 'DateRangePicker',
+  },
+]
+
+// The month grids a surface holds, as their boxes.
+function monthsIn(surface: HTMLElement) {
+  return [...surface.querySelectorAll('[role="grid"]')].map((grid) =>
+    grid.getBoundingClientRect(),
+  )
+}
+
+describe('a date picker showing two months', () => {
+  it.each(TWO_MONTH_PICKERS)(
+    'draws the months of $name side by side from the expanded breakpoint',
+    async ({ element }) => {
+      await page.viewport(EXPANDED, 900)
+      const [first, second, ...rest] = monthsIn(surfaceOf(element))
+
+      expect(rest).toHaveLength(0)
+      expect(second.top).toBe(first.top)
+      expect(second.left).toBeGreaterThan(first.right)
+    },
+  )
+
+  // Docked still, at a medium width, but with no room for both.
+  it.each(TWO_MONTH_PICKERS)(
+    'stacks the months of $name below it, inside the window',
+    async ({ element }) => {
+      await page.viewport(BELOW_EXPANDED, 900)
+      const surface = surfaceOf(element)
+      const [first, second] = monthsIn(surface)
+      const box = surface.getBoundingClientRect()
+
+      expect(second.left).toBe(first.left)
+      expect(second.top).toBeGreaterThan(first.bottom)
+      expect(box.right).toBeLessThanOrEqual(BELOW_EXPANDED)
+    },
+  )
+
+  it.each(TWO_MONTH_PICKERS)(
+    'stacks the months of $name once it is modal, inside the window',
+    async ({ element }) => {
+      await page.viewport(COMPACT, 900)
+      const surface = surfaceOf(element)
+      const [first, second] = monthsIn(surface)
+      const box = surface.getBoundingClientRect()
+
+      expect(second.left).toBe(first.left)
+      expect(second.top).toBeGreaterThan(first.bottom)
+      expect(box.left).toBeGreaterThanOrEqual(0)
+      expect(box.right).toBeLessThanOrEqual(COMPACT)
+    },
+  )
+
+  // February 2026 runs four weeks and March five. Stacked, each month still
+  // sits in six weeks of room, so March is where it would be under a
+  // six-week February: the weekday row and six weeks of 40, then the gap.
+  it('keeps the room of six weeks for each stacked month', async () => {
+    await page.viewport(COMPACT, 900)
+    const [first, second] = monthsIn(
+      surfaceOf(
+        <DateRangePicker
+          defaultOpen
+          defaultValue={FEBRUARY}
+          label="Label"
+          visibleDuration={TWO_MONTHS}
+        />,
+      ),
+    )
+
+    expect(first.height).toBe(200)
+    expect(second.top - first.top).toBe(7 * 40 + 24)
+  })
 })
