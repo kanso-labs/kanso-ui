@@ -1,5 +1,8 @@
+import type { ComponentProps } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
+import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Chip from '.'
@@ -61,6 +64,25 @@ function hasClasses(element: HTMLElement, classes: string[]) {
 function setup(props: Partial<Parameters<typeof Chip>[0]> = {}) {
   const view = render(<Chip {...props}>Label</Chip>)
   return { ...view, chip: view.getByRole('button') }
+}
+
+// A call site's own element in place of the plain <button>: the same tag, as
+// React Aria requires, marked so a test can tell this one rendered. Hoisted,
+// since react-perf rejects a function built at the prop.
+function wrapped(props: ComponentProps<'button'>) {
+  return createElement('button', { ...props, 'data-wrapped': '' })
+}
+
+// The same, writing down the selected state it was handed beside the props —
+// the one a toggle's render state has and a plain button's does not.
+function wrappedWithState(
+  props: ComponentProps<'button'>,
+  state: { isSelected: boolean },
+) {
+  return createElement('button', {
+    ...props,
+    'data-state-selected': String(state.isSelected),
+  })
 }
 
 describe('chip', () => {
@@ -168,6 +190,64 @@ describe('chip', () => {
       expect(chip.getAttribute('aria-label')).toBe('Label')
       // The state React Aria manages itself still reaches the element too.
       expect(chip.getAttribute('aria-pressed')).toBe('false')
+    })
+  })
+
+  // React Aria's `render` is how a call site swaps in an element of its own,
+  // and what the chip adds past React Aria — the props above, and its
+  // styles — has to reach that element too.
+  describe('a render function from the call site', () => {
+    it('renders the element it returns, with the classes the chip carries', () => {
+      const plain = setup()
+      const classes = plain.chip.className
+      plain.unmount()
+      // Two empty class lists would compare equal however the styles were
+      // lost.
+      expect(classes).not.toBe('')
+
+      const { chip } = setup({ render: wrapped })
+
+      expect(chip).toHaveAttribute('data-wrapped')
+      expect(chip.className).toBe(classes)
+    })
+
+    it('hands it the render state', () => {
+      const { chip } = setup({
+        defaultSelected: true,
+        render: wrappedWithState,
+      })
+
+      expect(chip).toHaveAttribute('data-state-selected', 'true')
+    })
+
+    it('hands it the aria attributes React Aria would drop', () => {
+      const view = render(
+        <Chip aria-keyshortcuts="Control+K" render={wrapped}>
+          Label
+        </Chip>,
+      )
+
+      expect(view.getByRole('button')).toHaveAttribute(
+        'aria-keyshortcuts',
+        'Control+K',
+      )
+    })
+
+    it('hands it keyboard handlers that bubble', () => {
+      const inner = vi.fn<() => void>()
+      const outer = vi.fn<() => void>()
+      const view = render(
+        <div onKeyDown={outer} role="presentation">
+          <Chip onKeyDown={inner} render={wrapped}>
+            Label
+          </Chip>
+        </div>,
+      )
+
+      fireEvent.keyDown(view.getByRole('button'), { key: 'Escape' })
+
+      expect(inner).toHaveBeenCalledOnce()
+      expect(outer).toHaveBeenCalledOnce()
     })
   })
 
