@@ -3,7 +3,14 @@ import { act, render } from '@testing-library/react'
 import { Form, TextField } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
-import { FieldBox, FieldInput, FieldLabel, FieldMessage } from '.'
+import {
+  FieldBox,
+  FieldInput,
+  FieldLabel,
+  FieldMessage,
+  FieldTrigger,
+  FieldValue,
+} from '.'
 import {
   colors,
   spacing,
@@ -11,6 +18,7 @@ import {
   typography,
 } from '../tokens/design.tokens.stylex'
 import { FIELD_VALIDATION_BEHAVIOR } from './root'
+import { fieldChromeStyles } from './styles'
 
 // The same declarations the module writes for its states, so they hash to the
 // same atomic classes — see chip/index.test.tsx for the pattern and the flake
@@ -44,6 +52,8 @@ const CLASSES = {
   focusedLabel: classesOf(stylex.props(probeStyles.focusedLabel)),
   mono: classesOf(stylex.props(probeStyles.mono)),
   mutedLabel: classesOf(stylex.props(probeStyles.mutedLabel)),
+  trigger: classesOf(stylex.props(fieldChromeStyles.trigger)),
+  value: classesOf(stylex.props(fieldChromeStyles.value)),
 }
 
 // A theme with longer body lines than the defaults, which is what tells a
@@ -420,6 +430,32 @@ describe('field chrome', () => {
       const { input } = setup({ isDisabled: true })
       expect(input).toHaveProperty('disabled', true)
       expect(hasClasses(input, CLASSES.disabledText)).toBe(true)
+    })
+  })
+
+  // FieldTrigger and FieldValue are composed by other components rather than
+  // by a field of their own. Select, ComboBox and the date pickers press the
+  // trigger, and those with DateField, TimeField and TokenField show a value
+  // in it, so each of their suites tests what was chosen and none of them
+  // fails if a part stops drawing its chrome. Rendered here alone, with a
+  // class of the call site's beside it, which is the merge each part does.
+  describe('trigger and value', () => {
+    it('draws the trigger over the box, beside the call site class', () => {
+      const view = render(
+        <FieldTrigger aria-label="Label" className="call-site" />,
+      )
+      const trigger = view.getByRole('button')
+
+      expect(hasClasses(trigger, CLASSES.trigger)).toBe(true)
+      expect(trigger.classList).toContain('call-site')
+    })
+
+    it('draws a chosen value on one line, beside the call site class', () => {
+      const view = render(<FieldValue className="call-site">Value</FieldValue>)
+      const value = view.getByText('Value')
+
+      expect(hasClasses(value, CLASSES.value)).toBe(true)
+      expect(value.classList).toContain('call-site')
     })
   })
 
