@@ -10,7 +10,12 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { Button as RACButton, Link as RACLink } from 'react-aria-components'
+import {
+  ButtonContext,
+  Button as RACButton,
+  Link as RACLink,
+  useSlottedContext,
+} from 'react-aria-components'
 
 import { useRipple } from '../../hooks/useRipple'
 import { useMessages } from '../../i18n'
@@ -487,7 +492,7 @@ function Button({
   children,
   disableRipple = false,
   href,
-  isDisabled = false,
+  isDisabled,
   isPending = false,
   onClick,
   onContextMenu,
@@ -508,6 +513,15 @@ function Button({
 }: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
   const messages = useMessages()
 
+  // A parent's context may disable the button — React Aria's own fields
+  // disable the buttons they hold with them — and React Aria takes a prop
+  // over its context, so a default of `false` here would keep the button
+  // enabled whatever the parent said. The call site's own prop still wins
+  // where it is given; the context is read for the ripple, which has to know
+  // before the render state does. IconButton reads it the same way.
+  const context = useSlottedContext(ButtonContext, props.slot)
+  const disabled = isDisabled ?? context?.isDisabled ?? false
+
   // `props` (className/style, etc.) is spread separately: `className` and
   // `style` there may be functions of render state, which ripple's own
   // handler-only merge doesn't need to know about. It is also why the styles
@@ -523,7 +537,7 @@ function Button({
   // the click that would have ended it never arrived. The ripple stayed at
   // its pressed opacity until some later press completed a cycle of its own.
   const ripple = useRipple<FocusableElement>(
-    !disableRipple && !isDisabled && !isPending,
+    !disableRipple && !disabled && !isPending,
     {
       onClick,
       onContextMenu,
@@ -560,7 +574,7 @@ function Button({
     return (
       <RACLink
         href={href}
-        isDisabled={isDisabled}
+        isDisabled={disabled}
         ref={forwarded}
         rel={rel}
         render={linkRenderer(element)}
@@ -577,7 +591,7 @@ function Button({
 
   return (
     <RACButton
-      isDisabled={isDisabled}
+      isDisabled={disabled}
       isPending={isPending}
       ref={forwarded}
       render={buttonRenderer(element, render)}
