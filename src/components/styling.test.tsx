@@ -47,6 +47,8 @@ import {
   ListItem,
   Menu,
   Meter,
+  NavigationBar,
+  NavigationRail,
   NavigationTree,
   NumberField,
   Popover,
@@ -421,6 +423,14 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Menu.Separator',
   },
   { element: <Meter {...PROBE} label="Label" value={40} />, name: 'Meter' },
+  {
+    element: <NavigationBar {...PROBE}>Label</NavigationBar>,
+    name: 'NavigationBar',
+  },
+  {
+    element: <NavigationRail {...PROBE}>Label</NavigationRail>,
+    name: 'NavigationRail',
+  },
   {
     element: (
       <NavigationTree {...PROBE} aria-label="Label">

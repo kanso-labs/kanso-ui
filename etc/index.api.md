@@ -1011,6 +1011,54 @@ export type MeterProps = Omit<MeterProps_2, 'children' | 'className' | 'style'> 
 export type MeterTone = Extract<IndicatorTone, 'negative' | 'positive' | 'primary'>;
 
 // @public
+export function NavigationBar(input: NavigationBarProps): JSX;
+
+// @public (undocumented)
+export namespace NavigationBar {
+    var // (undocumented)
+    Item: typeof NavigationBarItem;
+}
+
+// @public
+export function NavigationBarItem(props: NavigationItemProps & RefAttributes<HTMLAnchorElement>): JSX;
+
+// @public (undocumented)
+export type NavigationBarProps = RenderComponentProps<'nav'> & {
+    selectedRoute?: string;
+};
+
+// @public (undocumented)
+type NavigationItemProps = {
+    badge?: boolean | number;
+    children: ReactNode;
+    className?: LinkProps_2['className'];
+    href: string;
+    icon: ReactNode;
+    style?: LinkProps_2['style'];
+} & Omit<LinkProps_2, 'children' | 'className' | 'href' | 'style'>;
+export { NavigationItemProps as NavigationBarItemProps }
+export { NavigationItemProps as NavigationRailItemProps }
+
+// @public
+export function NavigationRail(input: NavigationRailProps): JSX;
+
+// @public (undocumented)
+export namespace NavigationRail {
+    var // (undocumented)
+    Item: typeof NavigationRailItem;
+}
+
+// @public
+export function NavigationRailItem(props: NavigationItemProps & RefAttributes<HTMLAnchorElement>): JSX;
+
+// @public (undocumented)
+export type NavigationRailProps = RenderComponentProps<'nav'> & {
+    header?: ReactNode;
+    isExpanded?: boolean;
+    selectedRoute?: string;
+};
+
+// @public
 export function NavigationTree<T extends object>(props: NavigationTreeProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)

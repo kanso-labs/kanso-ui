@@ -139,6 +139,8 @@ import type {
   TreeProps,
 } from '.'
 import type { BadgeProps } from './badge'
+import type { NavigationBarProps } from './navigation-bar'
+import type { NavigationRailProps } from './navigation-rail'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
@@ -206,6 +208,8 @@ import MenuDefault, {
   MenuSubmenu,
 } from './menu'
 import MeterDefault from './meter'
+import NavigationBarDefault, { NavigationBarItem } from './navigation-bar'
+import NavigationRailDefault, { NavigationRailItem } from './navigation-rail'
 import NavigationTreeDefault, {
   NavigationTreeItem,
   NavigationTreeSection,
@@ -385,6 +389,10 @@ describe('components barrel', () => {
       'MenuSeparator',
       'MenuSubmenu',
       'Meter',
+      'NavigationBar',
+      'NavigationBarItem',
+      'NavigationRail',
+      'NavigationRailItem',
       'NavigationTree',
       'NavigationTreeItem',
       'NavigationTreeSection',
@@ -520,6 +528,10 @@ describe('components barrel', () => {
     MenuSeparator: [components.MenuSeparator, MenuSeparator],
     MenuSubmenu: [components.MenuSubmenu, MenuSubmenu],
     Meter: [components.Meter, MeterDefault],
+    NavigationBar: [components.NavigationBar, NavigationBarDefault],
+    NavigationBarItem: [components.NavigationBarItem, NavigationBarItem],
+    NavigationRail: [components.NavigationRail, NavigationRailDefault],
+    NavigationRailItem: [components.NavigationRailItem, NavigationRailItem],
     NavigationTree: [components.NavigationTree, NavigationTreeDefault],
     NavigationTreeItem: [components.NavigationTreeItem, NavigationTreeItem],
     NavigationTreeSection: [
@@ -1314,6 +1326,16 @@ describe('components barrel', () => {
 
   it('re-exports the BadgeProps type', () => {
     const props: BadgeProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the NavigationBarProps type', () => {
+    const props: NavigationBarProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the NavigationRailProps type', () => {
+    const props: NavigationRailProps = { children: 'test' }
     expect(props.children).toBe('test')
   })
 })
