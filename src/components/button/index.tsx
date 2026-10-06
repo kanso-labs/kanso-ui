@@ -13,6 +13,7 @@ import * as stylex from '@stylexjs/stylex'
 import { Button as RACButton, Link as RACLink } from 'react-aria-components'
 
 import { useRipple } from '../../hooks/useRipple'
+import { useMessages } from '../../i18n'
 import {
   ariaAttributesOf,
   buttonRenderer,
@@ -372,8 +373,8 @@ type ButtonProps = {
   href?: string
   /**
    * The name of the ring shown while the button is pending, for a screen
-   * reader. The label it replaces is hidden while it shows.
-   * @default 'Loading'
+   * reader. The label it replaces is hidden while it shows. Left out, it is
+   * the word for it in the I18nProvider's locale — "Loading" in English.
    */
   pendingLabel?: string
   /** The link's `rel`, when `href` is set. */
@@ -445,7 +446,7 @@ function Button({
   onPointerDown,
   onPointerLeave,
   onPointerUp,
-  pendingLabel = 'Loading',
+  pendingLabel,
   ref,
   rel,
   render,
@@ -454,6 +455,8 @@ function Button({
   variant = 'filled',
   ...props
 }: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  const messages = useMessages()
+
   // `props` (className/style, etc.) is spread separately: `className` and
   // `style` there may be functions of render state, which ripple's own
   // handler-only merge doesn't need to know about. It is also why the styles
@@ -528,7 +531,7 @@ function Button({
       {...props}
       {...styleProps}
     >
-      {buttonContent(children, pendingLabel, ripple)}
+      {buttonContent(children, pendingLabel ?? messages.loading, ripple)}
     </RACButton>
   )
 }

@@ -248,7 +248,8 @@ type MenuLoadMoreProps = Omit<RACMenuLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
@@ -471,7 +472,7 @@ function MenuItem<T extends object = object>({
  * The row shown while more items are being fetched. React Aria calls
  * `onLoadMore` when it comes into view, and draws it only while `isLoading`.
  */
-function MenuLoadMore({ label = 'Loading more', ...props }: MenuLoadMoreProps) {
+function MenuLoadMore({ label, ...props }: MenuLoadMoreProps) {
   return (
     <RACMenuLoadMoreItem
       {...props}

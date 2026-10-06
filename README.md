@@ -128,6 +128,37 @@ import {
 is a subpath rather than part of the main entry so an app with no date component
 pays nothing for it.
 
+### Localisation
+
+Wrap the app in `I18nProvider`, which this package re-exports, and every word
+the components write follows its locale. React Aria names most of the controls
+they draw, in some thirty languages: an overlay's dismiss button, a field's
+clear button and steppers, a snackbar's close, a chip's remove, a row's
+selection box, a column's resize handle, a picker's trigger and a colour
+picker's strips.
+
+Five strings have no word in React Aria, so this package carries them in the
+same locales React Aria ships:
+
+- the ring a pending `Button` or `IconButton` shows,
+- a collection's loading-more row,
+- `CopyField`'s button and what it announces once it has copied,
+- and a field's character limit.
+
+These translations are the package's own, and a wrong one is worth an issue.
+Every string sits behind a prop for the call site's own words: `pendingLabel`, a
+`LoadMore`'s `label`, `copyLabel`, `copiedLabel` and `characterLimitLabel`. The
+names React Aria gives sit behind `clearLabel`, `closeLabel` and the rest.
+
+Numbers follow the provider too: `Currency` writes its amount, and a field its
+character count, in the locale's digits and grouping.
+
+A bundler includes every language unless told which ones the app supports. React
+Aria's
+[`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
+is how an app says so for React Aria's own tables. This package's table is one
+small module, included whole.
+
 ### Layout
 
 `Container` centres content at a measure, and `Stack` puts one gap from the
@@ -233,15 +264,8 @@ content given `slot="close"`:
 ```
 
 An open overlay carries a visually hidden dismiss button for screen readers,
-whose label React Aria ships in some thirty languages. So do the controls the
-components draw inside themselves: a field's clear button and steppers, a
-snackbar's close, a chip's remove, a row's selection box, a column's resize
-handle, a picker's trigger and a colour picker's strips are all named in the
-reader's locale. Each component takes a prop to name them otherwise, such as
-`clearLabel` on a `SearchField`. A bundler includes every language unless told
-which the app supports; React Aria's
-[`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
-is how an app says so.
+named in the reader's language like every other control here; see
+[Localisation](#localisation).
 
 ### Icons
 

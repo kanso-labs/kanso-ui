@@ -35,6 +35,7 @@ import {
   VisuallyHidden,
 } from 'react-aria-components'
 
+import { useMessages } from '../i18n'
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import { useInsideForm } from './root'
 import { fieldChromeStyles, groupStyles } from './styles'
@@ -179,8 +180,9 @@ interface FieldMessageProps {
   /**
    * How the limit is said to a screen reader, where there is a `maxLength`.
    * It is read with the field on focus rather than as the value changes, so
-   * it names the limit and not what is left of it.
-   * @default `Up to ${maxLength} characters`, singular for a limit of one
+   * it names the limit and not what is left of it. Left out, it is the
+   * sentence for it in the I18nProvider's locale — "Up to 20 characters" in
+   * English, singular for a limit of one.
    */
   characterLimitLabel?: string | undefined
   /**
@@ -789,6 +791,7 @@ function FieldMessage({
   const validation = useContext(FieldErrorContext)
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
   const { locale } = useLocale()
+  const messages = useMessages()
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
   const insideForm = useInsideForm()
@@ -804,8 +807,7 @@ function FieldMessage({
   const limit =
     maxLength === undefined
       ? undefined
-      : (characterLimitLabel ??
-        `Up to ${maxLength} character${maxLength === 1 ? '' : 's'}`)
+      : (characterLimitLabel ?? messages.characterLimit(maxLength))
 
   const hidden =
     limit === undefined ? null : (

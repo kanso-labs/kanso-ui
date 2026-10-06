@@ -70,7 +70,8 @@ type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
    * itself carries no text.
-   * @default 'Loading more'
+   * Left out, it is the word for it in the I18nProvider's locale — "Loading
+   * more" in English.
    */
   label?: string
 }
@@ -300,7 +301,7 @@ function ListItem<T extends object = object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`.
  */
-function ListLoadMore({ label = 'Loading more', ...props }: ListLoadMoreProps) {
+function ListLoadMore({ label, ...props }: ListLoadMoreProps) {
   return (
     <RACGridListLoadMoreItem
       {...props}

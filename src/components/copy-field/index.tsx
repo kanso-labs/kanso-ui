@@ -5,6 +5,7 @@ import type { HTMLAttributes, RefAttributes } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useMessages } from '../../i18n'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -91,14 +92,15 @@ const styles = stylex.create({
 
 type CopyFieldProps = {
   /**
-   * What the button says once the value has been copied. It reverts to
-   * `copyLabel` on its own after a couple of seconds.
-   * @default 'Copied'
+   * What the button says once the value has been copied, and what is
+   * announced. It reverts to `copyLabel` on its own after a couple of
+   * seconds. Left out, it is the word for it in the I18nProvider's locale —
+   * "Copied" in English.
    */
   copiedLabel?: string
   /**
-   * What the button says at rest.
-   * @default 'Copy'
+   * What the button says at rest. Left out, it is the word for it in the
+   * I18nProvider's locale — "Copy" in English.
    */
   copyLabel?: string
   /**
@@ -137,13 +139,16 @@ type CopyFieldProps = {
  * `onCopyFailed`.
  */
 function CopyField({
-  copiedLabel = 'Copied',
-  copyLabel = 'Copy',
+  copiedLabel: copiedLabelProp,
+  copyLabel: copyLabelProp,
   onCopied,
   onCopyFailed,
   value,
   ...props
 }: CopyFieldProps & RefAttributes<HTMLDivElement>) {
+  const messages = useMessages()
+  const copiedLabel = copiedLabelProp ?? messages.copied
+  const copyLabel = copyLabelProp ?? messages.copy
   const [copied, setCopied] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
