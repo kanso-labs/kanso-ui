@@ -123,6 +123,7 @@ function ColorField({
     >
       <FieldBox
         floatingLabel={floatingLabel}
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         trailing={trailingIcon}

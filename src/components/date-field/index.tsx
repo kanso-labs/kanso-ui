@@ -143,6 +143,7 @@ function DateField<T extends DateValue>({
         // input context, which a date field does not provide. Without this
         // the notch stays shut across segments already showing `mm/dd/yyyy`.
         isPopulated
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         trailing={trailingIcon}

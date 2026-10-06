@@ -90,6 +90,13 @@ type FieldBoxProps = {
    * say — says so here, and the floating label floats on it.
    */
   isPopulated?: boolean
+  /**
+   * Whether the field must be filled, which marks its label with an
+   * asterisk. The field passes its own `isRequired` on, since the group the
+   * box is reports none.
+   * @default false
+   */
+  isRequired?: boolean
   /** What the field is for. */
   label: string
   /** An icon at the start of the box, before the label and the control. */
@@ -147,6 +154,12 @@ type FieldInputProps = Omit<InputProps, 'prefix'> & {
 }
 
 type FieldLabelProps = LabelProps & {
+  /**
+   * Whether the field must be filled, which ends the label in an asterisk in
+   * the label's own colour.
+   * @default false
+   */
+  isRequired?: boolean
   /**
    * The states the colour follows. Disabled wins over error, and error over
    * focus, so a focused invalid field keeps its error colour.
@@ -263,6 +276,7 @@ function boxContent(
   children: ReactNode,
   floatingLabel: boolean,
   isPopulated: boolean | undefined,
+  isRequired: boolean,
   leading: ReactNode,
   multiline: boolean,
   trailing: ReactNode,
@@ -273,6 +287,7 @@ function boxContent(
     <BoxContent
       floatingLabel={floatingLabel}
       isPopulated={isPopulated}
+      isRequired={isRequired}
       label={label}
       leading={leading}
       multiline={multiline}
@@ -297,6 +312,7 @@ function BoxContent({
   children,
   floatingLabel,
   isPopulated,
+  isRequired,
   label,
   leading,
   multiline,
@@ -308,6 +324,7 @@ function BoxContent({
   children: ReactNode
   floatingLabel: boolean
   isPopulated: boolean | undefined
+  isRequired: boolean
   label: string
   leading: ReactNode
   multiline: boolean
@@ -341,7 +358,12 @@ function BoxContent({
               floated && fieldChromeStyles.outlineNotchOpen,
             )}
           >
-            {floated ? label : null}
+            {floated ? (
+              <>
+                {label}
+                {isRequired ? REQUIRED_MARK : null}
+              </>
+            ) : null}
           </legend>
         </fieldset>
       ) : null}
@@ -369,6 +391,7 @@ function BoxContent({
         )}
       >
         <FieldLabel
+          isRequired={isRequired}
           state={state}
           {...stylex.props(
             fieldChromeStyles.boxLabel,
@@ -447,6 +470,7 @@ function FieldBox({
   children,
   floatingLabel = true,
   isPopulated,
+  isRequired = false,
   label,
   leading,
   multiline = false,
@@ -474,6 +498,7 @@ function FieldBox({
         children,
         floatingLabel,
         isPopulated,
+        isRequired,
         leading,
         multiline,
         trailing,
@@ -748,7 +773,17 @@ function useFieldPopulated() {
 // new object on every render.
 const NO_STATE: Partial<FieldLabelState> = {}
 
+// The asterisk after a required field's label, which is how the text fields
+// page marks one, and Material Design's own web text field draws it unless
+// told not to. Hidden from assistive technology: the control already says it
+// is required, and read out as well the label would end in "star". It is in
+// the label rather than beside it, so it floats and takes the label's colour
+// with it — the error role once the field is invalid.
+const REQUIRED_MARK = <span aria-hidden="true">*</span>
+
 function FieldLabel({
+  children,
+  isRequired = false,
   state = NO_STATE,
   variant = 'field',
   ...props
@@ -771,7 +806,10 @@ function FieldLabel({
         ),
         props,
       )}
-    />
+    >
+      {children}
+      {isRequired ? REQUIRED_MARK : null}
+    </Label>
   )
 }
 

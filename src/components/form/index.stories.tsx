@@ -143,11 +143,12 @@ const Overview: Story = {
             Native validation
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            By default a required field is marked for a screen reader and
-            submission goes ahead, which is what a form validating on the server
-            wants. With validationBehavior=&quot;native&quot; the browser holds
-            the constraints instead: submitting with a required field empty
-            focuses it and shows the browser&apos;s own message under it.
+            A required field ends its label in an asterisk, and says so to a
+            screen reader too. By default submission goes ahead, which is what a
+            form validating on the server wants. With
+            validationBehavior=&quot;native&quot; the browser holds the
+            constraints instead: submitting with a required field empty focuses
+            it and shows the browser&apos;s own message under it.
           </Text>
         </div>
         <div {...stylex.props(styles.columns)}>

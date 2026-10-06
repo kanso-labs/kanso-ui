@@ -203,6 +203,7 @@ function DateRangePicker<T extends DateValue>({
         // Without this the notch stays shut across segments already showing
         // `mm/dd/yyyy`.
         isPopulated
+        isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
         // In the chrome's trailing slot rather than on the segments' line —
