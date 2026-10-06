@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { render, waitFor } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import Avatar from '.'
@@ -58,6 +59,32 @@ describe('avatar', () => {
     it('uppercases initials that were given in lower case', () => {
       const { avatar } = setup({ name: 'ada lovelace' })
       expect(avatar.textContent).toBe('AL')
+    })
+
+    // A character is a grapheme rather than a code point. Each of these is
+    // several code points drawn as one: an accent written as a combining
+    // mark, a joined emoji, and an Indic conjunct.
+    it.each([
+      ['A\u0301da Lovelace', 'A\u0301L'],
+      ['\u{1F469}\u200D\u{1F4BB} Lovelace', '\u{1F469}\u200D\u{1F4BB}L'],
+      [
+        '\u0915\u094D\u0937\u092E\u093E \u0936\u0930\u094D\u092E\u093E',
+        '\u0915\u094D\u0937\u0936',
+      ],
+    ])('keeps a character drawn as one whole, in %s', (name, initials) => {
+      const { avatar } = setup({ name })
+      expect(avatar.textContent).toBe(initials)
+    })
+
+    // Turkish upper-cases a dotted "i" to "İ" where English gives "I", so
+    // the case only passes in the provider's locale.
+    it("upper-cases in the I18nProvider's locale", () => {
+      const view = render(
+        <I18nProvider locale="tr-TR">
+          <Avatar name="ilk son" />
+        </I18nProvider>,
+      )
+      expect(view.getByRole('img').textContent).toBe('\u0130S')
     })
   })
 

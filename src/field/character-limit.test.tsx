@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 
 import { render } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import TextArea from '../components/text-area'
@@ -181,6 +182,36 @@ describe('a field with a character limit', () => {
       const view = render(renderField({ characterCount: true }))
 
       expect(describedBy(view.getByRole('textbox'))).not.toContain('Up to')
+    },
+  )
+
+  // The count is drawn in the reader's digits and grouping, as React Aria
+  // draws a number field's value and a meter's percentage beside it. Each
+  // expectation is Intl's own, so the case pins which locale the count was
+  // written in rather than what that locale's data happens to say.
+  it.each(['ar-EG', 'en-US', 'fr-FR'])(
+    "writes the count in the I18nProvider's locale, %s",
+    (locale) => {
+      const view = render(
+        <I18nProvider locale={locale}>
+          <TextField
+            characterCount
+            defaultValue="Twelve chars"
+            label="Label"
+            maxLength={1200}
+          />
+        </I18nProvider>,
+      )
+      const format = new Intl.NumberFormat(locale)
+
+      // Matched as written: the default normalizer folds the narrow no-break
+      // space French groups with into a plain one, which the count does not
+      // hold.
+      expect(
+        view.getByText(`${format.format(12)}/${format.format(1200)}`, {
+          normalizer: (text) => text,
+        }),
+      ).not.toBeNull()
     },
   )
 })

@@ -16,11 +16,15 @@ import {
 } from '../../field/root'
 import { mergeStatefulStyles } from '../../styles/merge'
 
-type TextFieldProps = {
+type TextFieldProps = Omit<
+  RACTextFieldProps,
+  'children' | 'isInvalid' | 'prefix' | 'validationBehavior'
+> & {
   /**
    * Whether to count the characters the field holds at the end of the
    * supporting line, against `maxLength` where there is one, as the text
-   * fields page's character counter does.
+   * fields page's character counter does. The count is written in the
+   * `I18nProvider`'s digits and grouping.
    * @default false
    */
   characterCount?: boolean
@@ -99,10 +103,7 @@ type TextFieldProps = {
    * @default 'filled'
    */
   variant?: FieldVariant
-} & Omit<
-  RACTextFieldProps,
-  'children' | 'isInvalid' | 'prefix' | 'validationBehavior'
->
+}
 
 /**
  * A labelled single-line input. Its value is React Aria's: pass `value` with

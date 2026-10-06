@@ -28,7 +28,10 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // Its own component rather than a prop of TextField, so `rows` and
 // `autosize` stay off TextField's type and `numeric` stays off this one.
 
-type TextAreaProps = {
+type TextAreaProps = Omit<
+  RACTextFieldProps,
+  'children' | 'isInvalid' | 'validationBehavior'
+> & {
   /**
    * Whether the field grows with the text it holds, from `rows` up. `false`
    * keeps it at `rows` and scrolls the text inside.
@@ -38,7 +41,8 @@ type TextAreaProps = {
   /**
    * Whether to count the characters the field holds at the end of the
    * supporting line, against `maxLength` where there is one, as the text
-   * fields page's character counter does.
+   * fields page's character counter does. The count is written in the
+   * `I18nProvider`'s digits and grouping.
    * @default false
    */
   characterCount?: boolean
@@ -108,7 +112,7 @@ type TextAreaProps = {
    * @default 'filled'
    */
   variant?: FieldVariant
-} & Omit<RACTextFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
+}
 
 /**
  * A labelled multi-line input. Its value is React Aria's: pass `value` with
