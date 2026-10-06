@@ -11,6 +11,7 @@ import {
   Badge,
   Breadcrumbs,
   Button,
+  ButtonGroup,
   Calendar,
   Card,
   Checkbox,
@@ -66,6 +67,7 @@ import {
   Sheet,
   Slider,
   Snackbar,
+  SplitButton,
   Stack,
   SupportingPane,
   Switch,
@@ -141,6 +143,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Breadcrumbs.Item',
   },
   { element: <Button {...PROBE}>Label</Button>, name: 'Button' },
+  // The class, the style and the ref land on the group's own element.
+  {
+    element: (
+      <ButtonGroup {...PROBE} aria-label="Label">
+        <Button>Label</Button>
+      </ButtonGroup>
+    ),
+    name: 'ButtonGroup',
+  },
   { element: <Calendar {...PROBE} aria-label="Label" />, name: 'Calendar' },
   { element: <Card {...PROBE}>First item</Card>, name: 'Card' },
   {
@@ -626,6 +637,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'Slider',
   },
   { element: <Snackbar {...PROBE} queue={SNACKBARS} />, name: 'Snackbar' },
+  // The class, the style and the ref land on the group around the halves.
+  {
+    element: (
+      <SplitButton {...PROBE}>
+        <SplitButton.Action>Label</SplitButton.Action>
+      </SplitButton>
+    ),
+    name: 'SplitButton',
+  },
   { element: <Stack {...PROBE}>First item</Stack>, name: 'Stack' },
   {
     element: (

@@ -139,10 +139,16 @@ import type {
   TreeProps,
 } from '.'
 import type { BadgeProps } from './badge'
+import type { ButtonGroupProps } from './button-group'
 import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { NavigationBarProps } from './navigation-bar'
 import type { NavigationRailProps } from './navigation-rail'
+import type {
+  SplitButtonActionProps,
+  SplitButtonMenuProps,
+  SplitButtonProps,
+} from './split-button'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
@@ -152,6 +158,7 @@ import AvatarDefault from './avatar'
 import BadgeDefault from './badge'
 import BreadcrumbsDefault, { BreadcrumbsItem } from './breadcrumbs'
 import ButtonDefault from './button'
+import ButtonGroupDefault from './button-group'
 import CalendarDefault from './calendar'
 import CardDefault from './card'
 import CheckboxDefault from './checkbox'
@@ -244,6 +251,10 @@ import SheetDefault, {
 } from './sheet'
 import SliderDefault from './slider'
 import SnackbarDefault from './snackbar'
+import SplitButtonDefault, {
+  SplitButtonAction,
+  SplitButtonMenu,
+} from './split-button'
 import StackDefault from './stack'
 import SupportingPaneDefault from './supporting-pane'
 import SwitchDefault from './switch'
@@ -335,6 +346,7 @@ describe('components barrel', () => {
       'Breadcrumbs',
       'BreadcrumbsItem',
       'Button',
+      'ButtonGroup',
       'Calendar',
       'Card',
       'Checkbox',
@@ -427,6 +439,9 @@ describe('components barrel', () => {
       'SheetTitle',
       'Slider',
       'Snackbar',
+      'SplitButton',
+      'SplitButtonAction',
+      'SplitButtonMenu',
       'Stack',
       'SupportingPane',
       'Switch',
@@ -474,6 +489,7 @@ describe('components barrel', () => {
     Breadcrumbs: [components.Breadcrumbs, BreadcrumbsDefault],
     BreadcrumbsItem: [components.BreadcrumbsItem, BreadcrumbsItem],
     Button: [components.Button, ButtonDefault],
+    ButtonGroup: [components.ButtonGroup, ButtonGroupDefault],
     Calendar: [components.Calendar, CalendarDefault],
     Card: [components.Card, CardDefault],
     Checkbox: [components.Checkbox, CheckboxDefault],
@@ -575,6 +591,9 @@ describe('components barrel', () => {
     SheetTitle: [components.SheetTitle, SheetTitle],
     Slider: [components.Slider, SliderDefault],
     Snackbar: [components.Snackbar, SnackbarDefault],
+    SplitButton: [components.SplitButton, SplitButtonDefault],
+    SplitButtonAction: [components.SplitButtonAction, SplitButtonAction],
+    SplitButtonMenu: [components.SplitButtonMenu, SplitButtonMenu],
     Stack: [components.Stack, StackDefault],
     SupportingPane: [components.SupportingPane, SupportingPaneDefault],
     Switch: [components.Switch, SwitchDefault],
@@ -1365,6 +1384,29 @@ describe('components barrel', () => {
 
   it('re-exports the FabMenuItemProps type', () => {
     const props: FabMenuItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the ButtonGroupProps type', () => {
+    const props: ButtonGroupProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SplitButtonProps type', () => {
+    const props: SplitButtonProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SplitButtonActionProps type', () => {
+    const props: SplitButtonActionProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SplitButtonMenuProps type', () => {
+    const props: SplitButtonMenuProps = {
+      'aria-label': 'Label',
+      children: 'test',
+    }
     expect(props.children).toBe('test')
   })
 })

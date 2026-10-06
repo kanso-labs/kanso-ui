@@ -22,6 +22,8 @@ export type {
   ButtonVariant,
 } from './button'
 export { default as Button } from './button'
+export type { ButtonGroupProps, ButtonGroupVariant } from './button-group'
+export { default as ButtonGroup } from './button-group'
 export type { CalendarProps } from './calendar'
 export { default as Calendar } from './calendar'
 export type { CardProps, CardVariant } from './card'
@@ -235,6 +237,17 @@ export type {
   SnackbarRegionRenderProps,
 } from './snackbar'
 export { default as Snackbar } from './snackbar'
+export type {
+  SplitButtonActionProps,
+  SplitButtonMenuProps,
+  SplitButtonProps,
+  SplitButtonVariant,
+} from './split-button'
+export {
+  default as SplitButton,
+  SplitButtonAction,
+  SplitButtonMenu,
+} from './split-button'
 export type { StackAlign, StackGap, StackJustify, StackProps } from './stack'
 export { default as Stack } from './stack'
 export type { SupportingPaneProps } from './supporting-pane'

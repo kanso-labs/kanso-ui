@@ -233,6 +233,23 @@ export type BreadcrumbsProps<T extends object = object> = Omit<BreadcrumbsProps_
 // @public
 export function Button(input: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>): JSX;
 
+// @public
+export function ButtonGroup(input: ButtonGroupProps): JSX;
+
+// @public (undocumented)
+export type ButtonGroupProps = Omit<ToggleButtonGroupProps, 'children' | 'className' | 'selectionMode' | 'style'> & RefAttributes<HTMLDivElement> & {
+    children?: ReactNode;
+    className?: string;
+    selectionMode?: ToggleButtonGroupProps['selectionMode'];
+    shape?: ButtonShape;
+    size?: ButtonSize;
+    style?: CSSProperties;
+    variant?: ButtonGroupVariant;
+};
+
+// @public (undocumented)
+export type ButtonGroupVariant = 'connected' | 'standard';
+
 // Warning: (ae-forgotten-export) The symbol "ButtonDOMProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -1510,6 +1527,51 @@ export class SnackbarQueue {
 export { SnackbarRegionRenderProps }
 
 export { SortDescriptor }
+
+// @public
+export function SplitButton(input: SplitButtonProps): JSX;
+
+// @public (undocumented)
+export namespace SplitButton {
+    var // (undocumented)
+    Action: typeof SplitButtonAction;
+    var // (undocumented)
+    Menu: typeof SplitButtonMenu;
+}
+
+// @public
+export function SplitButtonAction(props: SplitButtonActionProps): JSX;
+
+// @public (undocumented)
+export type SplitButtonActionProps = Omit<ButtonProps, 'shape' | 'size' | 'variant'> & RefAttributes<HTMLAnchorElement | HTMLButtonElement>;
+
+// @public
+export function SplitButtonMenu(input: SplitButtonMenuProps): JSX;
+
+// @public (undocumented)
+export type SplitButtonMenuProps = {
+    'aria-label': string;
+    children: ReactNode;
+    container?: Element;
+    defaultOpen?: boolean;
+    isDisabled?: boolean;
+    isOpen?: boolean;
+    onAction?: (key: Key) => void;
+    onOpenChange?: (isOpen: boolean) => void;
+};
+
+// @public (undocumented)
+export type SplitButtonProps = RefAttributes<HTMLDivElement> & {
+    'aria-label'?: string;
+    children: ReactNode;
+    className?: string;
+    size?: ButtonSize;
+    style?: CSSProperties;
+    variant?: SplitButtonVariant;
+};
+
+// @public (undocumented)
+export type SplitButtonVariant = 'elevated' | 'filled' | 'outlined' | 'tonal';
 
 // @public
 export function Stack(input: StackProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
