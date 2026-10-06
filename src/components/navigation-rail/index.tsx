@@ -20,10 +20,10 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // page's 56dp horizontal pill. The expanded rail is what the page has
 // replace the navigation drawer, so an app's top-level destinations reach
 // every window size between this and NavigationBar. Both forms are on the
-// surface role, with the first destination 44dp from the top, or 8dp under
-// a header when the rail has one — a menu button that expands it, say. The
-// destinations are `src/navigation`'s, shared with NavigationBar, which holds
-// their values.
+// surface role, with their contents 44dp from the top: the first destination,
+// or a header when the rail has one — a menu button that expands it, say —
+// with the first destination 40dp under it. The destinations are
+// `src/navigation`'s, shared with NavigationBar, which holds their values.
 //
 // The rail is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
@@ -41,26 +41,23 @@ const styles = stylex.create({
     minInlineSize: '220px',
     paddingInline: '20px',
   },
-  // What the rail draws above its destinations, 8dp clear of the first:
-  // 4dp of its own here, and the collapsed rail's 4dp gap the rest.
+  // What the rail draws above its destinations, the page's 40dp clear of the
+  // first: the collapsed rail's 4dp gap, and the rest of its own here.
   header: {
     alignItems: 'center',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    marginBlockEnd: spacing.xs,
-    paddingBlockStart: spacing.xl,
+    marginBlockEnd: `calc(${spacing.xxxl} - ${spacing.xs})`,
   },
   // The expanded rail has no gap between destinations, so its header keeps
-  // the whole 8dp.
+  // the whole 40dp.
   headerExpanded: {
     alignItems: 'flex-start',
-    marginBlockEnd: spacing.sm,
+    marginBlockEnd: spacing.xxxl,
   },
-  // With no header the destinations start the pages' 44dp down.
-  headless: {
-    paddingBlockStart: '44px',
-  },
+  // The page's 44dp above the contents, header or not, which falls between
+  // two steps of the spacing scale and so is written out.
   rail: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -69,6 +66,7 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     paddingBlockEnd: spacing.xl,
+    paddingBlockStart: '44px',
   },
 })
 
@@ -134,7 +132,6 @@ function NavigationRail({
         stylex.props(
           styles.rail,
           isExpanded ? styles.expanded : styles.collapsed,
-          header === undefined && styles.headless,
         ),
         props,
       ),

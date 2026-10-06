@@ -1,3 +1,5 @@
+import type { RenderResult } from '@testing-library/react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { RouterProvider } from 'react-aria-components'
@@ -40,6 +42,15 @@ function focusByKeyboard(element: HTMLElement) {
   act(() => {
     element.focus()
   })
+}
+
+// The box the rail draws its header in, around the call site's element.
+function headerBoxOf(view: RenderResult) {
+  const box = view.getByRole('button', { name: 'Menu' }).parentElement
+  if (!box) {
+    throw new Error('expected the header to sit in a box')
+  }
+  return box.getBoundingClientRect()
 }
 
 // The indicator a destination draws its icon in, and the label after it.
@@ -166,7 +177,7 @@ describe('navigation rail', () => {
       expect(getComputedStyle(current).outlineStyle).toBe('none')
     })
 
-    it('starts the destinations 44dp down, 4dp apart', () => {
+    it('draws 64dp destinations 4dp apart, starting 44dp down', () => {
       const view = render(<Rail />)
       const rail = view.getByRole('navigation').getBoundingClientRect()
       const [first, second] = view
@@ -174,28 +185,30 @@ describe('navigation rail', () => {
         .map((link) => link.getBoundingClientRect())
 
       expect(first.top - rail.top).toBe(44)
+      expect(first.height).toBe(64)
       expect(second.top - first.bottom).toBe(4)
     })
 
-    it('puts a header above the destinations, 8dp clear of the first', () => {
+    it('puts a header 44dp down, 40dp clear of the first destination', () => {
       const view = render(<Rail header={HEADER} />)
-      const header = view.getByRole('button', { name: 'Menu' })
+      const rail = view.getByRole('navigation').getBoundingClientRect()
+      const header = headerBoxOf(view)
       const first = view.getAllByRole('link')[0].getBoundingClientRect()
 
-      expect(header.getBoundingClientRect().bottom).toBeLessThan(first.top)
-      expect(
-        first.top - (header.parentElement?.getBoundingClientRect().bottom ?? 0),
-      ).toBe(8)
+      expect(header.top - rail.top).toBe(44)
+      expect(first.top - header.bottom).toBe(40)
     })
   })
 
   describe('expanded', () => {
-    it('keeps a header 8dp clear of the first destination too', () => {
+    it('puts a header 44dp down, 40dp clear of the first destination too', () => {
       const view = render(<Rail header={HEADER} isExpanded />)
-      const header = view.getByRole('button', { name: 'Menu' }).parentElement
+      const rail = view.getByRole('navigation').getBoundingClientRect()
+      const header = headerBoxOf(view)
       const first = view.getAllByRole('link')[0].getBoundingClientRect()
 
-      expect(first.top - (header?.getBoundingClientRect().bottom ?? 0)).toBe(8)
+      expect(header.top - rail.top).toBe(44)
+      expect(first.top - header.bottom).toBe(40)
     })
 
     it('is between 220dp and 360dp wide', () => {
