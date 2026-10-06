@@ -77,6 +77,24 @@ describe('overlay', () => {
     )
   })
 
+  // A surface scrolled to its end used to hand the next swipe to the page,
+  // and React Aria closes a non-modal surface when its anchor scrolls, so
+  // one flick too many closed it. ComboBox's and Select's lists are this
+  // element too, so this is theirs as well.
+  it('keeps a scroll that reaches the end of an anchored surface inside it', () => {
+    const element = document.createElement('div')
+    element.className = classOf(overlay.popup)
+    document.body.append(element)
+
+    try {
+      const computed = getComputedStyle(element)
+      expect(computed.overscrollBehaviorX).toBe('contain')
+      expect(computed.overscrollBehaviorY).toBe('contain')
+    } finally {
+      element.remove()
+    }
+  })
+
   it('compiles every shared style to at least one class', () => {
     for (const style of [
       overlay.modalBodyRing,
