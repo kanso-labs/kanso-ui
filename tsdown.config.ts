@@ -9,8 +9,10 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   renameSync,
   rmdirSync,
+  writeFileSync,
 } from 'node:fs'
 import { defineConfig } from 'tsdown'
 
@@ -97,6 +99,43 @@ export default defineConfig({
     // output format (esm, cjs); copying to the same dist/tokens.css both
     // times is redundant but harmless, and simpler than detecting "first
     // format wins".
+    // The published types, made to stand without a `*.css` declaration of a
+    // consumer's own. TypeScript 6 turns `noUncheckedSideEffectImports` on by
+    // default, which makes a side-effect import of a file with no
+    // declaration error TS2882 — and the entry's declaration kept
+    // `import "./styles.css"` from src/index.ts, which types never need, while
+    // the README tells a consumer to write two such imports of its own.
+    //
+    // So the import is taken out of `dist/index.d.ts` and left in
+    // `dist/index.js`, where it carries the stylesheet, and the two
+    // stylesheet subpaths take a `types` condition pointing at an empty
+    // declaration this writes. `scripts/check-package.mjs` type-checks a
+    // consumer of both under TypeScript 6's defaults.
+    {
+      closeBundle() {
+        const entry = 'dist/index.d.ts'
+
+        if (!existsSync(entry)) {
+          return
+        }
+
+        writeFileSync(
+          entry,
+          readFileSync(entry, 'utf8').replace(
+            /^import "\.\/styles\.css";\n/mu,
+            '',
+          ),
+        )
+      },
+      name: 'type-stylesheets',
+      writeBundle() {
+        mkdirSync('dist', { recursive: true })
+        writeFileSync(
+          'dist/stylesheet.d.ts',
+          '// The declaration behind the ./styles.css and ./tokens.css subpaths,\n// which a side-effect import resolves to. A stylesheet exports nothing.\nexport {}\n',
+        )
+      },
+    },
     {
       name: 'copy-tokens-css',
       writeBundle() {

@@ -11,16 +11,16 @@ are developed and documented in Storybook.
 
 ## Commands
 
-| Task       | Command                           | Notes                                                                    |
-| ---------- | --------------------------------- | ------------------------------------------------------------------------ |
-| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)           |
-| Test       | `npm test`                        | Vitest in headless Chromium                                              |
-| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`         |
-| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                         |
-| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                      |
-| Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs           |
-| Verify     | `npm run package:check`           | publint, then `scripts/check-package.mjs`; reads `dist/`, so build first |
-| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"   |
+| Task       | Command                           | Notes                                                                          |
+| ---------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| Dev server | `npm run storybook`               | Storybook at http://localhost:6006 (`npm run dev` is an alias)                 |
+| Test       | `npm test`                        | Vitest in headless Chromium                                                    |
+| Coverage   | `npm run test:coverage`           | Same suite with v8 coverage; writes Cobertura XML to `coverage/`               |
+| Lint       | `npm run lint`                    | oxlint, then ESLint, then oxfmt formatting check                               |
+| Build      | `npm run build`                   | Type-checks (`tsc -b`) then builds ESM into `dist/`                            |
+| Format     | `npm run format`                  | oxfmt; `npm run format:check` is the check `lint` already runs                 |
+| Verify     | `npm run package:check`           | publint, attw, then `scripts/check-package.mjs`; reads `dist/`, so build first |
+| Scaffold   | `npm run component:new -- <name>` | Writes `src/components/<name>` and its four entries; see "Conventions"         |
 
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
