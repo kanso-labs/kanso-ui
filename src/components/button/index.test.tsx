@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { createElement } from 'react'
+import { ButtonContext } from 'react-aria-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '.'
@@ -427,6 +428,59 @@ describe('as a link', () => {
   })
 })
 
+// Hoisted so each context value is one stable object rather than a fresh one
+// per render, which is what react-perf's no-new-object-as-prop is after.
+const DISABLED_CONTEXT = { isDisabled: true }
+const SLOTTED_CONTEXT = { slots: { first: { isDisabled: true }, second: {} } }
+
+// A parent may disable the buttons it gives a context to, as React Aria's own
+// fields do, and React Aria takes a prop over its context — so a default of
+// the button's own would keep it enabled whatever the parent said.
+describe('disabled by a button context', () => {
+  it('takes its disabled state from the context, ripple included', () => {
+    const view = render(
+      <ButtonContext value={DISABLED_CONTEXT}>
+        <Button>Button</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button')).toHaveProperty('disabled', true)
+    // The ripple's surface is drawn only while a press could start one.
+    expect(view.container.querySelector('span[aria-hidden="true"]')).toBeNull()
+  })
+
+  it('reads the slot it sits in', () => {
+    const view = render(
+      <ButtonContext value={SLOTTED_CONTEXT}>
+        <Button slot="first">First</Button>
+        <Button slot="second">Second</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button', { name: 'First' })).toHaveProperty(
+      'disabled',
+      true,
+    )
+    expect(view.getByRole('button', { name: 'Second' })).toHaveProperty(
+      'disabled',
+      false,
+    )
+  })
+
+  it('lets its own prop win over the context', () => {
+    const view = render(
+      <ButtonContext value={DISABLED_CONTEXT}>
+        <Button isDisabled={false}>Button</Button>
+      </ButtonContext>,
+    )
+
+    expect(view.getByRole('button')).toHaveProperty('disabled', false)
+    expect(
+      view.container.querySelector('span[aria-hidden="true"]'),
+    ).not.toBeNull()
+  })
+})
+
 // React Aria's `render` is how a call site swaps in an element of its own, and
 // it is handed the props React Aria would have put on the <button>. What
 // Button adds past React Aria — the aria-* props it would drop, the keyboard
@@ -749,7 +803,8 @@ describe('press behaviour', () => {
   })
 
   describe('opting out', () => {
-    // `isDisabled` gates interaction; the surface itself still renders.
+    // `isDisabled` gates interaction, and turns the ripple off with it: no
+    // surface is drawn for a press to start one on.
     it('neither fires handlers nor ripples while disabled', async () => {
       const onClick = vi.fn<() => void>()
       const { button, isPressed } = setup({ isDisabled: true, onClick })
