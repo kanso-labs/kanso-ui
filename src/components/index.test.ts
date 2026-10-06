@@ -145,6 +145,11 @@ import type {
 } from '.'
 import type { BadgeProps } from './badge'
 import type { ButtonGroupProps } from './button-group'
+import type {
+  CarouselItemProps,
+  CarouselLayout,
+  CarouselProps,
+} from './carousel'
 import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { NavigationBarProps } from './navigation-bar'
@@ -167,6 +172,7 @@ import ButtonDefault from './button'
 import ButtonGroupDefault from './button-group'
 import CalendarDefault from './calendar'
 import CardDefault from './card'
+import CarouselDefault, { CarouselItem } from './carousel'
 import CheckboxDefault from './checkbox'
 import CheckboxGroupDefault from './checkbox-group'
 import ChipDefault from './chip'
@@ -356,6 +362,8 @@ describe('components barrel', () => {
       'ButtonGroup',
       'Calendar',
       'Card',
+      'Carousel',
+      'CarouselItem',
       'Checkbox',
       'CheckboxGroup',
       'Chip',
@@ -501,6 +509,8 @@ describe('components barrel', () => {
     ButtonGroup: [components.ButtonGroup, ButtonGroupDefault],
     Calendar: [components.Calendar, CalendarDefault],
     Card: [components.Card, CardDefault],
+    Carousel: [components.Carousel, CarouselDefault],
+    CarouselItem: [components.CarouselItem, CarouselItem],
     Checkbox: [components.Checkbox, CheckboxDefault],
     CheckboxGroup: [components.CheckboxGroup, CheckboxGroupDefault],
     Chip: [components.Chip, ChipDefault],
@@ -1454,5 +1464,20 @@ describe('components barrel', () => {
   it('re-exports the SearchViewContentProps type', () => {
     const props: SearchViewContentProps = { label: 'Label' }
     expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the CarouselProps type', () => {
+    const props: CarouselProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
+  })
+
+  it('re-exports the CarouselItemProps type', () => {
+    const props: CarouselItemProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CarouselLayout type', () => {
+    const value: CarouselLayout = 'hero'
+    expect(value).toBe('hero')
   })
 })

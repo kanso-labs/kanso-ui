@@ -60,6 +60,11 @@ function inFrench(element: ReactElement) {
   return render(<I18nProvider locale="fr-FR">{element}</I18nProvider>)
 }
 
+// The entries a language writes exactly as English does, because the word it
+// uses is the English one: Brazilian Portuguese calls a slide a "slide".
+// Anything else equal to English is a message nobody translated.
+const SAME_AS_ENGLISH = new Set(['pt-BR slide'])
+
 describe("the library's own words", () => {
   describe('the table', () => {
     it('has an entry for every locale React Aria ships', () => {
@@ -78,14 +83,23 @@ describe("the library's own words", () => {
 
         for (const key of [
           'back',
+          'carousel',
           'copied',
           'copy',
           'loading',
           'loadingMore',
+          'nextSlide',
+          'previousSlide',
+          'slide',
         ] as const) {
           expect(messages[key]).not.toBe('')
-          expect(messages[key]).not.toBe(english[key])
+          expect(
+            SAME_AS_ENGLISH.has(`${locale} ${key}`) ||
+              messages[key] !== english[key],
+          ).toBe(true)
         }
+        expect(messages.slideLabel(2, 6)).not.toContain('undefined')
+        expect(messages.slideLabel(2, 6)).not.toBe(english.slideLabel(2, 6))
         for (const count of COUNTS) {
           const limit = messages.characterLimit(count)
           expect(limit).not.toBe('')

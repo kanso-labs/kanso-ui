@@ -14,6 +14,7 @@ import {
   ButtonGroup,
   Calendar,
   Card,
+  Carousel,
   Checkbox,
   CheckboxGroup,
   Chip,
@@ -162,6 +163,22 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Card>
     ),
     name: 'Card (interactive)',
+  },
+  {
+    element: (
+      <Carousel {...PROBE} label="Label">
+        <Carousel.Item>First item</Carousel.Item>
+      </Carousel>
+    ),
+    name: 'Carousel',
+  },
+  {
+    element: (
+      <Carousel label="Label">
+        <Carousel.Item {...PROBE}>First item</Carousel.Item>
+      </Carousel>
+    ),
+    name: 'Carousel.Item',
   },
   { element: <Checkbox {...PROBE}>Label</Checkbox>, name: 'Checkbox' },
   {

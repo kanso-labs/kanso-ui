@@ -28,6 +28,13 @@ export type { CalendarProps } from './calendar'
 export { default as Calendar } from './calendar'
 export type { CardProps, CardVariant } from './card'
 export { default as Card } from './card'
+export type {
+  CarouselItemProps,
+  CarouselLayout,
+  CarouselProps,
+} from './carousel'
+export { default as Carousel } from './carousel'
+export { CarouselItem } from './carousel'
 export type { CheckboxProps } from './checkbox'
 export { default as Checkbox } from './checkbox'
 export type { CheckboxGroupProps } from './checkbox-group'

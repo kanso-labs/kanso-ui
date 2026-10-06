@@ -304,6 +304,36 @@ export type CardProps = {
 export type CardVariant = 'elevated' | 'filled' | 'outlined';
 
 // @public
+export function Carousel(input: CarouselProps & RefAttributes<HTMLElement>): JSX;
+
+// @public (undocumented)
+export namespace Carousel {
+    var // (undocumented)
+    Item: typeof CarouselItem;
+}
+
+// @public
+export function CarouselItem(input: CarouselItemProps & RefAttributes<HTMLDivElement>): JSX;
+
+// @public (undocumented)
+export type CarouselItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
+    children?: ReactNode;
+};
+
+// @public (undocumented)
+export type CarouselLayout = 'hero' | 'multi-browse' | 'uncontained';
+
+// @public (undocumented)
+export type CarouselProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
+    children?: ReactNode;
+    itemSize?: number;
+    label: string;
+    layout?: CarouselLayout;
+    nextLabel?: string;
+    previousLabel?: string;
+};
+
+// @public
 export function Checkbox(input: CheckboxProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
