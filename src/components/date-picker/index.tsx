@@ -93,6 +93,13 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
    * in `em` takes that size from the slot.
    */
   leadingIcon?: ReactNode
+  /**
+   * Whether the calendar's header draws the month and the year as menu
+   * buttons, each opening a list of them in the grid's place — see
+   * `Calendar`.
+   * @default false
+   */
+  showMonthYearMenus?: boolean
   /** A function may compute the style from the picker's render state. */
   style?: RACDatePickerProps<T>['style']
   /**
@@ -147,6 +154,7 @@ function DatePicker<T extends DateValue>({
   isDisabled = false,
   label,
   leadingIcon,
+  showMonthYearMenus = false,
   triggerLabel,
   variant = 'filled',
   ...props
@@ -204,7 +212,10 @@ function DatePicker<T extends DateValue>({
         {...stylex.props(overlay.popup, picker.popover)}
       >
         <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
-          <Calendar aria-label={label} />
+          <Calendar
+            aria-label={label}
+            showMonthYearMenus={showMonthYearMenus}
+          />
         </RACDialog>
       </RACPopover>
     </RACDatePicker>

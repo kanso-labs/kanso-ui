@@ -131,6 +131,20 @@ describe('date picker', () => {
       ).not.toBeNull()
     })
 
+    it('hands its calendar the month and year menus', () => {
+      const view = render(
+        <DatePicker
+          defaultOpen
+          defaultValue={DATE}
+          label="Label"
+          showMonthYearMenus
+        />,
+      )
+
+      expect(view.getByRole('button', { name: 'Sep month' })).not.toBeNull()
+      expect(view.getByRole('button', { name: '2026 year' })).not.toBeNull()
+    })
+
     it('keeps the calendar closed until the trigger is pressed', () => {
       const view = render(<DatePicker defaultValue={DATE} label="Label" />)
 

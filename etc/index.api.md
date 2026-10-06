@@ -246,11 +246,12 @@ export type ButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl';
 export type ButtonVariant = 'elevated' | 'filled' | 'outlined' | 'text' | 'tonal';
 
 // @public
-export function Calendar<T extends DateValue>(props: CalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
+export function Calendar<T extends DateValue>(input: CalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type CalendarProps<T extends DateValue = DateValue> = Omit<CalendarProps_2<T>, 'children' | 'className' | 'style'> & {
     className?: CalendarProps_2<T>['className'];
+    showMonthYearMenus?: boolean;
     style?: CalendarProps_2<T>['style'];
 };
 
@@ -534,6 +535,7 @@ export type DatePickerProps<T extends DateValue = DateValue> = Omit<DatePickerPr
     floatingLabel?: boolean;
     label: string;
     leadingIcon?: ReactNode;
+    showMonthYearMenus?: boolean;
     style?: DatePickerProps_2<T>['style'];
     triggerLabel?: string;
     variant?: FieldVariant;
@@ -552,6 +554,7 @@ export type DateRangePickerProps<T extends DateValue = DateValue> = Omit<DateRan
     label: string;
     leadingIcon?: ReactNode;
     separator?: string;
+    showMonthYearMenus?: boolean;
     style?: DateRangePickerProps_2<T>['style'];
     triggerLabel?: string;
     variant?: FieldVariant;
@@ -1178,11 +1181,12 @@ export type RadioProps = Omit<RadioFieldProps, 'children'> & {
 };
 
 // @public
-export function RangeCalendar<T extends DateValue>(props: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
+export function RangeCalendar<T extends DateValue>(input: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type RangeCalendarProps<T extends DateValue = DateValue> = Omit<RangeCalendarProps_2<T>, 'children' | 'className' | 'style'> & {
     className?: RangeCalendarProps_2<T>['className'];
+    showMonthYearMenus?: boolean;
     style?: RangeCalendarProps_2<T>['style'];
 };
 

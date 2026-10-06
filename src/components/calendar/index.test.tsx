@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Calendar from '.'
@@ -16,6 +16,7 @@ const probeStyles = stylex.create({
   onSurface: { color: colors.onSurface },
   primary: { color: colors.primary },
   surfaceContainerHigh: { color: colors.surfaceContainerHigh },
+  surfaceVariant: { backgroundColor: colors.surfaceVariant },
 })
 
 // The declarations a state is drawn with, written the way the component
@@ -130,6 +131,56 @@ function headerButton(view: ReturnType<typeof render>, label: string) {
     throw new Error(`expected a ${label} chevron in the header`)
   }
   return found
+}
+
+// A calendar with the month and year menus, on the fixed September.
+function Menus(props: Partial<Parameters<typeof Calendar>[0]>) {
+  return (
+    <Calendar
+      aria-label="Label"
+      defaultValue={SEPTEMBER}
+      showMonthYearMenus
+      {...props}
+    />
+  )
+}
+
+// The month heading between the chevrons. React Aria hides it from the
+// accessibility tree, naming the calendar with a visually hidden heading of
+// its own, and announces the month in a live region besides — so it is found
+// by its tag and its whole text rather than by role or by text alone.
+function monthHeadings(view: ReturnType<typeof render>) {
+  return [...view.container.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter(
+    (heading) => heading.textContent === 'September 2026',
+  )
+}
+
+// Lets a frame pass. A list closes a frame after a choice, once the key or
+// pointer that made it has finished delivering its events; and a list opened
+// by a click with no pointer events around it, which React Aria reads as a
+// screen reader's, takes focus only once the frame's transitions have run.
+async function nextFrame() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        resolve()
+      })
+    })
+  })
+}
+
+// A key pressed on whatever has focus, as a keyboard would.
+function press(key: string) {
+  const target = document.activeElement ?? document.body
+  fireEvent.keyDown(target, { key })
+  fireEvent.keyUp(target, { key })
+}
+
+function probeBackground(style: stylex.StyleXStyles) {
+  const view = render(<span data-testid="probe" {...stylex.props(style)} />)
+  const read = getComputedStyle(view.getByTestId('probe')).backgroundColor
+  view.unmount()
+  return read
 }
 
 // The distance between one week and the next. Read off two rows rather than
@@ -596,6 +647,219 @@ describe('calendar', () => {
       )
 
       expect(short).toBe(firstDateOffset(six))
+    })
+  })
+
+  // The docked date picker's header: the month and the year as menu buttons,
+  // each opening its list in the grid's place.
+  describe('month and year menus', () => {
+    it('names the month and the year shown on two menu buttons', () => {
+      const view = render(<Menus />)
+
+      const month = view.getByRole('button', { name: 'Sep month' })
+      const year = view.getByRole('button', { name: '2026 year' })
+      for (const button of [month, year]) {
+        expect(button).toHaveAttribute('aria-haspopup', 'listbox')
+        expect(button).toHaveAttribute('aria-expanded', 'false')
+      }
+      // The heading between the chevrons is what the menus replace.
+      expect(monthHeadings(view)).toHaveLength(0)
+    })
+
+    it("draws the page's 40dp menu button and 48dp rows", () => {
+      const view = render(<Menus />)
+      const month = view.getByRole('button', { name: 'Sep month' })
+
+      expect(month.getBoundingClientRect().height).toBe(40)
+
+      fireEvent.click(month)
+
+      const row = view.getByRole('option', { name: 'September' })
+      expect(row.getBoundingClientRect().height).toBe(48)
+      expect(getComputedStyle(row).backgroundColor).toBe(
+        probeBackground(probeStyles.surfaceVariant),
+      )
+    })
+
+    it("opens the month list in the grid's place, with the month shown checked", async () => {
+      const view = render(<Menus />)
+      const month = view.getByRole('button', { name: 'Sep month' })
+
+      fireEvent.click(month)
+      await nextFrame()
+
+      const list = view.getByRole('listbox', { name: 'month' })
+      expect(month).toHaveAttribute('aria-expanded', 'true')
+      expect(month).toHaveAttribute('aria-controls', list.id)
+      expect(view.queryByRole('grid')).toBeNull()
+      expect(
+        view.getAllByRole('option').map((option) => option.textContent),
+      ).toHaveLength(12)
+      expect(view.getByRole('option', { name: 'September' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      )
+      // Focus moves into the list. A click with no pointer events around it,
+      // as this one is, puts it on the list itself; a key puts it on the
+      // checked entry, which the keyboard case below pins.
+      expect(list.contains(document.activeElement)).toBe(true)
+    })
+
+    // The page draws an open menu without the chevrons and with the other
+    // menu disabled.
+    it('hides the chevrons and disables the other menu while a list is open', () => {
+      const view = render(<Menus />)
+
+      fireEvent.click(view.getByRole('button', { name: 'Sep month' }))
+
+      for (const label of ['Previous', 'Next']) {
+        expect(getComputedStyle(headerButton(view, label)).visibility).toBe(
+          'hidden',
+        )
+      }
+      expect(view.getByRole('button', { name: '2026 year' })).toBeDisabled()
+    })
+
+    it('moves the calendar to the month chosen, and closes', async () => {
+      const view = render(<Menus />)
+      const month = view.getByRole('button', { name: 'Sep month' })
+
+      fireEvent.click(month)
+      fireEvent.click(view.getByRole('option', { name: 'March' }))
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/March 2026/)
+      expect(view.getByRole('button', { name: 'Mar month' })).toBe(
+        document.activeElement,
+      )
+    })
+
+    it('closes without moving when the checked month is pressed again', async () => {
+      const view = render(<Menus />)
+
+      fireEvent.click(view.getByRole('button', { name: 'Sep month' }))
+      fireEvent.click(view.getByRole('option', { name: 'September' }))
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/September 2026/)
+    })
+
+    it('closes without moving on Escape, and gives focus back to its button', async () => {
+      const view = render(<Menus />)
+      const month = view.getByRole('button', { name: 'Sep month' })
+
+      fireEvent.click(month)
+      await nextFrame()
+      press('ArrowDown')
+      press('Escape')
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/September 2026/)
+      expect(document.activeElement).toBe(month)
+    })
+
+    it('reaches another year from the keyboard alone', async () => {
+      const view = render(<Menus />)
+      const year = view.getByRole('button', { name: '2026 year' })
+
+      act(() => {
+        year.focus()
+      })
+      press('Enter')
+
+      expect(document.activeElement).toBe(
+        view.getByRole('option', { name: '2026' }),
+      )
+
+      press('ArrowDown')
+      press('Enter')
+      await nextFrame()
+
+      expect(view.queryByRole('listbox')).toBeNull()
+      expect(view.getByRole('grid')).toHaveAccessibleName(/September 2027/)
+      expect(document.activeElement).toBe(
+        view.getByRole('button', { name: '2027 year' }),
+      )
+    })
+
+    it('disables the months the bounds leave no day of', () => {
+      const view = render(
+        <Menus
+          maxValue={new CalendarDate(2026, 10, 5)}
+          minValue={new CalendarDate(2026, 3, 10)}
+        />,
+      )
+
+      fireEvent.click(view.getByRole('button', { name: 'Sep month' }))
+
+      const disabled = view
+        .getAllByRole('option')
+        .filter((option) => option.getAttribute('aria-disabled') === 'true')
+        .map((option) => option.textContent)
+      expect(disabled).toEqual(['January', 'February', 'November', 'December'])
+    })
+
+    // React Aria scrolls the entry it focuses only as far as the nearest
+    // edge, which opened the year list with the year shown at the bottom and
+    // every later year out of sight.
+    it('opens the year list with the year shown in its middle', async () => {
+      const view = render(<Menus />)
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+      await nextFrame()
+
+      const list = view.getByRole('listbox').getBoundingClientRect()
+      const year = view
+        .getByRole('option', { name: '2026' })
+        .getBoundingClientRect()
+      expect(
+        Math.abs(year.top + year.height / 2 - (list.top + list.height / 2)),
+      ).toBeLessThanOrEqual(1)
+    })
+
+    it('lists only the years the bounds allow', () => {
+      const view = render(
+        <Menus
+          maxValue={new CalendarDate(2028, 12, 31)}
+          minValue={new CalendarDate(2024, 1, 1)}
+        />,
+      )
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+
+      expect(
+        view.getAllByRole('option').map((option) => option.textContent),
+      ).toEqual(['2024', '2025', '2026', '2027', '2028'])
+    })
+
+    // The month leads in the reading order either way, which is the start of
+    // the row in a right-to-left one.
+    it('puts the month at the start of the header under right-to-left', () => {
+      const view = render(
+        <div dir="rtl">
+          <Menus />
+        </div>,
+      )
+      const month = view.getByRole('button', { name: 'Sep month' })
+      const year = view.getByRole('button', { name: '2026 year' })
+
+      expect(month.getBoundingClientRect().left).toBeGreaterThan(
+        year.getBoundingClientRect().right,
+      )
+    })
+
+    it('draws the heading and no menus when nothing asks for them', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+
+      expect(monthHeadings(view)).toHaveLength(1)
+      expect(
+        view.queryByRole('button', { name: 'Sep month' }),
+      ).not.toBeInTheDocument()
     })
   })
 })

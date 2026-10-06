@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -188,6 +189,12 @@ const calendarStyles = stylex.create({
   chevronGlyphPrevious: {
     transform: { ':dir(rtl)': 'scaleX(1)', default: 'scaleX(-1)' },
   },
+  // The chevrons while a month or year list is open, which the page draws
+  // without them. Hidden rather than removed, so the month's menu button
+  // stays where it was, and out of the tab order with it.
+  chevronHidden: {
+    visibility: 'hidden',
+  },
   // The grid. `border-spacing` is what puts the page's 48dp pitch between
   // 40dp circles, rather than a 48dp box drawn around each one.
   grid: {
@@ -222,6 +229,12 @@ const calendarStyles = stylex.create({
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
   },
+  // The month's menu button between the chevrons that step it, for a
+  // calendar with `showMonthYearMenus`.
+  headerGroup: {
+    alignItems: 'center',
+    display: 'flex',
+  },
   // The month and year, between the two chevrons.
   heading: {
     color: colors.onSurfaceVariant,
@@ -232,6 +245,102 @@ const calendarStyles = stylex.create({
     lineHeight: typography.labelLargeLineHeight,
     margin: 0,
     textAlign: 'center',
+  },
+  // The arrow after a menu button's label, at the page's 18dp. It turns over
+  // while the button's list is open, which says the next press closes it.
+  menuArrow: {
+    blockSize: '18px',
+    flexShrink: 0,
+    inlineSize: '18px',
+  },
+  menuArrowExpanded: {
+    transform: 'rotate(180deg)',
+  },
+  // The date pickers page's menu button: a 40dp pill holding the month or
+  // year in label large, both in on surface variant, with the arrow after
+  // it. Its state layers are the icon buttons' own on-surface-variant pair,
+  // which `src/styles/icon-button.ts` already holds.
+  menuButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    blockSize: sizing.controlSm,
+    borderRadius: radii.pill,
+    borderWidth: 0,
+    boxSizing: 'border-box',
+    color: colors.onSurfaceVariant,
+    cursor: 'pointer',
+    display: 'flex',
+    flexShrink: 0,
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    gap: spacing.xs,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+    paddingInline: spacing.sm,
+  },
+  // The check before the entry the calendar shows, at the page's 24dp, and
+  // the room it takes on every other row — so every label starts at the same
+  // place whether or not its row is the one checked.
+  menuCheck: {
+    blockSize: '24px',
+    color: colors.onSurface,
+    flexShrink: 0,
+    inlineSize: '24px',
+  },
+  // One month or year in the open list: the page's 48dp row, its label in
+  // body large on surface, 16dp in from the container's edge with the check's
+  // column first.
+  menuItem: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    blockSize: sizing.controlMd,
+    boxSizing: 'border-box',
+    color: colors.onSurface,
+    cursor: 'pointer',
+    display: 'flex',
+    fontFamily: typography.bodyLargeFont,
+    fontSize: typography.bodyLargeSize,
+    fontWeight: typography.bodyLargeWeight,
+    gap: spacing.lg,
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+    outlineStyle: 'none',
+    paddingInline: spacing.lg,
+  },
+  // A month the calendar's bounds leave no day of. The 38% every disabled
+  // control here takes, drawn over the container as a date's is.
+  menuItemDisabled: {
+    backgroundColor: 'transparent',
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+    cursor: 'not-allowed',
+  },
+  // Inside the row rather than around it: the rows run to the list's edges,
+  // where its scrolling would clip a ring drawn outside them.
+  menuItemFocused: {
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
+  },
+  // The month or year the calendar shows, on the page's surface variant.
+  menuItemSelected: {
+    backgroundColor: colors.surfaceVariant,
+  },
+  // The open list, in the place the months were. It takes their height, so
+  // opening it moves nothing under the calendar, and scrolls inside it. The
+  // negative margin runs its rows to the container's edges, as the page
+  // draws them, and the rule above it is the page's outline variant divider
+  // between the header and the list.
+  menuList: {
+    blockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    borderBlockStartColor: colors.outlineVariant,
+    borderBlockStartStyle: 'solid',
+    borderBlockStartWidth: '1px',
+    boxSizing: 'border-box',
+    marginInline: `calc(${spacing.md} * -1)`,
+    outlineStyle: 'none',
+    overflowY: 'auto',
   },
   // Two months side by side, for a `visibleDuration` of more than one, and
   // the room the grid is held at.
@@ -309,4 +418,16 @@ const dateLayers = stylex.create({
   },
 })
 
-export { calendarStyles, dateLayers }
+// A list row's hover and pressed layers over the checked row's surface
+// variant. Over nothing a row takes a date's own pair, `dateLayers.plain*`,
+// since the page gives both the same on-surface layer.
+const menuLayers = stylex.create({
+  selectedHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceVariant})`,
+  },
+  selectedPressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceVariant})`,
+  },
+})
+
+export { calendarStyles, dateLayers, menuLayers }

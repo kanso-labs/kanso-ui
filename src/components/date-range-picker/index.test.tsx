@@ -142,6 +142,20 @@ describe('date range picker', () => {
   })
 
   describe('the calendar half', () => {
+    it('hands its calendar the month and year menus', () => {
+      const view = render(
+        <DateRangePicker
+          defaultOpen
+          defaultValue={RANGE}
+          label="Label"
+          showMonthYearMenus
+        />,
+      )
+
+      expect(view.getByRole('button', { name: 'Sep month' })).not.toBeNull()
+      expect(view.getByRole('button', { name: '2026 year' })).not.toBeNull()
+    })
+
     // The dialog the calendar opens in is named by React Aria rather than by
     // this component: its picker hook hands the dialog `aria-labelledby`
     // through context, pointing at the trigger's own label and the field's.
