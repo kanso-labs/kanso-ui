@@ -55,6 +55,15 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.xxs,
   },
+  // Narrower than the long label below on one line, so it wraps.
+  narrow: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    inlineSize: '240px',
+    maxInlineSize: '100%',
+  },
   page: {
     display: 'flex',
     flexDirection: 'column',
@@ -293,6 +302,33 @@ const Overview: Story = {
               text
             </Text>
           </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Long labels
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            A label too long for the row wraps, as a translation often does at a
+            phone&apos;s width, and the container grows to hold every line
+            rather than keeping its height. A label on one line still draws the
+            size&apos;s own height.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.narrow)}>
+          <Button variant="filled">
+            A label long enough that it wraps onto more lines than one
+          </Button>
+          <Button variant="tonal">
+            A label long enough that it wraps onto more lines than one
+          </Button>
+          <Button variant="outlined">
+            A label long enough that it wraps onto more lines than one
+          </Button>
         </div>
       </section>
     </div>

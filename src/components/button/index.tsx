@@ -198,13 +198,23 @@ const styles = stylex.create({
   // largest paddings are literals: 48 and 64 are not steps of the spacing
   // scale, and the scale should not grow to fit one component. `md` is the
   // page's S, which it calls the default.
+  //
+  // The height is a floor rather than a fixed size, so a label too long for
+  // its row — a translation at a phone's width, say — wraps and grows the
+  // container instead of running out of it, where a filled button draws the
+  // extra lines in on primary over the page. The block padding is what keeps
+  // a wrapped label off the pill's edge: a step of the spacing scale at
+  // least a pixel short of a single line's own inset, so a label on one line
+  // still draws exactly the page's height, an outlined button's border
+  // included. `md`'s 8 is Compose's own vertical padding for its button.
   lg: {
-    blockSize: sizing.controlLg,
     fontFamily: typography.titleMediumFont,
     fontSize: typography.titleMediumSize,
     fontWeight: typography.titleMediumWeight,
     letterSpacing: typography.titleMediumTracking,
     lineHeight: typography.titleMediumLineHeight,
+    minBlockSize: sizing.controlLg,
+    paddingBlock: spacing.md,
     paddingInline: spacing.xl,
   },
   // The page requires a 48dp target of the two smallest sizes, and both are
@@ -219,7 +229,8 @@ const styles = stylex.create({
       insetInline: 0,
       position: 'absolute',
     },
-    blockSize: sizing.controlSm,
+    minBlockSize: sizing.controlSm,
+    paddingBlock: spacing.sm,
     paddingInline: spacing.lg,
   },
   outlined: {
@@ -295,13 +306,14 @@ const styles = stylex.create({
     },
   },
   xl: {
-    blockSize: sizing.controlXl,
     fontFamily: typography.headlineSmallFont,
     fontSize: typography.headlineSmallSize,
     fontWeight: typography.headlineSmallWeight,
     gap: spacing.md,
     letterSpacing: typography.headlineSmallTracking,
     lineHeight: typography.headlineSmallLineHeight,
+    minBlockSize: sizing.controlXl,
+    paddingBlock: spacing.xl,
     paddingInline: '48px',
   },
   // The smaller of the two the page requires a 48dp target of, so its box
@@ -313,17 +325,19 @@ const styles = stylex.create({
       insetInline: 0,
       position: 'absolute',
     },
-    blockSize: sizing.controlXs,
+    minBlockSize: sizing.controlXs,
+    paddingBlock: spacing.xs,
     paddingInline: spacing.lg,
   },
   xxl: {
-    blockSize: sizing.controlXxl,
     fontFamily: typography.headlineLargeFont,
     fontSize: typography.headlineLargeSize,
     fontWeight: typography.headlineLargeWeight,
     gap: spacing.lg,
     letterSpacing: typography.headlineLargeTracking,
     lineHeight: typography.headlineLargeLineHeight,
+    minBlockSize: sizing.controlXxl,
+    paddingBlock: spacing.xxl,
     paddingInline: '64px',
   },
 })
