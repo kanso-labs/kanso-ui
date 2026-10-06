@@ -1,0 +1,58 @@
+name: Check pull request title
+
+# A pull request is squash-merged with its title as the commit's subject and an
+# empty body, so the title is the one string release-please reads: it decides
+# whether the merge releases at all, which version it bumps and what its
+# changelog line says. A title that is not a Conventional Commit produces no
+# release and no line, and nothing else would say so.
+#
+# edited is the type the default three leave out, and the one a retitle fires —
+# a retitle changes no commit, so synchronize never sees it. synchronize stays,
+# because a required check is read off the head commit and a push with no run
+# of its own would leave the new commit without one.
+#
+# Every edit re-runs the check, a description edit included, and that is
+# deliberate. A job skipped by an if: reports success, and that run would
+# replace a failing one on the same commit and let the title it failed merge.
+on:
+  pull_request:
+    types:
+      - edited
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+
+# Two retitles inside a minute otherwise run two checks to completion, and only
+# the last one reads the title the pull request now has. There is no push to
+# main to protect here, so cancel-in-progress is on outright.
+concurrency:
+  cancel-in-progress: true
+  group: check-pull-request-title-${{ github.ref }}
+
+jobs:
+  check-title:
+    name: Check pull request title
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      # commitlint and its preset come from the lockfile, so this checks against
+      # the versions Renovate bumps rather than whatever npx would fetch.
+      - name: Set up Node
+        uses: kanso-labs/actions/setup-node@v4.1.0
+        with:
+          ignore-scripts: true
+
+      # The title reaches the shell through env, never through an expression in
+      # run. An expression is pasted into the script before the shell reads it,
+      # and a title is text anyone opening a pull request writes — one holding
+      # $(…) would run.
+      - name: Lint the title against .commitlintrc.json
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$TITLE" | npx --no-install commitlint --verbose

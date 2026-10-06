@@ -669,15 +669,16 @@ appear in; this one has no equivalent.
 than the label on it, so keep the job name and the ruleset in sync in one
 change.
 
-Ruleset `18125383` ("Default") requires four contexts that workflows post —
-`Build`, `Lint`, `Test`, and `Run visual regression tests` — and it matches them
-by exact string. A job renamed without the ruleset renamed alongside it stops
-reporting the context the ruleset still waits on, so every open pull request
-sits on a check nothing will ever post. The ruleset is editable and a clearer
-job name is worth having, so this is not a rule against renaming — it is a rule
-against renaming only one half, and against forgetting the pull requests already
-open, which run the workflow files from their own branches and so keep reporting
-the old name until they are refreshed.
+Ruleset `18125383` ("Default") requires five contexts that workflows post —
+`Build`, `Check pull request title`, `Lint`, `Test`, and
+`Run visual regression tests` — and it matches them by exact string. A job
+renamed without the ruleset renamed alongside it stops reporting the context the
+ruleset still waits on, so every open pull request sits on a check nothing will
+ever post. The ruleset is editable and a clearer job name is worth having, so
+this is not a rule against renaming — it is a rule against renaming only one
+half, and against forgetting the pull requests already open, which run the
+workflow files from their own branches and so keep reporting the old name until
+they are refreshed.
 
 Two further required contexts, `Storybook Publish` and `UI Tests`, are posted by
 Chromatic as commit statuses rather than by any workflow. Grepping
@@ -781,6 +782,13 @@ would match the sibling repositories, but a pull request opened against any
 other base would then post none of the checks the ruleset requires, which reads
 as a hang rather than a failure because nothing will ever report.
 
+**`Check pull request title` runs on pull requests alone, and on every edit of
+one.** It lints the title against `.commitlintrc.json`, and a push to `main` has
+no title to lint. Its trigger names `edited` beside the default three because a
+retitle changes no commit, so nothing else would re-run it. A description edit
+re-runs it too, on purpose: a job skipped by an `if:` reports success, and that
+run would replace a failing one on the same commit and let the bad title merge.
+
 **`Chromatic` is grouped per ref, and cancels only off `main`.** On a branch the
 newest commit is the one the pull request is gated on, so a run for an older
 commit is answering a question nobody is asking. On `main` each build advances
@@ -862,6 +870,10 @@ branch commit messages are discarded by the squash and never reach history.
 
 **The pull request title is therefore the one that has to be right.** It is what
 `release-please` parses to pick the next version and write the changelog line.
+`Check pull request title` holds it to `.commitlintrc.json`, which is
+`@commitlint/config-conventional` with two changes: `deps` is admitted as a
+type, and the header has no length limit. A title copied from an issue runs past
+the preset's 100 characters, and release-please reads one of any length.
 
 Write branch commits conventionally anyway. They are what a reviewer reads while
 the pull request is open, even though only the title survives the merge. That
@@ -1079,9 +1091,10 @@ allows now, rebase merging included. Rebasing would be equally safe — it adds 
 merge commit to double-count — so it is the one to turn on if a pull request
 whose individual commits each deserve a changelog line ever needs it.
 
-**commitlint is installed but never runs.** `@commitlint/cli`,
-`@commitlint/config-conventional` and `.commitlintrc.json` are all present, and
-`.husky/` carries a `pre-commit` hook — but that hook runs lint-staged, not
-commitlint. There is no `commit-msg` hook and no workflow invoking one, so a
-malformed type reaches `main` unnoticed and lands in the changelog, and the pull
-request title is on the author to get right.
+**commitlint checks the pull request title and nothing else.** `.husky/` carries
+a `pre-commit` hook running lint-staged and no `commit-msg` hook, so no branch
+commit is ever linted — which costs nothing, since the squash discards them. Two
+things still pass the check. A breaking change written without its `!` is a
+well-formed title that commitlint has no way to see through, and still ships as
+a patch. A title commitlint ignores by default passes unread, such as one
+opening `Revert "` — which is what GitHub's revert button writes.
