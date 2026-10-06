@@ -22,6 +22,9 @@ const probeStyles = stylex.create({
   },
   divider: { boxShadow: `inset 0 -1px 0 0 ${colors.outlineVariant}` },
   inactiveColor: { color: colors.onSurfaceVariant },
+  // A phone's width: three equal sections of about 109px each, narrower than
+  // either long label below on one line.
+  phone: { inlineSize: '360px' },
   titleSmall: { fontSize: typography.titleSmallSize },
   transparent: { backgroundColor: 'transparent' },
 })
@@ -77,6 +80,27 @@ function indicatorStyleOf(tab: HTMLElement) {
     throw new Error('expected the tab to carry an indicator')
   }
   return getComputedStyle(indicator)
+}
+
+/**
+ * The box a tab's label is painted in: its text's own extent, cut to any
+ * element inside the tab that clips what overflows it. A clamped label
+ * still lays out the lines it hides, and those are not painted.
+ */
+function paintedTextOf(tab: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(tab)
+  let { bottom, left, right, top } = range.getBoundingClientRect()
+  for (const element of tab.querySelectorAll('*')) {
+    if (getComputedStyle(element).overflow !== 'visible') {
+      const clip = element.getBoundingClientRect()
+      bottom = Math.min(bottom, clip.bottom)
+      left = Math.max(left, clip.left)
+      right = Math.min(right, clip.right)
+      top = Math.max(top, clip.top)
+    }
+  }
+  return { bottom, height: bottom - top, left, right, top }
 }
 
 function setup(props: Partial<Parameters<typeof Tabs>[0]> = {}) {
@@ -436,6 +460,54 @@ describe('tabs', () => {
 
       expect(view.queryByTestId('panels')).toBeNull()
       expect(view.getByRole('tabpanel')).not.toBeNull()
+    })
+  })
+
+  // A label has only its tab's equal share of the bar. A single word longer
+  // than that — common in German, Finnish and Dutch — cannot break at a
+  // space, and a sentence wraps to as many lines as it takes; neither may
+  // leave the tab, run into a neighbour or spill out of the 48dp bar.
+  describe('a label longer than its section', () => {
+    const LONG_WORD = 'Unterstützungszeile'
+    const LONG_SENTENCE =
+      'A label long enough that it has nowhere left to go on one line'
+
+    function setupLong() {
+      const view = render(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs defaultSelectedKey="first">
+            <Tabs.List>
+              <Tabs.Tab id="first">{LONG_WORD}</Tabs.Tab>
+              <Tabs.Tab id="second">{LONG_SENTENCE}</Tabs.Tab>
+              <Tabs.Tab id="third">Third item</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+      return view
+    }
+
+    it.each([LONG_WORD, LONG_SENTENCE])('keeps "%s" inside its tab', (name) => {
+      const view = setupLong()
+      const tab = view.getByRole('tab', { name })
+      const box = tab.getBoundingClientRect()
+      const text = paintedTextOf(tab)
+
+      expect(text.left).toBeGreaterThanOrEqual(box.left)
+      expect(text.right).toBeLessThanOrEqual(box.right)
+      expect(text.top).toBeGreaterThanOrEqual(box.top)
+      expect(text.bottom).toBeLessThanOrEqual(box.bottom)
+    })
+
+    // Two lines at most, then an ellipsis, which is what MDC-Android's tab
+    // allows; the name a screen reader reads stays whole.
+    it('cuts a long sentence at two lines, keeping its whole name', () => {
+      const view = setupLong()
+      const tab = view.getByRole('tab', { name: LONG_SENTENCE })
+      const lineHeight = Number.parseFloat(getComputedStyle(tab).lineHeight)
+
+      expect(paintedTextOf(tab).height).toBeLessThanOrEqual(lineHeight * 2 + 1)
+      expect(tab.textContent).toBe(LONG_SENTENCE)
     })
   })
 })
