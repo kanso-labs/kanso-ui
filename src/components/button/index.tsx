@@ -1,32 +1,17 @@
 'use client'
 
-import type { DOMAttributes, ReactNode, RefAttributes } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
-  ButtonRenderProps,
   ClassNameOrFunction,
-  FocusableElement,
-  ButtonProps as RACButtonProps,
   StyleOrFunction,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import {
-  ButtonContext,
-  Button as RACButton,
-  Link as RACLink,
-  useSlottedContext,
-} from 'react-aria-components'
 
-import { useRipple } from '../../hooks/useRipple'
-import { useMessages } from '../../i18n'
-import {
-  ariaAttributesOf,
-  buttonRenderer,
-  linkRenderer,
-} from '../../render/aria'
-import { refCallback } from '../../render/ref'
+import type { ButtonDOMProps, ButtonState } from '../../button'
+
+import { ButtonBase } from '../../button'
 import { focus } from '../../styles/focus'
-import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
   radii,
@@ -36,7 +21,6 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
-import ProgressIndicator from '../progress-indicator'
 
 // Each variant composites its label colour over its container at the
 // interaction state's opacity, rather than swapping in a separate
@@ -102,7 +86,10 @@ import ProgressIndicator from '../progress-indicator'
 // how it came to say `text` keeps a tighter padding it has never had — back
 // then `text` declared 16dp while a filled `md` declared none at all, so the
 // text button was the wider of the two.
-type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+//
+// What every button does past its own styles — the ripple, the link form,
+// the pending ring, a parent's disabled state — is `src/button`'s, shared
+// with IconButton.
 
 /**
  * The press area the buttons page requires, which its two smallest sizes are
@@ -175,16 +162,6 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'GrayText',
     },
   },
-  // While pending, the label stays in the flow so the button keeps its
-  // width, and is hidden — `display: contents` leaves the layout exactly as
-  // it was, and `visibility` is inherited, so the label's own parts go with
-  // it.
-  label: {
-    display: 'contents',
-  },
-  labelPending: {
-    visibility: 'hidden',
-  },
   // The five sizes are the buttons spec page's, XS to XL, from its size token
   // sets: the container height, the inline padding, the gap before an icon,
   // and the type role — label-large for the two small sizes, then
@@ -245,14 +222,6 @@ const styles = stylex.create({
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
       [FORCED_COLORS]: 'GrayText',
     },
-  },
-  // The ring sits over the hidden label, centred in the button.
-  pending: {
-    alignItems: 'center',
-    display: 'flex',
-    inset: 0,
-    justifyContent: 'center',
-    position: 'absolute',
   },
   text: {
     backgroundColor: 'transparent',
@@ -404,12 +373,6 @@ const disabledStyles = {
   tonal: styles.tonalDisabled,
 }
 
-type ButtonDOMProps = Omit<
-  RACButtonProps,
-  'children' | 'className' | 'style' | GlobalEventKey
-> &
-  Pick<DOMAttributes<HTMLElement>, GlobalEventKey>
-
 type ButtonProps = {
   children?: ReactNode
   /** A function may compute the class from the button's render state. */
@@ -458,29 +421,7 @@ type ButtonProps = {
 
 type ButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
-// The render state both of React Aria's elements share. A className or
-// style function written against it serves the button and the link alike;
-// `isPending` belongs to the button alone, and `isCurrent` to the link, so
-// neither is here: a `className` written against this state serves both
-// elements. What the button draws while pending is decided in
-// `buttonContent`, which sees React Aria's own state rather than this one.
-type ButtonState = Pick<
-  ButtonRenderProps,
-  'isDisabled' | 'isFocused' | 'isFocusVisible' | 'isHovered' | 'isPressed'
->
-
 type ButtonVariant = 'elevated' | 'filled' | 'outlined' | 'text' | 'tonal'
-
-// React Aria types the global DOM events — pointer, mouse, touch, wheel and
-// the rest — against the element each component renders, and a handler
-// written for a <button> does not type-check against an <a>. The keys are
-// retyped against HTMLElement here so one set of props serves both forms;
-// the events React Aria defines itself (press, focus, keyboard) keep its
-// types, since it hands those its own event objects.
-type GlobalEventKey = Exclude<
-  keyof DOMAttributes<HTMLElement> & keyof RACButtonProps,
-  'onBlur' | 'onClick' | 'onFocus'
->
 
 /**
  * The design's button, at five emphasis levels and five control heights.
@@ -489,158 +430,32 @@ type GlobalEventKey = Exclude<
  * ones.
  */
 function Button({
-  children,
-  disableRipple = false,
-  href,
-  isDisabled,
-  isPending = false,
-  onClick,
-  onContextMenu,
-  onKeyDown,
-  onKeyUp,
-  onPointerCancel,
-  onPointerDown,
-  onPointerLeave,
-  onPointerUp,
-  pendingLabel,
-  ref,
-  rel,
-  render,
   size = 'md',
-  target,
   variant = 'filled',
   ...props
 }: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
-  const messages = useMessages()
-
-  // A parent's context may disable the button — React Aria's own fields
-  // disable the buttons they hold with them — and React Aria takes a prop
-  // over its context, so a default of `false` here would keep the button
-  // enabled whatever the parent said. The call site's own prop still wins
-  // where it is given; the context is read for the ripple, which has to know
-  // before the render state does. IconButton reads it the same way.
-  const context = useSlottedContext(ButtonContext, props.slot)
-  const disabled = isDisabled ?? context?.isDisabled ?? false
-
-  // `props` (className/style, etc.) is spread separately: `className` and
-  // `style` there may be functions of render state, which ripple's own
-  // handler-only merge doesn't need to know about. It is also why the styles
-  // below merge through mergeStatefulStyles rather than the plain
-  // mergeStyles. The ripple is off while disabled: React Aria still forwards
-  // pointer events to a disabled element, and a press that changes nothing
-  // should not look like one.
-  //
-  // Off while pending for the same reason, and for a second one. React Aria
-  // nulls out the handlers it derived itself while pending — the click among
-  // them — but not the separate copy of the global pointer events that
-  // carries ours, so a press still reached the ripple and started it while
-  // the click that would have ended it never arrived. The ripple stayed at
-  // its pressed opacity until some later press completed a cycle of its own.
-  const ripple = useRipple<FocusableElement>(
-    !disableRipple && !disabled && !isPending,
-    {
-      onClick,
-      onContextMenu,
-      onPointerCancel,
-      onPointerDown,
-      onPointerLeave,
-      onPointerUp,
-    },
-  )
-
-  const styleProps = mergeStatefulStyles(
-    (state: ButtonState) =>
-      stylex.props(
-        styles.base,
-        focus.ring,
-        styles[variant],
-        styles[size],
-        variant === 'outlined' && outlineWidths[size],
-        state.isHovered && hovered[variant],
-        state.isFocusVisible && focused[variant],
-        state.isPressed && pressed[variant],
-        state.isDisabled && styles.disabled,
-        state.isDisabled && disabledStyles[variant],
-      ),
-    props,
-  )
-
-  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
-  // The element is a link or a button, so the ref is typed as either, and is
-  // handed to each as the callback both accept — see src/render/ref.ts.
-  const forwarded = refCallback(ref)
-
-  if (href !== undefined) {
-    return (
-      <RACLink
-        href={href}
-        isDisabled={disabled}
-        ref={forwarded}
-        rel={rel}
-        render={linkRenderer(element)}
-        target={target}
-        {...ripple.handlers}
-        {...props}
-        {...styleProps}
-      >
-        {children}
-        {ripple.surface}
-      </RACLink>
-    )
-  }
-
-  return (
-    <RACButton
-      isDisabled={disabled}
-      isPending={isPending}
-      ref={forwarded}
-      render={buttonRenderer(element, render)}
-      {...ripple.handlers}
-      {...props}
-      {...styleProps}
-    >
-      {buttonContent(children, pendingLabel ?? messages.loading, ripple)}
-    </RACButton>
-  )
+  return <ButtonBase {...props} classes={buttonClasses(size, variant)} />
 }
-// What the button draws: its label, hidden while the button is pending, with
-// the ring over it. The ring takes the button's own content colour rather
-// than the progress page's primary, which on a filled button is the fill
-// itself and so invisible. The label stays in the flow so the button keeps its
-// width, which is what stops a form jumping the moment it is submitted.
-// React Aria wants the progress bar in the accessibility tree as soon as the
-// button goes pending, so it is rendered from the render state rather than
-// after a delay.
-//
-// Built by a call rather than written inline at the prop, which is what
-// react-perf's no-new-function-as-prop is after; the React Compiler
-// memoises the result on its inputs.
-function buttonContent(
-  children: ReactNode,
-  pendingLabel: string,
-  ripple: Ripple,
-) {
-  return (state: ButtonRenderProps) => (
-    <>
-      <span
-        {...stylex.props(styles.label, state.isPending && styles.labelPending)}
-      >
-        {children}
-      </span>
-      {state.isPending ? (
-        <span {...stylex.props(styles.pending)}>
-          <ProgressIndicator
-            aria-label={pendingLabel}
-            isIndeterminate
-            size="1em"
-            tone="inherit"
-            variant="circular"
-          />
-        </span>
-      ) : null}
-      {ripple.surface}
-    </>
-  )
+
+// The button's own classes, from React Aria's render state — see the header
+// for why that and not the pseudo-classes. Built by a call rather than
+// written inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after; the React Compiler memoises the result on
+// its inputs.
+function buttonClasses(size: ButtonSize, variant: ButtonVariant) {
+  return (state: ButtonState) =>
+    stylex.props(
+      styles.base,
+      focus.ring,
+      styles[variant],
+      styles[size],
+      variant === 'outlined' && outlineWidths[size],
+      state.isHovered && hovered[variant],
+      state.isFocusVisible && focused[variant],
+      state.isPressed && pressed[variant],
+      state.isDisabled && styles.disabled,
+      state.isDisabled && disabledStyles[variant],
+    )
 }
 
 export type {

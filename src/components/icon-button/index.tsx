@@ -2,33 +2,19 @@
 
 import type { ReactNode, RefAttributes } from 'react'
 import type {
-  ButtonRenderProps,
   ClassNameOrFunction,
   DOMRenderFunction,
-  FocusableElement,
   StyleOrFunction,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import {
-  ButtonContext,
-  Button as RACButton,
-  Link as RACLink,
-  ToggleButton as RACToggleButton,
-  useSlottedContext,
-} from 'react-aria-components'
+import { ToggleButton as RACToggleButton } from 'react-aria-components'
 
-import type { ButtonDOMProps, ButtonState } from '../button'
+import type { ButtonDOMProps, ButtonState } from '../../button'
 
-import { useRipple } from '../../hooks/useRipple'
-import { useMessages } from '../../i18n'
-import {
-  ariaAttributesOf,
-  buttonRenderer,
-  linkRenderer,
-  toggleButtonRenderer,
-} from '../../render/aria'
-import { refCallback } from '../../render/ref'
+import { ButtonBase } from '../../button'
+import { useButtonBase } from '../../button/hooks'
+import { toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
@@ -38,7 +24,6 @@ import {
   sizing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
-import ProgressIndicator from '../progress-indicator'
 
 // Each variant composites an 'on-color' over its own container at the
 // interaction state's opacity, rather than swapping in a separate hover
@@ -106,7 +91,12 @@ import ProgressIndicator from '../progress-indicator'
 // icon in `HighlightText`. A disabled button's icon and edge are `GrayText`,
 // for the reason Button's comment gives: the browser greys a disabled
 // `<button>` there, but not the `<span>` a disabled link is.
-type Ripple = ReturnType<typeof useRipple<FocusableElement>>
+//
+// What every button does past its own styles — the ripple, the link form,
+// the pending ring, a parent's disabled state — is `src/button`'s, shared
+// with Button. The toggle is React Aria's `ToggleButton`, which that module
+// does not render, so it is drawn here and takes the same wiring from
+// `useButtonBase`.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -181,16 +171,6 @@ const styles = stylex.create({
     },
     color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
   },
-  // While pending, the label stays in the flow so the button keeps its
-  // width, and is hidden — `display: contents` leaves the layout exactly as
-  // it was, and `visibility` is inherited, so the label's own parts go with
-  // it.
-  label: {
-    display: 'contents',
-  },
-  labelPending: {
-    visibility: 'hidden',
-  },
   // Square, so one number sets both edges. The five sizes are the icon
   // buttons spec page's, XS to XL, from its size token sets: the container,
   // the icon it holds and the corner it presses to. The font size is the
@@ -263,14 +243,6 @@ const styles = stylex.create({
       default: colors.inverseOnSurface,
       [FORCED_COLORS]: 'HighlightText',
     },
-  },
-  // The ring sits over the hidden label, centred in the button.
-  pending: {
-    alignItems: 'center',
-    display: 'flex',
-    inset: 0,
-    justifyContent: 'center',
-    position: 'absolute',
   },
   // Transparent, so it tints whatever it is sitting on rather than carrying a
   // container of its own, as ListItem's rows do. The tint is its icon's
@@ -589,45 +561,6 @@ type IconButtonState = ButtonState & { isSelected?: boolean }
 
 type IconButtonVariant = 'filled' | 'outlined' | 'standard' | 'tonal'
 
-// What the button draws: its label, hidden while the button is pending, with
-// the ring over it. The ring takes the button's own content colour rather
-// than the progress page's primary, which on a filled button is the fill
-// itself and so invisible. The label stays in the flow so the button keeps its
-// width, which is what stops a form jumping the moment it is submitted.
-// React Aria wants the progress bar in the accessibility tree as soon as the
-// button goes pending, so it is rendered from the render state rather than
-// after a delay.
-//
-// Built by a call rather than written inline at the prop, which is what
-// react-perf's no-new-function-as-prop is after; the React Compiler
-// memoises the result on its inputs.
-function buttonContent(
-  children: ReactNode,
-  pendingLabel: string,
-  ripple: Ripple,
-) {
-  return (state: ButtonRenderProps) => (
-    <>
-      <span
-        {...stylex.props(styles.label, state.isPending && styles.labelPending)}
-      >
-        {children}
-      </span>
-      {state.isPending ? (
-        <span {...stylex.props(styles.pending)}>
-          <ProgressIndicator
-            aria-label={pendingLabel}
-            isIndeterminate
-            size="1em"
-            tone="inherit"
-            variant="circular"
-          />
-        </span>
-      ) : null}
-      {ripple.surface}
-    </>
-  )
-}
 /**
  * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
@@ -645,68 +578,18 @@ function buttonContent(
  * ```
  */
 function IconButton({
-  children,
   defaultSelected,
-  disableRipple = false,
   href,
-  isDisabled,
-  isPending = false,
+  isPending,
   isSelected,
   onChange,
-  onClick,
-  onContextMenu,
-  onKeyDown,
-  onKeyUp,
-  onPointerCancel,
-  onPointerDown,
-  onPointerLeave,
-  onPointerUp,
   pendingLabel,
-  ref,
   rel,
-  render,
   size = 'md',
   target,
   variant = 'standard',
   ...props
 }: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
-  const messages = useMessages()
-
-  // A field's context may disable the button — a number field's stepper at
-  // the end of its range, a search field's clear button with the field — and
-  // React Aria takes a prop over its context, so a default of `false` here
-  // would keep every one of them enabled. The call site's own prop still
-  // wins where it is given; the context is read for the ripple, which has
-  // to know before the render state does.
-  const context = useSlottedContext(ButtonContext, props.slot)
-  const disabled = isDisabled ?? context?.isDisabled ?? false
-
-  // `props` (className/style, etc.) is spread separately: `className` and
-  // `style` there may be functions of render state, which ripple's own
-  // handler-only merge doesn't need to know about. It is also why the styles
-  // below merge through mergeStatefulStyles rather than the plain
-  // mergeStyles. The ripple is off while disabled, and while pending, as in
-  // Button — and pending for the same second reason given there: React Aria
-  // suppresses the click that would end a press but not the pointer events
-  // that start one, so a ripple begun while pending was never ended.
-  const ripple = useRipple<FocusableElement>(
-    !disableRipple && !disabled && !isPending,
-    {
-      onClick,
-      onContextMenu,
-      onPointerCancel,
-      onPointerDown,
-      onPointerLeave,
-      onPointerUp,
-    },
-  )
-
-  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
-  // The element is a toggle, a link or a button, so the ref is typed as a link
-  // or a button and handed to each as the callback all three accept — see
-  // src/render/ref.ts.
-  const forwarded = refCallback(ref)
-
   // The three props that make this a toggle. Read together rather than behind
   // a `toggle` word of its own, the way `href` already turns the button into
   // a link: a button given none of them has no state to report, and one given
@@ -717,70 +600,93 @@ function IconButton({
     onChange !== undefined
   ) {
     return (
-      <RACToggleButton
+      <IconToggleButton
+        {...props}
         defaultSelected={defaultSelected}
-        isDisabled={disabled}
+        isPending={isPending}
         isSelected={isSelected}
         onChange={onChange}
-        ref={forwarded}
-        render={toggleButtonRenderer(element, render)}
-        {...ripple.handlers}
-        {...props}
-        {...mergeStatefulStyles(toggleStyleProps(size, variant), props)}
-      >
-        {toggleContent(children, ripple)}
-      </RACToggleButton>
-    )
-  }
-
-  const styleProps = mergeStatefulStyles(
-    (state: ButtonState) =>
-      stylex.props(
-        styles.base,
-        focus.ring,
-        styles[variant],
-        styles[size],
-        variant === 'outlined' && outlineWidths[size],
-        state.isHovered && hovered[variant],
-        state.isPressed && pressed[variant],
-        state.isPressed && selectedShapes[size],
-        state.isDisabled && styles.disabled,
-        state.isDisabled && disabledStyles[variant],
-      ),
-    props,
-  )
-
-  if (href !== undefined) {
-    return (
-      <RACLink
-        href={href}
-        isDisabled={disabled}
-        ref={forwarded}
-        rel={rel}
-        render={linkRenderer(element)}
-        target={target}
-        {...ripple.handlers}
-        {...props}
-        {...styleProps}
-      >
-        {children}
-        {ripple.surface}
-      </RACLink>
+        size={size}
+        variant={variant}
+      />
     )
   }
 
   return (
-    <RACButton
-      isDisabled={disabled}
+    <ButtonBase
+      {...props}
+      classes={iconButtonClasses(size, variant)}
+      href={href}
       isPending={isPending}
-      ref={forwarded}
-      render={buttonRenderer(element, render)}
+      pendingLabel={pendingLabel}
+      rel={rel}
+      target={target}
+    />
+  )
+}
+
+// The plain button's classes, from React Aria's render state — see the hover
+// and pressed layers above for why that and not the pseudo-classes. Built by
+// a call rather than written inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after; the React Compiler memoises the result on
+// its inputs.
+function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
+  return (state: ButtonState) =>
+    stylex.props(
+      styles.base,
+      focus.ring,
+      styles[variant],
+      styles[size],
+      variant === 'outlined' && outlineWidths[size],
+      state.isHovered && hovered[variant],
+      state.isPressed && pressed[variant],
+      state.isPressed && selectedShapes[size],
+      state.isDisabled && styles.disabled,
+      state.isDisabled && disabledStyles[variant],
+    )
+}
+
+// The toggle form, given what IconButton resolved. A component of its own so
+// the shared wiring is called on every render of it, which a hook has to be.
+// `isPending` reaches it only to keep the ripple off, as it does for the
+// plain button: React Aria's toggle has no pending state to hand it to.
+function IconToggleButton({
+  children,
+  defaultSelected,
+  isPending = false,
+  isSelected,
+  onChange,
+  render,
+  size,
+  variant,
+  ...input
+}: Omit<
+  IconButtonProps,
+  'href' | 'pendingLabel' | 'rel' | 'size' | 'target' | 'variant'
+> &
+  RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
+    size: IconButtonSize
+    variant: IconButtonVariant
+  }) {
+  const { disabled, element, props, ref, ripple } = useButtonBase(
+    input,
+    isPending,
+  )
+
+  return (
+    <RACToggleButton
+      defaultSelected={defaultSelected}
+      isDisabled={disabled}
+      isSelected={isSelected}
+      onChange={onChange}
+      ref={ref}
+      render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
-      {...styleProps}
+      {...mergeStatefulStyles(toggleStyleProps(size, variant), props)}
     >
-      {buttonContent(children, pendingLabel ?? messages.loading, ripple)}
-    </RACButton>
+      {toggleContent(children, ripple.surface)}
+    </RACToggleButton>
   )
 }
 
@@ -791,11 +697,11 @@ function IconButton({
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-new-function-as-prop is after; the React Compiler memoises
 // the result on its inputs.
-function toggleContent(children: ReactNode, ripple: Ripple) {
+function toggleContent(children: ReactNode, surface: ReactNode) {
   return () => (
     <>
       {children}
-      {ripple.surface}
+      {surface}
     </>
   )
 }
