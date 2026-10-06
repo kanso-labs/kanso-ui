@@ -45,6 +45,12 @@ import {
 } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // A grid of rows and columns, with sorting and selection. The design system
 // carries no data table page — it was dropped after Material Design 2 — so
 // the geometry comes from the archived one at
@@ -94,8 +100,8 @@ import Checkbox from '../checkbox'
 // column, so `resizable` on the table is what brings the container and
 // `resizable` on a column is what draws its handle. The archived page has no
 // resizer to take a treatment from — it predates the feature — so the handle
-// is the divider's own rule, thickening and taking the primary role while it
-// is dragged.
+// draws the divider's own rule, thickening and taking the primary role while
+// it is dragged, over a target far wider than the rule.
 //
 // **A resizable table stops filling its width.** The container sets
 // `table-layout: fixed` and `width: min-content` on the table as inline
@@ -175,6 +181,11 @@ const styles = stylex.create({
     fontWeight: typography.labelLargeWeight,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    // The last column's resize handle reaches half its target past the
+    // table's edge, where it would only widen the container's scroll by
+    // 12px. Clipped there, the half inside the column is its whole target.
+    // A cell's own ring is not clipped by its own overflow.
+    overflow: { ':last-child': 'clip', default: null },
     // The resize handle is positioned against this cell's trailing edge.
     position: 'relative',
   },
@@ -230,24 +241,52 @@ const styles = stylex.create({
     inlineSize: '100%',
     overflowX: 'auto',
   },
-  // The handle at a column's trailing edge, drawn as the divider's own rule
-  // so a column boundary is one line whether or not it can be dragged. It is
-  // positioned against the header cell, which is why that cell is relative.
+  // The handle at a column's trailing edge: a target 24px wide, centred on
+  // the boundary, that draws nothing itself. A 1px rule was the whole target
+  // before, which a mouse could barely find and a finger could not, and 24px
+  // is WCAG's minimum target size — no spacing exception applies, since the
+  // handle meets the header cell, which is a target of its own when it
+  // sorts. It is positioned against the header cell, which is why that cell
+  // is relative, and lifted over the next column's cell, which would
+  // otherwise take the half of the target that reaches into it.
   resizer: {
-    backgroundColor: colors.outlineVariant,
     blockSize: '100%',
     boxSizing: 'border-box',
     cursor: 'col-resize',
-    inlineSize: '1px',
+    inlineSize: '24px',
     insetBlockStart: 0,
-    insetInlineEnd: 0,
+    insetInlineEnd: '-12px',
     position: 'absolute',
     touchAction: 'none',
+    zIndex: 1,
+  },
+  // The divider's own rule, drawn inside the handle on the inner side of the
+  // boundary, so a column boundary is one line whether or not it can be
+  // dragged. Under forced colours, which paint a background in `Canvas`, the
+  // rule is a `CanvasText` border instead, and its colour is named rather
+  // than forced so the active state's `Highlight` survives — it is the
+  // handle's only focus indicator.
+  resizerRule: {
+    backgroundColor: colors.outlineVariant,
+    blockSize: '100%',
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderInlineEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '1px' },
+    boxSizing: 'border-box',
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
+    inlineSize: '1px',
+    insetBlockStart: 0,
+    insetInlineEnd: '12px',
+    pointerEvents: 'none',
+    position: 'absolute',
   },
   // Thickened and in the primary role while it is being dragged or focused,
-  // so the boundary being moved is the one that stands out.
-  resizerActive: {
+  // so the boundary being moved is the one that stands out — inward, into
+  // the column being sized.
+  resizerRuleActive: {
     backgroundColor: colors.primary,
+    borderInlineEndColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    borderInlineEndWidth: { default: null, [FORCED_COLORS]: '2px' },
     inlineSize: '2px',
   },
   // The page's 52dp row, and the rule above it — dropped on the first row of
@@ -505,8 +544,10 @@ function columnContent(
       {resizable ? (
         <RACColumnResizer
           aria-label={resizeLabel}
-          className={resizerClassName}
-        />
+          {...stylex.props(styles.resizer)}
+        >
+          {resizerRule}
+        </RACColumnResizer>
       ) : null}
     </>
   )
@@ -570,14 +611,16 @@ function resizableContainerClassName() {
   return stylex.props(styles.resizableContainer).className ?? ''
 }
 
-// The handle's classes, from React Aria's own render state — it reports the
-// drag and the keyboard focus separately, and the two get one treatment.
-function resizerClassName(state: ColumnResizerRenderProps) {
+// The rule a handle draws, from React Aria's own render state — it reports
+// the drag and the keyboard focus separately, and the two get one treatment.
+function resizerRule(state: ColumnResizerRenderProps): ReactNode {
   return (
-    stylex.props(
-      styles.resizer,
-      (state.isResizing || state.isFocusVisible) && styles.resizerActive,
-    ).className ?? ''
+    <span
+      {...stylex.props(
+        styles.resizerRule,
+        (state.isResizing || state.isFocusVisible) && styles.resizerRuleActive,
+      )}
+    />
   )
 }
 
