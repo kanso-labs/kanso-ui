@@ -1,8 +1,10 @@
 import type { Preview } from '@storybook/react-vite'
 
 import React from 'react'
+import { I18nProvider } from 'react-aria-components'
 
 import { demoThemes } from '../src/theming/themes'
+import DocumentLocale from './components/DocumentLocale'
 import StyleXLoader from './components/StyleXLoader'
 import ThemeWrapper from './components/ThemeWrapper'
 import { allModes } from './modes'
@@ -16,20 +18,45 @@ const preview: Preview = {
         typeof context.globals.theme === 'string'
           ? context.globals.theme
           : 'light'
+      const locale =
+        typeof context.globals.locale === 'string'
+          ? context.globals.locale
+          : 'en-US'
 
       return (
-        <>
+        <I18nProvider locale={locale}>
+          <DocumentLocale />
           <StyleXLoader />
           <ThemeWrapper name={theme}>
             <Story />
           </ThemeWrapper>
-        </>
+        </I18nProvider>
       )
     },
   ],
   // The theme is a global rather than addon state so that Chromatic's modes
   // can set it — an addon holding the value privately is invisible to them.
   globalTypes: {
+    // The locale every story renders in, through React Aria's I18nProvider:
+    // the names React Aria and the library give controls, the digits and
+    // grouping of every number, and the direction a page runs in. A global
+    // for the theme's reason — a Chromatic mode can set it. English, then a
+    // locale with long compound words, one with its own digits that runs
+    // right to left, and one with neither spaces nor Latin letters.
+    locale: {
+      description: 'Locale the story canvas renders in',
+      toolbar: {
+        dynamicTitle: true,
+        icon: 'globe',
+        items: [
+          { title: 'English', value: 'en-US' },
+          { title: 'German', value: 'de-DE' },
+          { title: 'Arabic (Egypt)', value: 'ar-EG' },
+          { title: 'Japanese', value: 'ja-JP' },
+        ],
+        title: 'Locale',
+      },
+    },
     theme: {
       description: 'Colour theme the story canvas renders in',
       toolbar: {
@@ -57,6 +84,7 @@ const preview: Preview = {
   // machine's appearance into the a11y checks the Vitest run performs. Both
   // themes are captured either way — this only picks which one opens first.
   initialGlobals: {
+    locale: 'en-US',
     theme: 'light',
   },
   parameters: {
