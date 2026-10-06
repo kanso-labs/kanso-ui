@@ -8,11 +8,13 @@ import type {
 
 import * as stylex from '@stylexjs/stylex'
 import {
+  parseColor,
   Button as RACButton,
   ColorPicker as RACColorPicker,
   Dialog as RACDialog,
   DialogTrigger as RACDialogTrigger,
   Popover as RACPopover,
+  useLocale,
 } from 'react-aria-components'
 
 import { focus } from '../../styles/focus'
@@ -153,6 +155,11 @@ type ColorPickerProps = Omit<RACColorPickerProps, 'children'> & {
   style?: CSSProperties
 }
 
+// Any HSL colour names the channels the two strips draw. The labels are read
+// off it in the reader's locale, as React Aria words them, rather than written
+// here in English.
+const CHANNELS = parseColor('hsl(0, 0%, 0%)')
+
 /**
  * A colour picked from a plane, a hue strip and a text field, behind a
  * trigger showing the colour. The value is React Aria's: pass `value` with
@@ -191,6 +198,8 @@ function ColorPicker({
   style,
   ...props
 }: ColorPickerProps & RefAttributes<HTMLButtonElement>) {
+  const { locale } = useLocale()
+
   return (
     <RACColorPicker {...props}>
       <RACDialogTrigger
@@ -254,13 +263,13 @@ function ColorPicker({
                   channel="hue"
                   colorSpace="hsl"
                   isDisabled={isDisabled}
-                  label="Hue"
+                  label={CHANNELS.getChannelName('hue', locale)}
                 />
                 {alpha ? (
                   <ColorSlider
                     channel="alpha"
                     isDisabled={isDisabled}
-                    label="Alpha"
+                    label={CHANNELS.getChannelName('alpha', locale)}
                   />
                 ) : null}
                 <ColorField isDisabled={isDisabled} label={label} />

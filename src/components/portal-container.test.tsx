@@ -53,7 +53,7 @@ describe('a component that portals a surface', () => {
     const container = containerIn(view)
 
     view.rerender(<DatePicker container={container} label="Label" />)
-    fireEvent.click(view.getByRole('button', { name: /Choose a date/ }))
+    fireEvent.click(view.getByRole('button', { name: /Calendar/ }))
 
     expect(view.getByRole('application')).toBeDefined()
     expect(container.contains(view.getByRole('application'))).toBe(true)
@@ -64,7 +64,7 @@ describe('a component that portals a surface', () => {
     const container = containerIn(view)
 
     view.rerender(<DateRangePicker container={container} label="Label" />)
-    fireEvent.click(view.getByRole('button', { name: /Choose a date range/ }))
+    fireEvent.click(view.getByRole('button', { name: /Calendar/ }))
 
     expect(container.contains(view.getByRole('application'))).toBe(true)
   })

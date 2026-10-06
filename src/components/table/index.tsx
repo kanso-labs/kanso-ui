@@ -113,9 +113,10 @@ import Checkbox from '../checkbox'
 
 // What the selection checkboxes are called. A context rather than a prop on
 // every column and cell, since it is the table's decision and repeating it
-// per row is how the two drift.
-const SelectAllLabelContext = createContext('Select all')
-const SelectLabelContext = createContext('Select')
+// per row is how the two drift. Undefined unless the table is given one,
+// which leaves the names React Aria gives in the reader's locale.
+const SelectAllLabelContext = createContext<string | undefined>(undefined)
+const SelectLabelContext = createContext<string | undefined>(undefined)
 
 const styles = stylex.create({
   // The cell every column and row draws: the page's 16dp on each side, which
@@ -386,7 +387,7 @@ type TableLoadMoreProps = Omit<RACTableLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
+type TableProps = {
   /** A function may compute the class from the table's render state. */
   className?: RACTableProps['className']
   /** Called as a column is dragged, with every column's width. */
@@ -402,19 +403,20 @@ type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
   resizable?: boolean
   /**
    * What the resize handle is called, for a screen reader. React Aria
-   * composes it with the column's own name.
-   * @default 'Resize column'
+   * composes it with the column's own name. Left out, React Aria names it in
+   * the reader's locale — "Resizer" in English.
    */
   resizeLabel?: string
   /**
-   * What the select-all checkbox is called, for a screen reader.
-   * @default 'Select all'
+   * What the select-all checkbox is called, for a screen reader. Left out,
+   * React Aria names it in the reader's locale — "Select All" in English.
    */
   selectAllLabel?: string
   /**
    * What each row's selection checkbox is called, for a screen reader. The
    * row's own text is what names the row; this names the box inside it.
-   * @default 'Select'
+   * Left out, React Aria names it in the reader's locale — "Select" in
+   * English.
    */
   selectLabel?: string
   /**
@@ -425,7 +427,7 @@ type TableProps = Omit<RACTableProps, 'className' | 'style'> & {
   stickyHeader?: boolean
   /** A function may compute the style from the table's render state. */
   style?: RACTableProps['style']
-}
+} & Omit<RACTableProps, 'className' | 'style'>
 
 type TableRowProps<T extends object = object> = Omit<
   RACRowProps<T>,
@@ -439,8 +441,8 @@ type TableRowProps<T extends object = object> = Omit<
 
 // What the resize handles are called, for the same reason the selection
 // labels travel this way: it is the table's decision, and repeating it per
-// column is how the two drift.
-const ResizeLabelContext = createContext('Resize column')
+// column is how the two drift. Undefined by default, as they are.
+const ResizeLabelContext = createContext<string | undefined>(undefined)
 
 // Whether the table brought the container. React Aria's resizer throws
 // outright without one — "Wrap your <Table> in a <ResizableTableContainer>",
@@ -463,7 +465,7 @@ const StickyHeaderContext = createContext(false)
 function cellContent(
   children: ReactNode,
   selection: boolean,
-  label: string,
+  label: string | undefined,
 ): ReactNode {
   if (!selection) {
     return children
@@ -478,9 +480,9 @@ function cellStyles(selection: boolean) {
 function columnContent(
   children: ReactNode,
   selection: boolean,
-  label: string,
+  label: string | undefined,
   resizable: boolean,
-  resizeLabel: string,
+  resizeLabel: string | undefined,
 ): RACColumnProps['children'] {
   if (selection) {
     return <Checkbox aria-label={label} slot="selection" />
@@ -642,9 +644,9 @@ function Table({
   onResize,
   onResizeEnd,
   resizable = false,
-  resizeLabel = 'Resize column',
-  selectAllLabel = 'Select all',
-  selectLabel = 'Select',
+  resizeLabel,
+  selectAllLabel,
+  selectLabel,
   stickyHeader = false,
   ...props
 }: RefAttributes<HTMLTableElement> & TableProps) {

@@ -48,10 +48,9 @@ function segmentsOf(view: ReturnType<typeof render>, end: 'End' | 'Start') {
   return view.getAllByRole('spinbutton', { name: new RegExp(`${end} Date`) })
 }
 
-function triggerOf(
-  view: ReturnType<typeof render>,
-  label = 'Choose a date range',
-) {
+// React Aria's own name for the button, "Calendar", composed with the field's
+// label.
+function triggerOf(view: ReturnType<typeof render>, label = 'Calendar') {
   return view.getByRole('button', { name: new RegExp(label) })
 }
 
@@ -154,7 +153,7 @@ describe('date range picker', () => {
       const view = render(<DateRangePicker defaultOpen label="Label" />)
 
       expect(
-        view.getByRole('dialog', { name: 'Choose a date range Label' }),
+        view.getByRole('dialog', { name: 'Calendar Label' }),
       ).not.toBeNull()
     })
 

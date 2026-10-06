@@ -112,8 +112,8 @@ type ChipGroupProps<T extends object = object> = {
   /**
    * What the close target on each chip is called, for a screen reader. React
    * Aria adds the chip's own label after it, so this is the verb rather than
-   * the whole phrase — "Remove" becomes "Remove First item".
-   * @default 'Remove'
+   * the whole phrase — "Remove" becomes "Remove First item". Left out, React
+   * Aria names it in the reader's locale — "Remove" in English.
    */
   removeLabel?: string
 } & Omit<RACTagGroupProps, 'children'> &
@@ -128,7 +128,7 @@ type ChipGroupProps<T extends object = object> = {
 // draw the same one. The close target is drawn only where the group allows
 // removing, which React Aria reports rather than the call site saying so on
 // every chip.
-function chipContent(children: ReactNode, removeLabel: string) {
+function chipContent(children: ReactNode, removeLabel: string | undefined) {
   return (state: TagRenderProps) => (
     <>
       {chipGlyph(state.isSelected)}
@@ -169,8 +169,9 @@ function chipContent(children: ReactNode, removeLabel: string) {
  */
 // What each chip calls its close target. A context rather than a prop on the
 // chip, since it is the group's decision and repeating it on every chip is
-// how the two drift.
-const RemoveLabelContext = createContext('Remove')
+// how the two drift. Undefined unless the group is given one, which leaves
+// the name React Aria gives in the reader's locale.
+const RemoveLabelContext = createContext<string | undefined>(undefined)
 
 // Hoisted so neither is a new object on every render.
 const LABEL_STATE_VALID = { isInvalid: false }
@@ -182,7 +183,7 @@ function ChipGroup<T extends object = object>({
   error,
   items,
   label,
-  removeLabel = 'Remove',
+  removeLabel,
   renderEmptyState,
   ...props
 }: ChipGroupProps<T> & RefAttributes<HTMLDivElement>) {

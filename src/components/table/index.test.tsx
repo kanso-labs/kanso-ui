@@ -374,7 +374,7 @@ describe('table', () => {
       // The row boxes take the table's own label, and React Aria composes
       // each one with the row it is in — so the name is the label plus the
       // row's text rather than the label alone.
-      expect(view.getByRole('checkbox', { name: 'Select all' })).not.toBeNull()
+      expect(view.getByRole('checkbox', { name: 'Select All' })).not.toBeNull()
       expect(
         view.getByRole('checkbox', { name: 'Select First item' }),
       ).not.toBeNull()
@@ -791,9 +791,7 @@ describe('table', () => {
 
       // React Aria points the handle's `aria-labelledby` at itself and at the
       // column, so the name is the label plus the column's own text.
-      expect(
-        view.getByRole('slider', { name: 'Resize column Label' }),
-      ).not.toBeNull()
+      expect(view.getByRole('slider', { name: 'Resizer Label' })).not.toBeNull()
     })
 
     it('takes the label the table was given', () => {
