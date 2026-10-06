@@ -105,6 +105,20 @@ const shapeProbeStyles = stylex.create({
 const TOUCH_DELAY_MS = motionDurationMs.short2
 const MINIMUM_PRESS_MS = motionDurationMs.medium1
 
+// An icon as the README asks for one: `1em` square in `currentColor`, hidden
+// from assistive technology. Hoisted, since react-perf rejects an element
+// built at the prop.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    data-testid="icon"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  />
+)
+
 // The ripple's inner span carries the classes from `rippleStyles.pressed` only
 // while the hook considers itself pressed, so their presence is an observable
 // signal for its state without reaching into React internals.
@@ -239,6 +253,20 @@ function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
   }
 
   return { ...view, button, isPressed, rippleSurface }
+}
+
+// The label's text alone, measured from its glyphs. The icon's slot sits
+// inside the same span, so the span's own box would start at the icon.
+function textBox(element: HTMLElement) {
+  const text = [...element.childNodes].find(
+    (node) => node.nodeType === Node.TEXT_NODE,
+  )
+  if (text === undefined) {
+    throw new Error('expected the label to hold its text directly')
+  }
+  const range = document.createRange()
+  range.selectNode(text)
+  return range.getBoundingClientRect()
 }
 
 // A call site's own element in place of the plain <button>: the same tag, as
@@ -1284,5 +1312,62 @@ describe('shape', () => {
     expect(computed.transitionProperty).toBe('border-radius')
     expect(Number.parseFloat(computed.transitionDuration)).toBeGreaterThan(0)
     expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
+  })
+})
+
+// The page's icon size and the gap before the label, per button size.
+describe('an icon', () => {
+  const SIZES = [
+    ['xs', 20, 8],
+    ['md', 20, 8],
+    ['lg', 24, 8],
+    ['xl', 32, 12],
+    ['xxl', 40, 16],
+  ] as const
+
+  it.each(SIZES)(
+    'draws a %s button icon at %ipx, %ipx before the label',
+    (size, edge, gap) => {
+      const view = render(
+        <Button icon={ICON} size={size}>
+          Label
+        </Button>,
+      )
+      const icon = view.getByTestId('icon').getBoundingClientRect()
+      const label = textBox(view.getByText('Label'))
+
+      expect([icon.width, icon.height]).toEqual([edge, edge])
+      expect(label.left - icon.right).toBeCloseTo(gap, 0)
+    },
+  )
+
+  it('hides the icon with the label while pending', () => {
+    const view = render(
+      <Button icon={ICON} isPending>
+        Label
+      </Button>,
+    )
+    expect(getComputedStyle(view.getByTestId('icon')).visibility).toBe('hidden')
+  })
+
+  it('draws the icon in a toggle too', () => {
+    const view = render(
+      <Button defaultSelected icon={ICON}>
+        Label
+      </Button>,
+    )
+    expect(view.getByTestId('icon').getBoundingClientRect().width).toBe(20)
+  })
+
+  it('leads the label from the other side under right-to-left', () => {
+    const view = render(
+      <div dir="rtl">
+        <Button icon={ICON}>Label</Button>
+      </div>,
+    )
+    const icon = view.getByTestId('icon').getBoundingClientRect()
+    const label = textBox(view.getByText('Label'))
+
+    expect(icon.left).toBeGreaterThan(label.right)
   })
 })

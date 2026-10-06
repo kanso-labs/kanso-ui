@@ -241,6 +241,7 @@ export type ButtonProps = {
     defaultSelected?: boolean;
     disableRipple?: boolean;
     href?: string;
+    icon?: ReactNode;
     isSelected?: boolean;
     onChange?: (isSelected: boolean) => void;
     pendingLabel?: string;
