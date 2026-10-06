@@ -37,6 +37,7 @@ import {
   DisclosureGroup,
   DropZone,
   Fab,
+  FabMenu,
   Feed,
   Form,
   IconButton,
@@ -292,6 +293,16 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'DropZone',
   },
   { element: <Fab {...PROBE}>Label</Fab>, name: 'Fab' },
+  // The class, the style and the ref all land on the FAB, which is what a
+  // layout positions.
+  {
+    element: (
+      <FabMenu {...PROBE} aria-label="Label" icon={null}>
+        <FabMenu.Item id="first">First item</FabMenu.Item>
+      </FabMenu>
+    ),
+    name: 'FabMenu',
+  },
   {
     element: (
       <Feed {...PROBE}>

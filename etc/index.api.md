@@ -68,6 +68,7 @@ import { ListBoxProps as ListBoxProps_2 } from 'react-aria-components';
 import { ListBoxSectionProps as ListBoxSectionProps_2 } from 'react-aria-components';
 import { ListLayout } from 'react-aria-components';
 import { MenuItemProps as MenuItemProps_2 } from 'react-aria-components';
+import { MenuItemRenderProps } from 'react-aria-components';
 import { MenuLoadMoreItemProps } from 'react-aria-components';
 import { MenuProps as MenuProps_2 } from 'react-aria-components';
 import { MenuSectionProps as MenuSectionProps_2 } from 'react-aria-components';
@@ -682,6 +683,70 @@ export type DropZoneProps = Omit<DropZoneProps_2, 'children' | 'className' | 'st
     label?: string;
     style?: DropZoneProps_2['style'];
 };
+
+// @public
+export function Fab(input: FabProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>): JSX;
+
+// @public
+export function FabMenu(input: FabMenuProps): JSX;
+
+// @public (undocumented)
+export namespace FabMenu {
+    var // (undocumented)
+    Item: typeof FabMenuItem;
+}
+
+// @public
+export function FabMenuItem(input: FabMenuItemProps & RefAttributes<HTMLDivElement>): JSX;
+
+// @public (undocumented)
+export type FabMenuItemProps = Omit<MenuItemProps_2, 'children' | 'className' | 'style'> & {
+    children: ReactNode;
+    className?: ClassNameOrFunction<MenuItemRenderProps>;
+    icon?: ReactNode;
+    style?: StyleOrFunction<MenuItemRenderProps>;
+};
+
+// @public (undocumented)
+export type FabMenuProps = {
+    'aria-label': string;
+    children: ReactNode;
+    className?: ClassNameOrFunction<ButtonState>;
+    container?: Element;
+    defaultOpen?: boolean;
+    icon: ReactNode;
+    isOpen?: boolean;
+    onAction?: (key: Key) => void;
+    onOpenChange?: (isOpen: boolean) => void;
+    size?: FabSize;
+    style?: StyleOrFunction<ButtonState>;
+    tone?: FabTone;
+} & RefAttributes<HTMLButtonElement>;
+
+// @public (undocumented)
+export type FabProps = {
+    'aria-label'?: string;
+    children?: ReactNode;
+    className?: ClassNameOrFunction<ButtonState>;
+    disableRipple?: boolean;
+    href?: string;
+    label?: ReactNode;
+    rel?: string;
+    size?: FabSize;
+    style?: StyleOrFunction<ButtonState>;
+    target?: string;
+    tone?: FabTone;
+    variant?: FabVariant;
+} & Omit<ButtonDOMProps, 'isPending'>;
+
+// @public (undocumented)
+export type FabSize = 'lg' | 'md' | 'xl';
+
+// @public (undocumented)
+export type FabTone = 'primary' | 'secondary' | 'tertiary';
+
+// @public (undocumented)
+export type FabVariant = 'filled' | 'tonal';
 
 // @public
 export function Feed(input: FeedProps): ReactElement<unknown, string | JSXElementConstructor<any>>;

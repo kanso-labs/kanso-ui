@@ -140,6 +140,7 @@ import type {
 } from '.'
 import type { BadgeProps } from './badge'
 import type { FabProps } from './fab'
+import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { NavigationBarProps } from './navigation-bar'
 import type { NavigationRailProps } from './navigation-rail'
 
@@ -188,6 +189,7 @@ import DisclosureDefault, {
 import DisclosureGroupDefault from './disclosure-group'
 import DropZoneDefault, { FileTrigger as FileTriggerNamed } from './drop-zone'
 import FabDefault from './fab'
+import FabMenuDefault, { FabMenuItem } from './fab-menu'
 import FeedDefault from './feed'
 import FormDefault from './form'
 import IconButtonDefault from './icon-button'
@@ -368,6 +370,8 @@ describe('components barrel', () => {
       'DisclosurePanel',
       'DropZone',
       'Fab',
+      'FabMenu',
+      'FabMenuItem',
       'Feed',
       'FileTrigger',
       'Form',
@@ -508,6 +512,8 @@ describe('components barrel', () => {
     DisclosurePanel: [components.DisclosurePanel, DisclosurePanel],
     DropZone: [components.DropZone, DropZoneDefault],
     Fab: [components.Fab, FabDefault],
+    FabMenu: [components.FabMenu, FabMenuDefault],
+    FabMenuItem: [components.FabMenuItem, FabMenuItem],
     Feed: [components.Feed, FeedDefault],
     FileTrigger: [components.FileTrigger, FileTriggerNamed],
     Form: [components.Form, FormDefault],
@@ -1345,6 +1351,20 @@ describe('components barrel', () => {
 
   it('re-exports the FabProps type', () => {
     const props: FabProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the FabMenuProps type', () => {
+    const props: FabMenuProps = {
+      'aria-label': 'Label',
+      children: 'test',
+      icon: null,
+    }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the FabMenuItemProps type', () => {
+    const props: FabMenuItemProps = { children: 'test' }
     expect(props.children).toBe('test')
   })
 })
