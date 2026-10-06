@@ -97,6 +97,13 @@ const THEMING = `:root {
 
 const STYLESHEET = `import '@kanso-labs/kanso-ui/styles.css'`
 
+const SCHEME = `import { ThemeProvider } from 'next-themes'
+import { colorScheme } from '@kanso-labs/kanso-ui'
+
+<ThemeProvider attribute="class" value={colorScheme}>
+  {children}
+</ThemeProvider>`
+
 const LAYERS = `/* Tailwind v4: the preflight before the library, utilities after it */
 @layer theme, base, kanso, components, utilities;
 @import 'tailwindcss';`
@@ -455,6 +462,21 @@ function GettingStartedPage() {
             resolve their tokens once, at the root, so a <Code>--kui-*</Code>{' '}
             property redeclared on a smaller scope never reaches them.
           </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The colours follow the reader&apos;s own light or dark setting. An
+            app with a switch of its own pins one with <Code>colorScheme</Code>:
+            put <Code>colorScheme.light</Code> or <Code>colorScheme.dark</Code>{' '}
+            on the <Code>&lt;html&gt;</Code> element, and an override on{' '}
+            <Code>:root</Code> still applies under either. Its shape is the one
+            next-themes takes:
+          </Text>
+        </div>
+        <Card variant="filled">
+          <pre {...stylex.props(styles.snippet)}>
+            <Code>{SCHEME}</Code>
+          </pre>
+        </Card>
+        <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             <Code>@kanso-labs/kanso-ui/tokens.css</Code> lists every variable
             and its current default. It is a reference for finding names rather

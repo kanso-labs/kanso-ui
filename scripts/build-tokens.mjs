@@ -254,18 +254,26 @@ export { ${exportName} }`
 }
 
 // A stylex.createTheme() pair per themed var group: overrideable classes
-// that pin every var to an explicit light or dark value, regardless of the
+// that pin every var to its light or its dark value, regardless of the
 // OS-level prefers-color-scheme media query design.tokens.css defaults to.
-// A manual toggle (Storybook's dark-mode addon, or any future in-app theme
-// switcher) needs both directions — forcing dark isn't enough on its own,
-// since forcing *light* against a dark OS preference is exactly as common a
-// case and would otherwise silently fall through to the media query.
+// An app's own scheme switch — the package exports these as `colorScheme`,
+// and Storybook's Theme control uses them too — needs both directions:
+// forcing dark isn't enough on its own, since forcing *light* against a dark
+// OS preference is exactly as common a case and would otherwise silently
+// fall through to the media query.
+//
+// Each value goes through the same `var(--kui-color-*, value)` the default
+// vars do, so a consumer's `--kui-color-*` override still applies under a
+// pinned scheme. A bare literal here would win over it.
 /** @param {string} exportName @param {ThemedEntry[]} entries @returns {string} */
 function themeOverrideBlocks(exportName, entries) {
   /** @param {'light' | 'dark'} mode @param {0 | 1} valueIndex @returns {string} */
   const build = (mode, valueIndex) => {
     const lines = entries
-      .map(([name, ...values]) => `  ${name}: '${values[valueIndex]}',`)
+      .map(
+        ([name, ...values]) =>
+          `  ${name}: ${JSON.stringify(`var(${cssVarName('colors', name)}, ${values[valueIndex]})`)},`,
+      )
       .toSorted((a, b) => a.trim().localeCompare(b.trim()))
     const themeExportName = `${exportName}${pascalCase(mode)}Theme`
     return `const ${themeExportName} = stylex.createTheme(${exportName}, {

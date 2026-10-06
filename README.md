@@ -386,6 +386,35 @@ default value — useful for discovering names, not required at runtime
 import '@kanso-labs/kanso-ui/tokens.css'
 ```
 
+### Pinning light or dark
+
+The colours follow the reader's OS through `prefers-color-scheme` unless the app
+says otherwise. An app with a theme switch of its own pins a scheme with
+`colorScheme`, two class names: put `colorScheme.light` or `colorScheme.dark` on
+the `<html>` element, and remove both to follow the OS again. The `<html>`
+element is the place for it, since overlays are portalled to the body and still
+sit inside it.
+
+Its shape is the one next-themes takes for class names, so a provider is all it
+needs:
+
+```tsx
+import { ThemeProvider } from 'next-themes'
+import { colorScheme } from '@kanso-labs/kanso-ui'
+
+function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider attribute="class" value={colorScheme}>
+      {children}
+    </ThemeProvider>
+  )
+}
+```
+
+A `--kui-color-*` override on `:root` still applies under a pinned scheme. To
+give one scheme a value of its own, key the override on an attribute your switch
+sets beside the class, since the class names are generated.
+
 ### For StyleX consumers
 
 If your app also uses StyleX, theme with
