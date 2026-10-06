@@ -19,7 +19,11 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
-import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import {
+  collectionStyles,
+  containerClasses,
+  rowItemStyles,
+} from '../../collection/styles'
 import { textOf } from '../../collection/text'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
@@ -189,10 +193,7 @@ function ListBox<T extends object>(
   props: ListBoxProps<T> & RefAttributes<HTMLDivElement>,
 ) {
   return (
-    <RACListBox
-      {...props}
-      {...mergeStatefulStyles(stylex.props(collectionStyles.container), props)}
-    />
+    <RACListBox {...props} {...mergeStatefulStyles(containerClasses, props)} />
   )
 }
 

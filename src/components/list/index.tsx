@@ -20,7 +20,11 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
-import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import {
+  collectionStyles,
+  containerClasses,
+  rowItemStyles,
+} from '../../collection/styles'
 import { textOf } from '../../collection/text'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
@@ -228,10 +232,7 @@ function List<T extends object>({
     <SelectLabelContext value={selectLabel}>
       <RACGridList
         {...props}
-        {...mergeStatefulStyles(
-          stylex.props(collectionStyles.container),
-          props,
-        )}
+        {...mergeStatefulStyles(containerClasses, props)}
       />
     </SelectLabelContext>
   )

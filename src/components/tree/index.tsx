@@ -21,7 +21,11 @@ import {
 } from 'react-aria-components'
 
 import { CollectionLoadMore } from '../../collection'
-import { collectionStyles, rowItemStyles } from '../../collection/styles'
+import {
+  collectionStyles,
+  containerClasses,
+  rowItemStyles,
+} from '../../collection/styles'
 import { ChevronEndGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
@@ -353,10 +357,7 @@ function Tree<T extends object>({
     <SelectLabelContext value={selectLabel}>
       <RACTree<T>
         {...props}
-        {...mergeStatefulStyles(
-          stylex.props(collectionStyles.container),
-          props,
-        )}
+        {...mergeStatefulStyles(containerClasses, props)}
       />
     </SelectLabelContext>
   )
