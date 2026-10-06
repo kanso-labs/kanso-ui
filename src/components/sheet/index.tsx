@@ -184,6 +184,32 @@ const styles = stylex.create({
     },
     // Clips the body's scroll to the rounded corners.
     overflow: 'hidden',
+    // The device's safe area, on each edge the panel is pinned to, so its
+    // actions clear the home indicator and the side sheet's header the
+    // status bar, with the panel's fill running on under both. A panel is
+    // portalled to the body, so a consumer's own safe-area padding never
+    // reaches it. `env()` reads 0 without `viewport-fit=cover`, which leaves
+    // every other page as it was.
+    //
+    // Left and right rather than logical, since the insets are physical: the
+    // side sheet takes the one on the edge it rests against, the right
+    // under a left-to-right document and the left under a right-to-left one,
+    // and the bottom sheet, pinned to both, takes the two.
+    paddingBlockEnd: 'env(safe-area-inset-bottom, 0px)',
+    paddingBlockStart: {
+      default: 'env(safe-area-inset-top, 0px)',
+      [media.belowMedium]: 0,
+    },
+    paddingLeft: {
+      ':dir(rtl)': 'env(safe-area-inset-left, 0px)',
+      default: 0,
+      [media.belowMedium]: 'env(safe-area-inset-left, 0px)',
+    },
+    paddingRight: {
+      ':dir(rtl)': 0,
+      default: 'env(safe-area-inset-right, 0px)',
+      [media.belowMedium]: 'env(safe-area-inset-right, 0px)',
+    },
     position: 'fixed',
   },
   // The side sheets page's bottom actions area: 72 tall, 16 above the buttons

@@ -192,6 +192,13 @@ const styles = stylex.create({
   // The region: a landmark pinned to the bottom of the screen with the
   // page's 8dp of margin, and transparent to the pointer so the strip it
   // occupies stays clickable when nothing is in it.
+  //
+  // The margin is counted from the device's safe area on the three edges the
+  // region is pinned to, so a snackbar clears the home indicator. The region
+  // is portalled to the body, so a consumer's own safe-area padding never
+  // reaches it, and `env()` reads 0 without `viewport-fit=cover`, which
+  // leaves every other page as it was. Left and right rather than logical,
+  // since the insets are physical.
   region: {
     alignItems: 'center',
     boxSizing: 'border-box',
@@ -201,7 +208,10 @@ const styles = stylex.create({
     insetBlockEnd: 0,
     insetInline: 0,
     outlineStyle: 'none',
-    padding: spacing.sm,
+    paddingBlockEnd: `calc(${spacing.sm} + env(safe-area-inset-bottom, 0px))`,
+    paddingBlockStart: spacing.sm,
+    paddingLeft: `calc(${spacing.sm} + env(safe-area-inset-left, 0px))`,
+    paddingRight: `calc(${spacing.sm} + env(safe-area-inset-right, 0px))`,
     pointerEvents: 'none',
     position: 'fixed',
     zIndex: 1000,
