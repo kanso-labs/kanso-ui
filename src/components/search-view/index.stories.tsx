@@ -1,0 +1,159 @@
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import * as stylex from '@stylexjs/stylex'
+
+import SearchView from '.'
+import { breakpointModes } from '../../../.storybook/modes'
+import { spacing } from '../../tokens/design.tokens.stylex'
+import IconButton from '../icon-button'
+import ListBox from '../list-box'
+import Separator from '../separator'
+import Text from '../text'
+
+// See avatar/index.stories.tsx for why the overview is built from the
+// library's own components, why its sections are divided by a rule, and why
+// the headings go through Text's `render`.
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_1 = <h1 />
+// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
+const HEADING_2 = <h2 />
+const PARAGRAPH = <p />
+
+const styles = stylex.create({
+  // Room under the trigger for the docked view to open into.
+  frame: {
+    minBlockSize: '480px',
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
+  icon: {
+    blockSize: '1em',
+    inlineSize: '1em',
+  },
+  intro: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xxs,
+  },
+  page: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.xl,
+    marginInline: 'auto',
+    maxInlineSize: '960px',
+    padding: spacing.xl,
+  },
+  section: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+  },
+})
+
+// What opens the view, and the results it narrows. Shared by every story,
+// so each one differs only in how it is opened and at what width.
+function Search({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  return (
+    <SearchView defaultOpen={defaultOpen}>
+      <IconButton aria-label="Search">
+        <SearchIcon />
+      </IconButton>
+      <SearchView.Content label="Search" placeholder="Supporting text">
+        <ListBox aria-label="Results">
+          <ListBox.Item id="first" supporting="Supporting line">
+            First item
+          </ListBox.Item>
+          <ListBox.Item id="second" supporting="Supporting line">
+            Second item
+          </ListBox.Item>
+          <ListBox.Item id="third" supporting="Supporting line">
+            Third item
+          </ListBox.Item>
+        </ListBox>
+      </SearchView.Content>
+    </SearchView>
+  )
+}
+
+// A plain magnifier rather than an icon set, so the stories show the view
+// alone. Drawn `1em` square in `currentColor`, as the README asks of every
+// icon.
+function SearchIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      {...stylex.props(styles.icon)}
+    >
+      <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9" />
+    </svg>
+  )
+}
+
+const meta = {
+  component: SearchView,
+  title: 'Components/SearchView',
+} satisfies Meta<typeof SearchView>
+
+type Story = StoryObj<typeof meta>
+
+const Overview: Story = {
+  render: () => (
+    <div {...stylex.props(styles.page)}>
+      <header {...stylex.props(styles.header)}>
+        <Text render={HEADING_1} variant="displaySmall">
+          SearchView
+        </Text>
+        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
+          What a search opens into: a back button, the input and its clear
+          button over a divider, and the results under them.
+        </Text>
+      </header>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Docked and full screen
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            On a wide window the view drops under what opened it, between 360dp
+            and 720dp wide with a 28dp corner. On a compact one it fills the
+            window, with a taller header. Typing narrows the results, Escape
+            clears what was typed and then closes the view, and the back button
+            closes it at once.
+          </Text>
+        </div>
+        <Search />
+      </section>
+    </div>
+  ),
+}
+
+// The docked view, which a wide window draws.
+const Default: Story = {
+  render: () => (
+    <div {...stylex.props(styles.frame)}>
+      <Search defaultOpen />
+    </div>
+  ),
+}
+
+// The full-screen view, which a compact window draws. Captured at a compact
+// width, since a wide one draws the docked view instead.
+const Compact: Story = {
+  parameters: {
+    chromatic: { modes: { compact: breakpointModes.compact } },
+  },
+  render: () => <Search defaultOpen />,
+}
+
+export { Compact, Default, Overview }
+
+export default meta

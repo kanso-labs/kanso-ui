@@ -40,12 +40,18 @@ type Refless = {
 }[Exclude<keyof Barrel, PartName>]
 
 describe('a ref, as a call site writes one', () => {
-  // The four that render no element of their own: Autocomplete and
+  // The ones that render no element of their own: Autocomplete and
   // FileTrigger, which wrap whatever they are given, and the overlays whose
   // root is a trigger, which take a ref on their content part instead.
   it('is accepted by every component that renders an element', () => {
     expectTypeOf<Refless>().toEqualTypeOf<
-      'Autocomplete' | 'Dialog' | 'FileTrigger' | 'Menu' | 'Popover' | 'Sheet'
+      | 'Autocomplete'
+      | 'Dialog'
+      | 'FileTrigger'
+      | 'Menu'
+      | 'Popover'
+      | 'SearchView'
+      | 'Sheet'
     >()
   })
 
@@ -59,6 +65,9 @@ describe('a ref, as a call site writes one', () => {
     expectTypeOf<ComponentProps<Barrel['Popover']['Content']>>().toHaveProperty(
       'ref',
     )
+    expectTypeOf<
+      ComponentProps<Barrel['SearchView']['Content']>
+    >().toHaveProperty('ref')
     expectTypeOf<ComponentProps<Barrel['Sheet']['Content']>>().toHaveProperty(
       'ref',
     )

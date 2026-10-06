@@ -14,14 +14,27 @@ import { glyphStyles } from './styles'
 // the package.
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
-// close, the right and down chevrons, the two sort arrows, the drop-down
-// arrow and the calendar from Material Symbols on their 24-unit grid, which
+// close, the right and down chevrons, the two sort arrows, the back arrow,
+// the drop-down arrow and the calendar from Material Symbols on their
+// 24-unit grid, which
 // is what the checkbox page draws at 18dp, the icon buttons page at 20 and
 // the search, menus and date picker pages at 24 — the date picker's menu
 // buttons draw their arrow at 18, and a split button's menu button its
 // chevron at between 22 and 50.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
+
+// What a search view's back button draws, pointing at the page it returns
+// to. It says "back" rather than "to the left", so whatever renders it
+// mirrors it under a right-to-left writing mode, as ChevronEndGlyph's
+// renderers do.
+function ArrowBackGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+    </Glyph>
+  )
+}
 
 // Which way a sorted column is ordered. Up is ascending and down is
 // descending, which is the direction the data tables page puts beside a
@@ -147,6 +160,7 @@ function SearchGlyph(props: GlyphProps) {
 }
 
 export {
+  ArrowBackGlyph,
   ArrowDownwardGlyph,
   ArrowDropDownGlyph,
   ArrowUpwardGlyph,

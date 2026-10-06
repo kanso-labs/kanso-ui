@@ -77,6 +77,7 @@ describe("the library's own words", () => {
         const messages = messagesFor(locale)
 
         for (const key of [
+          'back',
           'copied',
           'copy',
           'loading',
