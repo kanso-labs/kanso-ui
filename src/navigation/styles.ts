@@ -26,10 +26,14 @@ import {
 // horizontal destination sets it, takes on secondary container instead — the
 // library's own call. Secondary over secondary container is not a pair a
 // scheme is held to, and the Poster scheme's came to 4:1, short of the 4.5:1
-// text needs; on secondary container is the pair every scheme guarantees. The hover, focus and pressed layers are the on secondary
-// container role over whatever the pill is, at the pages' 8% and 10%, and
-// are drawn on the pill — the indicator in a vertical destination, the whole
-// destination in a horizontal one.
+// text needs; on secondary container is the pair every scheme guarantees.
+//
+// The hover, focus and pressed layers are the on secondary container role
+// over whatever the pill is, at the pages' 8%, 10% and 10%, drawn on the
+// pill — the indicator in a vertical destination, the whole destination in a
+// horizontal one. They are applied in that order, so where two hold the
+// later wins, as the pages draw one layer at a time. A focused destination's
+// ring goes around the same pill; ./index.tsx says whose ring it is.
 //
 // Under forced colours the mode paints the secondary container over in its
 // background, which left the current destination looking like every other.
@@ -44,8 +48,10 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // The pill's ground and the layers over it, written out whole for each
 // ground, since StyleX replaces a property whole.
 const HOVERED_OVER_NOTHING = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), transparent)`
+const FOCUSED_OVER_NOTHING = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), transparent)`
 const PRESSED_OVER_NOTHING = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), transparent)`
 const HOVERED_OVER_CURRENT = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`
+const FOCUSED_OVER_CURRENT = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`
 const PRESSED_OVER_CURRENT = `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`
 
 // What every destination draws whatever its form.
@@ -118,10 +124,16 @@ const barItemStyles = stylex.create({
     color: colors.onSecondaryContainer,
   },
   indicatorFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { default: 'solid', [media.medium]: 'none' },
-    outlineWidth: '2px',
+    backgroundColor: {
+      default: FOCUSED_OVER_NOTHING,
+      [media.medium]: 'transparent',
+    },
+  },
+  indicatorFocusedCurrent: {
+    backgroundColor: {
+      default: FOCUSED_OVER_CURRENT,
+      [media.medium]: 'transparent',
+    },
   },
   indicatorHovered: {
     backgroundColor: {
@@ -146,6 +158,15 @@ const barItemStyles = stylex.create({
       default: PRESSED_OVER_CURRENT,
       [media.medium]: 'transparent',
     },
+  },
+  // The ring around the indicator, which is the pill only below the medium
+  // breakpoint. The library's shared ring is solid wherever it is applied,
+  // and this one has to give way at a width, so it is spelled out here.
+  indicatorRing: {
+    outlineColor: colors.primary,
+    outlineOffset: '2px',
+    outlineStyle: { default: 'solid', [media.medium]: 'none' },
+    outlineWidth: '2px',
   },
   // Each vertical destination shares the bar's width with the others; a
   // horizontal one is as wide as its pill, the group centred in the bar.
@@ -174,10 +195,16 @@ const barItemStyles = stylex.create({
     borderWidth: { default: null, [FORCED_COLORS]: '2px' },
   },
   itemFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: { default: 'none', [media.medium]: 'solid' },
-    outlineWidth: '2px',
+    backgroundColor: {
+      default: 'transparent',
+      [media.medium]: FOCUSED_OVER_NOTHING,
+    },
+  },
+  itemFocusedCurrent: {
+    backgroundColor: {
+      default: 'transparent',
+      [media.medium]: FOCUSED_OVER_CURRENT,
+    },
   },
   itemHovered: {
     backgroundColor: {
@@ -202,6 +229,14 @@ const barItemStyles = stylex.create({
       default: 'transparent',
       [media.medium]: PRESSED_OVER_CURRENT,
     },
+  },
+  // The ring around the whole destination, the pill at the medium breakpoint
+  // and above.
+  itemRing: {
+    outlineColor: colors.primary,
+    outlineOffset: '2px',
+    outlineStyle: { default: 'none', [media.medium]: 'solid' },
+    outlineWidth: '2px',
   },
   label: {
     fontFamily: typography.labelMediumFont,
@@ -240,10 +275,10 @@ const collapsedItemStyles = stylex.create({
     color: colors.onSecondaryContainer,
   },
   indicatorFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: 'solid',
-    outlineWidth: '2px',
+    backgroundColor: FOCUSED_OVER_NOTHING,
+  },
+  indicatorFocusedCurrent: {
+    backgroundColor: FOCUSED_OVER_CURRENT,
   },
   indicatorHovered: {
     backgroundColor: HOVERED_OVER_NOTHING,
@@ -269,6 +304,7 @@ const collapsedItemStyles = stylex.create({
   },
   itemCurrent: {},
   itemFocused: {},
+  itemFocusedCurrent: {},
   itemHovered: {},
   itemHoveredCurrent: {},
   itemPressed: {},
@@ -298,6 +334,7 @@ const expandedItemStyles = stylex.create({
     color: colors.onSecondaryContainer,
   },
   indicatorFocused: {},
+  indicatorFocusedCurrent: {},
   indicatorHovered: {},
   indicatorHoveredCurrent: {},
   indicatorPressed: {},
@@ -318,10 +355,10 @@ const expandedItemStyles = stylex.create({
     borderWidth: { default: null, [FORCED_COLORS]: '2px' },
   },
   itemFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '2px',
-    outlineStyle: 'solid',
-    outlineWidth: '2px',
+    backgroundColor: FOCUSED_OVER_NOTHING,
+  },
+  itemFocusedCurrent: {
+    backgroundColor: FOCUSED_OVER_CURRENT,
   },
   itemHovered: {
     backgroundColor: HOVERED_OVER_NOTHING,

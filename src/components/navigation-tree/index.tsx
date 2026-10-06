@@ -33,12 +33,13 @@ import {
 } from '../../tokens/design.tokens.stylex'
 
 // The navigation drawer page's contents: a nested set of links with the
-// current one marked. For an app's top-level destinations Material has the
-// expanded navigation rail replace the drawer, and NavigationRail draws it;
-// this is for a tree of links nested deeper than a rail holds. Each row is the row every list here draws — `src/row`,
-// shared with ListItem, ListBox, List, Tree and Disclosure — under that
-// module's `drawer` variant, which is the page's own 56dp row with a
-// label-large label and a secondary-container pill on the current one.
+// current one marked. For an app's top-level destinations Material Design has
+// the expanded navigation rail replace the drawer, and NavigationRail draws
+// it; this is for a tree of links nested deeper than a rail holds. Each row is
+// the row every list here draws — `src/row`, shared with ListItem, ListBox,
+// List, Tree and Disclosure — under that module's `drawer` variant, which is
+// the page's own 56dp row with a label-large label and a secondary-container
+// pill on the current one.
 //
 // This is Tree's shape over React Aria's navigation primitive, and the
 // difference is what the two are for. A tree selects: rows are chosen and

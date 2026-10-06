@@ -1,14 +1,21 @@
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import NavigationRail from '.'
 import { declarationsHeld } from '../../styles/stylesheet.testing'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 const FORCED_COLORS = 'forced-colors: active'
 
 const probeStyles = stylex.create({
+  focusedOverCurrent: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
   labelLarge: { fontSize: typography.labelLargeSize },
   labelMedium: { fontSize: typography.labelMediumSize },
   onSecondaryContainer: { color: colors.onSecondaryContainer },
@@ -24,6 +31,15 @@ function Icon() {
 // react-perf's no-jsx-as-prop is after.
 const ICON = <Icon />
 const HEADER = <button type="button">Menu</button>
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer and the ring are drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
 
 // The indicator a destination draws its icon in, and the label after it.
 function partsOf(link: HTMLElement) {
@@ -119,6 +135,20 @@ describe('navigation rail', () => {
       )
     })
 
+    it('lays the focus layer and the ring on the indicator for a keyboard', () => {
+      const view = render(<Rail />)
+      const current = view.getByRole('link', { name: 'Second item' })
+      const { indicator } = partsOf(current)
+
+      focusByKeyboard(current)
+
+      expect(getComputedStyle(indicator).backgroundColor).toBe(
+        probe(probeStyles.focusedOverCurrent).background,
+      )
+      expect(getComputedStyle(indicator).outlineStyle).toBe('solid')
+      expect(getComputedStyle(current).outlineStyle).toBe('none')
+    })
+
     it('starts the destinations 44dp down, 4dp apart', () => {
       const view = render(<Rail />)
       const rail = view.getByRole('navigation').getBoundingClientRect()
@@ -178,6 +208,21 @@ describe('navigation rail', () => {
       // Inside the pill, the pair every scheme holds to 4.5:1.
       expect(getComputedStyle(label).color).toBe(
         probe(probeStyles.onSecondaryContainer).color,
+      )
+    })
+
+    it('lays the focus layer and the ring on the pill for a keyboard', () => {
+      const view = render(<Rail isExpanded />)
+      const current = view.getByRole('link', { name: 'Second item' })
+
+      focusByKeyboard(current)
+
+      expect(getComputedStyle(current).backgroundColor).toBe(
+        probe(probeStyles.focusedOverCurrent).background,
+      )
+      expect(getComputedStyle(current).outlineStyle).toBe('solid')
+      expect(getComputedStyle(partsOf(current).indicator).outlineStyle).toBe(
+        'none',
       )
     })
 

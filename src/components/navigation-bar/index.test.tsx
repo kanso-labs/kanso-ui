@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { RouterProvider } from 'react-aria-components'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
@@ -21,6 +21,9 @@ const COMPACT_WIDTH = 400
 const FORCED_COLORS = 'forced-colors: active'
 
 const probeStyles = stylex.create({
+  focusedOverCurrent: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.focus} * 100%), ${colors.secondaryContainer})`,
+  },
   hoveredOverCurrent: {
     backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
   },
@@ -59,6 +62,15 @@ function Bar(props: Partial<Parameters<typeof NavigationBar>[0]>) {
       </NavigationBar.Item>
     </NavigationBar>
   )
+}
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible and what the layer and the ring are drawn from.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
 }
 
 // The indicator a destination draws its icon in, which is the first thing
@@ -233,6 +245,20 @@ describe('navigation bar', () => {
       )
     })
 
+    it('lays the focus layer and the ring on the indicator for a keyboard', () => {
+      const view = render(<Bar />)
+      const current = view.getByRole('link', { name: 'Second item, 3 new' })
+
+      focusByKeyboard(current)
+      const indicator = getComputedStyle(indicatorOf(current))
+
+      expect(indicator.backgroundColor).toBe(
+        probe(probeStyles.focusedOverCurrent).background,
+      )
+      expect(indicator.outlineStyle).toBe('solid')
+      expect(getComputedStyle(current).outlineStyle).toBe('none')
+    })
+
     it('starts the destinations at the leading edge under right-to-left', () => {
       const view = render(
         <div dir="rtl">
@@ -271,6 +297,20 @@ describe('navigation bar', () => {
       )
       expect(label.left - indicator.right).toBe(4)
       expect(indicator.left - current.getBoundingClientRect().left).toBe(16)
+    })
+
+    it('lays the focus layer and the ring on the pill for a keyboard', () => {
+      const view = render(<Bar />)
+      const current = view.getByRole('link', { name: 'Second item, 3 new' })
+
+      focusByKeyboard(current)
+      const pill = getComputedStyle(current)
+
+      expect(pill.backgroundColor).toBe(
+        probe(probeStyles.focusedOverCurrent).background,
+      )
+      expect(pill.outlineStyle).toBe('solid')
+      expect(getComputedStyle(indicatorOf(current)).outlineStyle).toBe('none')
     })
 
     it('centres the destinations, as wide as their pills', () => {

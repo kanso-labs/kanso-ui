@@ -11,6 +11,7 @@ import { Link as RACLink } from 'react-aria-components'
 import type { NavigationForm } from './context'
 
 import Badge from '../components/badge'
+import { focus } from '../styles/focus'
 import { mergeStatefulStyles } from '../styles/merge'
 import { NavigationContext } from './context'
 import {
@@ -34,6 +35,17 @@ const FORMS = {
   bar: barItemStyles,
   collapsed: collapsedItemStyles,
   expanded: expandedItemStyles,
+}
+
+// The focus ring goes around the pill, wherever a form draws it: the
+// indicator in a vertical destination, the whole destination in a horizontal
+// one. The rail's two forms take the library's shared ring. The bar's pill
+// moves from one element to the other at the medium breakpoint, so its rings
+// are its own, each giving way at the width the other takes over.
+const RINGS = {
+  bar: { indicator: barItemStyles.indicatorRing, item: barItemStyles.itemRing },
+  collapsed: { indicator: focus.ringVisible, item: null },
+  expanded: { indicator: null, item: focus.ringVisible },
 }
 
 type NavigationItemProps = {
@@ -61,10 +73,9 @@ type NavigationItemProps = {
 
 // A destination's own classes, from React Aria's render state: the pill in a
 // horizontal form, and the layers over it.
-function itemClasses(
-  styles: (typeof FORMS)[NavigationForm],
-  isCurrent: boolean,
-) {
+function itemClasses(form: NavigationForm, isCurrent: boolean) {
+  const styles = FORMS[form]
+
   return (state: LinkRenderProps) =>
     stylex.props(
       navigationItemStyles.link,
@@ -72,9 +83,11 @@ function itemClasses(
       isCurrent && styles.itemCurrent,
       state.isHovered &&
         (isCurrent ? styles.itemHoveredCurrent : styles.itemHovered),
+      state.isFocusVisible &&
+        (isCurrent ? styles.itemFocusedCurrent : styles.itemFocused),
       state.isPressed &&
         (isCurrent ? styles.itemPressedCurrent : styles.itemPressed),
-      state.isFocusVisible && styles.itemFocused,
+      state.isFocusVisible && RINGS[form].item,
       state.isDisabled && navigationItemStyles.itemDisabled,
     )
 }
@@ -84,12 +97,13 @@ function itemClasses(
 // than written inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after.
 function itemContent(
-  styles: (typeof FORMS)[NavigationForm],
+  form: NavigationForm,
   isCurrent: boolean,
   badge: boolean | number | undefined,
   icon: ReactNode,
   label: ReactNode,
 ) {
+  const styles = FORMS[form]
   const glyph =
     badge === undefined || badge === false ? (
       icon
@@ -108,11 +122,15 @@ function itemContent(
             (isCurrent
               ? styles.indicatorHoveredCurrent
               : styles.indicatorHovered),
+          state.isFocusVisible &&
+            (isCurrent
+              ? styles.indicatorFocusedCurrent
+              : styles.indicatorFocused),
           state.isPressed &&
             (isCurrent
               ? styles.indicatorPressedCurrent
               : styles.indicatorPressed),
-          state.isFocusVisible && styles.indicatorFocused,
+          state.isFocusVisible && RINGS[form].indicator,
           state.isDisabled && navigationItemStyles.itemDisabled,
         )}
       >
@@ -145,16 +163,15 @@ function NavigationItem({
 }: NavigationItemProps & RefAttributes<HTMLAnchorElement>) {
   const { form, selectedRoute } = useContext(NavigationContext)
   const isCurrent = selectedRoute !== undefined && href === selectedRoute
-  const styles = FORMS[form]
 
   return (
     <RACLink
       aria-current={isCurrent ? 'page' : undefined}
       href={href}
       {...props}
-      {...mergeStatefulStyles(itemClasses(styles, isCurrent), props)}
+      {...mergeStatefulStyles(itemClasses(form, isCurrent), props)}
     >
-      {itemContent(styles, isCurrent, badge, icon, children)}
+      {itemContent(form, isCurrent, badge, icon, children)}
     </RACLink>
   )
 }
