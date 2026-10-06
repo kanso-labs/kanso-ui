@@ -53,6 +53,7 @@
     "url": "git+https://github.com/kanso-labs/kanso-ui.git"
   },
   "scripts": {
+    "api:update": "node scripts/api-report.mjs --local",
     "build": "tsc -b && tsdown",
     "build-storybook": "storybook build",
     "chromatic": "npx chromatic",
@@ -62,7 +63,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint --type-aware . && eslint . && npm run format:check",
-    "package:check": "publint && attw --pack --profile esm-only && node scripts/check-package.mjs",
+    "package:check": "publint && attw --pack --profile esm-only && node scripts/check-package.mjs && node scripts/api-report.mjs",
     "prepare": "husky && playwright install --with-deps chromium",
     "storybook": "storybook dev -p ${PORT:-6006}",
     "test": "vitest run",
@@ -83,6 +84,7 @@
     "@commitlint/config-conventional": "21.2.3",
     "@eslint/js": "10.0.1",
     "@kanso-labs/unplugin-style-dictionary": "0.10.17",
+    "@microsoft/api-extractor": "7.59.3",
     "@rolldown/plugin-babel": "0.2.4",
     "@storybook/addon-a11y": "10.6.1",
     "@storybook/addon-docs": "10.6.1",
