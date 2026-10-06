@@ -15,6 +15,11 @@
       "matchPackageNames": ["@babel/core", "@babel/traverse", "@babel/types"]
     },
     {
+      "allowedVersions": "<5",
+      "description": "Vitest 5 turns every page.viewport() into a resize of the real browser page, where Vitest 4 resized only the test's iframe, and the call waits on that page-wide command while every other file in the page runs. The breakpoint tests resize once or twice per test, so on Vitest 5 their files went from about a second each to 4 to 9 seconds on CI and to over a minute on a 14-thread machine, where 27 tests time out at 15 seconds and npm test fails. @storybook/addon-vitest admits Vitest 5 from 10.6.1, so the install resolves and this is the only thing holding it. Lift this once those tests set their viewport once per describe, or once a Vitest release stops resizing the page on each call.",
+      "matchPackageNames": ["@vitest/**", "vitest"]
+    },
+    {
       "description": "Grouped in .github/dependabot.yml under a duplicate 'react' key, so YAML dropped it and these were never actually grouped.",
       "groupName": "commitlint",
       "matchPackageNames": ["@commitlint/**"]
