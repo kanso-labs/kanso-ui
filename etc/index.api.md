@@ -1371,6 +1371,35 @@ export type SearchFieldProps = {
 } & Omit<SearchFieldProps_2, 'children' | 'isInvalid' | 'validationBehavior'>;
 
 // @public
+export function SearchView(input: SearchViewProps): JSX;
+
+// @public (undocumented)
+export namespace SearchView {
+    var // (undocumented)
+    Content: typeof SearchViewContent;
+}
+
+// @public
+export function SearchViewContent<T extends object = object>(input: RefAttributes<HTMLElement> & SearchViewContentProps<T>): JSX;
+
+// @public (undocumented)
+export type SearchViewContentProps<T extends object = object> = {
+    backLabel?: string;
+    children?: ReactNode;
+    className?: ClassNameOrFunction<PopoverRenderProps>;
+    clearLabel?: string;
+    container?: Element;
+    label: string;
+    placeholder?: string;
+    style?: StyleOrFunction<PopoverRenderProps>;
+} & Omit<AutocompleteProps<T>, 'children'>;
+
+// @public (undocumented)
+export type SearchViewProps = Omit<DialogTriggerProps, 'children'> & {
+    children?: ReactNode;
+};
+
+// @public
 export function SegmentedButton(input: RefAttributes<HTMLDivElement> & SegmentedButtonProps): JSX;
 
 // @public (undocumented)

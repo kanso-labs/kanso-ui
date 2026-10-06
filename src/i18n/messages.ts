@@ -5,7 +5,8 @@ import type {
 
 // The words the library writes itself and React Aria has no message for: the
 // pending ring's name, a collection's loading-more row, CopyField's button and
-// its announcement, and a field's character limit. Everything else a control
+// its announcement, a field's character limit, and a search view's back
+// button. Everything else a control
 // says comes from React Aria's own tables, so these are the strings this table
 // has to carry.
 //
@@ -20,6 +21,7 @@ import type {
 // each one.
 
 type LibraryMessage =
+  | 'back'
   | 'characterLimit'
   | 'copied'
   | 'copy'
@@ -47,6 +49,7 @@ function plural(forms: PluralForms): LocalizedString {
 
 const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
   'ar-AE': {
+    back: 'رجوع',
     characterLimit: plural({
       few: (n) => `حتى ${n} أحرف`,
       many: (n) => `حتى ${n} حرفًا`,
@@ -61,6 +64,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'جارٍ تحميل المزيد',
   },
   'bg-BG': {
+    back: 'Назад',
     characterLimit: plural({
       one: (n) => `До ${n} знак`,
       other: (n) => `До ${n} знака`,
@@ -71,6 +75,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Зареждане на още',
   },
   'cs-CZ': {
+    back: 'Zpět',
     characterLimit: plural({
       few: (n) => `Nejvýše ${n} znaky`,
       many: (n) => `Nejvýše ${n} znaku`,
@@ -83,6 +88,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Načítání dalších',
   },
   'da-DK': {
+    back: 'Tilbage',
     characterLimit: plural({ other: (n) => `Op til ${n} tegn` }),
     copied: 'Kopieret',
     copy: 'Kopiér',
@@ -90,6 +96,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Indlæser flere',
   },
   'de-DE': {
+    back: 'Zurück',
     characterLimit: plural({ other: (n) => `Bis zu ${n} Zeichen` }),
     copied: 'Kopiert',
     copy: 'Kopieren',
@@ -97,6 +104,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Weitere werden geladen',
   },
   'el-GR': {
+    back: 'Πίσω',
     characterLimit: plural({
       one: (n) => `Έως ${n} χαρακτήρας`,
       other: (n) => `Έως ${n} χαρακτήρες`,
@@ -107,6 +115,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Φόρτωση περισσότερων',
   },
   'en-US': {
+    back: 'Back',
     characterLimit: plural({
       one: (n) => `Up to ${n} character`,
       other: (n) => `Up to ${n} characters`,
@@ -117,6 +126,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Loading more',
   },
   'es-ES': {
+    back: 'Atrás',
     characterLimit: plural({
       one: (n) => `Hasta ${n} carácter`,
       other: (n) => `Hasta ${n} caracteres`,
@@ -127,6 +137,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Cargando más',
   },
   'et-EE': {
+    back: 'Tagasi',
     characterLimit: plural({
       one: (n) => `Kuni ${n} märk`,
       other: (n) => `Kuni ${n} märki`,
@@ -137,6 +148,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Laaditakse veel',
   },
   'fi-FI': {
+    back: 'Takaisin',
     characterLimit: plural({
       one: (n) => `Enintään ${n} merkki`,
       other: (n) => `Enintään ${n} merkkiä`,
@@ -147,6 +159,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Ladataan lisää',
   },
   'fr-FR': {
+    back: 'Retour',
     characterLimit: plural({
       one: (n) => `Jusqu’à ${n} caractère`,
       other: (n) => `Jusqu’à ${n} caractères`,
@@ -157,6 +170,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Chargement de la suite',
   },
   'he-IL': {
+    back: 'חזרה',
     characterLimit: plural({
       one: () => 'עד תו אחד',
       other: (n) => `עד ${n} תווים`,
@@ -168,6 +182,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'טוען עוד',
   },
   'hr-HR': {
+    back: 'Natrag',
     characterLimit: plural({
       few: (n) => `Najviše ${n} znaka`,
       one: (n) => `Najviše ${n} znak`,
@@ -179,6 +194,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Učitava se još',
   },
   'hu-HU': {
+    back: 'Vissza',
     characterLimit: plural({ other: (n) => `Legfeljebb ${n} karakter` }),
     copied: 'Másolva',
     copy: 'Másolás',
@@ -186,6 +202,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Továbbiak betöltése',
   },
   'it-IT': {
+    back: 'Indietro',
     characterLimit: plural({
       one: (n) => `Fino a ${n} carattere`,
       other: (n) => `Fino a ${n} caratteri`,
@@ -196,6 +213,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Caricamento di altri elementi',
   },
   'ja-JP': {
+    back: '戻る',
     characterLimit: plural({ other: (n) => `最大 ${n} 文字` }),
     copied: 'コピーしました',
     copy: 'コピー',
@@ -203,6 +221,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'さらに読み込み中',
   },
   'ko-KR': {
+    back: '뒤로',
     characterLimit: plural({ other: (n) => `최대 ${n}자` }),
     copied: '복사됨',
     copy: '복사',
@@ -210,6 +229,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: '더 로드하는 중',
   },
   'lt-LT': {
+    back: 'Atgal',
     characterLimit: plural({
       few: (n) => `Ne daugiau kaip ${n} simboliai`,
       many: (n) => `Ne daugiau kaip ${n} simbolio`,
@@ -222,6 +242,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Įkeliama daugiau',
   },
   'lv-LV': {
+    back: 'Atpakaļ',
     characterLimit: plural({
       one: (n) => `Līdz ${n} rakstzīmei`,
       other: (n) => `Līdz ${n} rakstzīmēm`,
@@ -233,6 +254,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Notiek papildu ielāde',
   },
   'nb-NO': {
+    back: 'Tilbake',
     characterLimit: plural({ other: (n) => `Opptil ${n} tegn` }),
     copied: 'Kopiert',
     copy: 'Kopier',
@@ -240,6 +262,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Laster inn flere',
   },
   'nl-NL': {
+    back: 'Terug',
     characterLimit: plural({
       one: (n) => `Maximaal ${n} teken`,
       other: (n) => `Maximaal ${n} tekens`,
@@ -250,6 +273,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Meer laden',
   },
   'pl-PL': {
+    back: 'Wstecz',
     characterLimit: plural({
       few: (n) => `Maksymalnie ${n} znaki`,
       many: (n) => `Maksymalnie ${n} znaków`,
@@ -262,6 +286,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Ładowanie kolejnych',
   },
   'pt-BR': {
+    back: 'Voltar',
     characterLimit: plural({
       one: (n) => `Até ${n} caractere`,
       other: (n) => `Até ${n} caracteres`,
@@ -272,6 +297,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Carregando mais',
   },
   'pt-PT': {
+    back: 'Voltar',
     characterLimit: plural({
       one: (n) => `Até ${n} carácter`,
       other: (n) => `Até ${n} caracteres`,
@@ -282,6 +308,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'A carregar mais',
   },
   'ro-RO': {
+    back: 'Înapoi',
     characterLimit: plural({
       few: (n) => `Maximum ${n} caractere`,
       one: (n) => `Maximum ${n} caracter`,
@@ -293,6 +320,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Se încarcă mai multe',
   },
   'ru-RU': {
+    back: 'Назад',
     characterLimit: plural({
       few: (n) => `Не более ${n} символов`,
       many: (n) => `Не более ${n} символов`,
@@ -305,6 +333,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Загрузка ещё',
   },
   'sk-SK': {
+    back: 'Späť',
     characterLimit: plural({
       few: (n) => `Najviac ${n} znaky`,
       many: (n) => `Najviac ${n} znaku`,
@@ -317,6 +346,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Načítavajú sa ďalšie',
   },
   'sl-SI': {
+    back: 'Nazaj',
     characterLimit: plural({
       few: (n) => `Največ ${n} znaki`,
       one: (n) => `Največ ${n} znak`,
@@ -329,6 +359,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Nalaganje več',
   },
   'sr-SP': {
+    back: 'Nazad',
     characterLimit: plural({
       few: (n) => `Najviše ${n} znaka`,
       one: (n) => `Najviše ${n} znak`,
@@ -340,6 +371,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Učitavanje još',
   },
   'sv-SE': {
+    back: 'Tillbaka',
     characterLimit: plural({ other: (n) => `Högst ${n} tecken` }),
     copied: 'Kopierat',
     copy: 'Kopiera',
@@ -347,6 +379,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Läser in fler',
   },
   'tr-TR': {
+    back: 'Geri',
     characterLimit: plural({ other: (n) => `En fazla ${n} karakter` }),
     copied: 'Kopyalandı',
     copy: 'Kopyala',
@@ -354,6 +387,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Daha fazlası yükleniyor',
   },
   'uk-UA': {
+    back: 'Назад',
     characterLimit: plural({
       few: (n) => `Не більше ${n} символів`,
       many: (n) => `Не більше ${n} символів`,
@@ -366,6 +400,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: 'Завантаження ще',
   },
   'zh-CN': {
+    back: '返回',
     characterLimit: plural({ other: (n) => `最多 ${n} 个字符` }),
     copied: '已复制',
     copy: '复制',
@@ -373,6 +408,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     loadingMore: '正在加载更多',
   },
   'zh-TW': {
+    back: '返回',
     characterLimit: plural({ other: (n) => `最多 ${n} 個字元` }),
     copied: '已複製',
     copy: '複製',

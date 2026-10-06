@@ -84,6 +84,7 @@ import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import RangeCalendar from '../components/range-calendar'
 import SearchField from '../components/search-field'
+import SearchView from '../components/search-view'
 import SegmentedButton from '../components/segmented-button'
 import Select from '../components/select'
 import Separator from '../components/separator'
@@ -1331,6 +1332,22 @@ function Showcase({ name }: ShowcaseProps) {
             title="SearchField"
           >
             <SearchField label="Label" placeholder="Supporting text" />
+          </Section>
+
+          <Section
+            description="Opens on the search bar's surface container high, its header over a divider in the outline role and its back and clear icons in the on-surface pair the bar's own take."
+            title="SearchView"
+          >
+            <SearchView>
+              <Button variant="outlined">Open search</Button>
+              <SearchView.Content label="Label" placeholder="Supporting text">
+                <ListBox aria-label="Label">
+                  <ListBox.Item id="first">First item</ListBox.Item>
+                  <ListBox.Item id="second">Second item</ListBox.Item>
+                  <ListBox.Item id="third">Third item</ListBox.Item>
+                </ListBox>
+              </SearchView.Content>
+            </SearchView>
           </Section>
 
           <Section

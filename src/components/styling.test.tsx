@@ -61,6 +61,7 @@ import {
   RadioGroup,
   RangeCalendar,
   SearchField,
+  SearchView,
   SegmentedButton,
   Select,
   Separator,
@@ -101,9 +102,9 @@ const SNACKBARS = new Snackbar.Queue()
 SNACKBARS.add('First item')
 
 // Autocomplete has no case: it renders no element of its own, so there is
-// nothing for a className or a style to land on. Sheet, Menu, Dialog and
-// Popover are absent for the same reason — each is a trigger whose parts are
-// listed instead.
+// nothing for a className or a style to land on. Sheet, Menu, Dialog, Popover
+// and SearchView are absent for the same reason — each is a trigger whose
+// parts are listed instead.
 //
 // FileTrigger is absent for the first reason too: it renders a hidden file
 // input and takes no `className` or `style` at all — whatever it wraps is
@@ -547,6 +548,17 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     name: 'RangeCalendar',
   },
   { element: <SearchField {...PROBE} label="Label" />, name: 'SearchField' },
+  {
+    element: (
+      <SearchView defaultOpen>
+        <Button>Open</Button>
+        <SearchView.Content {...PROBE} label="Label">
+          First item
+        </SearchView.Content>
+      </SearchView>
+    ),
+    name: 'SearchView.Content',
+  },
   {
     element: (
       <SegmentedButton {...PROBE} aria-label="Label">

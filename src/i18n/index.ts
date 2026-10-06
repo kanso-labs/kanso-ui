@@ -13,6 +13,8 @@ import { MESSAGES } from './messages'
 // `characterLimitLabel`.
 
 type LibraryMessages = {
+  /** What a search view's back button is called. */
+  back: string
   /** The limit on a field's length, in words, for a count of characters. */
   characterLimit: (count: number) => string
   copied: string
@@ -38,6 +40,7 @@ function messagesFor(locale: string): LibraryMessages {
   const numbers = new Intl.NumberFormat(locale)
   const rules = new Intl.PluralRules(locale)
   const messages = {
+    back: formatter.format('back'),
     characterLimit: (count: number) =>
       formatter.format('characterLimit', {
         count: numbers.format(count),

@@ -149,6 +149,7 @@ import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { NavigationBarProps } from './navigation-bar'
 import type { NavigationRailProps } from './navigation-rail'
+import type { SearchViewContentProps, SearchViewProps } from './search-view'
 import type {
   SplitButtonActionProps,
   SplitButtonMenuProps,
@@ -241,6 +242,7 @@ import ProgressIndicatorDefault from './progress-indicator'
 import RadioGroupDefault, { Radio } from './radio-group'
 import RangeCalendarDefault from './range-calendar'
 import SearchFieldDefault from './search-field'
+import SearchViewDefault, { SearchViewContent } from './search-view'
 import SegmentedButtonDefault, {
   SegmentedButtonSegment,
 } from './segmented-button'
@@ -431,6 +433,8 @@ describe('components barrel', () => {
       'RadioGroup',
       'RangeCalendar',
       'SearchField',
+      'SearchView',
+      'SearchViewContent',
       'SegmentedButton',
       'SegmentedButtonSegment',
       'Select',
@@ -580,6 +584,8 @@ describe('components barrel', () => {
     RadioGroup: [components.RadioGroup, RadioGroupDefault],
     RangeCalendar: [components.RangeCalendar, RangeCalendarDefault],
     SearchField: [components.SearchField, SearchFieldDefault],
+    SearchView: [components.SearchView, SearchViewDefault],
+    SearchViewContent: [components.SearchViewContent, SearchViewContent],
     SegmentedButton: [components.SegmentedButton, SegmentedButtonDefault],
     SegmentedButtonSegment: [
       components.SegmentedButtonSegment,
@@ -1438,5 +1444,15 @@ describe('components barrel', () => {
       children: 'test',
     }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SearchViewProps type', () => {
+    const props: SearchViewProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SearchViewContentProps type', () => {
+    const props: SearchViewContentProps = { label: 'Label' }
+    expect(props.label).toBe('Label')
   })
 })
