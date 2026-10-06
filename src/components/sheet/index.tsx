@@ -453,4 +453,13 @@ type SheetTitleProps = HeadingProps
 
 export type { SheetContentProps, SheetProps, SheetTitleProps }
 
+export {
+  SheetBody,
+  SheetContent,
+  SheetFooter,
+  SheetHandle,
+  SheetHeader,
+  SheetTitle,
+}
+
 export default Sheet

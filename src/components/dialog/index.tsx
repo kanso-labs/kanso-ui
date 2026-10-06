@@ -409,4 +409,6 @@ type DialogTitleProps = HeadingProps
 
 export type { DialogContentProps, DialogProps, DialogTitleProps }
 
+export { DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle }
+
 export default Dialog

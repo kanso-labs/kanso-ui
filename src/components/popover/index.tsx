@@ -395,4 +395,6 @@ export type {
   PopoverTrigger,
 }
 
+export { PopoverContent, PopoverDescription, PopoverTitle }
+
 export default Popover

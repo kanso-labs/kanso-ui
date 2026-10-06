@@ -340,9 +340,29 @@ Four things follow from where that boundary falls.
   `onPress` and a `render` callback belong in a client component of your own.
   Neither does a class instance, so a `CalendarDate` for a date component is
   built on the client side too.
-- **A sub-part is reached through its component**, as in `Dialog.Title` or
-  `Menu.Item`, and a server component cannot reach into a client module that
-  way. Compose those in a client component and render that.
+- **A sub-part is rendered by its own name**, as in `DialogTitle` or `MenuItem`.
+  A server component cannot reach into a client module through a property, so
+  `<Dialog.Title>` works only from a client component, while every part is also
+  exported as its component's name followed by the part's: `SheetContent`,
+  `TableRow`, `NavigationTreeItem`. `List.Item` is `ListRow`, since the
+  standalone `ListItem` already has that name:
+
+  ```tsx
+  // app/settings/page.tsx
+  import { Button, Sheet, SheetContent, SheetTitle } from '@kanso-labs/kanso-ui'
+
+  export default function Page() {
+    return (
+      <Sheet>
+        <Button>Open</Button>
+        <SheetContent>
+          <SheetTitle>Headline</SheetTitle>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+  ```
+
 - **The React Aria utilities the package re-exports are client-only** —
   `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes` is
   a plain value and works on either side.

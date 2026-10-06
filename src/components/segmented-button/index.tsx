@@ -684,4 +684,6 @@ SegmentedButton.Segment = SegmentedButtonSegment
 
 export type { SegmentedButtonProps, SegmentedButtonSegmentProps }
 
+export { SegmentedButtonSegment }
+
 export default SegmentedButton

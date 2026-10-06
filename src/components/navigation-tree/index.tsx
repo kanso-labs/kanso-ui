@@ -450,4 +450,6 @@ export type {
   NavigationTreeSectionProps,
 }
 
+export { NavigationTreeItem, NavigationTreeSection }
+
 export default NavigationTree
