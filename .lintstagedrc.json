@@ -1,5 +1,5 @@
 {
-  "!(*-lock).{json,md,yaml,yml}": ["oxfmt"],
+  "!(*-lock|*.api).{json,md,yaml,yml}": ["oxfmt"],
   "*.{cjs,js,mjs,ts,tsx}": [
     "oxlint --type-aware --fix",
     "eslint --fix",
