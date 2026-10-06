@@ -51,9 +51,9 @@ const styles = stylex.create({
   // on press moved leftwards under the pointer that had just pressed it.
   //
   // Button does this for its own pending state — see `label` and
-  // `labelPending` in src/components/button/index.tsx, and the comment there
-  // about a form jumping the moment it is submitted. This is the same jump
-  // one step over.
+  // `labelPending` in src/button/styles.ts, and the comment on
+  // `buttonContent` in src/button/index.tsx about a form jumping the moment
+  // it is submitted. This is the same jump one step over.
   //
   // A consumer passing labels of very different lengths gets a button sized
   // to the longer one, which is the point rather than a cost.
