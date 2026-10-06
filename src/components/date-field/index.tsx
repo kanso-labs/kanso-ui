@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   DateValue,
   DateFieldProps as RACDateFieldProps,
@@ -121,7 +121,7 @@ function DateField<T extends DateValue>({
   trailingIcon,
   variant = 'filled',
   ...props
-}: DateFieldProps<T>) {
+}: DateFieldProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (

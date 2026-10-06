@@ -1,10 +1,11 @@
 'use client'
 
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode, RefAttributes } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { refCallback } from '../../render/ref'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
 import { mergeStyles } from '../../styles/merge'
@@ -66,10 +67,11 @@ function ListItem({
   onPointerLeave,
   onPointerUp,
   overline,
+  ref,
   supporting,
   trailing,
   ...props
-}: ListItemProps) {
+}: ListItemProps & RefAttributes<HTMLButtonElement | HTMLDivElement>) {
   // The consumer's own pointer handlers are handed to useRipple to merge
   // rather than left in `props` to be spread over its handlers afterwards,
   // which is what Card and Button do and for the same reason: a plain spread
@@ -109,6 +111,11 @@ function ListItem({
   const twoLine = extraLines === 1
   const threeLine = extraLines === 2
 
+  // A presenting row is a <div> and an interactive one a <button>, so the
+  // ref is typed as either and handed to each as the callback both accept —
+  // see src/render/ref.ts.
+  const forwarded = refCallback(ref)
+
   const content = (
     <RowContent
       isDisabled={isDisabled}
@@ -129,6 +136,7 @@ function ListItem({
     return (
       <div
         aria-disabled={isDisabled || undefined}
+        ref={forwarded}
         {...props}
         {...ripple.handlers}
         {...mergeStyles(
@@ -150,6 +158,7 @@ function ListItem({
   return (
     <button
       disabled={isDisabled}
+      ref={forwarded}
       type="button"
       {...ripple.handlers}
       {...props}

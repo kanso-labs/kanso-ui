@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   ToggleButtonProps as RACToggleButtonProps,
   ToggleButtonRenderProps,
@@ -46,7 +46,13 @@ type ChipProps = Omit<RACToggleButtonProps, 'children'> & {
  * let it keep its own state. Selection is announced through `aria-pressed`
  * rather than a role of its own.
  */
-function Chip({ children, onKeyDown, onKeyUp, render, ...props }: ChipProps) {
+function Chip({
+  children,
+  onKeyDown,
+  onKeyUp,
+  render,
+  ...props
+}: ChipProps & RefAttributes<HTMLButtonElement>) {
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
 
   return (

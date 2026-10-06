@@ -1,5 +1,6 @@
 'use client'
 
+import type { RefAttributes } from 'react'
 import type {
   SliderProps as RACSliderProps,
   SliderThumbRenderProps,
@@ -320,7 +321,7 @@ function Slider({
   orientation = 'horizontal',
   thumbLabels,
   ...props
-}: SliderProps) {
+}: RefAttributes<HTMLDivElement> & SliderProps) {
   const vertical = orientation === 'vertical'
 
   return (

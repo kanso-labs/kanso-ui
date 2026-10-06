@@ -1,6 +1,11 @@
 'use client'
 
-import type { AriaAttributes, DOMAttributes, ReactNode } from 'react'
+import type {
+  AriaAttributes,
+  DOMAttributes,
+  ReactNode,
+  RefAttributes,
+} from 'react'
 import type {
   ClassNameOrFunction,
   LinkRenderProps,
@@ -147,7 +152,7 @@ function Link({
   tone = 'primary',
   underline = 'always',
   ...props
-}: LinkProps) {
+}: LinkProps & RefAttributes<HTMLAnchorElement>) {
   const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
 
   return (

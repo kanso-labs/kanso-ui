@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   CheckboxButtonRenderProps,
   CheckboxFieldProps as RACCheckboxFieldProps,
@@ -230,7 +230,12 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions.
  */
-function Checkbox({ children, description, error, ...props }: CheckboxProps) {
+function Checkbox({
+  children,
+  description,
+  error,
+  ...props
+}: CheckboxProps & RefAttributes<HTMLDivElement>) {
   const ripple = useRipple<HTMLSpanElement>()
 
   const validationBehavior = useFieldValidationBehavior()

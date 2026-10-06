@@ -1,6 +1,7 @@
-import type { ReactElement } from 'react'
+import type { ReactElement, Ref } from 'react'
 
 import { render } from '@testing-library/react'
+import { cloneElement, createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 
 import * as components from '.'
@@ -872,6 +873,109 @@ describe.each(CASES)('$name', ({ element }) => {
     const classes = [...probed().classList].filter((name) => name !== 'probe')
 
     expect(classes.length).toBeGreaterThan(0)
+  })
+})
+
+// A ref is the third thing a call site reaches a component's element by — to
+// move focus to it, to measure it, or to anchor something to it — and React 19
+// passes it as a prop like the other two. So it lands on the same element the
+// className does: for every component, and for the content part of an
+// overlay whose root renders no element of its own. A sub-part such as
+// `List.Item` is reached through its own component rather than here.
+//
+// A case whose element is the component itself takes the ref by cloning. A
+// radio is drawn inside its group and a content part inside its overlay, so
+// those take the ref where they are written instead.
+const CLONED = CASES.filter(
+  ({ name }) => !name.includes('.') && name !== 'Radio',
+)
+
+describe.each(CLONED)('$name', ({ element }) => {
+  it('hands a ref the element the className lands on', () => {
+    const ref = createRef<Element>()
+
+    render(
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- every case here is a component refs.test.ts pins as taking a ref, and the list holds them as plain elements
+      cloneElement(element as ReactElement<{ ref?: Ref<Element> }>, { ref }),
+    )
+
+    expect(ref.current).toBe(probed())
+  })
+})
+
+describe('a ref written inside its parent', () => {
+  it('reaches a radio rather than its group', () => {
+    const ref = createRef<HTMLDivElement>()
+
+    render(
+      <RadioGroup label="Label">
+        <Radio {...PROBE} ref={ref} value="first">
+          First item
+        </Radio>
+      </RadioGroup>,
+    )
+
+    expect(ref.current).toBe(probed())
+  })
+
+  it('reaches the panel of a dialog', () => {
+    const ref = createRef<HTMLDivElement>()
+
+    render(
+      <Dialog defaultOpen>
+        <Button>Open</Button>
+        <Dialog.Content {...PROBE} ref={ref}>
+          <Dialog.Body>First item</Dialog.Body>
+        </Dialog.Content>
+      </Dialog>,
+    )
+
+    expect(ref.current).toBe(probed())
+  })
+
+  it('reaches the surface of a menu', () => {
+    const ref = createRef<HTMLElement>()
+
+    render(
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content {...PROBE} ref={ref}>
+          <Menu.Item id="first">First item</Menu.Item>
+        </Menu.Content>
+      </Menu>,
+    )
+
+    expect(ref.current).toBe(probed())
+  })
+
+  it('reaches the surface of a popover', () => {
+    const ref = createRef<HTMLElement>()
+
+    render(
+      <Popover defaultOpen>
+        <Button>Open</Button>
+        <Popover.Content {...PROBE} ref={ref}>
+          First item
+        </Popover.Content>
+      </Popover>,
+    )
+
+    expect(ref.current).toBe(probed())
+  })
+
+  it('reaches the panel of a sheet', () => {
+    const ref = createRef<HTMLDivElement>()
+
+    render(
+      <Sheet defaultOpen>
+        <Button>Open</Button>
+        <Sheet.Content {...PROBE} ref={ref}>
+          First item
+        </Sheet.Content>
+      </Sheet>,
+    )
+
+    expect(ref.current).toBe(probed())
   })
 })
 

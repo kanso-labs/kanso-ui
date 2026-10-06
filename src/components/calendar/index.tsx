@@ -1,7 +1,7 @@
 'use client'
 
 import type { CalendarDate } from '@internationalized/date'
-import type { ReactElement } from 'react'
+import type { ReactElement, RefAttributes } from 'react'
 import type {
   DateValue,
   CalendarProps as RACCalendarProps,
@@ -89,7 +89,9 @@ type CalendarProps<T extends DateValue = DateValue> = Omit<
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
  */
-function Calendar<T extends DateValue>(props: CalendarProps<T>) {
+function Calendar<T extends DateValue>(
+  props: CalendarProps<T> & RefAttributes<HTMLDivElement>,
+) {
   return (
     <RACCalendar<T>
       {...props}

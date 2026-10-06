@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   FocusableElement,
   ToggleButtonGroupProps as RACToggleButtonGroupProps,
@@ -623,7 +623,7 @@ function SegmentedButton({
   selectionMode = 'single',
   showSelectedIcon = true,
   ...props
-}: SegmentedButtonProps) {
+}: RefAttributes<HTMLDivElement> & SegmentedButtonProps) {
   return (
     <ShowSelectedIconContext value={showSelectedIcon}>
       <SelectionModeContext value={selectionMode}>

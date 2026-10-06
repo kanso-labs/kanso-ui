@@ -158,6 +158,15 @@ Specific to this repository:
   state plus `defaultClassName`, the other the state plus `defaultStyle`), both
   in `src/styles/merge.ts`. `src/components/styling.test.tsx` renders every
   exported component and fails if a new one forgets.
+- **A component takes a `ref` where it takes its `className`.** React 19 passes
+  `ref` as a prop, so a component's signature adds `RefAttributes<E>` for the
+  element its class lands on — React Aria's own props types leave `ref` out, as
+  React Aria puts it on the component. An overlay whose root renders nothing
+  takes it on its content part, and a component rendering one of two elements
+  hands it to each through `refCallback` in `src/render/ref.ts`. A field also
+  takes `inputRef` for its own control. `src/components/refs.test.ts` fails the
+  build on a component whose props reject `ref`, and `styling.test.tsx` fails
+  one whose ref lands anywhere but beside the class.
 - **React Aria supplies behaviour and nothing visual.** Four of its habits shape
   how a component here is written. Its `render` prop is a function that must
   return the element it would have rendered itself — a `Button` cannot become an

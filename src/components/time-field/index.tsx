@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TimeFieldProps as RACTimeFieldProps,
   TimeValue,
@@ -113,7 +113,7 @@ function TimeField<T extends TimeValue>({
   trailingIcon,
   variant = 'filled',
   ...props
-}: TimeFieldProps<T>) {
+}: RefAttributes<HTMLDivElement> & TimeFieldProps<T>) {
   const validationBehavior = useFieldValidationBehavior()
 
   return (

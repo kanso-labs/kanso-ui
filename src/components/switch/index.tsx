@@ -9,6 +9,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   ReactNode,
   PointerEvent as ReactPointerEvent,
+  RefAttributes,
 } from 'react'
 import type {
   SwitchFieldProps as RACSwitchFieldProps,
@@ -435,7 +436,7 @@ function Switch({
   error,
   icon = false,
   ...props
-}: SwitchProps) {
+}: RefAttributes<HTMLDivElement> & SwitchProps) {
   const ripple = useRipple<HTMLSpanElement>()
   const drag = useHandleDrag()
 

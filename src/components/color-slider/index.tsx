@@ -1,5 +1,6 @@
 'use client'
 
+import type { RefAttributes } from 'react'
 import type { ColorSliderProps as RACColorSliderProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -158,7 +159,7 @@ function ColorSlider({
   label,
   showValue = true,
   ...props
-}: ColorSliderProps) {
+}: ColorSliderProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACColorSlider
       isDisabled={isDisabled}

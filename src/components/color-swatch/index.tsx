@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import type { CSSProperties, RefAttributes } from 'react'
 import type { ColorSwatchProps as RACColorSwatchProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -88,9 +88,17 @@ type ColorSwatchProps = Omit<RACColorSwatchProps, 'className' | 'style'> & {
  * React Aria's function forms are not taken here, since a swatch has no
  * interactive state for one to read.
  */
-function ColorSwatch({ className, style, ...props }: ColorSwatchProps) {
+// The ref lands on the chequered ground, the element the call site's class
+// and style do, rather than on React Aria's swatch inside it.
+function ColorSwatch({
+  className,
+  ref,
+  style,
+  ...props
+}: ColorSwatchProps & RefAttributes<HTMLSpanElement>) {
   return (
     <span
+      ref={ref}
       {...mergeStyles(stylex.props(chequer.ground, styles.ground), {
         className,
         style,

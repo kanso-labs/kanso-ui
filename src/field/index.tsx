@@ -1,4 +1,10 @@
-import type { FocusEvent, HTMLAttributes, ReactNode, Ref } from 'react'
+import type {
+  FocusEvent,
+  HTMLAttributes,
+  ReactNode,
+  Ref,
+  RefAttributes,
+} from 'react'
 import type {
   ButtonProps,
   GroupProps,
@@ -486,7 +492,7 @@ function FieldInput({
   prefix,
   suffix,
   ...props
-}: FieldInputProps) {
+}: FieldInputProps & RefAttributes<HTMLInputElement>) {
   const box = useContext(BoxContext)
 
   const control = (
@@ -585,7 +591,7 @@ function FieldTextArea({
   autosize = false,
   placeholder,
   ...props
-}: FieldTextAreaProps) {
+}: FieldTextAreaProps & RefAttributes<HTMLTextAreaElement>) {
   const box = useContext(BoxContext)
   const context = useSlottedContext(TextAreaContext)
   const value = typeof context?.value === 'string' ? context.value : ''

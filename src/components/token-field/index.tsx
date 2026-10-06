@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   TokenFieldProps as RACTokenFieldProps,
   TokenInputProps as RACTokenInputProps,
@@ -262,7 +262,7 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
   trailingIcon,
   variant = 'filled',
   ...props
-}: TokenFieldProps<T>) {
+}: RefAttributes<HTMLDivElement> & TokenFieldProps<T>) {
   // A copy of what the field holds, kept only so the label can float from
   // it. React Aria's token field reports `isDisabled` and `isReadOnly`
   // through its render props and not its value, and it hands its state down
