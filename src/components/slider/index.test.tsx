@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import Slider from '.'
@@ -48,6 +49,11 @@ function hasClasses(element: Element, classes: string[]) {
 
 // Hoisted so each is one stable array per render rather than a fresh one,
 // which is what react-perf's no-new-array-as-prop is after.
+/** The horizontal middle of a box. */
+function middleOf(rect: DOMRect) {
+  return rect.left + rect.width / 2
+}
+
 const RANGE = [20, 60]
 const THUMB_LABELS = ['Start', 'End']
 
@@ -196,6 +202,42 @@ describe('slider', () => {
     // what it shows is what the slider announces. Keyboard focus is what
     // brings it up here: React Aria treats focus as visible once a key has
     // been pressed anywhere on the page.
+    // The indicator's inset is logical and its centring translate has to
+    // follow it: a physical one put it a whole width to the left of the
+    // handle under right-to-left. React Aria mirrors the handle itself from
+    // the locale, and the stylesheet the indicator from `dir`, so the case
+    // sets both, as an app does.
+    it.each([
+      ['left-to-right', 'en-US', 'ltr'],
+      ['right-to-left', 'he-IL', 'rtl'],
+    ] as const)('centres the value on the handle, %s', (_, locale, dir) => {
+      const view = render(
+        <I18nProvider locale={locale}>
+          <div dir={dir}>
+            <Slider defaultValue={40} label="Label" />
+          </div>
+        </I18nProvider>,
+      )
+      const input = view.getByRole('slider', { name: 'Label' })
+
+      fireEvent.keyDown(document.body, { key: 'Tab' })
+      act(() => {
+        input.focus()
+      })
+      const output = view.container.querySelector('output')
+      if (output === null) {
+        throw new Error('expected the handle to show its value')
+      }
+      const { thumb } = partsOf(input)
+
+      expect(
+        Math.abs(
+          middleOf(output.getBoundingClientRect()) -
+            middleOf(thumb.getBoundingClientRect()),
+        ),
+      ).toBeLessThan(1)
+    })
+
     it('shows the value over the handle while it has keyboard focus', () => {
       const { input, queryByRole } = setup()
       expect(queryByRole('status')).toBeNull()
