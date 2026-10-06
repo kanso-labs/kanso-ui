@@ -183,6 +183,12 @@ interface FieldMessageProps {
   /** The problem with the current value, in words. */
   error?: string | undefined
   /**
+   * The id the error takes, for a field that points `aria-describedby` at it
+   * itself because its React Aria component generates no error id of its
+   * own. Used only where the message is written out rather than slotted.
+   */
+  errorId?: string | undefined
+  /**
    * Whether the line is indented to a box's inline padding, so it starts
    * where a value above it does. Off for a field with no box to line up with.
    * @default true
@@ -768,6 +774,7 @@ function FieldMessage({
   characterLimitLabel,
   description,
   error,
+  errorId,
   inset = true,
   maxLength,
 }: FieldMessageProps) {
@@ -855,7 +862,8 @@ function FieldMessage({
   //
   // Not every group has one. `TagGroup` wires up a description and an error;
   // `TokenField` wires up a description alone and generates no error id at
-  // all, so its message has nothing to attach to and stays a bare element.
+  // all, so the field names the message itself with `errorId` and points its
+  // editable area at it — see TokenField.
   const errorSlot =
     text !== null &&
     typeof text === 'object' &&
@@ -871,7 +879,9 @@ function FieldMessage({
       {error}
     </Text>
   ) : (
-    <span {...messageStyles}>{error}</span>
+    <span id={errorId} {...messageStyles}>
+      {error}
+    </span>
   )
 
   return (
