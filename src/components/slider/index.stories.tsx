@@ -21,6 +21,24 @@ const PARAGRAPH = <p />
 const RANGE = [20, 60]
 const THUMB_LABELS = ['Start', 'End']
 
+// The inset icon the samples draw, a plain glyph of the stories' own rather
+// than an icon set's. Drawn `1em` square in `currentColor`, as the README
+// asks of every icon, which is what lets each size set it. Hoisted so it is
+// one stable element, which is what react-perf's no-jsx-as-prop is after.
+const ICON = (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <circle cx="12" cy="12" r="6" />
+  </svg>
+)
+
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
 const styles = stylex.create({
   header: {
     display: 'flex',
@@ -50,6 +68,13 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
+  },
+  // The sizes, one under another, each with room above for its value.
+  sizes: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    maxInlineSize: '420px',
   },
 })
 
@@ -93,8 +118,55 @@ const Overview: Story = {
         <div {...stylex.props(styles.sample)}>
           <Slider defaultValue={40} label="Label" />
         </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Stops
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            With stops shown, a slider in steps draws a stop at each one, so the
+            places the handle can land are on the track before it moves. The
+            stops on the active part are on primary.
+          </Text>
+        </div>
         <div {...stylex.props(styles.sample)}>
-          <Slider defaultValue={40} label="In steps of ten" step={10} />
+          <Slider
+            defaultValue={40}
+            label="In steps of ten"
+            showStops
+            step={10}
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
+            Sizes
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Five sizes, from the 16dp track to the 96dp one, rounding their ends
+            more as they grow and lengthening the handle from medium up. From
+            medium up an icon can sit inset at the start of the active part,
+            while the part has room for it.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.sizes)}>
+          {SIZES.map((size) => (
+            <Slider
+              defaultValue={40}
+              icon={ICON}
+              key={size}
+              label={size}
+              size={size}
+            />
+          ))}
         </div>
       </section>
 
@@ -162,6 +234,36 @@ const Range: Story = {
   ),
 }
 
+const Stops: Story = {
+  args: {
+    label: 'In steps of ten',
+    showStops: true,
+    step: 10,
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <Slider {...args} />
+    </div>
+  ),
+}
+
+// Every size, the icon drawn from medium up, as the page gives it.
+const Sizes: Story = {
+  render: () => (
+    <div {...stylex.props(styles.sizes)}>
+      {SIZES.map((size) => (
+        <Slider
+          defaultValue={40}
+          icon={ICON}
+          key={size}
+          label={size}
+          size={size}
+        />
+      ))}
+    </div>
+  ),
+}
+
 const Vertical: Story = {
   args: {
     orientation: 'vertical',
@@ -179,6 +281,6 @@ const Disabled: Story = {
   ),
 }
 
-export { Default, Disabled, Overview, Range, Vertical }
+export { Default, Disabled, Overview, Range, Sizes, Stops, Vertical }
 
 export default meta

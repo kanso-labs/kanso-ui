@@ -1495,10 +1495,18 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The filled half of the track takes primary and the rest its container, with the handle on primary again."
+            description="The filled half of the track takes primary and the rest its container, with the handle on primary again, and the stops on each take on primary and on secondary container. At the medium size the track takes the medium corner and the inset icon on primary."
             title="Slider"
           >
-            <Slider defaultValue={40} label="Label" />
+            <Stack gap="lg">
+              <Slider defaultValue={40} label="Label" showStops step={10} />
+              <Slider
+                defaultValue={40}
+                icon={<CircleIcon />}
+                label="Label"
+                size="md"
+              />
+            </Stack>
           </Section>
 
           <Section

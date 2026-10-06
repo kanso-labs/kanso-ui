@@ -241,7 +241,7 @@ export {
   SheetHeader,
   SheetTitle,
 } from './sheet'
-export type { SliderProps } from './slider'
+export type { SliderProps, SliderSize } from './slider'
 export { default as Slider } from './slider'
 export type {
   SnackbarAction,

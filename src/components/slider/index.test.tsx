@@ -3,7 +3,10 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { SliderSize } from '.'
+
 import Slider from '.'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colors,
   spacing,
@@ -20,9 +23,15 @@ const probeStyles = stylex.create({
   disabledActive: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
   },
+  // A track 420 long, so a step of ten is 42 of it.
+  frame: { inlineSize: '420px' },
+  icon: { color: colors.onPrimary },
+  iconDisabled: { color: colors.inverseOnSurface },
   inactive: { backgroundColor: colors.secondaryContainer },
   indicator: { backgroundColor: colors.inverseSurface },
   stop: { backgroundColor: colors.onSecondaryContainer },
+  stopActive: { backgroundColor: colors.onPrimary },
+  stopActiveDisabled: { backgroundColor: colors.inverseOnSurface },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -38,9 +47,13 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   active: classesOf(stylex.props(probeStyles.active)),
   disabledActive: classesOf(stylex.props(probeStyles.disabledActive)),
+  icon: classesOf(stylex.props(probeStyles.icon)),
+  iconDisabled: classesOf(stylex.props(probeStyles.iconDisabled)),
   inactive: classesOf(stylex.props(probeStyles.inactive)),
   indicator: classesOf(stylex.props(probeStyles.indicator)),
   stop: classesOf(stylex.props(probeStyles.stop)),
+  stopActive: classesOf(stylex.props(probeStyles.stopActive)),
+  stopActiveDisabled: classesOf(stylex.props(probeStyles.stopActiveDisabled)),
 }
 
 function hasClasses(element: Element, classes: string[]) {
@@ -85,6 +98,53 @@ function setup(props: Partial<Parameters<typeof Slider>[0]> = {}) {
     input: view.getByRole('slider', { name: 'Label' }),
   }
 }
+
+// A slider on a track 420 long, under a direction and a locale: React Aria
+// mirrors the handle from the locale, and the stylesheet the parts from
+// `dir`, so a right-to-left case sets both, as an app does.
+function setupFramed(
+  props: Partial<Parameters<typeof Slider>[0]> = {},
+  {
+    dir = 'ltr',
+    locale = 'en-US',
+  }: { dir?: 'ltr' | 'rtl'; locale?: string } = {},
+) {
+  const view = render(
+    <I18nProvider locale={locale}>
+      <div dir={dir} {...stylex.props(probeStyles.frame)}>
+        <Slider defaultValue={40} label="Label" {...props} />
+      </div>
+    </I18nProvider>,
+  )
+  const [input] = view.getAllByRole('slider')
+  return { ...view, input, ...partsOf(input) }
+}
+
+// The stops a part draws, as their centres along the track from its start,
+// for those the part shows whole: a part clips what it holds, which is what
+// hides a stop beside the handle.
+function stopsIn(part: Element, track: HTMLElement, vertical = false) {
+  const bounds = part.getBoundingClientRect()
+  const from = track.getBoundingClientRect()
+  return [...part.children]
+    .filter((child) => !child.querySelector('svg'))
+    .flatMap((stop) => {
+      const box = stop.getBoundingClientRect()
+      const whole = vertical
+        ? box.top >= bounds.top - 0.5 && box.bottom <= bounds.bottom + 0.5
+        : box.left >= bounds.left - 0.5 && box.right <= bounds.right + 0.5
+      const centre = vertical
+        ? from.bottom - (box.top + box.height / 2)
+        : box.left + box.width / 2 - from.left
+      return whole ? [{ centre: Math.round(centre), stop }] : []
+    })
+}
+
+const ICON = (
+  <svg aria-hidden="true" data-testid="icon" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="6" />
+  </svg>
+)
 
 describe('slider', () => {
   describe('semantics', () => {
@@ -294,6 +354,288 @@ describe('slider', () => {
         8,
         0,
       )
+    })
+  })
+
+  // The page's sizes, by the track's thickness, its outer corner and the
+  // handle's length. The strip is centred in the handle's length at each.
+  describe('sizes', () => {
+    it.each([
+      ['xs', 16, 44, '8px'],
+      ['sm', 24, 44, '8px'],
+      ['md', 40, 52, '12px'],
+      ['lg', 56, 68, '16px'],
+      ['xl', 96, 108, '28px'],
+    ] as const)(
+      'draws %s as a %i track in a %i handle, with a %s corner',
+      (size, track, handle, corner) => {
+        const view = setupFramed({ size })
+        const strip = view.segments[1].getBoundingClientRect()
+        const box = view.track.getBoundingClientRect()
+
+        expect(box.height).toBe(handle)
+        expect(view.thumb.getBoundingClientRect().height).toBe(handle)
+        expect(view.thumb.getBoundingClientRect().width).toBe(4)
+        expect(strip.height).toBe(track)
+        expect(strip.top - box.top).toBe((handle - track) / 2)
+        // The inactive part's outer end is the track's end, at the full
+        // corner; its end against the handle stays at 2.
+        const inactive = view.segments[1]
+        expect(getComputedStyle(inactive).borderTopRightRadius).toBe(corner)
+        expect(getComputedStyle(inactive).borderTopLeftRadius).toBe('2px')
+      },
+    )
+
+    it('keeps the parts 8 clear of the handle at every size', () => {
+      for (const size of ['sm', 'md', 'lg', 'xl'] as const) {
+        const view = setupFramed({ size })
+        const thumb = view.thumb.getBoundingClientRect()
+        const centre = thumb.left + thumb.width / 2
+
+        expect(
+          centre - view.segments[0].getBoundingClientRect().right,
+        ).toBeCloseTo(8, 0)
+        expect(
+          view.segments[1].getBoundingClientRect().left - centre,
+        ).toBeCloseTo(8, 0)
+        view.unmount()
+      }
+    })
+
+    it('runs a vertical slider across the same thickness', () => {
+      const view = setupFramed({ orientation: 'vertical', size: 'lg' })
+
+      expect(view.track.getBoundingClientRect().width).toBe(68)
+      expect(view.segments[0].getBoundingClientRect().width).toBe(56)
+      expect(view.thumb.getBoundingClientRect().width).toBe(68)
+    })
+  })
+
+  // The page's stops configuration: a stop at every step, in the role of the
+  // part it sits on, with the one under the handle hidden.
+  describe('stops', () => {
+    it('draws a stop at every step, but the one under the handle', () => {
+      const view = setupFramed({ showStops: true, step: 10 })
+      const [active, inactive] = view.segments
+
+      // The ends sit 8 in, as the single stop does; the rest at each 42.
+      expect(stopsIn(active, view.track).map(({ centre }) => centre)).toEqual([
+        8, 42, 84, 126,
+      ])
+      expect(stopsIn(inactive, view.track).map(({ centre }) => centre)).toEqual(
+        [210, 252, 294, 336, 378, 412],
+      )
+    })
+
+    it('draws the stops on the active part in on primary', () => {
+      const view = setupFramed({ showStops: true, step: 10 })
+      const [active, inactive] = view.segments
+
+      for (const { stop } of stopsIn(active, view.track)) {
+        expect(hasClasses(stop, CLASSES.stopActive)).toBe(true)
+      }
+      for (const { stop } of stopsIn(inactive, view.track)) {
+        expect(hasClasses(stop, CLASSES.stop)).toBe(true)
+      }
+    })
+
+    // In steps of one a stop falls every 4.2, so one lands in the 6 between
+    // the active part's end and the handle. The part clips it, which is what
+    // leaves that space empty.
+    it('leaves the space beside the handle empty', () => {
+      const view = setupFramed({ showStops: true, step: 1 })
+      const box = view.track.getBoundingClientRect()
+      const middle = box.top + box.height / 2
+
+      expect(document.elementFromPoint(box.left + 163, middle)).toBe(view.track)
+      expect(document.elementFromPoint(box.left + 173, middle)).toBe(view.track)
+    })
+
+    it('draws the end stop alone without them', () => {
+      const view = setupFramed({ step: 10 })
+
+      expect(stopsIn(view.segments[0], view.track)).toEqual([])
+      expect(
+        stopsIn(view.segments[1], view.track).map(({ centre }) => centre),
+      ).toEqual([412])
+    })
+
+    it('moves the stop it hides with the handle', () => {
+      const view = setupFramed({ showStops: true, step: 10 })
+
+      fireEvent.keyDown(view.input, { key: 'ArrowRight' })
+
+      expect(
+        stopsIn(view.segments[0], view.track).map(({ centre }) => centre),
+      ).toEqual([8, 42, 84, 126, 168])
+      expect(
+        stopsIn(view.segments[1], view.track).map(({ centre }) => centre),
+      ).toEqual([252, 294, 336, 378, 412])
+    })
+
+    it('puts the first stop on the inactive part before a range', () => {
+      const view = setupFramed({
+        defaultValue: RANGE,
+        showStops: true,
+        step: 10,
+        thumbLabels: THUMB_LABELS,
+      })
+      const [before, active, after] = view.segments
+
+      expect(stopsIn(before, view.track).map(({ centre }) => centre)).toEqual([
+        8, 42,
+      ])
+      expect(stopsIn(active, view.track).map(({ centre }) => centre)).toEqual([
+        126, 168, 210,
+      ])
+      expect(stopsIn(after, view.track).map(({ centre }) => centre)).toEqual([
+        294, 336, 378, 412,
+      ])
+    })
+
+    it('starts the stops from the right, right to left', () => {
+      const view = setupFramed(
+        { showStops: true, step: 10 },
+        { dir: 'rtl', locale: 'he-IL' },
+      )
+      const right = view.track.getBoundingClientRect().right
+      const centres = [...view.segments[0].children].map((stop) => {
+        const box = stop.getBoundingClientRect()
+        return Math.round(right - (box.left + box.width / 2))
+      })
+
+      expect(centres.slice(0, 4)).toEqual([8, 42, 84, 126])
+    })
+
+    it('runs the stops up a vertical slider from the bottom', () => {
+      const view = setupFramed({
+        orientation: 'vertical',
+        showStops: true,
+        step: 10,
+      })
+      const length = view.track.getBoundingClientRect().height
+
+      expect(
+        stopsIn(view.segments[0], view.track, true).map(({ centre }) => centre),
+      ).toEqual([
+        8,
+        ...[0.1, 0.2, 0.3].map((share) => Math.round(share * length)),
+      ])
+    })
+
+    it('dims the stops while disabled', () => {
+      const view = setupFramed({ isDisabled: true, showStops: true, step: 10 })
+      const [active] = view.segments
+      const [first] = stopsIn(active, view.track)
+
+      expect(hasClasses(first.stop, CLASSES.stopActiveDisabled)).toBe(true)
+    })
+
+    // The active part is `Highlight` under a forced palette, so its stops
+    // take the text colour drawn on it.
+    it('keeps the stops apart from their part under forced colours', () => {
+      const view = setupFramed({ showStops: true, step: 10 })
+      const [first] = stopsIn(view.segments[0], view.track)
+
+      expect(
+        declarationsHeld(first.stop, 'forced-colors: active').get(
+          'background-color',
+        ),
+      ).toBe('highlighttext')
+    })
+  })
+
+  // The page's inset icon, at the start of the active part from M up.
+  describe('inset icon', () => {
+    it.each([
+      ['md', 24],
+      ['lg', 24],
+      ['xl', 32],
+    ] as const)(
+      'draws the icon %s at %i, 10 into the active part',
+      (size, length) => {
+        const view = setupFramed({ icon: ICON, size })
+        const icon = view.getByTestId('icon').parentElement
+        const part = view.segments[0].getBoundingClientRect()
+        const box = icon?.getBoundingClientRect()
+
+        expect(box?.width).toBe(length)
+        expect(box?.height).toBe(length)
+        expect((box?.left ?? 0) - part.left).toBe(10)
+        expect((box?.top ?? 0) - part.top).toBe((part.height - length) / 2)
+        expect(icon && hasClasses(icon, CLASSES.icon)).toBe(true)
+      },
+    )
+
+    it.each(['xs', 'sm'] satisfies SliderSize[])(
+      'leaves the icon out at %s',
+      (size) => {
+        const view = setupFramed({ icon: ICON, size })
+
+        expect(view.queryByTestId('icon')).toBeNull()
+      },
+    )
+
+    it('leaves the icon out of a range', () => {
+      const view = setupFramed({
+        defaultValue: RANGE,
+        icon: ICON,
+        size: 'md',
+        thumbLabels: THUMB_LABELS,
+      })
+
+      expect(view.queryByTestId('icon')).toBeNull()
+    })
+
+    // The active part ends 8 short of the handle, so at 12 of 100 it is 42.4
+    // long and at 13 it is 46.6: either side of the 44 an icon of 24 needs
+    // with its 10 on each side. At XL the icon is 32, so the line is at 52,
+    // between 14 and 15.
+    it.each([
+      ['md', 12],
+      ['xl', 14],
+    ] as const)(
+      'hides the icon %s while the active part has no room for it',
+      (size, value) => {
+        const view = setupFramed({ defaultValue: value, icon: ICON, size })
+        const icon = view.getByTestId('icon').parentElement
+
+        expect(icon && getComputedStyle(icon).display).toBe('none')
+
+        fireEvent.keyDown(view.input, { key: 'ArrowRight' })
+
+        expect(icon && getComputedStyle(icon).display).toBe('flex')
+      },
+    )
+
+    it('sits the icon at the foot of a vertical slider', () => {
+      const view = setupFramed({
+        icon: ICON,
+        orientation: 'vertical',
+        size: 'md',
+      })
+      const icon = view.getByTestId('icon').parentElement
+      const part = view.segments[0].getBoundingClientRect()
+      const box = icon?.getBoundingClientRect()
+
+      expect(part.bottom - (box?.bottom ?? 0)).toBe(10)
+      expect((box?.left ?? 0) - part.left).toBe((part.width - 24) / 2)
+    })
+
+    it('dims the icon while disabled', () => {
+      const view = setupFramed({ icon: ICON, isDisabled: true, size: 'md' })
+      const icon = view.getByTestId('icon').parentElement
+
+      expect(icon && hasClasses(icon, CLASSES.iconDisabled)).toBe(true)
+    })
+
+    it('draws the icon in the text colour on the active part under forced colours', () => {
+      const view = setupFramed({ icon: ICON, size: 'md' })
+      const icon = view.getByTestId('icon').parentElement
+
+      expect(
+        icon && declarationsHeld(icon, 'forced-colors: active').get('color'),
+      ).toBe('highlighttext')
     })
   })
 })
