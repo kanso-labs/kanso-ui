@@ -6,18 +6,22 @@ import { describe, expect, it } from 'vitest'
 import {
   Button,
   Calendar,
+  Card,
   Chip,
   ChipGroup,
   ColorPicker,
   DatePicker,
   Disclosure,
+  ListItem,
   RangeCalendar,
+  SearchField,
   Snackbar,
   Table,
   Tabs,
   TextField,
 } from '.'
 import { CalendarDate } from '../date'
+import { rulesReaching } from '../styles/stylesheet.testing'
 
 // Every surface whose hover and pressed layers React Aria's render state
 // draws, rather than `:hover` and `:active`. The browser left `:hover` on
@@ -321,4 +325,104 @@ describe('state layers', () => {
       })
     },
   )
+})
+
+// Three surfaces are plain elements rather than ones React Aria hosts, so
+// there is no render state to draw them from. Their hover waits on
+// `@media (hover: hover)` instead, which a touch screen does not match, and
+// their press is written both bare, for a touch, and inside the query, where
+// StyleX orders it after the hover. Read off the stylesheet with the shared
+// walker, since no test can turn the query off.
+const PLAIN: Record<
+  string,
+  { properties: string[]; target: () => HTMLElement }
+> = {
+  'Card, elevated': {
+    properties: ['background-color', 'box-shadow'],
+    target: () =>
+      render(
+        <Card interactive variant="elevated">
+          Headline
+        </Card>,
+      ).getByRole('button'),
+  },
+  'Card, filled': {
+    properties: ['background-color'],
+    target: () =>
+      render(
+        <Card interactive variant="filled">
+          Headline
+        </Card>,
+      ).getByRole('button'),
+  },
+  'Card, outlined': {
+    properties: ['background-color'],
+    target: () =>
+      render(
+        <Card interactive variant="outlined">
+          Headline
+        </Card>,
+      ).getByRole('button'),
+  },
+  'ListItem, interactive': {
+    properties: ['background-color'],
+    target: () =>
+      render(<ListItem interactive>Headline</ListItem>).getByRole('button'),
+  },
+  'SearchField, the bar': {
+    properties: ['background-color'],
+    target: () => {
+      const bar = render(<SearchField label="Label" />).getByRole(
+        'searchbox',
+      ).parentElement
+      if (!bar) {
+        throw new Error('expected the input to sit inside the bar')
+      }
+      return bar
+    },
+  },
+}
+
+// Where the rules reaching `element` set `property` through a hover or a
+// press, inside the query and out of it.
+function hoverRulesOf(element: HTMLElement, property: string) {
+  const rules = rulesReaching(element, { holding: 'hover: hover' })
+  const lastIndex = (held: boolean, pseudo: string) => {
+    let found = -1
+    for (const [index, rule] of rules.entries()) {
+      if (
+        rule.held === held &&
+        rule.pseudo === pseudo &&
+        rule.style.getPropertyValue(property) !== ''
+      ) {
+        found = index
+      }
+    }
+    return found
+  }
+
+  return {
+    bareHover: lastIndex(false, 'hover') !== -1,
+    barePress: lastIndex(false, 'active') !== -1,
+    heldHover: lastIndex(true, 'hover') !== -1,
+    pressOverHover: lastIndex(true, 'active') > lastIndex(true, 'hover'),
+  }
+}
+
+describe('state layers on a plain element', () => {
+  describe.each(Object.entries(PLAIN))('%s', (_, { properties, target }) => {
+    it('hovers only for a pointer that can, and presses for any', () => {
+      const element = target()
+
+      for (const property of properties) {
+        expect({ property, ...hoverRulesOf(element, property) }).toEqual({
+          bareHover: false,
+          barePress: true,
+          heldHover: true,
+          pressOverHover: true,
+          property,
+        })
+      }
+    })
+  })
 })

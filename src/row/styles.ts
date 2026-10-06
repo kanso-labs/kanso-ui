@@ -41,6 +41,14 @@ import {
 // colour, because a row's own background is transparent and it therefore
 // tints whatever it happens to be sitting on — a card, a menu, or the page.
 // The two selected states are the ones that bring a container of their own.
+
+// A pointer that can hover, for `interactiveLayers` — a plain element with no
+// render state, so its hover layer is a pseudo-class, and Chromium leaves
+// `:hover` on whatever a touch last tapped. Inside this query a touch screen
+// draws no hover at all; a touchscreen laptop still matches it for its
+// trackpad.
+const HOVER_CAPABLE = '@media (hover: hover)'
+
 const rowStyles = stylex.create({
   base: {
     alignItems: 'center',
@@ -150,11 +158,21 @@ const rowStyles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
   },
-  // The hover and pressed layers from pseudo-classes — see `interactive`.
+  // The hover and pressed layers from pseudo-classes — see `interactive`,
+  // and `HOVER_CAPABLE` for the query the hover waits on. `:active` is written
+  // twice, bare for a touch and again inside the query: StyleX orders a rule
+  // by the sum of its conditions, so a hover inside the query would
+  // otherwise come after a bare press and win while both held.
   interactiveLayers: {
     backgroundColor: {
-      ':active': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
-      ':hover': `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      ':active': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      },
+      ':hover': {
+        default: null,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+      },
       default: 'transparent',
     },
   },
