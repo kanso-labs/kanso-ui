@@ -15,6 +15,7 @@ import {
 } from 'react-aria-components'
 
 import ProgressIndicator from '../components/progress-indicator'
+import { useToggleGroupDisabled } from '../hooks/useToggleGroupDisabled'
 import { useMessages } from '../i18n'
 import {
   buttonRenderer,
@@ -221,8 +222,13 @@ function ToggleButtonBase({
   render,
   ...input
 }: ToggleButtonBaseProps) {
+  // A selecting ButtonGroup disables its toggles through React Aria's group
+  // state, which no prop here carries, so the ripple would stay on in a
+  // disabled group and answer a press with an animation. Handed on as the
+  // toggle's own `isDisabled`, which is what React Aria makes of it anyway.
+  const disabledByGroup = useToggleGroupDisabled(input.id)
   const { disabled, element, props, ref, ripple } = useButtonBase(
-    input,
+    disabledByGroup ? { ...input, isDisabled: true } : input,
     isPending,
   )
 

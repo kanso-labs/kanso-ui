@@ -8,10 +8,15 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
+import { ToggleGroupStateContext } from 'react-aria-components'
 
 import type { ButtonDOMProps, ButtonState } from '../../button'
+import type { ButtonGroupItem } from '../../button/context'
 
 import { ButtonBase, ToggleButtonBase } from '../../button'
+import { ButtonGroupItemContext } from '../../button/context'
+import { groupPressHandlers } from '../../button/group'
 import { focus } from '../../styles/focus'
 import {
   colors,
@@ -128,9 +133,9 @@ const styles = stylex.create({
     // same reason; without it the two disagreed about what a
     // link-as-control looks like.
     textDecoration: 'none',
-    transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}`,
-    transitionProperty: 'background-color, border-radius',
-    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}`,
+    transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}`,
+    transitionProperty: 'background-color, border-radius, inline-size',
+    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingEmphasized}`,
   },
   disabled: {
     borderRadius: radii.pill,
@@ -461,6 +466,22 @@ const outlineWidths = stylex.create({
   xxl: { borderWidth: '3px' },
 })
 
+// Each size's edge again, for the one place it is read at runtime: a standard
+// ButtonGroup widening a pressed button by adding to it. The size styles
+// above write the same values.
+const EDGES = {
+  lg: sizing.controlLg,
+  md: sizing.controlSm,
+  xl: sizing.controlXl,
+  xs: sizing.controlXs,
+  xxl: sizing.controlXxl,
+}
+
+// The width a standard group sets while it widens or narrows the button.
+const shifted = stylex.create({
+  width: (value: string) => ({ inlineSize: value }),
+})
+
 // The corner each size presses to, which is the page's round-to-square
 // morph, and the corner a chosen toggle rests at. A style per size rather than
 // a value inside each size style, since StyleX replaces the property whole:
@@ -597,6 +618,24 @@ type IconButtonState = ButtonState
 
 type IconButtonVariant = 'filled' | 'outlined' | 'standard' | 'tonal'
 
+// What a group lays over the button: its own styles for the button's state,
+// last so a connected group's corners hold whatever the button's own shape
+// would be, and the standard group's widening or narrowing as extra width.
+function groupStyles(
+  group: ButtonGroupItem | null,
+  size: IconButtonSize,
+  state: ButtonState,
+) {
+  if (group === null) {
+    return null
+  }
+  return [
+    group.styles?.(state),
+    group.shift !== 0 &&
+      shifted.width(`calc(${EDGES[size]} + ${group.shift}px)`),
+  ]
+}
+
 /**
  * A button that is an icon, at five control heights. Given `href` it is a
  * link with the same appearance. Every `aria-*` prop is forwarded to the
@@ -621,16 +660,26 @@ function IconButton({
   onChange,
   pendingLabel,
   rel,
-  size = 'md',
+  size: ownSize,
   target,
   variant = 'standard',
   ...props
 }: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  // A ButtonGroup around the button hands it a size, its shape at the
+  // group's inner edges and the press interaction, as it does Button's; see
+  // src/button/context.ts. A size named here still wins.
+  const group = useContext(ButtonGroupItemContext)
+  const size = ownSize ?? group?.size ?? 'md'
+  const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
+  const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
+
   // The three props that make this a toggle. Read together rather than behind
   // a `toggle` word of its own, the way `href` already turns the button into
   // a link: a button given none of them has no state to report, and one given
-  // any of them has nothing else it could mean.
+  // any of them has nothing else it could mean. A selecting ButtonGroup
+  // around it makes it one as well, to take part in the group's selection.
   if (
+    inSelectingGroup ||
     defaultSelected !== undefined ||
     isSelected !== undefined ||
     onChange !== undefined
@@ -638,7 +687,8 @@ function IconButton({
     return (
       <ToggleButtonBase
         {...props}
-        classes={toggleStyleProps(size, variant)}
+        {...press}
+        classes={toggleStyleProps(size, variant, group)}
         defaultSelected={defaultSelected}
         isPending={isPending}
         isSelected={isSelected}
@@ -650,7 +700,8 @@ function IconButton({
   return (
     <ButtonBase
       {...props}
-      classes={iconButtonClasses(size, variant)}
+      {...press}
+      classes={iconButtonClasses(size, variant, group)}
       href={href}
       isPending={isPending}
       pendingLabel={pendingLabel}
@@ -665,7 +716,11 @@ function IconButton({
 // a call rather than written inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after; the React Compiler memoises the result on
 // its inputs.
-function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
+function iconButtonClasses(
+  size: IconButtonSize,
+  variant: IconButtonVariant,
+  group: ButtonGroupItem | null,
+) {
   return (state: ButtonState) =>
     stylex.props(
       styles.base,
@@ -679,6 +734,7 @@ function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
       state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
+      groupStyles(group, size, state),
     )
 }
 
@@ -686,7 +742,11 @@ function iconButtonClasses(size: IconButtonSize, variant: IconButtonVariant) {
 // applied after the disabled styles so it survives them: which of the two
 // states a disabled toggle is in should still be readable, and the disabled
 // style otherwise forces the circle back.
-function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
+function toggleStyleProps(
+  size: IconButtonSize,
+  variant: IconButtonVariant,
+  group: ButtonGroupItem | null,
+) {
   return (state: IconButtonState) => {
     const container =
       toggleContainers[variant][
@@ -711,6 +771,7 @@ function toggleStyleProps(size: IconButtonSize, variant: IconButtonVariant) {
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
+      groupStyles(group, size, state),
     )
   }
 }

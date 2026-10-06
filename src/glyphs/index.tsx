@@ -14,11 +14,12 @@ import { glyphStyles } from './styles'
 // the package.
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
-// close, the right chevron, the two sort arrows, the drop-down arrow and the
-// calendar from Material Symbols on their 24-unit grid, which is what the
-// checkbox page draws at 18dp, the icon buttons page at 20 and the search,
-// menus and date picker pages at 24 — the date picker's menu buttons draw
-// their arrow at 18.
+// close, the right and down chevrons, the two sort arrows, the drop-down
+// arrow and the calendar from Material Symbols on their 24-unit grid, which
+// is what the checkbox page draws at 18dp, the icon buttons page at 20 and
+// the search, menus and date picker pages at 24 — the date picker's menu
+// buttons draw their arrow at 18, and a split button's menu button its
+// chevron at between 22 and 50.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 
@@ -100,6 +101,15 @@ function MinusGlyph(props: GlyphProps) {
 
 const IndeterminateGlyph = MinusGlyph
 
+// Points down at the menu a split button's second half opens.
+function ChevronDownGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+    </Glyph>
+  )
+}
+
 // Points at the submenu a menu item opens. It says "further in" rather than
 // "to the right", so whatever renders it mirrors it under a right-to-left
 // writing mode — the glyph itself carries no direction of its own, since a
@@ -142,6 +152,7 @@ export {
   ArrowUpwardGlyph,
   CalendarGlyph,
   CheckGlyph,
+  ChevronDownGlyph,
   ChevronEndGlyph,
   CloseGlyph,
   IndeterminateGlyph,

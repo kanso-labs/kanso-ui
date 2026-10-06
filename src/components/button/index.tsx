@@ -7,10 +7,15 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
+import { ToggleGroupStateContext } from 'react-aria-components'
 
 import type { ButtonDOMProps, ButtonState } from '../../button'
+import type { ButtonGroupItem } from '../../button/context'
 
 import { ButtonBase, ToggleButtonBase } from '../../button'
+import { ButtonGroupItemContext } from '../../button/context'
+import { groupPressHandlers } from '../../button/group'
 import { focus } from '../../styles/focus'
 import {
   colors,
@@ -157,7 +162,7 @@ const styles = stylex.create({
       '@media (prefers-reduced-motion: reduce)': '0s',
       default: motion.durationShort2,
     },
-    transitionProperty: 'border-radius',
+    transitionProperty: 'border-radius, padding',
     transitionTimingFunction: motion.easingEmphasized,
   },
   disabled: {
@@ -392,6 +397,22 @@ const iconSizes = stylex.create({
   xl: { fontSize: '32px' },
   xs: { fontSize: '20px' },
   xxl: { fontSize: '40px' },
+})
+
+// Each size's inline padding again, for the one place it is read at runtime:
+// a standard ButtonGroup widening a pressed button by adding to it. The size
+// styles above write the same values.
+const PADDINGS = {
+  lg: spacing.xl,
+  md: spacing.lg,
+  xl: '48px',
+  xs: spacing.lg,
+  xxl: '64px',
+}
+
+// The padding a standard group sets while it widens or narrows the button.
+const shifted = stylex.create({
+  padding: (value: string) => ({ paddingInline: value }),
 })
 
 // The square corner each size rests at, and a round toggle once selected.
@@ -702,11 +723,21 @@ function Button({
   pendingLabel,
   rel,
   shape = 'round',
-  size = 'md',
+  size: ownSize,
   target,
   variant = 'filled',
   ...props
 }: ButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  // A ButtonGroup or a SplitButton around the button hands it a size, its
+  // shape at the group's inner edges and the press interaction; see
+  // src/button/context.ts. A size named here still wins.
+  const group = useContext(ButtonGroupItemContext)
+  const size = ownSize ?? group?.size ?? 'md'
+  // A group that selects is React Aria's ToggleButtonGroup, whose buttons
+  // have to be toggles to take part in its selection.
+  const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
+  const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
+
   // The icon goes in with the label, inside what ButtonBase hides while the
   // button is pending, so the ring takes the place of both.
   const content =
@@ -720,17 +751,25 @@ function Button({
     )
 
   // The three props that make this a toggle, read as IconButton reads them,
-  // for every style the page gives a toggle's colours to.
+  // for every style the page gives a toggle's colours to — or a selecting
+  // group around it. A text button in such a group is a toggle too, for the
+  // group's sake, and draws its selection by nothing but the group's shape.
   if (
-    variant !== 'text' &&
-    (defaultSelected !== undefined ||
-      isSelected !== undefined ||
-      onChange !== undefined)
+    inSelectingGroup ||
+    (variant !== 'text' &&
+      (defaultSelected !== undefined ||
+        isSelected !== undefined ||
+        onChange !== undefined))
   ) {
     return (
       <ToggleButtonBase
         {...props}
-        classes={toggleClasses(shape, size, variant)}
+        {...press}
+        classes={
+          variant === 'text'
+            ? buttonClasses(shape, size, variant, group)
+            : toggleClasses(shape, size, variant, group)
+        }
         defaultSelected={defaultSelected}
         isPending={isPending}
         isSelected={isSelected}
@@ -744,7 +783,8 @@ function Button({
   return (
     <ButtonBase
       {...props}
-      classes={buttonClasses(shape, size, variant)}
+      {...press}
+      classes={buttonClasses(shape, size, variant, group)}
       href={href}
       isPending={isPending}
       pendingLabel={pendingLabel}
@@ -765,6 +805,7 @@ function buttonClasses(
   shape: ButtonShape,
   size: ButtonSize,
   variant: ButtonVariant,
+  group: ButtonGroupItem | null,
 ) {
   return (state: ButtonState) =>
     stylex.props(
@@ -778,9 +819,28 @@ function buttonClasses(
       state.isFocusVisible && focused[variant],
       state.isPressed && pressed[variant],
       state.isPressed && pressedShapes[size],
+      groupStyles(group, size, state),
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )
+}
+
+// What a group lays over the button: its own styles for the button's state,
+// and the standard group's widening or narrowing as extra inline padding,
+// half of the shift on either side.
+function groupStyles(
+  group: ButtonGroupItem | null,
+  size: ButtonSize,
+  state: ButtonState,
+) {
+  if (group === null) {
+    return null
+  }
+  return [
+    group.styles?.(state),
+    group.shift !== 0 &&
+      shifted.padding(`calc(${PADDINGS[size]} + ${group.shift / 2}px)`),
+  ]
 }
 
 // A toggle's classes: the plain button's, with the container and its layers
@@ -792,6 +852,7 @@ function toggleClasses(
   shape: ButtonShape,
   size: ButtonSize,
   variant: ToggleVariant,
+  group: ButtonGroupItem | null,
 ) {
   return (state: ButtonState) => {
     const isSelected = state.isSelected === true
@@ -813,6 +874,7 @@ function toggleClasses(
       state.isPressed && pressed[variant],
       state.isPressed && pressed[container],
       state.isPressed && pressedShapes[size],
+      groupStyles(group, size, state),
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )

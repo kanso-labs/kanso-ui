@@ -1309,7 +1309,9 @@ describe('shape', () => {
     const { button } = setup()
     const computed = getComputedStyle(button)
 
-    expect(computed.transitionProperty).toBe('border-radius')
+    // The corner for the shape morph, and the padding a standard ButtonGroup
+    // widens a pressed button by.
+    expect(computed.transitionProperty).toBe('border-radius, padding')
     expect(Number.parseFloat(computed.transitionDuration)).toBeGreaterThan(0)
     expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
   })

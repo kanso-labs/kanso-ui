@@ -35,6 +35,7 @@ import Avatar from '../components/avatar'
 import Badge from '../components/badge'
 import Breadcrumbs from '../components/breadcrumbs'
 import Button from '../components/button'
+import ButtonGroup from '../components/button-group'
 import Calendar from '../components/calendar'
 import Card from '../components/card'
 import Checkbox from '../components/checkbox'
@@ -89,6 +90,7 @@ import Separator from '../components/separator'
 import Sheet from '../components/sheet'
 import Slider from '../components/slider'
 import Snackbar from '../components/snackbar'
+import SplitButton from '../components/split-button'
 import Stack from '../components/stack'
 import SupportingPane from '../components/supporting-pane'
 import Switch from '../components/switch'
@@ -115,6 +117,10 @@ import { demoThemes } from './themes'
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
+
+// The ButtonGroup section's selection. Hoisted so it is one stable array per
+// render, which is what react-perf's jsx-no-new-array-as-prop is after.
+const FIRST_KEY = ['first']
 
 // The measure the page runs at, and the gutter Container pads it with. The bar
 // is told both so its row lines up with the content beneath it rather than
@@ -580,6 +586,31 @@ function Showcase({ name }: ShowcaseProps) {
               </Button>
               <Button isDisabled>Label</Button>
               <Button isPending>Label</Button>
+            </div>
+          </Section>
+
+          <Section
+            description="A group draws nothing of its own: what a scheme reaches is the buttons' containers and their corners, which a connected group squares off where its buttons meet."
+            title="ButtonGroup"
+          >
+            <div {...stylex.props(styles.row)}>
+              <ButtonGroup aria-label="Label">
+                <Button variant="tonal">First item</Button>
+                <Button variant="tonal">Second item</Button>
+              </ButtonGroup>
+              <ButtonGroup
+                aria-label="Label"
+                defaultSelectedKeys={FIRST_KEY}
+                selectionMode="single"
+                variant="connected"
+              >
+                <Button id="first" variant="outlined">
+                  First item
+                </Button>
+                <Button id="second" variant="outlined">
+                  Second item
+                </Button>
+              </ButtonGroup>
             </div>
           </Section>
 
@@ -1402,6 +1433,26 @@ function Showcase({ name }: ShowcaseProps) {
               main={<MainContent />}
               supporting={<SupportingContent />}
             />
+          </Section>
+
+          <Section
+            description="Both halves read their containers off the variant's colour roles, and the corner where they meet off the radius scale."
+            title="SplitButton"
+          >
+            <div {...stylex.props(styles.row)}>
+              <SplitButton>
+                <SplitButton.Action>Label</SplitButton.Action>
+                <SplitButton.Menu aria-label="More options">
+                  <Menu.Item id="first">First item</Menu.Item>
+                </SplitButton.Menu>
+              </SplitButton>
+              <SplitButton variant="tonal">
+                <SplitButton.Action>Label</SplitButton.Action>
+                <SplitButton.Menu aria-label="More options">
+                  <Menu.Item id="first">First item</Menu.Item>
+                </SplitButton.Menu>
+              </SplitButton>
+            </div>
           </Section>
 
           <Section
