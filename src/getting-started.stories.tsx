@@ -97,12 +97,16 @@ const THEMING = `:root {
 
 const STYLESHEET = `import '@kanso-labs/kanso-ui/styles.css'`
 
-const SCHEME = `import { ThemeProvider } from 'next-themes'
-import { colorScheme } from '@kanso-labs/kanso-ui'
+const SCOPE = `/* .accent { --kui-color-primary: #7d5260; } */
+import { ThemeScope } from '@kanso-labs/kanso-ui'
 
-<ThemeProvider attribute="class" value={colorScheme}>
+<ThemeScope className="accent">
   {children}
-</ThemeProvider>`
+</ThemeScope>`
+
+const SCHEME = `import { colorScheme } from '@kanso-labs/kanso-ui'
+
+<html className={colorScheme.dark}>`
 
 const LAYERS = `/* Tailwind v4: the preflight before the library, utilities after it */
 @layer theme, base, kanso, components, utilities;
@@ -460,18 +464,26 @@ function GettingStartedPage() {
         </Card>
         <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            An override has to land on <Code>:root</Code>, or on another
-            selector matching the <Code>&lt;html&gt;</Code> element. Components
-            resolve their tokens once, at the root, so a <Code>--kui-*</Code>{' '}
-            property redeclared on a smaller scope never reaches them.
+            On <Code>:root</Code> an override reaches the whole page. To theme
+            part of one, wrap it in <Code>ThemeScope</Code> and declare the
+            overrides on the scope, or on any element around it. The tokens
+            resolve again there, so every component inside follows — overlays
+            opened inside included — and the rest of the page keeps its own.
           </Text>
+        </div>
+        <Card variant="filled">
+          <pre {...stylex.props(styles.snippet)}>
+            <Code>{SCOPE}</Code>
+          </pre>
+        </Card>
+        <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The colours follow the reader&apos;s own light or dark setting. An
             app with a switch of its own pins one with <Code>colorScheme</Code>:
             put <Code>colorScheme.light</Code> or <Code>colorScheme.dark</Code>{' '}
             on the <Code>&lt;html&gt;</Code> element, and an override on{' '}
-            <Code>:root</Code> still applies under either. Its shape is the one
-            next-themes takes:
+            <Code>:root</Code> still applies under either. A scope&apos;s{' '}
+            <Code>scheme</Code> prop does the same for what is inside it.
           </Text>
         </div>
         <Card variant="filled">
@@ -487,17 +499,13 @@ function GettingStartedPage() {
             their defaults.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            An app that uses StyleX itself should reach for{' '}
-            <Code>stylex.createTheme()</Code> instead, which produces a scoped
-            override class rather than a global one.
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            That takes the token objects it overrides — <Code>colors</Code>,{' '}
-            <Code>typography</Code>, <Code>spacing</Code>, <Code>radii</Code>,{' '}
-            <Code>sizing</Code>, <Code>shadows</Code>,{' '}
-            <Code>stateLayerOpacity</Code> and <Code>motion</Code> — and those
-            are not part of the public API yet, so redeclaring{' '}
-            <Code>--kui-*</Code> at <Code>:root</Code> is the route today.{' '}
+            An app that uses StyleX itself themes the same way. The token
+            objects <Code>stylex.createTheme()</Code> would take —{' '}
+            <Code>colors</Code>, <Code>typography</Code>, <Code>spacing</Code>,{' '}
+            <Code>radii</Code>, <Code>sizing</Code>, <Code>shadows</Code>,{' '}
+            <Code>stateLayerOpacity</Code> and <Code>motion</Code> — are not
+            part of the public API yet, so the <Code>--kui-*</Code> properties
+            are the route today.{' '}
             {/* No `underline` override: this one sits inside a sentence, so
                 the rule is what separates it from the prose for a reader who
                 does not see the colour difference. The links under Elsewhere

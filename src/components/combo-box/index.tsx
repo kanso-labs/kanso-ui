@@ -159,11 +159,11 @@ type ComboBoxProps<
   M extends ComboBoxSelectionMode = 'single',
 > = {
   /**
-   * Where to portal the list. Defaults to the end of `<body>`, which is
-   * right for an app that sets its StyleX theme on `:root`. An app that
-   * scopes the theme to a subtree has to point this at an element inside it,
-   * or the list renders outside the theme and falls back to the tokens'
-   * `prefers-color-scheme` default.
+   * Where to portal the list. Defaults to the container of the `ThemeScope`
+   * around it, which keeps the list on that scope's tokens, or to the end of
+   * `<body>` where there is none. A subtree themed through the `themeScope`
+   * class has no container of its own, so point this inside it, or the list
+   * renders outside and keeps the page's tokens.
    */
   container?: Element
   /**

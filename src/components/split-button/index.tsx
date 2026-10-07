@@ -142,8 +142,10 @@ type SplitButtonMenuProps = {
   /** The menu's items, as `Menu.Item`s and the rest of Menu's parts. */
   children: ReactNode
   /**
-   * Where the menu is portalled to. Point it inside a subtree that scopes its
-   * own theme, or it renders outside it.
+   * Where the menu is portalled to. Defaults to the container of the
+   * `ThemeScope` around it, or to the end of `<body>` where there is none. A
+   * subtree themed through the `themeScope` class has no container of its own,
+   * so point this inside it, or it renders outside and keeps the page's tokens.
    */
   container?: Element
   /**

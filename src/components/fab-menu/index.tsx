@@ -210,8 +210,10 @@ type FabMenuProps = {
    */
   className?: ClassNameOrFunction<ButtonState>
   /**
-   * Where the actions are portalled to. Point it inside a subtree that
-   * scopes its own theme, or they render outside it.
+   * Where the actions are portalled to. Defaults to the container of the
+   * `ThemeScope` around it, or to the end of `<body>` where there is none. A
+   * subtree themed through the `themeScope` class has no container of its own,
+   * so point this inside it, or they render outside and keep the page's tokens.
    */
   container?: Element
   /**

@@ -1936,6 +1936,17 @@ export type TextProps = {
 } & RenderComponentProps<'span'>;
 
 // @public
+export function ThemeScope(input: ThemeScopeProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+
+// @public
+export const themeScope: string;
+
+// @public (undocumented)
+export type ThemeScopeProps = RenderComponentProps<'div'> & {
+    scheme?: 'dark' | 'light' | undefined;
+};
+
+// @public
 export function TimeField<T extends TimeValue>(input: RefAttributes<HTMLDivElement> & TimeFieldProps<T>): JSX;
 
 // @public (undocumented)

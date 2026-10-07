@@ -247,20 +247,28 @@ ${lines.join('\n')}
 export { ${exportName} }`
 }
 
-// Colors are the one group StyleX itself still needs to know is themed —
-// unlike every other category, `[DARK]` gives each var a *different*
-// fallback per scheme, which a single var(..., fallback) can't express.
+// Colours are the one group with a value per scheme, and they are split in
+// two so that the scheme and an override can each be decided where they apply.
+// `colorDefaults` holds the literal each role takes — the light one, or the
+// dark one under prefers-color-scheme — and `colors`, the group every component
+// reads, is the role's `--kui-color-*` custom property falling back to it.
+//
+// The split is what lets a subtree be themed without losing the scheme around
+// it. A custom property's var() is substituted on the element that declares
+// it, and its descendants inherit the result, so `colors` declared on `:root`
+// alone resolves every `--kui-color-*` there and nowhere else. Declared again
+// on an element — what `tokenScope` below does — it resolves the overrides in
+// scope at that element instead, while `colorDefaults`, not declared again, is
+// still inherited from whatever pinned a scheme above it, or from the OS. One
+// group holding both, as it did before the split, made a scope choose between
+// the OS's scheme and none.
 /** @param {string} exportName @param {ThemedEntry[]} entries @returns {string} */
-function themedVarsBlock(exportName, entries) {
+function themedDefaultsBlock(exportName, entries) {
   const lines = entries
-    .map(([name, light, dark]) => {
-      // JSON.stringify rather than a hand-wrapped '...' literal — see
-      // withCssVarFallback above; colors are hex-only today so it isn't
-      // live, but the two generators should stay consistent.
-      const ref = (/** @type {string} */ value) =>
-        JSON.stringify(`var(${cssVarName('colors', name)}, ${value})`)
-      return `  ${name}: { [DARK]: ${ref(dark)}, default: ${ref(light)} },`
-    })
+    .map(
+      ([name, light, dark]) =>
+        `  ${name}: { [DARK]: ${JSON.stringify(dark)}, default: ${JSON.stringify(light)} },`,
+    )
     .toSorted((a, b) => a.trim().localeCompare(b.trim()))
   return `const ${exportName} = stylex.defineVars({
 ${lines.join('\n')}
@@ -269,8 +277,27 @@ ${lines.join('\n')}
 export { ${exportName} }`
 }
 
-// A stylex.createTheme() pair per themed var group: overrideable classes
-// that pin every var to its light or its dark value, regardless of the
+// The group every component reads, each role a reference to `defaultsName`'s
+// behind its `--kui-color-*`. Written as a template literal in the generated
+// source, since StyleX resolves a var group referenced from the same file at
+// compile time and a hand-spelled `var(--hash)` would not survive a rehash.
+/** @param {string} exportName @param {string} defaultsName @param {ThemedEntry[]} entries @returns {string} */
+function themedVarsBlock(exportName, defaultsName, entries) {
+  const lines = entries
+    .map(
+      ([name]) =>
+        `  ${name}: \`var(${cssVarName('colors', name)}, \${${defaultsName}.${name}})\`,`,
+    )
+    .toSorted((a, b) => a.trim().localeCompare(b.trim()))
+  return `const ${exportName} = stylex.defineVars({
+${lines.join('\n')}
+})
+
+export { ${exportName} }`
+}
+
+// A stylex.createTheme() pair over the colour defaults: overrideable classes
+// that pin every role to its light or its dark literal, regardless of the
 // OS-level prefers-color-scheme media query design.tokens.css defaults to.
 // An app's own scheme switch — the package exports these as `colorScheme`,
 // and Storybook's Theme control uses them too — needs both directions:
@@ -278,9 +305,9 @@ export { ${exportName} }`
 // OS preference is exactly as common a case and would otherwise silently
 // fall through to the media query.
 //
-// Each value goes through the same `var(--kui-color-*, value)` the default
-// vars do, so a consumer's `--kui-color-*` override still applies under a
-// pinned scheme. A bare literal here would win over it.
+// They set the defaults alone, so a consumer's `--kui-color-*` override
+// still wins under a pinned scheme: `colors` reads the override first, and
+// falls back to these only where none is set.
 /** @param {string} exportName @param {ThemedEntry[]} entries @returns {string} */
 function themeOverrideBlocks(exportName, entries) {
   /** @param {'light' | 'dark'} mode @param {0 | 1} valueIndex @returns {string} */
@@ -288,7 +315,7 @@ function themeOverrideBlocks(exportName, entries) {
     const lines = entries
       .map(
         ([name, ...values]) =>
-          `  ${name}: ${JSON.stringify(`var(${cssVarName('colors', name)}, ${values[valueIndex]})`)},`,
+          `  ${name}: ${JSON.stringify(values[valueIndex])},`,
       )
       .toSorted((a, b) => a.trim().localeCompare(b.trim()))
     const themeExportName = `${exportName}${pascalCase(mode)}Theme`
@@ -301,6 +328,45 @@ export { ${themeExportName} }`
   return `${build('light', 0)}
 
 ${build('dark', 1)}`
+}
+
+// The groups a subtree declares again to take the custom properties in scope
+// there, which is every var group but the colour defaults — those carry the
+// scheme, and a scope inherits the one around it unless something pins it.
+// Spelled out rather than derived from the blocks above, so a group added
+// there is a decision made here too; src/color-scheme.test.tsx probes every
+// group in this list.
+const SCOPED_GROUPS = [
+  'colors',
+  'motion',
+  'radii',
+  'shadows',
+  'sizing',
+  'spacing',
+  'stateLayerOpacity',
+  'typography',
+]
+
+// One empty theme per group, and the list of them. A theme that overrides
+// nothing still declares the whole group on the element it lands on: StyleX
+// applies a group's own class beside every theme over it, and declares the
+// group's defaults under that class as well as under `:root`, so a variable
+// a theme leaves out takes its default rather than whatever an outer theme
+// set. Here that is every variable, each declared again with the default it
+// has at the root — and since those defaults are `var(--kui-*, …)`
+// references, each resolves against the custom properties in scope at that
+// element. That is the whole of a scope, and it is why the scope costs no
+// rule of its own in the stylesheet.
+/** @returns {string} */
+function scopeBlocks() {
+  const themes = SCOPED_GROUPS.map(
+    (group) => `const ${group}Scope = stylex.createTheme(${group}, {})`,
+  )
+  return `${themes.join('\n')}
+
+const tokenScope = [${SCOPED_GROUPS.map((group) => `${group}Scope`).join(', ')}]
+
+export { tokenScope }`
 }
 
 /** @param {ShadowLayer[]} layers @returns {string} */
@@ -721,9 +787,11 @@ function stylexSource(allTokens) {
 
 const DARK = '@media (prefers-color-scheme: dark)'
 
-${themedVarsBlock('colors', themedEntries)}
+${themedDefaultsBlock('colorDefaults', themedEntries)}
 
-${themeOverrideBlocks('colors', themedEntries)}
+${themedVarsBlock('colors', 'colorDefaults', themedEntries)}
+
+${themeOverrideBlocks('colorDefaults', themedEntries)}
 
 ${defineVarsBlock(
   'typography',
@@ -747,6 +815,8 @@ ${defineVarsBlock(
 )}
 
 ${defineVarsBlock('motion', withCssVarFallback('motion', motionEntries(allTokens)))}
+
+${scopeBlocks()}
 
 ${defineConstsBlock('breakpoints', breakpointEntries(allTokens))}
 

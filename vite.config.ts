@@ -109,6 +109,16 @@ export default defineConfig(({ command }) => ({
     ),
     'process.env.VIRT_ON': 'undefined',
   },
+  // Named because nothing reaches it until late in a run. `ThemeScope` is the
+  // one module importing it, and almost every story and spec imports its
+  // component directly rather than through the entry, so Vite first meets the
+  // import a few minutes in — then re-bundles its dependencies and reloads,
+  // and whatever was importing at that moment fails to fetch a module whose
+  // hash just changed. Two files failed that way on the first full run.
+  // `extends: true` merges this list into each project's own.
+  optimizeDeps: {
+    include: ['react-aria/PortalProvider'],
+  },
   plugins: [
     // @kanso-labs/unplugin-style-dictionary@^0.2.1+ only — 0.2.0's
     // watchChange had no filtering, so it reacted to design.tokens.stylex.ts
