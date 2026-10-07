@@ -11,11 +11,13 @@ import Text from '../text'
 
 // A mark of awkward proportions, inline so the story needs no fixture served
 // alongside it. Wide on purpose: it is what shows ProductIcon letterboxing
-// rather than cropping when these are seen at a glance.
+// rather than cropping when these are seen at a glance. Its colours are
+// plain `#` hex, since `encodeURIComponent` escapes the `#` itself: a `%23`
+// written here would be escaped a second time into no colour at all.
 const MARK =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 32"><rect width="96" height="32" rx="4" fill="%23394b47"/><circle cx="16" cy="16" r="8" fill="%2374d9af"/><rect x="32" y="12" width="52" height="8" rx="4" fill="%23e7edea"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 32"><rect width="96" height="32" rx="4" fill="#394b47"/><circle cx="16" cy="16" r="8" fill="#74d9af"/><rect x="32" y="12" width="52" height="8" rx="4" fill="#e7edea"/></svg>`,
   )
 
 const ITEMS = [
