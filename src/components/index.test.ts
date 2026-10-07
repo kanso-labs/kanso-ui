@@ -687,8 +687,8 @@ describe('components barrel', () => {
   )
 
   it('re-exports the AppBarProps type', () => {
-    const props: AppBarProps = { size: 'large' }
-    expect(props.size).toBe('large')
+    const props: AppBarProps = { size: 'lg' }
+    expect(props.size).toBe('lg')
   })
 
   it('re-exports the AvatarProps type', () => {

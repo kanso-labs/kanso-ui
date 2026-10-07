@@ -1,5 +1,7 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+
+import type { AppBarProps } from '.'
 
 import AppBar from '.'
 
@@ -7,12 +9,12 @@ import AppBar from '.'
 // the second column is the whole point of the flexible bars: they grow for a
 // subtitle rather than fitting it into a fixed box.
 const HEIGHTS = {
-  large: { plain: 120, withSubtitle: 152 },
-  medium: { plain: 112, withSubtitle: 136 },
-  small: { plain: 64, withSubtitle: 64 },
+  lg: { plain: 120, withSubtitle: 152 },
+  md: { plain: 112, withSubtitle: 136 },
+  sm: { plain: 64, withSubtitle: 64 },
 } as const
 
-const SIZES = ['small', 'medium', 'large'] as const
+const SIZES = ['sm', 'md', 'lg'] as const
 
 const NARROW = { inlineSize: '280px' }
 
@@ -76,7 +78,7 @@ describe('size', () => {
   // The flexible bars "hug the text contents" in Material Design's words, so a
   // subtitle makes them taller rather than being squeezed in.
   it('grows the flexible sizes for a subtitle', () => {
-    for (const size of ['medium', 'large'] as const) {
+    for (const size of ['md', 'lg'] as const) {
       const view = render(
         <AppBar headline="Headline" size={size} subtitle="Supporting line" />,
       )
@@ -94,12 +96,12 @@ describe('size', () => {
   // second figure.
   it('leaves the small bar at its height with a subtitle', () => {
     const view = render(
-      <AppBar headline="Headline" size="small" subtitle="Supporting line" />,
+      <AppBar headline="Headline" size="sm" subtitle="Supporting line" />,
     )
     const bar = barIn(view.container)
 
-    expect(minHeightOf(bar)).toBe(HEIGHTS.small.plain)
-    expect(bar.getBoundingClientRect().height).toBe(HEIGHTS.small.plain)
+    expect(minHeightOf(bar)).toBe(HEIGHTS.sm.plain)
+    expect(bar.getBoundingClientRect().height).toBe(HEIGHTS.sm.plain)
   })
 
   // A minimum rather than a fixed height, because the spec gives the flexible
@@ -113,7 +115,7 @@ describe('size', () => {
       <div style={NARROW}>
         <AppBar
           headline="A headline long enough that it has to wrap onto several lines inside a narrow bar"
-          size="large"
+          size="lg"
         />
       </div>,
     )
@@ -122,16 +124,20 @@ describe('size', () => {
       throw new Error('expected the app bar to render an element')
     }
 
-    expect(minHeightOf(bar)).toBe(HEIGHTS.large.plain)
-    expect(bar.getBoundingClientRect().height).toBeGreaterThan(
-      HEIGHTS.large.plain,
-    )
+    expect(minHeightOf(bar)).toBe(HEIGHTS.lg.plain)
+    expect(bar.getBoundingClientRect().height).toBeGreaterThan(HEIGHTS.lg.plain)
   })
 
   it('defaults to small', () => {
     const view = render(<AppBar headline="Headline" />)
 
-    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.small.plain)
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
+  })
+
+  it('takes its steps from the size scale', () => {
+    expectTypeOf<AppBarProps['size']>().toEqualTypeOf<
+      'lg' | 'md' | 'sm' | undefined
+    >()
   })
 })
 
@@ -181,7 +187,7 @@ describe('headline', () => {
   it('draws one heading and no more', () => {
     for (const level of [1, 2, 3, 4, 5, 6]) {
       const view = render(
-        <AppBar headingLevel={level} headline="Headline" size="large" />,
+        <AppBar headingLevel={level} headline="Headline" size="lg" />,
       )
 
       expect(view.getAllByRole('heading')).toHaveLength(1)
@@ -222,7 +228,7 @@ describe('collapsed', () => {
   // The whole point: a pinned large bar costs 152px of the viewport for as
   // long as the page is open unless it can give the space back.
   it('takes the small bar’s height on the flexible sizes', () => {
-    for (const size of ['medium', 'large'] as const) {
+    for (const size of ['md', 'lg'] as const) {
       const view = render(
         <AppBar
           collapsed
@@ -232,7 +238,7 @@ describe('collapsed', () => {
         />,
       )
 
-      expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.small.plain)
+      expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
       view.unmount()
     }
   })
@@ -247,7 +253,7 @@ describe('collapsed', () => {
     ).fontSize
     small.unmount()
 
-    const large = render(<AppBar collapsed headline="Headline" size="large" />)
+    const large = render(<AppBar collapsed headline="Headline" size="lg" />)
 
     expect(
       getComputedStyle(large.getByRole('heading', { level: 1 })).fontSize,
@@ -261,7 +267,7 @@ describe('collapsed', () => {
       <AppBar
         collapsed
         headline="Headline"
-        size="large"
+        size="lg"
         subtitle="Supporting line"
       />,
     )
@@ -274,35 +280,35 @@ describe('collapsed', () => {
       <AppBar
         collapsed
         headline="Headline"
-        size="large"
+        size="lg"
         subtitle="Supporting line"
       />,
     )
     view.rerender(
-      <AppBar headline="Headline" size="large" subtitle="Supporting line" />,
+      <AppBar headline="Headline" size="lg" subtitle="Supporting line" />,
     )
 
     expect(view.getByText('Supporting line')).not.toBeNull()
-    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.large.withSubtitle)
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.lg.withSubtitle)
   })
 
-  // `small` is already the height the flexible bars collapse to, so a call
+  // `sm` is already the height the flexible bars collapse to, so a call
   // site choosing its size from a breakpoint does not have to guard the prop.
   it('leaves the small bar alone', () => {
     const view = render(
       <AppBar collapsed headline="Headline" subtitle="Supporting line" />,
     )
 
-    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.small.plain)
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
     expect(view.getByText('Supporting line')).not.toBeNull()
   })
 
   it('stays expanded by default', () => {
     const view = render(
-      <AppBar headline="Headline" size="large" subtitle="Supporting line" />,
+      <AppBar headline="Headline" size="lg" subtitle="Supporting line" />,
     )
 
-    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.large.withSubtitle)
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.lg.withSubtitle)
   })
 })
 

@@ -205,6 +205,28 @@ old name is a type error, and at runtime it draws no button.
 `tone="standard"` is `tone="neutral"`, which is also the default, so the prop
 can simply be dropped. `ToolbarTone` is `'neutral' | 'vibrant'`.
 
+### After 0.38.0: AppBar, Text and ProgressIndicator props
+
+Three props that predated the library's shared prop vocabularies now use them.
+
+- **AppBar's `size`** takes the size scale: `small`, `medium` and `large` are
+  `sm`, `md` and `lg`, and the default is `sm`.
+- **Text's neutral `tone`** is `neutral`, where it was `default`, and it is
+  still the default.
+- **ProgressIndicator's `size`** is `diameter`. It is still a CSS length.
+
+```tsx
+// Before
+<AppBar headline="Headline" size="large" />
+<Text tone="default">Supporting line</Text>
+<ProgressIndicator size="24px" />
+
+// After
+<AppBar headline="Headline" size="lg" />
+<Text tone="neutral">Supporting line</Text>
+<ProgressIndicator diameter="24px" />
+```
+
 ### Changes that shipped without a breaking mark
 
 Each of these is narrower than the ones above, but a call site written against

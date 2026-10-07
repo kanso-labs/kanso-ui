@@ -167,7 +167,7 @@ export type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
     headline?: ReactNode;
     leading?: ReactNode;
     scrolled?: boolean;
-    size?: 'large' | 'medium' | 'small';
+    size?: 'lg' | 'md' | 'sm';
     subtitle?: ReactNode;
     trailing?: ReactNode;
 };
@@ -1344,9 +1344,9 @@ export function ProgressIndicator(input: ProgressIndicatorProps & RefAttributes<
 export type ProgressIndicatorProps = {
     buffer?: number;
     className?: ProgressBarProps['className'];
+    diameter?: string;
     label?: ReactNode;
     showValue?: boolean;
-    size?: string;
     style?: ProgressBarProps['style'];
     tone?: ProgressIndicatorTone;
     variant?: ProgressIndicatorVariant;
@@ -1917,7 +1917,7 @@ export type TextFieldProps = Omit<TextFieldProps_2, 'children' | 'isInvalid' | '
 // @public (undocumented)
 export type TextProps = {
     block?: boolean;
-    tone?: 'default' | 'error' | 'inherit' | 'muted' | 'negative' | 'positive' | 'primary';
+    tone?: 'error' | 'inherit' | 'muted' | 'negative' | 'neutral' | 'positive' | 'primary';
     variant?: 'bodyLarge' | 'bodyMedium' | 'bodySmall' | 'displayLarge' | 'displayMedium' | 'displaySmall' | 'headlineLarge' | 'headlineMedium' | 'headlineSmall' | 'labelLarge' | 'labelMedium' | 'labelSmall' | 'titleLarge' | 'titleMedium' | 'titleSmall';
 } & RenderComponentProps<'span'>;
 

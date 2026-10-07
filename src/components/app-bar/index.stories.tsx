@@ -16,7 +16,7 @@ import Text from '../text'
 
 type Size = NonNullable<AppBarProps['size']>
 
-const SIZES = ['small', 'medium', 'large'] as const satisfies readonly Size[]
+const SIZES = ['sm', 'md', 'lg'] as const satisfies readonly Size[]
 
 // The measure the page under the bar runs at, and the gutter Container pads
 // it with. Both are the call site's, which is the whole point: the bar is told
@@ -181,7 +181,7 @@ function ScrollingPage() {
         headline="Headline"
         leading={LEADING}
         scrolled={scrollTop > 0}
-        size="large"
+        size="lg"
         subtitle="Supporting line"
         trailing={TRAILING}
       />
@@ -231,8 +231,8 @@ const Overview: Story = {
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             64px, 112px and 120px, each giving the headline a larger type role
-            than the one below. `medium` and `large` are Material Design's
-            flexible bars, which grow to hug their text.
+            than the one below. `md` and `lg` are Material Design's medium and
+            large flexible bars, which grow to hug their text.
           </Text>
         </div>
         {SIZES.map((size) => (
@@ -291,9 +291,9 @@ const Overview: Story = {
         <div {...stylex.props(styles.narrow)}>
           <Sample
             headline="A headline long enough to need more than one line"
-            label="large, in a narrow window"
+            label="lg, in a narrow window"
             leading={LEADING}
-            size="large"
+            size="lg"
           />
         </div>
       </section>
@@ -363,7 +363,7 @@ const Overview: Story = {
           headline="Headline"
           label="expanded"
           leading={LEADING}
-          size="large"
+          size="lg"
           subtitle="Supporting line"
           trailing={TRAILING}
         />
@@ -372,7 +372,7 @@ const Overview: Story = {
           headline="Headline"
           label="collapsed"
           leading={LEADING}
-          size="large"
+          size="lg"
           subtitle="Supporting line"
           trailing={TRAILING}
         />
@@ -455,7 +455,7 @@ const Default: Story = {}
 // snapshot of the default never reaches — a taller bar and a larger headline.
 const Large: Story = {
   args: {
-    size: 'large',
+    size: 'lg',
     subtitle: 'Supporting line',
   },
 }

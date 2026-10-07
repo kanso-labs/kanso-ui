@@ -3,7 +3,9 @@ import type { StyleXStyles } from '@stylexjs/stylex'
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+
+import type { TextProps } from '.'
 
 import Text from '.'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
@@ -19,6 +21,9 @@ const expected = stylex.create({
   },
   mutedColor: {
     color: colors.onSurfaceVariant,
+  },
+  neutralColor: {
+    color: colors.onSurface,
   },
   titleMediumScale: {
     fontFamily: typography.titleMediumFont,
@@ -166,6 +171,25 @@ describe('tone', () => {
     expect(hasAll(view.getByText('Supporting copy'), expected.mutedColor)).toBe(
       true,
     )
+  })
+
+  // `neutral` is the on-surface role, spelled as Currency spells it.
+  it('draws in on-surface when neutral, which is the default', () => {
+    const view = render(
+      <>
+        <Text>First item</Text>
+        <Text tone="neutral">Second item</Text>
+      </>,
+    )
+
+    expect(hasAll(view.getByText('First item'), expected.neutralColor)).toBe(
+      true,
+    )
+    expect(hasAll(view.getByText('Second item'), expected.neutralColor)).toBe(
+      true,
+    )
+    expectTypeOf<'neutral'>().toExtend<NonNullable<TextProps['tone']>>()
+    expectTypeOf<'default'>().not.toExtend<NonNullable<TextProps['tone']>>()
   })
 
   it('opts out of setting a color when inherit', () => {

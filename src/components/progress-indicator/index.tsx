@@ -430,6 +430,16 @@ type ProgressIndicatorProps = {
   /** A function may compute the class from the indicator's render state. */
   className?: RACProgressBarProps['className']
   /**
+   * How wide the ring is drawn, as a CSS length. Everything inside scales
+   * with it, so `1em` gives a ring the size of the type around it. Ignored
+   * by the line, which fills the width it is given.
+   *
+   * A length rather than a step of the size scale: a ring sized to the type
+   * around it is what the prop is for, and no fixed scale gives that.
+   * @default '40px'
+   */
+  diameter?: string
+  /**
    * What the work is, shown above the indicator. A screen reader reads it as
    * the indicator's name; an indicator whose surroundings name it takes
    * `aria-label` instead and leaves this out.
@@ -441,19 +451,6 @@ type ProgressIndicatorProps = {
    * @default false
    */
   showValue?: boolean
-  /**
-   * How wide the ring is drawn, as a CSS length. Everything inside scales
-   * with it, so `1em` gives a ring the size of the type around it. Ignored
-   * by the line, which fills the width it is given.
-   *
-   * A length rather than a step of the `sm`/`md`/`lg` scale every other
-   * `size` here takes — see AGENTS.md, under Prop vocabularies. A ring sized
-   * to the type around it is what the prop is for, which no fixed scale
-   * gives; the name predates that rule, and changing it is a breaking change
-   * of its own.
-   * @default '40px'
-   */
-  size?: string
   /** A function may compute the style from the indicator's render state. */
   style?: RACProgressBarProps['style']
   /**
@@ -522,14 +519,14 @@ function bufferShare(
 }
 
 function CircularTrack({
+  diameter,
   isIndeterminate,
   percentage,
-  size,
   tone,
 }: {
+  diameter: string
   isIndeterminate: boolean
   percentage: number | undefined
-  size: string
   tone: ProgressIndicatorTone
 }) {
   const inherit = tone === 'inherit'
@@ -541,7 +538,7 @@ function CircularTrack({
       viewBox={`0 0 ${CIRCULAR_SIZE} ${CIRCULAR_SIZE}`}
       {...stylex.props(
         styles.circular,
-        styles.circularSize(size),
+        styles.circularSize(diameter),
         isIndeterminate && styles.circularIndeterminate,
       )}
     >
@@ -597,7 +594,7 @@ function indicatorContent(
   buffer: number | undefined,
   minValue: number,
   maxValue: number,
-  size: string,
+  diameter: string,
   tone: ProgressIndicatorTone,
 ) {
   return (state: ProgressBarRenderProps) => (
@@ -610,9 +607,9 @@ function indicatorContent(
       />
       {variant === 'circular' ? (
         <CircularTrack
+          diameter={diameter}
           isIndeterminate={state.isIndeterminate}
           percentage={state.percentage}
-          size={size}
           tone={tone}
         />
       ) : (
@@ -700,11 +697,11 @@ function LinearTrack({
  */
 function ProgressIndicator({
   buffer,
+  diameter = CIRCULAR_SIZE_PX,
   label,
   maxValue = 100,
   minValue = 0,
   showValue = false,
-  size = CIRCULAR_SIZE_PX,
   tone = 'primary',
   variant = 'linear',
   ...props
@@ -729,7 +726,7 @@ function ProgressIndicator({
         buffer,
         minValue,
         maxValue,
-        size,
+        diameter,
         tone,
       )}
     </ProgressBar>
