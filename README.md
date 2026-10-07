@@ -20,6 +20,9 @@ Every component is documented in Storybook, published from the latest release at
 npm install @kanso-labs/kanso-ui
 ```
 
+Coming from an earlier 0.x release? [`UPGRADING.md`](UPGRADING.md) lists every
+breaking change on the way to 1.0, with the edit each one asks for.
+
 ## Usage
 
 ```tsx
