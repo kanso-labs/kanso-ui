@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.39.0](https://github.com/kanso-labs/kanso-ui/compare/v0.38.0...v0.39.0) (2026-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* AppBar's `size` takes `sm`, `md` and `lg` where it took `small`, `medium` and `large`, and still defaults to the small bar; Text's `tone="default"` is `tone="neutral"`; ProgressIndicator's `size` is `diameter`, still a CSS length. Rename each at its call sites.
+
+### Features
+
+* **progress-indicator,loading-indicator:** add the wavy shape and the LoadingIndicator component ([#1348](https://github.com/kanso-labs/kanso-ui/issues/1348)) ([3352793](https://github.com/kanso-labs/kanso-ui/commit/33527936ab7033abe209882aee647d99bcf67c4d))
+* reconcile AppBar size, Text tone and ProgressIndicator size with the prop vocabularies before 1.0 ([#1341](https://github.com/kanso-labs/kanso-ui/issues/1341)) ([2fb1d5c](https://github.com/kanso-labs/kanso-ui/commit/2fb1d5cc9e65e242e2177e178295094ca2003a22))
+* **theming:** theme a subtree, portalled overlays included ([#1349](https://github.com/kanso-labs/kanso-ui/issues/1349)) ([c681920](https://github.com/kanso-labs/kanso-ui/commit/c6819203b95ea17accd9d9763c1082f6b5ab844b))
+* **time-picker:** add TimePicker with the time picker dial ([#1342](https://github.com/kanso-labs/kanso-ui/issues/1342)) ([13bed12](https://github.com/kanso-labs/kanso-ui/commit/13bed12052d39a7b9008215366a610a916ec9f2d))
+
+
+### Bug Fixes
+
+* **button:** pad the extra-small button at the spec's 12dp ([#1351](https://github.com/kanso-labs/kanso-ui/issues/1351)) ([8c28597](https://github.com/kanso-labs/kanso-ui/commit/8c2859783df7f8bebbd6811f8c29d85791989925))
+* **chip:** end the ripple on a click when the call site passes onClick ([#1353](https://github.com/kanso-labs/kanso-ui/issues/1353)) ([8a3116b](https://github.com/kanso-labs/kanso-ui/commit/8a3116b0e7a5d89f6de4bb79be2eeba2dd7974b9))
+* **code:** take the colour of the prose it interrupts instead of fixing on-surface ([#1345](https://github.com/kanso-labs/kanso-ui/issues/1345)) ([245df31](https://github.com/kanso-labs/kanso-ui/commit/245df3118857045096c6002dfedbb546d7ad3fe9))
+* **dialog,tooltip:** draw the dialog at elevation 3 and the plain tooltip flat ([#1344](https://github.com/kanso-labs/kanso-ui/issues/1344)) ([b63fb20](https://github.com/kanso-labs/kanso-ui/commit/b63fb20e6946a3ad03c2183ae2b5925fe8a89141))
+* **dialog:** give the full-screen body the spec's top padding below its header ([#1350](https://github.com/kanso-labs/kanso-ui/issues/1350)) ([fdf162c](https://github.com/kanso-labs/kanso-ui/commit/fdf162c6f397d0d2bb28a83294387110a596d07c))
+* **overlay:** grow the picker, Select and ComboBox surfaces from their anchored edge ([#1343](https://github.com/kanso-labs/kanso-ui/issues/1343)) ([14e20ef](https://github.com/kanso-labs/kanso-ui/commit/14e20ef9b12c1453849c9e48de25ca9b2275cebd))
+* **slider:** centre a vertical slider's handle under right-to-left ([#1354](https://github.com/kanso-labs/kanso-ui/issues/1354)) ([b089419](https://github.com/kanso-labs/kanso-ui/commit/b089419bc4875248baaf6329635ba3c6ba3d2e78))
+* **stack:** clear the UA list margin, padding and markers when it renders a list ([#1346](https://github.com/kanso-labs/kanso-ui/issues/1346)) ([ff56e85](https://github.com/kanso-labs/kanso-ui/commit/ff56e8574c02def8efc5a298e007b6dc32467c89))
+* **tabs:** draw an inactive tab's label in on-surface while hovered, focused or pressed ([#1352](https://github.com/kanso-labs/kanso-ui/issues/1352)) ([42e6b36](https://github.com/kanso-labs/kanso-ui/commit/42e6b3632085276df80f33ff0333103fd5b3e1f0))
+* **types:** accept ref on the compound parts whose props types reject it ([#1339](https://github.com/kanso-labs/kanso-ui/issues/1339)) ([81ca73e](https://github.com/kanso-labs/kanso-ui/commit/81ca73e5840b7fdd62d60dd016fdfb83e6991da0))
+
 ## [0.38.0](https://github.com/kanso-labs/kanso-ui/compare/v0.37.0...v0.38.0) (2026-10-06)
 
 
