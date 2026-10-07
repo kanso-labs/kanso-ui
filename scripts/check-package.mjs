@@ -193,9 +193,12 @@ check('every client module opens with "use client" in dist', () => {
     )
   }
 
-  const missing = [...components, 'react-aria.js', 'drag/hooks.js'].filter(
-    (path) => !isClientModule(path),
-  )
+  const missing = [
+    ...components,
+    'react-aria.js',
+    'drag/hooks.js',
+    'theme-scope.js',
+  ].filter((path) => !isClientModule(path))
 
   if (missing.length > 0) {
     throw new Error(`no directive at the top of ${missing.join(', ')}`)

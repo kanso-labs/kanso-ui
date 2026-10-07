@@ -67,11 +67,11 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
   /** A function may compute the class from the picker's render state. */
   className?: RACDatePickerProps<T>['className']
   /**
-   * Where to portal the calendar. Defaults to the end of `<body>`, which is
-   * right for an app that sets its StyleX theme on `:root`. An app that
-   * scopes the theme to a subtree has to point this at an element inside it,
-   * or the calendar renders outside the theme and falls back to the tokens'
-   * `prefers-color-scheme` default.
+   * Where to portal the calendar. Defaults to the container of the `ThemeScope`
+   * around it, which keeps the calendar on that scope's tokens, or to the end
+   * of `<body>` where there is none. A subtree themed through the `themeScope`
+   * class has no container of its own, so point this inside it, or the calendar
+   * renders outside and keeps the page's tokens.
    */
   container?: Element
   /** Supporting text under the field. */

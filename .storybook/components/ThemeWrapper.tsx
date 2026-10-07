@@ -9,9 +9,10 @@ import type { DemoTheme } from '../../src/theming/themes'
 
 import { demoThemes } from '../../src/theming/themes'
 import {
+  colorDefaultsDarkTheme,
+  colorDefaultsLightTheme,
   colors,
-  colorsDarkTheme,
-  colorsLightTheme,
+  tokenScope,
 } from '../../src/tokens/design.tokens.stylex'
 
 const styles = stylex.create({
@@ -49,19 +50,22 @@ const DEMO_THEMES: Record<string, DemoTheme> = demoThemes
 // same as choosing.
 function themeFor(name: string): stylex.CompiledStyles[] {
   if (name === 'dark') {
-    return [colorsDarkTheme]
+    return [...tokenScope, colorDefaultsDarkTheme]
   }
   if (name in DEMO_THEMES) {
     return DEMO_THEMES[name].theme
   }
-  return [colorsLightTheme]
+  return [...tokenScope, colorDefaultsLightTheme]
 }
 
 // Our tokens default to the OS-level prefers-color-scheme media query, which a
-// toolbar toggle can't override on its own. Applying a createTheme class pins
-// every variable to a concrete value, so the media query stops being consulted
-// — and both directions need that, not just dark, or picking "light" against a
-// dark OS preference would silently fall through to the media query anyway.
+// toolbar toggle can't override on its own. The library's own two are the
+// classes `colorScheme` exports: the scope, which declares every variable
+// again on the element so it resolves there rather than on `:root`, and a
+// theme pinning the colour defaults it falls back to, so the media query stops
+// being consulted — and both directions need that, not just dark, or picking
+// "light" against a dark OS preference would silently fall through to the
+// media query anyway. The demo schemes pin every colour outright instead.
 //
 // `name` comes from the `theme` global (see preview.tsx), which is what lets
 // Chromatic capture the same story in both themes and what lets a story pin

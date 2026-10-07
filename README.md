@@ -370,8 +370,8 @@ Four things follow from where that boundary falls.
   ```
 
 - **The React Aria utilities the package re-exports are client-only** —
-  `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes` is
-  a plain value and works on either side.
+  `I18nProvider`, `useListData`, `parseColor` and the rest. `collectionSizes`,
+  `colorScheme` and `themeScope` are plain values and work on either side.
 - **A server-rendered app wraps its tree in `I18nProvider`** with the request's
   locale. React Aria reads the browser's locale on the client and has none on
   the server, so without it a date or a number can render differently on the two
@@ -398,10 +398,8 @@ component, independent of your app's build tooling:
 }
 ```
 
-Overrides must target `:root` (or another selector matching the `<html>`
-element) — components resolve their tokens once, at the root, so redeclaring a
-`--kui-*` property on a smaller scope (e.g. a wrapping `<div>`) doesn't reach
-them.
+Overrides on `:root` reach the whole page. To theme part of one, declare them on
+a `ThemeScope` instead — see [Theming part of a page](#theming-part-of-a-page).
 
 [`@kanso-labs/kanso-ui/tokens.css`](src/tokens/design.tokens.css) is the
 canonical, generated reference for every available variable and its current
@@ -412,30 +410,96 @@ default value — useful for discovering names, not required at runtime
 import '@kanso-labs/kanso-ui/tokens.css'
 ```
 
+### Theming part of a page
+
+The tokens resolve once, on `:root`, and every component inherits them already
+resolved, so a `--kui-*` property redeclared on a smaller element — a wrapping
+`<div>` — reaches nothing on its own. `ThemeScope` resolves them again on an
+element of its own. An override declared on the scope, through `className` or
+`style`, or on any element around it, reaches every component inside, and the
+rest of the page keeps its own tokens:
+
+```css
+.accent {
+  --kui-color-primary: #7d5260;
+  --kui-color-on-primary: #ffffff;
+}
+```
+
+```tsx
+import { Select, ThemeScope } from '@kanso-labs/kanso-ui'
+
+function Section() {
+  return (
+    <ThemeScope className="accent">
+      <Select label="Label">…</Select>
+    </ThemeScope>
+  )
+}
+```
+
+`scheme` pins the scope to `'light'` or `'dark'`, whatever the OS asks for. Left
+unset, the scope keeps the scheme around it, so a scope inside a dark page stays
+dark.
+
+Overlays come along. React Aria portals a popover, a sheet, a tooltip or a
+snackbar to the end of `<body>`, outside any wrapper; one opened inside a
+`ThemeScope` portals into the scope instead, and takes its tokens with it. The
+cost is that an ancestor confining its descendants confines those overlays too —
+a `transform` or a `filter` makes a sheet's scrim cover that ancestor rather
+than the viewport, and `overflow: hidden` clips a popover — so put the scope
+around such an element rather than inside it.
+
+`themeScope` is the same thing as a class name, for an element you render
+yourself. Overlays opened under it still portal to the body and keep the page's
+tokens, since nothing tells them otherwise.
+
 ### Pinning light or dark
 
 The colours follow the reader's OS through `prefers-color-scheme` unless the app
 says otherwise. An app with a theme switch of its own pins a scheme with
-`colorScheme`, two class names: put `colorScheme.light` or `colorScheme.dark` on
-the `<html>` element, and remove both to follow the OS again. The `<html>`
-element is the place for it, since overlays are portalled to the body and still
-sit inside it.
+`colorScheme`: put `colorScheme.light` or `colorScheme.dark` on the `<html>`
+element, and remove it to follow the OS again. The `<html>` element is the place
+for it, since overlays are portalled to the body and still sit inside it. Either
+also works on a smaller element, as a `themeScope` that pins.
 
-Its shape is the one next-themes takes for class names, so a provider is all it
-needs:
+Each is several class names separated by spaces, so set it through `className`,
+or spread `name.split(' ')` into `classList.add`. A provider that adds one class
+per scheme throws on it — next-themes' `value` option is one. With a provider of
+that kind, render a `ThemeScope` around the app instead and hand it the
+provider's scheme:
 
 ```tsx
-import { ThemeProvider } from 'next-themes'
-import { colorScheme } from '@kanso-labs/kanso-ui'
+'use client'
+
+import { ThemeProvider, useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
+import { ThemeScope } from '@kanso-labs/kanso-ui'
+
+function Scheme({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const scheme =
+    mounted && (resolvedTheme === 'dark' || resolvedTheme === 'light')
+      ? resolvedTheme
+      : undefined
+
+  return <ThemeScope scheme={scheme}>{children}</ThemeScope>
+}
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" value={colorScheme}>
-      {children}
+    <ThemeProvider attribute="data-theme">
+      <Scheme>{children}</Scheme>
     </ThemeProvider>
   )
 }
 ```
+
+The server cannot know the stored choice, so the scope takes it only once the
+page has mounted, which keeps the first client render matching the server's. The
+first paint follows the OS until then.
 
 A `--kui-color-*` override on `:root` still applies under a pinned scheme. To
 give one scheme a value of its own, key the override on an attribute your switch
@@ -443,10 +507,10 @@ sets beside the class, since the class names are generated.
 
 ### For StyleX consumers
 
-If your app also uses StyleX, theme with
-[`stylex.createTheme()`](https://stylexjs.com/docs/learn/theming/) instead — it
-produces a scoped override class rather than a global one. The token objects
-themselves (`colors`, `typography`, `spacing`, `radii`, `sizing`, `shadows`,
+An app that also uses StyleX themes the same way, through the `--kui-*`
+properties and `ThemeScope`. The token objects
+[`stylex.createTheme()`](https://stylexjs.com/docs/learn/theming/) would take
+(`colors`, `typography`, `spacing`, `radii`, `sizing`, `shadows`,
 `stateLayerOpacity` and `motion`) aren't part of the public API yet; open an
 issue if you need them exported.
 

@@ -19,11 +19,14 @@ const CLIENT = Object.entries({
     import: 'default',
     query: '?raw',
   }),
-  ...import.meta.glob<string>(['./react-aria.ts', './drag/hooks.tsx'], {
-    eager: true,
-    import: 'default',
-    query: '?raw',
-  }),
+  ...import.meta.glob<string>(
+    ['./react-aria.ts', './drag/hooks.tsx', './theme-scope.tsx'],
+    {
+      eager: true,
+      import: 'default',
+      query: '?raw',
+    },
+  ),
 })
 
 const SERVER = Object.entries(
