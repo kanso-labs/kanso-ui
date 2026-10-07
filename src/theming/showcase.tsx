@@ -73,6 +73,7 @@ import List from '../components/list'
 import ListBox from '../components/list-box'
 import ListDetail from '../components/list-detail'
 import ListItem from '../components/list-item'
+import LoadingIndicator from '../components/loading-indicator'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
 import NavigationBar from '../components/navigation-bar'
@@ -1205,6 +1206,16 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
+            description="The morphing shape in primary on its own, and in on-primary-container on a primary-container circle when contained."
+            title="LoadingIndicator"
+          >
+            <div {...stylex.props(styles.row)}>
+              <LoadingIndicator aria-label="Label" />
+              <LoadingIndicator aria-label="Label" contained />
+            </div>
+          </Section>
+
+          <Section
             description="Items on a popover surface, with a rule between the ones that belong apart. The trigger is a button placed directly inside it."
             title="Menu"
           >
@@ -1360,10 +1371,11 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The active indicator takes primary and the track its container, linear and circular alike."
+            description="The active indicator takes primary and the track its container, linear and circular, flat and wavy alike."
             title="ProgressIndicator"
           >
             <ProgressIndicator label="Label" showValue value={60} />
+            <ProgressIndicator aria-label="Label" shape="wavy" value={60} />
             <div {...stylex.props(styles.row)}>
               <ProgressIndicator
                 aria-label="Label"
@@ -1373,6 +1385,12 @@ function Showcase({ name }: ShowcaseProps) {
               <ProgressIndicator
                 aria-label="Label"
                 isIndeterminate
+                variant="circular"
+              />
+              <ProgressIndicator
+                aria-label="Label"
+                shape="wavy"
+                value={60}
                 variant="circular"
               />
             </div>

@@ -5,6 +5,10 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { ProgressIndicatorProps } from '.'
 
 import ProgressIndicator from '.'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+} from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -22,6 +26,8 @@ const probeStyles = stylex.create({
   ink: { color: colors.onPrimary },
   track: { backgroundColor: colors.secondaryContainer },
   trackArc: { stroke: colors.secondaryContainer },
+  // Wider than the wave reaches, for the line that draws flat beyond it.
+  wide: { inlineSize: '2100px' },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -76,9 +82,30 @@ function linearPartsOf(bar: HTMLElement) {
   return { active, row, stop, track }
 }
 
+const REDUCED_MOTION = 'prefers-reduced-motion: reduce'
+
 function setup(props: Partial<Parameters<typeof ProgressIndicator>[0]> = {}) {
   const view = render(<ProgressIndicator label="Label" value={40} {...props} />)
   return { ...view, bar: view.getByRole('progressbar', { name: 'Label' }) }
+}
+
+/** The wavy line's row: the flat line, then the wave drawn over it. */
+function wavyLineOf(bar: HTMLElement) {
+  const row = bar.lastElementChild
+  const [line, svg] = [...(row?.children ?? [])]
+  if (
+    !(row instanceof HTMLElement) ||
+    !(line instanceof HTMLElement) ||
+    !(svg instanceof SVGSVGElement) ||
+    !(svg.firstElementChild instanceof SVGPathElement)
+  ) {
+    throw new Error('expected the flat line and the wave over it')
+  }
+  const [active] = [...line.children]
+  if (!(active instanceof HTMLElement)) {
+    throw new Error('expected the flat line to draw its active indicator')
+  }
+  return { active, line, path: svg.firstElementChild, row, svg }
 }
 
 describe('progress indicator', () => {
@@ -494,6 +521,243 @@ describe('progress indicator', () => {
       // edge here, leaving `left` as `auto`, while Material's keyframes kept
       // translating the one way they know — away from the row to be crossed.
       expect(getComputedStyle(bar).left.startsWith('-')).toBe(true)
+    })
+  })
+
+  describe('wavy', () => {
+    it('draws no wave in the flat shape', () => {
+      const { bar } = setup()
+      expect(bar.querySelector('path')).toBeNull()
+    })
+
+    // The page's wavy line is 10 tall, the wave's 3 either side of the
+    // middle plus its stroke, with the flat track through the middle.
+    it('draws a wave over the line in a 10 tall row', () => {
+      const { bar } = setup({ shape: 'wavy' })
+      const { line, path, row, svg } = wavyLineOf(bar)
+
+      expect(row.getBoundingClientRect().height).toBe(10)
+      expect(line.getBoundingClientRect().height).toBe(4)
+      expect(svg.getAttribute('aria-hidden')).toBe('true')
+      expect(path.getAttribute('stroke-width')).toBe('4')
+      expect(path.getBBox().height).toBeCloseTo(6, 0)
+      expect(hasClasses(path, CLASSES.activeArc)).toBe(true)
+    })
+
+    // A crest every 40, and long enough to cross any row it draws in.
+    it("runs the wave far enough at the page's wavelength", () => {
+      const { bar } = setup({ shape: 'wavy' })
+      const { path } = wavyLineOf(bar)
+      const box = path.getBBox()
+
+      expect(box.width).toBeGreaterThanOrEqual(2048)
+      expect(path.getPointAtLength(0).y).toBeCloseTo(5, 1)
+      // Every half wavelength along, the wave is back at the middle.
+      const crossings = [20, 40, 60].map((x) => {
+        const length = path.getTotalLength() * (x / box.width)
+        return path.getPointAtLength(length).y
+      })
+      for (const y of crossings) {
+        expect(y).toBeCloseTo(5, 0)
+      }
+    })
+
+    // The wave stands in for the flat active indicator, so it is cut to
+    // the same length, less the half stroke each round cap adds.
+    it("cuts the wave to the active indicator's length", () => {
+      const { bar } = setup({ shape: 'wavy', value: 50 })
+      const { active, path } = wavyLineOf(bar)
+      const dash = Number.parseFloat(getComputedStyle(path).strokeDasharray)
+
+      expect(dash).toBeCloseTo(active.getBoundingClientRect().width - 4, 0)
+    })
+
+    // Material's rule: the wave stands between a tenth of the way and 95%,
+    // and the flat active indicator is drawn either side of that.
+    it.each([
+      [5, false],
+      [10, false],
+      [11, true],
+      [50, true],
+      [94, true],
+      [95, false],
+      [100, false],
+    ])('at %i, the wave stands: %s', (value, standing) => {
+      const { bar } = setup({ shape: 'wavy', value })
+      const { active, path } = wavyLineOf(bar)
+
+      expect(getComputedStyle(path).opacity).toBe(standing ? '1' : '0')
+      expect(getComputedStyle(active).opacity).toBe(standing ? '0' : '1')
+    })
+
+    // A reader who has asked for reduced motion sees the flat shape: the
+    // wave goes, and the flat active indicator beneath it comes back.
+    it('draws the line flat under reduced motion', () => {
+      const { bar } = setup({ shape: 'wavy', value: 50 })
+      const { active, svg } = wavyLineOf(bar)
+
+      // Read off the page at rest, since the walk would count the rule for
+      // a row wider than the wave as holding too.
+      expect(getComputedStyle(svg).display).toBe('block')
+      expect(getComputedStyle(active).opacity).toBe('0')
+      expect(declarationsHeld(svg, REDUCED_MOTION).get('display')).toBe('none')
+      expect(declarationsHeld(active, REDUCED_MOTION).get('opacity')).toBe('1')
+    })
+
+    it('draws a line wider than the wave flat', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.wide)}>
+          <ProgressIndicator label="Label" shape="wavy" value={50} />
+        </div>,
+      )
+      const bar = view.getByRole('progressbar', { name: 'Label' })
+      const { active, svg } = wavyLineOf(bar)
+
+      expect(getComputedStyle(svg).display).toBe('none')
+      expect(getComputedStyle(active).opacity).toBe('1')
+    })
+
+    // The indeterminate line's two bars become two dashes along a wave of
+    // half the wavelength, moved by the bars' own keyframes.
+    it('sweeps two dashes along a wave while indeterminate', () => {
+      const view = render(
+        <ProgressIndicator isIndeterminate label="Label" shape="wavy" />,
+      )
+      const row = view.getByRole('progressbar', {
+        name: 'Label',
+      }).lastElementChild
+      const [bars, svg] = [...(row?.children ?? [])]
+      if (!(bars instanceof HTMLElement) || !(svg instanceof SVGElement)) {
+        throw new Error('expected the flat bars and the waves over them')
+      }
+      const waves = [...svg.children].filter(
+        (wave) => wave instanceof SVGPathElement,
+      )
+
+      expect(waves).toHaveLength(2)
+      for (const wave of waves) {
+        const style = getComputedStyle(wave)
+        expect(style.animationName.split(',')).toHaveLength(2)
+        expect(style.animationDuration).toBe('2s, 2s')
+      }
+      // Two crests where the determinate wave has one: half its wavelength
+      // along, the wave is back at the middle.
+      const first = waves.at(0)
+      if (first === undefined) {
+        throw new Error('expected the primary wave')
+      }
+      const midway = first.getPointAtLength(
+        first.getTotalLength() * (10 / first.getBBox().width),
+      )
+      expect(midway.y).toBeCloseTo(5, 0)
+
+      // The flat bars are what reduced motion draws instead.
+      const [, primary, secondary] = [...bars.children]
+      for (const bar of [primary, secondary]) {
+        if (!(bar instanceof HTMLElement)) {
+          throw new Error('expected the two flat bars')
+        }
+        expect(getComputedStyle(bar).opacity).toBe('0')
+        expect(declarationsHeld(bar, REDUCED_MOTION).get('opacity')).toBe('1')
+      }
+      expect(declarationsHeld(svg, REDUCED_MOTION).get('display')).toBe('none')
+    })
+
+    it('mirrors the wave under a right-to-left writing mode', () => {
+      const view = render(
+        <div dir="rtl">
+          <ProgressIndicator label="Label" shape="wavy" value={50} />
+        </div>,
+      )
+      const { svg } = wavyLineOf(
+        view.getByRole('progressbar', { name: 'Label' }),
+      )
+
+      expect(getComputedStyle(svg).transform).toBe('matrix(-1, 0, 0, 1, 0, 0)')
+    })
+
+    // The page's wavy ring is 48 across, with the wave's 1.6 either side of
+    // a circle pulled in by that much so the crests stay inside the box.
+    it('draws a 48 ring with a wave over the active arc', () => {
+      const { bar } = setup({ shape: 'wavy', value: 50, variant: 'circular' })
+      const svg = bar.querySelector('svg')
+      const [track, active, wave] = [...(svg?.children ?? [])]
+      if (
+        !(svg instanceof SVGSVGElement) ||
+        !(track instanceof SVGCircleElement) ||
+        !(active instanceof SVGCircleElement) ||
+        !(wave instanceof SVGPathElement)
+      ) {
+        throw new Error('expected the track, the active arc and the wave')
+      }
+
+      expect(svg.getBoundingClientRect().width).toBe(48)
+      expect(svg.getAttribute('viewBox')).toBe('0 0 48 48')
+      expect(track.getAttribute('r')).toBe('20.4')
+      // Measured as the circle it runs round, and cut by the same dash.
+      const circumference = 2 * Math.PI * 20.4
+      expect(Number(wave.getAttribute('pathLength'))).toBeCloseTo(
+        circumference,
+        3,
+      )
+      expect(wave.getAttribute('stroke-dasharray')).toBe(
+        active.getAttribute('stroke-dasharray'),
+      )
+      // Nine crests, each 1.6 out from the circle, and nine troughs 1.6 in.
+      const total = wave.getTotalLength()
+      const radii = Array.from({ length: 720 }, (_, index) => {
+        const point = wave.getPointAtLength((total * index) / 720)
+        return Math.hypot(point.x - 24, point.y - 24)
+      })
+      expect(Math.max(...radii)).toBeCloseTo(22, 1)
+      expect(Math.min(...radii)).toBeCloseTo(18.8, 1)
+      const crests = radii.filter(
+        (radius, index) =>
+          radius > 21.9 &&
+          radius >= (radii.at(index - 1) ?? 0) &&
+          radius > (radii[(index + 1) % radii.length] ?? 0),
+      )
+      expect(crests).toHaveLength(9)
+      expect(getComputedStyle(wave).opacity).toBe('1')
+      expect(declarationsHeld(wave, REDUCED_MOTION).get('display')).toBe('none')
+      expect(reducedMotionOf(active, 'opacity')).toEqual({
+        reduced: '1',
+        resting: '0',
+      })
+    })
+
+    it('keeps the ring at the diameter it is given', () => {
+      const { bar } = setup({
+        diameter: '24px',
+        shape: 'wavy',
+        variant: 'circular',
+      })
+      expect(bar.querySelector('svg')?.getBoundingClientRect().width).toBe(24)
+    })
+
+    it('turns the wave round the ring while indeterminate', () => {
+      const view = render(
+        <ProgressIndicator
+          isIndeterminate
+          label="Label"
+          shape="wavy"
+          variant="circular"
+        />,
+      )
+      const svg = view
+        .getByRole('progressbar', { name: 'Label' })
+        .querySelector('svg')
+      const [arc, wave] = [...(svg?.children ?? [])]
+      if (!(arc instanceof SVGElement) || !(wave instanceof SVGElement)) {
+        throw new Error('expected the flat arc and the wave')
+      }
+
+      expect(wave.getAttribute('pathLength')).toBe('100')
+      expect(getComputedStyle(wave).animationName).toBe(
+        getComputedStyle(arc).animationName,
+      )
+      expect(declarationsHeld(arc, REDUCED_MOTION).get('opacity')).toBe('1')
+      expect(getComputedStyle(arc).opacity).toBe('0')
     })
   })
 })

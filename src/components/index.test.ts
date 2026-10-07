@@ -95,6 +95,7 @@ import type {
   PopoverTrigger,
   ProductIconProps,
   ProgressIndicatorProps,
+  ProgressIndicatorShape,
   ProgressIndicatorTone,
   ProgressIndicatorVariant,
   RadioGroupProps,
@@ -153,6 +154,7 @@ import type {
 } from './carousel'
 import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
+import type { LoadingIndicatorProps } from './loading-indicator'
 import type { NavigationBarProps } from './navigation-bar'
 import type { NavigationRailProps } from './navigation-rail'
 import type { SearchViewContentProps, SearchViewProps } from './search-view'
@@ -224,6 +226,7 @@ import ListBoxDefault, {
 } from './list-box'
 import ListDetailDefault from './list-detail'
 import ListItemDefault from './list-item'
+import LoadingIndicatorDefault from './loading-indicator'
 import MenuDefault, {
   MenuContent,
   MenuItem,
@@ -418,6 +421,7 @@ describe('components barrel', () => {
       'ListLoadMore',
       'ListRow',
       'ListSection',
+      'LoadingIndicator',
       'Menu',
       'MenuContent',
       'MenuItem',
@@ -569,6 +573,7 @@ describe('components barrel', () => {
     ListLoadMore: [components.ListLoadMore, ListLoadMore],
     ListRow: [components.ListRow, ListRow],
     ListSection: [components.ListSection, ListSection],
+    LoadingIndicator: [components.LoadingIndicator, LoadingIndicatorDefault],
     Menu: [components.Menu, MenuDefault],
     MenuContent: [components.MenuContent, MenuContent],
     MenuItem: [components.MenuItem, MenuItem],
@@ -1182,6 +1187,11 @@ describe('components barrel', () => {
     expect(value).toBe('press')
   })
 
+  it('re-exports the ProgressIndicatorShape type', () => {
+    const value: ProgressIndicatorShape = 'wavy'
+    expect(value).toBe('wavy')
+  })
+
   it('re-exports the ProgressIndicatorTone type', () => {
     const value: ProgressIndicatorTone = 'primary'
     expect(value).toBe('primary')
@@ -1489,6 +1499,11 @@ describe('components barrel', () => {
   it('re-exports the TimePickerProps type', () => {
     const props: TimePickerProps = { label: 'test' }
     expect(props.label).toBe('test')
+  })
+
+  it('re-exports the LoadingIndicatorProps type', () => {
+    const props: LoadingIndicatorProps = { contained: true }
+    expect(props.contained).toBe(true)
   })
 
   it('re-exports the TimePickerMode type', () => {

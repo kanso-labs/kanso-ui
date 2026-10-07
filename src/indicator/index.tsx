@@ -53,12 +53,16 @@ export function IndicatorLabels({
  * taking what is left, and the stop indicator at the end. Anything passed as
  * `children` is drawn inside the track, which is what the progress
  * indicator's buffer fills it with; with none the track is solid.
+ * `activeStyle` is applied to the active indicator last, which is how the
+ * progress indicator fades it under a wave.
  */
 export function IndicatorLine({
+  activeStyle,
   children,
   percentage,
   tone,
 }: {
+  activeStyle?: stylex.StyleXStyles
   children?: ReactNode
   percentage: number
   tone: IndicatorTone
@@ -73,6 +77,7 @@ export function IndicatorLine({
           indicatorStyles.active,
           indicatorStyles.activeAt(percentage),
           active,
+          activeStyle,
         )}
       />
       <span

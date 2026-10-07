@@ -172,6 +172,40 @@ const Overview: Story = {
       <section {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.intro)}>
           <Text render={HEADING_2} variant="titleLarge">
+            Wavy
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            shape=&quot;wavy&quot; draws the active indicator as a wave and
+            leaves the track and the stop flat. A determinate wave lies flat
+            near either end of the way, and the wavy ring is 48px across. A
+            reader who has asked for reduced motion sees the flat shape.
+          </Text>
+        </div>
+        <div {...stylex.props(styles.column)}>
+          <ProgressIndicator label="Label" shape="wavy" value={40} />
+          <ProgressIndicator isIndeterminate label="Working" shape="wavy" />
+        </div>
+        <div {...stylex.props(styles.rings)}>
+          <ProgressIndicator
+            aria-label="Half"
+            shape="wavy"
+            value={50}
+            variant="circular"
+          />
+          <ProgressIndicator
+            aria-label="Working"
+            isIndeterminate
+            shape="wavy"
+            variant="circular"
+          />
+        </div>
+      </section>
+
+      <Separator />
+
+      <section {...stylex.props(styles.section)}>
+        <div {...stylex.props(styles.intro)}>
+          <Text render={HEADING_2} variant="titleLarge">
             Tone
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
@@ -252,12 +286,27 @@ const CircularIndeterminate: Story = {
   },
 }
 
+const Wavy: Story = {
+  args: {
+    shape: 'wavy',
+  },
+}
+
+const WavyCircular: Story = {
+  args: {
+    shape: 'wavy',
+    variant: 'circular',
+  },
+}
+
 export {
   Circular,
   CircularIndeterminate,
   Default,
   Indeterminate,
   Overview,
+  Wavy,
+  WavyCircular,
   WithBuffer,
   WithValue,
 }
