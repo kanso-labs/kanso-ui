@@ -11,16 +11,18 @@ import Text from '../text'
 // Two marks of deliberately awkward proportions, inline so the stories need
 // no fixture served alongside them. The wide one is what makes `contain`
 // visible: cropped to fill the square it would lose its ends, which for a
-// real wordmark means losing the word.
+// real wordmark means losing the word. Their colours are plain `#` hex,
+// since `encodeURIComponent` escapes the `#` itself: a `%23` written here
+// would be escaped a second time into no colour at all, and draw black.
 const WIDE_MARK =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 32"><rect width="96" height="32" rx="4" fill="%23394b47"/><circle cx="16" cy="16" r="8" fill="%23f2b8b5"/><rect x="32" y="12" width="52" height="8" rx="4" fill="%23e7edea"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 32"><rect width="96" height="32" rx="4" fill="#394b47"/><circle cx="16" cy="16" r="8" fill="#f2b8b5"/><rect x="32" y="12" width="52" height="8" rx="4" fill="#e7edea"/></svg>`,
   )
 const TALL_MARK =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 96"><rect width="32" height="96" rx="4" fill="%23394b47"/><circle cx="16" cy="20" r="8" fill="%2374d9af"/><rect x="12" y="36" width="8" height="48" rx="4" fill="%23e7edea"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 96"><rect width="32" height="96" rx="4" fill="#394b47"/><circle cx="16" cy="20" r="8" fill="#74d9af"/><rect x="12" y="36" width="8" height="48" rx="4" fill="#e7edea"/></svg>`,
   )
 
 const styles = stylex.create({
