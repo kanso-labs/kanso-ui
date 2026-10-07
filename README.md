@@ -39,13 +39,19 @@ default, in both light and dark (respecting the OS-level
 `prefers-color-scheme`), and every component sizes itself with
 `box-sizing: border-box` rather than leaving that to a reset you supply.
 
-A bundler is what resolves that stylesheet. In an environment that cannot import
-CSS from JavaScript — some server-side renderers, or a plain Node process —
-import it yourself instead and the components style themselves the same way:
+A bundler is what resolves that stylesheet, so the package always loads through
+one. The main entry imports `./styles.css` itself and Node has no loader for
+CSS, so in plain Node an `import` or a `require()` of `@kanso-labs/kanso-ui`
+throws `ERR_UNKNOWN_FILE_EXTENSION`; `@kanso-labs/kanso-ui/date` is the one
+entry plain Node can load. A server renderer or a test runner that leaves
+dependencies to Node takes one setting to hand this package to its bundler
+instead, and [Server rendering and tests](#server-rendering-and-tests) gives it
+for Vite, Vitest and Jest.
 
-```ts
-import '@kanso-labs/kanso-ui/styles.css'
-```
+The same stylesheet is published on its own, as
+`@kanso-labs/kanso-ui/styles.css`, for CSS that loads it apart from the
+JavaScript: an `@import` in a stylesheet of your own, or a `<link>`. It adds the
+rules and nothing else, so it is not a way round the main entry's own import.
 
 `className` and `style` reach the element a component renders, so a component is
 positioned from the call site like any other element:
@@ -376,6 +382,63 @@ Four things follow from where that boundary falls.
   locale. React Aria reads the browser's locale on the client and has none on
   the server, so without it a date or a number can render differently on the two
   and fail hydration.
+
+### Server rendering and tests
+
+The main entry imports its own stylesheet, so the package has to reach a bundler
+wherever it runs. Three tools hand dependencies to Node by default, and each has
+a setting that sends this package through its bundler instead.
+
+**Vite's server rendering** leaves dependencies to Node, in `vite dev` and in a
+built server alike, so the server of a Vite-based framework — React Router's
+framework mode, TanStack Start, Astro, Vike — throws
+`ERR_UNKNOWN_FILE_EXTENSION` for `dist/styles.css` as it starts. Name the
+package in `ssr.noExternal`, wherever the framework takes its Vite settings
+(Astro's sit under `vite` in `astro.config.mjs`):
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  ssr: { noExternal: ['@kanso-labs/kanso-ui'] },
+})
+```
+
+**Vitest** leaves dependencies to Node too, so the first test that imports a
+component fails with `Unknown file extension ".css"`. Inline the package:
+
+```ts
+// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: { server: { deps: { inline: ['@kanso-labs/kanso-ui'] } } },
+})
+```
+
+**Jest** wants a stand-in for the stylesheet, since it has no loader for CSS,
+and a transform for the package, since the package is ES modules:
+
+```js
+// jest.config.cjs
+module.exports = {
+  moduleNameMapper: { '\\.css$': '<rootDir>/style-stub.cjs' },
+  transformIgnorePatterns: [
+    '^(?!.*/node_modules/@kanso-labs/kanso-ui/).*/node_modules/',
+  ],
+}
+```
+
+`style-stub.cjs` is `module.exports = {}`, and the transform needs a Babel
+config that compiles modules to CommonJS, such as `@babel/preset-env`. The
+pattern is written to let in everything under the package, its own
+`dist/node_modules` included, which carries StyleX's runtime: the shorter
+`/node_modules/(?!@kanso-labs/kanso-ui/)` matches again at that second
+`node_modules` and leaves the runtime untransformed. On Node 24.9 or newer, Jest
+30 can load the package as ES modules instead, under
+`NODE_OPTIONS=--experimental-vm-modules`, and then needs the `moduleNameMapper`
+alone.
 
 ## Theming
 

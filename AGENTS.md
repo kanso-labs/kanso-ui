@@ -155,12 +155,18 @@ Specific to this repository:
   `src/components` is a public component, with stories, a barrel entry and a
   `styling.test.tsx` case, and an internal module there would look like one that
   forgot all three.
-- **The `exports` map says `default`, not `import`, and that is what keeps
-  CommonJS working.** The package ships ESM only. Under a `default` condition
-  Node resolves the ESM file for a `require()` too and serves it through
-  `require(esm)`; under `import` alone the same call fails outright with
-  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Renaming it reads like a tidy-up next to
-  `type: module` and silently drops every CommonJS consumer.
+- **The `exports` map says `default`, not `import`, and that is what lets a
+  `require()` resolve the package.** The package ships ESM only. Under a
+  `default` condition Node resolves the ESM file for a `require()` too; under
+  `import` alone the same call fails outright with
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`. Resolving is as far as plain Node gets with
+  the main entry, though: it imports `./styles.css`, which Node has no loader
+  for, so it evaluates only under a bundler, or a test runner told to hand it to
+  one — the settings are in the README's "Server rendering and tests". `./date`
+  is the one entry plain Node runs, through `require(esm)`, and
+  `scripts/check-package.mjs` pins both halves. Renaming the condition reads
+  like a tidy-up next to `type: module` and silently drops every CommonJS
+  consumer, a bundler resolving a `require()` among them.
 - Styling uses StyleX (`stylex.create` / `stylex.props`) — no CSS files or
   inline `style` objects. `src/styles.css` is the one exception, and it holds no
   rules: it exists so `src/index.ts` has a specifier to import, which is what
@@ -580,11 +586,15 @@ It throws rather than shipping silently if that file is missing, and runs in
 in parallel — ours could otherwise read the file before the StyleX plugin had
 written it.
 
-`package.json` then publishes `./styles.css` alongside `./tokens.css`, for an
-environment that cannot import CSS from JavaScript. The two are different
-things: `styles.css` is the library's own compiled rules and is required,
-`tokens.css` is the `--kui-*` override contract and is a reference rather than a
-runtime dependency.
+`package.json` then publishes `./styles.css` alongside `./tokens.css`, for CSS
+that loads the stylesheet apart from the JavaScript — an `@import` or a
+`<link>`. It is not a way round the main entry's own import: an environment that
+cannot import CSS from JavaScript cannot load the main entry at all, which is
+why the README answers a server renderer or a test runner with the setting that
+hands the package to its bundler, never with advice to import the stylesheet.
+The two are different things: `styles.css` is the library's own compiled rules
+and is required, `tokens.css` is the `--kui-*` override contract and is a
+reference rather than a runtime dependency.
 
 ## The API reports
 
