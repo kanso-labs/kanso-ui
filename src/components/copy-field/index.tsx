@@ -83,7 +83,13 @@ const styles = stylex.create({
   // would then be measured against. `minInlineSize: 0` is the load-bearing
   // one: left at `auto`, a long unbroken value sets the flex row's floor and
   // pushes the button out of the box instead of wrapping.
+  //
+  // The colour is here for the same reason. Code takes the colour of the
+  // text around it, and the field paints a surface of its own, so the value
+  // takes the on surface role that surface pairs with rather than whatever
+  // colour the page around the field happens to set.
   value: {
+    color: colors.onSurface,
     flexGrow: 1,
     fontSize: typography.bodySmallSize,
     minInlineSize: 0,

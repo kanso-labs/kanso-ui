@@ -1,7 +1,17 @@
+import * as stylex from '@stylexjs/stylex'
 import { act, render, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import CopyField from '.'
+import { colors } from '../../tokens/design.tokens.stylex'
+
+// A colour for the page around the field that is not the field's own, and
+// the on surface role resolved the way the page resolves it, so a case
+// compares computed colour with computed colour.
+const probeStyles = stylex.create({
+  around: { color: colors.error },
+  onSurface: { color: colors.onSurface },
+})
 
 const VALUE = 'first.second.third'
 const COPIED_RESET_MS = 2000
@@ -90,6 +100,28 @@ describe('copyField', () => {
     it('passes attributes through to the root', () => {
       const { field } = setup({ id: 'repo-url' })
       expect(field.id).toBe('repo-url')
+    })
+  })
+
+  // Code takes the colour of the text around it, and the field paints a
+  // surface of its own, so the value takes the role that surface pairs with
+  // rather than whatever the page around the field sets.
+  describe('the value', () => {
+    it('is drawn in the on surface role whatever colour is around it', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.around)}>
+          <CopyField data-testid="field" value={VALUE} />
+          <span data-testid="probe" {...stylex.props(probeStyles.onSurface)} />
+        </div>,
+      )
+      const code = view.getByTestId('field').querySelector('code')
+      if (code === null) {
+        throw new Error('expected the field to show its value as code')
+      }
+
+      expect(getComputedStyle(code).color).toBe(
+        getComputedStyle(view.getByTestId('probe')).color,
+      )
     })
   })
 

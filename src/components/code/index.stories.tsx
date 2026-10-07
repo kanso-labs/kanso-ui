@@ -153,7 +153,15 @@ const Overview: Story = {
   ),
 }
 
-const Default: Story = {}
+// Code takes its colour and its size from the text it interrupts, so it is
+// shown inside a line of body text, the way a call site uses it.
+const Default: Story = {
+  render: (args) => (
+    <Text variant="bodyLarge">
+      A sentence naming <Code {...args} />
+    </Text>
+  ),
+}
 
 export { Default, Overview }
 

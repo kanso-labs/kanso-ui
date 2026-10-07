@@ -6,7 +6,7 @@ import type { RenderComponentProps } from '../../render/useRender'
 
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { typography } from '../../tokens/design.tokens.stylex'
 
 // Sized in em rather than px, so a fragment of code takes the scale of
 // whatever it interrupts. A mono face at the same nominal size as the prose
@@ -20,12 +20,19 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // hierarchy those already establish. A call site wanting one can wrap this.
 //
 // No Material Design page draws inline code. What it follows is the type it
-// interrupts: the role and the on surface colour of the prose around it, at
-// the ratio above, in the mono face the type tokens carry.
+// interrupts: the role and the colour of the prose around it, at the ratio
+// above, in the mono face the type tokens carry.
+//
+// The colour is inherited rather than set. A fixed on surface matched the
+// prose only when the prose was on surface too: inside a muted or an error
+// line it went dark mid-sentence, and on an inverse surface, a tooltip's or a
+// snackbar's, it was on surface over inverse surface and could not be read.
+// Whatever paints a surface around Code sets the colour that pairs with it,
+// as CopyField does for its value.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
-    color: colors.onSurface,
+    color: 'inherit',
     fontFamily: typography.fontFamilyMono,
     fontSize: '0.875em',
     // Identifiers that end up in code are often long and unbreakable by the
