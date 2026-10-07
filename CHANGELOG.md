@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/kanso-labs/kanso-ui/compare/v0.39.0...v0.39.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **dialog:** keep an alert dialog the basic dialog below the medium breakpoint ([#1370](https://github.com/kanso-labs/kanso-ui/issues/1370)) ([0cb6a1c](https://github.com/kanso-labs/kanso-ui/commit/0cb6a1c1b49d4673f16cc1afc880c0064b3b1cfa))
+
 ## [0.39.0](https://github.com/kanso-labs/kanso-ui/compare/v0.38.0...v0.39.0) (2026-10-07)
 
 
