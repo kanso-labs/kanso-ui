@@ -52,10 +52,13 @@ const RANGE = {
 }
 
 // A range that crosses a month boundary, which is what two months side by
-// side are usually for.
+// side are usually for. February into March 2026, so both months it shows
+// lie before today: the calendar outlines today wherever it falls in view,
+// and a pair ending in October 2026 moved the outline every day through that
+// month.
 const ACROSS = {
-  end: new CalendarDate(2026, 10, 6),
-  start: new CalendarDate(2026, 9, 24),
+  end: new CalendarDate(2026, 3, 6),
+  start: new CalendarDate(2026, 2, 24),
 }
 
 const VISIBLE_TWO = { months: 2 }
