@@ -992,6 +992,45 @@ that breaks a call site that compiled before. Whether the title carries `!` is
 still decided in review; the report makes the change visible rather than
 deciding it.
 
+**A breaking pull request carries its migration in a commit override.** The
+squash keeps the title and drops every body, so a `BREAKING CHANGE:` footer
+written in a branch commit never reaches `main`, and the changelog entry for a
+`!` title is the title alone. That is how 0.33.0 renamed Snackbar's
+`isDismissable` without naming `showCloseButton`, and how 0.29.0 removed
+`--kui-radius-full` without saying so — a consumer overriding a custom property
+that is gone gets no error, only an override that stops applying.
+
+release-please reads the merged pull request's body for a block between
+`BEGIN_COMMIT_OVERRIDE` and `END_COMMIT_OVERRIDE`, and parses what is inside as
+the commit in place of the squash. So a `!` pull request ends its body with one:
+
+```text
+BEGIN_COMMIT_OVERRIDE
+feat(snackbar)!: rename isDismissable to showCloseButton (#1059)
+
+BREAKING CHANGE: Snackbar's `isDismissable` is now `showCloseButton`; rename the prop at each call site.
+END_COMMIT_OVERRIDE
+```
+
+- **The footer is the changelog line**, under "⚠ BREAKING CHANGES", so it is a
+  sentence a consumer can act on: the old API, the new one, and the edit to
+  make. A removed `--kui-*` property is named, with what to override instead.
+- **One `BREAKING CHANGE:` footer per block.** Given several, release-please
+  keeps the last and drops the rest without a word, so a change that breaks
+  three props names all three in one paragraph.
+- **The first line is the title with its number**, `(#1059)`. The override
+  replaces the squash commit whole, and the squash subject is where the link to
+  the pull request otherwise comes from.
+- **Nowhere else in the body names the markers.** release-please splits the body
+  on the bare word, inside a code span or an HTML comment alike, so a sentence
+  mentioning it in passing replaces the commit with whatever text follows. That
+  is also why `.github/pull_request_template.md` describes the block rather than
+  holding one.
+- **It reaches unreleased commits only.** A break that has already shipped is
+  beyond it, which is what `UPGRADING.md` is for: every break since 0.1.0 with
+  the edit it asks for. A new break goes into both — the override for the
+  release's changelog, and a line in the guide.
+
 ## Working the coverage plan
 
 The [Kanso Labs project](https://github.com/orgs/kanso-labs/projects/1) holds
