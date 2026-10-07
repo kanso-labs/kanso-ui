@@ -456,15 +456,14 @@ function GettingStartedPage() {
             Foundations
           </ListItem>
           <Separator />
-          <ListItem supporting="The same page under five schemes, so what a token moves is the only thing that differs.">
+          <ListItem supporting="The same page under each scheme, so what a token moves is the only thing that differs.">
             Theming
           </ListItem>
         </Card>
         <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The Theme control in the toolbar switches the canvas between light,
-            dark, and each of those five schemes — on this page and on every
-            other.
+            dark, and each of those schemes — on this page and on every other.
           </Text>
         </div>
       </section>
@@ -524,6 +523,21 @@ function GettingStartedPage() {
             their defaults.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The colour roles are Material Design&apos;s, so a whole scheme can
+            come from{' '}
+            <Link
+              href="https://material-foundation.github.io/material-theme-builder/"
+              {...LINK_TARGET}
+            >
+              Material Theme Builder
+            </Link>
+            . Its JSON export names every colour role here but{' '}
+            <Code>positive</Code> and <Code>negative</Code>, with{' '}
+            <Code>onPrimaryContainer</Code> standing for{' '}
+            <Code>--kui-color-on-primary-container</Code>, and the README turns
+            the file into the overrides above and covers those two as well.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             An app that uses StyleX itself themes the same way. The token
             objects <Code>stylex.createTheme()</Code> would take —{' '}
             <Code>colors</Code>, <Code>typography</Code>, <Code>spacing</Code>,{' '}
@@ -544,7 +558,7 @@ function GettingStartedPage() {
             if you need them exported.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            How far that goes is the Theming section&apos;s question: five
+            How far that goes is the Theming section&apos;s question: its
             schemes, one page, and nothing between them but the tokens they set.
           </Text>
         </div>

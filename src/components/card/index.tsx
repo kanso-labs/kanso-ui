@@ -25,8 +25,7 @@ import {
 // color-mix() is inlined at each property rather than factored into a helper:
 // @stylexjs/babel-plugin only statically recognizes expressions written
 // directly as property values. Button's header comment records the same
-// constraint, and the :not(:disabled) guard there applies here for the same
-// reason — stylex's fixed pseudo-class ordering puts :hover after :disabled.
+// constraint.
 const styles = stylex.create({
   base: {
     // The cards spec page's corner, 12dp, which is the medium shape.

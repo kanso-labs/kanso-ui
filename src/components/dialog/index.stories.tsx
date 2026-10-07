@@ -154,6 +154,28 @@ const AlertDialog: Story = {
   ),
 }
 
-export { AlertDialog, Default, LongBody }
+// The same alert dialog below the medium breakpoint, where a dialog of the
+// default role fills the window. An alert dialog stays the basic one there:
+// rounded, centred over the scrim, and only as tall as its question.
+const AlertDialogCompact: Story = {
+  // Sizes the frame in Storybook itself, as Sheet's BottomSheet does, so the
+  // story shows the compact width without narrowing the window by hand.
+  globals: { viewport: { isRotated: false, value: 'mobile1' } },
+  parameters: {
+    // Chromatic is told the width through `modes`, under the project's own
+    // mode names, for the reasons BottomSheet in sheet/index.stories.tsx
+    // gives.
+    chromatic: {
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 375 } },
+        light: { theme: 'light', viewport: { height: 700, width: 375 } },
+      },
+    },
+    docs: { story: { height: '600px', inline: false } },
+  },
+  render: AlertDialog.render,
+}
+
+export { AlertDialog, AlertDialogCompact, Default, LongBody }
 
 export default meta

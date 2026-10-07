@@ -43,7 +43,10 @@ const Today: Story = {
 }
 
 // Its own story because bounds change what a date looks like rather than
-// where it is, which a snapshot shows and prose cannot.
+// where it is, which a snapshot shows and prose cannot. A date outside
+// `minValue` and `maxValue` fades to 38% and stops taking a press; one
+// `isDateUnavailable` rules out — weekends here — is struck through at full
+// contrast instead, since a reader can still land on it and has to read it.
 const Bounded: Story = {
   args: {
     isDateUnavailable: isWeekend,

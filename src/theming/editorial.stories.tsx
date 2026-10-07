@@ -1,6 +1,6 @@
 // One scheme per sidebar entry, which is what makes Theming a section rather
-// than a page with five stories under it. The whole file is the scheme: the
-// page itself is `showcase.tsx`, shared verbatim by all five.
+// than a page with a story per scheme under it. The whole file is the scheme:
+// the page itself is `showcase.tsx`, shared verbatim by all of them.
 //
 // `globals` pins the toolbar's Theme control for the story, and it beats both
 // the toolbar and a Chromatic mode's own globals — so the page renders in this

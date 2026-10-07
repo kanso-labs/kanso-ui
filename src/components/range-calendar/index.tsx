@@ -40,10 +40,10 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // round only their outer edge, which is what makes the band begin and end at
 // a circle.
 //
-// **The band reaches across the grid's own spacing.** A negative inline
-// margin of half that spacing on each side closes the gap between one day and
-// the next without moving either. Without it the band arrives as a dashed run
-// of separate blocks.
+// **The band fills the whole of each day's 48dp.** A day in the range drops
+// the 4dp margin either side that every other date keeps and takes the full
+// width of its cell, so one day's band meets the next one's. Without it the
+// band arrives as a dashed run of separate blocks.
 
 type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
   RACRangeCalendarProps<T>,

@@ -12,7 +12,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useMemo, useRef } from 'react'
+import { createContext, useContext, useMemo, useRef } from 'react'
 import {
   DialogTrigger,
   Heading,
@@ -50,6 +50,14 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // actions. Below it the same dialog fills the window as the page's
 // full-screen dialog: square corners, a 56dp header with the headline and a
 // divider under it, and a 56dp action bar with a divider over it.
+//
+// The pairing is for a dialog that is a task, which needs the room. An alert
+// dialog is a question with two or three answers, and the page keeps the
+// full-screen dialog for tasks, so `role="alertdialog"` stays the basic dialog
+// at every width. Filled to a phone's window it read as a headline at the top
+// of the screen and its answers at the bottom, with nothing between them but
+// the chrome. The `basic` styles below are how: each restates, without the
+// breakpoint, the properties the paired styles change below it.
 //
 // The headline is headline-small on surface, the body body-medium on surface
 // variant, and the buttons are the call site's — the page draws text buttons
@@ -263,6 +271,57 @@ const styles = stylex.create({
   },
 })
 
+// The basic dialog at every width, for an alert dialog. Each entry is the
+// above-breakpoint value of every property its namesake in `styles` changes
+// below the breakpoint, laid over that namesake, so a property it leaves out
+// is the same in both presentations already. A value changed above the
+// breakpoint there has to change here too, which `index.test.tsx` checks by
+// comparing an alert dialog on a phone with any dialog on a desktop.
+const basic = stylex.create({
+  body: {
+    paddingBlockStart: { ':first-child': spacing.xl, default: 0 },
+  },
+  centre: {
+    padding: spacing.xl,
+  },
+  container: {
+    animationName: scaleIn,
+    blockSize: 'auto',
+    borderRadius: radii.xl,
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    maxInlineSize: '560px',
+    minInlineSize: '280px',
+    paddingBlockEnd: null,
+    paddingBlockStart: null,
+    paddingLeft: null,
+    paddingRight: null,
+  },
+  footer: {
+    blockSize: 'auto',
+    borderBlockStartStyle: 'none',
+    paddingBlockEnd: spacing.xl,
+    paddingBlockStart: spacing.xl,
+  },
+  header: {
+    blockSize: 'auto',
+    borderBlockEndStyle: 'none',
+    paddingBlockEnd: spacing.lg,
+    paddingBlockStart: spacing.xl,
+  },
+  title: {
+    fontFamily: typography.headlineSmallFont,
+    fontSize: typography.headlineSmallSize,
+    fontWeight: typography.headlineSmallWeight,
+    letterSpacing: typography.headlineSmallTracking,
+    lineHeight: typography.headlineSmallLineHeight,
+  },
+})
+
+// Whether this dialog is the basic one at every width. Content decides it from
+// the role and the parts read it, since each part carries its own share of
+// the full-screen presentation.
+const BasicContext = createContext(false)
+
 type DialogProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
 }
@@ -270,8 +329,9 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
 /**
  * A modal dialog centred over the page, and the same dialog filling the
  * window below the medium breakpoint — the dialogs page's basic and
- * full-screen dialogs, paired by window size as the page pairs them. Open
- * state is React Aria's: pass `isOpen` with `onOpenChange` to control it, or
+ * full-screen dialogs, paired by window size as the page pairs them. An
+ * alert dialog stays the basic one at every width. Open state is React
+ * Aria's: pass `isOpen` with `onOpenChange` to control it, or
  * `defaultOpen` to let it keep its own.
  *
  * Composed rather than configured by props, as `Sheet` is, since a dialog's
@@ -289,6 +349,7 @@ function DialogBody({
   ref: callerRef,
   ...props
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
+  const isBasic = useContext(BasicContext)
   const ref = useRef<HTMLDivElement>(null)
   // A body its content runs past is a tab stop, so a keyboard can scroll it
   // when nothing inside it takes focus; a call site's own tabIndex still
@@ -307,7 +368,10 @@ function DialogBody({
       tabIndex={scrollable ? 0 : undefined}
       {...props}
       ref={merged}
-      {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
+      {...mergeStyles(
+        stylex.props(styles.body, isBasic && basic.body, overlay.modalBodyRing),
+        props,
+      )}
     />
   )
 }
@@ -319,7 +383,9 @@ function DialogBody({
  *
  * `role="alertdialog"` is React Aria's, for a dialog interrupting with
  * something that has to be answered before the page carries on — a screen
- * reader announces it rather than waiting to be asked.
+ * reader announces it rather than waiting to be asked. It also keeps the
+ * dialog the basic one below the medium breakpoint, centred and sized to its
+ * content, where a dialog of the default role fills the window.
  *
  * A press on the scrim closes the dialog unless `isDismissable` says
  * otherwise, which is the same default `Sheet` takes and the reverse of
@@ -338,41 +404,65 @@ function DialogContent({
   style,
   ...props
 }: DialogContentProps & RefAttributes<HTMLDivElement>) {
+  const isBasic = props.role === 'alertdialog'
+
   return (
-    <ModalOverlay
-      isDismissable={isDismissable}
-      isKeyboardDismissDisabled={isKeyboardDismissDisabled}
-      // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
-      UNSTABLE_portalContainer={container}
-      {...stylex.props(overlay.scrim, styles.centre)}
-    >
-      <Modal
-        // The panel, where the call site's class and style land, rather than
-        // the dialog inside it, which takes the rest of the props.
-        ref={ref}
-        {...mergeStatefulStyles(stylex.props(styles.container), {
-          className,
-          style,
-        })}
+    <BasicContext value={isBasic}>
+      <ModalOverlay
+        isDismissable={isDismissable}
+        isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+        // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+        UNSTABLE_portalContainer={container}
+        {...stylex.props(overlay.scrim, styles.centre, isBasic && basic.centre)}
       >
-        <RACDialog {...props} {...stylex.props(overlay.modalDialog)}>
-          {children}
-        </RACDialog>
-      </Modal>
-    </ModalOverlay>
+        <Modal
+          // The panel, where the call site's class and style land, rather
+          // than the dialog inside it, which takes the rest of the props.
+          ref={ref}
+          {...mergeStatefulStyles(
+            stylex.props(styles.container, isBasic && basic.container),
+            { className, style },
+          )}
+        >
+          <RACDialog {...props} {...stylex.props(overlay.modalDialog)}>
+            {children}
+          </RACDialog>
+        </Modal>
+      </ModalOverlay>
+    </BasicContext>
   )
 }
 
 function DialogFooter(
   props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
 ) {
-  return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
+  const isBasic = useContext(BasicContext)
+
+  return (
+    <div
+      {...props}
+      {...mergeStyles(
+        stylex.props(styles.footer, isBasic && basic.footer),
+        props,
+      )}
+    />
+  )
 }
 
 function DialogHeader(
   props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
 ) {
-  return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
+  const isBasic = useContext(BasicContext)
+
+  return (
+    <div
+      {...props}
+      {...mergeStyles(
+        stylex.props(styles.header, isBasic && basic.header),
+        props,
+      )}
+    />
+  )
 }
 
 /**
@@ -383,11 +473,16 @@ function DialogHeader(
 function DialogTitle(
   props: DialogTitleProps & RefAttributes<HTMLHeadingElement>,
 ) {
+  const isBasic = useContext(BasicContext)
+
   return (
     <Heading
       slot="title"
       {...props}
-      {...mergeStyles(stylex.props(styles.title), props)}
+      {...mergeStyles(
+        stylex.props(styles.title, isBasic && basic.title),
+        props,
+      )}
     />
   )
 }

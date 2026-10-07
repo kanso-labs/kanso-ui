@@ -50,9 +50,10 @@ import { mergeStatefulStyles } from '../../styles/merge'
 //
 // **The cell is a circle in a square.** The page gives the date a 48dp
 // container and a 40dp state layer, which is a 40dp circle with 4dp of room
-// around it. The grid's `border-spacing` is what supplies that room, so the
-// circle is the element and the square is the space between circles — rather
-// than a 48dp box with a 40dp box inside it.
+// around it. Each date's own inline margin supplies that room, with the
+// grid's `border-spacing` left at zero, so the circle is the element and the
+// square is the room around it — rather than a 48dp box with a 40dp box
+// inside it.
 //
 // **A date from the month either side is faded because it is disabled, not
 // because it is outside.** React Aria marks those cells `data-outside-month`

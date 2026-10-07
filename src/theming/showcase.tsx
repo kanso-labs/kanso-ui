@@ -673,7 +673,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The grid takes its type from the label scale, and the chosen day sits on the primary role."
+            description="The dates and the weekday row take body large from the type scale and the month in the header label large, and the chosen day sits on the primary role."
             title="Calendar"
           >
             <Calendar aria-label="Label" defaultValue={SHOWCASE_DATE} />
@@ -1371,7 +1371,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The active indicator takes primary and the track its container, linear and circular, flat and wavy alike."
+            description="The active indicator takes primary and the track secondary container, linear and circular, flat and wavy alike."
             title="ProgressIndicator"
           >
             <ProgressIndicator label="Label" showValue value={60} />
@@ -1408,7 +1408,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The days between the two ends sit on primary container, with the ends themselves on primary."
+            description="The days between the two ends sit on secondary container, with the ends themselves on primary."
             title="RangeCalendar"
           >
             <RangeCalendar aria-label="Label" defaultValue={SHOWCASE_RANGE} />

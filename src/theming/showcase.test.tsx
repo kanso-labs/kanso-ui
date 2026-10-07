@@ -9,11 +9,10 @@ import Showcase from './showcase'
 // and the token it should have been render identically. A component missing
 // from it is therefore never checked under a theme.
 //
-// AGENTS.md records that gap rather than hiding it: the page still renders,
-// all five snapshots still pass, and nothing says the new component is
-// absent. The other two lists a component has to join are both pinned, in
-// src/components/index.test.ts and src/components/styling.test.tsx. This is
-// the third.
+// Without this the page still renders, every scheme's snapshot still passes,
+// and nothing says the new component is absent. The other two lists a
+// component has to join are both pinned, in src/components/index.test.ts and
+// src/components/styling.test.tsx. This is the third.
 //
 // The expected set comes from the directories rather than the barrel's export
 // names. A directory under src/components is a public component, so the two

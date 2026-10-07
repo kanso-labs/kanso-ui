@@ -147,14 +147,17 @@ Specific to this repository:
   library lacks or does not support. What is not built is the plan's business,
   recorded in the project's issues, and a comment that names it goes stale the
   day it lands.
-- **Shared internals live beside `src/components`, never inside it**:
+- **Shared internals live beside `src/components`, never inside it.** Every
+  other directory under `src` is one, apart from `src/tokens` and `src/theming`:
   `src/render` for the render helpers, `src/styles` for the merge helpers and
   the styles more than one component draws (`overlay.ts`, `ripple.ts`),
-  `src/hooks`, `src/field` for the chrome every field renders through, and
-  `src/row` for the row every list, menu and tree item draws. A directory under
-  `src/components` is a public component, with stories, a barrel entry and a
-  `styling.test.tsx` case, and an internal module there would look like one that
-  forgot all three.
+  `src/hooks`, `src/field` for the chrome every field renders through, `src/row`
+  for the row every list, menu and tree item draws, and others of the same kind
+  — `src/calendar`, `src/chip`, `src/segments` and the rest. One that styles
+  anything keeps those styles in a `styles.ts` beside its entry, which
+  `src/internals.test.ts` holds it to. A directory under `src/components` is a
+  public component, with stories, a barrel entry and a `styling.test.tsx` case,
+  and an internal module there would look like one that forgot all three.
 - **The `exports` map says `default`, not `import`, and that is what lets a
   `require()` resolve the package.** The package ships ESM only. Under a
   `default` condition Node resolves the ESM file for a `require()` too; under
@@ -237,12 +240,12 @@ Specific to this repository:
 - Commit messages and pull request titles must follow Conventional Commits — see
   "Commits and pull requests" below, since which of the two reaches `main` is
   not what you would guess.
-- Staged `.ts`/`.tsx` files are linted (oxlint, then ESLint) and formatted
-  (oxfmt) automatically on commit via a husky pre-commit hook running
-  lint-staged (config in `.lintstagedrc.json`). Staged `.json`, `.md`, `.yaml`,
-  and `.yml` files are formatted (oxfmt) wherever they live, since
-  `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and ESLint
-  are absent from that entry because neither reads those formats.
+- Staged `.cjs`, `.js`, `.mjs`, `.ts` and `.tsx` files are linted (oxlint, then
+  ESLint) and formatted (oxfmt) automatically on commit via a husky pre-commit
+  hook running lint-staged (config in `.lintstagedrc.json`). Staged `.json`,
+  `.md`, `.yaml`, and `.yml` files are formatted (oxfmt) wherever they live,
+  since `npm run lint` ends in `oxfmt --check` over the whole repo. oxlint and
+  ESLint are absent from that entry because neither reads those formats.
 - **That entry's glob excludes lock files on purpose.** It reads
   `!(*-lock|*.api).{json,md,yaml,yml}`, not `*.{json,md,yaml,yml}`, because
   oxfmt exits non-zero when every path handed to it is one of its own ignores —
@@ -379,8 +382,8 @@ which is how the drift each bullet names came about.
   the container's family rather than the text role, so its `neutral` is the
   surface-container pair and not the on-surface one.
 - **A field's `variant` is `FieldVariant`**, imported from `src/field`, never
-  the union written out. Eleven components take the prop and the type is
-  exported from the package, so a call site forwarding it has a name for what it
+  the union written out. Every field takes the prop and the type is exported
+  from the package, so a call site forwarding it has a name for what it
   forwards.
 
 ### Sample copy
@@ -733,7 +736,7 @@ the library's own two. They are Storybook material rather than library API —
 nothing under `src/index.ts` reaches them, they are excluded from coverage
 alongside the generated tokens, and no rule of theirs reaches `dist`.
 
-Four things about them are worth knowing before adding a sixth:
+Four things about them are worth knowing before adding another:
 
 - **A scheme over `colors` has to state every key.** Colour is the one token
   group whose defaults are a `prefers-color-scheme` pair, so a key left out of a
@@ -753,11 +756,11 @@ Four things about them are worth knowing before adding a sixth:
   pixels, so without it a dark pair below AA passed every check.
 - **Each scheme is a story file of its own**, titled `Theming/<Name>`, which is
   what makes Theming a section beside `Components` rather than one page holding
-  five stories. Those files carry nothing but the scheme: the page itself is
-  `src/theming/showcase.tsx`, shared verbatim. Naming the single story after the
-  entry matters — Storybook folds a component holding one story of the same name
-  into a single leaf, and any other name puts a disclosure triangle with one
-  child in front of every scheme.
+  a story per scheme. Those files carry nothing but the scheme: the page itself
+  is `src/theming/showcase.tsx`, shared verbatim. Naming the single story after
+  the entry matters — Storybook folds a component holding one story of the same
+  name into a single leaf, and any other name puts a disclosure triangle with
+  one child in front of every scheme.
 - **Each of them pins its scheme with `globals`**, which beat both the toolbar
   and a mode's globals, so the page renders the same whatever is asked of it.
   That also makes the project's light and dark modes redundant there, which is
@@ -782,11 +785,12 @@ is shared verbatim by every scheme, so one edit reaches all of them.
 page's only `<h1>`, so the bar is drawn at the top of the page and its entry in
 the list is a headline and a sentence pointing at it.
 
-**Nothing fails if you forget**, which is why this is written down rather than
-tested: the page still renders, all five snapshots still pass, and the new
-component is simply never checked under a theme.
-`src/components/styling.test.tsx` pins the other list every component has to
-appear in; this one has no equivalent.
+**`src/theming/showcase.test.tsx` fails if you forget.** It renders the page and
+compares its section headings with the directories under `src/components`, since
+otherwise the page still renders, every scheme's snapshot still passes, and the
+new component is simply never checked under a theme. It is the third list a
+component has to join that a test pins, beside `src/components/index.test.ts`
+and `src/components/styling.test.tsx`.
 
 ## Workflows and checks
 
