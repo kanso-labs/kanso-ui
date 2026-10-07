@@ -114,11 +114,12 @@ const Overview: Story = {
             Bounds
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `minValue` and `maxValue` bound the calendar, and
-            `isDateUnavailable` rules out dates one at a time — weekends here.
-            Either way the date fades to the page&apos;s 38% and stops taking a
-            press, which is the same treatment every disabled control here
-            takes.
+            `minValue` and `maxValue` bound the calendar, and a date outside
+            them fades to the page&apos;s 38% and stops taking a press, the
+            treatment every disabled control here takes. `isDateUnavailable`
+            rules out dates one at a time — weekends here — and strikes them
+            through at full contrast instead, since a reader can still land on
+            one and has to be able to read it.
           </Text>
         </div>
         <Calendar
