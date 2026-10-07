@@ -675,6 +675,12 @@ what it opens. A new story that opens something gets the same. Inline stories
 take their own height there, rather than the full viewport `ThemeWrapper` gives
 a story on its own, so a page of six stories is not six screens long.
 
+**A framed story ignores the toolbar.** Storybook builds the frame's URL from
+the story's id alone, so the frame opens on `initialGlobals` — light and English
+— whatever theme and locale the page around it is in. The story's own entry in
+the sidebar follows the toolbar as every story does, and is where to read one of
+them in another theme.
+
 **The published Storybook is the latest release, not the latest merge.** It is
 at <https://kanso-ui.kansolabs.org/>, and it is the copy to link someone who
 only wants to look, since it documents the version they would install. That
