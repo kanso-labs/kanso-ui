@@ -12,6 +12,8 @@ import { spacingPx } from '../../tokens/values'
 const OUTER = { inlineSize: '400px' }
 
 const NAV = <nav aria-label="Stack" />
+// oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari's VoiceOver drops the role once the markers are cleared, which the doc comment tells a call site to write
+const LIST = <ul role="list" />
 
 function Items() {
   return (
@@ -180,5 +182,27 @@ describe('element', () => {
 
     expect(stack.tagName).toBe('NAV')
     expect(getComputedStyle(stack).flexDirection).toBe('row')
+  })
+
+  // The UA gives a <ul> a block margin of 1em, an inline-start padding of
+  // 40px and a disc on every item, so each of these reads something other
+  // than zero or none without the reset.
+  it('clears the margin, padding and markers a list carries', () => {
+    const { stack } = renderStack(
+      <Stack render={LIST}>
+        <li>First item</li>
+        <li>Second item</li>
+      </Stack>,
+    )
+    const style = getComputedStyle(stack)
+
+    expect(stack.tagName).toBe('UL')
+    expect(style.marginBlockStart).toBe('0px')
+    expect(style.marginBlockEnd).toBe('0px')
+    expect(style.paddingInlineStart).toBe('0px')
+    expect(style.listStyleType).toBe('none')
+    expect(
+      [...stack.children].map((item) => getComputedStyle(item).listStyleType),
+    ).toStrictEqual(['none', 'none'])
   })
 })
