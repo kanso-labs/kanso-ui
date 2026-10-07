@@ -44,7 +44,7 @@ jobs:
       # commitlint and its preset come from the lockfile, so this checks against
       # the versions Renovate bumps rather than whatever npx would fetch.
       - name: Set up Node
-        uses: kanso-labs/actions/setup-node@v4.1.0
+        uses: kanso-labs/actions/setup-node@v4.2.0
         with:
           ignore-scripts: true
 
