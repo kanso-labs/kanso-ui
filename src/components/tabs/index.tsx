@@ -371,12 +371,16 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     color: colors.primary,
   },
-  // The state layer over the bar's surface: primary for the active tab, on
-  // surface for an inactive one at rest, and primary for either once pressed,
-  // as the page gives them. From React Aria's render state rather than
-  // `:hover` and `:active`, for Button's reasons — see its header: a hover
-  // layer stayed on after a tap, and no pressed layer showed for a press made
-  // from the keyboard.
+  // The state layers over the bar's surface: primary for the active tab and
+  // on surface for an inactive one while hovered or focused, and primary for
+  // either once pressed, as the page gives them. From React Aria's render
+  // state rather than `:hover`, `:focus-visible` and `:active`, for Button's
+  // reasons — see its header: a hover layer stayed on after a tap, and no
+  // pressed layer showed for a press made from the keyboard. The focus layer
+  // sits under the ring rather than replacing it.
+  tabActiveFocused: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   tabActiveHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
@@ -400,6 +404,15 @@ const styles = stylex.create({
     backgroundColor: 'transparent',
     color: colors.onSurfaceVariant,
   },
+  // An inactive tab's label and icon while it is hovered, focused or
+  // pressed, which the page moves from on surface variant to on surface in
+  // both styles. The icon follows, since it is drawn in `currentColor`.
+  tabInactiveEngaged: {
+    color: colors.onSurface,
+  },
+  tabInactiveFocused: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   tabInactiveHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
@@ -417,6 +430,9 @@ const styles = stylex.create({
     minInlineSize: '72px',
   },
   // A secondary tab's layers are on surface whether it is active or not.
+  tabSecondaryFocused: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   tabSecondaryHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
@@ -478,7 +494,9 @@ type TabsVariant = 'primary' | 'secondary'
 const VARIANTS = {
   primary: {
     active: styles.tabActive,
+    activeFocused: styles.tabActiveFocused,
     activeHovered: styles.tabActiveHovered,
+    inactiveFocused: styles.tabInactiveFocused,
     inactiveHovered: styles.tabInactiveHovered,
     indicator: {
       horizontal: styles.indicator,
@@ -488,7 +506,9 @@ const VARIANTS = {
   },
   secondary: {
     active: styles.tabActiveSecondary,
+    activeFocused: styles.tabSecondaryFocused,
     activeHovered: styles.tabSecondaryHovered,
+    inactiveFocused: styles.tabSecondaryFocused,
     inactiveHovered: styles.tabSecondaryHovered,
     indicator: {
       horizontal: styles.indicatorSecondary,
@@ -614,18 +634,26 @@ function tabClasses({ layout, orientation, variant }: Bar, stacked: boolean) {
   const roles = VARIANTS[variant]
   const vertical = orientation === 'vertical'
 
-  return (state: TabRenderProps) =>
-    stylex.props(
+  return (state: TabRenderProps) => {
+    const engaged = state.isHovered || state.isFocusVisible || state.isPressed
+
+    // The layers in rising order, so a press shows over a focused tab and
+    // focus over a hovered one.
+    return stylex.props(
       styles.tab,
       layout === 'scrollable' && !vertical && styles.tabScrollable,
       vertical && styles.tabVertical,
       stacked && styles.tabStacked,
       state.isSelected ? roles.active : styles.tabInactive,
+      !state.isSelected && engaged && styles.tabInactiveEngaged,
       state.isHovered &&
         (state.isSelected ? roles.activeHovered : roles.inactiveHovered),
+      state.isFocusVisible &&
+        (state.isSelected ? roles.activeFocused : roles.inactiveFocused),
       state.isPressed && roles.pressed,
       state.isDisabled && styles.tabDisabled,
     )
+  }
 }
 
 // The tab's content: the icon, if any, then the label, wrapped so the
