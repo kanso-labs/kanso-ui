@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Select from '.'
+import { atFootOfWindow, originOf } from '../../styles/overlay.testing'
 import {
   colors,
   motion,
@@ -102,13 +103,26 @@ function glyphOf(view: ReturnType<typeof render>) {
   return glyph
 }
 
-function setup(props: Partial<Parameters<typeof Select<object>>[0]> = {}) {
+function setup(
+  props: Partial<Parameters<typeof Select<object>>[0]> = {},
+  container?: HTMLElement,
+) {
   const view = render(
     <div style={WIDTH}>
       <Select label="Label" options={OPTIONS} {...props} />
     </div>,
+    { baseElement: document.body, container },
   )
   return { ...view, trigger: view.getByRole('button', { name: /Label/ }) }
+}
+
+/** The surface the list opens on, once it has opened. */
+async function surfaceOf(view: ReturnType<typeof render>) {
+  const list = await view.findByRole('listbox')
+  if (list.parentElement === null) {
+    throw new Error('expected the list to sit on a surface')
+  }
+  return list.parentElement
 }
 
 /** The element React Aria draws the value in, styled by the field chrome. */
@@ -337,6 +351,29 @@ describe('select', () => {
       expect(surface?.style.getPropertyValue('--trigger-width')).toBe(
         `${box.getBoundingClientRect().width}px`,
       )
+    })
+
+    // The list grows out of the field, from the edge it is anchored by:
+    // down from its top edge under the field, and up from its bottom edge
+    // when there is no room under the field and React Aria opens it above.
+    it('grows the list down from its top edge under the field', async () => {
+      const view = setup()
+
+      fireEvent.click(view.trigger)
+      const surface = await surfaceOf(view)
+
+      expect(surface.getAttribute('data-placement')).toBe('bottom')
+      expect(originOf(surface).y).toBeCloseTo(0)
+    })
+
+    it('grows the list up from its bottom edge above the field', async () => {
+      const view = setup({}, atFootOfWindow())
+
+      fireEvent.click(view.trigger)
+      const surface = await surfaceOf(view)
+
+      expect(surface.getAttribute('data-placement')).toBe('top')
+      expect(originOf(surface).y).toBeCloseTo(1)
     })
   })
   // The turn is drawn from the motion tokens rather than written as literals,

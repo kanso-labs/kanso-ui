@@ -31,7 +31,11 @@ import { segmentStyles } from '../../segments/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
-import { picker, triggerClassName } from '../../styles/picker'
+import {
+  datePopoverClassName,
+  picker,
+  triggerClassName,
+} from '../../styles/picker'
 import Calendar from '../calendar'
 
 // The date pickers page's picker: the date field a date is typed into, with
@@ -216,9 +220,9 @@ function DatePicker<T extends DateValue>({
       </FieldBox>
       <FieldMessage description={description} error={error} />
       <RACPopover
+        className={datePopoverClassName}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.popup, picker.popover, picker.datePopover)}
       >
         <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
           <Calendar
