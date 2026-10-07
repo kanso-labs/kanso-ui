@@ -580,6 +580,7 @@ function GettingStartedPage() {
 
 const meta = {
   component: GettingStartedPage,
+  tags: ['!autodocs'],
   title: 'Getting started',
 } satisfies Meta<typeof GettingStartedPage>
 

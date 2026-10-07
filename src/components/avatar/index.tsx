@@ -37,6 +37,20 @@ type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary'
 }
 
+/**
+ * A person, as a circle holding their photo or, until it loads or when there
+ * is none, their initials. `name` is both where the initials come from and
+ * what a screen reader announces, so it is required even with a photo.
+ *
+ * ```tsx
+ * <Avatar name="Ada Lovelace" src={photo} size="lg" />
+ * ```
+ *
+ * Reach for ProductIcon when what is drawn is not a person; the two share
+ * their sizes, so either fills the same slot in a row or a card.
+ *
+ * The call site's `className` and `style` land on the circle.
+ */
 function Avatar({ size = 'md', tone = 'primary', ...props }: AvatarProps) {
   return <Mark {...props} kind="person" size={size} tone={tone} />
 }

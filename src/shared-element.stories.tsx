@@ -237,6 +237,7 @@ function SharedElementPage() {
 
 const meta = {
   component: SharedElementPage,
+  tags: ['!autodocs'],
   title: 'Foundations/Shared elements',
 } satisfies Meta<typeof SharedElementPage>
 

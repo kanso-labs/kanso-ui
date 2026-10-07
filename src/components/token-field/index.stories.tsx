@@ -266,7 +266,7 @@ const Typed: Story = {
     })
   },
   render: Default.render,
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
 }
 
 export {

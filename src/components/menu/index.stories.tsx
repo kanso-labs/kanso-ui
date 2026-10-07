@@ -182,6 +182,7 @@ const Overview: Story = {
 
 // Open on load, since a closed menu renders nothing for Chromatic to compare.
 const Default: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   render: (args) => (
     <Menu {...args} defaultOpen>
       <Button variant="outlined">Actions</Button>
@@ -202,6 +203,7 @@ const Default: Story = {
 }
 
 const Sections: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   render: (args) => (
     <Menu {...args} defaultOpen>
       <Button variant="outlined">Sort</Button>
@@ -224,6 +226,7 @@ const Sections: Story = {
 // rest of the menu. The menus are portalled to the end of the body, outside
 // the canvas, so they are found through the document.
 const Submenu: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   play: async ({ userEvent }) => {
     const item = await waitFor(() => {
       const found = document.querySelector('[role="menuitem"][aria-haspopup]')
@@ -254,6 +257,7 @@ const Submenu: Story = {
 }
 
 const Loading: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   render: (args) => (
     <Menu {...args} defaultOpen>
       <Button variant="outlined">Actions</Button>

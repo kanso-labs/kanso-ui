@@ -21,7 +21,7 @@ const meta = {
   parameters: {
     chromatic: { disableSnapshot: true },
   },
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
   title: 'Theming/Dark',
 } satisfies Meta<typeof Showcase>
 

@@ -168,6 +168,7 @@ const Overview: Story = {
 }
 
 const Default: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
   render: () => (
     <Dialog defaultOpen>
       <Button variant="outlined">Open dialog</Button>
@@ -209,6 +210,7 @@ const LONG_BODY = Array.from({ length: 40 }, (_, index) => (
 // the actions stay on screen, and the rest of the text is a scroll away
 // rather than clipped past the container's edge.
 const LongBody: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
   render: () => (
     <Dialog defaultOpen>
       <Button variant="outlined">Open dialog</Button>
@@ -240,6 +242,7 @@ function alertDialog() {
 }
 
 const AlertDialog: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
   // The story is the pattern a call site copies, so what it promises is
   // checked on the story itself: a question that has to be answered stays on
   // screen when Escape is pressed. React Aria keeps Escape and a press outside

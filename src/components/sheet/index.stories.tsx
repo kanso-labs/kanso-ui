@@ -213,6 +213,7 @@ const Overview: Story = {
 // written without a button is a shape no call site should copy — and the
 // scrim over the page behind is part of what a modal sheet looks like.
 const Default: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
   render: (args) => (
     <Sheet {...args} defaultOpen>
       <Button variant="outlined">Open</Button>
@@ -249,6 +250,7 @@ const BottomSheet: Story = {
         light: { theme: 'light', viewport: { height: 700, width: 375 } },
       },
     },
+    docs: { story: { height: '600px', inline: false } },
   },
   render: (args) => (
     <Sheet {...args} defaultOpen>
@@ -346,7 +348,7 @@ const OpensAndCloses: Story = {
       </Sheet.Content>
     </Sheet>
   ),
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
 }
 
 export { BottomSheet, Default, LongBody, OpensAndCloses, Overview }

@@ -274,6 +274,7 @@ const Disabled: Story = {
 
 const Open: Story = {
   args: { defaultOpen: true, defaultValue: 'second' },
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   render: Default.render,
 }
 

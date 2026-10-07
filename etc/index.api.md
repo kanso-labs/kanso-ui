@@ -184,7 +184,7 @@ export type AutocompleteProps<T extends object = object> = {
     filter?: AutocompleteFilter<T>;
 } & Omit<AutocompleteProps_2<T>, 'children' | 'filter'>;
 
-// @public (undocumented)
+// @public
 export function Avatar(input: AvatarProps): JSX;
 
 // @public (undocumented)
@@ -374,7 +374,7 @@ export type ChipFilterProps = Omit<ToggleButtonProps, 'children'> & {
     variant?: 'filter';
 };
 
-// @public (undocumented)
+// @public
 export function ChipGroup<T extends object = object>(input: ChipGroupProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
@@ -573,7 +573,7 @@ export type CopyFieldProps = {
     value: string;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'children'>;
 
-// @public (undocumented)
+// @public
 export function Currency(input: CurrencyProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
 
 // @public (undocumented)
@@ -1885,7 +1885,7 @@ export type TagTone = 'negative' | 'neutral' | 'positive' | 'primary';
 // @public (undocumented)
 export type TagVariant = 'filled' | 'outlined';
 
-// @public (undocumented)
+// @public
 function Text_2(input: TextProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
 export { Text_2 as Text }
 

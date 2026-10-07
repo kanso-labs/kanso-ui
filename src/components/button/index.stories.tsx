@@ -545,7 +545,7 @@ const Pressed: Story = {
       { timeout: 2000 },
     )
   },
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
 }
 
 // The label is kept in the flow while the ring shows, so the button stays
