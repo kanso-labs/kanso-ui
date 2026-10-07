@@ -1,94 +1,17 @@
 'use client'
 
-import * as stylex from '@stylexjs/stylex'
-import { useLocale } from 'react-aria-components'
-
 import type { RenderComponentProps } from '../../render/useRender'
 
-import { useImageLoadingStatus } from '../../hooks/useImageLoadingStatus'
-import { useRender } from '../../render/useRender'
-import { mergeStyles } from '../../styles/merge'
-import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
+import Mark from '../../mark'
 
-// Tones are container/on-container pairs rather than one colour each, so the
-// initials are always a role's own foreground and can't end up unreadable on
-// a tint they were never paired with. Which tone a given person gets is the
-// consuming app's decision — the design cycles colours per person, and that
-// cycle belongs where the list of people is, not in this component.
+// A person, drawn as a circle with the photo cropped to fill it. The box, the
+// sizes, the tones, the photo's loading and the labelling are the mark's in
+// `src/mark`, which ProductIcon draws a thing through as well, so a person
+// and a thing fill the same slot.
 //
-// Sizes carry their own type size but not their own weight or family: the
-// label face at medium weight holds across all three, so a large avatar is
-// bigger initials rather than differently-styled ones.
-//
-// The three are the library's own rather than a spec page's — no Material
-// Design page gives a measurement for one in text; the lists page draws its
-// leading elements in a diagram and tabulates only their padding. So they are
-// stated against the scale the library already has. `md` is 40dp, which is
-// Button's and IconButton's own `md` height, so an avatar and a control line
-// up in a row. `lg` is 56dp. `sm` is 36dp, between the 32dp a chip and an
-// `xs` control take and that 40dp default, for a row that wants a person
-// smaller than the button beside them.
-//
-// ProductIcon takes the same three, so a mark and a person fill the same
-// slot.
-const styles = stylex.create({
-  base: {
-    alignItems: 'center',
-    borderRadius: radii.circle,
-    boxSizing: 'border-box',
-    display: 'inline-flex',
-    flexShrink: 0,
-    fontFamily: typography.labelLargeFont,
-    fontWeight: typography.weightMedium,
-    justifyContent: 'center',
-    // Clips the photo to the circle, so an image of any aspect ratio can be
-    // handed over without the call site having to crop it first.
-    overflow: 'hidden',
-    userSelect: 'none',
-  },
-  image: {
-    blockSize: '100%',
-    inlineSize: '100%',
-    // Fills the circle instead of letterboxing, which is what makes a
-    // non-square photo usable here at all.
-    objectFit: 'cover',
-  },
-  lg: {
-    blockSize: '56px',
-    fontSize: typography.bodyLargeSize,
-    inlineSize: '56px',
-  },
-  md: {
-    blockSize: '40px',
-    fontSize: typography.labelLargeSize,
-    inlineSize: '40px',
-  },
-  negative: {
-    backgroundColor: colors.negativeContainer,
-    color: colors.onNegativeContainer,
-  },
-  positive: {
-    backgroundColor: colors.positiveContainer,
-    color: colors.onPositiveContainer,
-  },
-  primary: {
-    backgroundColor: colors.primaryContainer,
-    color: colors.onPrimaryContainer,
-  },
-  secondary: {
-    backgroundColor: colors.secondaryContainer,
-    color: colors.onSecondaryContainer,
-  },
-  sm: {
-    blockSize: '36px',
-    fontSize: typography.labelMediumSize,
-    inlineSize: '36px',
-  },
-  tertiary: {
-    backgroundColor: colors.tertiaryContainer,
-    color: colors.onTertiaryContainer,
-  },
-})
+// Which tone a given person gets is the consuming app's decision — the design
+// cycles colours per person, and that cycle belongs where the list of people
+// is, not in this component.
 
 type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
@@ -114,82 +37,8 @@ type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary'
 }
 
-function Avatar({
-  name,
-  render,
-  size = 'md',
-  src,
-  tone = 'primary',
-  ...props
-}: AvatarProps) {
-  // The photo is shown only once it has loaded, and the initials stay until
-  // then and come back if it fails — see useImageLoadingStatus.
-  const status = useImageLoadingStatus(src)
-  const { locale } = useLocale()
-
-  // role/aria-label rather than letting the initials be read: "AL" is not
-  // what anyone means to announce. Marking the root as an image also makes
-  // its contents presentational, so the photo and the initials can't be
-  // announced a second time underneath the name. A span rather than an
-  // <img>, which is void: this element's whole job is to hold the initials
-  // shown when there is no photo, or none has loaded yet.
-  //
-  // A blank name — one still loading, say — names nothing, so the avatar is
-  // then a plain element rather than an image with no name, which a screen
-  // reader reads as a bare "image". Its empty initials, or its photo with an
-  // empty alt, leave it nothing to announce.
-  const named = name.trim() !== ''
-
-  return useRender({
-    defaultTagName: 'span',
-    props: {
-      ...(named ? { 'aria-label': name, role: 'img' } : {}),
-      ...props,
-      children:
-        status === 'loaded' ? (
-          <img alt="" src={src} {...stylex.props(styles.image)} />
-        ) : (
-          initialsFrom(name, locale)
-        ),
-      ...mergeStyles(
-        stylex.props(styles.base, styles[size], styles[tone]),
-        props,
-      ),
-    },
-    render,
-  })
-}
-
-// The first character of the first and last word, which handles both "Ada"
-// and "Ada Lovelace" without a separate prop for how many to take.
-//
-// A character is a grapheme, what a reader sees as one, rather than a code
-// point: a code point drops an accent written as a combining mark, splits an
-// Indic conjunct and cuts a flag or a joined emoji in half. And it is
-// upper-cased in the reader's locale, which is what turns a Turkish "i" into
-// "İ" rather than "I".
-function initialsFrom(name: string, locale: string) {
-  const words = name.split(/\s+/u).filter(Boolean)
-  if (words.length === 0) {
-    return ''
-  }
-  const first = firstGrapheme(words[0] ?? '', locale)
-  const last = words.length > 1 ? firstGrapheme(words.at(-1) ?? '', locale) : ''
-  return `${first}${last}`.toLocaleUpperCase(locale)
-}
-
-const segmenters = new Map<string, Intl.Segmenter>()
-
-function firstGrapheme(word: string, locale: string) {
-  let segmenter = segmenters.get(locale)
-  if (segmenter === undefined) {
-    segmenter = new Intl.Segmenter(locale, { granularity: 'grapheme' })
-    segmenters.set(locale, segmenter)
-  }
-  for (const { segment } of segmenter.segment(word)) {
-    return segment
-  }
-  return ''
+function Avatar({ size = 'md', tone = 'primary', ...props }: AvatarProps) {
+  return <Mark {...props} kind="person" size={size} tone={tone} />
 }
 
 export type { AvatarProps }
