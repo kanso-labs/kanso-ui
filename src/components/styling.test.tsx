@@ -80,6 +80,7 @@ import {
   TextArea,
   TextField,
   TimeField,
+  TimePicker,
   TokenField,
   Toolbar,
   Tooltip,
@@ -933,6 +934,7 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   { element: <TextArea {...PROBE} label="Label" />, name: 'TextArea' },
   { element: <TextField {...PROBE} label="Label" />, name: 'TextField' },
   { element: <TimeField {...PROBE} label="Label" />, name: 'TimeField' },
+  { element: <TimePicker {...PROBE} label="Label" />, name: 'TimePicker' },
   {
     element: <TokenField {...PROBE} label="Label" />,
     name: 'TokenField',

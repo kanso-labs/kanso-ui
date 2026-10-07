@@ -161,6 +161,7 @@ import type {
   SplitButtonMenuProps,
   SplitButtonProps,
 } from './split-button'
+import type { TimePickerMode, TimePickerProps } from './time-picker'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
@@ -287,6 +288,7 @@ import TextDefault from './text'
 import TextAreaDefault from './text-area'
 import TextFieldDefault from './text-field'
 import TimeFieldDefault from './time-field'
+import TimePickerDefault from './time-picker'
 import TokenFieldDefault from './token-field'
 import ToolbarDefault from './toolbar'
 import TooltipDefault from './tooltip'
@@ -481,6 +483,7 @@ describe('components barrel', () => {
       'TextArea',
       'TextField',
       'TimeField',
+      'TimePicker',
       'TokenField',
       'Toolbar',
       'Tooltip',
@@ -637,6 +640,7 @@ describe('components barrel', () => {
     TextArea: [components.TextArea, TextAreaDefault],
     TextField: [components.TextField, TextFieldDefault],
     TimeField: [components.TimeField, TimeFieldDefault],
+    TimePicker: [components.TimePicker, TimePickerDefault],
     TokenField: [components.TokenField, TokenFieldDefault],
     Toolbar: [components.Toolbar, ToolbarDefault],
     Tooltip: [components.Tooltip, TooltipDefault],
@@ -1480,6 +1484,16 @@ describe('components barrel', () => {
   it('re-exports the CarouselItemProps type', () => {
     const props: CarouselItemProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the TimePickerProps type', () => {
+    const props: TimePickerProps = { label: 'test' }
+    expect(props.label).toBe('test')
+  })
+
+  it('re-exports the TimePickerMode type', () => {
+    const value: TimePickerMode = 'input'
+    expect(value).toBe('input')
   })
 
   it('re-exports the CarouselLayout type', () => {

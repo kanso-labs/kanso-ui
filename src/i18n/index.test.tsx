@@ -61,9 +61,31 @@ function inFrench(element: ReactElement) {
 }
 
 // The entries a language writes exactly as English does, because the word it
-// uses is the English one: Brazilian Portuguese calls a slide a "slide".
+// uses is the English one: Brazilian Portuguese calls a slide a "slide", and
+// most languages confirm a time picker with "OK".
 // Anything else equal to English is a message nobody translated.
-const SAME_AS_ENGLISH = new Set(['pt-BR slide'])
+const SAME_AS_ENGLISH = new Set([
+  'bg-BG confirm',
+  'cs-CZ confirm',
+  'da-DK confirm',
+  'de-DE confirm',
+  'el-GR confirm',
+  'et-EE confirm',
+  'fi-FI confirm',
+  'fr-FR confirm',
+  'hu-HU confirm',
+  'it-IT confirm',
+  'ja-JP confirm',
+  'nb-NO confirm',
+  'nl-NL confirm',
+  'pl-PL confirm',
+  'pt-BR confirm',
+  'pt-BR slide',
+  'pt-PT confirm',
+  'ro-RO confirm',
+  'sk-SK confirm',
+  'sv-SE confirm',
+])
 
 describe("the library's own words", () => {
   describe('the table', () => {
@@ -83,13 +105,17 @@ describe("the library's own words", () => {
 
         for (const key of [
           'back',
+          'cancel',
           'carousel',
+          'confirm',
           'copied',
           'copy',
+          'enterTime',
           'loading',
           'loadingMore',
           'nextSlide',
           'previousSlide',
+          'selectTime',
           'slide',
         ] as const) {
           expect(messages[key]).not.toBe('')
