@@ -1,8 +1,8 @@
 // The one name here from outside `src/components`, and it is a component's
-// prop rather than a part of the chrome: `variant` on the six field
-// components is typed by it, and none of them aliases it under a name of its
-// own the way Popover aliases the overlay unions. Without this a call site
-// forwarding `variant` has no name for what it is forwarding.
+// prop rather than a part of the chrome: `variant` on every field component
+// is typed by it, and none of them aliases it under a name of its own the way
+// Popover aliases the overlay unions. Without this a call site forwarding
+// `variant` has no name for what it is forwarding.
 export type { FieldVariant } from '../field'
 export type { AppBarProps } from './app-bar'
 export { default as AppBar } from './app-bar'

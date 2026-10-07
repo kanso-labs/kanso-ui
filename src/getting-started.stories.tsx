@@ -445,15 +445,14 @@ function GettingStartedPage() {
             Foundations
           </ListItem>
           <Separator />
-          <ListItem supporting="The same page under five schemes, so what a token moves is the only thing that differs.">
+          <ListItem supporting="The same page under each scheme, so what a token moves is the only thing that differs.">
             Theming
           </ListItem>
         </Card>
         <div {...stylex.props(styles.prose)}>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The Theme control in the toolbar switches the canvas between light,
-            dark, and each of those five schemes — on this page and on every
-            other.
+            dark, and each of those schemes — on this page and on every other.
           </Text>
         </div>
       </section>
@@ -533,7 +532,7 @@ function GettingStartedPage() {
             if you need them exported.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            How far that goes is the Theming section&apos;s question: five
+            How far that goes is the Theming section&apos;s question: its
             schemes, one page, and nothing between them but the tokens they set.
           </Text>
         </div>
