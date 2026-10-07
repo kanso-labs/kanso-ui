@@ -308,14 +308,17 @@ function StarIcon() {
 `1em` works because the slots that own an icon's size set it as a font size, and
 the icon inherits it:
 
-| Slot                                       | Size an `em` icon takes                              |
-| ------------------------------------------ | ---------------------------------------------------- |
-| `Button`'s `icon`                          | 20px, 20px, 24px, 32px and 40px across `xs` to `xxl` |
-| `Chip`'s and `ChipGroup.Chip`'s `icon`     | 18px                                                 |
-| `IconButton`                               | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
-| A field's `leadingIcon` and `trailingIcon` | 24px                                                 |
-| `SegmentedButton.Segment`'s `icon`         | 18px                                                 |
-| `Tabs.Tab`'s `icon`                        | 24px                                                 |
+| Slot                                        | Size an `em` icon takes                              |
+| ------------------------------------------- | ---------------------------------------------------- |
+| `Button`'s `icon`                           | 20px, 20px, 24px, 32px and 40px across `xs` to `xxl` |
+| `Chip`'s and `ChipGroup.Chip`'s `icon`      | 18px                                                 |
+| `Fab`'s children, with or without a `label` | 24px, 28px and 36px across `md` to `xl`              |
+| `FabMenu`'s `icon`                          | 24px, 28px and 36px across `md` to `xl`              |
+| `FabMenu.Item`'s `icon`                     | 24px                                                 |
+| `IconButton`                                | 20px, 24px, 24px, 32px and 40px across `xs` to `xxl` |
+| A field's `leadingIcon` and `trailingIcon`  | 24px                                                 |
+| `SegmentedButton.Segment`'s `icon`          | 18px                                                 |
+| `Tabs.Tab`'s `icon`                         | 24px                                                 |
 
 **The `leading` and `trailing` slots on a row are different.** A list item, a
 menu item, a tree item and an app bar set no icon size, so an icon there takes
