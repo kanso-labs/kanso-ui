@@ -185,7 +185,7 @@ export type AutocompleteProps<T extends object = object> = {
 } & Omit<AutocompleteProps_2<T>, 'children' | 'filter'>;
 
 // @public (undocumented)
-export function Avatar(input: AvatarProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+export function Avatar(input: AvatarProps): JSX;
 
 // @public (undocumented)
 export type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
@@ -1327,7 +1327,7 @@ export { Pressable }
 export { PressEvent }
 
 // @public
-export function ProductIcon(input: ProductIconProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+export function ProductIcon(input: ProductIconProps): JSX;
 
 // @public (undocumented)
 export type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
