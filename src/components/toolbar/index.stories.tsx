@@ -105,10 +105,12 @@ const OPTIONS = (
 
 // A button and a field beside the icon buttons, which the bar holds as
 // readily. The field is a select rather than a text field: the bar takes the
-// left and right arrows before anything inside it sees them, which a
-// select's trigger never uses and a text field's caret does. Its 56dp box
-// and the bar's 8dp either side of it make the bar 72dp, past the 64dp it
-// keeps for icon buttons alone.
+// left and right arrows before anything inside it sees them, which costs a
+// select only its shortcut for stepping through the options while closed —
+// the up and down arrows still open it — and would leave a text field's
+// caret unable to move along the line. Its 56dp box and the bar's 8dp
+// either side of it make the bar 72dp, past the 64dp it keeps for icon
+// buttons alone.
 const MIXED = (
   <>
     <IconButton aria-label="First item">
@@ -176,8 +178,9 @@ const Overview: Story = {
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             The bar holds a button or a field as readily as an icon button, and
             grows to fit one taller than its 64dp. A select fits where a text
-            field does not: the arrow keys move between the controls before a
-            text field&apos;s caret sees them.
+            field does not: the left and right arrows move between the controls
+            before anything inside sees them, which costs a select a shortcut
+            but would leave a text field&apos;s caret unable to move.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
