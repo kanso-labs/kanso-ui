@@ -23,10 +23,16 @@ const probeStyles = stylex.create({
   divider: { boxShadow: `inset 0 -1px 0 0 ${colors.outlineVariant}` },
   inactiveColor: { color: colors.onSurfaceVariant },
   onSurfaceColor: { color: colors.onSurface },
+  onSurfaceFocus: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   // A phone's width: three equal sections of about 109px each, narrower than
   // either long label below on one line.
   phone: { inlineSize: '360px' },
   primary: { backgroundColor: colors.primary },
+  primaryFocus: {
+    backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   secondaryHover: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
@@ -50,6 +56,8 @@ const CLASSES = {
   divider: classesOf(stylex.props(probeStyles.divider)),
   inactiveColor: classesOf(stylex.props(probeStyles.inactiveColor)),
   onSurfaceColor: classesOf(stylex.props(probeStyles.onSurfaceColor)),
+  onSurfaceFocus: classesOf(stylex.props(probeStyles.onSurfaceFocus)),
+  primaryFocus: classesOf(stylex.props(probeStyles.primaryFocus)),
   secondaryHover: classesOf(stylex.props(probeStyles.secondaryHover)),
   titleSmall: classesOf(stylex.props(probeStyles.titleSmall)),
   transparent: classesOf(stylex.props(probeStyles.transparent)),
@@ -77,6 +85,15 @@ function centreOf(box: {
   top: number
 }) {
   return { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 }
+}
+
+// Focus as a keyboard brings it, which is what React Aria reports as
+// focus-visible.
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
 }
 
 function hasClasses(element: HTMLElement, classes: string[]) {
@@ -119,6 +136,25 @@ function probe(style: stylex.StyleXStyles) {
   const colour = getComputedStyle(view.getByTestId('probe')).backgroundColor
   view.unmount()
   return colour
+}
+
+// A finger going down on the element's centre. A touch selects a tab only
+// once it lifts, so an inactive tab stays inactive while it is held — where
+// a mouse selects it on the way down.
+function touchDown(element: Element) {
+  const rect = element.getBoundingClientRect()
+  fireEvent(
+    element,
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+      isPrimary: true,
+      pointerId: 1,
+      pointerType: 'touch',
+    }),
+  )
 }
 
 // More tabs than a phone's width has room for at their labels' widths.
@@ -756,6 +792,88 @@ describe('tabs', () => {
           getComputedStyle(tab).color,
         )
       }
+    })
+  })
+
+  // The page moves an inactive tab's label and icon from on surface variant
+  // to on surface while it is hovered, focused or pressed, in both styles,
+  // and lays a focus layer under a keyboard's ring.
+  describe('hover, focus and press', () => {
+    const VARIANTS = ['primary', 'secondary'] as const
+
+    it.each(VARIANTS)(
+      'draws a hovered inactive %s label in on surface',
+      (variant) => {
+        const view = setupWith({ variant })
+        const [, second] = view.getAllByRole('tab')
+
+        fireEvent.pointerOver(second, { pointerType: 'mouse' })
+        expect(hasClasses(second, CLASSES.onSurfaceColor)).toBe(true)
+        expect(hasClasses(second, CLASSES.inactiveColor)).toBe(false)
+
+        fireEvent.pointerOut(second, {
+          pointerType: 'mouse',
+          relatedTarget: document.body,
+        })
+        expect(hasClasses(second, CLASSES.inactiveColor)).toBe(true)
+      },
+    )
+
+    // Manual activation, so focus can reach a tab without selecting it.
+    it.each(VARIANTS)(
+      'draws a focused inactive %s label in on surface, under its layer',
+      (variant) => {
+        const view = setupWith({ keyboardActivation: 'manual', variant })
+        const [, second] = view.getAllByRole('tab')
+
+        focusByKeyboard(second)
+
+        expect(second.getAttribute('aria-selected')).toBe('false')
+        expect(hasClasses(second, CLASSES.onSurfaceColor)).toBe(true)
+        expect(hasClasses(second, CLASSES.inactiveColor)).toBe(false)
+        expect(hasClasses(second, CLASSES.onSurfaceFocus)).toBe(true)
+      },
+    )
+
+    it.each(VARIANTS)(
+      'draws a pressed inactive %s label in on surface',
+      (variant) => {
+        const view = setupWith({ variant })
+        const [, second] = view.getAllByRole('tab')
+
+        touchDown(second)
+
+        expect(second.getAttribute('aria-selected')).toBe('false')
+        expect(hasClasses(second, CLASSES.onSurfaceColor)).toBe(true)
+        expect(hasClasses(second, CLASSES.inactiveColor)).toBe(false)
+      },
+    )
+
+    // The primary active tab's layers are primary, where a secondary one's
+    // are on surface like an inactive tab's.
+    it.each([
+      ['primary', CLASSES.primaryFocus],
+      ['secondary', CLASSES.onSurfaceFocus],
+    ] as const)(
+      'lays its focus layer over an active %s tab',
+      (variant, layer) => {
+        const view = setupWith({ variant })
+        const [first] = view.getAllByRole('tab')
+        expect(hasClasses(first, layer)).toBe(false)
+
+        focusByKeyboard(first)
+
+        expect(hasClasses(first, layer)).toBe(true)
+      },
+    )
+
+    it('leaves a tab at rest in the colour it had', () => {
+      const view = setupWith({ keyboardActivation: 'manual' })
+      const [first, second] = view.getAllByRole('tab')
+
+      expect(hasClasses(second, CLASSES.inactiveColor)).toBe(true)
+      expect(hasClasses(first, CLASSES.primaryFocus)).toBe(false)
+      expect(hasClasses(second, CLASSES.onSurfaceFocus)).toBe(false)
     })
   })
 
