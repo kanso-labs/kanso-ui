@@ -243,7 +243,10 @@ function List<T extends object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`.
  */
-function ListLoadMore({ label, ...props }: ListLoadMoreProps) {
+function ListLoadMore({
+  label,
+  ...props
+}: ListLoadMoreProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACGridListLoadMoreItem
       {...props}
@@ -275,7 +278,7 @@ function ListRow<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: ListRowProps<T>) {
+}: ListRowProps<T> & RefAttributes<HTMLDivElement>) {
   const selectLabel = useContext(SelectLabelContext)
   // The press ripple ListItem draws, so a row looks the same pressed in a
   // list as on its own. The call site's pointer handlers are handed to the
@@ -321,7 +324,7 @@ function ListSection<T extends object = object>({
   children,
   header,
   ...props
-}: ListSectionProps<T>) {
+}: ListSectionProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACGridListSection
       {...props}

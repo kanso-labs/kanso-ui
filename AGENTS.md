@@ -182,9 +182,10 @@ Specific to this repository:
   React Aria puts it on the component. An overlay whose root renders nothing
   takes it on its content part, and a component rendering one of two elements
   hands it to each through `refCallback` in `src/render/ref.ts`. A field also
-  takes `inputRef` for its own control. `src/components/refs.test.ts` fails the
-  build on a component whose props reject `ref`, and `styling.test.tsx` fails
-  one whose ref lands anywhere but beside the class.
+  takes `inputRef` for its own control. Compound parts follow the same rule —
+  `Table.Row` takes a ref as `Table` does. `src/components/refs.test.ts` fails
+  the build on a component or part whose props reject `ref`, and
+  `styling.test.tsx` fails one whose ref lands anywhere but beside the class.
 - **React Aria supplies behaviour and nothing visual.** Four of its habits shape
   how a component here is written. Its `render` prop is a function that must
   return the element it would have rendered itself — a `Button` cannot become an

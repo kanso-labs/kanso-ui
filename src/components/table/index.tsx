@@ -36,6 +36,7 @@ import {
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles } from '../../collection/styles'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
+import { mergeRefs } from '../../render/ref'
 import { rowStyles as rowLayers } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
@@ -764,7 +765,7 @@ function Table({
 function TableBody<T extends object = object>({
   renderEmptyState,
   ...props
-}: TableBodyProps<T>) {
+}: RefAttributes<HTMLTableSectionElement> & TableBodyProps<T>) {
   return (
     <RACTableBody<T>
       {...props}
@@ -781,7 +782,11 @@ function TableBody<T extends object = object>({
  * One cell. `selection` draws this row's checkbox in place of whatever else
  * the cell would hold.
  */
-function TableCell({ children, selection = false, ...props }: TableCellProps) {
+function TableCell({
+  children,
+  selection = false,
+  ...props
+}: RefAttributes<HTMLTableCellElement> & TableCellProps) {
   const label = useContext(SelectLabelContext)
 
   return (
@@ -815,7 +820,7 @@ function TableColumn({
   resizable = false,
   selection = false,
   ...props
-}: TableColumnProps) {
+}: RefAttributes<HTMLTableCellElement> & TableColumnProps) {
   const label = useContext(SelectAllLabelContext)
   const resizeLabel = useContext(ResizeLabelContext)
   const resizableTable = useContext(ResizableContext)
@@ -841,7 +846,9 @@ function TableColumn({
  * A row under the body, for totals and the like. It is not part of the
  * selection or the keyboard navigation — React Aria keeps it out of both.
  */
-function TableFooter<T extends object = object>(props: TableFooterProps<T>) {
+function TableFooter<T extends object = object>(
+  props: RefAttributes<HTMLTableSectionElement> & TableFooterProps<T>,
+) {
   return (
     <RACTableFooter<T>
       {...props}
@@ -855,7 +862,9 @@ function TableFooter<T extends object = object>(props: TableFooterProps<T>) {
  * moves to the cells when the header sticks, since a row group's border does
  * not travel with cells `position: sticky` has lifted out of it.
  */
-function TableHeader<T extends object = object>(props: TableHeaderProps<T>) {
+function TableHeader<T extends object = object>(
+  props: RefAttributes<HTMLTableSectionElement> & TableHeaderProps<T>,
+) {
   const sticky = useContext(StickyHeaderContext)
 
   return (
@@ -874,12 +883,16 @@ function TableHeader<T extends object = object>(props: TableHeaderProps<T>) {
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`. It goes inside `Table.Body`, after the rows.
  */
-function TableLoadMore({ label, ...props }: TableLoadMoreProps) {
+function TableLoadMore({
+  label,
+  ref,
+  ...props
+}: RefAttributes<HTMLTableRowElement> & TableLoadMoreProps) {
   return (
     <RACTableLoadMoreItem
       {...props}
       {...mergeStyles(stylex.props(styles.loadingRow), props)}
-      ref={dropAriaLevel}
+      ref={mergeRefs(dropAriaLevel, ref ?? undefined)}
     >
       <span {...stylex.props(styles.loading)}>
         <CollectionLoadMore label={label} size="24px" />
@@ -893,7 +906,9 @@ function TableLoadMore({ label, ...props }: TableLoadMoreProps) {
  * by, and it has to differ from every column's. `onAction` runs when the
  * row is pressed.
  */
-function TableRow<T extends object = object>(props: TableRowProps<T>) {
+function TableRow<T extends object = object>(
+  props: RefAttributes<HTMLTableRowElement> & TableRowProps<T>,
+) {
   return <RACRow<T> {...props} {...mergeStatefulStyles(rowStyles, props)} />
 }
 

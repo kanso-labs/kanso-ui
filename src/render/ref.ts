@@ -1,5 +1,54 @@
 import type { Ref, RefCallback } from 'react'
 
+// A ref that can be written through. React reads a `null` ref as none at all,
+// so a merge is only ever handed one that is there.
+type AttachableRef<E> = NonNullable<Ref<E>>
+
+function attach<E>(ref: AttachableRef<E>, node: E | null): () => void {
+  if (typeof ref === 'function') {
+    const cleanup = ref(node)
+    return typeof cleanup === 'function'
+      ? cleanup
+      : () => {
+          ref(null)
+        }
+  }
+  ref.current = node
+  return () => {
+    ref.current = null
+  }
+}
+
+/**
+ * One ref that feeds both, or whichever one there is. Attaching through a
+ * callback lets each side keep its own cleanup: React 19 calls a callback
+ * ref's returned function on detach in place of calling it with `null`, so
+ * the merged callback returns one that does the same for each of the two.
+ *
+ * For an element that needs a ref of its own — a body measuring whether it
+ * scrolls, a row clearing an attribute React Aria sets — and is handed the
+ * call site's as well.
+ */
+function mergeRefs<E>(
+  a: AttachableRef<E> | undefined,
+  b: AttachableRef<E> | undefined,
+): AttachableRef<E> | undefined {
+  if (a === undefined) {
+    return b
+  }
+  if (b === undefined) {
+    return a
+  }
+  return (node: E | null) => {
+    const detachA = attach(a, node)
+    const detachB = attach(b, node)
+    return () => {
+      detachA()
+      detachB()
+    }
+  }
+}
+
 /**
  * A call site's ref, as a callback that writes the element into it.
  *
@@ -25,4 +74,6 @@ function refCallback<E>(ref: Ref<E> | undefined): RefCallback<E> | undefined {
   }
 }
 
-export { refCallback }
+export type { AttachableRef }
+
+export { mergeRefs, refCallback }

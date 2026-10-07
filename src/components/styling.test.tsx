@@ -1,7 +1,7 @@
-import type { ReactElement, Ref } from 'react'
+import type { ReactElement, ReactNode, Ref } from 'react'
 
 import { render } from '@testing-library/react'
-import { cloneElement, createRef } from 'react'
+import { cloneElement, createRef, isValidElement } from 'react'
 import { describe, expect, it } from 'vitest'
 
 import * as components from '.'
@@ -111,11 +111,12 @@ SNACKBARS.add('First item')
 // input and takes no `className` or `style` at all — whatever it wraps is
 // what a call site styles.
 //
-// Table.Body is absent for a different one: it renders a `<tbody>`, but every
-// rule a body needs is drawn by the rows inside it, so it contributes no
-// compiled class and the second assertion below would have nothing to find. A
-// className passed to it still reaches the element, through React Aria rather
-// than through a merge.
+// Table.Body and Menu.Section are absent for a different one: each renders an
+// element, a `<tbody>` and a `<section>`, but every rule either needs is drawn
+// by the rows and the header inside it, so it contributes no compiled class
+// and the second assertion below would have nothing to find. A className
+// passed to either still reaches the element, through React Aria rather than
+// through a merge, and each is handed a ref further down.
 //
 // Portalled parts land outside the render container, so every case is found
 // from the document. `cleanup` in vitest.setup.ts unmounts between tests, so
@@ -298,6 +299,39 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   },
   {
     element: (
+      <Dialog defaultOpen>
+        <Button>Open</Button>
+        <Dialog.Content>
+          <Dialog.Footer {...PROBE}>First item</Dialog.Footer>
+        </Dialog.Content>
+      </Dialog>
+    ),
+    name: 'Dialog.Footer',
+  },
+  {
+    element: (
+      <Dialog defaultOpen>
+        <Button>Open</Button>
+        <Dialog.Content>
+          <Dialog.Header {...PROBE}>First item</Dialog.Header>
+        </Dialog.Content>
+      </Dialog>
+    ),
+    name: 'Dialog.Header',
+  },
+  {
+    element: (
+      <Dialog defaultOpen>
+        <Button>Open</Button>
+        <Dialog.Content>
+          <Dialog.Title {...PROBE}>Headline</Dialog.Title>
+        </Dialog.Content>
+      </Dialog>
+    ),
+    name: 'Dialog.Title',
+  },
+  {
+    element: (
       <Disclosure {...PROBE}>
         <Disclosure.Header>Headline</Disclosure.Header>
         <Disclosure.Panel>Supporting line</Disclosure.Panel>
@@ -388,6 +422,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: (
       <List aria-label="Label">
+        <List.Item id="first">First item</List.Item>
+        <List.LoadMore {...PROBE} isLoading />
+      </List>
+    ),
+    name: 'List.LoadMore',
+  },
+  {
+    element: (
+      <List aria-label="Label">
         <List.Section {...PROBE} header="First group">
           <List.Item id="first">First item</List.Item>
         </List.Section>
@@ -412,6 +455,15 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </ListBox>
     ),
     name: 'ListBox.Item',
+  },
+  {
+    element: (
+      <ListBox aria-label="Label">
+        <ListBox.Item id="first">First item</ListBox.Item>
+        <ListBox.LoadMore {...PROBE} isLoading />
+      </ListBox>
+    ),
+    name: 'ListBox.LoadMore',
   },
   {
     element: (
@@ -459,6 +511,18 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Menu>
     ),
     name: 'Menu.Item',
+  },
+  {
+    element: (
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content>
+          <Menu.Item id="first">First item</Menu.Item>
+          <Menu.LoadMore {...PROBE} isLoading />
+        </Menu.Content>
+      </Menu>
+    ),
+    name: 'Menu.LoadMore',
   },
   {
     element: (
@@ -961,45 +1025,53 @@ describe.each(CASES)('$name', ({ element }) => {
 // A ref is the third thing a call site reaches a component's element by — to
 // move focus to it, to measure it, or to anchor something to it — and React 19
 // passes it as a prop like the other two. So it lands on the same element the
-// className does: for every component, and for the content part of an
-// overlay whose root renders no element of its own. A sub-part such as
-// `List.Item` is reached through its own component rather than here.
+// className does: for every component, for every part, and for the content
+// part of an overlay whose root renders no element of its own.
 //
-// A case whose element is the component itself takes the ref by cloning. A
-// radio is drawn inside its group and a content part inside its overlay, so
-// those take the ref where they are written instead.
-const CLONED = CASES.filter(
-  ({ name }) => !name.includes('.') && name !== 'Radio',
-)
+// Each case is handed its ref where the probe is written, which is the root
+// for a component and somewhere inside its parent for a radio or a part —
+// the element carrying the probe's className is the one given the ref.
+function withRef(node: ReactNode, ref: Ref<Element>): ReactNode {
+  if (Array.isArray(node)) {
+    return node.map((child: ReactNode): ReactNode => withRef(child, ref))
+  }
+  if (!isValidElement<{ children?: ReactNode; className?: unknown }>(node)) {
+    return node
+  }
+  if (node.props.className === PROBE.className) {
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- every probed element is a component or part refs.test.ts pins as taking a ref, and the list holds them as plain elements
+    return cloneElement(node as ReactElement<{ ref?: Ref<Element> }>, { ref })
+  }
+  // Handed back as arguments rather than as a `children` prop, which keeps
+  // them the static children they were written as: an array passed as the
+  // prop reads to React as a list, whose entries would want keys.
+  const { children } = node.props
+  if (children === undefined) {
+    return node
+  }
+  return Array.isArray(children)
+    ? cloneElement(
+        node,
+        undefined,
+        ...children.map((child: ReactNode): ReactNode => withRef(child, ref)),
+      )
+    : cloneElement(node, undefined, withRef(children, ref))
+}
 
-describe.each(CLONED)('$name', ({ element }) => {
+describe.each(CASES)('$name', ({ element }) => {
   it('hands a ref the element the className lands on', () => {
     const ref = createRef<Element>()
 
-    render(
-      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- every case here is a component refs.test.ts pins as taking a ref, and the list holds them as plain elements
-      cloneElement(element as ReactElement<{ ref?: Ref<Element> }>, { ref }),
-    )
+    render(withRef(element, ref))
 
     expect(ref.current).toBe(probed())
   })
 })
 
 describe('a ref written inside its parent', () => {
-  it('reaches a radio rather than its group', () => {
-    const ref = createRef<HTMLDivElement>()
-
-    render(
-      <RadioGroup label="Label">
-        <Radio {...PROBE} ref={ref} value="first">
-          First item
-        </Radio>
-      </RadioGroup>,
-    )
-
-    expect(ref.current).toBe(probed())
-  })
-
+  // Dialog.Content has no case of its own above, since the dialog's probe sits
+  // on its body; Table.Body and Menu.Section have none for the reason given at
+  // the top of the list.
   it('reaches the panel of a dialog', () => {
     const ref = createRef<HTMLDivElement>()
 
@@ -1015,14 +1087,16 @@ describe('a ref written inside its parent', () => {
     expect(ref.current).toBe(probed())
   })
 
-  it('reaches the surface of a menu', () => {
+  it('reaches the section of a menu', () => {
     const ref = createRef<HTMLElement>()
 
     render(
       <Menu defaultOpen>
         <Button>Open</Button>
-        <Menu.Content {...PROBE} ref={ref}>
-          <Menu.Item id="first">First item</Menu.Item>
+        <Menu.Content>
+          <Menu.Section {...PROBE} header="First group" ref={ref}>
+            <Menu.Item id="first">First item</Menu.Item>
+          </Menu.Section>
         </Menu.Content>
       </Menu>,
     )
@@ -1030,31 +1104,22 @@ describe('a ref written inside its parent', () => {
     expect(ref.current).toBe(probed())
   })
 
-  it('reaches the surface of a popover', () => {
-    const ref = createRef<HTMLElement>()
+  it('reaches the body of a table', () => {
+    const ref = createRef<HTMLTableSectionElement>()
 
     render(
-      <Popover defaultOpen>
-        <Button>Open</Button>
-        <Popover.Content {...PROBE} ref={ref}>
-          First item
-        </Popover.Content>
-      </Popover>,
-    )
-
-    expect(ref.current).toBe(probed())
-  })
-
-  it('reaches the panel of a sheet', () => {
-    const ref = createRef<HTMLDivElement>()
-
-    render(
-      <Sheet defaultOpen>
-        <Button>Open</Button>
-        <Sheet.Content {...PROBE} ref={ref}>
-          First item
-        </Sheet.Content>
-      </Sheet>,
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id="col" isRowHeader>
+            Label
+          </Table.Column>
+        </Table.Header>
+        <Table.Body {...PROBE} ref={ref}>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>,
     )
 
     expect(ref.current).toBe(probed())

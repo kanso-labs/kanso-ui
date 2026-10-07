@@ -6,52 +6,42 @@ import type * as components from '.'
 
 type Barrel = typeof components
 
-// The compound parts, which the barrel also exports by name — `SheetContent`
-// beside `Sheet.Content` — so a server component can render one. Read off the
-// statics rather than listed, so a part added later is one too. `List.Item`
-// is the exception: it is exported as `ListRow`, since the standalone
-// `ListItem` already has that name.
-//
-// Left out of the check below, which covers the components themselves, as it
-// always has: whether every part should take a ref of its own is a question
-// for the parts, and the content part of each overlay is held to it by name
-// further down.
-type PartName =
-  | 'ListRow'
-  | Exclude<
-      {
-        [Owner in keyof Barrel]: `${Owner}${keyof Barrel[Owner] & string}`
-      }[keyof Barrel],
-      'ListItem'
-    >
-
-// Every component in the barrel whose props have no `ref`. React 19 passes a
-// ref as a prop, so a props type without one rejects `<Button ref={r}>` at
-// the call site even where the ref would reach the element at runtime —
-// styling.test.tsx renders every component with one and pins where it lands.
+// Every export of the barrel whose props have no `ref`: the components, and
+// the compound parts it also exports by name — `TableRow` beside
+// `Table.Row`, and `ListRow` for `List.Item`. React 19 passes a ref as a
+// prop, so a props type without one rejects `<TableRow ref={r}>` at the call
+// site even where the ref would reach the element at runtime —
+// styling.test.tsx renders each of them with one and pins where it lands.
 type Refless = {
-  [Name in Exclude<keyof Barrel, PartName>]: Barrel[Name] extends (
-    props: infer Props,
-  ) => unknown
+  [Name in keyof Barrel]: Barrel[Name] extends (props: infer Props) => unknown
     ? 'ref' extends keyof Props
       ? never
       : Name
     : never
-}[Exclude<keyof Barrel, PartName>]
+}[keyof Barrel]
 
 describe('a ref, as a call site writes one', () => {
   // The ones that render no element of their own: Autocomplete and
-  // FileTrigger, which wrap whatever they are given, and the overlays whose
-  // root is a trigger, which take a ref on their content part instead.
-  it('is accepted by every component that renders an element', () => {
+  // FileTrigger, which wrap whatever they are given; the overlays whose root
+  // is a trigger, which take a ref on their content part instead;
+  // Menu.Submenu, which pairs the item it is given with a menu; and
+  // SplitButton.Menu, a Menu with its trigger built in. Disclosure.Header is
+  // the one that renders an element and still takes none, since it takes no
+  // `className` or `style` for a ref to land beside — what it renders is
+  // the disclosure's own heading and button, as FileTrigger's input is its
+  // own.
+  it('is accepted by every component and part that renders an element', () => {
     expectTypeOf<Refless>().toEqualTypeOf<
       | 'Autocomplete'
       | 'Dialog'
+      | 'DisclosureHeader'
       | 'FileTrigger'
       | 'Menu'
+      | 'MenuSubmenu'
       | 'Popover'
       | 'SearchView'
       | 'Sheet'
+      | 'SplitButtonMenu'
     >()
   })
 

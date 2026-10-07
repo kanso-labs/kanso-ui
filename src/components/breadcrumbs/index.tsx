@@ -169,7 +169,7 @@ function BreadcrumbsItem({
   rel,
   target,
   ...props
-}: BreadcrumbsItemProps) {
+}: BreadcrumbsItemProps & RefAttributes<HTMLLIElement>) {
   return (
     <RACBreadcrumb
       {...props}

@@ -382,7 +382,7 @@ function NavigationTreeItem<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: NavigationTreeItemProps<T>) {
+}: NavigationTreeItemProps<T> & RefAttributes<HTMLDivElement>) {
   // The press ripple List's rows draw — see ListItem there.
   const ripple = useRipple<HTMLDivElement>(
     true,
@@ -418,7 +418,7 @@ function NavigationTreeSection<T extends object = object>({
   children,
   header,
   ...props
-}: NavigationTreeSectionProps<T>) {
+}: NavigationTreeSectionProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACNavigationTreeSection<T>
       {...props}

@@ -193,7 +193,7 @@ function ColorSwatchPicker(
 function ColorSwatchPickerItem({
   children,
   ...props
-}: ColorSwatchPickerItemProps) {
+}: ColorSwatchPickerItemProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACColorSwatchPickerItem
       {...props}

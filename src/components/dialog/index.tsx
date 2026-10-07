@@ -12,7 +12,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import {
   DialogTrigger,
   Heading,
@@ -22,6 +22,7 @@ import {
 } from 'react-aria-components'
 
 import { useScrollable } from '../../hooks/useScrollable'
+import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import {
@@ -274,19 +275,28 @@ function Dialog({ children, ...props }: DialogProps) {
   return <DialogTrigger {...props}>{children}</DialogTrigger>
 }
 
-function DialogBody(props: HTMLAttributes<HTMLDivElement>) {
+function DialogBody({
+  ref: callerRef,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const ref = useRef<HTMLDivElement>(null)
   // A body its content runs past is a tab stop, so a keyboard can scroll it
   // when nothing inside it takes focus; a call site's own tabIndex still
   // wins. See useScrollable.
   const scrollable = useScrollable(ref)
+  // The body measures itself through its own ref, and the call site's lands
+  // on the same element.
+  const merged = useMemo(
+    () => mergeRefs(ref, callerRef ?? undefined),
+    [callerRef],
+  )
 
   return (
     <div
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scroll container with nothing focusable inside is otherwise out of a keyboard's reach, which axe's scrollable-region-focusable reports
       tabIndex={scrollable ? 0 : undefined}
       {...props}
-      ref={ref}
+      ref={merged}
       {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
     />
   )
@@ -343,11 +353,15 @@ function DialogContent({
   )
 }
 
-function DialogFooter(props: HTMLAttributes<HTMLDivElement>) {
+function DialogFooter(
+  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
+) {
   return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
 }
 
-function DialogHeader(props: HTMLAttributes<HTMLDivElement>) {
+function DialogHeader(
+  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
+) {
   return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
 }
 
@@ -356,7 +370,9 @@ function DialogHeader(props: HTMLAttributes<HTMLDivElement>) {
  * points the dialog's `aria-labelledby` at it — a dialog without one
  * announces itself unnamed.
  */
-function DialogTitle(props: DialogTitleProps) {
+function DialogTitle(
+  props: DialogTitleProps & RefAttributes<HTMLHeadingElement>,
+) {
   return (
     <Heading
       slot="title"

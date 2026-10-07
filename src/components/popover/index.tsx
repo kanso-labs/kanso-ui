@@ -300,7 +300,9 @@ function PopoverContent({
  * Supporting copy under the title. The panel's `aria-describedby` points at
  * it — see DescriptionContext for why that is this component's doing.
  */
-function PopoverDescription(props: PopoverDescriptionProps) {
+function PopoverDescription(
+  props: PopoverDescriptionProps & RefAttributes<HTMLElement>,
+) {
   const { id, register } = useContext(DescriptionContext)
 
   useEffect(() => register(), [register])
@@ -320,7 +322,9 @@ function PopoverDescription(props: PopoverDescriptionProps) {
  * points the panel's `aria-labelledby` at it — a popover without one announces
  * itself unnamed.
  */
-function PopoverTitle(props: PopoverTitleProps) {
+function PopoverTitle(
+  props: PopoverTitleProps & RefAttributes<HTMLHeadingElement>,
+) {
   return (
     <Heading
       slot="title"

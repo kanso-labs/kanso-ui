@@ -442,7 +442,7 @@ function MenuItem<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: MenuItemProps<T>) {
+}: MenuItemProps<T> & RefAttributes<HTMLDivElement>) {
   // The press ripple List's rows draw — see ListItem there.
   const ripple = useRipple<HTMLDivElement>(
     true,
@@ -472,7 +472,10 @@ function MenuItem<T extends object = object>({
  * The row shown while more items are being fetched. React Aria calls
  * `onLoadMore` when it comes into view, and draws it only while `isLoading`.
  */
-function MenuLoadMore({ label, ...props }: MenuLoadMoreProps) {
+function MenuLoadMore({
+  label,
+  ...props
+}: MenuLoadMoreProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACMenuLoadMoreItem
       {...props}
@@ -491,7 +494,7 @@ function MenuSection<T extends object = object>({
   children,
   header,
   ...props
-}: MenuSectionProps<T>) {
+}: MenuSectionProps<T> & RefAttributes<HTMLElement>) {
   return (
     <RACMenuSection {...props}>
       {header === undefined ? null : (

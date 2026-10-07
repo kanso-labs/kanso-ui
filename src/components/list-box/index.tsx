@@ -215,7 +215,7 @@ function ListBoxItem<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: ListBoxItemProps<T>) {
+}: ListBoxItemProps<T> & RefAttributes<HTMLDivElement>) {
   // The press ripple List's rows draw — see ListItem there.
   const ripple = useRipple<HTMLDivElement>(
     true,
@@ -253,7 +253,10 @@ function ListBoxItem<T extends object = object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading` — so a list that pages as it scrolls needs nothing else.
  */
-function ListBoxLoadMore({ label, ...props }: ListBoxLoadMoreProps) {
+function ListBoxLoadMore({
+  label,
+  ...props
+}: ListBoxLoadMoreProps & RefAttributes<HTMLDivElement>) {
   return (
     <RACListBoxLoadMoreItem
       {...props}
@@ -272,7 +275,7 @@ function ListBoxSection<T extends object = object>({
   children,
   header,
   ...props
-}: ListBoxSectionProps<T>) {
+}: ListBoxSectionProps<T> & RefAttributes<HTMLElement>) {
   return (
     <RACListBoxSection
       {...props}
