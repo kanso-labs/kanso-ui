@@ -49,6 +49,7 @@ import {
   ListBox,
   ListDetail,
   ListItem,
+  LoadingIndicator,
   Menu,
   Meter,
   NavigationBar,
@@ -488,6 +489,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </ListItem>
     ),
     name: 'ListItem (interactive)',
+  },
+  {
+    element: <LoadingIndicator {...PROBE} aria-label="Label" />,
+    name: 'LoadingIndicator',
   },
   {
     element: (

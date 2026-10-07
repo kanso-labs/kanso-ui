@@ -149,6 +149,8 @@ export type { ListDetailProps } from './list-detail'
 export { default as ListDetail } from './list-detail'
 export type { ListItemProps } from './list-item'
 export { default as ListItem } from './list-item'
+export type { LoadingIndicatorProps } from './loading-indicator'
+export { default as LoadingIndicator } from './loading-indicator'
 export type {
   MenuAlign,
   MenuContentProps,
@@ -208,6 +210,7 @@ export type { ProductIconProps } from './product-icon'
 export { default as ProductIcon } from './product-icon'
 export type {
   ProgressIndicatorProps,
+  ProgressIndicatorShape,
   ProgressIndicatorTone,
   ProgressIndicatorVariant,
 } from './progress-indicator'

@@ -1041,6 +1041,16 @@ export type ListSectionProps<T extends object = object> = Omit<GridListSectionPr
 };
 
 // @public
+export function LoadingIndicator(input: LoadingIndicatorProps & RefAttributes<HTMLDivElement>): JSX;
+
+// @public (undocumented)
+export type LoadingIndicatorProps = {
+    className?: ProgressBarProps['className'];
+    contained?: boolean;
+    style?: ProgressBarProps['style'];
+} & Omit<ProgressBarProps, 'children' | 'className' | 'formatOptions' | 'isIndeterminate' | 'maxValue' | 'minValue' | 'style' | 'value' | 'valueLabel'>;
+
+// @public
 export function Menu(input: MenuProps): JSX;
 
 // @public (undocumented)
@@ -1346,11 +1356,15 @@ export type ProgressIndicatorProps = {
     className?: ProgressBarProps['className'];
     diameter?: string;
     label?: ReactNode;
+    shape?: ProgressIndicatorShape;
     showValue?: boolean;
     style?: ProgressBarProps['style'];
     tone?: ProgressIndicatorTone;
     variant?: ProgressIndicatorVariant;
 } & Omit<ProgressBarProps, 'children' | 'className' | 'style'>;
+
+// @public (undocumented)
+export type ProgressIndicatorShape = 'flat' | 'wavy';
 
 // @public (undocumented)
 export type ProgressIndicatorTone = Extract<IndicatorTone, 'inherit' | 'primary'>;
