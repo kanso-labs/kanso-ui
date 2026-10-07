@@ -37,11 +37,16 @@ import {
 // The entry is the overlay module's, shared with every anchored surface, and
 // so is the origin it grows from — the tooltip comes out of the thing it
 // describes. The surface itself is not: a tooltip inverts the page's colours
-// where a popover sits on a container role, so it draws its own.
+// where a popover sits on a container role, so it draws its own, and it lies
+// flat. The plain tooltip's tokens give a container colour, a shape and the
+// text roles and no elevation, so the popup's shadow is taken off; it is the
+// rich tooltip that sits at level 2. The popup's forced-colours border
+// stays, since that mode paints the fill in the page's own colour.
 const styles = stylex.create({
   container: {
     backgroundColor: colors.inverseSurface,
     borderRadius: radii.xs,
+    boxShadow: 'none',
     boxSizing: 'border-box',
     color: colors.inverseOnSurface,
     fontFamily: typography.bodySmallFont,

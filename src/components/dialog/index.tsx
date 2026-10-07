@@ -152,7 +152,8 @@ const styles = stylex.create({
       [FORCED_COLORS]: { default: 'solid', [media.belowMedium]: 'none' },
     },
     borderWidth: { default: null, [FORCED_COLORS]: '1px' },
-    boxShadow: shadows.elevation1,
+    // The dialogs page's container elevation, level 3.
+    boxShadow: shadows.elevation3,
     boxSizing: 'border-box',
     color: colors.onSurface,
     display: 'flex',
