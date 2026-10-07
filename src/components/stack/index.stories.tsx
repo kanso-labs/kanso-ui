@@ -18,6 +18,8 @@ const HEADING_1 = <h1 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
+// oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari's VoiceOver drops the role once the markers are cleared
+const LIST = <ul role="list" />
 
 const styles = stylex.create({
   // A block with no width of its own, so what the alignment stories show is
@@ -195,12 +197,27 @@ const Overview: Story = {
 
 const Default: Story = {}
 
+// A stack rendered as a list, which is what `render` is most often for. It
+// lines up on its gap with no UA margin, padding or markers, and carries
+// `role="list"` for Safari, as the doc comment asks.
+const List: Story = {
+  render: (args) => (
+    <Stack {...args} render={LIST}>
+      {['01', '02', '03'].map((label) => (
+        <li key={label} {...stylex.props(styles.block)}>
+          <Text variant="labelLarge">{label}</Text>
+        </li>
+      ))}
+    </Stack>
+  ),
+}
+
 const Row: Story = {
   args: {
     direction: 'row',
   },
 }
 
-export { Default, Overview, Row }
+export { Default, List, Overview, Row }
 
 export default meta

@@ -53,10 +53,20 @@ const justifications = stylex.create({
   start: { justifyContent: 'flex-start' },
 })
 
+// `margin`, `padding` and `listStyleType` are the UA resets. A stack renders
+// a <div> by default, which has none of them, but `render` is how one becomes
+// a <ul>, and a list keeps a block margin above and below, an inline-start
+// padding and a marker on every item — a column 40px off its own gap, and
+// spaced from its neighbours by the UA rather than by whatever holds it.
+// Breadcrumbs clears the same three on the list it renders, and Text clears
+// the margin for the same reason.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
     display: 'flex',
+    listStyleType: 'none',
+    margin: 0,
+    padding: 0,
   },
   column: {
     flexDirection: 'column',
@@ -134,7 +144,10 @@ type StackProps = {
  * space between two things belongs to whatever holds both of them.
  *
  * `render` swaps the element, for a stack that should be a `<ul>`, a `<nav>`,
- * or a `<section>` rather than a `<div>`.
+ * or a `<section>` rather than a `<div>`. A list comes without its UA margin,
+ * padding and markers, and wants `role="list"` on the `<ul>`: Safari's
+ * VoiceOver stops announcing a list once its markers are gone, and the role
+ * puts it back.
  */
 function Stack({
   align,
