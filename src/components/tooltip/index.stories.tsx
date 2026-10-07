@@ -165,6 +165,23 @@ const OnAnIconButton: Story = {
   ),
 }
 
-export { Default, OnAnIconButton, Overview }
+// Its own story because the cap is what a long label runs into, and a
+// snapshot is what shows the shape it wraps to: 320px wide at most, with
+// the label running on over as many lines as it needs.
+const LongLabel: Story = {
+  args: {
+    label:
+      'Supporting text long enough to pass the width the tooltip allows. It wraps onto further lines rather than running the width of the window.',
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.row)}>
+      <Tooltip {...args} defaultOpen side="bottom">
+        <Button variant="outlined">Hover or focus</Button>
+      </Tooltip>
+    </div>
+  ),
+}
+
+export { Default, LongLabel, OnAnIconButton, Overview }
 
 export default meta
