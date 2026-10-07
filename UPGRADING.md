@@ -39,11 +39,14 @@ The package ships ES modules alone. The exports map names `types` and `default`
 rather than `import` and `require`, and `dist/cjs` is gone.
 
 - **Node** has to be `^20.19.0 || >=22.12.0`, the versions with `require(esm)`.
-  A `require()` of the package still works on those, and returns the same named
-  exports an `import` does, since the package has no default export.
+  A `require()` of the package still resolves on those, and under a bundler
+  returns the same named exports an `import` does, since the package has no
+  default export. Plain Node runs `@kanso-labs/kanso-ui/date` alone, since the
+  main entry imports its own stylesheet.
 - **A bundler** needs no change.
 - **A test runner without ESM support**, such as Jest in its default CommonJS
-  mode, needs its ESM configuration or a transform for this package.
+  mode, needs a transform for this package and a stand-in for its stylesheet.
+  The README's "Server rendering and tests" gives both, and Vitest's setting.
 
 ### 0.12.0: React Aria Components in place of Base UI
 

@@ -95,7 +95,10 @@ const THEMING = `:root {
   }
 }`
 
-const STYLESHEET = `import '@kanso-labs/kanso-ui/styles.css'`
+const SERVER = `// vite.config.ts
+export default defineConfig({
+  ssr: { noExternal: ['@kanso-labs/kanso-ui'] },
+})`
 
 const SCOPE = `/* .accent { --kui-color-primary: #7d5260; } */
 import { ThemeScope } from '@kanso-labs/kanso-ui'
@@ -227,13 +230,24 @@ function GettingStartedPage() {
             Importing from the package pulls in the stylesheet the library
             compiles, so a component renders correctly the moment it is imported
             — in light and dark both, following the reader&apos;s own setting. A
-            bundler is what resolves that stylesheet. Where one cannot, import
-            it yourself and nothing else changes:
+            bundler is what resolves that stylesheet, so the package always
+            loads through one: plain Node can load{' '}
+            <Code>@kanso-labs/kanso-ui/date</Code> and nothing else. A server
+            renderer or a test runner that leaves dependencies to Node takes one
+            setting to hand this package to its bundler instead. The README
+            gives{' '}
+            <Link
+              href="https://github.com/kanso-labs/kanso-ui#server-rendering-and-tests"
+              {...LINK_TARGET}
+            >
+              the settings for Vitest and Jest
+            </Link>
+            ; Vite&apos;s server rendering takes this one:
           </Text>
         </div>
         <Card variant="filled">
           <pre {...stylex.props(styles.snippet)}>
-            <Code>{STYLESHEET}</Code>
+            <Code>{SERVER}</Code>
           </pre>
         </Card>
       </section>
