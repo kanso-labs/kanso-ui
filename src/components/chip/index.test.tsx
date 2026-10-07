@@ -691,24 +691,27 @@ describe('assist and suggestion chips', () => {
       vi.useRealTimers()
     })
 
-    it('ends its ripple and calls the handler', async () => {
-      const onClick = vi.fn<() => void>()
-      const view = render(
-        <Chip onClick={onClick} variant="assist">
-          Label
-        </Chip>,
-      )
-      const chip = view.getByRole('button')
+    it.each(['assist', 'filter'] as const)(
+      'ends its ripple and calls the handler once, on a %s chip',
+      async (variant) => {
+        const onClick = vi.fn<() => void>()
+        const view = render(
+          <Chip onClick={onClick} variant={variant}>
+            Label
+          </Chip>,
+        )
+        const chip = view.getByRole('button')
 
-      firePointer(chip, 'pointerdown', { buttons: 1 })
-      expect(isPressed(chip)).toBe(true)
-      firePointer(chip, 'pointerup', { buttons: 0 })
-      fireEvent.click(chip)
-      await advance(MINIMUM_PRESS_MS * 4)
+        firePointer(chip, 'pointerdown', { buttons: 1 })
+        expect(isPressed(chip)).toBe(true)
+        firePointer(chip, 'pointerup', { buttons: 0 })
+        fireEvent.click(chip)
+        await advance(MINIMUM_PRESS_MS * 4)
 
-      expect(isPressed(chip)).toBe(false)
-      expect(onClick).toHaveBeenCalled()
-    })
+        expect(isPressed(chip)).toBe(false)
+        expect(onClick).toHaveBeenCalledTimes(1)
+      },
+    )
   })
 })
 

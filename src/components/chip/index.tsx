@@ -205,6 +205,7 @@ function FilterChip({
   children,
   elevated = false,
   icon,
+  onClick,
   onContextMenu,
   onKeyDown,
   onKeyUp,
@@ -221,8 +222,9 @@ function FilterChip({
   // disabled element, and a press that changes nothing should not look like
   // one. Typed as Button's ripple is, since React Aria types a toggle
   // button's pointer events against a <div> rather than the <button> it
-  // renders.
+  // renders. `onClick` goes through it for the action chip's reason.
   const ripple = useRipple<FocusableElement>(props.isDisabled !== true, {
+    onClick,
     onContextMenu,
     onPointerCancel,
     onPointerDown,
