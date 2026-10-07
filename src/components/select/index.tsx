@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefAttributes, RefObject } from 'react'
 import type {
+  PopoverRenderProps,
   SelectProps as RACSelectProps,
   SelectRenderProps,
 } from 'react-aria-components'
@@ -25,7 +26,7 @@ import {
 } from '../../field/root'
 import { ChevronEndGlyph } from '../../glyphs'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { overlay } from '../../styles/overlay'
+import { overlay, popupOrigin } from '../../styles/overlay'
 import {
   colors,
   motion,
@@ -73,6 +74,16 @@ function chevronFor(isOpen: boolean) {
     <ChevronEndGlyph
       {...stylex.props(styles.chevron, isOpen && styles.chevronOpen)}
     />
+  )
+}
+
+// The list's classes, from React Aria's render state: it grows from the
+// edge it is anchored by, as every anchored overlay does, so a list that
+// opens above the field grows upward.
+function listClassName(state: PopoverRenderProps) {
+  return (
+    stylex.props(overlay.popup, styles.list, popupOrigin(state.placement))
+      .className ?? ''
   )
 }
 
@@ -278,10 +289,10 @@ function selectContent(
       </FieldBox>
       <FieldMessage description={description} error={error} />
       <RACPopover
+        className={listClassName}
         triggerRef={boxRef}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.popup, styles.list)}
       >
         <ListBox>{options}</ListBox>
       </RACPopover>

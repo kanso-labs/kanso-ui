@@ -10,6 +10,7 @@ import DatePicker from '../components/date-picker'
 import DateRangePicker from '../components/date-range-picker'
 import { CalendarDate } from '../date'
 import { colors, shadows } from '../tokens/design.tokens.stylex'
+import { atFootOfWindow, originOf } from './overlay.testing'
 
 // One pixel either side of the medium breakpoint the three pickers swap at,
 // so a query written with the wrong comparison fails here rather than passing
@@ -58,8 +59,8 @@ function scrimColour() {
 // whatever transform the surface rests with — a surface measured mid-entry
 // is one that has not been placed yet. `finish()` jumps to the end at once,
 // which is deterministic where waiting for it would not be.
-function surfaceOf(element: ReactElement) {
-  const view = render(element)
+function surfaceOf(element: ReactElement, container?: HTMLElement) {
+  const view = render(element, { baseElement: document.body, container })
   const surface = view.getByRole('dialog').parentElement
   if (surface === null) {
     throw new Error('expected the dialog to sit on a surface')
@@ -197,6 +198,47 @@ describe('a picker opened at the medium breakpoint and above', () => {
       expect(getComputedStyle(surfaceOf(element)).boxShadow).toBe(
         elevation(level),
       )
+    },
+  )
+})
+
+// Docked, a surface grows out of its field from the edge it is anchored by,
+// as every anchored overlay does: down from its top edge under the field, and
+// up from its bottom edge when there is no room under the field and React Aria
+// opens it above. Modal, it sits in the middle of the window anchored to
+// nothing, so it grows from its own centre rather than from an edge facing a
+// field it is no longer beside.
+describe("where a picker's surface grows from", () => {
+  it.each(PICKERS)(
+    'grows $name down from its top edge under the field',
+    async ({ element }) => {
+      await page.viewport(MEDIUM, 900)
+      const surface = surfaceOf(element)
+
+      expect(surface.getAttribute('data-placement')).toBe('bottom')
+      expect(originOf(surface).y).toBeCloseTo(0)
+    },
+  )
+
+  it.each(PICKERS)(
+    'grows $name up from its bottom edge above the field',
+    async ({ element }) => {
+      await page.viewport(MEDIUM, 900)
+      const surface = surfaceOf(element, atFootOfWindow())
+
+      expect(surface.getAttribute('data-placement')).toBe('top')
+      expect(originOf(surface).y).toBeCloseTo(1)
+    },
+  )
+
+  it.each(PICKERS)(
+    'grows $name from its centre once it is modal',
+    async ({ element }) => {
+      await page.viewport(COMPACT, 900)
+      const origin = originOf(surfaceOf(element))
+
+      expect(origin.x).toBeCloseTo(0.5)
+      expect(origin.y).toBeCloseTo(0.5)
     },
   )
 })

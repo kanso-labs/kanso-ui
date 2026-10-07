@@ -7,7 +7,10 @@ import type {
   RefAttributes,
   RefObject,
 } from 'react'
-import type { ComboBoxProps as RACComboBoxProps } from 'react-aria-components'
+import type {
+  PopoverRenderProps,
+  ComboBoxProps as RACComboBoxProps,
+} from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { useContext, useRef } from 'react'
@@ -30,7 +33,7 @@ import {
 import { ChevronEndGlyph } from '../../glyphs'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { overlay } from '../../styles/overlay'
+import { overlay, popupOrigin } from '../../styles/overlay'
 import {
   colors,
   motion,
@@ -316,10 +319,10 @@ function ComboBox<
       />
       <FieldMessage description={description} error={error} />
       <RACPopover
+        className={listClassName}
         triggerRef={boxRef}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.popup, styles.list)}
       >
         <ListBox<T>>{options}</ListBox>
       </RACPopover>
@@ -408,6 +411,16 @@ function ComboToggle() {
         )}
       />
     </RACButton>
+  )
+}
+
+// The list's classes, from React Aria's render state: it grows from the
+// edge it is anchored by, as every anchored overlay does, so a list that
+// opens above the field grows upward.
+function listClassName(state: PopoverRenderProps) {
+  return (
+    stylex.props(overlay.popup, styles.list, popupOrigin(state.placement))
+      .className ?? ''
   )
 }
 

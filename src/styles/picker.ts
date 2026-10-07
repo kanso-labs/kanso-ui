@@ -1,3 +1,5 @@
+import type { PopoverRenderProps } from 'react-aria-components'
+
 import * as stylex from '@stylexjs/stylex'
 
 import {
@@ -9,6 +11,7 @@ import {
 } from '../tokens/design.tokens.stylex'
 import { focus } from './focus'
 import { iconButton } from './icon-button'
+import { overlay } from './overlay'
 
 // What a date picker and a date range picker draw in common: the line the
 // segments and the trigger share, the trigger itself, and the surface the
@@ -118,6 +121,58 @@ const picker = stylex.create({
   },
 })
 
+// The origin the surface grows from, for the placement React Aria reports.
+// Docked, it is the edge the surface is anchored by, as `popupOrigin` in
+// overlay.ts gives every anchored overlay, and the two maps agree side for
+// side. Below the breakpoint it is the surface's own centre, since there it
+// sits in the middle of the window anchored to nothing. A map of its own
+// rather than `popupOrigin` with a reset after it: StyleX resolves a property
+// whole, so a later `transformOrigin` keyed on the breakpoint alone would
+// drop the docked origin rather than add to it.
+const origins = stylex.create({
+  bottom: {
+    transformOrigin: { default: 'top center', [media.belowMedium]: 'center' },
+  },
+  left: {
+    transformOrigin: { default: 'right center', [media.belowMedium]: 'center' },
+  },
+  right: {
+    transformOrigin: { default: 'left center', [media.belowMedium]: 'center' },
+  },
+  top: {
+    transformOrigin: {
+      default: 'bottom center',
+      [media.belowMedium]: 'center',
+    },
+  },
+})
+
+// The date pickers' surface, the same with the calendar's fill and corner.
+function datePopoverClassName(state: PopoverRenderProps) {
+  return (
+    stylex.props(
+      overlay.popup,
+      picker.popover,
+      picker.datePopover,
+      originOf(state.placement),
+    ).className ?? ''
+  )
+}
+
+function originOf(placement: PopoverRenderProps['placement']) {
+  return placement === null || placement === 'center'
+    ? origins.bottom
+    : origins[placement]
+}
+
+// The colour picker's surface, from React Aria's render state.
+function popoverClassName(state: PopoverRenderProps) {
+  return (
+    stylex.props(overlay.popup, picker.popover, originOf(state.placement))
+      .className ?? ''
+  )
+}
+
 // The trigger's classes, from React Aria's own render state. A picker's
 // trigger is disabled by the field around it rather than by a prop of its
 // own, so the fade comes off the state React Aria hands the className. It is
@@ -139,4 +194,4 @@ function triggerClassName(state: {
   )
 }
 
-export { picker, triggerClassName }
+export { datePopoverClassName, picker, popoverClassName, triggerClassName }

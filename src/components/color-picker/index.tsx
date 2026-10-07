@@ -20,7 +20,7 @@ import {
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
-import { picker } from '../../styles/picker'
+import { popoverClassName } from '../../styles/picker'
 import {
   colors,
   radii,
@@ -238,9 +238,9 @@ function ColorPicker({
           {label}
         </RACButton>
         <RACPopover
+          className={popoverClassName}
           // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
           UNSTABLE_portalContainer={container}
-          {...stylex.props(overlay.popup, picker.popover)}
         >
           <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
             {/*

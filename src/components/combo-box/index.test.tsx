@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import ComboBox from '.'
 import { rowStyles } from '../../row/styles'
+import { atFootOfWindow, originOf } from '../../styles/overlay.testing'
 import { colors, motion, typography } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
 
@@ -74,17 +75,30 @@ function inputOf(view: ReturnType<typeof render>) {
   return input
 }
 
-function setup(props: Partial<Parameters<typeof ComboBox<object>>[0]> = {}) {
+function setup(
+  props: Partial<Parameters<typeof ComboBox<object>>[0]> = {},
+  container?: HTMLElement,
+) {
   const view = render(
     <div style={WIDTH}>
       <ComboBox label="Label" options={OPTIONS} {...props} />
     </div>,
+    { baseElement: document.body, container },
   )
   return {
     ...view,
     input: inputOf(view),
     toggle: view.getByRole('button'),
   }
+}
+
+/** The surface the list opens on, once it has opened. */
+async function surfaceOf(view: ReturnType<typeof render>) {
+  const list = await view.findByRole('listbox')
+  if (list.parentElement === null) {
+    throw new Error('expected the list to sit on a surface')
+  }
+  return list.parentElement
 }
 
 const FIRST_AND_THIRD = ['first', 'third']
@@ -526,6 +540,29 @@ describe('combo box', () => {
       expect(surface?.style.getPropertyValue('--trigger-width')).toBe(
         `${box.getBoundingClientRect().width}px`,
       )
+    })
+
+    // The list grows out of the field, from the edge it is anchored by:
+    // down from its top edge under the field, and up from its bottom edge
+    // when there is no room under the field and React Aria opens it above.
+    it('grows the list down from its top edge under the field', async () => {
+      const view = setup()
+
+      fireEvent.click(view.toggle)
+      const surface = await surfaceOf(view)
+
+      expect(surface.getAttribute('data-placement')).toBe('bottom')
+      expect(originOf(surface).y).toBeCloseTo(0)
+    })
+
+    it('grows the list up from its bottom edge above the field', async () => {
+      const view = setup({}, atFootOfWindow())
+
+      fireEvent.click(view.toggle)
+      const surface = await surfaceOf(view)
+
+      expect(surface.getAttribute('data-placement')).toBe('top')
+      expect(originOf(surface).y).toBeCloseTo(1)
     })
   })
   // The turn is drawn from the motion tokens rather than written as literals,
