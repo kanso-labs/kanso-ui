@@ -15,10 +15,10 @@ import { glyphStyles } from './styles'
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
 // close, the right and down chevrons, the two sort arrows, the back arrow,
-// the drop-down arrow and the calendar from Material Symbols on their
-// 24-unit grid, which
-// is what the checkbox page draws at 18dp, the icon buttons page at 20 and
-// the search, menus and date picker pages at 24 — the date picker's menu
+// the drop-down arrow, the calendar, the schedule clock and the keyboard from
+// Material Symbols on their 24-unit grid, which is what the checkbox page
+// draws at 18dp, the icon buttons page at 20 and the search, menus, date
+// picker and time picker pages at 24 — the date picker's menu
 // buttons draw their arrow at 18, and a split button's menu button its
 // chevron at between 22 and 50.
 
@@ -83,6 +83,16 @@ function CheckGlyph(props: GlyphProps) {
   )
 }
 
+// What the time picker's trigger draws, and the button that takes its
+// keyboard entry back to the dial: the clock a time is picked from.
+function ClockGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+    </Glyph>
+  )
+}
+
 /**
  * The svg every glyph draws: the 24-unit grid its path is on, the colour it
  * takes from the text around it, and its box. The call site's `className`
@@ -99,6 +109,16 @@ function Glyph({ children, ...props }: GlyphProps & { children: ReactNode }) {
     >
       {children}
     </svg>
+  )
+}
+
+// What the time picker's dial draws on the button that switches it to typed
+// entry.
+function KeyboardGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H4V7h16v10zm-9-9h2v2h-2zm0 3h2v2h-2zM8 8h2v2H8zm0 3h2v2H8zm-3 0h2v2H5zm0-3h2v2H5zm3 6h8v2H8zm6-3h2v2h-2zm0-3h2v2h-2zm3 3h2v2h-2zm0-3h2v2h-2z" />
+    </Glyph>
   )
 }
 
@@ -168,8 +188,10 @@ export {
   CheckGlyph,
   ChevronDownGlyph,
   ChevronEndGlyph,
+  ClockGlyph,
   CloseGlyph,
   IndeterminateGlyph,
+  KeyboardGlyph,
   MinusGlyph,
   PlusGlyph,
   SearchGlyph,

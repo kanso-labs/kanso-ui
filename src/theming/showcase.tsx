@@ -103,6 +103,7 @@ import Text from '../components/text'
 import TextArea from '../components/text-area'
 import TextField from '../components/text-field'
 import TimeField from '../components/time-field'
+import TimePicker from '../components/time-picker'
 import TokenField from '../components/token-field'
 import Toolbar from '../components/toolbar'
 import Tooltip from '../components/tooltip'
@@ -1725,6 +1726,13 @@ function Showcase({ name }: ShowcaseProps) {
             title="TimeField"
           >
             <TimeField defaultValue={SHOWCASE_TIME} label="Label" />
+          </Section>
+
+          <Section
+            description="The time field's segments with a clock button in the box, behind which the dial sits on the container a scheme fills."
+            title="TimePicker"
+          >
+            <TimePicker defaultValue={SHOWCASE_TIME} label="Label" />
           </Section>
 
           <Section

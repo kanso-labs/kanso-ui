@@ -1938,6 +1938,33 @@ export type TimeFieldProps<T extends TimeValue = TimeValue> = Omit<TimeFieldProp
 };
 
 // @public
+export function TimePicker<T extends TimeValue>(input: RefAttributes<HTMLDivElement> & TimePickerProps<T>): JSX;
+
+// @public
+export type TimePickerMode = 'dial' | 'input';
+
+// @public (undocumented)
+export type TimePickerProps<T extends TimeValue = TimeValue> = Omit<TimeFieldProps_2<T>, 'children' | 'className' | 'style'> & {
+    cancelLabel?: string;
+    className?: TimeFieldProps_2<T>['className'];
+    confirmLabel?: string;
+    container?: Element;
+    defaultMode?: TimePickerMode;
+    defaultOpen?: boolean;
+    description?: string;
+    enterTimeLabel?: string;
+    error?: string;
+    floatingLabel?: boolean;
+    isOpen?: boolean;
+    label: string;
+    leadingIcon?: ReactNode;
+    onOpenChange?: (isOpen: boolean) => void;
+    selectTimeLabel?: string;
+    style?: TimeFieldProps_2<T>['style'];
+    variant?: FieldVariant;
+};
+
+// @public
 export function TokenField<T extends TokenFieldValue = TokenFieldValue>(input: RefAttributes<HTMLDivElement> & TokenFieldProps<T>): JSX;
 
 // @public (undocumented)
