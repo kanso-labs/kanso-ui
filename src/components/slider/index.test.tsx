@@ -409,6 +409,49 @@ describe('slider', () => {
       expect(view.segments[0].getBoundingClientRect().width).toBe(56)
       expect(view.thumb.getBoundingClientRect().width).toBe(68)
     })
+
+    // React Aria's centring translate is physical, so the inset it backs out
+    // of has to be: a logical one put the handle a whole width off the track
+    // under right-to-left. The value then sits on the handle's inline-start
+    // side, centred on it.
+    it.each([
+      ['left-to-right', 'en-US', 'ltr'],
+      ['right-to-left', 'he-IL', 'rtl'],
+    ] as const)(
+      "centres a vertical slider's handle on the track, %s",
+      (_, locale, dir) => {
+        const view = setupFramed({ orientation: 'vertical' }, { dir, locale })
+        const track = view.track.getBoundingClientRect()
+
+        expect(
+          Math.abs(
+            middleOf(view.thumb.getBoundingClientRect()) - middleOf(track),
+          ),
+        ).toBeLessThan(1)
+
+        fireEvent.keyDown(document.body, { key: 'Tab' })
+        act(() => {
+          view.input.focus()
+        })
+        const output = view.container.querySelector('output')
+        if (output === null) {
+          throw new Error('expected the handle to show its value')
+        }
+        const value = output.getBoundingClientRect()
+        const thumb = view.thumb.getBoundingClientRect()
+
+        // The 12dp the value keeps clear of the handle, measured on the side
+        // the inline start falls on.
+        const gap =
+          dir === 'rtl' ? value.left - thumb.right : thumb.left - value.right
+        expect(gap).toBeCloseTo(12, 0)
+        expect(
+          Math.abs(
+            value.top + value.height / 2 - (thumb.top + thumb.height / 2),
+          ),
+        ).toBeLessThan(1)
+      },
+    )
   })
 
   // The page's stops configuration: a stop at every step, in the role of the
