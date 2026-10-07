@@ -577,5 +577,26 @@ describe('dialog', () => {
 
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
+
+    // Full screen the header has no padding under its divider, so the body
+    // carries the 24 there that its sides already have; its first line sat
+    // against the divider before. Above the breakpoint the header carries
+    // the gap instead, and `insets the parts by the page's paddings` pins
+    // the body at none.
+    it('pads the body 24 below the header full screen', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      containerOf(view.getByRole('dialog'))
+      const { body, header } = partsOf(view)
+
+      expect(paddingOf(body).top).toBe('24px')
+      // The body's own padding, starting at the divider rather than below it.
+      expect(
+        body.getBoundingClientRect().top -
+          header.getBoundingClientRect().bottom,
+      ).toBe(0)
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
   })
 })

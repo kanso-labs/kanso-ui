@@ -88,6 +88,11 @@ const styles = stylex.create({
   // that end, so the body takes it when it is the element at that end — a
   // body-only dialog, the shape a command palette is, otherwise sat flush
   // against the container's top and bottom edges.
+  //
+  // Full screen, the header is a 56dp bar with no padding below its divider,
+  // so the body takes 24dp of its own under it: the inset its sides already
+  // have, which is the content padding the full-screen dialog keeps. Without
+  // it the first line sat against the divider.
   body: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -102,7 +107,11 @@ const styles = stylex.create({
     lineHeight: typography.bodyMediumLineHeight,
     overflowY: 'auto',
     paddingBlockEnd: { ':last-child': spacing.xl, default: 0 },
-    paddingBlockStart: { ':first-child': spacing.xl, default: 0 },
+    paddingBlockStart: {
+      ':first-child': spacing.xl,
+      default: 0,
+      [media.belowMedium]: spacing.xl,
+    },
     paddingInline: spacing.xl,
   },
   // The scrim centres the container, which is what makes the dialog a dialog
