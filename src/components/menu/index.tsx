@@ -481,7 +481,7 @@ function MenuLoadMore({
       {...props}
       {...mergeStyles(stylex.props(styles.loading), props)}
     >
-      <CollectionLoadMore label={label} size="20px" />
+      <CollectionLoadMore diameter="20px" label={label} />
     </RACMenuLoadMoreItem>
   )
 }

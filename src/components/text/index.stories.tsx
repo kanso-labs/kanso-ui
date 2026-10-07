@@ -32,7 +32,7 @@ const SCALE_GROUPS = [
 // show in a list of colours. It gets its own sample below, inside an element
 // that sets one, which is the only context in which it means anything.
 const TONES = [
-  'default',
+  'neutral',
   'muted',
   'primary',
   'positive',

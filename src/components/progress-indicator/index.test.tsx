@@ -1,6 +1,8 @@
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+
+import type { ProgressIndicatorProps } from '.'
 
 import ProgressIndicator from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
@@ -200,6 +202,23 @@ describe('progress indicator', () => {
       expect(active.getAttribute('stroke-width')).toBe('4')
       expect(hasClasses(active, CLASSES.activeArc)).toBe(true)
       expect(hasClasses(track, CLASSES.trackArc)).toBe(true)
+    })
+
+    // A length rather than a step of the size scale, since a ring sized to
+    // the type around it is what the prop is for.
+    it('draws the ring at the diameter it is given', () => {
+      const { bar } = setup({ diameter: '24px', variant: 'circular' })
+      const { svg } = arcsOf(bar)
+
+      expect(svg.getBoundingClientRect().width).toBe(24)
+      expect(svg.getBoundingClientRect().height).toBe(24)
+    })
+
+    it('takes the diameter as a CSS length', () => {
+      expectTypeOf<ProgressIndicatorProps['diameter']>().toEqualTypeOf<
+        string | undefined
+      >()
+      expectTypeOf<ProgressIndicatorProps>().not.toHaveProperty('size')
     })
 
     // The arcs are cut from one circle: the active one runs from the top for

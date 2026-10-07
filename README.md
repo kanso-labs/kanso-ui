@@ -206,7 +206,7 @@ the page scrolls, becoming the small bar:
     contentMaxInlineSize="960px"
     headline="Headline"
     scrolled={scrollTop > 0}
-    size="large"
+    size="lg"
   />
   {page}
 </div>

@@ -192,8 +192,8 @@ function buttonContent(
         <span {...stylex.props(buttonBaseStyles.pending)}>
           <ProgressIndicator
             aria-label={pendingLabel}
+            diameter="1em"
             isIndeterminate
-            size="1em"
             tone="inherit"
             variant="circular"
           />

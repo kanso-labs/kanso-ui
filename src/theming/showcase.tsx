@@ -542,7 +542,7 @@ function Showcase({ name }: ShowcaseProps) {
             <MenuIcon />
           </IconButton>
         }
-        size="medium"
+        size="md"
         subtitle="Supporting line"
         trailing={
           <IconButton aria-label="More">

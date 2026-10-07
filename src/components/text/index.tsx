@@ -145,13 +145,13 @@ const styles = stylex.create({
 // takes on a surface; a consumer needing something outside this set uses
 // `inherit` and colors the parent, rather than this growing a case per role.
 const tones = stylex.create({
-  default: { color: colors.onSurface },
   error: { color: colors.error },
   // Not a color of its own — opts out, so the nearest colored ancestor wins.
   // What a Text inside an already-colored container wants.
   inherit: { color: 'inherit' },
   muted: { color: colors.onSurfaceVariant },
   negative: { color: colors.negative },
+  neutral: { color: colors.onSurface },
   positive: { color: colors.positive },
   primary: { color: colors.primary },
 })
@@ -171,13 +171,9 @@ type TextProps = {
    */
   block?: boolean
   /**
-   * The color role to render in. `inherit` takes the color of the nearest
-   * colored ancestor instead of setting one.
-   *
-   * `default` is the on-surface role `Currency` and `Tag` call `neutral` —
-   * see AGENTS.md, under Prop vocabularies, which settles on that word. This
-   * one predates the rule, and renaming a public prop's value is a breaking
-   * change of its own.
+   * The color role to render in. `neutral` is the on-surface role, as it is
+   * on `Currency`; `inherit` takes the color of the nearest colored ancestor
+   * instead of setting one.
    *
    * Every role here is guaranteed legible on the surface family, which is
    * what the library's own tokens and every demo scheme are held to. Over a
@@ -186,14 +182,14 @@ type TextProps = {
    * not guaranteed, so a custom theme placing text there has to check that
    * pair itself. `inherit` is the way out: it takes the container's own
    * on-colour rather than setting one.
-   * @default 'default'
+   * @default 'neutral'
    */
   tone?:
-    | 'default'
     | 'error'
     | 'inherit'
     | 'muted'
     | 'negative'
+    | 'neutral'
     | 'positive'
     | 'primary'
   /**
@@ -221,7 +217,7 @@ type TextProps = {
 function Text({
   block = false,
   render,
-  tone = 'default',
+  tone = 'neutral',
   variant = 'bodyMedium',
   ...props
 }: TextProps) {

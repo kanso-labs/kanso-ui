@@ -262,7 +262,7 @@ function ListBoxLoadMore({
       {...props}
       {...mergeStyles(stylex.props(collectionStyles.loading), props)}
     >
-      <CollectionLoadMore label={label} size="24px" />
+      <CollectionLoadMore diameter="24px" label={label} />
     </RACListBoxLoadMoreItem>
   )
 }

@@ -14,9 +14,9 @@ import Text from '../text'
 
 // Material Design's app bar, in the three sizes the spec recommends.
 //
-// `medium` and `large` are Material Design's *flexible* bars, the newer of the
-// two sets the spec gives and the one it recommends, which is why the short
-// names are theirs.
+// `md` and `lg` are Material Design's medium and large *flexible* bars, the
+// newer of the two sets the spec gives and the one it recommends, which is why
+// those two steps are theirs.
 //
 // Material Design also merged the old center-aligned variant into small as a
 // configuration rather than a variant, which is why alignment is a prop here
@@ -40,16 +40,16 @@ const HEADLINE_OFFSET = '12px'
 const DEFAULT_CONTENT_INSET = '16px'
 
 const HEIGHTS = {
-  large: { plain: '120px', withSubtitle: '152px' },
-  medium: { plain: '112px', withSubtitle: '136px' },
-  small: { plain: '64px', withSubtitle: '64px' },
+  lg: { plain: '120px', withSubtitle: '152px' },
+  md: { plain: '112px', withSubtitle: '136px' },
+  sm: { plain: '64px', withSubtitle: '64px' },
 } as const
 
 // What a flexible bar collapses to, which is the small bar exactly. Material
 // Design does not describe the collapsed large bar as a state of its own — it
 // describes it as becoming the small bar, which is why this reads off the same
 // table rather than being a fourth height.
-const COLLAPSED_HEIGHT = HEIGHTS.small.plain
+const COLLAPSED_HEIGHT = HEIGHTS.sm.plain
 
 const styles = stylex.create({
   // Collapsing swaps the headline's type role, which is a change of class
@@ -127,9 +127,9 @@ const styles = stylex.create({
 // aliases onto the type scale rather than sizes of their own, so this maps to
 // the scale the same way and lets Text apply it.
 const HEADLINE_VARIANT = {
-  large: 'headlineMedium',
-  medium: 'headlineSmall',
-  small: 'titleLarge',
+  lg: 'headlineMedium',
+  md: 'headlineSmall',
+  sm: 'titleLarge',
 } as const
 
 // The headline is the page's title in Material Design's model, so it is the
@@ -187,14 +187,14 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /**
    * Collapses a flexible bar to the height and headline of the small one, for
    * a pinned bar over content that has been scrolled. Material Design
-   * specifies it for the flexible sizes, and without it a pinned `large` costs
+   * specifies it for the flexible sizes, and without it a pinned `lg` costs
    * 152px of the viewport for as long as the page is open.
    *
    * Controlled, and for the same reason `scrolled` is: only the app knows
    * which element scrolls, and how far into it the bar should have finished
    * collapsing. Usually set from the same handler.
    *
-   * Ignored on `small`, which is already the height this collapses to. The
+   * Ignored on `sm`, which is already the height this collapses to. The
    * subtitle goes with the height, since there is no room for a second line
    * in the small bar.
    *
@@ -261,17 +261,13 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    */
   scrolled?: boolean
   /**
-   * Height and headline size. `medium` and `large` are Material Design's
-   * flexible bars, which hug their text.
-   *
-   * Spelled out rather than the `sm`/`md`/`lg` the rest of the library takes
-   * — see AGENTS.md, under Prop vocabularies. It predates that rule, and
-   * renaming a public prop's values is a breaking change of its own rather
-   * than something to fold into other work.
-   * @default 'small'
+   * Height and headline size, as steps of the library's size scale. `sm` is
+   * Material Design's small bar, a fixed 64px; `md` and `lg` are its medium
+   * and large flexible bars, which hug their text.
+   * @default 'sm'
    */
-  size?: 'large' | 'medium' | 'small'
-  /** A second line under the headline. Makes `medium` and `large` taller. */
+  size?: 'lg' | 'md' | 'sm'
+  /** A second line under the headline. Makes `md` and `lg` taller. */
   subtitle?: ReactNode
   /** Actions, at the far end. Usually icon buttons. */
   trailing?: ReactNode
@@ -281,8 +277,8 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
  * Material Design's app bar: the container at the top of a page carrying its
  * title, one or two actions, and the way back out.
  *
- * Three sizes. `small` is a fixed 64px bar for a page whose title is a label;
- * `medium` and `large` are the flexible bars, which give the headline a larger
+ * Three sizes. `sm` is a fixed 64px bar for a page whose title is a label;
+ * `md` and `lg` are the flexible bars, which give the headline a larger
  * type role and grow to fit a subtitle or a headline that wraps.
  *
  * It paints its own surface, unlike the layout components, because separating
@@ -300,15 +296,15 @@ function AppBar({
   leading,
   render,
   scrolled = false,
-  size = 'small',
+  size = 'sm',
   subtitle,
   trailing,
   ...props
 }: AppBarProps) {
-  // `small` is already what the flexible bars collapse to, so collapsing it is
+  // `sm` is already what the flexible bars collapse to, so collapsing it is
   // a no-op rather than an error. A bar whose size is chosen at the call site
   // from a breakpoint would otherwise have to guard the prop as well.
-  const collapse = collapsed && size !== 'small'
+  const collapse = collapsed && size !== 'sm'
   const expandedHeight =
     subtitle === undefined || subtitle === null
       ? HEIGHTS[size].plain
@@ -340,7 +336,7 @@ function AppBar({
                 {...stylex.props(styles.headline)}
                 render={heading(headingLevel)}
                 variant={
-                  collapse ? HEADLINE_VARIANT.small : HEADLINE_VARIANT[size]
+                  collapse ? HEADLINE_VARIANT.sm : HEADLINE_VARIANT[size]
                 }
               >
                 {headline}

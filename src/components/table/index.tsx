@@ -895,7 +895,7 @@ function TableLoadMore({
       ref={mergeRefs(dropAriaLevel, ref ?? undefined)}
     >
       <span {...stylex.props(styles.loading)}>
-        <CollectionLoadMore label={label} size="24px" />
+        <CollectionLoadMore diameter="24px" label={label} />
       </span>
     </RACTableLoadMoreItem>
   )

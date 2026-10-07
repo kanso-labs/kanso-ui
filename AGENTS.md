@@ -359,29 +359,22 @@ which is how the drift each bullet names came about.
 - **`size` takes the abbreviated scale**, `xs` `sm` `md` `lg` `xl` `xxl`, and a
   component uses the steps it has rather than the whole run — `Avatar` and
   `ProductIcon` are `sm`/`md`/`lg`, `Popover` is `sm`/`md`, `Button` and
-  `IconButton` are `xs`/`md`/`lg`/`xl`/`xxl`. Five of the seven `size` props
-  already read this way. What a step means is the component's own business and
-  belongs in its prop comment: `Button` maps its five onto the spec's XS through
-  XL there, and `Avatar` gives its three in pixels.
+  `IconButton` are `xs`/`md`/`lg`/`xl`/`xxl`, `AppBar` is `sm`/`md`/`lg`. What a
+  step means is the component's own business and belongs in its prop comment:
+  `Button` maps its five onto the spec's XS through XL there, and `Avatar` gives
+  its three in pixels. A prop that takes a CSS length is not a `size` and takes
+  the name of what it measures — `ProgressIndicator`'s `diameter`.
 - **`tone` names a colour role, and the neutral one is `neutral`.** `Currency`,
-  `Tag` and `Toolbar` use that word, `Toolbar` for the scheme its spec page
-  calls standard; `inherit` is the separate thing of taking the colour around
-  it, and `Currency`'s `auto` is the separate thing of reading the tone off a
-  value's sign. A component drawing a container per tone — `Tag` — names the
-  container's family rather than the text role, so its `neutral` is the
+  `Tag`, `Text` and `Toolbar` use that word, `Toolbar` for the scheme its spec
+  page calls standard; `inherit` is the separate thing of taking the colour
+  around it, and `Currency`'s `auto` is the separate thing of reading the tone
+  off a value's sign. A component drawing a container per tone — `Tag` — names
+  the container's family rather than the text role, so its `neutral` is the
   surface-container pair and not the on-surface one.
 - **A field's `variant` is `FieldVariant`**, imported from `src/field`, never
   the union written out. Eleven components take the prop and the type is
   exported from the package, so a call site forwarding it has a name for what it
   forwards.
-
-**Three props predate this and are not reconciled to it**, each because the
-change would break a public prop rather than because the policy is unclear.
-`AppBar`'s `size` spells its steps out; `ProgressIndicator`'s `size` is a CSS
-length rather than a scale member at all; `Text`'s neutral tone is called
-`default` where `Currency`'s is `neutral`. Each of the three carries a comment
-saying so. Renaming them is a `feat!:` of its own, not something to fold into
-unrelated work.
 
 ### Sample copy
 
