@@ -28,13 +28,21 @@ const styles = stylex.create({
   canvas: {
     backgroundColor: colors.surface,
     boxSizing: 'border-box',
-    minHeight: '100vh',
     padding: '1rem',
+  },
+  // A story on its own fills the canvas, so the surface reaches the bottom of
+  // the frame. A story drawn inline on a Docs page takes its own height
+  // instead: there the viewport is the whole page, and filling it would give
+  // every story on the page a screen of its own.
+  fill: {
+    minHeight: '100vh',
   },
 })
 
 type ThemeWrapperProps = {
   children: ReactNode
+  /** Grow to the viewport's height. False for a story drawn on a Docs page. */
+  fill: boolean
   /** 'light', 'dark', or a key of `demoThemes` — whatever the `theme` global says. */
   name: string
 }
@@ -70,7 +78,7 @@ function themeFor(name: string): stylex.CompiledStyles[] {
 // `name` comes from the `theme` global (see preview.tsx), which is what lets
 // Chromatic capture the same story in both themes and what lets a story pin
 // one of the demo schemes for itself.
-function ThemeWrapper({ children, name }: ThemeWrapperProps) {
+function ThemeWrapper({ children, fill, name }: ThemeWrapperProps) {
   const theme = themeFor(name)
   const themeClassName = stylex.props(theme).className ?? ''
 
@@ -92,7 +100,9 @@ function ThemeWrapper({ children, name }: ThemeWrapperProps) {
   return (
     <>
       <style>{'.sb-show-main.sb-main-padded { padding: 0; }'}</style>
-      <div {...stylex.props(theme, styles.canvas)}>{children}</div>
+      <div {...stylex.props(theme, styles.canvas, fill && styles.fill)}>
+        {children}
+      </div>
     </>
   )
 }

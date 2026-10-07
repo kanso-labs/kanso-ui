@@ -12,6 +12,7 @@ const meta = {
   parameters: {
     chromatic: { modes: { dark: { disable: true } } },
   },
+  tags: ['!autodocs'],
   title: 'Theming/Nordic',
 } satisfies Meta<typeof Showcase>
 

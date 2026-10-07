@@ -138,6 +138,7 @@ const Overview: Story = {
 
 // The docked view, which a wide window draws.
 const Default: Story = {
+  parameters: { docs: { story: { height: '420px', inline: false } } },
   render: () => (
     <div {...stylex.props(styles.frame)}>
       <Search defaultOpen />
@@ -150,6 +151,7 @@ const Default: Story = {
 const Compact: Story = {
   parameters: {
     chromatic: { modes: { compact: breakpointModes.compact } },
+    docs: { story: { height: '420px', inline: false } },
   },
   render: () => <Search defaultOpen />,
 }

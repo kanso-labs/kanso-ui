@@ -87,6 +87,22 @@ type CurrencySignDisplay = 'always' | 'auto' | 'never'
 
 type CurrencyTone = 'auto' | 'negative' | 'neutral' | 'positive'
 
+/**
+ * An amount of money, formatted for the reader's locale in the mono face with
+ * tabular figures, so a column of amounts lines up on the decimal point.
+ * Negatives carry a true minus sign, and the tone follows the sign unless
+ * `tone` names one.
+ *
+ * ```tsx
+ * <Currency value={-42.5} currency="EUR" />
+ * ```
+ *
+ * It sets no size of its own, so it takes the type around it: wrap it in a
+ * Text, or put it in a heading, for a larger figure.
+ *
+ * The call site's `className` and `style` land on the element holding the
+ * amount.
+ */
 function Currency({
   currency = 'USD',
   locale,

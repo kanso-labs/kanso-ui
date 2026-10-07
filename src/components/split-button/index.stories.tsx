@@ -143,6 +143,7 @@ const Open: Story = {
       </SplitButton.Menu>,
     ],
   },
+  parameters: { docs: { story: { height: '320px', inline: false } } },
   render: (args) => (
     <div {...stylex.props(styles.open)}>
       <SplitButton {...args} />

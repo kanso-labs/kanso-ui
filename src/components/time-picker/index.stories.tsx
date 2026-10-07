@@ -183,6 +183,7 @@ const Dial: Story = {
   args: {
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '760px', inline: false } } },
 }
 
 // The dial on a twenty-four hour clock, the afternoon's hours on the inner
@@ -192,6 +193,7 @@ const TwentyFourHours: Story = {
     defaultOpen: true,
     defaultValue: new Time(15, 30),
   },
+  parameters: { docs: { story: { height: '760px', inline: false } } },
   render: (args) => (
     <I18nProvider locale="en-GB">
       <TimePicker {...args} />
@@ -206,6 +208,7 @@ const Input: Story = {
     defaultMode: 'input',
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '620px', inline: false } } },
 }
 
 export { Default, Dial, Input, Overview, TwentyFourHours }

@@ -128,6 +128,7 @@ function ThemeScopePage() {
 
 const meta = {
   component: ThemeScopePage,
+  tags: ['!autodocs'],
   title: 'Foundations/Theme scope',
 } satisfies Meta<typeof ThemeScopePage>
 

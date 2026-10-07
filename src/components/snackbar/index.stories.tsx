@@ -101,6 +101,7 @@ const meta = {
 type Story = StoryObj<typeof meta>
 
 const Overview: Story = {
+  parameters: { docs: { story: { height: '760px', inline: false } } },
   render: (args) => (
     <div {...stylex.props(styles.page)}>
       <header {...stylex.props(styles.header)}>
@@ -192,14 +193,17 @@ const Overview: Story = {
 
 const Default: Story = {
   args: { queue: seeded({}) },
+  parameters: { docs: { story: { height: '240px', inline: false } } },
 }
 
 const WithAction: Story = {
   args: { queue: seeded({ action: UNDO }) },
+  parameters: { docs: { story: { height: '240px', inline: false } } },
 }
 
 const WithCloseButton: Story = {
   args: { queue: seeded({ action: RETRY, showCloseButton: true }) },
+  parameters: { docs: { story: { height: '240px', inline: false } } },
 }
 
 export { Default, Overview, WithAction, WithCloseButton }

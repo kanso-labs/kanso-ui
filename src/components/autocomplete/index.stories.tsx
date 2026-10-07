@@ -286,6 +286,7 @@ const Filtered: Story = {
 }
 
 const InAMenu: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
   render: (args) => (
     <Menu defaultOpen>
       <Button variant="outlined">Commands</Button>
@@ -302,6 +303,7 @@ const InAMenu: Story = {
 // pressable, so a Dialog written without a button is a shape no call site
 // should copy.
 const CommandPalette: Story = {
+  parameters: { docs: { story: { height: '640px', inline: false } } },
   render: (args) => (
     <Dialog defaultOpen>
       <Button variant="outlined">Open the palette</Button>

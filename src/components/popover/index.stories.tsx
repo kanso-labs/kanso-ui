@@ -238,6 +238,7 @@ const HoverTrigger: Story = {
     defaultOpen: true,
     trigger: 'hover',
   },
+  parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (
     <Popover {...args}>
       <Button variant="outlined">Hover or focus</Button>
@@ -249,6 +250,7 @@ const HoverTrigger: Story = {
 }
 
 const Default: Story = {
+  parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (
     <div {...stylex.props(styles.frame)}>
       <Popover {...args} defaultOpen>
@@ -263,6 +265,7 @@ const Default: Story = {
 
 const Small: Story = {
   args: { size: 'sm' },
+  parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (
     <div {...stylex.props(styles.frame)}>
       <Popover {...args} defaultOpen>
@@ -283,6 +286,7 @@ const Small: Story = {
 // without one has no accessible name — `a11y.test` is `'error'` here, so a
 // story that leaves it out fails rather than merely warning.
 const Sides: Story = {
+  parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (
     <div {...stylex.props(styles.sides)}>
       {SIDES.map((side) => (
@@ -349,7 +353,7 @@ const OpensAndCloses: Story = {
       </Popover.Content>
     </Popover>
   ),
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
 }
 
 export { Default, HoverTrigger, OpensAndCloses, Overview, Sides, Small }

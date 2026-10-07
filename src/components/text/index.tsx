@@ -214,6 +214,23 @@ type TextProps = {
     | 'titleSmall'
 } & RenderComponentProps<'span'>
 
+/**
+ * A run of text in one style of Material Design's type scale and one colour
+ * role. It renders a `<span>`, a `<p>` with `block`, or with `render` any
+ * element, which is how a heading keeps its own level while taking the
+ * scale's look.
+ *
+ * ```tsx
+ * <Text render={<h2 />} variant="titleLarge">
+ *   Headline
+ * </Text>
+ * ```
+ *
+ * It carries no margin, whatever it renders, so the space between two blocks
+ * of text belongs to whatever holds both of them.
+ *
+ * The call site's `className` and `style` land on the element it renders.
+ */
 function Text({
   block = false,
   render,

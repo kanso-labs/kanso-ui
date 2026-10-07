@@ -292,13 +292,13 @@ can opt one out with
 `parameters: { chromatic: { modes: { dark: { disable: true } } } }`.
 
 A story can be made to cost neither too, for the rare check that has to run as a
-story (see "Controlling time" below). `tags: ['!dev']` subtracts the tag the
-sidebar filters on while leaving `test`, so it still runs; Chromatic reads the
-index rather than the sidebar and so needs
-`parameters.chromatic.disableSnapshot` separately. `Pressed` in
-`src/components/button/index.stories.tsx` uses both. Reach for this only when a
-story is the only place a check can live — it is not a way to keep ordinary
-behavioural tests out of `*.test.tsx`.
+story (see "Controlling time" below). `tags: ['!autodocs', '!dev']` subtracts
+the tag the sidebar filters on and the one the component's Docs page lists its
+stories by, while leaving `test`, so it still runs; Chromatic reads the index
+rather than the sidebar and so needs `parameters.chromatic.disableSnapshot`
+separately. `Pressed` in `src/components/button/index.stories.tsx` uses all
+three. Reach for this only when a story is the only place a check can live — it
+is not a way to keep ordinary behavioural tests out of `*.test.tsx`.
 
 Keep the `unit` project in the browser. Under `environment: 'node'` those files
 get a different transform pipeline, so sources shared with the `storybook`
@@ -653,6 +653,27 @@ Renaming that page means editing both halves. The title is spelled out inside
 `storySort`, which is `eval`d with nothing else in scope, so it cannot read a
 shared constant — change the title alone and the page silently drops to the
 bottom of the sidebar.
+
+**Every component has a Docs page, from `tags: ['autodocs']` in
+`.storybook/preview.tsx`.** It shows the component's JSDoc — its description and
+any `tsx` usage example — then the props table react-docgen-typescript builds
+from its types, then every story with its source. The JSDoc has to sit directly
+on the component's function: a constant declared between the two leaves the page
+with no description, which is how `ChipGroup` lost its own. The pages written as
+stories rather than around a component — Getting started, the Foundations pages
+and the Theming schemes — take `!autodocs`, since a Docs page there would
+document the page's wrapper and unfold the single sidebar leaf each of them
+relies on.
+
+**A story that opens an overlay as it renders is framed on that page.** A Docs
+page draws its stories inline, in one document, so a dialog, menu or popover a
+story opens lands on the page itself: a modal locks the whole page's scroll, and
+whichever overlay takes focus last pulls the page down to it. Such a story
+carries `parameters: { docs: { story: { height, inline: false } } }`, which
+draws it in an iframe of its own, as the story's own canvas does, sized to hold
+what it opens. A new story that opens something gets the same. Inline stories
+take their own height there, rather than the full viewport `ThemeWrapper` gives
+a story on its own, so a page of six stories is not six screens long.
 
 **The published Storybook is the latest release, not the latest merge.** It is
 at <https://kanso-ui.kansolabs.org/>, and it is the copy to link someone who

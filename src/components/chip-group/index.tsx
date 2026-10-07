@@ -173,6 +173,16 @@ function chipContent(
   )
 }
 
+// What each chip calls its close target. A context rather than a prop on the
+// chip, since it is the group's decision and repeating it on every chip is
+// how the two drift. Undefined unless the group is given one, which leaves
+// the name React Aria gives in the reader's locale.
+const RemoveLabelContext = createContext<string | undefined>(undefined)
+
+// Hoisted so neither is a new object on every render.
+const LABEL_STATE_VALID = { isInvalid: false }
+const LABEL_STATE_INVALID = { isInvalid: true }
+
 /**
  * A labelled set of chips, one or more of which can be chosen, each of which
  * can be removed. Selection is React Aria's: set `selectionMode` to `single`
@@ -194,16 +204,6 @@ function chipContent(
  * The call site's `className` and `style` land on the group as a whole,
  * which is the element a layout positions.
  */
-// What each chip calls its close target. A context rather than a prop on the
-// chip, since it is the group's decision and repeating it on every chip is
-// how the two drift. Undefined unless the group is given one, which leaves
-// the name React Aria gives in the reader's locale.
-const RemoveLabelContext = createContext<string | undefined>(undefined)
-
-// Hoisted so neither is a new object on every render.
-const LABEL_STATE_VALID = { isInvalid: false }
-const LABEL_STATE_INVALID = { isInvalid: true }
-
 function ChipGroup<T extends object = object>({
   children,
   description,

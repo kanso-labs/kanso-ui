@@ -110,6 +110,7 @@ const Open: Story = {
   args: {
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '560px', inline: false } } },
 }
 
 // Its own story because the alpha strip adds a row to the surface, which
@@ -119,6 +120,7 @@ const WithAlpha: Story = {
     alpha: true,
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '640px', inline: false } } },
 }
 
 const Disabled: Story = {
@@ -136,6 +138,7 @@ const DisabledOpen: Story = {
     defaultOpen: true,
     isDisabled: true,
   },
+  parameters: { docs: { story: { height: '560px', inline: false } } },
 }
 
 export { Default, Disabled, DisabledOpen, Open, Overview, WithAlpha }

@@ -178,6 +178,7 @@ const Open: Story = {
   args: {
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '500px', inline: false } } },
 }
 
 // The docked picker the page draws: open, with the month and the year as
@@ -187,6 +188,7 @@ const OpenWithMenus: Story = {
     defaultOpen: true,
     showMonthYearMenus: true,
   },
+  parameters: { docs: { story: { height: '500px', inline: false } } },
 }
 
 const WithError: Story = {

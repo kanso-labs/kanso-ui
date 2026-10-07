@@ -182,7 +182,7 @@ const Copied: Story = {
       { timeout: 5000 },
     )
   },
-  tags: ['!dev'],
+  tags: ['!autodocs', '!dev'],
 }
 
 export { Copied, Default, Overview }

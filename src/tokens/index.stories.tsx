@@ -1258,6 +1258,7 @@ function Tokens() {
 
 const meta = {
   component: Tokens,
+  tags: ['!autodocs'],
   title: 'Foundations/Tokens',
 } satisfies Meta<typeof Tokens>
 

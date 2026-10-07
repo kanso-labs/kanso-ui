@@ -27,7 +27,7 @@ const preview: Preview = {
         <I18nProvider locale={locale}>
           <DocumentLocale />
           <StyleXLoader />
-          <ThemeWrapper name={theme}>
+          <ThemeWrapper fill={context.viewMode !== 'docs'} name={theme}>
             <Story />
           </ThemeWrapper>
         </I18nProvider>
@@ -171,6 +171,15 @@ const preview: Preview = {
       /* oxlint-enable typescript/no-unsafe-member-access */
     },
   },
+  // Every component gets a Docs page: its JSDoc description and usage
+  // example, the props table react-docgen-typescript builds from its types,
+  // and each story with its source. The pages written as stories rather than
+  // around a component — Getting started, the Foundations pages and the
+  // Theming schemes — take `!autodocs`, since a Docs page there would document
+  // the page's own wrapper and unfold the single sidebar leaf each relies on.
+  // A story kept off the sidebar with `!dev` takes it as well, being a check
+  // rather than something to read.
+  tags: ['autodocs'],
 }
 
 export default preview

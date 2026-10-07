@@ -192,6 +192,7 @@ const Open: Story = {
   args: {
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '500px', inline: false } } },
 }
 
 // Two months side by side, which is what a range is usually picked from, and
@@ -211,6 +212,7 @@ const OpenTwoMonths: Story = {
         medium: breakpointModes.medium,
       },
     },
+    docs: { story: { height: '500px', inline: false } },
   },
 }
 

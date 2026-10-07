@@ -267,6 +267,7 @@ const Open: Story = {
   args: {
     defaultOpen: true,
   },
+  parameters: { docs: { story: { height: '420px', inline: false } } },
 }
 
 export { Default, Open, Overview }
