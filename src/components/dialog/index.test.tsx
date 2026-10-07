@@ -69,6 +69,14 @@ function alert(props: {
   )
 }
 
+/** The named computed properties of `element`, as one object. */
+function computedOf(element: HTMLElement, properties: string[]) {
+  const style = getComputedStyle(element)
+  return Object.fromEntries(
+    properties.map((property) => [property, style.getPropertyValue(property)]),
+  )
+}
+
 /** The container around the element with the dialog role: what is sized and shaped. */
 function containerOf(dialog: HTMLElement) {
   const container = dialog.parentElement
@@ -125,6 +133,44 @@ function partsOf(view: ReturnType<typeof render>) {
 }
 
 /**
+ * Every property the full-screen presentation changes, read off each part
+ * of an open dialog, so two presentations can be compared whole.
+ */
+function presentationOf(view: ReturnType<typeof render>, role: string) {
+  const container = containerOf(view.getByRole(role))
+  const { body, footer, header } = partsOf(view)
+  const title = view.getByText('Headline')
+  const paddings = [
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
+  ]
+
+  return {
+    body: computedOf(body, paddings),
+    container: computedOf(container, [
+      'animation-name',
+      'border-top-left-radius',
+      'height',
+      'max-width',
+      'min-width',
+      ...paddings,
+    ]),
+    footer: computedOf(footer, ['border-top-style', 'height', ...paddings]),
+    header: computedOf(header, ['border-bottom-style', 'height', ...paddings]),
+    scrim: computedOf(scrimOf(container), paddings),
+    title: computedOf(title, [
+      'font-family',
+      'font-size',
+      'font-weight',
+      'letter-spacing',
+      'line-height',
+    ]),
+  }
+}
+
+/**
  * Escape, dispatched on the dialog itself, as `closes on Escape` does.
  * Dispatched on whatever held focus instead, it missed the dialog whenever
  * an earlier case's dialog had handed focus back to the page — and a key
@@ -162,11 +208,14 @@ function scrimOf(container: HTMLElement) {
   return scrim
 }
 
-function setup(props: Partial<Parameters<typeof Dialog>[0]> = {}) {
+function setup(
+  props: Partial<Parameters<typeof Dialog>[0]> = {},
+  { role }: { role?: 'alertdialog' | 'dialog' } = {},
+) {
   return render(
     <Dialog defaultOpen {...props}>
       <Button>Open</Button>
-      <Dialog.Content>
+      <Dialog.Content role={role}>
         <Dialog.Header>
           <Dialog.Title>Headline</Dialog.Title>
           <IconButton aria-label="Close" slot="close">
@@ -417,6 +466,55 @@ describe('dialog', () => {
       // The scrim is the window, and the dialog fills it.
       expect(container.getBoundingClientRect().width).toBe(room.width)
       expect(container.getBoundingClientRect().height).toBe(room.height)
+    })
+
+    // An alert dialog is a question rather than a task, and the page keeps
+    // the full-screen dialog for tasks: on a phone it stays the basic dialog,
+    // rounded, centred, and only as tall as what it holds.
+    it('keeps an alert dialog the basic dialog below it', async () => {
+      await page.viewport(375, 812)
+      const view = setup({}, { role: 'alertdialog' })
+      const container = containerOf(view.getByRole('alertdialog'))
+      const room = scrimOf(container).getBoundingClientRect()
+      const box = container.getBoundingClientRect()
+
+      expect(getComputedStyle(container).borderTopLeftRadius).toBe('28px')
+      // The scrim's 24 of room either side, and centred top to bottom.
+      expect(box.width).toBe(room.width - 48)
+      expect(Math.round(box.top - room.top)).toBe(
+        Math.round(room.bottom - box.bottom),
+      )
+      expect(box.height).toBeLessThan(room.height - 48)
+    })
+
+    // The basic presentation an alert dialog keeps is restated rather than
+    // shared, so this compares it whole with what any dialog draws above the
+    // breakpoint: a value changed in one and not the other fails here.
+    it('draws an alert dialog below it as any dialog above it', async () => {
+      await page.viewport(1024, 768)
+      const wide = setup()
+      const above = presentationOf(wide, 'dialog')
+      wide.unmount()
+
+      await page.viewport(375, 812)
+      const below = presentationOf(
+        setup({}, { role: 'alertdialog' }),
+        'alertdialog',
+      )
+
+      expect(below).toEqual(above)
+    })
+
+    // Only the alert role leaves the pairing: one asked for by name stays a
+    // full-screen dialog, header bar and all.
+    it('still fills the window with role="dialog" named', async () => {
+      await page.viewport(375, 812)
+      const view = setup({}, { role: 'dialog' })
+      const container = containerOf(view.getByRole('dialog'))
+      const room = scrimOf(container).getBoundingClientRect()
+
+      expect(container.getBoundingClientRect().height).toBe(room.height)
+      expect(partsOf(view).header.getBoundingClientRect().height).toBe(56)
     })
   })
 
