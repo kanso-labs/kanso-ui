@@ -45,10 +45,15 @@ const styles = stylex.create({
   },
 })
 
-// A fixed month, so every snapshot reads the same whenever it is taken. The
-// `Today` story is the one that asks for the real date, since what it shows
-// is the outline today carries.
+// Fixed months, so every snapshot reads the same whenever it is taken. The
+// calendar outlines today wherever it falls in view, so a fixed view holds
+// still only once every month in it lies before today: September 2026 for
+// the stories that show one month, and February and March 2026 for the one
+// that shows two, since September and October 2026 moved the outline every
+// day through October. The `Today` story is the one that asks for the real
+// date, since what it shows is the outline today carries.
 const SEPTEMBER = new CalendarDate(2026, 9, 15)
+const FEBRUARY = new CalendarDate(2026, 2, 15)
 const MAX = new CalendarDate(2026, 9, 24)
 const MIN = new CalendarDate(2026, 9, 8)
 const VISIBLE_TWO = { months: 2 }
@@ -174,6 +179,7 @@ const Bounded: Story = {
 // Two months side by side, which is what a range is usually picked from.
 const TwoMonths: Story = {
   args: {
+    defaultValue: FEBRUARY,
     visibleDuration: VISIBLE_TWO,
   },
 }
