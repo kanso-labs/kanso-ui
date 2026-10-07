@@ -196,8 +196,9 @@ const calendarStyles = stylex.create({
   chevronHidden: {
     visibility: 'hidden',
   },
-  // The grid. `border-spacing` is what puts the page's 48dp pitch between
-  // 40dp circles, rather than a 48dp box drawn around each one.
+  // The grid, with no spacing of its own: each date's margin is what puts the
+  // page's 48dp pitch between 40dp circles, rather than a 48dp box drawn
+  // around each one.
   grid: {
     borderCollapse: 'separate',
     // Zero, with the room put on each date instead. The page's 48dp comes

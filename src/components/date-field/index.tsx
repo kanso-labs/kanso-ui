@@ -38,10 +38,12 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // and `granularity` of `minute` adds two more. So the segments are rendered
 // from what React Aria hands the input, never written out.
 //
-// **A segment not yet filled is muted, and the field still counts as
-// empty.** The placeholder text is the segment's own — `mm`, `dd`, `yyyy` —
+// **A segment not yet filled is muted, and the label floats from the
+// start.** The placeholder text is the segment's own — `mm`, `dd`, `yyyy` —
 // and it takes the muted role so a half-typed date reads as half-typed. The
-// floating label stays down until a segment holds a real value.
+// segments show it whether or not a date is in them, so the floating label
+// sits above them even while the field is empty, rather than resting on top
+// of the placeholders.
 //
 // **A focused segment is a filled shape rather than a ring.** A caret cannot
 // show which of three spinbuttons has focus, since React Aria hides it — the
