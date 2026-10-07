@@ -72,7 +72,7 @@ const Overview: Story = {
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
           A modal centred over the page, which fills the window below the medium
-          breakpoint.
+          breakpoint unless it is an alert dialog.
         </Text>
       </header>
 
@@ -132,7 +132,10 @@ const Overview: Story = {
             rather than waiting to be asked. Pair it with
             isDismissable=&#123;false&#125; and isKeyboardDismissDisabled, so
             the answer has to come from one of the actions: the first stops a
-            press on the scrim closing it, and the second the Escape key.
+            press on the scrim closing it, and the second the Escape key. An
+            alert dialog stays centred and sized to its content at every width,
+            since a question needs none of the room a full-screen dialog gives a
+            task.
           </Text>
         </div>
         <div {...stylex.props(styles.row)}>
@@ -295,6 +298,28 @@ const AlertDialog: Story = {
   ),
 }
 
-export { AlertDialog, Default, LongBody, Overview }
+// The same alert dialog below the medium breakpoint, where a dialog of the
+// default role fills the window. An alert dialog stays the basic one there:
+// rounded, centred over the scrim, and only as tall as its question.
+const AlertDialogCompact: Story = {
+  // Sizes the frame in Storybook itself, as Sheet's BottomSheet does, so the
+  // story shows the compact width without narrowing the window by hand.
+  globals: { viewport: { isRotated: false, value: 'mobile1' } },
+  parameters: {
+    // Chromatic is told the width through `modes`, under the project's own
+    // mode names, for the reasons BottomSheet in sheet/index.stories.tsx
+    // gives.
+    chromatic: {
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 375 } },
+        light: { theme: 'light', viewport: { height: 700, width: 375 } },
+      },
+    },
+    docs: { story: { height: '600px', inline: false } },
+  },
+  render: AlertDialog.render,
+}
+
+export { AlertDialog, AlertDialogCompact, Default, LongBody, Overview }
 
 export default meta
