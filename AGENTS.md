@@ -955,6 +955,30 @@ changelog carries an edit that release-please did not write, against the rule
 above. Setting the key back would tag the next release alone differently from
 every release before it.
 
+**1.0.0 is cut by `release-as`, which is set for one release and removed in the
+pull request after it.** `bump-minor-pre-major` keeps a breaking change on 0.x —
+`feat(toolbar)!` shipped as 0.34.0 — so no commit type reaches 1.0.0 on its own.
+A `Release-As: 1.0.0` footer would, but the squash leaves the body blank unless
+the person merging types one, and nothing reminds them to. So the jump is
+`"release-as": "1.0.0"` under `packages["."]` in `release-please-config.json`,
+in two steps:
+
+1. **Merge the pull request that sets the key only once the `v1.0.0` milestone
+   holds nothing else.** The key changes the version release-please proposes and
+   nothing else, so it reaches a release pull request only alongside a commit
+   the changelog shows. If one is still unreleased, the push rewrites the open
+   release pull request to 1.0.0; if not, release-please skips the run as "No
+   user facing commits found", since the key's own pull request is a `chore`,
+   and the next `feat`, `fix`, `perf`, `deps` or `revert` to merge proposes
+   1.0.0 instead. Either way the scheduled run then merges it like any other
+   release, which tags it and publishes it to npm, so merging the key is the
+   decision to release.
+2. **Remove the key in the next pull request once 1.0.0 is tagged.**
+   release-please reads `release-as` as the version to propose, not as a floor,
+   so while the key stays every later release pull request proposes 1.0.0 again
+   and versioning stops following the commits. The removal is a `chore`, so it
+   releases nothing, and it should be the first merge after the release.
+
 The names themselves follow five rules:
 
 1. A workflow's filename is the kebab-case of its `name:` field, with the
