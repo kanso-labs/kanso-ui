@@ -11,9 +11,13 @@ import type {
 
 import { cloneElement, createElement, isValidElement, useMemo } from 'react'
 
-// A ref the hook can write through. React reads a `null` ref as none at all,
-// and `refOf` turns one into `undefined` before a merge sees it.
-type AttachableRef = NonNullable<Ref<Element>>
+import type { AttachableRef as SharedAttachableRef } from './ref'
+
+import { mergeRefs } from './ref'
+
+// A ref the hook can write through. `refOf` turns a `null` one into
+// `undefined` before a merge sees it.
+type AttachableRef = SharedAttachableRef<Element>
 
 type Handler = (...args: ReadonlyArray<unknown>) => unknown
 
@@ -53,21 +57,6 @@ interface UseRenderParameters {
   /** The props to put on whichever element ends up rendered. */
   props?: Record<string, unknown> | undefined
   render?: RenderProp | undefined
-}
-
-function attach(ref: AttachableRef, node: Element | null): () => void {
-  if (typeof ref === 'function') {
-    const cleanup = ref(node)
-    return typeof cleanup === 'function'
-      ? cleanup
-      : () => {
-          ref(null)
-        }
-  }
-  ref.current = node
-  return () => {
-    ref.current = null
-  }
 }
 
 function isHandler(value: unknown): value is Handler {
@@ -124,32 +113,6 @@ function mergeElementProps(
 
   delete merged.ref
   return merged
-}
-
-/**
- * One ref that feeds both, or whichever one there is. Attaching through a
- * callback lets each side keep its own cleanup: React 19 calls a callback
- * ref's returned function on detach in place of calling it with `null`, so
- * the merged callback returns one that does the same for each of the two.
- */
-function mergeRefs(
-  a: AttachableRef | undefined,
-  b: AttachableRef | undefined,
-): AttachableRef | undefined {
-  if (a === undefined) {
-    return b
-  }
-  if (b === undefined) {
-    return a
-  }
-  return (node: Element | null) => {
-    const detachA = attach(a, node)
-    const detachB = attach(b, node)
-    return () => {
-      detachA()
-      detachB()
-    }
-  }
 }
 
 function mergeStyleObjects(

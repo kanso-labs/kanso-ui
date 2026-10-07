@@ -270,7 +270,10 @@ function DisclosureHeader({
  * `role="region"` names it in the landmark list instead, for a section a
  * reader should be able to jump to.
  */
-function DisclosurePanel({ children, ...props }: DisclosurePanelProps) {
+function DisclosurePanel({
+  children,
+  ...props
+}: DisclosurePanelProps & RefAttributes<HTMLDivElement>) {
   // The track has to know, and React Aria hands the render state to the panel
   // rather than to what wraps it — so the state comes from its context, the
   // same one its own panel reads.

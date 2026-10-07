@@ -12,7 +12,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import {
   Dialog,
   DialogTrigger,
@@ -22,6 +22,7 @@ import {
 } from 'react-aria-components'
 
 import { useScrollable } from '../../hooks/useScrollable'
+import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import {
@@ -300,19 +301,28 @@ function Sheet({ children, ...props }: SheetProps) {
   return <DialogTrigger {...props}>{children}</DialogTrigger>
 }
 
-function SheetBody(props: HTMLAttributes<HTMLDivElement>) {
+function SheetBody({
+  ref: callerRef,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const ref = useRef<HTMLDivElement>(null)
   // A body its content runs past is a tab stop, so a keyboard can scroll it
   // when nothing inside it takes focus; a call site's own tabIndex still
   // wins. See useScrollable.
   const scrollable = useScrollable(ref)
+  // The body measures itself through its own ref, and the call site's lands
+  // on the same element.
+  const merged = useMemo(
+    () => mergeRefs(ref, callerRef ?? undefined),
+    [callerRef],
+  )
 
   return (
     <div
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scroll container with nothing focusable inside is otherwise out of a keyboard's reach, which axe's scrollable-region-focusable reports
       tabIndex={scrollable ? 0 : undefined}
       {...props}
-      ref={ref}
+      ref={merged}
       {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
     />
   )
@@ -362,7 +372,9 @@ function SheetContent({
   )
 }
 
-function SheetFooter(props: HTMLAttributes<HTMLDivElement>) {
+function SheetFooter(
+  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
+) {
   return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
 }
 
@@ -379,7 +391,9 @@ function SheetFooter(props: HTMLAttributes<HTMLDivElement>) {
  * would promise what it cannot do. Closing is already the scrim, Escape, and
  * any button given `slot="close"`.
  */
-function SheetHandle(props: HTMLAttributes<HTMLDivElement>) {
+function SheetHandle(
+  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
+) {
   return (
     <div
       aria-hidden="true"
@@ -391,7 +405,9 @@ function SheetHandle(props: HTMLAttributes<HTMLDivElement>) {
   )
 }
 
-function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
+function SheetHeader(
+  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
+) {
   return <div {...props} {...mergeStyles(stylex.props(styles.header), props)} />
 }
 
@@ -400,7 +416,9 @@ function SheetHeader(props: HTMLAttributes<HTMLDivElement>) {
  * points the dialog's `aria-labelledby` at it — a sheet without one announces
  * itself as an unnamed dialog.
  */
-function SheetTitle(props: SheetTitleProps) {
+function SheetTitle(
+  props: RefAttributes<HTMLHeadingElement> & SheetTitleProps,
+) {
   return (
     <Heading
       slot="title"

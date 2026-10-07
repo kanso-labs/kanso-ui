@@ -29,6 +29,7 @@ import {
   TabPanel,
 } from 'react-aria-components'
 
+import { refCallback } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -785,7 +786,7 @@ function Tabs({
   )
 }
 
-function TabsList(props: TabsListProps) {
+function TabsList(props: RefAttributes<HTMLDivElement> & TabsListProps) {
   const { layout, orientation } = useContext(BarContext)
 
   return (
@@ -803,7 +804,7 @@ function TabsList(props: TabsListProps) {
   )
 }
 
-function TabsPanel(props: TabsPanelProps) {
+function TabsPanel(props: RefAttributes<HTMLDivElement> & TabsPanelProps) {
   const register = useContext(RegisterPanelContext)
   const { id } = props
 
@@ -827,7 +828,7 @@ function TabsPanel(props: TabsPanelProps) {
  * gives way to the next. Without it the panels still work; the box around
  * them simply jumps from one height to the other.
  */
-function TabsPanels(props: TabsPanelsProps) {
+function TabsPanels(props: RefAttributes<HTMLDivElement> & TabsPanelsProps) {
   return (
     <RACTabPanels
       {...props}
@@ -836,7 +837,14 @@ function TabsPanels(props: TabsPanelsProps) {
   )
 }
 
-function TabsTab({ badge, children, icon, render, ...props }: TabsTabProps) {
+function TabsTab({
+  badge,
+  children,
+  icon,
+  ref,
+  render,
+  ...props
+}: RefAttributes<HTMLAnchorElement | HTMLDivElement> & TabsTabProps) {
   const panels = useContext(PanelsContext)
   const bar = useContext(BarContext)
   const hasPanel = props.id !== undefined && panels.has(props.id)
@@ -846,6 +854,10 @@ function TabsTab({ badge, children, icon, render, ...props }: TabsTabProps) {
   return (
     <Tab
       {...props}
+      // A tab with `href` is an anchor and any other a div, so the ref is
+      // typed as either and handed over as the callback both accept — see
+      // src/render/ref.ts.
+      ref={refCallback(ref)}
       render={tabRenderer(hasPanel, render)}
       {...mergeStatefulStyles(tabClasses(bar, stacked), props)}
     >

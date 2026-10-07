@@ -397,7 +397,7 @@ function TreeItem<T extends object = object>({
   textValue,
   trailing,
   ...props
-}: TreeItemProps<T>) {
+}: RefAttributes<HTMLDivElement> & TreeItemProps<T>) {
   const selectLabel = useContext(SelectLabelContext)
   // The press ripple List's rows draw — see ListItem there.
   const ripple = useRipple<HTMLDivElement>(
@@ -446,7 +446,10 @@ function TreeItem<T extends object = object>({
  * `onLoadMore` when this comes into view, and draws it only while
  * `isLoading`.
  */
-function TreeLoadMore({ label, ...props }: TreeLoadMoreProps) {
+function TreeLoadMore({
+  label,
+  ...props
+}: RefAttributes<HTMLDivElement> & TreeLoadMoreProps) {
   return (
     <RACTreeLoadMoreItem
       {...props}

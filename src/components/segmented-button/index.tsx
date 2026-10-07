@@ -658,7 +658,7 @@ function SegmentedButtonSegment({
   onPointerUp,
   render,
   ...props
-}: SegmentedButtonSegmentProps) {
+}: RefAttributes<HTMLButtonElement> & SegmentedButtonSegmentProps) {
   const selectionMode = useContext(SelectionModeContext)
   const showSelectedIcon = useContext(ShowSelectedIconContext)
   // The `aria-*` props React Aria would drop and the keyboard handlers it

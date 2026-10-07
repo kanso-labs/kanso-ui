@@ -214,7 +214,7 @@ export namespace Breadcrumbs {
 }
 
 // @public
-export function BreadcrumbsItem(input: BreadcrumbsItemProps): JSX;
+export function BreadcrumbsItem(input: BreadcrumbsItemProps & RefAttributes<HTMLLIElement>): JSX;
 
 // @public (undocumented)
 export type BreadcrumbsItemProps = Omit<BreadcrumbProps, 'children' | 'className' | 'style'> & {
@@ -384,7 +384,7 @@ export namespace ChipGroup {
 }
 
 // @public
-export function ChipGroupChip(input: ChipGroupChipProps): JSX;
+export function ChipGroupChip(input: ChipGroupChipProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ChipGroupChipProps = Omit<TagProps_2, 'children' | 'className' | 'style'> & {
@@ -501,7 +501,7 @@ export namespace ColorSwatchPicker {
 }
 
 // @public
-export function ColorSwatchPickerItem(input: ColorSwatchPickerItemProps): JSX;
+export function ColorSwatchPickerItem(input: ColorSwatchPickerItemProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ColorSwatchPickerItemProps = Omit<ColorSwatchPickerItemProps_2, 'children' | 'className' | 'style'> & {
@@ -664,7 +664,7 @@ export namespace Dialog {
 }
 
 // @public (undocumented)
-export function DialogBody(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function DialogBody(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
 export function DialogContent(input: DialogContentProps & RefAttributes<HTMLDivElement>): JSX;
@@ -678,10 +678,10 @@ export type DialogContentProps = {
 } & Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'>;
 
 // @public (undocumented)
-export function DialogFooter(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function DialogFooter(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
-export function DialogHeader(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function DialogHeader(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type DialogProps = Omit<DialogTriggerProps, 'children'> & {
@@ -689,7 +689,7 @@ export type DialogProps = Omit<DialogTriggerProps, 'children'> & {
 };
 
 // @public
-export function DialogTitle(props: DialogTitleProps): JSX;
+export function DialogTitle(props: DialogTitleProps & RefAttributes<HTMLHeadingElement>): JSX;
 
 // @public (undocumented)
 export type DialogTitleProps = HeadingProps;
@@ -728,7 +728,7 @@ export type DisclosureHeaderProps = {
 };
 
 // @public
-export function DisclosurePanel(input: DisclosurePanelProps): JSX;
+export function DisclosurePanel(input: DisclosurePanelProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type DisclosurePanelProps = Omit<DisclosurePanelProps_2, 'className' | 'style'> & {
@@ -940,7 +940,7 @@ export namespace ListBox {
 }
 
 // @public
-export function ListBoxItem<T extends object = object>(input: ListBoxItemProps<T>): JSX;
+export function ListBoxItem<T extends object = object>(input: ListBoxItemProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ListBoxItemProps<T extends object = object> = {
@@ -954,7 +954,7 @@ export type ListBoxItemProps<T extends object = object> = {
 } & Omit<ListBoxItemProps_2<T>, 'children' | 'className' | 'style'>;
 
 // @public
-export function ListBoxLoadMore(input: ListBoxLoadMoreProps): JSX;
+export function ListBoxLoadMore(input: ListBoxLoadMoreProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ListBoxLoadMoreProps = Omit<ListBoxLoadMoreItemProps, 'children'> & {
@@ -968,7 +968,7 @@ export type ListBoxProps<T extends object = object> = Omit<ListBoxProps_2<T>, 'c
 };
 
 // @public
-export function ListBoxSection<T extends object = object>(input: ListBoxSectionProps<T>): JSX;
+export function ListBoxSection<T extends object = object>(input: ListBoxSectionProps<T> & RefAttributes<HTMLElement>): JSX;
 
 // @public (undocumented)
 export type ListBoxSectionProps<T extends object = object> = Omit<ListBoxSectionProps_2<T>, 'children'> & {
@@ -1003,7 +1003,7 @@ export type ListItemProps = {
 export { ListLayout }
 
 // @public
-export function ListLoadMore(input: ListLoadMoreProps): JSX;
+export function ListLoadMore(input: ListLoadMoreProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ListLoadMoreProps = Omit<GridListLoadMoreItemProps, 'children'> & {
@@ -1018,7 +1018,7 @@ export type ListProps<T extends object = object> = {
 } & Omit<GridListProps<T>, 'className' | 'style'>;
 
 // @public
-export function ListRow<T extends object = object>(input: ListRowProps<T>): JSX;
+export function ListRow<T extends object = object>(input: ListRowProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ListRowProps<T extends object = object> = {
@@ -1032,7 +1032,7 @@ export type ListRowProps<T extends object = object> = {
 } & Omit<GridListItemProps<T>, 'children' | 'className' | 'style'>;
 
 // @public
-export function ListSection<T extends object = object>(input: ListSectionProps<T>): JSX;
+export function ListSection<T extends object = object>(input: ListSectionProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type ListSectionProps<T extends object = object> = Omit<GridListSectionProps<T>, 'children'> & {
@@ -1080,7 +1080,7 @@ export type MenuContentProps<T extends object = object> = {
 } & Omit<MenuProps_2<T>, 'className' | 'style'>;
 
 // @public
-export function MenuItem<T extends object = object>(input: MenuItemProps<T>): JSX;
+export function MenuItem<T extends object = object>(input: MenuItemProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type MenuItemProps<T extends object = object> = {
@@ -1093,7 +1093,7 @@ export type MenuItemProps<T extends object = object> = {
 } & Omit<MenuItemProps_2<T>, 'children' | 'className' | 'style'>;
 
 // @public
-export function MenuLoadMore(input: MenuLoadMoreProps): JSX;
+export function MenuLoadMore(input: MenuLoadMoreProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type MenuLoadMoreProps = Omit<MenuLoadMoreItemProps, 'children'> & {
@@ -1106,7 +1106,7 @@ export type MenuProps = Omit<MenuTriggerProps, 'children'> & {
 };
 
 // @public
-export function MenuSection<T extends object = object>(input: MenuSectionProps<T>): JSX;
+export function MenuSection<T extends object = object>(input: MenuSectionProps<T> & RefAttributes<HTMLElement>): JSX;
 
 // @public (undocumented)
 export type MenuSectionProps<T extends object = object> = Omit<MenuSectionProps_2<T>, 'children'> & {
@@ -1211,7 +1211,7 @@ export namespace NavigationTree {
 }
 
 // @public
-export function NavigationTreeItem<T extends object = object>(input: NavigationTreeItemProps<T>): JSX;
+export function NavigationTreeItem<T extends object = object>(input: NavigationTreeItemProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // Warning: (ae-forgotten-export) The symbol "NavigationTreeItemText" needs to be exported by the entry point index.d.ts
 //
@@ -1232,7 +1232,7 @@ export type NavigationTreeProps<T extends object = object> = Omit<NavigationTree
 };
 
 // @public
-export function NavigationTreeSection<T extends object = object>(input: NavigationTreeSectionProps<T>): JSX;
+export function NavigationTreeSection<T extends object = object>(input: NavigationTreeSectionProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type NavigationTreeSectionProps<T extends object = object> = Omit<Parameters<typeof NavigationTreeSection_2<T>>[0], 'children'> & {
@@ -1292,7 +1292,7 @@ export type PopoverContentProps = Omit<DialogProps_2, 'children' | 'className' |
 };
 
 // @public
-export function PopoverDescription(props: PopoverDescriptionProps): JSX;
+export function PopoverDescription(props: PopoverDescriptionProps & RefAttributes<HTMLElement>): JSX;
 
 // @public (undocumented)
 export type PopoverDescriptionProps = TextProps_2;
@@ -1314,7 +1314,7 @@ export type PopoverSide = OverlaySide;
 export type PopoverSize = 'md' | 'sm';
 
 // @public
-export function PopoverTitle(props: PopoverTitleProps): JSX;
+export function PopoverTitle(props: PopoverTitleProps & RefAttributes<HTMLHeadingElement>): JSX;
 
 // @public (undocumented)
 export type PopoverTitleProps = HeadingProps;
@@ -1449,7 +1449,7 @@ export type SegmentedButtonProps = Omit<ToggleButtonGroupProps, 'className' | 'o
 };
 
 // @public
-export function SegmentedButtonSegment(input: SegmentedButtonSegmentProps): JSX;
+export function SegmentedButtonSegment(input: RefAttributes<HTMLButtonElement> & SegmentedButtonSegmentProps): JSX;
 
 // @public (undocumented)
 export type SegmentedButtonSegmentProps = Omit<ToggleButtonProps, 'children' | 'className' | 'style'> & {
@@ -1513,7 +1513,7 @@ export namespace Sheet {
 }
 
 // @public (undocumented)
-export function SheetBody(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function SheetBody(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
 export function SheetContent(input: RefAttributes<HTMLDivElement> & SheetContentProps): JSX;
@@ -1527,13 +1527,13 @@ export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pic
 };
 
 // @public (undocumented)
-export function SheetFooter(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function SheetFooter(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
-export function SheetHandle(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function SheetHandle(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
-export function SheetHeader(props: HTMLAttributes<HTMLDivElement>): JSX;
+export function SheetHeader(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export type SheetProps = Omit<DialogTriggerProps, 'children'> & {
@@ -1541,7 +1541,7 @@ export type SheetProps = Omit<DialogTriggerProps, 'children'> & {
 };
 
 // @public
-export function SheetTitle(props: SheetTitleProps): JSX;
+export function SheetTitle(props: RefAttributes<HTMLHeadingElement> & SheetTitleProps): JSX;
 
 // @public (undocumented)
 export type SheetTitleProps = HeadingProps;
@@ -1723,7 +1723,7 @@ export namespace Table {
 }
 
 // @public
-export function TableBody<T extends object = object>(input: TableBodyProps<T>): JSX;
+export function TableBody<T extends object = object>(input: RefAttributes<HTMLTableSectionElement> & TableBodyProps<T>): JSX;
 
 // @public (undocumented)
 export type TableBodyProps<T extends object = object> = Omit<TableBodyProps_2<T>, 'className' | 'renderEmptyState' | 'style'> & {
@@ -1733,7 +1733,7 @@ export type TableBodyProps<T extends object = object> = Omit<TableBodyProps_2<T>
 };
 
 // @public
-export function TableCell(input: TableCellProps): JSX;
+export function TableCell(input: RefAttributes<HTMLTableCellElement> & TableCellProps): JSX;
 
 // @public (undocumented)
 export type TableCellProps = Omit<CellProps, 'children' | 'className' | 'style'> & {
@@ -1744,7 +1744,7 @@ export type TableCellProps = Omit<CellProps, 'children' | 'className' | 'style'>
 };
 
 // @public
-export function TableColumn(input: TableColumnProps): JSX;
+export function TableColumn(input: RefAttributes<HTMLTableCellElement> & TableColumnProps): JSX;
 
 // @public (undocumented)
 export type TableColumnProps = {
@@ -1756,13 +1756,13 @@ export type TableColumnProps = {
 } & Omit<ColumnProps, 'children' | 'className' | 'style'>;
 
 // @public
-export function TableFooter<T extends object = object>(props: TableFooterProps<T>): JSX;
+export function TableFooter<T extends object = object>(props: RefAttributes<HTMLTableSectionElement> & TableFooterProps<T>): JSX;
 
 // @public (undocumented)
 export type TableFooterProps<T extends object = object> = TableFooterProps_2<T>;
 
 // @public
-export function TableHeader<T extends object = object>(props: TableHeaderProps<T>): JSX;
+export function TableHeader<T extends object = object>(props: RefAttributes<HTMLTableSectionElement> & TableHeaderProps<T>): JSX;
 
 // @public (undocumented)
 export type TableHeaderProps<T extends object = object> = TableHeaderProps_2<T>;
@@ -1770,7 +1770,7 @@ export type TableHeaderProps<T extends object = object> = TableHeaderProps_2<T>;
 export { TableLayout }
 
 // @public
-export function TableLoadMore(input: TableLoadMoreProps): JSX;
+export function TableLoadMore(input: RefAttributes<HTMLTableRowElement> & TableLoadMoreProps): JSX;
 
 // @public (undocumented)
 export type TableLoadMoreProps = Omit<TableLoadMoreItemProps, 'children'> & {
@@ -1791,7 +1791,7 @@ export type TableProps = {
 } & Omit<TableProps_2, 'className' | 'style'>;
 
 // @public
-export function TableRow<T extends object = object>(props: TableRowProps<T>): JSX;
+export function TableRow<T extends object = object>(props: RefAttributes<HTMLTableRowElement> & TableRowProps<T>): JSX;
 
 // @public (undocumented)
 export type TableRowProps<T extends object = object> = Omit<RowProps<T>, 'className' | 'style'> & {
@@ -1818,19 +1818,19 @@ export namespace Tabs {
 export type TabsLayout = 'fixed' | 'scrollable';
 
 // @public (undocumented)
-export function TabsList(props: TabsListProps): JSX;
+export function TabsList(props: RefAttributes<HTMLDivElement> & TabsListProps): JSX;
 
 // @public (undocumented)
 export type TabsListProps = TabListProps<object>;
 
 // @public (undocumented)
-export function TabsPanel(props: TabsPanelProps): JSX;
+export function TabsPanel(props: RefAttributes<HTMLDivElement> & TabsPanelProps): JSX;
 
 // @public (undocumented)
 export type TabsPanelProps = TabPanelProps;
 
 // @public
-export function TabsPanels(props: TabsPanelsProps): JSX;
+export function TabsPanels(props: RefAttributes<HTMLDivElement> & TabsPanelsProps): JSX;
 
 // @public (undocumented)
 export type TabsPanelsProps = Omit<TabPanelsProps<object>, 'children'> & {
@@ -1845,7 +1845,7 @@ export type TabsProps = Omit<TabsProps_2, 'children'> & {
 };
 
 // @public (undocumented)
-export function TabsTab(input: TabsTabProps): JSX;
+export function TabsTab(input: RefAttributes<HTMLAnchorElement | HTMLDivElement> & TabsTabProps): JSX;
 
 // @public (undocumented)
 export type TabsTabProps = {
@@ -2009,7 +2009,7 @@ export namespace Tree {
 }
 
 // @public
-export function TreeItem<T extends object = object>(input: TreeItemProps<T>): JSX;
+export function TreeItem<T extends object = object>(input: RefAttributes<HTMLDivElement> & TreeItemProps<T>): JSX;
 
 // Warning: (ae-forgotten-export) The symbol "TreeItemText" needs to be exported by the entry point index.d.ts
 //
@@ -2024,7 +2024,7 @@ export type TreeItemProps<T extends object = object> = Omit<TreeItemProps_2<T>, 
 };
 
 // @public
-export function TreeLoadMore(input: TreeLoadMoreProps): JSX;
+export function TreeLoadMore(input: RefAttributes<HTMLDivElement> & TreeLoadMoreProps): JSX;
 
 // @public (undocumented)
 export type TreeLoadMoreProps = Omit<TreeLoadMoreItemProps, 'children'> & {

@@ -257,7 +257,7 @@ function ChipGroupChip({
   onPointerLeave,
   onPointerUp,
   ...props
-}: ChipGroupChipProps) {
+}: ChipGroupChipProps & RefAttributes<HTMLDivElement>) {
   const removeLabel = useContext(RemoveLabelContext)
   // The press ripple a list's rows draw — see ListItem there. A chip in a
   // group is a collection row, whose clicks React Aria keeps for itself, so
