@@ -11,34 +11,11 @@ import Tag from '../tag'
 import Text from '../text'
 
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_3 = <h3 />
-const PARAGRAPH = <p />
 
 const RELATED = ['First item', 'Second item', 'Third item']
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
   // A dashed outline on each pane, so the tracks are legible in a snapshot.
   // The component paints nothing itself — these are the story's, not its.
   paneOutline: {
@@ -47,11 +24,6 @@ const styles = stylex.create({
     borderStyle: 'dashed',
     borderWidth: '1px',
     padding: spacing.md,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
   stack: {
     display: 'flex',
@@ -114,68 +86,18 @@ const meta = {
     supporting: <SupportingContent />,
   },
   component: SupportingPane,
+  // Chromatic captures the stories at the narrow arrangements too, because a
+  // media query answers to the window rather than to a container and one
+  // width can only ever show one of them. These merge with the project's light
+  // and dark rather than replacing them, so the wide arrangement is still
+  // covered by the default snapshot — see .storybook/modes.ts.
+  parameters: {
+    chromatic: { modes: breakpointModes },
+  },
   title: 'Components/SupportingPane',
 } satisfies Meta<typeof SupportingPane>
 
 type Story = StoryObj<typeof meta>
-
-// Chromatic captures the Overview at the narrow arrangements too, because a
-// media query answers to the window rather than to a container and one width
-// can only ever show one of them. These merge with the project's light and
-// dark rather than replacing them, so the wide arrangement is still covered by
-// the default snapshot — see .storybook/modes.ts.
-const Overview: Story = {
-  parameters: {
-    chromatic: { modes: breakpointModes },
-  },
-  render: (args) => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          SupportingPane
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material Design's supporting pane layout. A main pane and a companion
-          that reflows underneath it when there is no room beside it.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Across the breakpoints
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Resize the window to see it move. Below 840px the supporting pane
-            sits under the main one; from 840px it sits beside it at a fixed
-            360px, and the main pane takes the rest.
-          </Text>
-        </div>
-        <SupportingPane {...args} />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Against list-detail
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Both are two-pane layouts, and which one to reach for comes down to
-            the second pane. Supporting content means nothing on its own, so it
-            stays on screen at every width and this layout holds no state.
-            Detail content stands alone, which is what makes showing it instead
-            of the list coherent — so ListDetail has to be told which pane is
-            showing.
-          </Text>
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {}
 
@@ -188,6 +110,6 @@ const Leading: Story = {
   },
 }
 
-export { Default, Leading, Overview }
+export { Default, Leading }
 
 export default meta

@@ -105,49 +105,13 @@ export type { ${props} }
 export default ${component}
 `
 
+  // No story is called Overview: that is the name of the page autodocs writes
+  // for the component, from its JSDoc, its props and these stories, and a
+  // story of the same name would share the page's id and silently drop out of
+  // the index. See AGENTS.md.
   const stories = `import type { Meta, StoryObj } from '@storybook/react-vite'
 
-import * as stylex from '@stylexjs/stylex'
-
 import ${component} from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's \`render\`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
-
-const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
-})
 
 const meta = {
   args: {
@@ -159,38 +123,9 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          ${component}
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Supporting line describing what the component is for.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Headline
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Supporting line describing the state shown below.
-          </Text>
-        </div>
-        <${component}>Label</${component}>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
-export { Default, Overview }
+export { Default }
 
 export default meta
 `

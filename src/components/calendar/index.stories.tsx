@@ -1,49 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { DateValue } from 'react-aria-components'
 
-import * as stylex from '@stylexjs/stylex'
 import { expect } from 'storybook/test'
 
 import Calendar from '.'
 import { CalendarDate, getLocalTimeZone, today } from '../../date'
-import { spacing } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components rather than from shell components of its own, and
-// why its sections are divided by a rule instead of boxed in Cards.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
-
-const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
-})
 
 // Fixed months, so every snapshot reads the same whenever it is taken. The
 // calendar outlines today wherever it falls in view, so a fixed view holds
@@ -68,91 +29,6 @@ const meta = {
 } satisfies Meta<typeof Calendar>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Calendar
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A month calendar for picking a date.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            The month
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The date pickers page&apos;s docked calendar: a 360px container on
-            the high surface container, dates at its 40px state layer with 48px
-            between their centres, and body-large for both the weekday row and
-            the dates. The date the calendar holds fills its circle in the
-            primary role.
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The page&apos;s 456px container height is a picker&apos;s, counting
-            a headline and an action row a calendar does not draw. What is held
-            instead is the grid, at six weeks — the most any month occupies — so
-            the calendar keeps its height as the month moves and a shorter month
-            leaves its last rows empty.
-          </Text>
-        </div>
-        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Bounds
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `minValue` and `maxValue` bound the calendar, and
-            `isDateUnavailable` rules out dates one at a time — weekends here.
-            Either way the date fades to the page&apos;s 38% and stops taking a
-            press, which is the same treatment every disabled control here
-            takes.
-          </Text>
-        </div>
-        <Calendar
-          aria-label="Label"
-          defaultValue={SEPTEMBER}
-          isDateUnavailable={isWeekend}
-          maxValue={MAX}
-          minValue={MIN}
-        />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Month and year menus
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `showMonthYearMenus` draws the docked date picker&apos;s header: the
-            month and the year as menu buttons, each opening a list of them in
-            the grid&apos;s place with the one shown checked. A date years away
-            is two presses rather than one per month.
-          </Text>
-        </div>
-        <Calendar
-          aria-label="Label"
-          defaultValue={SEPTEMBER}
-          showMonthYearMenus
-        />
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {}
 
@@ -211,14 +87,6 @@ function isWeekend(date: DateValue) {
   return day === 0 || day === 6
 }
 
-export {
-  Bounded,
-  Default,
-  MonthAndYearMenus,
-  MonthList,
-  Overview,
-  Today,
-  TwoMonths,
-}
+export { Bounded, Default, MonthAndYearMenus, MonthList, Today, TwoMonths }
 
 export default meta

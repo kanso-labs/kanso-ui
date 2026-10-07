@@ -4,19 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import Select from '.'
 import { SearchGlyph } from '../../glyphs'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 // Hoisted so the options are not a new element on every render, which is
 // what react-perf's jsx-no-jsx-as-prop is after.
@@ -41,46 +29,10 @@ const GROUPED = (
 )
 
 const styles = stylex.create({
-  column: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-    maxInlineSize: '320px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   // Sized in `em`, so the icon takes the slot's 24.
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    paddingBlockEnd: spacing.xxxl,
-    paddingBlockStart: spacing.xl,
-    paddingInline: spacing.xl,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
   width: {
     inlineSize: '320px',
@@ -101,143 +53,6 @@ const meta = {
 } satisfies Meta<typeof Select<object>>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Select
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A labelled field that opens a list to choose from.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            The two boxes
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same filled and outlined boxes every other field draws, with a
-            chevron at the end that turns while the list is open. The whole box
-            opens it — the padding, the label and the icons, not only the
-            value&apos;s line.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.column)}>
-            <Select label="Label" options={OPTIONS} />
-            <Select defaultValue="second" label="Label" options={OPTIONS} />
-          </div>
-          <div {...stylex.props(styles.column)}>
-            <Select label="Label" options={OPTIONS} variant="outlined" />
-            <Select
-              defaultValue="second"
-              label="Label"
-              options={OPTIONS}
-              variant="outlined"
-            />
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A leading icon
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            An icon at the start of the box says what the field is for. It is 24
-            in the muted role, 12 from the box&apos;s edge, with the label and
-            the value moved past it, and it stays muted when the rest of the
-            field takes the error role. A press on it opens the list like one
-            anywhere else in the box.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.column)}>
-            <Select
-              defaultValue="second"
-              label="Label"
-              leadingIcon={LEADING_ICON}
-              options={OPTIONS}
-            />
-            <Select
-              error="Choose an item"
-              label="Label"
-              leadingIcon={LEADING_ICON}
-              options={OPTIONS}
-            />
-          </div>
-          <div {...stylex.props(styles.column)}>
-            <Select
-              defaultValue="second"
-              label="Label"
-              leadingIcon={LEADING_ICON}
-              options={OPTIONS}
-              variant="outlined"
-            />
-            <Select
-              error="Choose an item"
-              label="Label"
-              leadingIcon={LEADING_ICON}
-              options={OPTIONS}
-              variant="outlined"
-            />
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Supporting text and errors
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A description sits under the box; an error replaces it and turns the
-            underline and the label to the error role, the same way every other
-            field reports one.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <Select
-            description="Supporting line"
-            label="Label"
-            options={OPTIONS}
-          />
-          <Select error="Choose an item" label="Label" options={OPTIONS} />
-          <Select isDisabled label="Label" options={OPTIONS} />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            The list
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The list is a ListBox, so it takes everything one does — sections
-            with headings, disabled options, supporting lines. It opens under
-            the field and as wide as it.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <Select label="Label" options={GROUPED} />
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {
   render: (args) => (
@@ -283,14 +98,23 @@ const WithLeadingIcon: Story = {
   render: Default.render,
 }
 
+// Its own story because the list is a ListBox, so it takes sections with
+// headings as well as plain options. Open on load, since the groups cannot be
+// seen until it is.
+const Grouped: Story = {
+  args: { defaultOpen: true, options: GROUPED },
+  parameters: { docs: { story: { height: '360px', inline: false } } },
+  render: Default.render,
+}
+
 export {
   Chosen,
   Default,
   Disabled,
+  Grouped,
   Invalid,
   Open,
   Outlined,
-  Overview,
   WithDescription,
   WithLeadingIcon,
 }

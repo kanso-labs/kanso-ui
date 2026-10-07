@@ -6,10 +6,7 @@ import type { TextProps } from '.'
 
 import Text from '.'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
-import Code from '../code'
-import Separator from '../separator'
 
-type Tone = NonNullable<TextProps['tone']>
 type Variant = NonNullable<TextProps['variant']>
 
 // Grouped by family and listed large to small within each, because reading
@@ -28,25 +25,6 @@ const SCALE_GROUPS = [
   { label: 'Label', variants: ['labelLarge', 'labelMedium', 'labelSmall'] },
 ] as const satisfies readonly { label: string; variants: readonly Variant[] }[]
 
-// `inherit` is missing on purpose — it sets no colour, so it has nothing to
-// show in a list of colours. It gets its own sample below, inside an element
-// that sets one, which is the only context in which it means anything.
-const TONES = [
-  'neutral',
-  'muted',
-  'primary',
-  'positive',
-  'negative',
-  'error',
-] as const satisfies readonly Tone[]
-
-// See avatar/index.stories.tsx for why the overview is built from the library's
-// own components rather than from shell components of its own, and why its
-// sections are divided by a rule instead of boxed in Cards. Text is both the
-// subject here and every label on the page, which is as it should be: a page
-// documenting the type scale ought to be set in it.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_2 = <h2 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -55,7 +33,7 @@ const PARAGRAPH = <p />
 
 const styles = stylex.create({
   // Lets a sample take the rest of the row and wrap inside it, rather than
-  // sizing to its own text and pushing out of the page at display sizes.
+  // sizing to its own text and pushing out of the frame at display sizes.
   fill: {
     flexBasis: 0,
     flexGrow: 1,
@@ -66,35 +44,17 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.sm,
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   // A colour on an ancestor, so `inherit` has something to inherit.
   inherited: {
     color: colors.tertiary,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
   },
   // A measure for the prose samples: what makes a line hard to read is how
   // many characters the eye has to track back across.
   prose: {
     maxInlineSize: '58ch',
   },
-  // Two paragraphs with the space between them coming from the scale, which
-  // is the arrangement the block section is arguing for.
+  // Two paragraphs with the space between them coming from the scale, which is
+  // where a block Text leaves it.
   proseSpaced: {
     display: 'flex',
     flexDirection: 'column',
@@ -116,7 +76,9 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.sm,
   },
-  section: {
+  // The families one under another, with more room between them than between
+  // the rows of one.
+  scale: {
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
@@ -133,202 +95,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Text
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          The type scale, as a component. Size and colour are separate axes, so
-          the two compose freely.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Type scale
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Fifteen styles in five families. Each carries its own size, weight,
-            tracking, and line height — a variant is one decision, not four.
-          </Text>
-        </div>
-        {SCALE_GROUPS.map((group) => (
-          <div key={group.label} {...stylex.props(styles.group)}>
-            <Text render={HEADING_3} tone="muted" variant="labelMedium">
-              {group.label}
-            </Text>
-            <div {...stylex.props(styles.rows)}>
-              {group.variants.map((variant) => (
-                <div key={variant} {...stylex.props(styles.row)}>
-                  <div {...stylex.props(styles.rowLabel)}>
-                    <Text tone="muted" variant="labelSmall">
-                      {variant}
-                    </Text>
-                  </div>
-                  <div {...stylex.props(styles.fill)}>
-                    <Text variant={variant}>
-                      The quick brown fox jumps over the lazy dog
-                    </Text>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Tones
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A separate axis from variant, so any tone composes with any size.
-            `inherit` sets no colour at all and takes whatever the nearest
-            coloured ancestor has.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.rows)}>
-          {TONES.map((tone) => (
-            <div key={tone} {...stylex.props(styles.row)}>
-              <div {...stylex.props(styles.rowLabel)}>
-                <Text tone="muted" variant="labelSmall">
-                  {tone}
-                </Text>
-              </div>
-              <Text tone={tone} variant="titleMedium">
-                The quick brown fox jumps over the lazy dog
-              </Text>
-            </div>
-          ))}
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                inherit
-              </Text>
-            </div>
-            <div {...stylex.props(styles.inherited)}>
-              <Text tone="inherit" variant="titleMedium">
-                The quick brown fox jumps over the lazy dog
-              </Text>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Semantic elements
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `render` swaps the element without touching the styling, so a
-            heading can be a real h2 styled off the scale rather than off the
-            tag. Every heading and label on this page is a Text.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.rows)}>
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                h2
-              </Text>
-            </div>
-            <Text render={HEADING_2} variant="headlineSmall">
-              Section heading
-            </Text>
-          </div>
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                h3
-              </Text>
-            </div>
-            <Text render={HEADING_3} variant="titleMedium">
-              Subsection heading
-            </Text>
-          </div>
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                p
-              </Text>
-            </div>
-            <div {...stylex.props(styles.fill)}>
-              <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-                Supporting copy set one step down the scale and in the muted
-                tone.
-              </Text>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Prose takes a block
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A Text is a span, which is right for a run of text inside a line and
-            wrong for a paragraph. <Code>block</Code> renders a p instead, so
-            multi-sentence copy does not need an element named at every call
-            site.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.rows)}>
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                span
-              </Text>
-            </div>
-            <div {...stylex.props(styles.fill, styles.prose)}>
-              <Text>First sentence of the copy.</Text>
-              <Text>Second sentence, which runs on from it.</Text>
-            </div>
-          </div>
-          <div {...stylex.props(styles.row)}>
-            <div {...stylex.props(styles.rowLabel)}>
-              <Text tone="muted" variant="labelSmall">
-                block
-              </Text>
-            </div>
-            <div {...stylex.props(styles.fill, styles.prose)}>
-              <Text block>First sentence of the copy.</Text>
-              <Text block>Second sentence, which runs on from it.</Text>
-            </div>
-          </div>
-        </div>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The paragraphs above sit flush, because a block Text carries no
-            margin any more than a span one does. The space between two of them
-            belongs to whatever holds both, which is where it can be a step of
-            the spacing scale rather than a browser default.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.proseSpaced)}>
-          <Text block>First sentence of the copy.</Text>
-          <Text block>Second sentence, which runs on from it.</Text>
-        </div>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 // Its own entry because prose is what `block` exists for, and the default
@@ -342,6 +108,144 @@ const Prose: Story = {
   },
 }
 
-export { Default, Overview, Prose }
+// Fifteen styles in five families, one row to a style. Each carries its own
+// size, weight, tracking and line height, so a variant is one decision rather
+// than four, and the scale is read whole here instead of one style at a time.
+const TypeScale: Story = {
+  render: () => (
+    <div {...stylex.props(styles.scale)}>
+      {SCALE_GROUPS.map((group) => (
+        <div key={group.label} {...stylex.props(styles.group)}>
+          <Text render={HEADING_3} tone="muted" variant="labelMedium">
+            {group.label}
+          </Text>
+          <div {...stylex.props(styles.rows)}>
+            {group.variants.map((variant) => (
+              <div key={variant} {...stylex.props(styles.row)}>
+                <div {...stylex.props(styles.rowLabel)}>
+                  <Text tone="muted" variant="labelSmall">
+                    {variant}
+                  </Text>
+                </div>
+                <div {...stylex.props(styles.fill)}>
+                  <Text variant={variant}>
+                    The quick brown fox jumps over the lazy dog
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// `tone="inherit"` sets no colour and takes the nearest coloured ancestor's, so
+// the only context in which it means anything is inside an element that sets
+// one, which no other story here has.
+const InheritedTone: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inherited)}>
+      <Text tone="inherit" variant="titleMedium">
+        The quick brown fox jumps over the lazy dog
+      </Text>
+    </div>
+  ),
+}
+
+// `render` swaps the element without touching the styling, so a heading can be
+// a real h2 styled off the scale rather than off the tag. Each row names the
+// element its Text renders.
+const SemanticElements: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            h2
+          </Text>
+        </div>
+        <Text render={HEADING_2} variant="headlineSmall">
+          Section heading
+        </Text>
+      </div>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            h3
+          </Text>
+        </div>
+        <Text render={HEADING_3} variant="titleMedium">
+          Subsection heading
+        </Text>
+      </div>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            p
+          </Text>
+        </div>
+        <div {...stylex.props(styles.fill)}>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            Supporting copy set one step down the scale and in the muted tone.
+          </Text>
+        </div>
+      </div>
+    </div>
+  ),
+}
+
+// A Text is a span, which is right for a run of text inside a line and wrong
+// for a paragraph, so `block` renders a p. Neither carries a margin, so the
+// paragraphs sit flush until whatever holds them spaces them from the scale.
+const SpanAndBlock: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            span
+          </Text>
+        </div>
+        <div {...stylex.props(styles.fill, styles.prose)}>
+          <Text>First sentence of the copy.</Text>
+          <Text>Second sentence, which runs on from it.</Text>
+        </div>
+      </div>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            block
+          </Text>
+        </div>
+        <div {...stylex.props(styles.fill, styles.prose)}>
+          <Text block>First sentence of the copy.</Text>
+          <Text block>Second sentence, which runs on from it.</Text>
+        </div>
+      </div>
+      <div {...stylex.props(styles.row)}>
+        <div {...stylex.props(styles.rowLabel)}>
+          <Text tone="muted" variant="labelSmall">
+            block, spaced
+          </Text>
+        </div>
+        <div {...stylex.props(styles.fill, styles.proseSpaced)}>
+          <Text block>First sentence of the copy.</Text>
+          <Text block>Second sentence, which runs on from it.</Text>
+        </div>
+      </div>
+    </div>
+  ),
+}
+
+export {
+  Default,
+  InheritedTone,
+  Prose,
+  SemanticElements,
+  SpanAndBlock,
+  TypeScale,
+}
 
 export default meta

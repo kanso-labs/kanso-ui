@@ -1,22 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
-import * as stylex from '@stylexjs/stylex'
 import { expect, waitFor } from 'storybook/test'
 
 import Sheet from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
-import Separator from '../separator'
 import Text from '../text'
 
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
 // A story draws the one icon it needs, the same thing
@@ -38,37 +28,6 @@ function CloseIcon() {
     </svg>
   )
 }
-
-const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
-})
 
 const meta = {
   component: Sheet,
@@ -106,103 +65,6 @@ function PanelContents() {
       </Sheet.Footer>
     </>
   )
-}
-
-const Overview: Story = {
-  parameters: {
-    // The sheet is portalled over the whole viewport, so an open one would
-    // cover the prose describing it. The presentations get their own stories
-    // below, which is what Chromatic has to look at.
-    chromatic: { disableSnapshot: true },
-  },
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Sheet
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A modal panel that arrives from the edge of the screen.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Presentation
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            One component, two presentations. Above the medium breakpoint it is
-            a side sheet pinned to the inline end of the viewport; below it, the
-            same panel becomes a bottom sheet with a drag handle over its
-            content. Narrow the window to watch it change.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Sheet>
-            <Button variant="outlined">Open</Button>
-            <Sheet.Content>
-              <PanelContents />
-            </Sheet.Content>
-          </Sheet>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Drag handle
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Place Sheet.Handle first inside the content and the bottom sheet
-            draws the short bar over it; the side sheet draws nothing, since the
-            handle is the bottom sheet&apos;s own element. It is decoration
-            rather than a control, and hidden from assistive technology — this
-            panel has one height and cannot be dragged, so closing stays with
-            the scrim, Escape and any button given slot=&quot;close&quot;.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Sheet>
-            <Button variant="outlined">Open</Button>
-            <Sheet.Content>
-              <PanelContents />
-            </Sheet.Content>
-          </Sheet>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Dismissal
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            React Aria supplies the modal behaviour: focus moves into the panel
-            and is trapped there, Escape closes, a press on the scrim closes,
-            and the page behind cannot be scrolled. A button placed directly
-            inside Sheet opens it, and any button given slot=&quot;close&quot;
-            closes it — which is what the header&apos;s icon button and the
-            footer&apos;s Cancel both are.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Sheet>
-            <Button>Open</Button>
-            <Sheet.Content>
-              <PanelContents />
-            </Sheet.Content>
-          </Sheet>
-        </div>
-      </section>
-    </div>
-  ),
 }
 
 // Open on load, since a closed sheet renders nothing for Chromatic to compare.
@@ -351,6 +213,6 @@ const OpensAndCloses: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
-export { BottomSheet, Default, LongBody, OpensAndCloses, Overview }
+export { BottomSheet, Default, LongBody, OpensAndCloses }
 
 export default meta

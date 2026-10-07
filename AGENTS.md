@@ -293,12 +293,13 @@ can opt one out with
 
 A story can be made to cost neither too, for the rare check that has to run as a
 story (see "Controlling time" below). `tags: ['!autodocs', '!dev']` subtracts
-the tag the sidebar filters on and the one the component's Docs page lists its
-stories by, while leaving `test`, so it still runs; Chromatic reads the index
-rather than the sidebar and so needs `parameters.chromatic.disableSnapshot`
-separately. `Pressed` in `src/components/button/index.stories.tsx` uses all
-three. Reach for this only when a story is the only place a check can live — it
-is not a way to keep ordinary behavioural tests out of `*.test.tsx`.
+the tag the sidebar filters on and the one the component's Overview page lists
+its stories by, while leaving `test`, so it still runs; Chromatic reads the
+index rather than the sidebar and so needs
+`parameters.chromatic.disableSnapshot` separately. `Pressed` in
+`src/components/button/index.stories.tsx` uses all three. Reach for this only
+when a story is the only place a check can live — it is not a way to keep
+ordinary behavioural tests out of `*.test.tsx`.
 
 Keep the `unit` project in the browser. Under `environment: 'node'` those files
 get a different transform pipeline, so sources shared with the `storybook`
@@ -644,36 +645,50 @@ both themes, and run as a smoke test like every other page here. `storySort` in
 `.storybook/preview.tsx` hoists its title, since the story glob walks
 `src/components` and `src/tokens` before the files sitting at the root of `src`
 and would otherwise leave the one page meant to be read first at the bottom of
-the sidebar. Its story is then exported as `GettingStarted` rather than
-`Overview`, because Storybook folds a component holding a single story of the
-same name into one sidebar leaf — call it `Overview` and the first page anyone
-opens acquires a disclosure triangle with one child.
+the sidebar. Its story is then exported as `GettingStarted`, after the title,
+because Storybook folds a component holding a single story of the same name into
+one sidebar leaf — give it any other name and the first page anyone opens
+acquires a disclosure triangle with one child.
 
 Renaming that page means editing both halves. The title is spelled out inside
 `storySort`, which is `eval`d with nothing else in scope, so it cannot read a
 shared constant — change the title alone and the page silently drops to the
 bottom of the sidebar.
 
-**Every component has a Docs page, from `tags: ['autodocs']` in
-`.storybook/preview.tsx`.** It shows the component's JSDoc — its description and
-any `tsx` usage example — then the props table react-docgen-typescript builds
-from its types, then every story with its source. The JSDoc has to sit directly
-on the component's function: a constant declared between the two leaves the page
-with no description, which is how `ChipGroup` lost its own. The pages written as
-stories rather than around a component — Getting started, the Foundations pages
-and the Theming schemes — take `!autodocs`, since a Docs page there would
-document the page's wrapper and unfold the single sidebar leaf each of them
-relies on.
+**Every component opens on an Overview page, from `tags: ['autodocs']` in
+`.storybook/preview.tsx`.** It is Storybook's Docs page, under the name
+`docs.defaultName` in `.storybook/main.ts` gives it. It shows the component's
+JSDoc — its description and any `tsx` usage example — then the component's
+`Default` story, then the props table react-docgen-typescript builds from its
+types, whose controls drive that story's args, then every story with its source.
+`Default` is the story it opens on because `storySort` puts it first among a
+component's stories; left to the alphabet, a story such as `AlertDialog` would
+take its place. The JSDoc has to sit directly on the component's function: a
+constant declared between the two leaves the page with no description, which is
+how `ChipGroup` lost its own. The pages written as stories rather than around a
+component — Getting started, the Foundations pages and the Theming schemes —
+take `!autodocs`, since an Overview page there would document the page's wrapper
+and unfold the single sidebar leaf each of them relies on.
 
-**A story that opens an overlay as it renders is framed on that page.** A Docs
-page draws its stories inline, in one document, so a dialog, menu or popover a
-story opens lands on the page itself: a modal locks the whole page's scroll, and
-whichever overlay takes focus last pulls the page down to it. Such a story
-carries `parameters: { docs: { story: { height, inline: false } } }`, which
-draws it in an iframe of its own, as the story's own canvas does, sized to hold
-what it opens. A new story that opens something gets the same. Inline stories
-take their own height there, rather than the full viewport `ThemeWrapper` gives
-a story on its own, so a page of six stories is not six screens long.
+**No story is exported as `Overview`.** The page takes the id a story of that
+name would, `components-button--overview`, and the index keeps the page and
+drops the story. It leaves the sidebar and Chromatic, which both read the index,
+while the test run, which reads the file, still runs it — and nothing, neither
+an error nor a line in the server's log, says so. The page is also where a
+component's stories are read together, so each story is one state a consumer
+looks at rather than a page of its own. `npm run component:new` writes a
+`Default` story and nothing called `Overview`.
+
+**A story that opens an overlay as it renders is framed on that page.** An
+Overview page draws its stories inline, in one document, so a dialog, menu or
+popover a story opens lands on the page itself: a modal locks the whole page's
+scroll, and whichever overlay takes focus last pulls the page down to it. Such a
+story carries `parameters: { docs: { story: { height, inline: false } } }`,
+which draws it in an iframe of its own, as the story's own canvas does, sized to
+hold what it opens. A new story that opens something gets the same. Inline
+stories take their own height there, rather than the full viewport
+`ThemeWrapper` gives a story on its own, so a page of six stories is not six
+screens long.
 
 **A framed story ignores the toolbar.** Storybook builds the frame's URL from
 the story's id alone, so the frame opens on `initialGlobals` — light and English
@@ -1007,7 +1022,10 @@ story alone is the subject, so load the preview iframe rather than the manager:
 `http://localhost:<port>/iframe.html?viewMode=story&id=<story-id>`, with
 `&globals=theme:light` and `&globals=theme:dark` for the two themes, full page,
 at 2x so the capture reads on a retina screen. Storybook's story id is the one
-in its URL — `Components/TextField` becomes `components-textfield--overview`.
+in its URL — `Default` under `Components/TextField` is
+`components-textfield--default`. A component's Overview page is a docs entry
+rather than a story, so it loads with `viewMode=docs` in place of
+`viewMode=story`.
 
 "Before" comes from `main`. Check it out, or a worktree of it, and capture from
 a Storybook serving that tree; the dev server reloads on a checkout, so one

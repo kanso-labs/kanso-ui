@@ -11,7 +11,7 @@ import Text from './components/text'
 import { ThemeScope as Scope } from './theme-scope'
 import { colors, radii, spacing } from './tokens/design.tokens.stylex'
 
-// See components/avatar/index.stories.tsx for why the page is built from the
+// See getting-started.stories.tsx for why the page is built from the
 // library's own components and why the headings go through Text's `render`.
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />

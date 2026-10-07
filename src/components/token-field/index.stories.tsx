@@ -6,9 +6,7 @@ import { TokenFieldValue } from 'react-aria-components'
 import { expect, waitFor } from 'storybook/test'
 
 import TokenField from '.'
-import { spacing, typography } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
+import { typography } from '../../tokens/design.tokens.stylex'
 
 // The class StyleX hashes for the floated label's own size, which is the
 // observable signal that the box considers the field populated — the same
@@ -21,24 +19,6 @@ const probeStyles = stylex.create({
 const floatedClassNames = (stylex.props(probeStyles.floated).className ?? '')
   .split(' ')
   .filter(Boolean)
-
-function isFloated(label: HTMLElement) {
-  // The length check matters: `[].every()` is vacuously true, so an empty
-  // class list would report "floated" unconditionally.
-  return (
-    floatedClassNames.length > 0 &&
-    floatedClassNames.every((name) => label.classList.contains(name))
-  )
-}
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 // What counts as a token is the call site's, which is what subclassing the
 // value is for: here, a word beginning with a hash.
@@ -55,6 +35,15 @@ class TaggedValue extends TokenFieldValue {
   }
 }
 
+function isFloated(label: HTMLElement) {
+  // The length check matters: `[].every()` is vacuously true, so an empty
+  // class list would report "floated" unconditionally.
+  return (
+    floatedClassNames.length > 0 &&
+    floatedClassNames.every((name) => label.classList.contains(name))
+  )
+}
+
 const EMPTY = new TokenFieldValue([])
 const TAGGED = new TaggedValue([
   { text: '#first', type: 'token' },
@@ -63,35 +52,6 @@ const TAGGED = new TaggedValue([
 ])
 
 const styles = stylex.create({
-  column: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    maxInlineSize: '420px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
   width: {
     inlineSize: '420px',
   },
@@ -117,69 +77,6 @@ const meta = {
 } satisfies Meta<typeof TokenField>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          TokenField
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A labelled field whose value is text with inline tokens.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Tokens in a field
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The box is the same one every other field draws and the pill is the
-            same one Chip and ChipGroup draw. What counts as a token is the call
-            site&apos;s: subclass TokenFieldValue and override tokenize. Here a
-            word beginning with a hash becomes one.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <Editable />
-          <TokenField defaultValue={TAGGED} label="Label" variant="outlined" />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Supporting text and errors
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A description sits under the box; an error replaces it and turns the
-            underline and the label to the error role, the same way every other
-            field reports one.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <TokenField
-            defaultValue={TAGGED}
-            description="Supporting line"
-            label="Label"
-          />
-          <TokenField
-            defaultValue={TAGGED}
-            error="Add at least one tag"
-            label="Label"
-          />
-          <TokenField defaultValue={EMPTY} isDisabled label="Label" />
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {
   render: (args) => (
@@ -212,6 +109,17 @@ const Invalid: Story = {
 const Disabled: Story = {
   args: { isDisabled: true },
   render: Default.render,
+}
+
+// Type a word beginning with a hash and it becomes a token. The box is the one
+// every other field draws and the pill is the one Chip and ChipGroup draw; what
+// counts as a token is the call site's, through the TaggedValue above.
+const Editing: Story = {
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <Editable />
+    </div>
+  ),
 }
 
 // The floating label, driven by real typing rather than by a prop. It is here
@@ -272,10 +180,10 @@ const Typed: Story = {
 export {
   Default,
   Disabled,
+  Editing,
   Empty,
   Invalid,
   Outlined,
-  Overview,
   Typed,
   WithDescription,
 }

@@ -12,50 +12,16 @@ import * as stylex from '@stylexjs/stylex'
 import { useMemo, useState } from 'react'
 
 import Table from '.'
-import { spacing, typography } from '../../tokens/design.tokens.stylex'
+import { typography } from '../../tokens/design.tokens.stylex'
 import Card from '../card'
-import Separator from '../separator'
 import Tag from '../tag'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components rather than from shell components of its own, and
-// why its sections are divided by a rule instead of boxed in Cards.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
   // What a sticky header needs to have something to stick to: a box the
   // table is taller than.
   scroller: {
     blockSize: '200px',
     overflowY: 'auto',
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
   // A styled span rather than a Text: the value column wants mono with
   // tabular figures so 01/02/03 line up down the column, and Text carries
@@ -135,36 +101,6 @@ function Basic() {
   )
 }
 
-// Drawn mid-fetch rather than wired to a real one: the ring is the state
-// worth looking at, and a story that actually fetches has loaded its next
-// page by the time anything captures it. What the sentinel does is in the
-// prose beside it and pinned in index.test.tsx.
-function LoadingMore() {
-  return (
-    <Card padding="none" variant="outlined">
-      <Table aria-label="Label">
-        <Table.Header>
-          <Table.Column id={COLUMNS.name} isRowHeader>
-            Label
-          </Table.Column>
-          <Table.Column id={COLUMNS.value}>Value</Table.Column>
-        </Table.Header>
-        <Table.Body>
-          {ROWS.map((row) => (
-            <Table.Row id={row.id} key={row.id}>
-              <Table.Cell>{row.name}</Table.Cell>
-              <Table.Cell>
-                <span {...stylex.props(styles.value)}>{row.value}</span>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-          <Table.LoadMore isLoading />
-        </Table.Body>
-      </Table>
-    </Card>
-  )
-}
-
 // Resizing is React Aria's: the container holds the widths and the handle
 // drags them. What a call site decides is which columns take a handle, and
 // what each one starts at.
@@ -204,8 +140,8 @@ function Resizable() {
   )
 }
 
-// A table whose rows select, with the second selected. Shared by the
-// overview and the Disabled story, which disables a row of the same table.
+// A table whose rows select, with the second selected. The Disabled story
+// disables a row of the same table.
 function Selecting(props: { disabledKeys?: string[] }) {
   return (
     <Card padding="none" variant="outlined">
@@ -291,186 +227,19 @@ function Sortable() {
   )
 }
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Table
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A grid of rows and columns, with sorting and selection.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Rows and columns
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The page&apos;s 56px header over 52px rows, with 16px on each side
-            of every cell — which is what puts its 32px between two adjacent
-            columns. The header is a medium weight against the rows&apos;
-            regular one, and the table draws no container of its own, so an
-            outlined Card is what gives it an edge.
-          </Text>
-        </div>
-        <Basic />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Sorting
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A sortable column&apos;s header is the control that sorts it — React
-            Aria puts no button inside, so the whole cell is the press target.
-            The arrow sits beside the name of the column being sorted and turns
-            over with the direction; a sortable column that is not the sorted
-            one draws none.
-          </Text>
-        </div>
-        <Sortable />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Selection
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A selecting table draws a checkbox in the column the call site marks
-            `selection` — the header&apos;s is select-all, each row&apos;s is
-            that row. A selected row takes the primary container, the same one a
-            selected list row takes, so the two cannot disagree on a page
-            holding both.
-          </Text>
-        </div>
-        <Selecting />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Resizing
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A column marked `resizable` inside a table marked `resizable` takes
-            a handle at its trailing edge — both are needed, because React Aria
-            keeps the widths on a container around the table and the handle only
-            changes what that container holds. The handle is the divider&apos;s
-            own rule, so a column boundary looks the same whether or not it can
-            be dragged; it thickens and takes the primary role while it is
-            moving.
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A resizable table sizes to its columns rather than to its parent,
-            and the container fills the width and scrolls instead.
-          </Text>
-        </div>
-        <Resizable />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Loading more
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `Table.LoadMore` goes after the rows and draws a ring across the
-            width while more are being fetched. React Aria calls its
-            `onLoadMore` when the sentinel it draws scrolls into view, and shows
-            the row only while `isLoading` — so a page that has finished
-            fetching draws nothing here at all.
-          </Text>
-        </div>
-        <LoadingMore />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Footer and empty state
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A footer holds a row under the body — totals and the like — and is
-            ruled off from it. React Aria keeps it out of the selection and the
-            keyboard navigation, so it is read as a summary rather than as one
-            more row. A table with no rows shows what its `renderEmptyState`
-            returns in their place, and still says what its columns are.
-          </Text>
-        </div>
-        <Card padding="none" variant="outlined">
-          <Table aria-label="Label">
-            <Table.Header>
-              <Table.Column id={COLUMNS.name} isRowHeader>
-                Label
-              </Table.Column>
-              <Table.Column id={COLUMNS.value}>Value</Table.Column>
-            </Table.Header>
-            <Table.Body>
-              {ROWS.map((row) => (
-                <Table.Row id={row.id} key={row.id}>
-                  <Table.Cell>{row.name}</Table.Cell>
-                  <Table.Cell>
-                    <span {...stylex.props(styles.value)}>{row.value}</span>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-            <Table.Footer>
-              <Table.Row id="total">
-                <Table.Cell>Total</Table.Cell>
-                <Table.Cell>
-                  <span {...stylex.props(styles.value)}>06</span>
-                </Table.Cell>
-              </Table.Row>
-            </Table.Footer>
-          </Table>
-        </Card>
-        <Card padding="none" variant="outlined">
-          <Table aria-label="Label">
-            <Table.Header>
-              <Table.Column id={COLUMNS.name} isRowHeader>
-                Label
-              </Table.Column>
-              <Table.Column id={COLUMNS.value}>Value</Table.Column>
-            </Table.Header>
-            <Table.Body renderEmptyState={nothingToShow} />
-          </Table>
-        </Card>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {
   render: () => <Basic />,
 }
 
-// Its own story because it is a state the overview does not draw: the third
+// Its own story because it is a state no other story draws: the third
 // row faded, with its checkbox off and neither tint nor pointer, in a table
 // whose other rows still select.
 const Disabled: Story = {
   render: () => <Selecting disabledKeys={DISABLED} />,
 }
 
-// Its own story because it is a state a snapshot can show and the overview's
-// copy cannot: the arrow beside the sorted column, and the rows in the order
+// Its own story because it is a state a snapshot can show and a description
+// cannot: the arrow beside the sorted column, and the rows in the order
 // the call site put them in.
 const Sorting: Story = {
   render: () => <Sortable />,
@@ -511,6 +280,98 @@ const StickyHeader: Story = {
   ),
 }
 
-export { Default, Disabled, Overview, Resizing, Sorting, StickyHeader }
+// `Table.LoadMore` goes after the rows and draws a ring across the width while
+// more are being fetched. It is drawn mid-fetch rather than wired to a real
+// one, since a story that fetches has loaded its next page when captured.
+const LoadingMore: Story = {
+  render: () => (
+    <Card padding="none" variant="outlined">
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id={COLUMNS.name} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {ROWS.map((row) => (
+            <Table.Row id={row.id} key={row.id}>
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>
+                <span {...stylex.props(styles.value)}>{row.value}</span>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+          <Table.LoadMore isLoading />
+        </Table.Body>
+      </Table>
+    </Card>
+  ),
+}
+
+// A footer holds a row under the body, totals and the like, ruled off from it.
+// React Aria keeps it out of the selection and the keyboard navigation, so it
+// is read as a summary rather than as one more row.
+const Footer: Story = {
+  render: () => (
+    <Card padding="none" variant="outlined">
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id={COLUMNS.name} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+        </Table.Header>
+        <Table.Body>
+          {ROWS.map((row) => (
+            <Table.Row id={row.id} key={row.id}>
+              <Table.Cell>{row.name}</Table.Cell>
+              <Table.Cell>
+                <span {...stylex.props(styles.value)}>{row.value}</span>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+        <Table.Footer>
+          <Table.Row id="total">
+            <Table.Cell>Total</Table.Cell>
+            <Table.Cell>
+              <span {...stylex.props(styles.value)}>06</span>
+            </Table.Cell>
+          </Table.Row>
+        </Table.Footer>
+      </Table>
+    </Card>
+  ),
+}
+
+// A table with no rows shows what its `renderEmptyState` returns in their
+// place, and still says what its columns are.
+const Empty: Story = {
+  render: () => (
+    <Card padding="none" variant="outlined">
+      <Table aria-label="Label">
+        <Table.Header>
+          <Table.Column id={COLUMNS.name} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+        </Table.Header>
+        <Table.Body renderEmptyState={nothingToShow} />
+      </Table>
+    </Card>
+  ),
+}
+
+export {
+  Default,
+  Disabled,
+  Empty,
+  Footer,
+  LoadingMore,
+  Resizing,
+  Sorting,
+  StickyHeader,
+}
 
 export default meta

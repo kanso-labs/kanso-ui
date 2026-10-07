@@ -130,12 +130,20 @@ const preview: Preview = {
       },
     },
     options: {
-      // Getting started first overall, Overview first within each component,
-      // and everything else left where it already was. Returning 0 is what does
-      // that last part: the default order is the order stories are exported
-      // in, and lint sorts those named exports alphabetically, so there is
-      // nothing to re-sort here — only the two entries that should lead
-      // rather than land where their name puts them.
+      // Getting started first overall; within each component its Overview
+      // page, then its Default story, and everything else left where it
+      // already was. Returning 0 is what does that last part: the default
+      // order is the order stories are exported in, and lint sorts those named
+      // exports alphabetically, so there is nothing to re-sort here — only the
+      // entries that should lead rather than land where their name puts them.
+      // The Overview page is Storybook's Docs page, under the name
+      // `docs.defaultName` in main.ts gives it, and that name is the one this
+      // function sees.
+      //
+      // Default leads the stories because the Overview page opens on the first
+      // of them, drawn with its Controls beside it. Default is the story built
+      // on the meta's args, which is what those Controls drive; left to the
+      // alphabet, `AlertDialog` would open Dialog's page and `Capped` Badge's.
       //
       // Without the Getting started clause that page lands *last*: the glob walks
       // src/components and src/tokens before the files sitting at the root of
@@ -163,20 +171,26 @@ const preview: Preview = {
           }
           return b.title === 'Getting started' ? 1 : 0
         }
-        if (a.name === 'Overview') {
-          return -1
+        for (const name of ['Overview', 'Default']) {
+          if (a.name === name) {
+            return -1
+          }
+          if (b.name === name) {
+            return 1
+          }
         }
-        return b.name === 'Overview' ? 1 : 0
+        return 0
       },
       /* oxlint-enable typescript/no-unsafe-member-access */
     },
   },
-  // Every component gets a Docs page: its JSDoc description and usage
-  // example, the props table react-docgen-typescript builds from its types,
-  // and each story with its source. The pages written as stories rather than
-  // around a component — Getting started, the Foundations pages and the
-  // Theming schemes — take `!autodocs`, since a Docs page there would document
-  // the page's own wrapper and unfold the single sidebar leaf each relies on.
+  // Every component gets an Overview page, Storybook's Docs page renamed in
+  // main.ts: its JSDoc description and usage example, the props table
+  // react-docgen-typescript builds from its types, and each story with its
+  // source. The pages written as stories rather than around a component —
+  // Getting started, the Foundations pages and the Theming schemes — take
+  // `!autodocs`, since an Overview page there would document the page's own
+  // wrapper and unfold the single sidebar leaf each relies on.
   // A story kept off the sidebar with `!dev` takes it as well, being a check
   // rather than something to read.
   tags: ['autodocs'],

@@ -3,57 +3,17 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Toolbar from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
 import ListBox from '../list-box'
 import Select from '../select'
 import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   // Sized in `em` so it follows the button's own type size.
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  row: {
-    alignItems: 'flex-start',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -136,108 +96,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Toolbar
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A container for a set of controls, with the arrow keys moving between
-          them.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A group of controls
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The bar is announced as a toolbar, so a screen reader reads the
-            controls as one group rather than as unrelated buttons, and the
-            arrow keys move between them. Tab still steps through each control —
-            the arrows are a second way to move, not a replacement.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Toolbar aria-label="Standard">{CONTROLS}</Toolbar>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Buttons and fields
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The bar holds a button or a field as readily as an icon button, and
-            grows to fit one taller than its 64dp. A select fits where a text
-            field does not: the left and right arrows move between the controls
-            before anything inside sees them, which costs a select a shortcut
-            but would leave a text field&apos;s caret unable to move.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Toolbar aria-label="Buttons and fields">{MIXED}</Toolbar>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Colour
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The page gives the bar two schemes. Its standard one is the neutral
-            tone and the default, on surface container; vibrant moves the bar to
-            primary container, for a bar meant to carry the page&apos;s accent.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Toolbar aria-label="Vibrant" tone="vibrant">
-            {CONTROLS}
-          </Toolbar>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Vertical
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The orientation decides which arrows move and which way the bar
-            runs. A rule inside draws across that direction rather than along
-            it, so the same markup is correct either way.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Toolbar aria-label="Vertical" orientation="vertical">
-            {CONTROLS}
-          </Toolbar>
-          <Toolbar
-            aria-label="Vertical vibrant"
-            orientation="vertical"
-            tone="vibrant"
-          >
-            {CONTROLS}
-          </Toolbar>
-        </div>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 const Vibrant: Story = {
@@ -273,6 +131,6 @@ const Disabled: Story = {
   },
 }
 
-export { Default, Disabled, Overview, Vertical, Vibrant, WithButtonAndField }
+export { Default, Disabled, Vertical, Vibrant, WithButtonAndField }
 
 export default meta
