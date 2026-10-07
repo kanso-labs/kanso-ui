@@ -114,10 +114,10 @@ import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
 import { demoThemes } from './themes'
 
-// See avatar/index.stories.tsx for why the page is built from the library's own
-// components, why its sections are divided by a rule, and why the headings go
-// through Text's `render`. The bar supplies the <h1>, so everything below it is
-// an <h2>.
+// See src/getting-started.stories.tsx for why the page is built from the
+// library's own components, why its sections are divided by a rule, and why
+// the headings go through Text's `render`. The bar supplies the <h1>, so
+// everything below it is an <h2>.
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />

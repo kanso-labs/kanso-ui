@@ -25,9 +25,10 @@ import {
 const NARROW = '@media (max-width: 640px)'
 
 // Headings and prose go through Text's `render`, so this page is set in the
-// library it documents and matches the component overviews beside it. The
-// samples below stay raw: they exist to show what a token resolves to, and
-// routing one through a component would document the component instead.
+// library it documents and matches the other pages written as stories (see
+// src/getting-started.stories.tsx). The samples below stay raw: they exist to
+// show what a token resolves to, and routing one through a component would
+// document the component instead.
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -872,7 +873,7 @@ const STATE_LAYERS: { name: string; swatch: string }[] = [
   },
 ]
 
-function Tokens() {
+function TokensPage() {
   const { resolved, rootRef } = useResolvedMotion()
   const durations = usePlayback()
   const easings = usePlayback()
@@ -1257,15 +1258,18 @@ function Tokens() {
 }
 
 const meta = {
-  component: Tokens,
+  component: TokensPage,
   tags: ['!autodocs'],
   title: 'Foundations/Tokens',
-} satisfies Meta<typeof Tokens>
+} satisfies Meta<typeof TokensPage>
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {}
+// Named after the title's last segment for the reason SharedElements is: a
+// component holding one story of the same name folds into a single sidebar
+// leaf.
+const Tokens: Story = {}
 
-export { Overview }
+export { Tokens }
 
 export default meta

@@ -11,12 +11,7 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import { spacingPx } from '../../tokens/values'
 import Container from '../container'
 import IconButton from '../icon-button'
-import Separator from '../separator'
 import Text from '../text'
-
-type Size = NonNullable<AppBarProps['size']>
-
-const SIZES = ['sm', 'md', 'lg'] as const satisfies readonly Size[]
 
 // The measure the page under the bar runs at, and the gutter Container pads
 // it with. Both are the call site's, which is the whole point: the bar is told
@@ -25,8 +20,6 @@ const SIZES = ['sm', 'md', 'lg'] as const satisfies readonly Size[]
 const PAGE_MEASURE = '520px'
 const PAGE_GUTTER = `${spacingPx.xl}px`
 
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
 // Two glyphs drawn inline: IconButton takes whatever the call site hands it.
@@ -82,18 +75,8 @@ const styles = stylex.create({
     borderWidth: '1px',
     overflow: 'hidden',
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
   // Block spacing only. The measure and the gutter under the bar are
-  // Container's, which is the pairing this section is about.
+  // Container's, which is the pairing the page-alignment story is about.
   measured: {
     paddingBlock: spacing.lg,
   },
@@ -101,14 +84,6 @@ const styles = stylex.create({
   // bars were redesigned to handle.
   narrow: {
     inlineSize: '320px',
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
   },
   // A pinned bar needs a scroll container to be pinned inside, and this is
   // the call site's job rather than the component's — the bar paints a
@@ -140,7 +115,7 @@ const styles = stylex.create({
     overflowAnchor: 'none',
     overflowY: 'auto',
   },
-  section: {
+  stack: {
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
@@ -209,246 +184,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_2} variant="displaySmall">
-          AppBar
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Material Design's app bar. The container at the top of a page carrying
-          its title, one or two actions, and the way back out.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Three sizes
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            64px, 112px and 120px, each giving the headline a larger type role
-            than the one below. `md` and `lg` are Material Design's medium and
-            large flexible bars, which grow to hug their text.
-          </Text>
-        </div>
-        {SIZES.map((size) => (
-          <Sample
-            headline="Headline"
-            key={size}
-            label={size}
-            leading={LEADING}
-            size={size}
-            trailing={TRAILING}
-          />
-        ))}
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Hugging the text
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A subtitle makes the flexible bars taller rather than being fitted
-            into the same box — 136px and 152px, both published by Material
-            Design. The small bar keeps its 64px, which a headline and a
-            subtitle at their type roles come to exactly, and is why it suits a
-            title that is a label.
-          </Text>
-        </div>
-        {SIZES.map((size) => (
-          <Sample
-            headline="Headline"
-            key={size}
-            label={`${size} with subtitle`}
-            leading={LEADING}
-            size={size}
-            subtitle="Supporting line"
-            trailing={TRAILING}
-          />
-        ))}
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A headline that wraps
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The heights are minimums, not fixed. Material Design gives the
-            flexible bars multi-line support, so a long headline in a narrow
-            window grows the bar instead of being cut off.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.narrow)}>
-          <Sample
-            headline="A headline long enough to need more than one line"
-            label="lg, in a narrow window"
-            leading={LEADING}
-            size="lg"
-          />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Centred text
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Material Design folded the old center-aligned variant into a
-            configuration, so it is available at every size rather than only on
-            the small bar.
-          </Text>
-        </div>
-        <Sample
-          align="center"
-          headline="Headline"
-          label="align=center"
-          leading={LEADING}
-          trailing={TRAILING}
-        />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Over scrolled content
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Material Design replaced the drop shadow it once gave a scrolled bar
-            with a fill, so a bar separates itself from content beneath by
-            sitting on a different surface rather than casting anything.
-            `scrolled` is controlled, because only the app knows which element
-            is scrolling.
-          </Text>
-        </div>
-        <Sample
-          headline="Headline"
-          label="scrolled"
-          leading={LEADING}
-          scrolled
-          trailing={TRAILING}
-        />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Collapsing on scroll
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A pinned flexible bar gives its height back as the page scrolls,
-            becoming the small bar. Without it a large bar costs 152px of the
-            viewport for as long as the page is open, which is most of a phone
-            screen. The subtitle goes with the height, since there is no second
-            line in a 64px bar.
-          </Text>
-        </div>
-        <Sample
-          headline="Headline"
-          label="expanded"
-          leading={LEADING}
-          size="lg"
-          subtitle="Supporting line"
-          trailing={TRAILING}
-        />
-        <Sample
-          collapsed
-          headline="Headline"
-          label="collapsed"
-          leading={LEADING}
-          size="lg"
-          subtitle="Supporting line"
-          trailing={TRAILING}
-        />
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Lining up with the page
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A bar that paints edge to edge sits over a page whose content
-            usually does not. Give it the page's measure and the page's gutter
-            and its headline starts where the page's own text does, with the
-            surface still running the full width.
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A leading slot changes what lands on the measure. The icon takes the
-            inset and the headline sits after it, which is Material Design's own
-            arrangement rather than something to correct.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.frame)}>
-          <AppBar
-            contentInset={PAGE_GUTTER}
-            contentMaxInlineSize={PAGE_MEASURE}
-            headline="Headline"
-            trailing={TRAILING}
-          />
-          <Container
-            {...stylex.props(styles.measured)}
-            maxInlineSize={PAGE_MEASURE}
-          >
-            <Text render={PARAGRAPH} tone="muted">
-              Supporting line. This paragraph sits at the page's own measure and
-              gutter, and the headline above starts on the same line.
-            </Text>
-          </Container>
-        </div>
-        <div {...stylex.props(styles.frame)}>
-          <AppBar headline="Headline" trailing={TRAILING} />
-          <Container
-            {...stylex.props(styles.measured)}
-            maxInlineSize={PAGE_MEASURE}
-          >
-            <Text render={PARAGRAPH} tone="muted">
-              Supporting line. The same page under a bar left at Material
-              Design's own margin, which is where the two come apart.
-            </Text>
-          </Container>
-        </div>
-        <div {...stylex.props(styles.frame)}>
-          <AppBar
-            contentInset={PAGE_GUTTER}
-            contentMaxInlineSize={PAGE_MEASURE}
-            headline="Headline"
-            leading={LEADING}
-            trailing={TRAILING}
-          />
-          <Container
-            {...stylex.props(styles.measured)}
-            maxInlineSize={PAGE_MEASURE}
-          >
-            <Text render={PARAGRAPH} tone="muted">
-              Supporting line. The same bar with a leading slot. The icon is
-              what sits on the measure now, and the headline follows it.
-            </Text>
-          </Container>
-        </div>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 // Its own story because the flexible sizes are the ones with behaviour a
@@ -466,6 +201,81 @@ const Collapsing: Story = {
   render: () => <ScrollingPage />,
 }
 
-export { Collapsing, Default, Large, Overview }
+// Its own story because the heights are minimums rather than fixed: in a window
+// too narrow for the headline the bar grows to a second line instead of cutting
+// it off, which Material Design gives the flexible bars as multi-line support.
+const LongHeadline: Story = {
+  render: () => (
+    <div {...stylex.props(styles.narrow)}>
+      <Sample
+        headline="A headline long enough to need more than one line"
+        label="lg, in a narrow window"
+        leading={LEADING}
+        size="lg"
+      />
+    </div>
+  ),
+}
+
+// Its own story because the comparison is with the page beneath the bar. Given
+// the page's measure and gutter, the headline starts where the page's text does
+// and a leading slot puts the icon there instead, as Material Design arranges.
+const PageAlignment: Story = {
+  render: () => (
+    // A section rather than a div: a bar is a header, and one outside
+    // sectioning content is a banner landmark, of which a page may have one.
+    <section {...stylex.props(styles.stack)}>
+      <div {...stylex.props(styles.frame)}>
+        <AppBar
+          contentInset={PAGE_GUTTER}
+          contentMaxInlineSize={PAGE_MEASURE}
+          headline="Headline"
+          trailing={TRAILING}
+        />
+        <Container
+          {...stylex.props(styles.measured)}
+          maxInlineSize={PAGE_MEASURE}
+        >
+          <Text render={PARAGRAPH} tone="muted">
+            Supporting line. This paragraph sits at the page's own measure and
+            gutter, and the headline above starts on the same line.
+          </Text>
+        </Container>
+      </div>
+      <div {...stylex.props(styles.frame)}>
+        <AppBar headline="Headline" trailing={TRAILING} />
+        <Container
+          {...stylex.props(styles.measured)}
+          maxInlineSize={PAGE_MEASURE}
+        >
+          <Text render={PARAGRAPH} tone="muted">
+            Supporting line. The same page under a bar left at Material Design's
+            own margin, which is where the two come apart.
+          </Text>
+        </Container>
+      </div>
+      <div {...stylex.props(styles.frame)}>
+        <AppBar
+          contentInset={PAGE_GUTTER}
+          contentMaxInlineSize={PAGE_MEASURE}
+          headline="Headline"
+          leading={LEADING}
+          trailing={TRAILING}
+        />
+        <Container
+          {...stylex.props(styles.measured)}
+          maxInlineSize={PAGE_MEASURE}
+        >
+          <Text render={PARAGRAPH} tone="muted">
+            Supporting line. The same bar with a leading slot. The icon is what
+            sits on the measure now, and the headline follows it.
+          </Text>
+        </Container>
+      </div>
+    </section>
+  ),
+}
+
+export { Collapsing, Default, Large, LongHeadline, PageAlignment }
 
 export default meta

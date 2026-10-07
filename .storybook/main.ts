@@ -7,6 +7,15 @@ const config: StorybookConfig = {
     '@storybook/addon-a11y',
     '@storybook/addon-vitest',
   ],
+  docs: {
+    // The page autodocs writes for each component is its overview — the
+    // description, the usage example, the props and every story — so it
+    // takes that name rather than Storybook's own "Docs". A story exported
+    // as `Overview` would now share the page's id,
+    // `components-<name>--overview`, and the index keeps the page and drops
+    // the story without a word — see AGENTS.md.
+    defaultName: 'Overview',
+  },
   framework: {
     name: '@storybook/react-vite',
     options: {},

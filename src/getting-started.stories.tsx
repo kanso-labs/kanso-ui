@@ -12,14 +12,26 @@ import Separator from './components/separator'
 import Text from './components/text'
 import { colors, spacing, typography } from './tokens/design.tokens.stylex'
 
-// See avatar/index.stories.tsx for why the page is built from the library's
-// own components rather than from shell components of its own, and why its
-// sections are divided by a rule instead of boxed in Cards. This one has more
-// reason to follow that than any component overview does: it is the first page
-// a reader opens, so it is also the first evidence that the system holds
-// together. The Cards further down are not an exception to that rule — they
-// hold a code block and a list of rows, which is a surface inside a section
-// rather than a box around one.
+// The page is built from the library's own Separator and Text rather than
+// from shell components written for the stories, so it is itself a use of
+// kanso-ui and drifts the moment either of them does. What is left in StyleX
+// here is layout only — flex, gaps, widths. The other pages written as
+// stories, the Foundations pages and the theming showcase, are built the same
+// way for the same reason, and this one has the most reason of all: it is the
+// first page a reader opens, so it is also the first evidence that the system
+// holds together.
+//
+// Sections are divided by a rule rather than boxed in Cards, which leaves
+// every sample sitting on the page's own surface — the background a consumer
+// will actually place them on. The Cards further down are not an exception to
+// that rule — they hold a code block and a list of rows, which is a surface
+// inside a section rather than a box around one.
+//
+// Headings go through Text's `render`, so they are real <h1>/<h2> elements
+// styled off the type scale rather than off the tag. The templates are hoisted
+// to one stable element reference each, which is what react-perf's
+// jsx-no-jsx-as-prop is after, and they are empty because useRender injects
+// the children — which is all jsx-a11y's heading-has-content can see.
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -121,12 +133,11 @@ const styles = stylex.create({
     flexDirection: 'column',
     gap: spacing.md,
   },
-  // Prose here runs the width of the page, as it does on every component
-  // overview. This page used to hold it to a 58ch measure, which suits a
-  // column of body copy and stopped suiting this one: the samples beside it
-  // are the page's full width by necessity, and once the prose grew past a
-  // paragraph or two the page read as half-empty rather than well set. The
-  // page's own 960 is the measure.
+  // Prose here runs the width of the page. This page used to hold it to a
+  // 58ch measure, which suits a column of body copy and stopped suiting this
+  // one: the samples beside it are the page's full width by necessity, and
+  // once the prose grew past a paragraph or two the page read as half-empty
+  // rather than well set. The page's own 960 is the measure.
   intro: {
     display: 'flex',
     flexDirection: 'column',

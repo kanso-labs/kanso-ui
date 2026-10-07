@@ -9,17 +9,6 @@ import Dialog from '../dialog'
 import ListBox from '../list-box'
 import Menu from '../menu'
 import SearchField from '../search-field'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
   // A command's icon, at the 24dp the search bar draws its magnifier at. A
@@ -28,26 +17,6 @@ const styles = stylex.create({
     blockSize: '24px',
     display: 'block',
     inlineSize: '24px',
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    paddingBlockEnd: spacing.xxxl,
-    paddingBlockStart: spacing.xl,
-    paddingInline: spacing.xl,
   },
   // The command palette's own column: the search bar over its results.
   palette: {
@@ -64,16 +33,6 @@ const styles = stylex.create({
   // draws and what makes the two read as one column rather than two.
   paletteResults: {
     paddingInline: spacing.md,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
   // A searchable list: the bar over the list on a surface of its own, which
   // is the shape the search page draws.
@@ -141,8 +100,8 @@ const OPEN = (
 const SAVE = <Glyph path="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14" />
 const CLOSE = <Glyph path="m7 7 10 10M17 7 7 17" />
 
-// The palette's search bar and its results, shared by the Overview's
-// section and the story below so the two cannot drift apart.
+// The palette's search bar and its results, which the story below puts in a
+// Dialog.
 const PALETTE_SEARCH = (
   <SearchField label="Search commands" placeholder="Type a command" />
 )
@@ -171,99 +130,6 @@ const meta = {
 } satisfies Meta<typeof Autocomplete>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Autocomplete
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A search input that filters the collection under it.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A searchable list
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The wrapper draws nothing of its own, so the bar and the list sit
-            wherever the page puts them. Typing narrows the list; the arrow keys
-            move through it while focus stays in the bar.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.surface)}>
-            <Autocomplete>
-              <SearchField label="Search people" placeholder="Search" />
-              <ListBox aria-label="People" selectionMode="single">
-                {PEOPLE}
-              </ListBox>
-            </Autocomplete>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A filtered menu
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same wrapper around a menu, with the bar in the surface&apos;s
-            search slot. A menu&apos;s children are a collection, so an input
-            written among them would be dropped — the slot is where it goes.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Menu>
-            <Button variant="outlined">Commands</Button>
-            <Autocomplete>
-              <Menu.Content search={SEARCH}>{COMMANDS}</Menu.Content>
-            </Autocomplete>
-          </Menu>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A command palette
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same wrapper again, in a Dialog. Nothing here is a mode of the
-            component — the three shapes differ only in what the page puts
-            around the bar and the collection.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <Dialog>
-            <Button variant="outlined">Open the palette</Button>
-            <Dialog.Content aria-label="Commands">
-              <Dialog.Body>
-                <div {...stylex.props(styles.palette)}>
-                  <Autocomplete>
-                    {PALETTE_SEARCH}
-                    {PALETTE_RESULTS}
-                  </Autocomplete>
-                </div>
-              </Dialog.Body>
-            </Dialog.Content>
-          </Dialog>
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {
   render: (args) => (
@@ -321,6 +187,6 @@ const CommandPalette: Story = {
   ),
 }
 
-export { CommandPalette, Default, Filtered, InAMenu, Overview }
+export { CommandPalette, Default, Filtered, InAMenu }
 
 export default meta

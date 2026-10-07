@@ -3,46 +3,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import NavigationBar from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -206,62 +171,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          NavigationBar
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Three to five top-level destinations along the bottom of a compact
-          window.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Destinations
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Each destination is a link, and the one `selectedRoute` names is the
-            current page: its pill on the secondary container, its label in the
-            secondary role. In a window this wide each is the page&apos;s
-            horizontal pill; below 600px each turns vertical, its label under a
-            56px by 32px indicator, and the destinations share the bar&apos;s
-            width — the Compact story shows it.
-          </Text>
-        </div>
-        <NavigationBar aria-label="First label" selectedRoute="#first">
-          {THREE}
-        </NavigationBar>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Badges
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `badge` puts the badges page&apos;s mark on a destination&apos;s
-            icon: `true` for the small dot, a number for the count. The mark is
-            hidden from assistive technology, so the destination&apos;s
-            `aria-label` says what it says.
-          </Text>
-        </div>
-        <NavigationBar aria-label="Second label" selectedRoute="#first">
-          {BADGED}
-        </NavigationBar>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 // The vertical destinations the bar draws in a compact window.
@@ -285,6 +194,6 @@ const WithBadges: Story = {
   },
 }
 
-export { Compact, Default, FiveDestinations, Overview, WithBadges }
+export { Compact, Default, FiveDestinations, WithBadges }
 
 export default meta

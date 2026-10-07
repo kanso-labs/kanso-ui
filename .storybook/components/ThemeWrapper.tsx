@@ -31,7 +31,7 @@ const styles = stylex.create({
     padding: '1rem',
   },
   // A story on its own fills the canvas, so the surface reaches the bottom of
-  // the frame. A story drawn inline on a Docs page takes its own height
+  // the frame. A story drawn inline on an Overview page takes its own height
   // instead: there the viewport is the whole page, and filling it would give
   // every story on the page a screen of its own.
   fill: {
@@ -41,7 +41,7 @@ const styles = stylex.create({
 
 type ThemeWrapperProps = {
   children: ReactNode
-  /** Grow to the viewport's height. False for a story drawn on a Docs page. */
+  /** Grow to the viewport's height. False for a story on an Overview page. */
   fill: boolean
   /** 'light', 'dark', or a key of `demoThemes` — whatever the `theme` global says. */
   name: string

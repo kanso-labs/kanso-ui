@@ -5,17 +5,6 @@ import { useCallback, useState } from 'react'
 
 import Chip from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the library's
-// own components rather than from shell components of its own, and why its
-// sections are divided by a rule instead of boxed in Cards.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const FILTERS = ['First filter', 'Second filter', 'Third filter'] as const
 
@@ -35,30 +24,6 @@ const DOT = (
 )
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  inline: {
-    alignItems: 'flex-end',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.lg,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
   // Tighter than the page's sample gap: a set of chips is one control, and
   // spacing them like separate samples would read as four unrelated buttons.
   row: {
@@ -66,17 +31,6 @@ const styles = stylex.create({
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.sm,
-  },
-  sample: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -132,240 +86,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Chip
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A filter chip by default: a two-state button, whose selection is
-          announced through `aria-pressed` rather than a role of its own. The
-          assist and suggestion chips are actions instead.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            States
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Selected carries a container of its own and the page&apos;s check
-            before the label, which is what makes the state legible without
-            colour; unselected is an outline on the page. Disabled composites
-            the same on-surface opacity over both, so the two converge.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Chip>Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              unselected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip defaultSelected>Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              defaultSelected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip isDisabled>Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              isDisabled
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip defaultSelected isDisabled>
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              both
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Icons
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            An icon sits before the label in the page&apos;s 18dp slot, in the
-            primary role. Once the chip is selected the check takes its place,
-            so the chip keeps its width; disabled, the icon fades with the
-            label.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Chip icon={DOT}>Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              icon
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip defaultSelected icon={DOT}>
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              defaultSelected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip icon={DOT} isDisabled>
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              isDisabled
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Assist and suggestion
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The page&apos;s two action chips are plain buttons: pressed with
-            `onPress`, never selected, and announced as buttons rather than as
-            pressed. An assist chip&apos;s label is on surface and a suggestion
-            chip&apos;s on surface variant, which is the one role the page
-            changes between them.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Chip icon={DOT} variant="assist">
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              assist
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip variant="suggestion">Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              suggestion
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip icon={DOT} isDisabled variant="assist">
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              isDisabled
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Elevated
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `elevated` trades the outline for a container of its own, at the
-            page&apos;s elevation 1, raised to 2 under a hovering pointer. A
-            selected filter chip keeps its secondary container and takes the
-            shadow with it; a disabled one comes down to the page.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Chip elevated icon={DOT} variant="assist">
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              assist
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip elevated variant="suggestion">
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              suggestion
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip elevated>Label</Chip>
-            <Text tone="muted" variant="labelSmall">
-              filter
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip defaultSelected elevated>
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              defaultSelected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Chip elevated isDisabled>
-              Label
-            </Chip>
-            <Text tone="muted" variant="labelSmall">
-              isDisabled
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Selection
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Left alone, a chip keeps its own state and styles itself from it.
-            Passing `isSelected` with `onChange` takes that over, which is how a
-            set enforces one selection at a time — a rule only the call site can
-            apply, since the chip has no notion of its neighbours.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <div {...stylex.props(styles.row)}>
-              {FILTERS.map((label) => (
-                <Chip key={label}>{label}</Chip>
-              ))}
-            </div>
-            <Text tone="muted" variant="labelSmall">
-              uncontrolled · each keeps its own state
-            </Text>
-          </div>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <SingleSelect />
-            <Text tone="muted" variant="labelSmall">
-              controlled · one at a time
-            </Text>
-          </div>
-        </div>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 const WithIcon: Story = {
@@ -382,11 +102,11 @@ const Suggestion: Story = {
 
 // Its own story because the interaction is the point: a snapshot can only show
 // which chip is selected at rest, and what matters is that picking one clears
-// the last. Overview covers the states visually.
+// the last. Each state on its own is a prop away on Default.
 const Controlled: Story = {
   render: () => <SingleSelect />,
 }
 
-export { Assist, Controlled, Default, Overview, Suggestion, WithIcon }
+export { Assist, Controlled, Default, Suggestion, WithIcon }
 
 export default meta

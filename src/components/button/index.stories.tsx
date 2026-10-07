@@ -6,8 +6,6 @@ import { expect, waitFor } from 'storybook/test'
 import Button from '.'
 import { rippleStyles } from '../../styles/ripple'
 import { spacing } from '../../tokens/design.tokens.stylex'
-import Separator from '../separator'
-import Text from '../text'
 
 // The classes StyleX generates for the pressed state are the observable signal
 // that the hook considers itself pressed, without reaching into React.
@@ -28,34 +26,14 @@ function isPressed(button: HTMLElement) {
   )
 }
 
-// See avatar/index.stories.tsx for why the overview is built from the library's
-// own components rather than from shell components of its own, why its sections
-// are divided by a rule instead of boxed in Cards, and why the headings go
-// through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
-
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   inline: {
     alignItems: 'flex-end',
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.lg,
   },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  // Narrower than the long label below on one line, so it wraps.
+  // Narrower than the long label on one line, so it wraps.
   narrow: {
     alignItems: 'flex-start',
     display: 'flex',
@@ -63,25 +41,6 @@ const styles = stylex.create({
     gap: spacing.lg,
     inlineSize: '240px',
     maxInlineSize: '100%',
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  sample: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -119,387 +78,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-// Every variant and size on one page, in both themes, for one Chromatic
-// snapshot apiece. `disableRipple` is the one prop with nothing to show here:
-// it changes what happens on press, and at rest the two are the same pixels.
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Button
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          The five emphasis levels of the design's button, at five control
-          heights.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Variants
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Emphasis, high to low. Each sits on a different background, so the
-            hover and pressed state layers are keyed by variant rather than
-            written once for all five. Elevated is the one that rests on a
-            shadow: it lifts off a low surface rather than off the page, for a
-            button that has to separate from a busy background.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button variant="filled">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              filled
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button variant="tonal">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              tonal
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button variant="elevated">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              elevated
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button variant="outlined">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              outlined
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button variant="text">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              text
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Toggle
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Given `isSelected`, `defaultSelected` or `onChange`, a button
-            reports a state through `aria-pressed` and moves between the
-            page&apos;s second pair of colour roles, trading its shape for the
-            other once selected. Each pair below is one toggle unselected and
-            then selected. A text button never toggles: the page gives it no
-            pair.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected={false} variant="filled">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              filled
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected variant="filled">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              filled · selected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected={false} variant="tonal">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              tonal
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected variant="tonal">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              tonal · selected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected={false} variant="elevated">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              elevated
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected variant="elevated">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              elevated · selected
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected={false} variant="outlined">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              outlined
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button defaultSelected variant="outlined">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              outlined · selected
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Shapes
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `round` rests as the pill, as every button above does, and `square`
-            at the size&apos;s square corner, from the page&apos;s size token
-            sets. Either tightens to a smaller corner while pressed.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button shape="square" size="xs">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              xs · 12px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button shape="square" size="md">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              md · 12px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button shape="square" size="lg">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              lg · 16px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button shape="square" size="xl">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              xl · 28px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button shape="square" size="xxl">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              xxl · 28px
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Sizes
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The buttons page's five sizes, XS to XL. Each takes the type role
-            the page gives it, label-large for the two small sizes and then
-            title-medium, headline-small and headline-large, and its own inline
-            padding; md is the page's default.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button size="xs">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              xs · 32px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button size="md">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              md · 40px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button size="lg">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              lg · 56px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button size="xl">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              xl · 96px
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button size="xxl">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              xxl · 136px
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            As a link
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Given `href`, the button is an anchor that navigates — the same
-            styles and ripple, announced as the link it is rather than as a
-            button.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button href="#label">Button</Button>
-            <Text tone="muted" variant="labelSmall">
-              filled
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button href="#label" variant="outlined">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              outlined
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button href="#label" isDisabled variant="text">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              disabled
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Disabled
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Disabled composites the same on-surface opacity over every variant,
-            so the five converge rather than each fading in its own colour.
-            Elevated drops its shadow with them: a raised control still reads as
-            available to press.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.inline)}>
-          <div {...stylex.props(styles.sample)}>
-            <Button isDisabled variant="filled">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              filled
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button isDisabled variant="tonal">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              tonal
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button isDisabled variant="elevated">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              elevated
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button isDisabled variant="outlined">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              outlined
-            </Text>
-          </div>
-          <div {...stylex.props(styles.sample)}>
-            <Button isDisabled variant="text">
-              Button
-            </Button>
-            <Text tone="muted" variant="labelSmall">
-              text
-            </Text>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Long labels
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A label too long for the row wraps, as a translation often does at a
-            phone&apos;s width, and the container grows to hold every line
-            rather than keeping its height. A label on one line still draws the
-            size&apos;s own height.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.narrow)}>
-          <Button variant="filled">
-            A label long enough that it wraps onto more lines than one
-          </Button>
-          <Button variant="tonal">
-            A label long enough that it wraps onto more lines than one
-          </Button>
-          <Button variant="outlined">
-            A label long enough that it wraps onto more lines than one
-          </Button>
-        </div>
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 // One full press against real timers and real animations. index.test.tsx stubs
@@ -515,7 +93,7 @@ const Default: Story = {}
 // the widget's percentage. Hidden, not removed — it stays in the index and is
 // still reachable by URL, which is also why Chromatic needs telling separately.
 // It skips this one because the ripple is mid-animation for most of the play
-// function, so a snapshot would diff against itself. Overview already covers
+// function, so a snapshot would diff against itself. Default already covers
 // the filled button visually.
 const Pressed: Story = {
   parameters: {
@@ -561,6 +139,26 @@ const Elevated: Story = {
   args: { variant: 'elevated' },
 }
 
+// Its own story because it takes a narrow container as well as a long label: a
+// label too long for the row wraps, as a translation often does at a phone's
+// width, and the container grows to hold every line rather than keeping its
+// height. A label on one line still draws the size's own height.
+const LongLabels: Story = {
+  render: () => (
+    <div {...stylex.props(styles.narrow)}>
+      <Button variant="filled">
+        A label long enough that it wraps onto more lines than one
+      </Button>
+      <Button variant="tonal">
+        A label long enough that it wraps onto more lines than one
+      </Button>
+      <Button variant="outlined">
+        A label long enough that it wraps onto more lines than one
+      </Button>
+    </div>
+  ),
+}
+
 // A toggle, selected: the tonal pair moved to secondary, and the pill traded
 // for the square corner.
 const Toggle: Story = {
@@ -588,7 +186,7 @@ const WithIcon: Story = {
 export {
   Default,
   Elevated,
-  Overview,
+  LongLabels,
   Pending,
   Pressed,
   Square,

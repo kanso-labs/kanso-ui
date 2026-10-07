@@ -4,53 +4,17 @@ import * as stylex from '@stylexjs/stylex'
 
 import SearchView from '.'
 import { breakpointModes } from '../../../.storybook/modes'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 import ListBox from '../list-box'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
   // Room under the trigger for the docked view to open into.
   frame: {
     minBlockSize: '480px',
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    alignItems: 'flex-start',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -102,40 +66,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          SearchView
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          What a search opens into: a back button, the input and its clear
-          button over a divider, and the results under them.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Docked and full screen
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            On a wide window the view drops under what opened it, between 360dp
-            and 720dp wide with a 28dp corner. On a compact one it fills the
-            window, with a taller header. Typing narrows the results, Escape
-            clears what was typed and then closes the view, and the back button
-            closes it at once.
-          </Text>
-        </div>
-        <Search />
-      </section>
-    </div>
-  ),
-}
-
 // The docked view, which a wide window draws.
 const Default: Story = {
   parameters: { docs: { story: { height: '420px', inline: false } } },
@@ -156,6 +86,6 @@ const Compact: Story = {
   render: () => <Search defaultOpen />,
 }
 
-export { Compact, Default, Overview }
+export { Compact, Default }
 
 export default meta

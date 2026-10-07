@@ -7,18 +7,7 @@ import Popover from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
-import Separator from '../separator'
 import Stack from '../stack'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 // A story draws the one icon it needs, the same thing
 // icon-button/index.stories.tsx does. Sized in `em` so it follows the font
@@ -53,29 +42,11 @@ const styles = stylex.create({
     justifyContent: 'center',
     padding: spacing.xxxl,
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
   // Every open panel needs room on the side it asks for, or it flips to the
   // opposite one and the story shows the collision handling rather than the
   // placement. A panel is around 56px tall, so the gutters are wider than the
   // spacing scale goes — these are frame measurements rather than a step of
-  // the scale, the same way the other overviews set their own measure.
+  // the scale.
   sides: {
     display: 'grid',
     gap: '96px',
@@ -111,122 +82,6 @@ function PanelContents() {
       </Stack>
     </>
   )
-}
-
-const Overview: Story = {
-  parameters: {
-    // The panels below open over the prose describing them, so the states
-    // Chromatic has to look at get stories of their own.
-    chromatic: { disableSnapshot: true },
-  },
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Popover
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A panel anchored to the control that opened it.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.intro)}>
-        <Text render={HEADING_2} variant="titleLarge">
-          Anchoring
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-          The panel opens against its trigger, eight pixels off it, and flips to
-          the opposite side or shifts along the edge of the viewport when there
-          is not enough room. Scroll the page with one open to watch it follow.
-        </Text>
-      </section>
-      <div>
-        <Popover>
-          <Button variant="outlined">Open</Button>
-          <Popover.Content>
-            <PanelContents />
-          </Popover.Content>
-        </Popover>
-      </div>
-
-      <Separator />
-
-      <section {...stylex.props(styles.intro)}>
-        <Text render={HEADING_2} variant="titleLarge">
-          Width
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-          Two widths, and both are caps rather than fixed measures: a panel is
-          only as wide as its contents, and never wider than the room left
-          beside its anchor.
-        </Text>
-      </section>
-      <Stack direction="row" gap="sm">
-        <Popover size="sm">
-          <Button variant="outlined">Open small</Button>
-          <Popover.Content>
-            <PanelContents />
-          </Popover.Content>
-        </Popover>
-        <Popover size="md">
-          <Button variant="outlined">Open medium</Button>
-          <Popover.Content>
-            <PanelContents />
-          </Popover.Content>
-        </Popover>
-      </Stack>
-
-      <Separator />
-
-      <section {...stylex.props(styles.intro)}>
-        <Text render={HEADING_2} variant="titleLarge">
-          Dismissal
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-          React Aria supplies the behaviour: Escape closes, a press outside
-          closes, and focus returns to the trigger. The page behind stays
-          scrollable and clickable, which is the difference from Sheet. Anything
-          wrapped in a button given slot="close" closes it too.
-        </Text>
-      </section>
-      <div>
-        <Popover>
-          <IconButton aria-label="About" variant="tonal">
-            <InfoIcon />
-          </IconButton>
-          <Popover.Content>
-            <PanelContents />
-          </Popover.Content>
-        </Popover>
-      </div>
-
-      <Separator />
-
-      <section {...stylex.props(styles.intro)}>
-        <Text render={HEADING_2} variant="titleLarge">
-          Opening on hover
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-          trigger=&quot;hover&quot; opens the panel once a pointer has rested on
-          the trigger, and on focus or a long press. It stays open while the
-          pointer is inside it, so the panel&apos;s own buttons and links can be
-          reached — which is what separates the tooltips page&apos;s rich
-          tooltip from the plain one. delay and closeDelay set how long the
-          pointer has to rest and to leave.
-        </Text>
-      </section>
-      <div>
-        <Popover trigger="hover">
-          <Button variant="outlined">Hover or focus</Button>
-          <Popover.Content>
-            <PanelContents />
-          </Popover.Content>
-        </Popover>
-      </div>
-    </div>
-  ),
 }
 
 // Open on load, since a closed popover renders nothing for Chromatic to
@@ -270,6 +125,25 @@ const Small: Story = {
     <div {...stylex.props(styles.frame)}>
       <Popover {...args} defaultOpen>
         <Button>Open</Button>
+        <Popover.Content>
+          <PanelContents />
+        </Popover.Content>
+      </Popover>
+    </div>
+  ),
+}
+
+// Its own story because an IconButton opens a popover the way a Button does,
+// with no visible label to name it, so its `aria-label` does. Escape, a press
+// outside and the button given `slot="close"` each dismiss the panel.
+const OnAnIconButton: Story = {
+  parameters: { docs: { story: { height: '400px', inline: false } } },
+  render: (args) => (
+    <div {...stylex.props(styles.frame)}>
+      <Popover {...args} defaultOpen>
+        <IconButton aria-label="About" variant="tonal">
+          <InfoIcon />
+        </IconButton>
         <Popover.Content>
           <PanelContents />
         </Popover.Content>
@@ -356,6 +230,6 @@ const OpensAndCloses: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
-export { Default, HoverTrigger, OpensAndCloses, Overview, Sides, Small }
+export { Default, HoverTrigger, OnAnIconButton, OpensAndCloses, Sides, Small }
 
 export default meta

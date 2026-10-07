@@ -6,17 +6,6 @@ import { expect, waitFor } from 'storybook/test'
 import ComboBox from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import ListBox from '../list-box'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 // Hoisted so the options are not a new element on every render, which is
 // what react-perf's jsx-no-jsx-as-prop is after.
@@ -51,36 +40,6 @@ const styles = stylex.create({
     gap: spacing.lg,
     maxInlineSize: '320px',
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    paddingBlockEnd: spacing.xxxl,
-    paddingBlockStart: spacing.xl,
-    paddingInline: spacing.xl,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
   width: {
     inlineSize: '320px',
   },
@@ -96,135 +55,6 @@ const meta = {
 } satisfies Meta<typeof ComboBox<object>>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          ComboBox
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A labelled text field that filters a list as it is typed.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            The two boxes
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The same filled and outlined boxes every other field draws. The
-            control is a real input, so the box is not a press target — typing
-            has to reach it, and the chevron at the end is what opens the list.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.column)}>
-            <ComboBox label="Label" options={OPTIONS} />
-            <ComboBox defaultValue="second" label="Label" options={OPTIONS} />
-          </div>
-          <div {...stylex.props(styles.column)}>
-            <ComboBox label="Label" options={OPTIONS} variant="outlined" />
-            <ComboBox
-              defaultValue="second"
-              label="Label"
-              options={OPTIONS}
-              variant="outlined"
-            />
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Filtering
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The list narrows as the field is typed, on a language-aware contains
-            match by default. Pass defaultFilter for a predicate of your own, or
-            useFilter for another of React Aria&apos;s.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <ComboBox label="Contains" options={PEOPLE} />
-          <ComboBox
-            defaultFilter={startsWith}
-            label="Starts with"
-            options={PEOPLE}
-          />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Choosing more than one
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            selectionMode=&quot;multiple&quot; draws the chosen options as a
-            list before the input, on its line, and the label stays floated
-            while any are chosen. When the list runs longer than the line it is
-            cut off, and the input keeps a quarter of the line to type in.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.column)}>
-            <ComboBox
-              defaultValue={FIRST_AND_THIRD}
-              label="Label"
-              options={OPTIONS}
-              selectionMode="multiple"
-            />
-          </div>
-          <div {...stylex.props(styles.column)}>
-            <ComboBox
-              defaultValue={FIRST_AND_THIRD}
-              label="Label"
-              options={OPTIONS}
-              selectionMode="multiple"
-              variant="outlined"
-            />
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Supporting text and errors
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A description sits under the box; an error replaces it and turns the
-            underline and the label to the error role. allowsCustomValue lets
-            the field keep text that matches nothing — without it, the input
-            reverts to the last chosen option on blur.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.column)}>
-          <ComboBox
-            description="Supporting line"
-            label="Label"
-            options={OPTIONS}
-          />
-          <ComboBox error="Choose an item" label="Label" options={OPTIONS} />
-          <ComboBox allowsCustomValue label="Anything" options={OPTIONS} />
-          <ComboBox isDisabled label="Label" options={OPTIONS} />
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {
   render: (args) => (
@@ -286,15 +116,31 @@ const Multiple: Story = {
   ),
 }
 
+// Its own story because `defaultFilter` takes a function, which the Controls
+// panel cannot supply, and a predicate reads only against the default it
+// replaces: type the same text into both.
+const CustomFilter: Story = {
+  render: () => (
+    <div {...stylex.props(styles.column)}>
+      <ComboBox label="Contains" options={PEOPLE} />
+      <ComboBox
+        defaultFilter={startsWith}
+        label="Starts with"
+        options={PEOPLE}
+      />
+    </div>
+  ),
+}
+
 export {
   Chosen,
+  CustomFilter,
   Default,
   Disabled,
   Invalid,
   Multiple,
   Open,
   Outlined,
-  Overview,
   WithDescription,
 }
 

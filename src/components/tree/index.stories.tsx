@@ -10,44 +10,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Tree from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import Card from '../card'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components rather than from shell components of its own, and
-// why its sections are divided by a rule instead of boxed in Cards.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
-  },
   width: {
     inlineSize: '420px',
   },
@@ -99,9 +64,8 @@ function Sample(props: {
   )
 }
 
-// Two groups under their headings, the first holding a branch, and the row a
-// tree shows while it fetches more when `loading` is set.
-function SectionsSample(props: { loading?: boolean }) {
+// Two groups under their headings, the first holding a branch.
+function SectionsSample() {
   return (
     <Card padding="none" variant="outlined">
       <Tree aria-label="Label" defaultExpandedKeys={OPEN}>
@@ -114,101 +78,9 @@ function SectionsSample(props: { loading?: boolean }) {
         <Tree.Section header="Second group" id="second-group">
           <Tree.Item headline="Fourth item" id="fourth" />
         </Tree.Section>
-        {props.loading === true ? <Tree.LoadMore isLoading /> : null}
       </Tree>
     </Card>
   )
-}
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          Tree
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A list whose rows nest, with a caret on the rows that open.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Nesting
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Each row is the row every list here draws, so a tree beside a list
-            reads as the same thing at a different depth. A level indents by one
-            caret&apos;s width, and a row with no children takes that width as
-            space rather than a caret — which is what keeps a leaf&apos;s
-            headline in line with the headline of a sibling that opens.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.width)}>
-          <Sample />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Selection
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A tree that toggles draws a checkbox on every row, after the caret
-            and before whatever the row was given. A selected row takes the
-            primary container — the same one a selected list row takes, so the
-            two cannot disagree on a page holding both.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.width)}>
-          <Sample selectionMode="multiple" />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Two lines
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            The row&apos;s own slots are all here: a supporting line under the
-            headline grows the row past its 56px floor exactly as it does in a
-            list, and the caret stays centred against the pair.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.width)}>
-          <Sample supporting />
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Sections and loading
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A section groups rows under a heading, which is what names it for a
-            screen reader, and the rows inside it nest as they do anywhere else.
-            The load-more row is a sentinel: React Aria calls onLoadMore when it
-            comes into view, and draws the ring only while isLoading.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.width)}>
-          <SectionsSample loading />
-        </div>
-      </section>
-    </div>
-  ),
 }
 
 const Default: Story = {
@@ -220,7 +92,7 @@ const Default: Story = {
 }
 
 // Its own story because the checkbox column changes the row's leading edge,
-// which a snapshot shows and the overview's copy cannot.
+// which a snapshot shows and a description cannot.
 const Selectable: Story = {
   render: () => (
     <div {...stylex.props(styles.width)}>
@@ -255,6 +127,17 @@ const Loading: Story = {
   ),
 }
 
-export { Default, Loading, Overview, Sections, Selectable }
+// The supporting line is a prop of the row, so no control on the tree reaches
+// it. It grows the row past its 56px floor exactly as it does in a list, and
+// the caret stays centred against the pair.
+const TwoLine: Story = {
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <Sample supporting />
+    </div>
+  ),
+}
+
+export { Default, Loading, Sections, Selectable, TwoLine }
 
 export default meta

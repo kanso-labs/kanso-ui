@@ -7,21 +7,10 @@ import { expect, waitFor } from 'storybook/test'
 import List from '.'
 import { useDragAndDrop } from '../../drag/hooks'
 import { collectionSizes } from '../../layout'
-import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import { colors, radii } from '../../tokens/design.tokens.stylex'
 import Avatar from '../avatar'
 import Currency from '../currency'
 import IconButton from '../icon-button'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 // Hoisted so neither the keys nor the slots are new values on every render,
 // which is what react-perf's array and JSX rules are after.
@@ -69,39 +58,11 @@ const ROWS = (
 )
 
 const styles = stylex.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
   // A virtualized list needs a box it can be taller than, which is what makes
   // it render only the rows in view.
   scroller: {
     blockSize: '320px',
     overflowY: 'auto',
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
   // A list fills what it is given, so the samples need a width and something
   // to sit on.
@@ -125,125 +86,6 @@ const meta = {
 } satisfies Meta<typeof List<object>>
 
 type Story = StoryObj<typeof meta>
-
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          List
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          A list of rows one or more of which can be selected.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Selection
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A list that toggles draws a checkbox on every row, from the state
-            React Aria reports rather than a prop on each. It is the
-            library&apos;s Checkbox, so it looks like every other one on the
-            page. A selected row takes primary container.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.surface)}>
-            <List
-              aria-label="Multiple"
-              defaultSelectedKeys={FIRST_AND_THIRD}
-              selectionMode="multiple"
-            >
-              {ROWS}
-            </List>
-          </div>
-          <div {...stylex.props(styles.surface)}>
-            <List
-              aria-label="Single"
-              defaultSelectedKeys={SECOND}
-              selectionBehavior="replace"
-              selectionMode="single"
-            >
-              {ROWS}
-            </List>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Slots
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A row is the row every list here draws, so it takes the same
-            leading, supporting and trailing content ListItem does. ListItem is
-            the static row; this is the collection that draws it.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.surface)}>
-            <List aria-label="Slots" selectionMode="none">
-              <List.Item
-                id="first"
-                leading={ADA}
-                supporting="Supporting line"
-                trailing={AMOUNT_ONE}
-              >
-                Ada Lovelace
-              </List.Item>
-              <List.Item
-                id="second"
-                leading={GRACE}
-                supporting="Supporting line"
-                trailing={AMOUNT_TWO}
-              >
-                Grace Hopper
-              </List.Item>
-            </List>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Sections and loading
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            A section groups rows under a heading, which is what names it for a
-            screen reader. The load-more row is a sentinel: React Aria calls
-            onLoadMore when it comes into view, and draws the ring only while
-            isLoading.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.surface)}>
-            <List aria-label="Sections" selectionMode="none">
-              <List.Section header="First group">
-                <List.Item id="first">First item</List.Item>
-                <List.Item id="second">Second item</List.Item>
-              </List.Section>
-              <List.Section header="Second group">
-                <List.Item id="third">Third item</List.Item>
-              </List.Section>
-              <List.LoadMore isLoading />
-            </List>
-          </div>
-        </div>
-      </section>
-    </div>
-  ),
-}
 
 const Default: Story = {
   render: (args) => (
@@ -273,6 +115,36 @@ const ThreeLine: Story = {
         </List.Item>
       </>
     ),
+  },
+  render: Default.render,
+}
+
+// Its own story because the row is the one ListItem draws, so it takes the
+// same leading, supporting and trailing content — each a node on the item,
+// which the Controls panel cannot reach through `children`.
+const WithSlots: Story = {
+  args: {
+    children: (
+      <>
+        <List.Item
+          id="first"
+          leading={ADA}
+          supporting="Supporting line"
+          trailing={AMOUNT_ONE}
+        >
+          Ada Lovelace
+        </List.Item>
+        <List.Item
+          id="second"
+          leading={GRACE}
+          supporting="Supporting line"
+          trailing={AMOUNT_TWO}
+        >
+          Grace Hopper
+        </List.Item>
+      </>
+    ),
+    selectionMode: 'none',
   },
   render: Default.render,
 }
@@ -442,7 +314,6 @@ export {
   Default,
   Disabled,
   Loading,
-  Overview,
   Reorderable,
   Sections,
   Selected,
@@ -450,6 +321,7 @@ export {
   ThreeLine,
   Virtualized,
   WithoutSelection,
+  WithSlots,
 }
 
 export default meta

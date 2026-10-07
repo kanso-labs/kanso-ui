@@ -17,8 +17,8 @@ import {
   typography,
 } from './tokens/design.tokens.stylex'
 
-// See avatar/index.stories.tsx for why the page is built from the library's
-// own components rather than from shell components of its own.
+// See getting-started.stories.tsx for why the page is built from the
+// library's own components rather than from shell components of its own.
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
 const HEADING_1 = <h1 />
 // oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
@@ -243,7 +243,7 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-// Named after the title's last segment for the reason Introduction is: a
+// Named after the title's last segment for the reason GettingStarted is: a
 // component holding one story of the same name folds into a single sidebar
 // leaf, and any other name puts a disclosure triangle with one child in
 // front of it.

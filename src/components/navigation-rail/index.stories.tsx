@@ -4,19 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { useCallback, useMemo, useState } from 'react'
 
 import NavigationRail from '.'
-import { spacing } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
-import Separator from '../separator'
-import Text from '../text'
-
-// See avatar/index.stories.tsx for why the overview is built from the
-// library's own components, why its sections are divided by a rule, and why
-// the headings go through Text's `render`.
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_1 = <h1 />
-// oxlint-disable-next-line jsx-a11y/heading-has-content -- filled by useRender
-const HEADING_2 = <h2 />
-const PARAGRAPH = <p />
 
 const styles = stylex.create({
   // The rail runs the height of what holds it, as it would the window's.
@@ -24,37 +12,9 @@ const styles = stylex.create({
     blockSize: '440px',
     display: 'flex',
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xs,
-  },
   icon: {
     blockSize: '1em',
     inlineSize: '1em',
-  },
-  intro: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xxs,
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.xl,
-    marginInline: 'auto',
-    maxInlineSize: '960px',
-    padding: spacing.xl,
-  },
-  row: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.xl,
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.lg,
   },
 })
 
@@ -187,70 +147,6 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
-const Overview: Story = {
-  render: () => (
-    <div {...stylex.props(styles.page)}>
-      <header {...stylex.props(styles.header)}>
-        <Text render={HEADING_1} variant="displaySmall">
-          NavigationRail
-        </Text>
-        <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          Top-level destinations down the leading edge of a medium or wider
-          window.
-        </Text>
-      </header>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            Collapsed and expanded
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            Collapsed, the rail is a 96px column with each label under its icon.
-            With `isExpanded` it widens to between 220px and 360px and each
-            destination becomes a 56px pill, its label beside the icon — the
-            form the page has replace the navigation drawer. The current
-            destination is the one `selectedRoute` names.
-          </Text>
-        </div>
-        <div {...stylex.props(styles.row)}>
-          <div {...stylex.props(styles.frame)}>
-            <NavigationRail aria-label="Collapsed" selectedRoute="#first">
-              {DESTINATIONS}
-            </NavigationRail>
-          </div>
-          <div {...stylex.props(styles.frame)}>
-            <NavigationRail
-              aria-label="Expanded"
-              isExpanded
-              selectedRoute="#first"
-            >
-              {DESTINATIONS}
-            </NavigationRail>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      <section {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.intro)}>
-          <Text render={HEADING_2} variant="titleLarge">
-            A header
-          </Text>
-          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            `header` draws what sits above the destinations — here the menu
-            button that expands the rail and collapses it again.
-          </Text>
-        </div>
-        <Expandable />
-      </section>
-    </div>
-  ),
-}
-
 const Default: Story = {}
 
 // The expanded form, each destination a pill.
@@ -265,6 +161,6 @@ const WithHeader: Story = {
   render: () => <Expandable />,
 }
 
-export { Default, Expanded, Overview, WithHeader }
+export { Default, Expanded, WithHeader }
 
 export default meta
