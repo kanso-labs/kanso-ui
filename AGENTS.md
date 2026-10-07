@@ -968,15 +968,20 @@ the person merging types one, and nothing reminds them to. So the jump is
 in two steps:
 
 1. **Merge the pull request that sets the key only once the `v1.0.0` milestone
-   holds nothing else.** Its push makes release-please rewrite the release pull
-   request to propose 1.0.0, and the next scheduled run merges that like any
-   other release, which tags it and publishes it to npm. Merging the key is
-   therefore the decision to release.
+   holds nothing else.** The key changes the version release-please proposes and
+   nothing else, so it reaches a release pull request only alongside a commit
+   the changelog shows. If one is still unreleased, the push rewrites the open
+   release pull request to 1.0.0; if not, release-please skips the run as "No
+   user facing commits found", since the key's own pull request is a `chore`,
+   and the next `feat`, `fix`, `perf`, `deps` or `revert` to merge proposes
+   1.0.0 instead. Either way the scheduled run then merges it like any other
+   release, which tags it and publishes it to npm, so merging the key is the
+   decision to release.
 2. **Remove the key in the next pull request once 1.0.0 is tagged.**
    release-please reads `release-as` as the version to propose, not as a floor,
-   so while the key stays every later run proposes 1.0.0 again and versioning
-   stops following the commits. The removal is a `chore`, so it releases
-   nothing, and it should be the first merge after the release.
+   so while the key stays every later release pull request proposes 1.0.0 again
+   and versioning stops following the commits. The removal is a `chore`, so it
+   releases nothing, and it should be the first merge after the release.
 
 The names themselves follow five rules:
 
