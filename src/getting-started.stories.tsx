@@ -513,6 +513,21 @@ function GettingStartedPage() {
             their defaults.
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            The colour roles are Material Design&apos;s, so a whole scheme can
+            come from{' '}
+            <Link
+              href="https://material-foundation.github.io/material-theme-builder/"
+              {...LINK_TARGET}
+            >
+              Material Theme Builder
+            </Link>
+            . Its JSON export names every colour role here but{' '}
+            <Code>positive</Code> and <Code>negative</Code>, with{' '}
+            <Code>onPrimaryContainer</Code> standing for{' '}
+            <Code>--kui-color-on-primary-container</Code>, and the README turns
+            the file into the overrides above and covers those two as well.
+          </Text>
+          <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
             An app that uses StyleX itself themes the same way. The token
             objects <Code>stylex.createTheme()</Code> would take —{' '}
             <Code>colors</Code>, <Code>typography</Code>, <Code>spacing</Code>,{' '}
