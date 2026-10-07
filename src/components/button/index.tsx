@@ -231,7 +231,9 @@ const styles = stylex.create({
   // and weight included, since the role is what the page names. The two
   // largest paddings are literals: 48 and 64 are not steps of the spacing
   // scale, and the scale should not grow to fit one component. `md` is the
-  // page's S, which it calls the default.
+  // page's S, which it calls the default. `xs` pads 12 a side, the
+  // `md.comp.button.xsmall` token set's leading and trailing space, which
+  // Compose's extra-small button pads by too.
   //
   // The height is a floor rather than a fixed size, so a label too long for
   // its row — a translation at a phone's width, say — wraps and grows the
@@ -351,17 +353,21 @@ const styles = stylex.create({
     paddingInline: '48px',
   },
   // The smaller of the two the page requires a 48dp target of, so its box
-  // reaches 8dp past each edge. See `md`.
+  // reaches 8dp past each edge. See `md`. Across, its 12dp a side clears the
+  // target only for a label at least 24dp wide, so for a narrower button the
+  // box reaches past the sides as well, by half of what it lacks, and a
+  // wider one keeps it at its sides as `md` does. The percentage is the
+  // button's own width, the box's containing block.
   xs: {
     '::before': {
       content: '""',
       insetBlock: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2)`,
-      insetInline: 0,
+      insetInline: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       position: 'absolute',
     },
     minBlockSize: sizing.controlXs,
     paddingBlock: spacing.xs,
-    paddingInline: spacing.lg,
+    paddingInline: spacing.md,
   },
   xxl: {
     fontFamily: typography.headlineLargeFont,
@@ -406,7 +412,7 @@ const PADDINGS = {
   lg: spacing.xl,
   md: spacing.lg,
   xl: '48px',
-  xs: spacing.lg,
+  xs: spacing.md,
   xxl: '64px',
 }
 

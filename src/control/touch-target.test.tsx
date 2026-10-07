@@ -332,6 +332,23 @@ describe('the button, of which the page requires two sizes', () => {
     })
   })
 
+  // Its 12 a side clears 48 across only for a label at least 24 wide, so a
+  // narrower extra-small button reaches past its sides as well, and only as
+  // far as 48. The labelled cases above are wider, and stop at the sides.
+  it('takes a press out to 48 across an xs narrower than that', () => {
+    const button = renderWithRoom(
+      <Button aria-label="Label" size="xs">
+        <span />
+      </Button>,
+    ).getByRole('button')
+    const reach = (TARGET - button.getBoundingClientRect().width) / 2
+
+    // A button already 48 across would leave nothing to measure.
+    expect(reach).toBeGreaterThan(1)
+    expect(reaches(button, reach - 1).before).toBe(true)
+    expect(reaches(button, reach + 1).before).toBe(false)
+  })
+
   it('draws no target around lg, which is over it already', () => {
     expect(reaches(labelledButton('lg'), 1)).toMatchObject({
       above: false,

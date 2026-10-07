@@ -304,7 +304,7 @@ describe('appearance', () => {
   // inline padding and the outlined border's width, XS to XL.
   it("renders each size at the spec's height, padding and outline width", () => {
     const sizes = [
-      ['xs', '32px', '16px', '1px'],
+      ['xs', '32px', '12px', '1px'],
       ['md', '40px', '16px', '1px'],
       ['lg', '56px', '24px', '1px'],
       ['xl', '96px', '48px', '2px'],
