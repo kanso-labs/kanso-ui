@@ -476,6 +476,72 @@ default value — useful for discovering names, not required at runtime
 import '@kanso-labs/kanso-ui/tokens.css'
 ```
 
+### A scheme from Material Theme Builder
+
+The colour roles are Material Design's, so a whole scheme can come from
+[Material Theme Builder](https://material-foundation.github.io/material-theme-builder/)
+rather than being written out one role at a time. Pick a source colour there, or
+one each for primary, secondary and tertiary, and export the theme as JSON. The
+file, `material-theme.json`, keeps its schemes under `schemes`, and the `light`
+and `dark` ones each name 49 roles in camel case. Every one of them is a role
+here under the same name, `onPrimaryContainer` being
+`--kui-color-on-primary-container`, so this script turns the two into the
+overrides above:
+
+```js
+// node theme.mjs material-theme.json > theme.css
+import { readFileSync } from 'node:fs'
+
+const { schemes } = JSON.parse(readFileSync(process.argv[2], 'utf8'))
+
+// onPrimaryContainer becomes --kui-color-on-primary-container.
+const block = (scheme, indent) =>
+  Object.entries(scheme)
+    .map(([role, value]) => {
+      const name = role.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+      return `${indent}--kui-color-${name}: ${value};`
+    })
+    .join('\n')
+
+console.log(`:root {
+${block(schemes.light, '  ')}
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+${block(schemes.dark, '    ')}
+  }
+}`)
+```
+
+`schemes` holds a medium-contrast and a high-contrast version of each scheme as
+well, `light-medium-contrast` and the rest; read those in place of `light` and
+`dark` for an app that offers more contrast. An app that pins light or dark keys
+the two blocks on its own switch rather than on the media query, as
+[Pinning light or dark](#pinning-light-or-dark) describes.
+
+That leaves `positive` and `negative`, the two roles here that Material Design
+does not have. They are the `positive` and `negative` tones on `Avatar`,
+`Currency`, `Meter`, `ProductIcon`, `Tag` and `Text`, the pair `Currency`'s
+`auto` tone picks between by a value's sign, and they are kept apart from
+`error` so that a negative amount does not read as a failed field. The export
+has no role for them, so they keep the library's own green and rust unless you
+set them as well. To match them to a brand, add each as a custom colour in Theme
+Builder. It draws a custom colour at the tones Material Design draws `error` at,
+40, 100, 90 and 10 in light and 80, 20, 30 and 90 in dark, which is how the
+library's own two are drawn, and its four roles in each scheme map onto four
+here:
+
+| Custom colour role  | Here                                |
+| ------------------- | ----------------------------------- |
+| Colour              | `--kui-color-positive`              |
+| On colour           | `--kui-color-on-positive`           |
+| Colour container    | `--kui-color-positive-container`    |
+| On colour container | `--kui-color-on-positive-container` |
+
+`negative` takes its four the same way. With the 49 from the script, that is
+every colour role `tokens.css` lists.
+
 ### Theming part of a page
 
 The tokens resolve once, on `:root`, and every component inherits them already
