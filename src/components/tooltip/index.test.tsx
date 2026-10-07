@@ -3,6 +3,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Tooltip from '.'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 
@@ -183,6 +184,32 @@ describe('tooltip', () => {
       expect(style.fontSize).toBe('12px')
       expect(style.lineHeight).toBe('16px')
       expect(tooltip.getBoundingClientRect().height).toBe(24)
+    })
+  })
+
+  describe('elevation', () => {
+    // The plain tooltip's tokens carry no elevation, so it casts no shadow,
+    // where the anchored surfaces it shares the popup style with cast
+    // level 2.
+    it('casts no shadow', () => {
+      const view = setup({ defaultOpen: true })
+      const tooltip = settled(view.getByRole('tooltip'))
+
+      expect(getComputedStyle(tooltip).boxShadow).toBe('none')
+    })
+
+    // With no shadow its edge under forced colours is the border alone,
+    // drawn in the text colour round a fill the mode paints in the page's.
+    it('keeps its border under forced colours', () => {
+      const view = setup({ defaultOpen: true })
+      const rules = declarationsHeld(
+        view.getByRole('tooltip'),
+        'forced-colors: active',
+      )
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('canvastext')
     })
   })
 

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 
 import Dialog from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, shadows } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
 
@@ -15,6 +15,7 @@ import IconButton from '../icon-button'
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   body: { color: colors.onSurfaceVariant },
+  elevation3: { boxShadow: shadows.elevation3 },
   scrim: {
     backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
   },
@@ -33,6 +34,7 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   body: classesOf(stylex.props(probeStyles.body)),
+  elevation3: classesOf(stylex.props(probeStyles.elevation3)),
   scrim: classesOf(stylex.props(probeStyles.scrim)),
   surface: classesOf(stylex.props(probeStyles.surface)),
 }
@@ -353,6 +355,14 @@ describe('dialog', () => {
       const view = setup()
       expect(
         hasClasses(containerOf(view.getByRole('dialog')), CLASSES.surface),
+      ).toBe(true)
+    })
+
+    // The dialogs page lifts the container to elevation level 3.
+    it('lifts the container to elevation 3', () => {
+      const view = setup()
+      expect(
+        hasClasses(containerOf(view.getByRole('dialog')), CLASSES.elevation3),
       ).toBe(true)
     })
 
