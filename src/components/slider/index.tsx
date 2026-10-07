@@ -379,11 +379,16 @@ const styles = stylex.create({
   thumbFocused: {
     outlineStyle: 'solid',
   },
+  // A vertical slider's handle, centred across the track. React Aria sets
+  // its `top` and translates it back by half its size on both axes, and the
+  // translate is physical, so the other half of the centring is a physical
+  // `left` too: a logical inset is the right edge under right-to-left, where
+  // the same translate would carry the handle a whole width off the track.
   thumbVertical: {
     blockSize: `${HANDLE_WIDTH}px`,
     inlineSize: 'var(--slider-handle)',
     insetBlockStart: 'auto',
-    insetInlineStart: '50%',
+    left: '50%',
   },
   // The strip the handles are placed along: as long across as the handle,
   // so a press anywhere on it lands on the slider.
