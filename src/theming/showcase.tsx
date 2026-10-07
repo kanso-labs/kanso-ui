@@ -780,11 +780,16 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="An inline span on a surface of its own, sized from the text around it rather than from a step of the scale."
+            description="An inline span in the mono face the scheme's type carries, taking its colour and its size from the text around it."
             title="Code"
           >
-            <div {...stylex.props(styles.row)}>
-              <Code>--kui-radius-md</Code>
+            <div {...stylex.props(styles.intro)}>
+              <Text block variant="bodyLarge">
+                A line naming <Code>--kui-radius-md</Code>
+              </Text>
+              <Text block tone="muted" variant="bodyLarge">
+                A muted line naming <Code>--kui-radius-md</Code>
+              </Text>
             </div>
           </Section>
 

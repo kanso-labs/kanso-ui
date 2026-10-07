@@ -3,8 +3,16 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import Code from '.'
+import { colors } from '../../tokens/design.tokens.stylex'
+import Text from '../text'
 
 const harnessStyles = stylex.create({
+  // A tooltip's and a snackbar's surface, with the text role that pairs
+  // with it.
+  inverse: {
+    backgroundColor: colors.inverseSurface,
+    color: colors.inverseOnSurface,
+  },
   narrow: { inlineSize: '80px' },
   prose: { fontFamily: 'Georgia, serif', fontSize: '32px' },
 })
@@ -55,6 +63,38 @@ describe('code', () => {
       )
       // 0.875em against the harness's 32px.
       expect(getComputedStyle(view.getByTestId('code')).fontSize).toBe('28px')
+    })
+  })
+
+  // Code follows the prose it interrupts, so its colour is the line's
+  // whatever the line's tone, rather than on surface in every line.
+  describe('colour', () => {
+    it.each(['muted', 'error', 'neutral'] as const)(
+      'takes the colour of a %s line around it',
+      (tone) => {
+        const view = render(
+          <Text data-testid="line" tone={tone}>
+            A line naming <Code data-testid="code">identifier</Code>
+          </Text>,
+        )
+
+        expect(getComputedStyle(view.getByTestId('code')).color).toBe(
+          getComputedStyle(view.getByTestId('line')).color,
+        )
+      },
+    )
+
+    // On surface over inverse surface is about 1.3:1, which nobody reads.
+    it('takes the text role of an inverse surface around it', () => {
+      const view = render(
+        <div data-testid="surface" {...stylex.props(harnessStyles.inverse)}>
+          <Code data-testid="code">identifier</Code>
+        </div>,
+      )
+
+      expect(getComputedStyle(view.getByTestId('code')).color).toBe(
+        getComputedStyle(view.getByTestId('surface')).color,
+      )
     })
   })
 

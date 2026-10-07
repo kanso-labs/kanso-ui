@@ -10,7 +10,7 @@ import ListItem from './components/list-item'
 import ProductIcon from './components/product-icon'
 import Separator from './components/separator'
 import Text from './components/text'
-import { spacing, typography } from './tokens/design.tokens.stylex'
+import { colors, spacing, typography } from './tokens/design.tokens.stylex'
 
 // See avatar/index.stories.tsx for why the page is built from the library's
 // own components rather than from shell components of its own, and why its
@@ -159,8 +159,11 @@ const styles = stylex.create({
   // UA margin it arrives with, and a line too long for the page. Code sizes
   // itself in em, so the size set here is what its 0.875em is measured
   // against — without it the block would be scaled off the browser's own
-  // monospace default rather than off the type scale.
+  // monospace default rather than off the type scale. Code takes its colour
+  // from around it too, and a Card inherits its own, so the on surface role
+  // the card's fill pairs with is set here.
   snippet: {
+    color: colors.onSurface,
     fontSize: typography.bodyMediumSize,
     margin: 0,
     overflowX: 'auto',
