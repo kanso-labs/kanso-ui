@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.1](https://github.com/kanso-labs/kanso-ui/compare/v0.40.0...v0.40.1) (2026-10-08)
+
+
+### Dependencies
+
+* update dependency vite to v8.3.4 ([#1387](https://github.com/kanso-labs/kanso-ui/issues/1387)) ([afb4afc](https://github.com/kanso-labs/kanso-ui/commit/afb4afcf98cb76ad62c8d7894f145d4c9b7f2815))
+* update kanso-labs/actions action to v4.2.1 ([#1388](https://github.com/kanso-labs/kanso-ui/issues/1388)) ([287605a](https://github.com/kanso-labs/kanso-ui/commit/287605aed5694e371c3cf7258ca0a22910046de9))
+
 ## [0.40.0](https://github.com/kanso-labs/kanso-ui/compare/v0.39.5...v0.40.0) (2026-10-08)
 
 
