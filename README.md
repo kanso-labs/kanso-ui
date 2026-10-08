@@ -272,6 +272,21 @@ content given `slot="close"`:
 </Sheet>
 ```
 
+A sheet or dialog nothing on the page opens, such as one a route shows or a menu
+item raises, has no trigger. It is then `Sheet.Content` or `Dialog.Content` on
+its own, holding the open state through `isOpen` and `onOpenChange`; a
+`slot="close"` button, Escape and the scrim report through `onOpenChange` as
+they would to the trigger. Wrapped in `Sheet` or `Dialog` with no button inside,
+React Aria warns that its press responder found nothing to press.
+
+```tsx
+<Sheet.Content isOpen={isOpen} onOpenChange={setOpen}>
+  <Sheet.Header>
+    <Sheet.Title>Headline</Sheet.Title>
+  </Sheet.Header>
+</Sheet.Content>
+```
+
 An open overlay carries a visually hidden dismiss button for screen readers,
 named in the reader's language like every other control here; see
 [Localisation](#localisation).

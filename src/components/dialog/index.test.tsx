@@ -3,6 +3,8 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 
+import type { DialogContentProps } from '.'
+
 import Dialog from '.'
 import { colors, shadows } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
@@ -231,6 +233,19 @@ function setup(
   )
 }
 
+/**
+ * A dialog with no trigger: the content part on its own, holding the open
+ * state `Dialog` would otherwise hold.
+ */
+function standalone(content: Partial<DialogContentProps> = {}) {
+  return render(
+    <Dialog.Content {...content}>
+      <Dialog.Title>Headline</Dialog.Title>
+      <Button slot="close">Cancel</Button>
+    </Dialog.Content>,
+  )
+}
+
 // Sixty lines of body, far more than any viewport holds, which is what shows
 // whether the body scrolls or the container clips it.
 const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
@@ -396,6 +411,57 @@ describe('dialog', () => {
         expect(onOpenChange).toHaveBeenCalledWith(false)
       })
       expect(view.getByRole('dialog')).not.toBeNull()
+    })
+  })
+
+  // A dialog nothing on the page opens, such as one a route shows, is the
+  // content part on its own, holding the open state the trigger would have.
+  describe('without a trigger', () => {
+    it('opens from isOpen, named by its title', () => {
+      const view = standalone({ isOpen: true })
+
+      expect(view.getByRole('dialog').getAttribute('aria-labelledby')).toBe(
+        view.getByText('Headline').id,
+      )
+    })
+
+    it('renders nothing while isOpen is false', () => {
+      expect(standalone({ isOpen: false }).queryByRole('dialog')).toBeNull()
+    })
+
+    // Controlled, as through `Dialog`: closing reports it, and nothing moves
+    // until the prop comes back different.
+    it('reports a close from a slot="close" button to onOpenChange', async () => {
+      const onOpenChange = vi.fn<(isOpen: boolean) => void>()
+      const view = standalone({ isOpen: true, onOpenChange })
+
+      fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+      await waitFor(() => {
+        expect(onOpenChange).toHaveBeenCalledWith(false)
+      })
+      expect(view.getByRole('dialog')).not.toBeNull()
+    })
+
+    it('closes itself when it keeps its own state', async () => {
+      const view = standalone({ defaultOpen: true })
+
+      fireEvent.keyDown(view.getByRole('dialog'), { key: 'Escape' })
+      await waitFor(() => {
+        expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    // `Dialog` with no button inside it warns that React Aria's press
+    // responder found nothing to press, which leaving it out is for.
+    it('warns about nothing', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      try {
+        // Open, so a quiet console is one that rendered the whole dialog.
+        expect(standalone({ isOpen: true }).getByRole('dialog')).not.toBeNull()
+        expect(warn).not.toHaveBeenCalled()
+      } finally {
+        warn.mockRestore()
+      }
     })
   })
 
