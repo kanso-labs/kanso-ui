@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.0](https://github.com/kanso-labs/kanso-ui/compare/v0.39.5...v0.40.0) (2026-10-08)
+
+
+### Features
+
+* **sheet,dialog:** take isOpen on the content, for a sheet or dialog with no trigger ([#1385](https://github.com/kanso-labs/kanso-ui/issues/1385)) ([334ee8e](https://github.com/kanso-labs/kanso-ui/commit/334ee8e13db716f07ff867af8eed520926d7e615))
+
 ## [0.39.5](https://github.com/kanso-labs/kanso-ui/compare/v0.39.4...v0.39.5) (2026-10-08)
 
 
