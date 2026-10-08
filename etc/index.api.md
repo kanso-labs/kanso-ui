@@ -675,7 +675,7 @@ export type DialogContentProps = {
     container?: Element;
     isDismissable?: boolean;
     style?: StyleOrFunction<ModalRenderProps>;
-} & Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'>;
+} & Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'>;
 
 // @public (undocumented)
 export function DialogFooter(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
@@ -1533,7 +1533,7 @@ export function SheetBody(input: HTMLAttributes<HTMLDivElement> & RefAttributes<
 export function SheetContent(input: RefAttributes<HTMLDivElement> & SheetContentProps): JSX;
 
 // @public (undocumented)
-export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'> & {
+export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'> & {
     className?: ClassNameOrFunction<ModalRenderProps>;
     container?: Element;
     isDismissable?: boolean;

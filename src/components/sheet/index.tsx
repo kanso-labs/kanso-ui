@@ -296,6 +296,12 @@ type SheetProps = Omit<DialogTriggerProps, 'children'> & {
  * `Button` or `IconButton` placed directly inside `Sheet` opens it, and one
  * given `slot="close"` anywhere inside the content closes it; neither needs
  * a part of its own.
+ *
+ * `Sheet` is the trigger's half, so a sheet nothing on the page opens — one
+ * a route shows, or a menu item raises — leaves it out and passes `isOpen`
+ * and `onOpenChange` to `Sheet.Content` instead. Wrapped in `Sheet` with no
+ * button inside it, React Aria warns that its press responder found nothing
+ * to press.
  */
 function Sheet({ children, ...props }: SheetProps) {
   return <DialogTrigger {...props}>{children}</DialogTrigger>
@@ -336,21 +342,32 @@ function SheetBody({
  * A press on the scrim closes the sheet unless `isDismissable` says
  * otherwise — React Aria's own default is the reverse, and a sheet that
  * ignores a tap outside it reads as stuck.
+ *
+ * Inside `Sheet`, the open state is the trigger's. On its own, with no
+ * trigger, it is this part's: `isOpen` with `onOpenChange` controls it, and
+ * a `slot="close"` button, Escape and the scrim all report through
+ * `onOpenChange`, as they would to `Sheet`.
  */
 function SheetContent({
   children,
   className,
   container,
+  defaultOpen,
   isDismissable = true,
   isKeyboardDismissDisabled,
+  isOpen,
+  onOpenChange,
   ref,
   style,
   ...props
 }: RefAttributes<HTMLDivElement> & SheetContentProps) {
   return (
     <ModalOverlay
+      defaultOpen={defaultOpen}
       isDismissable={isDismissable}
       isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
       {...stylex.props(overlay.scrim)}
@@ -435,16 +452,20 @@ Sheet.Handle = SheetHandle
 Sheet.Header = SheetHeader
 Sheet.Title = SheetTitle
 
-// The dialog's own props, plus the scrim's dismissal settings and the panel's
-// styling. A call site has no reason to know there are three elements:
-// `className` and `style` reach the panel, which is the one worth restyling
-// and positioning, and everything else lands on the dialog.
+// The dialog's own props, plus the scrim's open state and dismissal settings
+// and the panel's styling. A call site has no reason to know there are three
+// elements: `className` and `style` reach the panel, which is the one worth
+// restyling and positioning, the open state and the dismissal settings reach
+// the scrim, and everything else lands on the dialog.
 //
-// `isDismissable` is declared here rather than picked with its sibling, since
-// the picked one carries React Aria's documentation, whose default is the
-// reverse of this component's.
+// `isDismissable` is declared here rather than picked with its siblings,
+// since the picked one carries React Aria's documentation, whose default is
+// the reverse of this component's.
 type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
-  Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'> & {
+  Pick<
+    ModalOverlayProps,
+    'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'
+  > & {
     /** A function may compute the class from the panel's render state. */
     className?: ClassNameOrFunction<ModalRenderProps>
     /**

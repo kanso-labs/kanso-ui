@@ -340,6 +340,12 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
  * `Dialog.Footer`. A `Button` or `IconButton` placed directly inside
  * `Dialog` opens it, and one given `slot="close"` anywhere inside the
  * content closes it; neither needs a part of its own.
+ *
+ * `Dialog` is the trigger's half, so a dialog nothing on the page opens — one
+ * a route shows, or a menu item raises — leaves it out and passes `isOpen`
+ * and `onOpenChange` to `Dialog.Content` instead. Wrapped in `Dialog` with no
+ * button inside it, React Aria warns that its press responder found nothing
+ * to press.
  */
 function Dialog({ children, ...props }: DialogProps) {
   return <DialogTrigger {...props}>{children}</DialogTrigger>
@@ -393,13 +399,21 @@ function DialogBody({
  * and `isDismissable` says nothing about it — so a dialog that has to be
  * answered from one of its actions, as an alert dialog usually does, turns
  * off both.
+ *
+ * Inside `Dialog`, the open state is the trigger's. On its own, with no
+ * trigger, it is this part's: `isOpen` with `onOpenChange` controls it, and
+ * a `slot="close"` button, Escape and the scrim all report through
+ * `onOpenChange`, as they would to `Dialog`.
  */
 function DialogContent({
   children,
   className,
   container,
+  defaultOpen,
   isDismissable = true,
   isKeyboardDismissDisabled,
+  isOpen,
+  onOpenChange,
   ref,
   style,
   ...props
@@ -409,8 +423,11 @@ function DialogContent({
   return (
     <BasicContext value={isBasic}>
       <ModalOverlay
+        defaultOpen={defaultOpen}
         isDismissable={isDismissable}
         isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
         {...stylex.props(overlay.scrim, styles.centre, isBasic && basic.centre)}
@@ -493,14 +510,15 @@ Dialog.Footer = DialogFooter
 Dialog.Header = DialogHeader
 Dialog.Title = DialogTitle
 
-// The dialog's own props, plus the scrim's dismissal settings and the
-// container's styling. A call site has no reason to know there are three
-// elements: `className` and `style` reach the container, which is the one
-// worth restyling, and everything else lands on the dialog.
+// The dialog's own props, plus the scrim's open state and dismissal settings
+// and the container's styling. A call site has no reason to know there are
+// three elements: `className` and `style` reach the container, which is the
+// one worth restyling, the open state and the dismissal settings reach the
+// scrim, and everything else lands on the dialog.
 //
-// `isDismissable` is declared here rather than picked with its sibling, since
-// the picked one carries React Aria's documentation, whose default is the
-// reverse of this component's.
+// `isDismissable` is declared here rather than picked with its siblings,
+// since the picked one carries React Aria's documentation, whose default is
+// the reverse of this component's.
 type DialogContentProps = {
   /** A function may compute the class from the container's render state. */
   className?: ClassNameOrFunction<ModalRenderProps>
@@ -524,7 +542,10 @@ type DialogContentProps = {
   /** A function may compute the style from the container's render state. */
   style?: StyleOrFunction<ModalRenderProps>
 } & Omit<RACDialogProps, 'className' | 'style'> &
-  Pick<ModalOverlayProps, 'isKeyboardDismissDisabled'>
+  Pick<
+    ModalOverlayProps,
+    'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'
+  >
 
 type DialogTitleProps = HeadingProps
 
