@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.4](https://github.com/kanso-labs/kanso-ui/compare/v0.39.3...v0.39.4) (2026-10-07)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.20 ([#1380](https://github.com/kanso-labs/kanso-ui/issues/1380)) ([03feac5](https://github.com/kanso-labs/kanso-ui/commit/03feac558ad487513ee8cc3694a68f13201df326))
+* update dependency playwright to v1.64.0 ([#1382](https://github.com/kanso-labs/kanso-ui/issues/1382)) ([e546081](https://github.com/kanso-labs/kanso-ui/commit/e5460815ff1bcab5223a5b6090cd43caa3685852))
+
 ## [0.39.3](https://github.com/kanso-labs/kanso-ui/compare/v0.39.2...v0.39.3) (2026-10-07)
 
 
