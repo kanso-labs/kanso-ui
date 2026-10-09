@@ -59,6 +59,9 @@ const LEADING = (
   </IconButton>
 )
 
+// One German word, as wide as a headline gets without a space to break at.
+const LONG_WORD = 'Unterstützungszeilenüberschrift'
+
 const TRAILING = (
   <IconButton aria-label="More">
     <MoreIcon />
@@ -204,15 +207,25 @@ const Collapsing: Story = {
 // Its own story because the heights are minimums rather than fixed: in a window
 // too narrow for the headline the bar grows to a second line instead of cutting
 // it off, which Material Design gives the flexible bars as multi-line support.
+// A word wider than the room breaks too, hyphenated in the language the page
+// is in, rather than running under the trailing slot.
 const LongHeadline: Story = {
   render: () => (
-    <div {...stylex.props(styles.narrow)}>
+    <div {...stylex.props(styles.narrow, styles.stack)}>
       <Sample
         headline="A headline long enough to need more than one line"
         label="lg, in a narrow window"
         leading={LEADING}
         size="lg"
       />
+      <div lang="de">
+        <Sample
+          headline={LONG_WORD}
+          label="sm, one word wider than the room, in German"
+          leading={LEADING}
+          trailing={TRAILING}
+        />
+      </div>
     </div>
   ),
 }
