@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import Select from '.'
 import { atFootOfWindow, originOf } from '../../styles/overlay.testing'
@@ -10,6 +11,8 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Dialog from '../dialog'
 import ListBox from '../list-box'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -178,6 +181,58 @@ describe('select', () => {
     it('shows the description when there is no error', () => {
       const view = setup({ description: 'Supporting line' })
       expect(view.getByText('Supporting line')).not.toBeNull()
+    })
+  })
+
+  // The whole box opens the list, which only holds while the press target
+  // is what a pointer lands on. Every test here presses at real coordinates:
+  // a click dispatched on the button itself skips hit testing, which is how
+  // a box whose column covered the button passed every test above.
+  describe('pressing the box', () => {
+    it('puts the press target under every point across the box', () => {
+      const { trigger } = setup()
+      const box = trigger.getBoundingClientRect()
+      for (const fraction of [0.05, 0.25, 0.5, 0.75, 0.95]) {
+        const hit = document.elementFromPoint(
+          box.left + box.width * fraction,
+          box.top + box.height / 2,
+        )
+        expect(hit === trigger || trigger.contains(hit)).toBe(true)
+      }
+    })
+
+    // Forced, so the pointer goes down wherever the label is drawn and the
+    // press lands on whatever is on top there, rather than Playwright first
+    // checking the label is what it would hit.
+    it('opens the list from a press on the label', async () => {
+      const view = setup()
+      await userEvent.click(view.getByText('Label'), { force: true })
+      await waitFor(() => {
+        expect(view.getByRole('listbox')).not.toBeNull()
+      })
+      expect(view.trigger.getAttribute('aria-expanded')).toBe('true')
+    })
+
+    it('opens the list inside a dialog and leaves the dialog open', async () => {
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Headline</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Select label="Label" options={OPTIONS} />
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const label = await view.findByText('Label')
+      await userEvent.click(label, { force: true })
+      await waitFor(() => {
+        expect(view.getByRole('listbox')).not.toBeNull()
+      })
+      expect(view.getByRole('dialog', { name: 'Headline' })).not.toBeNull()
     })
   })
 
