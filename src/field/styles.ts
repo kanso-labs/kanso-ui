@@ -156,6 +156,9 @@ const fieldChromeStyles = stylex.create({
       default: `inset 0 -1px 0 0 ${colors.outline}`,
     },
     boxSizing: 'border-box',
+    // The whole box focuses its control — see FieldBox — so the whole box
+    // says it takes text.
+    cursor: 'text',
     display: 'flex',
     gap: spacing.lg,
     // The ring's offset and width are the library's own, from
@@ -189,6 +192,7 @@ const fieldChromeStyles = stylex.create({
     // disabled field draws is the one an editable field draws.
     borderBlockEndColor: { default: null, [FORCED_COLORS]: 'GrayText' },
     boxShadow: `inset 0 -1px 0 0 color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    cursor: 'default',
   },
   // Error is the one state with nothing to add here. Forced colours takes the
   // colour and leaves the shape, and colour is all this changes — the
@@ -358,6 +362,7 @@ const fieldChromeStyles = stylex.create({
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
       [FORCED_COLORS]: 'GrayText',
     },
+    cursor: 'default',
   },
   boxOutlinedError: {
     color: colors.error,
