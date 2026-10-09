@@ -16,6 +16,10 @@ function stayOnPage(event: SyntheticEvent<HTMLFormElement>) {
 
 const styles = stylex.create({
   // A group fills its container, so the samples need a width to fill.
+  // Narrower than the address, so it has to break.
+  narrow: {
+    inlineSize: '200px',
+  },
   sample: {
     maxInlineSize: '420px',
   },
@@ -138,6 +142,36 @@ const WithValidation: Story = {
   ),
 }
 
-export { Default, Horizontal, WithDescriptions, WithError, WithValidation }
+// Its own story because a word with nowhere to break — an address, a long
+// compound — breaks inside an option's label, the group's label and the lines under them rather than
+// widening the page.
+const LongLabel: Story = {
+  args: {
+    description: 'firstname.lastname@organisation.example.com',
+    label: 'Unterstützungszeilenüberschrift',
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <RadioGroup {...args}>
+        <Radio
+          description="firstname.lastname@organisation.example.com"
+          value="first"
+        >
+          Unterstützungszeilenüberschrift
+        </Radio>
+        <Radio value="second">Second item</Radio>
+      </RadioGroup>
+    </div>
+  ),
+}
+
+export {
+  Default,
+  Horizontal,
+  LongLabel,
+  WithDescriptions,
+  WithError,
+  WithValidation,
+}
 
 export default meta

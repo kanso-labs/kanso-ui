@@ -536,9 +536,13 @@ const fieldChromeStyles = stylex.create({
   // The colour alone. The type is inherited from whatever renders the label,
   // which is what lets the box move it — and the transition is here so the
   // inherited change animates on the label rather than snapping.
+  // A word wider than the room breaks rather than widening the page: a
+  // group's label and every field's supporting line wrap. A label inside a
+  // box is held to one line by `boxLabel`, which this leaves alone.
   label: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     color: colors.onSurfaceVariant,
+    overflowWrap: 'anywhere',
     transitionDuration: motion.durationShort3,
     transitionProperty:
       'color, font-size, inset-block-start, letter-spacing, line-height',
@@ -566,6 +570,7 @@ const fieldChromeStyles = stylex.create({
     letterSpacing: typography.bodySmallTracking,
     lineHeight: typography.bodySmallLineHeight,
     marginBlock: 0,
+    overflowWrap: 'anywhere',
   },
   messageError: {
     color: colors.error,

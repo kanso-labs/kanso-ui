@@ -110,13 +110,23 @@ const controlStyles = stylex.create({
     transitionProperty: 'background-color',
     transitionTimingFunction: motion.easingStandard,
   },
+  // The label's column is `minmax(0, 1fr)` rather than `1fr`, whose
+  // automatic minimum is the longest word in it: an email address, a URL or
+  // a German compound held the column at its own width and widened the page.
+  // The field shrinks below its content for the same reason, as a flex item
+  // in a horizontal group.
   field: {
     alignItems: 'start',
     boxSizing: 'border-box',
     columnGap: spacing.sm,
     display: 'grid',
-    gridTemplateColumns: 'auto 1fr',
+    gridTemplateColumns: 'auto minmax(0, 1fr)',
+    minInlineSize: 0,
   },
+  // Breaks inside a word that is wider than the column, and only there, so
+  // ordinary words stay whole. Not hyphenated: the words that need it are as
+  // often an address or a URL as a compound, and a hyphen drawn inside an
+  // address reads as part of it.
   label: {
     boxSizing: 'border-box',
     color: colors.onSurface,
@@ -124,8 +134,6 @@ const controlStyles = stylex.create({
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
     fontWeight: typography.bodyLargeWeight,
-    letterSpacing: typography.bodyLargeTracking,
-    lineHeight: typography.bodyLargeLineHeight,
     // Centres the label's first line on the 40dp control, whether the label
     // is one line or wraps to several. Half of whatever the disc has spare
     // over the line it sits beside, rather than a step of the spacing scale:
@@ -140,6 +148,10 @@ const controlStyles = stylex.create({
     //
     // A body line taller than the target has no room to centre in, and the
     // declaration falls away to nothing.
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
     paddingBlock: `calc((${LAYER_SIZE} - ${typography.bodyLargeLineHeight}) / 2)`,
   },
   // `GrayText` under forced colours, which greys the native input but not
@@ -158,7 +170,10 @@ const controlStyles = stylex.create({
   // The second column of the grid, so a message lines up under the label
   // rather than under the control.
   messages: {
+    boxSizing: 'border-box',
     gridColumnStart: 2,
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
   },
 })
 
