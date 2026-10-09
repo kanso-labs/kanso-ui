@@ -77,14 +77,22 @@ function probeFontSize(element: ReactElement) {
   return size
 }
 
-// Narrows with instanceof rather than an assertion, so a row that failed to
-// render fails here instead of further down with something obscure.
 function rowIn(container: HTMLElement) {
   const row = container.firstElementChild
   if (!(row instanceof HTMLElement)) {
     throw new Error('expected the row to render an element')
   }
   return row
+}
+
+// Narrows with instanceof rather than an assertion, so a row that failed to
+// render fails here instead of further down with something obscure.
+// Where an element's text ends, which a block's own box does not say: the
+// column it sits in is narrower than a string that paints out past it.
+function textRight(element: Element) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  return range.getBoundingClientRect().right
 }
 
 // The floor the hook holds a short press open to, taken from the token it
@@ -263,6 +271,34 @@ describe('list item', () => {
         .getByTestId('trailing')
         .getBoundingClientRect().right
       expect(trailingRight).toBeLessThanOrEqual(rowRight)
+    })
+  })
+
+  // The column giving way kept the trailing slot inside the row, but the
+  // string itself still painted on past the column, over the slot. Text with
+  // no hyphen or slash in it, since a browser breaks at either anyway.
+  describe('an unbroken string', () => {
+    it('breaks inside its column rather than painting over the trailing slot', () => {
+      const view = render(
+        <ListItem
+          leading={<span>lead</span>}
+          supporting="firstname.lastname@organisation.example.com"
+          trailing={<span data-testid="trailing">trailing</span>}
+        >
+          Unterstützungszeilenüberschriftenbearbeitung
+        </ListItem>,
+      )
+      rowIn(view.container).style.width = '260px'
+      const trailingLeft = view
+        .getByTestId('trailing')
+        .getBoundingClientRect().left
+
+      for (const text of [
+        view.getByText('Unterstützungszeilenüberschriftenbearbeitung'),
+        view.getByText('firstname.lastname@organisation.example.com'),
+      ]) {
+        expect(textRight(text)).toBeLessThanOrEqual(trailingLeft)
+      }
     })
   })
 

@@ -55,6 +55,9 @@ const SECOND = ['second']
 const SEARCH = <input aria-label="Search" />
 const SHORTCUT = <Keycap>⌘X</Keycap>
 
+// A label with one word wider than the surface's 280dp cap.
+const LONG_LABEL = 'Unterstützungszeilenüberschriftenbearbeitung bearbeiten'
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -409,6 +412,28 @@ describe('menu', () => {
       // The name is the label alone: the item points its aria-labelledby at
       // the labelled text rather than taking its whole text content.
       expect(item.textContent).toContain('⌘X')
+    })
+
+    // A label wider than the surface wraps and breaks inside a word that
+    // has nowhere else to, rather than running out of the surface and under
+    // the shortcut.
+    it('keeps a long label clear of the shortcut and inside the surface', () => {
+      const view = setup(
+        {},
+        <Menu.Item id="first" shortcut={SHORTCUT}>
+          {LONG_LABEL}
+        </Menu.Item>,
+      )
+      const label = view.getByText(LONG_LABEL)
+      const keycap = view.getByText('⌘X')
+      const surface = surfaceOf(view.getByRole('menu', { name: 'Open' }))
+
+      const text = document.createRange()
+      text.selectNodeContents(label)
+      expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+        keycap.getBoundingClientRect().left,
+      )
+      expect(surface.scrollWidth).toBeLessThanOrEqual(surface.clientWidth)
     })
 
     it('draws nothing after the label without one', () => {

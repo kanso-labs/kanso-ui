@@ -346,7 +346,10 @@ function itemContent(
 // No overline, and so no three-line row: the menus page gives one item
 // height and one line of text. `List.Item` and `ListBox.Item` take the prop
 // because the lists page is what they draw, and this row is 48dp rather than
-// that page's 56.
+// that page's 56. A label longer than the surface's 280dp still wraps, and
+// breaks inside a word that is wider than that, rather than running out of
+// the surface and under the shortcut — the shared row's rule, which nothing
+// here truncates.
 function itemStyles(state: MenuItemRenderProps) {
   return stylex.props(
     rowStyles.base,
