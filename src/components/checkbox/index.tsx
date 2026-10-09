@@ -43,6 +43,12 @@ import {
 // The adjacent label is body-large on surface, which the page keeps the same
 // whether or not the box is selected. The corner is a literal: the page's
 // 2dp is a step the shape scale does not carry.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   box: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
@@ -66,10 +72,12 @@ const styles = stylex.create({
     backgroundColor: colors.primary,
     borderColor: 'transparent',
   },
+  // Disabled, the box and the glyph are `GrayText` under forced colours,
+  // which greys the hidden native input but not the box drawn for it.
   boxMarkedDisabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
-    borderColor: 'transparent',
-    color: colors.surface,
+    borderColor: { default: 'transparent', [FORCED_COLORS]: 'GrayText' },
+    color: { default: colors.surface, [FORCED_COLORS]: 'GrayText' },
   },
   boxMarkedError: {
     backgroundColor: colors.error,
@@ -80,7 +88,10 @@ const styles = stylex.create({
     borderColor: colors.onSurface,
   },
   boxUnmarkedDisabled: {
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   boxUnmarkedError: {
     borderColor: colors.error,

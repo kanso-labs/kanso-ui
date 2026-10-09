@@ -9,6 +9,12 @@ import {
   typography,
 } from '../tokens/design.tokens.stylex'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // The row a selection control draws, shared by Checkbox, Switch and Radio.
 // Each wrote it out in full: the two-column grid, the body-large label with
 // its disabled and read-only fades, the messages cell under the text, and the
@@ -136,8 +142,14 @@ const controlStyles = stylex.create({
     // declaration falls away to nothing.
     paddingBlock: `calc((${LAYER_SIZE} - ${typography.bodyLargeLineHeight}) / 2)`,
   },
+  // `GrayText` under forced colours, which greys the native input but not
+  // the label beside it: without it a disabled label was drawn as an enabled
+  // one.
   labelDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
   },
   labelReadOnly: {

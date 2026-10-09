@@ -173,6 +173,12 @@ const styles = stylex.create({
   shortcut: {
     color: colors.onSurfaceVariant,
   },
+  // A disabled item's shortcut fades with its label, and is `GrayText` with
+  // it under forced colours, rather than staying at full strength beside a
+  // label that has faded — the rule the row's supporting line follows.
+  shortcutDisabled: {
+    color: 'inherit',
+  },
 })
 
 type MenuAlign = OverlayAlign
@@ -560,7 +566,14 @@ function trailingOf(
     <>
       {trailing}
       {shortcut === undefined ? null : (
-        <Keyboard {...stylex.props(styles.shortcut)}>{shortcut}</Keyboard>
+        <Keyboard
+          {...stylex.props(
+            styles.shortcut,
+            state.isDisabled && styles.shortcutDisabled,
+          )}
+        >
+          {shortcut}
+        </Keyboard>
       )}
     </>
   )

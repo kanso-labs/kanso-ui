@@ -77,11 +77,16 @@ const rowStyles = stylex.create({
   // a property whole, so it takes `interactiveLayers`' hover branch with it.
   //
   // Under forced colours it hands the row back to the mode, which a selected
-  // row opts out of, so a disabled row is the mode's to colour whatever it
-  // was.
+  // row opts out of, and names `GrayText` itself: the mode greys a native
+  // `:disabled` control and nothing else, so an aria-disabled row was drawn
+  // in `CanvasText` like every enabled row beside it. The supporting line
+  // and the overline inherit it — see `supportingInherit`.
   disabled: {
     backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },

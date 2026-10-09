@@ -7,6 +7,8 @@ import { page } from 'vitest/browser'
 
 import Button from '../components/button'
 import Calendar from '../components/calendar'
+import Checkbox from '../components/checkbox'
+import ChipGroup from '../components/chip-group'
 import ColorSlider from '../components/color-slider'
 import ColorSwatchPicker from '../components/color-swatch-picker'
 import DateField from '../components/date-field'
@@ -16,6 +18,7 @@ import List from '../components/list'
 import ListBox from '../components/list-box'
 import Menu from '../components/menu'
 import Meter from '../components/meter'
+import NavigationBar from '../components/navigation-bar'
 import NavigationTree from '../components/navigation-tree'
 import Popover from '../components/popover'
 import ProgressIndicator from '../components/progress-indicator'
@@ -60,6 +63,10 @@ const RANGE = {
 // stable, which is what react-perf is after.
 const isEleventh = (date: { day: number }) => date.day === 11
 
+// The item a disabled case turns off, hoisted so it is one stable array,
+// which is what react-perf is after.
+const SECOND = ['second']
+
 // What an icon button holds. Its drawing is beside the point here, since
 // nothing below reads it.
 const ICON = <svg />
@@ -67,6 +74,16 @@ const ICON = <svg />
 /** The one button `element` renders. */
 function buttonIn(element: ReactElement): Element {
   return render(element).getByRole('button')
+}
+
+// The box a checkbox draws beside its hidden input, and its label.
+function checkboxOf(props: { isDisabled?: boolean; isSelected?: boolean }) {
+  const view = render(<Checkbox {...props}>Label</Checkbox>)
+  const control = drawnAfter(view.getByRole('checkbox'))
+  return {
+    box: firstChildOf(control, 'a box'),
+    label: view.getByText('Label'),
+  }
 }
 
 /** A lone radio's dot, drawn inside its ring only while it is chosen. */
@@ -1079,5 +1096,131 @@ describe('a selection told by a fill alone', () => {
     expect(rules.get('border-top-style')).toBe('solid')
     expect(rules.get('border-top-width')).toBe('1px')
     expect(rules.get('border-top-color')).toBe('canvastext')
+  })
+})
+
+// A disabled control is a faded label and outline, and the mode repaints
+// each at full strength. It greys a native `:disabled` control by itself,
+// which the hidden inputs here are, but nothing drawn beside one and
+// nothing marked aria-disabled — so each of these drew a disabled item
+// exactly as it drew an enabled one, and each disabled style now names
+// `GrayText`. The enabled item is checked beside it, so a `GrayText` that
+// applied to every state would fail.
+describe('a disabled item', () => {
+  it('draws a disabled checkbox and its label in GrayText', () => {
+    const { box, label } = checkboxOf({ isDisabled: true })
+
+    expect(forcedColorRules(box).get('border-top-color')).toBe('graytext')
+    expect(forcedColorRules(label).get('color')).toBe('graytext')
+  })
+
+  it('draws the box and check of a disabled checked checkbox in GrayText', () => {
+    const rules = forcedColorRules(
+      checkboxOf({ isDisabled: true, isSelected: true }).box,
+    )
+
+    expect(rules.get('border-top-color')).toBe('graytext')
+    expect(rules.get('color')).toBe('graytext')
+  })
+
+  it('leaves an enabled checkbox to the mode', () => {
+    const { box, label } = checkboxOf({})
+
+    expect(forcedColorRules(box).get('border-top-color')).toBeUndefined()
+    expect(forcedColorRules(label).get('color')).toBeUndefined()
+  })
+
+  // The ring is drawn in the control's colour, so the colour is the rule.
+  it('draws a disabled radio, its label and its group label in GrayText', () => {
+    const view = render(
+      <RadioGroup isDisabled label="Group">
+        <Radio value="first">First item</Radio>
+      </RadioGroup>,
+    )
+
+    expect(
+      forcedColorRules(drawnAfter(view.getByRole('radio'))).get('color'),
+    ).toBe('graytext')
+    expect(forcedColorRules(view.getByText('First item')).get('color')).toBe(
+      'graytext',
+    )
+    expect(forcedColorRules(view.getByText('Group')).get('color')).toBe(
+      'graytext',
+    )
+  })
+
+  it('leaves an enabled radio to the mode', () => {
+    const view = render(
+      <RadioGroup label="Group">
+        <Radio value="first">First item</Radio>
+      </RadioGroup>,
+    )
+
+    expect(
+      forcedColorRules(drawnAfter(view.getByRole('radio'))).get('color'),
+    ).toBeUndefined()
+  })
+
+  it('draws a disabled list row in GrayText', () => {
+    const view = render(
+      <List aria-label="Label" disabledKeys={SECOND}>
+        <List.Item id="first">First item</List.Item>
+        <List.Item id="second">Second item</List.Item>
+      </List>,
+    )
+    const [enabled, disabled] = view.getAllByRole('row')
+
+    expect(forcedColorRules(disabled).get('color')).toBe('graytext')
+    expect(forcedColorRules(enabled).get('color')).not.toBe('graytext')
+  })
+
+  it('draws a disabled menu item in GrayText', () => {
+    render(
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content>
+          <Menu.Item id="first">First item</Menu.Item>
+          <Menu.Item id="second" isDisabled>
+            Second item
+          </Menu.Item>
+        </Menu.Content>
+      </Menu>,
+    )
+    const [enabled, disabled] = screen.getAllByRole('menuitem')
+
+    expect(forcedColorRules(disabled).get('color')).toBe('graytext')
+    expect(forcedColorRules(enabled).get('color')).not.toBe('graytext')
+  })
+
+  it('draws a disabled chip and its outline in GrayText', () => {
+    const view = render(
+      <ChipGroup disabledKeys={SECOND} label="Label">
+        <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+        <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
+      </ChipGroup>,
+    )
+    const [enabled, disabled] = view.getAllByRole('row')
+    const rules = forcedColorRules(disabled)
+
+    expect(rules.get('color')).toBe('graytext')
+    expect(rules.get('border-top-color')).toBe('graytext')
+    expect(forcedColorRules(enabled).get('color')).toBeUndefined()
+  })
+
+  it('draws a disabled destination in GrayText', () => {
+    const view = render(
+      <NavigationBar aria-label="Label" selectedRoute="#first">
+        <NavigationBar.Item href="#first" icon={ICON}>
+          First item
+        </NavigationBar.Item>
+        <NavigationBar.Item href="#second" icon={ICON} isDisabled>
+          Second item
+        </NavigationBar.Item>
+      </NavigationBar>,
+    )
+    const [enabled, disabled] = view.getAllByRole('link')
+
+    expect(forcedColorRules(disabled).get('color')).toBe('graytext')
+    expect(forcedColorRules(enabled).get('color')).not.toBe('graytext')
   })
 })
