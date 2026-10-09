@@ -1,6 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import * as stylex from '@stylexjs/stylex'
+
 import Meter from '.'
+
+const styles = stylex.create({
+  // Narrower than the label's one word, so it has to break.
+  narrow: {
+    inlineSize: '200px',
+  },
+})
 
 const BYTES = {
   notation: 'compact',
@@ -49,6 +58,20 @@ const OnItsOwnScale: Story = {
   },
 }
 
-export { Default, Negative, OnItsOwnScale, Positive, WithoutValue }
+// Its own story because a label with nowhere to break — a file name, a long
+// compound — breaks inside itself, and the value keeps its place at the end
+// of the line rather than being pushed out of it.
+const LongLabel: Story = {
+  args: {
+    label: 'Unterstützungszeilenüberschrift',
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <Meter {...args} />
+    </div>
+  ),
+}
+
+export { Default, LongLabel, Negative, OnItsOwnScale, Positive, WithoutValue }
 
 export default meta
