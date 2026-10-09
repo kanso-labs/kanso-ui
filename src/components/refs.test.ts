@@ -12,11 +12,15 @@ type Barrel = typeof components
 // prop, so a props type without one rejects `<TableRow ref={r}>` at the call
 // site even where the ref would reach the element at runtime —
 // styling.test.tsx renders each of them with one and pins where it lands.
+// Read off the capitalised names alone: `useAppBarScroll` is a function too,
+// but a hook, which takes options rather than props.
 type Refless = {
-  [Name in keyof Barrel]: Barrel[Name] extends (props: infer Props) => unknown
-    ? 'ref' extends keyof Props
-      ? never
-      : Name
+  [Name in keyof Barrel]: Name extends Capitalize<Name>
+    ? Barrel[Name] extends (props: infer Props) => unknown
+      ? 'ref' extends keyof Props
+        ? never
+        : Name
+      : never
     : never
 }[keyof Barrel]
 

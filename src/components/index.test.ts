@@ -7,6 +7,8 @@ import { describe, expect, it } from 'vitest'
 // against './button' passes whether or not the barrel still exports it.
 import type {
   AppBarProps,
+  AppBarScroll,
+  AppBarScrollOptions,
   AutocompleteFilter,
   AutocompleteProps,
   AvatarProps,
@@ -167,6 +169,7 @@ import type { TimePickerMode, TimePickerProps } from './time-picker'
 
 import * as components from '.'
 import { CalendarDate, Time } from '../date'
+import { useAppBarScroll } from '../hooks/useAppBarScroll'
 import AppBarDefault from './app-bar'
 import AutocompleteDefault from './autocomplete'
 import AvatarDefault from './avatar'
@@ -495,6 +498,7 @@ describe('components barrel', () => {
       'TreeItem',
       'TreeLoadMore',
       'TreeSection',
+      'useAppBarScroll',
     ])
   })
 
@@ -653,6 +657,7 @@ describe('components barrel', () => {
     TreeItem: [components.TreeItem, TreeItem],
     TreeLoadMore: [components.TreeLoadMore, TreeLoadMore],
     TreeSection: [components.TreeSection, TreeSection],
+    useAppBarScroll: [components.useAppBarScroll, useAppBarScroll],
   }
 
   // The map has to cover the same surface the exact-name case pins, or it
@@ -698,6 +703,13 @@ describe('components barrel', () => {
   it('re-exports the AppBarProps type', () => {
     const props: AppBarProps = { size: 'lg' }
     expect(props.size).toBe('lg')
+  })
+
+  it('re-exports the AppBarScroll types', () => {
+    const options: AppBarScrollOptions = { collapseAfter: 24 }
+    const collapsed: AppBarScroll['collapsed'] = false
+    expect(options.collapseAfter).toBe(24)
+    expect(collapsed).toBe(false)
   })
 
   it('re-exports the AvatarProps type', () => {

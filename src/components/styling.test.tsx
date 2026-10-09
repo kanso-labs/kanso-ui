@@ -1141,11 +1141,17 @@ describe('a ref written inside its parent', () => {
 // than an assertion. Reading the barrel at runtime is what makes the two names
 // below the only way out of the list.
 //
-// Both are already explained above: Autocomplete renders no element of its
+// Two are already explained above: Autocomplete renders no element of its
 // own, and FileTrigger renders a hidden input that takes neither prop. The
-// other absences named up there — Sheet, Menu, Dialog and Popover — need no
-// entry here, because each is covered by the parts listed under it.
-const EXEMPT: ReadonlySet<string> = new Set(['Autocomplete', 'FileTrigger'])
+// third, useAppBarScroll, is a hook rather than a component, and renders
+// nothing at all. The other absences named up there — Sheet, Menu, Dialog
+// and Popover — need no entry here, because each is covered by the parts
+// listed under it.
+const EXEMPT: ReadonlySet<string> = new Set([
+  'Autocomplete',
+  'FileTrigger',
+  'useAppBarScroll',
+])
 
 describe('the case list', () => {
   it('covers every component the barrel exports', () => {

@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import type { UIEvent } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useCallback, useState } from 'react'
+import { expect } from 'storybook/test'
 
 import type { AppBarProps } from '.'
 
 import AppBar from '.'
+import { useAppBarScroll } from '../../hooks/useAppBarScroll'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Container from '../container'
 import IconButton from '../icon-button'
@@ -129,8 +129,37 @@ const styles = stylex.create({
 
 // How far the page scrolls before the bar collapses. The figure is the call
 // site's to choose, and no figure makes the bar stable on its own — see
-// `overflowAnchor` on the scroller above, which is what does.
+// `overflowAnchor` on the scroller above, and the short-page rule
+// `useAppBarScroll` applies.
 const COLLAPSE_AFTER = 24
+
+// How many paragraphs each scrolling page holds. The short one overflows its
+// 320px panel by less than COLLAPSE_AFTER plus the 88px a large bar with a
+// subtitle gives back, which is the page the bar used to flicker on.
+const LONG_PAGE = 12
+const SHORT_PAGE = 6
+
+/**
+ * The bar's height once the page is scrolled to `top`, its transition
+ * finished, and every scroll that answers it reported.
+ */
+async function heightAt(bar: HTMLElement, scroller: HTMLElement, top: number) {
+  scroller.scrollTop = top
+  await nextFrame()
+  for (const animation of bar.getAnimations()) {
+    animation.finish()
+  }
+  await nextFrame()
+  await nextFrame()
+  return bar.getBoundingClientRect().height
+}
+
+/** The next frame, by which a scroll the story set has been reported. */
+async function nextFrame() {
+  await new Promise((resolve) => {
+    requestAnimationFrame(resolve)
+  })
+}
 
 function Sample({ label, ...props }: AppBarProps & { label: string }) {
   return (
@@ -145,28 +174,27 @@ function Sample({ label, ...props }: AppBarProps & { label: string }) {
   )
 }
 
-function ScrollingPage() {
-  const [scrollTop, setScrollTop] = useState(0)
-
-  // Both props come off one handler, because both answer the same scroll.
-  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
-    setScrollTop(event.currentTarget.scrollTop)
-  }, [])
+function ScrollingPage({ paragraphs }: { paragraphs: number }) {
+  // Both props come off one hook, because both answer the same scroll.
+  const { collapsed, onScroll, ref, scrolled } = useAppBarScroll({
+    collapseAfter: COLLAPSE_AFTER,
+  })
 
   return (
-    <div {...stylex.props(styles.scroller)} onScroll={handleScroll}>
+    <div {...stylex.props(styles.scroller)} onScroll={onScroll}>
       <AppBar
         {...stylex.props(styles.pinned)}
-        collapsed={scrollTop > COLLAPSE_AFTER}
+        collapsed={collapsed}
         headline="Headline"
         leading={LEADING}
-        scrolled={scrollTop > 0}
+        ref={ref}
+        scrolled={scrolled}
         size="lg"
         subtitle="Supporting line"
         trailing={TRAILING}
       />
       <div {...stylex.props(styles.scrollBody)}>
-        {Array.from({ length: 12 }, (_, index) => (
+        {Array.from({ length: paragraphs }, (_, index) => (
           <Text key={index} render={PARAGRAPH} tone="muted">
             Supporting line. Scroll this panel to watch the bar give its height
             back to the page.
@@ -203,7 +231,33 @@ const Large: Story = {
 // The one story that has to be driven rather than described: both props are
 // controlled, so what a reader needs to see is the wiring, not the states.
 const Collapsing: Story = {
-  render: () => <ScrollingPage />,
+  render: () => <ScrollingPage paragraphs={LONG_PAGE} />,
+}
+
+// A page too short to stay scrolled past the threshold once the bar has
+// collapsed, so the bar stays expanded rather than collapsing and being
+// pulled back open on the next scroll. The play steps down the page and
+// checks the bar's height changes at most once.
+const ShortPage: Story = {
+  play: async ({ canvas }) => {
+    const bar = canvas.getByRole('banner')
+    const scroller = bar.parentElement
+    if (scroller === null) {
+      throw new Error('expected the bar to sit in its scroll container')
+    }
+
+    const heights: number[] = []
+    for (let step = 1; step <= 6; step += 1) {
+      // oxlint-disable-next-line no-await-in-loop -- inherently sequential
+      heights.push(await heightAt(bar, scroller, step * 20))
+    }
+
+    const changes = heights.filter(
+      (height, index) => index > 0 && height !== heights[index - 1],
+    )
+    await expect(changes.length).toBeLessThanOrEqual(1)
+  },
+  render: () => <ScrollingPage paragraphs={SHORT_PAGE} />,
 }
 
 // Its own story because the heights are minimums rather than fixed: in a window
@@ -293,6 +347,6 @@ const PageAlignment: Story = {
   ),
 }
 
-export { Collapsing, Default, Large, LongHeadline, PageAlignment }
+export { Collapsing, Default, Large, LongHeadline, PageAlignment, ShortPage }
 
 export default meta

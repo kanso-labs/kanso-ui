@@ -1,10 +1,13 @@
+import type { CSSProperties } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import type { AppBarProps } from '.'
 
 import AppBar from '.'
+import { useAppBarScroll } from '../../hooks/useAppBarScroll'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 
@@ -303,6 +306,145 @@ describe('scrolled', () => {
 
     expect(scrolledStyle.backgroundColor).not.toBe(restingColor)
     expect(scrolledStyle.boxShadow).toBe('none')
+  })
+})
+
+// A pinned large bar over a page of 40px lines in a 320px panel, wired the
+// way the docs wire it. The bar is 152px expanded and gives back 88, so a
+// page of `lines` overflows by 152 + 40 × lines − 320.
+function ScrollPage({ lines }: { lines: number }) {
+  const { collapsed, onScroll, ref, scrolled } = useAppBarScroll({
+    collapseAfter: COLLAPSE_AFTER,
+  })
+
+  return (
+    <div onScroll={onScroll} style={PANEL}>
+      <AppBar
+        collapsed={collapsed}
+        headline="Headline"
+        ref={ref}
+        scrolled={scrolled}
+        size="lg"
+        style={PINNED}
+        subtitle="Supporting line"
+      />
+      {Array.from({ length: lines }, (_, index) => (
+        <p key={index} style={LINE}>
+          Supporting line
+        </p>
+      ))}
+    </div>
+  )
+}
+
+const COLLAPSE_AFTER = 24
+const PANEL = {
+  blockSize: '320px',
+  overflowAnchor: 'none',
+  overflowY: 'auto',
+} satisfies CSSProperties
+const PINNED = {
+  insetBlockStart: 0,
+  position: 'sticky',
+} satisfies CSSProperties
+const LINE = { blockSize: '40px', margin: 0 } satisfies CSSProperties
+
+/** How many times a run of heights changes from one step to the next. */
+function changesIn(heights: number[]) {
+  return heights.filter(
+    (height, index) => index > 0 && height !== heights[index - 1],
+  ).length
+}
+
+/**
+ * The bar's height once the page is scrolled to `top`, its transition
+ * finished, and every scroll that answers it reported.
+ */
+async function heightAt(bar: HTMLElement, scroller: HTMLElement, top: number) {
+  await act(async () => {
+    scroller.scrollTop = top
+    await nextFrame()
+    await nextFrame()
+  })
+  for (const animation of bar.getAnimations()) {
+    animation.finish()
+  }
+  await act(async () => {
+    await nextFrame()
+    await nextFrame()
+  })
+  return bar.getBoundingClientRect().height
+}
+
+/**
+ * The bar's height after each of `steps` scrolls 20px further down, with its
+ * transition finished each time and every scroll that answers it reported.
+ */
+async function heightsWhileScrolling(
+  view: ReturnType<typeof render>,
+  steps: number,
+) {
+  const bar = view.getByRole('banner')
+  const scroller = bar.parentElement
+  if (scroller === null) {
+    throw new Error('expected the bar to sit in its scroll container')
+  }
+
+  const heights: number[] = []
+  for (let step = 1; step <= steps; step += 1) {
+    // oxlint-disable-next-line no-await-in-loop -- inherently sequential
+    heights.push(await heightAt(bar, scroller, step * 20))
+  }
+  return heights
+}
+
+async function nextFrame() {
+  await new Promise((resolve) => {
+    requestAnimationFrame(resolve)
+  })
+}
+
+describe('useAppBarScroll', () => {
+  // The reported loop: 32px of range, under the 24 + 88 a collapse needs to
+  // keep the page scrolled past the threshold. Collapsing clamped the offset
+  // back under it, the bar expanded, and the two alternated on every step.
+  it('keeps the bar steady on a page too short to stay collapsed', async () => {
+    const view = render(<ScrollPage lines={5} />)
+    const heights = await heightsWhileScrolling(view, 6)
+
+    expect(changesIn(heights)).toBe(0)
+    expect(new Set(heights)).toEqual(new Set([152]))
+  })
+
+  // 112px of range is exactly the threshold plus what the bar gives back,
+  // which a collapsed page could only reach by sitting on the threshold
+  // itself, where the bar expands.
+  it('leaves the bar expanded at the boundary', async () => {
+    const view = render(<ScrollPage lines={7} />)
+
+    expect(new Set(await heightsWhileScrolling(view, 6))).toEqual(
+      new Set([152]),
+    )
+  })
+
+  it('collapses once, and stays, on a page long enough', async () => {
+    const view = render(<ScrollPage lines={8} />)
+    const heights = await heightsWhileScrolling(view, 6)
+
+    expect(changesIn(heights)).toBe(1)
+    expect(heights.at(-1)).toBe(64)
+  })
+
+  it('expands again at the threshold', async () => {
+    const view = render(<ScrollPage lines={12} />)
+    await heightsWhileScrolling(view, 3)
+    const bar = view.getByRole('banner')
+    const scroller = bar.parentElement
+    if (scroller === null) {
+      throw new Error('expected the bar to sit in its scroll container')
+    }
+
+    expect(await heightAt(bar, scroller, COLLAPSE_AFTER)).toBe(152)
   })
 })
 

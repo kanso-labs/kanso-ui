@@ -139,6 +139,7 @@ import { TreeItemProps as TreeItemProps_2 } from 'react-aria-components';
 import { TreeLoadMoreItemProps } from 'react-aria-components';
 import { TreeProps as TreeProps_2 } from 'react-aria-components';
 import { TreeSection as TreeSection_2 } from 'react-aria-components';
+import { UIEvent as UIEvent_2 } from 'react';
 import { UNSTABLE_ToastQueue } from 'react-aria-components';
 import { useAsyncList } from 'react-aria-components';
 import { useDrag } from 'react-aria-components';
@@ -170,6 +171,19 @@ export type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
     size?: 'lg' | 'md' | 'sm';
     subtitle?: ReactNode;
     trailing?: ReactNode;
+};
+
+// @public (undocumented)
+export type AppBarScroll = {
+    collapsed: boolean;
+    onScroll: (event: UIEvent_2<HTMLElement>) => void;
+    ref: RefObject<HTMLElement | null>;
+    scrolled: boolean;
+};
+
+// @public (undocumented)
+export type AppBarScrollOptions = {
+    collapseAfter?: number;
 };
 
 // @public
@@ -2102,6 +2116,9 @@ export type TreeSectionProps<T extends object = object> = Omit<RACTreeSectionPro
     children?: ReactNode;
     header?: ReactNode;
 };
+
+// @public
+export function useAppBarScroll(input?: AppBarScrollOptions): AppBarScroll;
 
 export { useAsyncList }
 

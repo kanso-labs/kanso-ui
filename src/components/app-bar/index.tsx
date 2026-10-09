@@ -7,6 +7,7 @@ import { createElement } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
+import { COLLAPSED_BLOCK_SIZE } from '../../hooks/useAppBarScroll'
 import { hasContent } from '../../render/content'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
@@ -57,7 +58,10 @@ const GLYPH_INSET = `(${ICON_BUTTON_TARGET} - ${ICON_SIZE}) / 2`
 const HEIGHTS = {
   lg: { plain: '120px', withSubtitle: '152px' },
   md: { plain: '112px', withSubtitle: '136px' },
-  sm: { plain: '64px', withSubtitle: '64px' },
+  sm: {
+    plain: `${COLLAPSED_BLOCK_SIZE}px`,
+    withSubtitle: `${COLLAPSED_BLOCK_SIZE}px`,
+  },
 } as const
 
 // What a flexible bar collapses to, which is the small bar exactly. Material
@@ -227,26 +231,29 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    *
    * Controlled, and for the same reason `scrolled` is: only the app knows
    * which element scrolls, and how far into it the bar should have finished
-   * collapsing. Usually set from the same handler.
+   * collapsing. `useAppBarScroll` derives both from that element's scroll,
+   * and is the way to set them unless the app needs a rule of its own.
    *
    * Ignored on `sm`, which is already the height this collapses to. The
    * subtitle goes with the height, since there is no room for a second line
    * in the small bar.
    *
-   * **The scroll container needs `overflow-anchor: none`.** Collapsing hands
-   * the page back the height the bar gives up, and browsers answer a change
-   * in height above the viewport by moving the scroll offset by exactly that
-   * amount, so the content underneath stays where it was. That offset is
-   * what the call site derived `collapsed` from, so it lands back under the
-   * threshold, the bar expands, the offset is restored, and the two take
-   * turns for as long as the reader stays in that band. Turning anchoring off
-   * is what breaks the loop, and it is also the movement you want: the
-   * content follows the bar's bottom edge up rather than standing still while
-   * the bar shrinks behind it.
+   * Collapsing hands the page back the height the bar gives up, and a bar
+   * whose state is read off the scroll offset can then undo itself in two
+   * ways. Both move the offset back under the threshold, so the bar expands,
+   * the page regains its height, and the two take turns for as long as the
+   * reader stays there.
    *
-   * No threshold avoids this on its own. The unstable band is as tall as the
-   * height the bar gives back and it sits directly above wherever the
-   * threshold is put, so moving the threshold moves the band with it.
+   * - **Scroll anchoring.** Browsers answer a change in height above the
+   *   viewport by moving the offset by the same amount, to keep the content
+   *   in place. Give the scroll container `overflow-anchor: none`, which is
+   *   also the movement you want: the content follows the bar's bottom edge
+   *   up rather than standing still while the bar shrinks behind it.
+   * - **The shorter page.** A page that overflows by less than the threshold
+   *   plus the height the bar gives back cannot scroll that far once the bar
+   *   has collapsed, so the browser pulls the offset back inside it. No
+   *   threshold avoids this, since the band moves with it; what does is not
+   *   collapsing on such a page, which is the rule `useAppBarScroll` applies.
    * @default false
    */
   collapsed?: boolean
