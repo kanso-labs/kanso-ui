@@ -9,6 +9,7 @@ import {
   shadows,
   spacing,
 } from '../tokens/design.tokens.stylex'
+import { layers } from './layers.stylex'
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -29,6 +30,11 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // that scopes its StyleX theme to a subtree has to point the portal inside it,
 // or the surface renders outside the theme and falls back to the tokens'
 // `prefers-color-scheme` default.
+//
+// Portalled to the end of the body, an element with no `z-index` paints level
+// with the page's own unlayered content, so a modal's scrim takes a layer
+// from src/styles/layers.stylex.ts, which sets the order every overlay
+// stacks in over the page.
 //
 // Entry only, and no exit animation, for the same reason in every overlay:
 // React Aria keeps a closing surface mounted only while an animation is
@@ -161,6 +167,9 @@ const overlay = stylex.create({
     boxSizing: 'border-box',
     inset: 0,
     position: 'fixed',
+    // Above the page's own layered content, and the panel with it, since it
+    // is the scrim's child — see src/styles/layers.stylex.ts.
+    zIndex: layers.modal,
   },
 })
 

@@ -19,6 +19,7 @@ import {
 
 import { CloseGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { layers } from '../../styles/layers.stylex'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -220,7 +221,8 @@ const styles = stylex.create({
     paddingRight: `calc(${spacing.sm} + env(safe-area-inset-right, 0px))`,
     pointerEvents: 'none',
     position: 'fixed',
-    zIndex: 1000,
+    // Above a modal's scrim — see src/styles/layers.stylex.ts.
+    zIndex: layers.toast,
   },
   // The container: the page's 8dp either side, and nothing above or below,
   // since what sets the height is the message and the close button.

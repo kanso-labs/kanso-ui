@@ -347,6 +347,11 @@ function SheetBody({
  * trigger, it is this part's: `isOpen` with `onOpenChange` controls it, and
  * a `slot="close"` button, Escape and the scrim all report through
  * `onOpenChange`, as they would to `Sheet`.
+ *
+ * The scrim draws at `z-index: 900`, over any page content layered below
+ * that, such as a sticky header, and the panel draws inside it. A
+ * `Snackbar` draws at 1000, so a toast raised from inside the sheet is read
+ * over it, and React Aria's popovers and menus draw above both.
  */
 function SheetContent({
   children,
