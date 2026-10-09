@@ -163,6 +163,22 @@ const InAMenu: Story = {
   ),
 }
 
+// A search that matches nothing. The list draws its empty row in place of
+// the options, and the status Autocomplete renders says the same to a
+// screen reader.
+const FilteredEmpty: Story = {
+  args: { defaultInputValue: 'zzz' },
+  render: Default.render,
+}
+
+// The same in a menu, which keeps a row's height rather than shrinking to
+// its search bar, and announces it from its own surface.
+const FilteredEmptyInAMenu: Story = {
+  args: { defaultInputValue: 'zzz' },
+  parameters: InAMenu.parameters,
+  render: InAMenu.render,
+}
+
 // The palette open on load, since a closed dialog renders nothing for
 // Chromatic to compare. The trigger is kept: React Aria's DialogTrigger wraps
 // its children in one PressResponder and warns when nothing inside it is
@@ -187,6 +203,13 @@ const CommandPalette: Story = {
   ),
 }
 
-export { CommandPalette, Default, Filtered, InAMenu }
+export {
+  CommandPalette,
+  Default,
+  Filtered,
+  FilteredEmpty,
+  FilteredEmptyInAMenu,
+  InAMenu,
+}
 
 export default meta

@@ -18,7 +18,7 @@ import {
   ListBoxSection as RACListBoxSection,
 } from 'react-aria-components'
 
-import { CollectionLoadMore } from '../../collection'
+import { CollectionEmpty, CollectionLoadMore } from '../../collection'
 import {
   collectionStyles,
   containerClasses,
@@ -100,15 +100,20 @@ type ListBoxLoadMoreProps = Omit<RACListBoxLoadMoreItemProps, 'children'> & {
   label?: string
 }
 
-type ListBoxProps<T extends object = object> = Omit<
-  RACListBoxProps<T>,
-  'className' | 'style'
-> & {
+type ListBoxProps<T extends object = object> = {
   /** A function may compute the class from the list's render state. */
   className?: RACListBoxProps<T>['className']
+  /**
+   * What the list shows when nothing is in it — after a search that matched
+   * nothing, usually. Left out, it is a muted row saying "No results" in the
+   * I18nProvider's locale, which an `Autocomplete` around the list also
+   * announces. One of the call site's own replaces the announcement as well
+   * as the row, so what it says to a screen reader is the call site's too.
+   */
+  renderEmptyState?: RACListBoxProps<T>['renderEmptyState']
   /** A function may compute the style from the list's render state. */
   style?: RACListBoxProps<T>['style']
-}
+} & Omit<RACListBoxProps<T>, 'className' | 'renderEmptyState' | 'style'>
 
 type ListBoxSectionProps<T extends object = object> = Omit<
   RACListBoxSectionProps<T>,
@@ -125,6 +130,12 @@ type ListBoxSectionProps<T extends object = object> = Omit<
    * section is named by it. A section without one is a group with no name.
    */
   header?: ReactNode
+}
+
+// The default empty state, at module scope so every list hands React Aria
+// the same function.
+function emptyState() {
+  return <CollectionEmpty variant="list" />
 }
 
 // What the option draws, from React Aria's render state. Built by a call
@@ -188,12 +199,20 @@ function itemContent(
  *
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
+ *
+ * A list with nothing in it shows a muted "No results" row in place of its
+ * options, which is what a search that matches nothing leaves; pass
+ * `renderEmptyState` to draw something else.
  */
 function ListBox<T extends object>(
   props: ListBoxProps<T> & RefAttributes<HTMLDivElement>,
 ) {
   return (
-    <RACListBox {...props} {...mergeStatefulStyles(containerClasses, props)} />
+    <RACListBox
+      renderEmptyState={emptyState}
+      {...props}
+      {...mergeStatefulStyles(containerClasses, props)}
+    />
   )
 }
 

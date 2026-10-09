@@ -8,6 +8,8 @@ import {
   useFilter,
 } from 'react-aria-components'
 
+import { CollectionStatus } from '../../collection'
+
 // The search page's search with suggestions, as the wrapper React Aria makes
 // it: a search input over a collection, where typing narrows what the
 // collection shows. It draws nothing of its own — the input is SearchField,
@@ -16,12 +18,19 @@ import {
 // filtered menu and a command palette inside a Dialog.
 //
 // Every other component here is a shape; this one is a behaviour, so it
-// renders no element and takes no `className` or `style`. There is nothing
-// for them to land on, and a wrapper element added to give them somewhere
-// would be a layout decision this component has no business making — the
-// three shapes above want three different ones.
+// renders no box and takes no `className` or `style`. There is nothing for
+// them to land on, and a wrapper element added to give them somewhere would
+// be a layout decision this component has no business making — the three
+// shapes above want three different ones.
 //
-// One thing is added to React Aria's. **Filtering is on by default.** Their
+// Two things are added to React Aria's. **A search that empties the
+// collection is announced.** A ListBox or Menu left with nothing shows a
+// "No results" row, and the status rendered after the children says the
+// same to a screen reader — visually hidden and out of the flow, so it takes
+// no place in whatever the page lays the two out in. See `CollectionStatus`
+// in `src/collection`.
+//
+// **Filtering is on by default.** Their
 // wrapper filters nothing unless it is handed a predicate, on the grounds
 // that a collection fed from a server may already be filtered. A collection
 // written out in the page is the common case here, and a search box that
@@ -65,10 +74,12 @@ type AutocompleteProps<T extends object = object> = {
  * </Autocomplete>
  * ```
  *
- * It renders no element of its own, so the input and the collection sit
- * wherever the page puts them — side by side in a panel, in a `Menu.Content`,
- * or in a `Dialog` as a command palette. That is also why it takes no
- * `className` or `style`: there is nothing for them to land on.
+ * It renders no box of its own, so the input and the collection sit wherever
+ * the page puts them — side by side in a panel, in a `Menu.Content`, or in a
+ * `Dialog` as a command palette. That is also why it takes no `className` or
+ * `style`: there is nothing for them to land on. What it does render is a
+ * visually hidden status after its children, which tells a screen reader
+ * when a search leaves the collection empty.
  *
  * Keyboard focus stays in the input while the arrow keys move through the
  * collection, which is React Aria's virtual focus. `disableVirtualFocus`
@@ -83,7 +94,7 @@ function Autocomplete<T extends object = object>({
 
   return (
     <RACAutocomplete<T> filter={filter ?? containsFilter(contains)} {...props}>
-      {children}
+      <CollectionStatus>{children}</CollectionStatus>
     </RACAutocomplete>
   )
 }

@@ -56,6 +56,12 @@ const collectionStyles = stylex.create({
     outlineStyle: 'solid',
     outlineWidth: '2px',
   },
+  // The row a collection shows when nothing is left in it. The row's own box
+  // and headline, from `src/row`, in the muted role, since it is not one of
+  // the items and nothing in it responds to a press.
+  empty: {
+    color: colors.onSurfaceVariant,
+  },
   // The lists page's subhead. Menu's and NavigationTree's are their own.
   header: {
     boxSizing: 'border-box',
@@ -82,6 +88,19 @@ const collectionStyles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
+  },
+  // The status that announces an empty collection — see `CollectionStatus`.
+  // Clipped to a 1px box rather than `display: none`, which would take it
+  // out of the accessibility tree along with what it says, and positioned
+  // out of the flow so it takes no place in the layout round it.
+  status: {
+    blockSize: '1px',
+    boxSizing: 'border-box',
+    clipPath: 'inset(50%)',
+    inlineSize: '1px',
+    overflow: 'hidden',
+    position: 'absolute',
+    whiteSpace: 'nowrap',
   },
 })
 

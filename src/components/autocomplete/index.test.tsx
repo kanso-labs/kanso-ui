@@ -58,6 +58,11 @@ function layerClasses(style: stylex.StyleXStyles) {
   return classes
 }
 
+// A call site's own empty state, at module scope for react-perf.
+function nothingHere() {
+  return 'Nothing here'
+}
+
 // Matches from the start of the text rather than anywhere in it, which the
 // default contains filter does not.
 function startsWith(textValue: string, inputValue: string) {
@@ -66,11 +71,17 @@ function startsWith(textValue: string, inputValue: string) {
 
 describe('autocomplete', () => {
   describe('semantics', () => {
-    it('draws no element of its own', () => {
+    it('draws no box of its own', () => {
       const view = setup()
-      // The search field and the list are siblings under the render
-      // container: the wrapper is behaviour, not a box.
-      expect(view.container.firstElementChild?.children).toHaveLength(2)
+      // The search field, the list and the status sit directly under the
+      // render container: the wrapper is behaviour, not a box. React Aria's
+      // list adds its focus scope's markers beside them, which is why this
+      // checks each parent rather than counting children.
+      const field = view.container.firstElementChild
+      expect(field?.contains(view.input)).toBe(true)
+      expect(field?.contains(view.getByRole('listbox'))).toBe(false)
+      expect(view.getByRole('listbox').parentElement).toBe(view.container)
+      expect(view.getByRole('status').parentElement).toBe(view.container)
     })
 
     it('leaves the input and the collection as they were', () => {
@@ -125,8 +136,10 @@ describe('autocomplete', () => {
         fireEvent.change(view.input, { target: { value: 'item' } })
       })
 
+      // By name, since an emptied list holds React Aria's option-role
+      // wrapper round its empty row.
       await waitFor(() => {
-        expect(view.queryAllByRole('option')).toHaveLength(0)
+        expect(view.queryAllByRole('option', { name: /item$/ })).toHaveLength(0)
       })
     })
 
@@ -140,6 +153,117 @@ describe('autocomplete', () => {
       await waitFor(() => {
         expect(view.getAllByRole('option')).toHaveLength(1)
       })
+    })
+  })
+
+  describe('a search that matches nothing', () => {
+    it('shows a row saying so, with no role of its own', async () => {
+      const view = setup()
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'zzz' } })
+      })
+
+      const text = await view.findByText('No results', { selector: 'span' })
+      // React Aria wraps an empty state in an element with the item role and
+      // `display: contents`, since a listbox may only own options. The row
+      // inside it is ours and claims nothing.
+      expect(text.getAttribute('role')).toBeNull()
+      expect(text.parentElement?.getAttribute('role')).toBeNull()
+      expect(view.getByRole('listbox').contains(text)).toBe(true)
+    })
+
+    // A live region announces a change to what it says, not one that arrives
+    // already saying it, so the status is there from the start and only its
+    // text follows the collection.
+    it('announces it through a status that was there before it', async () => {
+      const view = setup()
+      const status = view.getByRole('status')
+      expect(status.textContent).toBe('')
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'zzz' } })
+      })
+      await waitFor(() => {
+        expect(status.textContent).toBe('No results')
+      })
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'Sec' } })
+      })
+      await waitFor(() => {
+        expect(status.textContent).toBe('')
+      })
+      expect(view.getByRole('status')).toBe(status)
+    })
+
+    it('leaves the row out of reach of the keyboard', async () => {
+      const view = setup()
+      act(() => {
+        view.input.focus()
+        fireEvent.change(view.input, { target: { value: 'zzz' } })
+      })
+      await view.findByText('No results', { selector: 'span' })
+
+      fireEvent.keyDown(view.input, { key: 'ArrowDown' })
+      fireEvent.keyUp(view.input, { key: 'ArrowDown' })
+
+      expect(view.input.getAttribute('aria-activedescendant')).toBeNull()
+    })
+
+    it('takes a renderEmptyState of its own over the default', async () => {
+      const view = render(
+        <Autocomplete>
+          <SearchField label="Search" />
+          <ListBox aria-label="Results" renderEmptyState={nothingHere}>
+            {OPTIONS}
+          </ListBox>
+        </Autocomplete>,
+      )
+
+      act(() => {
+        fireEvent.change(inputOf(view), { target: { value: 'zzz' } })
+      })
+
+      expect(await view.findByText('Nothing here')).not.toBeNull()
+      expect(view.queryByText('No results')).toBeNull()
+    })
+
+    // A modal popover hides everything outside it from assistive
+    // technology, so the menu's status is on its own surface, and the one
+    // Autocomplete renders round it stays quiet.
+    it('shows and announces it on a menu, inside its surface', async () => {
+      const view = render(
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Autocomplete>
+            <Menu.Content search={SEARCH}>
+              <Menu.Item id="first">First item</Menu.Item>
+            </Menu.Content>
+          </Autocomplete>
+        </Menu>,
+      )
+      const menu = view.getByRole('menu')
+
+      act(() => {
+        fireEvent.change(view.getByRole('searchbox', { name: 'Search' }), {
+          target: { value: 'zzz' },
+        })
+      })
+
+      const text = await view.findByText('No results', { selector: 'span' })
+      expect(menu.contains(text)).toBe(true)
+      // A row's height rather than the zero an empty menu collapsed to. The
+      // layout box rather than the drawn one, which the surface's entry
+      // scales while it runs.
+      expect(menu.offsetHeight).toBeGreaterThanOrEqual(48)
+
+      const statuses = view.getAllByRole('status')
+      const spoken = statuses.filter(
+        (status) => status.textContent === 'No results',
+      )
+      expect(spoken).toHaveLength(1)
+      expect(spoken[0]?.parentElement?.contains(menu)).toBe(true)
     })
   })
 
