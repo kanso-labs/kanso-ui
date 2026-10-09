@@ -1,7 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
 
 import Select from '.'
 import { atFootOfWindow, originOf } from '../../styles/overlay.testing'
@@ -106,6 +105,25 @@ function glyphOf(view: ReturnType<typeof render>) {
   return glyph
 }
 
+/**
+ * A press where `element` is drawn, landing on whatever the browser puts on
+ * top there — which is the whole question for a box whose press target
+ * covers it. Hit-tested by the page rather than clicked by a driver, since a
+ * driver's pointer is a command to the whole page, and under a full run's
+ * load those wait long enough to time a test out.
+ */
+function pressAt(element: Element) {
+  const box = element.getBoundingClientRect()
+  const hit = document.elementFromPoint(
+    box.left + box.width / 2,
+    box.top + box.height / 2,
+  )
+  if (hit === null) {
+    throw new Error('expected something to be drawn there')
+  }
+  fireEvent.click(hit)
+}
+
 function setup(
   props: Partial<Parameters<typeof Select<object>>[0]> = {},
   container?: HTMLElement,
@@ -201,12 +219,9 @@ describe('select', () => {
       }
     })
 
-    // Forced, so the pointer goes down wherever the label is drawn and the
-    // press lands on whatever is on top there, rather than Playwright first
-    // checking the label is what it would hit.
     it('opens the list from a press on the label', async () => {
       const view = setup()
-      await userEvent.click(view.getByText('Label'), { force: true })
+      pressAt(view.getByText('Label'))
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
@@ -227,8 +242,7 @@ describe('select', () => {
           </Dialog.Content>
         </Dialog>,
       )
-      const label = await view.findByText('Label')
-      await userEvent.click(label, { force: true })
+      pressAt(await view.findByText('Label'))
       await waitFor(() => {
         expect(view.getByRole('listbox')).not.toBeNull()
       })
