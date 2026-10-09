@@ -69,6 +69,11 @@ const styles = stylex.create({
     // card that should give way, because it scrolls content of its own, asks
     // for it with `minBlockSize: 0`, as any flex item does.
     overflow: 'clip',
+    // Which is also why a word wider than the card breaks: under `clip` it
+    // was cut off at the card's edge, and the text was lost rather than
+    // merely wide. `anywhere`, so a word inside a flex row of the card's
+    // content breaks too.
+    overflowWrap: 'anywhere',
     // Positioning context for the ripple surface, which fills the card.
     position: 'relative',
     textDecoration: 'none',

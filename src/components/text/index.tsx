@@ -29,9 +29,15 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // between two blocks of text is the job of whatever holds them, which is
 // where it can come from the spacing scale.
 const styles = stylex.create({
+  // A word wider than the room breaks rather than widening the page — at
+  // the display sizes even an ordinary German compound is. `break-word`
+  // rather than the `anywhere` Tabs and Code take, which would also lower
+  // the text's min-content width and so narrow it wherever a layout sizes
+  // to its content; here it breaks only a word that cannot otherwise fit.
   base: {
     boxSizing: 'border-box',
     margin: 0,
+    overflowWrap: 'break-word',
   },
   bodyLarge: {
     fontFamily: typography.bodyLargeFont,

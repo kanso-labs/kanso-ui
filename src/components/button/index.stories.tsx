@@ -142,13 +142,15 @@ const Elevated: Story = {
 // Its own story because it takes a narrow container as well as a long label: a
 // label too long for the row wraps, as a translation often does at a phone's
 // width, and the container grows to hold every line rather than keeping its
-// height. A label on one line still draws the size's own height.
+// height. A label on one line still draws the size's own height, and a single
+// word wider than the room breaks inside itself rather than widening it.
 const LongLabels: Story = {
   render: () => (
     <div {...stylex.props(styles.narrow)}>
       <Button variant="filled">
         A label long enough that it wraps onto more lines than one
       </Button>
+      <Button variant="filled">Unterstützungszeilenüberschrift</Button>
       <Button variant="tonal">
         A label long enough that it wraps onto more lines than one
       </Button>
