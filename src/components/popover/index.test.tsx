@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Popover from '.'
@@ -41,6 +41,17 @@ const CLASSES = {
 // call site names none.
 const DEFAULT_SIDE_OFFSET = 8
 
+/**
+ * Focus as a keyboard brings it, which is what React Aria reads to decide a
+ * keyboard is in use.
+ */
+function focusByKeyboard(element: HTMLElement) {
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  act(() => {
+    element.focus()
+  })
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -58,6 +69,42 @@ function hovered(props: Partial<Parameters<typeof Popover>[0]> = {}) {
     </Popover>,
   )
   return { ...view, trigger: view.getByRole('button', { name: 'Open' }) }
+}
+
+/**
+ * Opens a pressed popover the way a keyboard does: the trigger focused, then
+ * Enter, which React Aria answers on the key's release.
+ */
+async function openByKeyboard(view: ReturnType<typeof render>) {
+  const trigger = view.getByRole('button', { name: 'Open' })
+  focusByKeyboard(trigger)
+  fireEvent.keyDown(trigger, { key: 'Enter' })
+  fireEvent.keyUp(trigger, { key: 'Enter' })
+  await view.findByRole('dialog')
+  // The panel takes focus in an effect after it mounts.
+  await waitFor(() => {
+    expect(view.getByRole('dialog').contains(document.activeElement)).toBe(true)
+  })
+}
+
+/**
+ * A pressed popover between two buttons of the page, which is what Tab
+ * leaving the panel has to land on.
+ */
+function pageAround(props: Partial<Parameters<typeof Popover>[0]> = {}) {
+  return render(
+    <>
+      <Button>Before</Button>
+      <Popover {...props}>
+        <Button>Open</Button>
+        <Popover.Content>
+          <Popover.Title>Headline</Popover.Title>
+          <Button>Action</Button>
+        </Popover.Content>
+      </Popover>
+      <Button>After</Button>
+    </>,
+  )
 }
 
 /**
@@ -84,6 +131,30 @@ function setup(props: Partial<Parameters<typeof Popover>[0]> = {}) {
       </Popover.Content>
     </Popover>,
   )
+}
+
+/** The panel's tabbable controls, in order. */
+function tabbablesIn(dialog: HTMLElement) {
+  return [
+    ...dialog.parentElement!.querySelectorAll<HTMLElement>(
+      'button:not([tabindex="-1"]), [tabindex="0"]',
+    ),
+  ]
+}
+
+/**
+ * Tab from `element`. What a browser does with the key is its own default
+ * action, which a dispatched event never runs — so the tests start from the
+ * edge of the panel, where the step out of it is React Aria's to take, and
+ * that is what they pin.
+ */
+function tabFrom(element: Element, shiftKey = false) {
+  act(() => {
+    if (element instanceof HTMLElement) {
+      element.focus()
+    }
+  })
+  fireEvent.keyDown(element, { key: 'Tab', shiftKey })
 }
 
 describe('popover', () => {
@@ -342,6 +413,125 @@ describe('popover', () => {
       )
       fireEvent.click(view.getByRole('button', { name: 'Open' }))
       expect(await view.findByRole('dialog')).not.toBeNull()
+    })
+  })
+
+  // The page behind a non-modal popover stays in reach, which includes the
+  // keyboard. The panel once nested React Aria's Dialog, which moves focus
+  // into itself as it mounts and holds it inside the overlay: a hover took
+  // focus from wherever the reader was typing, and Tab went round the panel
+  // forever.
+  describe('focus', () => {
+    it('leaves focus where it was when a hover popover opens', async () => {
+      const view = render(
+        <>
+          <input aria-label="Field" />
+          <Popover delay={0} trigger="hover">
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+              <Button>Action</Button>
+            </Popover.Content>
+          </Popover>
+        </>,
+      )
+      const field = view.getByRole('textbox', { name: 'Field' })
+      // A pointer's press, as clicking into the field would be, which is
+      // what React Aria reads to treat what follows as a pointer's hover.
+      fireEvent.pointerDown(field, { pointerType: 'mouse' })
+      fireEvent.pointerUp(field, { pointerType: 'mouse' })
+      act(() => {
+        field.focus()
+      })
+      fireEvent.pointerOver(view.getByRole('button', { name: 'Open' }), {
+        pointerType: 'mouse',
+      })
+      await view.findByRole('dialog')
+
+      await waitFor(() => {
+        expect(document.activeElement).toBe(field)
+      })
+    })
+
+    it('leaves focus on a hover trigger reached by the keyboard', async () => {
+      const view = render(
+        <Popover delay={0} trigger="hover">
+          <Button>Open</Button>
+          <Popover.Content>
+            <Popover.Title>Headline</Popover.Title>
+            <Button>Action</Button>
+          </Popover.Content>
+        </Popover>,
+      )
+      const trigger = view.getByRole('button', { name: 'Open' })
+      focusByKeyboard(trigger)
+      await view.findByRole('dialog')
+
+      await waitFor(() => {
+        expect(document.activeElement).toBe(trigger)
+      })
+    })
+
+    // A press asked for the panel, so it still takes focus as it opens.
+    it('moves focus into a pressed popover as it opens', async () => {
+      const view = pageAround()
+      await openByKeyboard(view)
+
+      expect(view.getByRole('dialog').contains(document.activeElement)).toBe(
+        true,
+      )
+    })
+
+    it('carries Tab on from the trigger past the last control', async () => {
+      const view = pageAround()
+      await openByKeyboard(view)
+      const last = tabbablesIn(view.getByRole('dialog')).at(-1)
+      expect(last).toBeDefined()
+
+      tabFrom(last!)
+
+      expect(document.activeElement).toBe(
+        view.getByRole('button', { name: 'After' }),
+      )
+    })
+
+    it('carries Shift+Tab back past the trigger from the first control', async () => {
+      const view = pageAround()
+      await openByKeyboard(view)
+
+      tabFrom(view.getByRole('button', { name: 'Action' }), true)
+
+      expect(document.activeElement).toBe(
+        view.getByRole('button', { name: 'Before' }),
+      )
+    })
+
+    // Modal is the one form that holds focus, as a dialog does.
+    it('holds focus inside a modal popover', async () => {
+      const view = pageAround({ modal: true })
+      await openByKeyboard(view)
+      const dialog = view.getByRole('dialog')
+      const last = tabbablesIn(dialog).at(-1)
+      expect(last).toBeDefined()
+
+      tabFrom(last!)
+
+      expect(dialog.parentElement!.contains(document.activeElement)).toBe(true)
+    })
+
+    it('is named by its trigger when it has no title', async () => {
+      const view = render(
+        <Popover defaultOpen>
+          <Button>Open</Button>
+          <Popover.Content>
+            <Button>Action</Button>
+          </Popover.Content>
+        </Popover>,
+      )
+      const dialog = await view.findByRole('dialog')
+      expect(dialog.getAttribute('aria-labelledby')).toBe(
+        view.getByRole('button', { name: 'Open' }).id,
+      )
     })
   })
 
