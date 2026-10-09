@@ -19,15 +19,22 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import {
+  ButtonContext,
+  DEFAULT_SLOT,
   Dialog,
+  DialogContext,
   DialogTrigger,
   Heading,
+  HeadingContext,
+  OverlayTriggerStateContext,
   PreviewTrigger,
   Popover as RACPopover,
   Text,
+  TextContext,
 } from 'react-aria-components'
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
@@ -134,6 +141,17 @@ const DescriptionContext = createContext<{
   register: () => () => void
 }>({ id: '', register: () => () => {} })
 
+// The same for the title, which the non-modal panel names itself by — see
+// PanelDialog. React Aria's own Dialog finds its title by looking for it;
+// the panel here is told it is there.
+const TitleContext = createContext<() => () => void>(() => () => {})
+
+// The text slot the description fills, with the default beside it so a
+// plain `Text` still renders. Hoisted, since it never changes.
+const TEXT_SLOTS = {
+  slots: { [DEFAULT_SLOT]: {}, description: {} },
+}
+
 type PopoverProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
   /**
@@ -173,6 +191,118 @@ type PopoverProps = Omit<DialogTriggerProps, 'children'> & {
 
 type PopoverTrigger = 'hover' | 'press'
 
+/**
+ * The element that carries the dialog role in a non-modal popover: what
+ * React Aria's `Dialog` gives a modal one — the role, the name from the
+ * title, the description, and the close slot — without the two things that
+ * make `Dialog` a modal's.
+ *
+ * `Dialog` moves focus into itself as it mounts, whatever opened it, and
+ * holds focus inside the overlay until it closes. A hover popover therefore
+ * took focus from wherever the reader was typing the moment a pointer
+ * rested on its trigger, and Tab in an open popover went round its own
+ * controls forever, though the page behind a non-modal popover is meant to
+ * stay in reach. Here a pressed popover still takes focus as it opens, since
+ * a press asked for the panel, but a hovered one leaves it where it is, and
+ * Tab past the panel's last control carries on from the trigger in the
+ * page. React Aria's popover sees a dialog inside it and so adds no role or
+ * focus handling of its own.
+ */
+function PanelDialog({
+  'aria-labelledby': labelledBy,
+  children,
+  id,
+  // React Aria's render prop is the one part of a dialog's props this
+  // element cannot honour, being an element of its own rather than React
+  // Aria's; left out rather than spread onto the DOM.
+  render: _render,
+  slot,
+  ...props
+}: Omit<
+  PopoverContentProps,
+  | 'align'
+  | 'alignOffset'
+  | 'className'
+  | 'container'
+  | 'side'
+  | 'sideOffset'
+  | 'style'
+  | 'triggerRef'
+>) {
+  const ref = useRef<HTMLElement>(null)
+  const state = useContext(OverlayTriggerStateContext)
+  // What the trigger hands its overlay: the id the trigger's
+  // `aria-controls` points at, and the trigger itself as the name of a
+  // panel with no title. A hover trigger hands nothing, and is a hover
+  // trigger for exactly that reason.
+  const trigger = triggerOf(useContext(DialogContext))
+  const pressed = trigger !== undefined
+
+  const titleId = useId()
+  const [titled, setTitled] = useState(false)
+  const registerTitle = useCallback(() => {
+    setTitled(true)
+    return () => {
+      setTitled(false)
+    }
+  }, [])
+  const headings = useMemo(
+    () => ({
+      slots: { [DEFAULT_SLOT]: {}, title: { id: titleId, level: 2 } },
+    }),
+    [titleId],
+  )
+  const buttons = useMemo(
+    () => ({
+      slots: {
+        close: {
+          onPress: () => {
+            state?.close()
+          },
+        },
+        [DEFAULT_SLOT]: {},
+      },
+    }),
+    [state],
+  )
+
+  useEffect(() => {
+    const element = ref.current
+    if (
+      pressed &&
+      element !== null &&
+      !element.contains(document.activeElement)
+    ) {
+      element.focus({ preventScroll: true })
+    }
+  }, [pressed])
+
+  return (
+    // A section with the role, as React Aria's own dialog is: a `<dialog>`
+    // element brings the browser's own positioning, border, padding and top
+    // layer, all of which the panel around it already decides.
+    <section
+      {...props}
+      aria-labelledby={labelledBy ?? (titled ? titleId : trigger?.labelledBy)}
+      id={id ?? trigger?.id}
+      ref={ref}
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a `<dialog>` element would bring the browser's own positioning and top layer, which the panel around it already decides
+      role="dialog"
+      slot={slot ?? undefined}
+      tabIndex={-1}
+      {...stylex.props(overlay.popupDialog, focus.ring)}
+    >
+      <HeadingContext value={headings}>
+        <TextContext value={TEXT_SLOTS}>
+          <ButtonContext value={buttons}>
+            <TitleContext value={registerTitle}>{children}</TitleContext>
+          </ButtonContext>
+        </TextContext>
+      </HeadingContext>
+    </section>
+  )
+}
+
 // React Aria names a placement by the side and, along it, the end the panel
 // is aligned to — `bottom start`, or `left top` on the sides where the axis
 // runs the other way.
@@ -199,15 +329,17 @@ function Popover({
   trigger = 'press',
   ...props
 }: PopoverProps) {
-  const context = useMemo(() => ({ modal, size }), [modal, size])
-
   // A hovered popover is React Aria's preview trigger, which is a different
   // element around the same parts rather than a mode of the pressed one: it
   // opens from hover, focus or a long press, and it is always non-modal,
   // since a panel that blocked the page while the pointer merely rested on
-  // something would be a trap. `modal` is left alone rather than refused,
-  // and `Popover.Content` reads it as it always did — the two are simply
-  // never combined by anything the page draws.
+  // something would be a trap. `modal` is ignored there rather than
+  // refused, so the content draws the non-modal panel whatever it says.
+  const context = useMemo(
+    () => ({ modal: modal && trigger !== 'hover', size }),
+    [modal, size, trigger],
+  )
+
   if (trigger === 'hover') {
     return (
       <PopoverContext value={context}>
@@ -285,13 +417,26 @@ function PopoverContent({
         { className, style },
       )}
     >
-      <Dialog
-        aria-describedby={described ? descriptionId : undefined}
-        {...props}
-        {...stylex.props(overlay.popupDialog, focus.ring)}
-      >
-        <DescriptionContext value={description}>{children}</DescriptionContext>
-      </Dialog>
+      {modal ? (
+        <Dialog
+          aria-describedby={described ? descriptionId : undefined}
+          {...props}
+          {...stylex.props(overlay.popupDialog, focus.ring)}
+        >
+          <DescriptionContext value={description}>
+            {children}
+          </DescriptionContext>
+        </Dialog>
+      ) : (
+        <PanelDialog
+          aria-describedby={described ? descriptionId : undefined}
+          {...props}
+        >
+          <DescriptionContext value={description}>
+            {children}
+          </DescriptionContext>
+        </PanelDialog>
+      )}
     </RACPopover>
   )
 }
@@ -325,6 +470,10 @@ function PopoverDescription(
 function PopoverTitle(
   props: PopoverTitleProps & RefAttributes<HTMLHeadingElement>,
 ) {
+  const register = useContext(TitleContext)
+
+  useEffect(() => register(), [register])
+
   return (
     <Heading
       slot="title"
@@ -332,6 +481,29 @@ function PopoverTitle(
       {...mergeStyles(stylex.props(styles.title), props)}
     />
   )
+}
+
+/**
+ * What a pressed trigger hands the overlay it opens: the id its
+ * `aria-controls` points at, and its own id to name a panel with no title.
+ * Read field by field, since the context's type also admits a slotted
+ * value; a hover trigger hands nothing.
+ */
+function triggerOf(context: unknown) {
+  if (typeof context !== 'object' || context === null || 'slots' in context) {
+    return undefined
+  }
+  return {
+    id:
+      'id' in context && typeof context.id === 'string'
+        ? context.id
+        : undefined,
+    labelledBy:
+      'aria-labelledby' in context &&
+      typeof context['aria-labelledby'] === 'string'
+        ? context['aria-labelledby']
+        : undefined,
+  }
 }
 
 Popover.Content = PopoverContent
