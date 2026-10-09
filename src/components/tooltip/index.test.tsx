@@ -67,8 +67,12 @@ function settled(tooltip: HTMLElement) {
 const ROOM_ABOVE = { paddingBlockStart: '200px' }
 
 // Room on every side, so a tooltip lined up with an edge of the element is
-// not pushed back in from the edge of the window.
-const ROOM_AROUND = { padding: '200px' }
+// not pushed back in from the edge of the window. As wide as its content
+// plus that room rather than as wide as the window: in the runner's narrow
+// window the padding left the content almost no width, and a Button is never
+// wider than its container, so the trigger shrank below the tooltip it is
+// meant to be wider than.
+const ROOM_AROUND = { inlineSize: 'max-content', padding: '200px' }
 
 // How far the tooltip's start and end sit in from the element's, opened
 // below it with the alignment asked for. The element is wider than the
