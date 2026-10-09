@@ -19,7 +19,9 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext, useEffect, useRef } from 'react'
 import {
+  AutocompleteStateContext,
   Header,
   Keyboard,
   Menu as RACMenu,
@@ -118,10 +120,10 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     maxInlineSize: MENU_MAX,
     minInlineSize: MENU_MIN,
-    // The surface takes focus when it opens and there is nothing inside to
-    // take it instead — a menu with a search bar above its items, where the
-    // bar has focus and the panel behind it would otherwise draw the
-    // browser's own ring around the whole thing.
+    // The surface takes focus when it opens and nothing inside takes it
+    // first, as a dialog does, and draws no ring of its own for it: the
+    // items are where a keyboard goes next, and a menu with a search bar
+    // above its items puts focus in the bar instead — see `SearchSlot`.
     outlineStyle: 'none',
     paddingBlock: spacing.sm,
   },
@@ -212,7 +214,10 @@ type MenuContentProps<T extends object = object> = {
    * drops anything else, so an input written beside them disappears.
    *
    * To filter with it, wrap this whole part in `Autocomplete`, which puts
-   * the bar and the items inside one wrapper.
+   * the bar and the items inside one wrapper. The bar takes focus as the
+   * menu opens, however it was opened, so typing filters straight away,
+   * and its query is cleared as the menu closes, so a reopened menu shows
+   * every item.
    */
   search?: ReactNode
   /**
@@ -426,13 +431,14 @@ function MenuContent<T extends object = object>({
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(surfaceStyles, { className, style })}
     >
-      {search === undefined ? null : (
-        <div {...stylex.props(styles.search)}>{search}</div>
-      )}
+      {search === undefined ? null : <SearchSlot>{search}</SearchSlot>}
       <RACMenu<T> {...props} {...stylex.props(styles.menu)} />
     </RACPopover>
   )
 }
+
+// What a press on the search slot focuses: its field's own control.
+const SEARCH_CONTROL = 'input, textarea, [contenteditable="true"]'
 
 /**
  * One action. Its slots are the row's: `leading` before the label, the label
@@ -533,6 +539,43 @@ function MenuSeparator(props: MenuSeparatorProps) {
  */
 function MenuSubmenu(props: MenuSubmenuProps) {
   return <RACSubmenuTrigger {...props} />
+}
+
+/**
+ * The search bar above a menu's items, mounted only while the menu is open.
+ *
+ * Its field takes focus as it mounts. React Aria's popover otherwise took
+ * focus itself whenever a pointer opened the menu, so typing went nowhere
+ * and only a keyboard's Enter happened to land in the field. Mounted before
+ * the items, so the popover finds focus already inside it and leaves it.
+ *
+ * The query is cleared as it unmounts. The `Autocomplete` that filters the
+ * items wraps this whole part and outlives the popover, so its query did
+ * too: a menu filtered, used and reopened came back filtered.
+ */
+function SearchSlot({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const autocomplete = useContext(AutocompleteStateContext)
+  // The latest state, for the cleanup below to clear: the state object is a
+  // new one on every render, and the effect that mounts the bar runs once.
+  const latest = useRef(autocomplete)
+
+  useEffect(() => {
+    latest.current = autocomplete
+  })
+
+  useEffect(() => {
+    ref.current?.querySelector<HTMLElement>(SEARCH_CONTROL)?.focus()
+    return () => {
+      latest.current?.setInputValue('')
+    }
+  }, [])
+
+  return (
+    <div ref={ref} {...stylex.props(styles.search)}>
+      {children}
+    </div>
+  )
 }
 
 // The surface grows from the edge it is anchored by, which is what makes it
