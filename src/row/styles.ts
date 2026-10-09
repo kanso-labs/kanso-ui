@@ -177,6 +177,7 @@ const rowStyles = stylex.create({
     fontWeight: typography.bodyLargeWeight,
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
+    overflowWrap: 'anywhere',
   },
   headlineMenu: {
     fontFamily: typography.labelLargeFont,
@@ -184,6 +185,7 @@ const rowStyles = stylex.create({
     fontWeight: typography.labelLargeWeight,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    overflowWrap: 'anywhere',
   },
   // A state layer from render state — see `focusVisible`.
   hovered: {
@@ -235,7 +237,11 @@ const rowStyles = stylex.create({
   // it shrinks happily. min-width: 0 is for the case that cannot wrap — a
   // long unbroken string, a URL, an email — where a flex item otherwise
   // refuses to go below its content's width and shoves the trailing slot off
-  // the end of the row.
+  // the end of the row. The column giving way is half of it: the text styles
+  // break such a string with `overflowWrap: 'anywhere'`, which is what keeps
+  // it inside the column rather than painting over the trailing slot. Not
+  // hyphenated, since the string is as often an address as a compound, and a
+  // hyphen drawn inside an address reads as part of it.
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -258,6 +264,7 @@ const rowStyles = stylex.create({
     fontWeight: typography.labelSmallWeight,
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,
+    overflowWrap: 'anywhere',
   },
   // A state layer from render state — see `focusVisible`.
   pressed: {
@@ -322,6 +329,7 @@ const rowStyles = stylex.create({
     fontWeight: typography.bodyMediumWeight,
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
+    overflowWrap: 'anywhere',
   },
   // A supporting line takes on surface variant only while the row is drawn
   // on the surface. The page's muted role is a second colour family over a

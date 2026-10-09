@@ -147,7 +147,8 @@ const InAList: Story = {
 
 // Its own story because nothing truncates: a headline that needs two lines
 // takes two and the row grows, and the middle column gives way rather than
-// shoving the trailing slot off the end, even when its content cannot wrap.
+// shoving the trailing slot off the end. A string with nowhere to break, an
+// address here, breaks inside itself rather than painting over the slot.
 const LongContent: Story = {
   decorators: [Constrained],
   render: () => (
@@ -165,7 +166,7 @@ const LongContent: Story = {
       </ListItem>
       <ListItem
         leading={<Avatar name="Grace Hopper" size="md" tone="tertiary" />}
-        supporting="no-spaces-anywhere-in-this-supporting-line-at-all"
+        supporting="firstname.lastname@organisation.example.com"
         trailing={
           <Text tone="muted" variant="labelSmall">
             Label
