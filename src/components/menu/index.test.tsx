@@ -15,8 +15,10 @@ import {
   isPressed,
 } from '../../hooks/useRipple.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import Autocomplete from '../autocomplete'
 import Button from '../button'
 import Keycap from '../keycap'
+import SearchField from '../search-field'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -54,6 +56,9 @@ const SECOND = ['second']
 // Hoisted so the slot is not a new element on every render.
 const SEARCH = <input aria-label="Search" />
 const SHORTCUT = <Keycap>⌘X</Keycap>
+
+// The bar a searchable menu draws above its items.
+const SEARCH_FIELD = <SearchField label="Search" />
 
 // A label with one word wider than the surface's 280dp cap.
 const LONG_LABEL = 'Unterstützungszeilenüberschriftenbearbeitung bearbeiten'
@@ -663,5 +668,81 @@ describe('menu', () => {
       )
       expect(view.queryByRole('progressbar')).toBeNull()
     })
+  })
+})
+
+// A menu with a search bar above its items, filtered by an Autocomplete
+// around the whole part, as the `search` prop's docs wire it.
+function searchable(props: { defaultOpen?: boolean } = {}) {
+  return render(
+    <Menu {...props}>
+      <Button>Open</Button>
+      <Autocomplete>
+        <Menu.Content search={SEARCH_FIELD}>
+          <Menu.Item id="first">First item</Menu.Item>
+          <Menu.Item id="second">Second item</Menu.Item>
+          <Menu.Item id="third">Third item</Menu.Item>
+        </Menu.Content>
+      </Autocomplete>
+    </Menu>,
+  )
+}
+
+// The bar is there to be typed into, so it takes focus as the menu opens.
+// React Aria's popover took focus itself when a pointer opened the menu,
+// so typing went nowhere; and the Autocomplete outlives the popover, so a
+// reopened menu came back still filtered.
+describe('the search bar', () => {
+  it('takes focus when a pointer opens the menu', async () => {
+    const view = searchable()
+    // A mouse's press, down and up, rather than a bare click, which React
+    // Aria reads as a virtual press and answers as it would a keyboard.
+    const trigger = view.getByRole('button', { name: 'Open' })
+    fireEvent.pointerDown(trigger, {
+      button: 0,
+      pointerId: 1,
+      pointerType: 'mouse',
+    })
+    fireEvent.mouseDown(trigger, { button: 0 })
+    fireEvent.pointerUp(trigger, {
+      button: 0,
+      pointerId: 1,
+      pointerType: 'mouse',
+    })
+    fireEvent.mouseUp(trigger, { button: 0 })
+    fireEvent.click(trigger, { button: 0, detail: 1 })
+
+    const field = await view.findByRole('searchbox', { name: 'Search' })
+    await waitFor(() => {
+      expect(document.activeElement).toBe(field)
+    })
+  })
+
+  it('takes focus when the menu opens on its own', async () => {
+    const view = searchable({ defaultOpen: true })
+    const field = await view.findByRole('searchbox', { name: 'Search' })
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(field)
+    })
+  })
+
+  it('starts empty when the menu opens again', async () => {
+    const view = searchable({ defaultOpen: true })
+    const field = await view.findByRole('searchbox', { name: 'Search' })
+    fireEvent.change(field, { target: { value: 'fir' } })
+    await waitFor(() => {
+      expect(view.getAllByRole('menuitem')).toHaveLength(1)
+    })
+
+    fireEvent.click(view.getByRole('menuitem', { name: 'First item' }))
+    await waitFor(() => {
+      expect(view.queryByRole('menu')).toBeNull()
+    })
+    fireEvent.click(view.getByRole('button', { name: 'Open' }))
+
+    const reopened = await view.findByRole('searchbox', { name: 'Search' })
+    expect(reopened).toHaveProperty('value', '')
+    expect(view.getAllByRole('menuitem')).toHaveLength(3)
   })
 })
