@@ -10,6 +10,8 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Dialog from '../dialog'
 import ListBox from '../list-box'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -103,6 +105,25 @@ function glyphOf(view: ReturnType<typeof render>) {
   return glyph
 }
 
+/**
+ * A press where `element` is drawn, landing on whatever the browser puts on
+ * top there — which is the whole question for a box whose press target
+ * covers it. Hit-tested by the page rather than clicked by a driver, since a
+ * driver's pointer is a command to the whole page, and under a full run's
+ * load those wait long enough to time a test out.
+ */
+function pressAt(element: Element) {
+  const box = element.getBoundingClientRect()
+  const hit = document.elementFromPoint(
+    box.left + box.width / 2,
+    box.top + box.height / 2,
+  )
+  if (hit === null) {
+    throw new Error('expected something to be drawn there')
+  }
+  fireEvent.click(hit)
+}
+
 function setup(
   props: Partial<Parameters<typeof Select<object>>[0]> = {},
   container?: HTMLElement,
@@ -178,6 +199,54 @@ describe('select', () => {
     it('shows the description when there is no error', () => {
       const view = setup({ description: 'Supporting line' })
       expect(view.getByText('Supporting line')).not.toBeNull()
+    })
+  })
+
+  // The whole box opens the list, which only holds while the press target
+  // is what a pointer lands on. Every test here presses at real coordinates:
+  // a click dispatched on the button itself skips hit testing, which is how
+  // a box whose column covered the button passed every test above.
+  describe('pressing the box', () => {
+    it('puts the press target under every point across the box', () => {
+      const { trigger } = setup()
+      const box = trigger.getBoundingClientRect()
+      for (const fraction of [0.05, 0.25, 0.5, 0.75, 0.95]) {
+        const hit = document.elementFromPoint(
+          box.left + box.width * fraction,
+          box.top + box.height / 2,
+        )
+        expect(hit === trigger || trigger.contains(hit)).toBe(true)
+      }
+    })
+
+    it('opens the list from a press on the label', async () => {
+      const view = setup()
+      pressAt(view.getByText('Label'))
+      await waitFor(() => {
+        expect(view.getByRole('listbox')).not.toBeNull()
+      })
+      expect(view.trigger.getAttribute('aria-expanded')).toBe('true')
+    })
+
+    it('opens the list inside a dialog and leaves the dialog open', async () => {
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Headline</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Select label="Label" options={OPTIONS} />
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      pressAt(await view.findByText('Label'))
+      await waitFor(() => {
+        expect(view.getByRole('listbox')).not.toBeNull()
+      })
+      expect(view.getByRole('dialog', { name: 'Headline' })).not.toBeNull()
     })
   })
 

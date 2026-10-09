@@ -654,6 +654,12 @@ const fieldChromeStyles = stylex.create({
   // The press target over a box whose whole surface opens something. Drawn
   // as nothing: the box already carries the fill, the underline and the
   // focus indicator, so a second treatment here would be two for one press.
+  //
+  // Lifted over the rest of the box, since it comes first in it and the
+  // column after it is positioned too: at the same level the later element
+  // paints on top, so the column took every press and only a key opened
+  // the field. Everything else in the box draws, and none of it is pressed
+  // on its own.
   trigger: {
     backgroundColor: 'transparent',
     borderWidth: 0,
@@ -663,6 +669,7 @@ const fieldChromeStyles = stylex.create({
     outlineStyle: 'none',
     padding: 0,
     position: 'absolute',
+    zIndex: 1,
   },
   // A value that was chosen rather than typed. The input's type and its
   // place on the line, laid out as a row so it does not stretch to the box's
