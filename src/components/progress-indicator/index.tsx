@@ -349,7 +349,7 @@ const styles = stylex.create({
     transitionProperty: 'inline-size, opacity',
   },
   arcActive: {
-    stroke: colors.primary,
+    stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   // The flat ring's active arc moves its opacity as well as its dashes when
   // a wave is drawn over it, so the two crossfade in step.
@@ -366,7 +366,7 @@ const styles = stylex.create({
     animationIterationCount: 'infinite, infinite',
     animationName: `${expandArc}, ${travelArc}`,
     animationTimingFunction: `${RING_EASING}, ${RING_EASING}`,
-    stroke: colors.primary,
+    stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     transitionProperty: 'none',
   },
   // Material's own transition for a determinate ring, on both arcs rather
@@ -381,7 +381,14 @@ const styles = stylex.create({
     transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
   },
   arcTrack: {
-    stroke: colors.secondaryContainer,
+    // An author's stroke is kept as written under forced colours, so the
+    // track was its pale container on the mode's `Canvas`, and the ring had
+    // no extent: the track takes `CanvasText`, as the line's track keeps an
+    // edge, and the active part takes `Highlight` over it.
+    stroke: {
+      default: colors.secondaryContainer,
+      [FORCED_COLORS]: 'CanvasText',
+    },
   },
   circular: {
     boxSizing: 'border-box',
@@ -538,7 +545,7 @@ const styles = stylex.create({
     animationIterationCount: 'infinite, infinite',
     animationName: `${primaryWaveOffset}, ${primaryWaveLength}`,
     animationTimingFunction: 'linear, linear',
-    stroke: colors.primary,
+    stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   // The ring's wave, hidden under reduced motion, where the flat arc
   // beneath it is drawn instead.
@@ -574,7 +581,7 @@ const styles = stylex.create({
     animationIterationCount: 'infinite, infinite',
     animationName: `${secondaryWaveOffset}, ${secondaryWaveLength}`,
     animationTimingFunction: 'linear, linear',
-    stroke: colors.primary,
+    stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   trackBuffered: {
     backgroundColor: colors.secondaryContainer,
@@ -617,7 +624,7 @@ const styles = stylex.create({
   // indicator's width, and its opacity in step with the flat one's.
   waveMotion: {
     [REDUCED_MOTION]: { transitionDuration: '0s' },
-    stroke: colors.primary,
+    stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     transitionDuration: motion.durationMedium1,
     transitionProperty: 'stroke-dasharray, opacity',
     transitionTimingFunction: DETERMINATE_EASING,

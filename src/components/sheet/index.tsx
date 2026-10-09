@@ -244,12 +244,19 @@ const styles = stylex.create({
     justifyContent: 'center',
     paddingBlock: '22px',
   },
+  // `CanvasText` under forced colours, which otherwise paints the bar in the
+  // same `Canvas` as the panel it sits on. Kept by opting the bar out of the
+  // mode, since a system colour named as a background is repainted too.
   handleBar: {
-    backgroundColor: colors.onSurfaceVariant,
+    backgroundColor: {
+      default: colors.onSurfaceVariant,
+      [FORCED_COLORS]: 'CanvasText',
+    },
     blockSize: '4px',
     // 9999 on a 4dp bar resolves to the page's own 2dp corner.
     borderRadius: radii.pill,
     boxSizing: 'border-box',
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
     inlineSize: '32px',
   },
   // The page's 12 between the header's elements.

@@ -26,6 +26,12 @@ import {
 // @stylexjs/babel-plugin only statically recognizes expressions written
 // directly as property values. Button's header comment records the same
 // constraint.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   base: {
     // The cards spec page's corner, 12dp, which is the medium shape.
@@ -83,6 +89,20 @@ const styles = stylex.create({
     font: 'inherit',
     inlineSize: '100%',
     textAlign: 'start',
+  },
+  // An elevated or filled card that can be pressed is told apart from the
+  // page by its container's fill and shadow, and forced colours removes the
+  // shadow and repaints the fill in the page's own `Canvas` — so the card
+  // read as loose content until it was focused. A border is what the mode
+  // keeps, in the colour it gives what can be pressed. The outlined card
+  // has one already, and a static card's elevation is decoration.
+  //
+  // The width restates the base's 0, which resets a <button>'s own border,
+  // since StyleX replaces a property whole.
+  interactiveBoundary: {
+    borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
   },
   outlined: {
     backgroundColor: colors.surface,
@@ -259,6 +279,7 @@ function Card({
           styles[variant],
           padded,
           interactive && styles.interactive,
+          interactive && variant !== 'outlined' && styles.interactiveBoundary,
           interactive && focus.ring,
           interactive && interactionStyles[variant],
         ),
