@@ -218,14 +218,16 @@ const LongHeadline: Story = {
         leading={LEADING}
         size="lg"
       />
-      <div lang="de">
+      {/* A section, so this second bar is a header of its own content
+          rather than a second banner landmark on the page. */}
+      <section lang="de">
         <Sample
           headline={LONG_WORD}
           label="sm, one word wider than the room, in German"
           leading={LEADING}
           trailing={TRAILING}
         />
-      </div>
+      </section>
     </div>
   ),
 }
