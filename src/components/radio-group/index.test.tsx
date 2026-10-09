@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import RadioGroup, { Radio } from '.'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import Form from '../form'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -34,6 +35,11 @@ const probeStyles = stylex.create({
   selectedTone: { color: colors.primary },
 })
 
+// Hoisted so each is one stable value rather than a fresh one per render,
+// which is what react-perf's no-new-object-as-prop and
+// no-new-function-as-prop are after.
+const SERVER_ERRORS = { choice: 'Choose again.' }
+
 function classesOf(props: { className?: string | undefined }) {
   const classes = (props.className ?? '').split(' ').filter(Boolean)
   // An empty list would make every `every` below vacuously true, so it is a
@@ -42,6 +48,10 @@ function classesOf(props: { className?: string | undefined }) {
     throw new Error('expected the probe style to generate at least one class')
   }
   return classes
+}
+
+function refuseFirst(value: null | string) {
+  return value === 'first' ? 'Choose another item.' : null
 }
 
 const CLASSES = {
@@ -298,7 +308,114 @@ describe('radio group', () => {
       )
     })
   })
+
+  // An option's description is the option's alone. It once went through the
+  // field's message line, which reads the group's validation: any message
+  // that arrived through validation rather than `error` rendered into the
+  // option, where React Aria has no slot for it, and threw, taking the whole
+  // tree with it.
+  describe('validation', () => {
+    it('shows the message of a required group a native form submits empty', () => {
+      const view = render(
+        <Form aria-label="Form" validationBehavior="native">
+          <RadioGroup isRequired label="Label" name="choice">
+            <Radio value="first">First item</Radio>
+            <Radio description="Supporting line" value="second">
+              Second item
+            </Radio>
+          </RadioGroup>
+        </Form>,
+      )
+
+      act(() => {
+        formOf(view).requestSubmit()
+      })
+
+      const group = view.getByRole('radiogroup', { name: 'Label' })
+      expect(group.getAttribute('aria-invalid')).toBe('true')
+      expect(describedBy(group).join('')).not.toBe('')
+      expect(view.getByText('Supporting line')).not.toBeNull()
+    })
+
+    it("shows a form's server error for the group", () => {
+      const view = render(
+        <Form aria-label="Form" validationErrors={SERVER_ERRORS}>
+          <RadioGroup label="Label" name="choice">
+            <Radio value="first">First item</Radio>
+            <Radio description="Supporting line" value="second">
+              Second item
+            </Radio>
+          </RadioGroup>
+        </Form>,
+      )
+      const group = view.getByRole('radiogroup', { name: 'Label' })
+      expect(describedBy(group)).toContain('Choose again.')
+    })
+
+    it('shows the message its own validate returns', () => {
+      const view = render(
+        <RadioGroup defaultValue="first" label="Label" validate={refuseFirst}>
+          <Radio value="first">First item</Radio>
+          <Radio description="Supporting line" value="second">
+            Second item
+          </Radio>
+        </RadioGroup>,
+      )
+      const group = view.getByRole('radiogroup', { name: 'Label' })
+      expect(describedBy(group)).toContain('Choose another item.')
+    })
+
+    it('keeps describing an option with its own description while the group is invalid', () => {
+      const view = setup({ error: 'Choose one.' })
+      expect(describedBy(view.second)).toContain('Supporting line')
+    })
+
+    it('draws no line under an option without a description', () => {
+      const resting = setup()
+      const restingHeight = fieldOf(resting.first).offsetHeight
+      resting.unmount()
+
+      const invalid = setup({ error: 'Choose one.' })
+      expect(fieldOf(invalid.first).offsetHeight).toBe(restingHeight)
+      invalid.unmount()
+
+      const view = render(
+        <Form aria-label="Form">
+          <RadioGroup label="Label" name="choice">
+            <Radio value="first">First item</Radio>
+          </RadioGroup>
+        </Form>,
+      )
+      const first = view.getByRole('radio', { name: 'First item' })
+      expect(fieldOf(first).offsetHeight).toBe(restingHeight)
+    })
+  })
 })
+
+/** The texts an element's `aria-describedby` points at, in order. */
+function describedBy(element: HTMLElement) {
+  return (element.getAttribute('aria-describedby') ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map((id) => document.getElementById(id)?.textContent ?? '')
+}
+
+/** One option's root: the field the label and its description sit in. */
+function fieldOf(input: HTMLElement) {
+  const field = input.closest('label')?.parentElement
+  if (!(field instanceof HTMLElement)) {
+    throw new Error('expected the radio to sit in its field')
+  }
+  return field
+}
+
+function formOf(view: { getByRole: (role: 'form') => HTMLElement }) {
+  const form = view.getByRole('form')
+  if (!(form instanceof HTMLFormElement)) {
+    throw new Error('expected a form')
+  }
+  return form
+}
 
 // A keyboard's focus draws the hover layer's colour at the focus opacity,
 // as Button's does, where it once drew the ring alone.
