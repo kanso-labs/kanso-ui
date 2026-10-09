@@ -5,8 +5,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
+import AppBar from '../components/app-bar'
+import Avatar from '../components/avatar'
 import Button from '../components/button'
 import Calendar from '../components/calendar'
+import Card from '../components/card'
 import Checkbox from '../components/checkbox'
 import ChipGroup from '../components/chip-group'
 import ColorSlider from '../components/color-slider'
@@ -21,6 +24,7 @@ import Meter from '../components/meter'
 import NavigationBar from '../components/navigation-bar'
 import NavigationTree from '../components/navigation-tree'
 import Popover from '../components/popover'
+import ProductIcon from '../components/product-icon'
 import ProgressIndicator from '../components/progress-indicator'
 import RadioGroup, { Radio } from '../components/radio-group'
 import RangeCalendar from '../components/range-calendar'
@@ -1222,5 +1226,86 @@ describe('a disabled item', () => {
 
     expect(forcedColorRules(disabled).get('color')).toBe('graytext')
     expect(forcedColorRules(enabled).get('color')).not.toBe('graytext')
+  })
+})
+
+// A shape or boundary drawn by a fill or a shadow alone, both of which the
+// mode removes or repaints in the page's own `Canvas`. Each now draws a
+// border or names a system colour the mode keeps.
+describe('a shape drawn by its fill alone', () => {
+  it.each(['elevated', 'filled'] as const)(
+    'gives a pressable %s card a ButtonText border',
+    (variant) => {
+      const view = render(
+        <Card interactive variant={variant}>
+          Headline
+        </Card>,
+      )
+      const rules = forcedColorRules(view.getByRole('button'))
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('buttontext')
+    },
+  )
+
+  // A static card's elevation is decoration, and an outlined card has a
+  // border already.
+  it('leaves a static card and an outlined one to the mode', () => {
+    const view = render(
+      <>
+        <Card>Static</Card>
+        <Card interactive variant="outlined">
+          Outlined
+        </Card>
+      </>,
+    )
+
+    expect(
+      forcedColorRules(view.getByText('Static')).get('border-top-style'),
+    ).toBeUndefined()
+    expect(
+      forcedColorRules(view.getByRole('button')).get('border-top-color'),
+    ).toBeUndefined()
+  })
+
+  it("draws a ring's track in CanvasText and its arc in Highlight", () => {
+    const view = render(
+      <ProgressIndicator aria-label="Label" value={40} variant="circular" />,
+    )
+    const [track, arc] = view.container.querySelectorAll('circle')
+
+    expect(forcedColorRules(track).get('stroke')).toBe('canvastext')
+    expect(forcedColorRules(arc).get('stroke')).toBe('highlight')
+  })
+
+  it.each([
+    ['an avatar', <Avatar key="avatar" name="Ada Lovelace" />],
+    ['a product icon', <ProductIcon key="icon" name="First item" />],
+  ])('draws %s a CanvasText border', (_what, element) => {
+    const root = render(element).container.firstElementChild!
+    const rules = forcedColorRules(root)
+
+    expect(rules.get('border-top-style')).toBe('solid')
+    expect(rules.get('border-top-color')).toBe('canvastext')
+  })
+
+  // The block end, which the stylesheet carries as the bottom in a
+  // horizontal writing mode.
+  it('draws a scrolled app bar an edge under it', () => {
+    const view = render(<AppBar headline="Headline" scrolled />)
+    const rules = forcedColorRules(view.container.firstElementChild!)
+
+    expect(rules.get('border-bottom-style')).toBe('solid')
+    expect(rules.get('border-bottom-color')).toBe('canvastext')
+  })
+
+  it("keeps a sheet's drag handle in CanvasText", () => {
+    const view = render(<Sheet.Handle />)
+    const bar = view.container.firstElementChild!.firstElementChild!
+    const rules = forcedColorRules(bar)
+
+    expect(rules.get('background-color')).toBe('canvastext')
+    expect(rules.get('forced-color-adjust')).toBe('none')
   })
 })

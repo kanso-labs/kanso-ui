@@ -51,6 +51,12 @@ const HEIGHTS = {
 // table rather than being a fourth height.
 const COLLAPSED_HEIGHT = HEIGHTS.sm.plain
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // Collapsing swaps the headline's type role, which is a change of class
   // rather than of value — but the properties underneath still transition,
@@ -91,8 +97,14 @@ const styles = stylex.create({
   // Material Design replaced the drop shadow it once gave a scrolled bar with
   // a colour fill, so a bar over scrolled content separates by sitting on a
   // different surface rather than by casting anything.
+  //
+  // Forced colours paints that fill in the page's own `Canvas`, so the bar
+  // and the content under it ran together; there it draws an edge instead.
   scrolled: {
     backgroundColor: colors.surfaceContainer,
+    borderBlockEndColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderBlockEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockEndWidth: { default: null, [FORCED_COLORS]: '1px' },
   },
   // Slots hold their own size rather than being squeezed by a long headline.
   slot: {

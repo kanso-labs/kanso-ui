@@ -40,9 +40,22 @@ import { colors, radii, typography } from '../tokens/design.tokens.stylex'
 // in a row. `lg` is 56dp. `sm` is 36dp, between the 32dp a chip and an `xs`
 // control take and that 40dp default, for a row that wants a person smaller
 // than the button beside them.
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const markStyles = stylex.create({
+  // A border under forced colours, which paints the tone's fill in the
+  // page's own `Canvas` and left the initials floating with no circle or
+  // square around them. Inside the box, since it is border-box, so the mark
+  // keeps its size.
   base: {
     alignItems: 'center',
+    borderColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,

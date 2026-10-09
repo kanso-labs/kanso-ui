@@ -99,11 +99,16 @@ export const indicatorStyles = stylex.create({
   // written without it would replace `active`'s whole.
   inheritActive: {
     backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'Highlight' },
-    stroke: 'currentColor',
+    stroke: { default: 'currentColor', [FORCED_COLORS]: 'Highlight' },
   },
+  // The ring's track under forced colours is `CanvasText`, as its own
+  // track's is — see `arcTrack` in the progress indicator.
   inheritTrack: {
     backgroundColor: 'color-mix(in srgb, currentColor 25%, transparent)',
-    stroke: 'color-mix(in srgb, currentColor 25%, transparent)',
+    stroke: {
+      default: 'color-mix(in srgb, currentColor 25%, transparent)',
+      [FORCED_COLORS]: 'CanvasText',
+    },
   },
   label: {
     boxSizing: 'border-box',
