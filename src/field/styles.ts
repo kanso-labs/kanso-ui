@@ -203,6 +203,15 @@ const fieldChromeStyles = stylex.create({
       default: `inset 0 -1px 0 0 ${colors.error}`,
     },
   },
+  // What `:focus-within` draws above, for a box whose field holds focus
+  // outside it — see FieldBox's `isFocused`. Applied after the hovered and
+  // error styles, so it wins over both as focus does there, and repeating
+  // the ring's style under forced colours since that is a `:focus-within`
+  // branch too.
+  boxErrorFocused: {
+    boxShadow: `inset 0 -2px 0 0 ${colors.error}`,
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+  },
   // The fixed label's type: label-medium, small at the top in every state.
   boxFixed: {
     fontFamily: typography.labelMediumFont,
@@ -246,6 +255,11 @@ const fieldChromeStyles = stylex.create({
         typography.bodySmallLineHeight,
       default: `calc(${BOX_BLOCK_SIZE} - 2 * ${spacing.sm})`,
     },
+  },
+  // The focused underline — see `boxErrorFocused`.
+  boxFocused: {
+    boxShadow: `inset 0 -2px 0 0 ${colors.primary}`,
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
   },
   // Where the box puts its label: at the top of the column the control is
   // in. Kept apart from `label`, which is the colour alone, so a field that
@@ -348,6 +362,11 @@ const fieldChromeStyles = stylex.create({
   boxOutlinedError: {
     color: colors.error,
   },
+  // The focused outline with an error — see `boxErrorFocused`.
+  boxOutlinedErrorFocused: {
+    color: colors.error,
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+  },
   // The hovered outline with an error — see `boxOutlinedHovered`.
   boxOutlinedErrorHovered: {
     color: {
@@ -364,6 +383,11 @@ const fieldChromeStyles = stylex.create({
         typography.bodySmallLineHeight,
       default: `calc(${BOX_OUTLINED_BLOCK_SIZE} - 2 * ${spacing.lg})`,
     },
+  },
+  // The focused outline — see `boxErrorFocused`.
+  boxOutlinedFocused: {
+    color: colors.primary,
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
   },
   // The hovered outline, in on surface. From the box's render state rather
   // than `:hover`, which stayed on after a tap, and it repeats the focused

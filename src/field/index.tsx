@@ -84,6 +84,16 @@ type FieldBoxProps = {
    */
   floatingLabel?: boolean
   /**
+   * Whether the field holds focus somewhere the box cannot see, so the box
+   * draws its focused state — the floated label, the focused indicator and
+   * the label's colour — without focus inside it. A select's open list is
+   * the case: opening it moves focus into the list, on an overlay outside
+   * the box, and left to `:focus-within` the label fell back onto the
+   * placeholder the select still showed.
+   * @default false
+   */
+  isFocused?: boolean
+  /**
    * Whether the control is holding anything, for a field whose control the
    * chrome cannot ask. It reads an input, a text area and a select's own
    * state; a control that is none of those — a token field's editable area,
@@ -275,6 +285,7 @@ function boxContent(
   label: string,
   children: ReactNode,
   floatingLabel: boolean,
+  isFocused: boolean,
   isPopulated: boolean | undefined,
   isRequired: boolean,
   leading: ReactNode,
@@ -286,6 +297,7 @@ function boxContent(
   return (state: GroupRenderProps) => (
     <BoxContent
       floatingLabel={floatingLabel}
+      isFocused={isFocused}
       isPopulated={isPopulated}
       isRequired={isRequired}
       label={label}
@@ -311,6 +323,7 @@ function boxContent(
 function BoxContent({
   children,
   floatingLabel,
+  isFocused,
   isPopulated,
   isRequired,
   label,
@@ -323,6 +336,7 @@ function BoxContent({
 }: {
   children: ReactNode
   floatingLabel: boolean
+  isFocused: boolean
   isPopulated: boolean | undefined
   isRequired: boolean
   label: string
@@ -336,7 +350,8 @@ function BoxContent({
   const read = useFieldPopulated()
   const populated = isPopulated ?? read
   const outlined = variant === 'outlined'
-  const floated = !floatingLabel || state.isFocusWithin || populated
+  const focused = state.isFocusWithin || isFocused
+  const floated = !floatingLabel || focused || populated
 
   return (
     <BoxContext
@@ -349,7 +364,7 @@ function BoxContent({
             fieldChromeStyles.outline,
             leading !== undefined && fieldChromeStyles.outlineLeading,
             trailing !== undefined && fieldChromeStyles.outlineTrailing,
-            state.isFocusWithin && fieldChromeStyles.outlineFocused,
+            focused && fieldChromeStyles.outlineFocused,
           )}
         >
           <legend
@@ -392,7 +407,7 @@ function BoxContent({
       >
         <FieldLabel
           isRequired={isRequired}
-          state={state}
+          state={withFocus(state, focused)}
           {...stylex.props(
             fieldChromeStyles.boxLabel,
             floatingLabel && floated && fieldChromeStyles.boxLabelFloated,
@@ -423,6 +438,7 @@ function BoxContent({
 
 function boxStyles(
   floatingLabel: boolean,
+  isFocused: boolean,
   multiline: boolean,
   leading: boolean,
   trailing: boolean,
@@ -451,6 +467,7 @@ function boxStyles(
         (state.isInvalid
           ? fieldChromeStyles.boxOutlinedErrorHovered
           : fieldChromeStyles.boxOutlinedHovered),
+      isFocused && focusedStyle(outlined, state.isInvalid),
       state.isDisabled &&
         (outlined
           ? fieldChromeStyles.boxOutlinedDisabled
@@ -469,6 +486,7 @@ function boxStyles(
 function FieldBox({
   children,
   floatingLabel = true,
+  isFocused = false,
   isPopulated,
   isRequired = false,
   label,
@@ -485,6 +503,7 @@ function FieldBox({
       {...mergeStatefulStyles(
         boxStyles(
           floatingLabel,
+          isFocused,
           multiline,
           leading !== undefined,
           trailing !== undefined,
@@ -497,6 +516,7 @@ function FieldBox({
         label,
         children,
         floatingLabel,
+        isFocused,
         isPopulated,
         isRequired,
         leading,
@@ -735,6 +755,19 @@ function FieldValue({
   )
 }
 
+// What `:focus-within` draws on the box, for a box told it is focused — see
+// `isFocused`. The error's own colour wins over primary, as it does there.
+function focusedStyle(outlined: boolean, invalid: boolean) {
+  if (outlined) {
+    return invalid
+      ? fieldChromeStyles.boxOutlinedErrorFocused
+      : fieldChromeStyles.boxOutlinedFocused
+  }
+  return invalid
+    ? fieldChromeStyles.boxErrorFocused
+    : fieldChromeStyles.boxFocused
+}
+
 // Back to the start of the line once focus has left every segment on it —
 // not while it moves from one segment to the next. The start is 0 in either
 // writing direction: a right-to-left line scrolls towards negative values.
@@ -756,6 +789,15 @@ function useFieldPopulated() {
   }
   const value = input?.value ?? textArea?.value ?? ''
   return String(value).length > 0
+}
+
+// The box's render state with focus as the box draws it, for its label,
+// whose colour follows focus. Built by a call rather than written at the
+// prop, which is what react-perf's no-new-object-as-prop is after.
+function withFocus(state: GroupRenderProps, focused: boolean) {
+  return focused === state.isFocusWithin
+    ? state
+    : { ...state, isFocusWithin: focused }
 }
 
 /**
