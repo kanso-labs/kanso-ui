@@ -370,7 +370,7 @@ describe('select', () => {
       expect(hasClasses(label, CLASSES.floated)).toBe(false)
       expect(hasClasses(boxOf(view), CLASSES.focusedUnderline)).toBe(false)
 
-      await userEvent.click(label, { force: true })
+      pressAt(label)
       await view.findByRole('listbox')
 
       expect(view.trigger.contains(document.activeElement)).toBe(false)
@@ -397,7 +397,7 @@ describe('select', () => {
 
     it('lets go of the focused state once the list closes', async () => {
       const view = setup()
-      await userEvent.click(view.getByText('Label'), { force: true })
+      pressAt(view.getByText('Label'))
       await view.findByRole('listbox')
 
       fireEvent.click(view.getByRole('option', { name: 'Second item' }))
