@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.40.4](https://github.com/kanso-labs/kanso-ui/compare/v0.40.3...v0.40.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **control:** wrap long unbroken words in checkbox, radio and switch labels ([#1564](https://github.com/kanso-labs/kanso-ui/issues/1564)) ([525800d](https://github.com/kanso-labs/kanso-ui/commit/525800dd9e29f1e2d8d0cfe6ba829fca5629ef73))
+* **indicator:** keep the value at the end of the row and wrap a long label ([#1567](https://github.com/kanso-labs/kanso-ui/issues/1567)) ([c8a2069](https://github.com/kanso-labs/kanso-ui/commit/c8a206956cb509116248f0ee524cc89abeeaac1d))
+* **menu:** focus the search field when a searchable menu opens and clear it on close ([#1570](https://github.com/kanso-labs/kanso-ui/issues/1570)) ([d99ad48](https://github.com/kanso-labs/kanso-ui/commit/d99ad486726f31446673b529608b3cc2f84adcab))
+* **row,app-bar,indicator:** treat null, false and empty strings as empty slots ([#1569](https://github.com/kanso-labs/kanso-ui/issues/1569)) ([a191b54](https://github.com/kanso-labs/kanso-ui/commit/a191b54534fb2465159bedf8098c2eac6d663cf8))
+* **row:** wrap long unbroken words in list, list item and menu rows ([#1566](https://github.com/kanso-labs/kanso-ui/issues/1566)) ([6c23af9](https://github.com/kanso-labs/kanso-ui/commit/6c23af97401b7164ed747cd54c3dabb682b645af))
+* **text,link,button,card:** break long unbroken words instead of overflowing ([#1568](https://github.com/kanso-labs/kanso-ui/issues/1568)) ([7e3b060](https://github.com/kanso-labs/kanso-ui/commit/7e3b060d2bb8ff6b3cf3c1cfae1edba83d8cc988))
+
 ## [0.40.3](https://github.com/kanso-labs/kanso-ui/compare/v0.40.2...v0.40.3) (2026-10-09)
 
 
