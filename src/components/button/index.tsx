@@ -150,6 +150,11 @@ const styles = stylex.create({
     gap: spacing.sm,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    // Never wider than its container, and a label with a word wider than
+    // that breaks inside it: the label wraps between words already, and a
+    // single long compound otherwise held the button at its own width.
+    maxInlineSize: '100%',
+    overflowWrap: 'anywhere',
     position: 'relative',
     // `href` makes a button an <a>, and an <a> arrives underlined. Reset
     // here rather than per variant, since every variant sets a colour of

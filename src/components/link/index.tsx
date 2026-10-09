@@ -42,6 +42,10 @@ const styles = stylex.create({
     borderRadius: radii.xs,
     boxSizing: 'border-box',
     cursor: 'pointer',
+    // A long address breaks rather than widening the page. `anywhere`, which
+    // also lowers the link's min-content width, so a link that is a flex
+    // item — a footer's row of links — gives way as well.
+    overflowWrap: 'anywhere',
     textDecorationThickness: '1px',
     textUnderlineOffset: '0.2em',
     transitionDuration: motion.durationShort2,
