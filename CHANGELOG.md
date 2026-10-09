@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.40.3](https://github.com/kanso-labs/kanso-ui/compare/v0.40.2...v0.40.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* **app-bar:** wrap a long headline word instead of overflowing the bar ([#1560](https://github.com/kanso-labs/kanso-ui/issues/1560)) ([eb63d3a](https://github.com/kanso-labs/kanso-ui/commit/eb63d3a8511149c2ddc6eb840e5c8ef0a460e90e))
+* **card,progress-indicator,mark,app-bar,sheet:** keep boundaries visible under forced colours ([#1562](https://github.com/kanso-labs/kanso-ui/issues/1562)) ([d2f11b2](https://github.com/kanso-labs/kanso-ui/commit/d2f11b28fab25a0b4a3250d5f89a30c90b9c07b7))
+* **control,row,chip,navigation:** show disabled controls in GrayText under forced colours ([#1561](https://github.com/kanso-labs/kanso-ui/issues/1561)) ([22dd2d4](https://github.com/kanso-labs/kanso-ui/commit/22dd2d4ea89ae7e36c45f534cfdf4c1054249385))
+* **field:** focus the input from a press anywhere in the field container ([#1559](https://github.com/kanso-labs/kanso-ui/issues/1559)) ([e22fe95](https://github.com/kanso-labs/kanso-ui/commit/e22fe950ca7aa86179204c8521553e8b7c7022b8))
+* **overlay:** stack the modal scrim and its surface above positioned page content ([#1557](https://github.com/kanso-labs/kanso-ui/issues/1557)) ([1fcf832](https://github.com/kanso-labs/kanso-ui/commit/1fcf8321c3f2e8069ef88cd344605784b6deef32))
+* **popover:** keep focus on the page when a hover popover opens and let Tab leave a non-modal one ([#1558](https://github.com/kanso-labs/kanso-ui/issues/1558)) ([6a73e11](https://github.com/kanso-labs/kanso-ui/commit/6a73e11d5a2b30c50d67b2f0e79c38ed72e91f40))
+* **radio-group:** stop an option description crashing the tree or vanishing when the group has an error ([#1552](https://github.com/kanso-labs/kanso-ui/issues/1552)) ([c6478c6](https://github.com/kanso-labs/kanso-ui/commit/c6478c61565707091487c164a6740c446eca4628))
+* **segmented-button:** mark the chosen segment beyond its fill colour ([#1563](https://github.com/kanso-labs/kanso-ui/issues/1563)) ([1ea3792](https://github.com/kanso-labs/kanso-ui/commit/1ea37925394962dfb8787fa2c61580d3952c1e07))
+* **select:** keep the field in its focused state while the list is open ([#1556](https://github.com/kanso-labs/kanso-ui/issues/1556)) ([a2e0060](https://github.com/kanso-labs/kanso-ui/commit/a2e00606e76c49a6a2fd2c835d23420a4cab6b75))
+* **select:** open a Select with a mouse or touch press ([#1554](https://github.com/kanso-labs/kanso-ui/issues/1554)) ([8a14dde](https://github.com/kanso-labs/kanso-ui/commit/8a14dde5d8fd3443264731206497bdbaa2c60fc8))
+
 ## [0.40.2](https://github.com/kanso-labs/kanso-ui/compare/v0.40.1...v0.40.2) (2026-10-09)
 
 
