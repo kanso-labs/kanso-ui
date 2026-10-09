@@ -5,6 +5,7 @@ import type { HTMLAttributes, ReactNode, RefAttributes } from 'react'
 import * as stylex from '@stylexjs/stylex'
 
 import { useRipple } from '../../hooks/useRipple'
+import { hasContent } from '../../render/content'
 import { refCallback } from '../../render/ref'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
@@ -107,7 +108,7 @@ function ListItem({
   // The three-line item is the only row whose slots move, which is why it
   // alone carries an alignment as well as a height.
   const extraLines =
-    (overline === undefined ? 0 : 1) + (supporting === undefined ? 0 : 1)
+    (hasContent(overline) ? 1 : 0) + (hasContent(supporting) ? 1 : 0)
   const twoLine = extraLines === 1
   const threeLine = extraLines === 2
 

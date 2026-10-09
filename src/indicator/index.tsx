@@ -5,6 +5,7 @@ import { Label } from 'react-aria-components'
 
 import type { IndicatorTone } from './styles'
 
+import { hasContent } from '../render/content'
 import { indicatorStyles } from './styles'
 
 // The two pieces a linear indicator is drawn from, shared by
@@ -32,20 +33,20 @@ export function IndicatorLabels({
   label: ReactNode
   value: ReactNode
 }) {
-  if (label === undefined && value === undefined) {
+  if (!hasContent(label) && !hasContent(value)) {
     return null
   }
 
   return (
     <div {...stylex.props(indicatorStyles.labels)}>
-      {label === undefined ? null : (
+      {!hasContent(label) ? null : (
         <Label
           {...stylex.props(indicatorStyles.label, indicatorStyles.labelText)}
         >
           {label}
         </Label>
       )}
-      {value === undefined ? null : (
+      {!hasContent(value) ? null : (
         <span {...stylex.props(indicatorStyles.label, indicatorStyles.value)}>
           {value}
         </span>

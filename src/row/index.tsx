@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 
+import { hasContent } from '../render/content'
 import { rowStyles } from './styles'
 
 interface RowContentProps {
@@ -84,11 +85,11 @@ function RowContent({
     : isSelected && selectedSupportingTone(variant)
   return (
     <>
-      {leading === undefined ? null : (
+      {!hasContent(leading) ? null : (
         <span {...stylex.props(rowStyles.slot)}>{leading}</span>
       )}
       <span {...stylex.props(rowStyles.main)}>
-        {overline === undefined ? null : (
+        {!hasContent(overline) ? null : (
           <span {...stylex.props(rowStyles.overline, supportingTone)}>
             {overline}
           </span>
@@ -101,13 +102,13 @@ function RowContent({
         >
           {children}
         </span>
-        {supporting === undefined ? null : (
+        {!hasContent(supporting) ? null : (
           <span {...stylex.props(rowStyles.supporting, supportingTone)}>
             {supporting}
           </span>
         )}
       </span>
-      {trailing === undefined ? null : (
+      {!hasContent(trailing) ? null : (
         <span {...stylex.props(rowStyles.slot)}>{trailing}</span>
       )}
     </>
