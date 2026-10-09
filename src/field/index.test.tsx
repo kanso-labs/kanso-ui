@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { act, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { Form, TextField } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
@@ -180,6 +180,37 @@ function renderLong(
   }
 }
 
+// A field with an icon at the start and a button at the end, for pressing.
+const LEADING_ICON = (
+  <svg aria-hidden="true" data-testid="leading" height="24" width="24" />
+)
+
+const CLEAR_BUTTON = <button type="button">Clear</button>
+
+function pressable(props: { isDisabled?: boolean } = {}) {
+  return render(
+    <TextField
+      isDisabled={props.isDisabled}
+      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+    >
+      <FieldBox label="Label" leading={LEADING_ICON} trailing={CLEAR_BUTTON}>
+        <FieldInput />
+      </FieldBox>
+    </TextField>,
+  )
+}
+
+/** A pointer going down at a point, on whatever the page has on top there. */
+function pressAt(x: number, y: number) {
+  const hit = document.elementFromPoint(x, y)
+  if (hit === null) {
+    throw new Error('expected something to be drawn there')
+  }
+  act(() => {
+    fireEvent.pointerDown(hit)
+  })
+}
+
 // The page's trailing icon: 24dp, the size the slot is laid out for.
 const TRAILING_ICON = <svg aria-hidden="true" height="24" width="24" />
 
@@ -256,6 +287,81 @@ describe('field chrome', () => {
     it('associates its label with the control', () => {
       const { input } = setup()
       expect(input.tagName).toBe('INPUT')
+    })
+  })
+
+  // The box is 56dp and the control's line 24dp of it. Every part of the box
+  // focuses the control, as a native text field's box does: the padding
+  // above, below and at either end, and the icons, were all dead to a press.
+  // Pressed at points the page hit-tests, rather than on elements chosen by
+  // the test, since which element is on top there is the question.
+  describe('pressing the box', () => {
+    it.each([
+      [
+        'near the top',
+        (box: DOMRect) => [box.left + box.width / 2, box.top + 3],
+      ],
+      [
+        'near the bottom',
+        (box: DOMRect) => [box.left + box.width / 2, box.bottom - 3],
+      ],
+      [
+        'near the start',
+        (box: DOMRect) => [box.left + 4, box.top + box.height / 2],
+      ],
+      [
+        'near the end',
+        (box: DOMRect) => [box.right - 4, box.top + box.height / 2],
+      ],
+    ] as const)('focuses the control from a press %s', (_where, at) => {
+      const view = pressable()
+      const [x, y] = at(boxOf(view.container).getBoundingClientRect())
+
+      pressAt(x, y)
+
+      expect(document.activeElement).toBe(controlIn(view.container))
+    })
+
+    it('focuses the control from a press on an icon', () => {
+      const view = pressable()
+      const icon = view.getByTestId('leading').getBoundingClientRect()
+
+      pressAt(icon.left + icon.width / 2, icon.top + icon.height / 2)
+
+      expect(document.activeElement).toBe(controlIn(view.container))
+    })
+
+    // A button in the box keeps its own press, and the control keeps the
+    // browser's caret placement.
+    it('leaves a press on a button in the box to the button', () => {
+      const view = pressable()
+      const button = view.getByRole('button', { name: 'Clear' })
+
+      expect(fireEvent.pointerDown(button)).toBe(true)
+      expect(document.activeElement).not.toBe(controlIn(view.container))
+    })
+
+    it('leaves a press on the control to the browser', () => {
+      const view = pressable()
+      expect(fireEvent.pointerDown(controlIn(view.container))).toBe(true)
+    })
+
+    it('leaves a disabled field alone', () => {
+      const view = pressable({ isDisabled: true })
+      const box = boxOf(view.container).getBoundingClientRect()
+
+      pressAt(box.left + 4, box.top + 3)
+
+      expect(document.activeElement).not.toBe(controlIn(view.container))
+    })
+
+    it('says the box takes text, and a disabled one does not', () => {
+      const view = pressable()
+      expect(getComputedStyle(boxOf(view.container)).cursor).toBe('text')
+      view.unmount()
+
+      const disabled = pressable({ isDisabled: true })
+      expect(getComputedStyle(boxOf(disabled.container)).cursor).toBe('default')
     })
   })
 
