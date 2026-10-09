@@ -73,8 +73,8 @@
   "dependencies": {
     "@internationalized/date": "3.12.4",
     "@internationalized/string": "3.2.10",
-    "react-aria": "3.53.0",
-    "react-aria-components": "1.22.0"
+    "react-aria": "3.53.1",
+    "react-aria-components": "1.22.1"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
