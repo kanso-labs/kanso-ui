@@ -7,7 +7,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import SegmentedButton from '.'
 import { firePointer } from '../../hooks/useRipple.testing'
-import { reducedMotionOf } from '../../styles/stylesheet.testing'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+} from '../../styles/stylesheet.testing'
 import {
   colors,
   spacing,
@@ -21,6 +24,8 @@ import {
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   chosenContainer: { backgroundColor: colors.secondaryContainer },
+  // The chosen container and its label in a set that draws no check.
+  chosenUnmarked: { backgroundColor: colors.secondary },
   disabledContainer: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
   },
@@ -35,6 +40,7 @@ const probeStyles = stylex.create({
   hoverLayer: { opacity: stateLayerOpacity.hover },
   pressedLayer: { opacity: stateLayerOpacity.pressed },
   selected: { color: colors.onSecondaryContainer },
+  selectedUnmarked: { color: colors.onSecondary },
   stateLayer: { backgroundColor: 'currentColor' },
   unselected: { color: colors.onSurface },
 })
@@ -51,6 +57,7 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   chosenContainer: classesOf(stylex.props(probeStyles.chosenContainer)),
+  chosenUnmarked: classesOf(stylex.props(probeStyles.chosenUnmarked)),
   disabledContainer: classesOf(stylex.props(probeStyles.disabledContainer)),
   disabledContent: classesOf(stylex.props(probeStyles.disabledContent)),
   focusLayer: classesOf(stylex.props(probeStyles.focusLayer)),
@@ -59,9 +66,13 @@ const CLASSES = {
   hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
   pressedLayer: classesOf(stylex.props(probeStyles.pressedLayer)),
   selected: classesOf(stylex.props(probeStyles.selected)),
+  selectedUnmarked: classesOf(stylex.props(probeStyles.selectedUnmarked)),
   stateLayer: classesOf(stylex.props(probeStyles.stateLayer)),
   unselected: classesOf(stylex.props(probeStyles.unselected)),
 }
+
+// The query a forced-colours rule is held under, for `declarationsHeld`.
+const FORCED = 'forced-colors: active'
 
 const FIRST = ['first']
 const SECOND = ['second']
@@ -1259,5 +1270,56 @@ describe('segmented button', () => {
       })
       expect(hasClasses(layerOf(first), CLASSES.hoverLayer)).toBe(false)
     })
+  })
+})
+
+// The chosen segment's container is the page's secondary container, about
+// 1.2:1 against the page, with the same label colour as an unchosen
+// segment. The check is what says which is chosen, so a set that turns the
+// check off needs a stronger cue, and forced colours, which paints every
+// fill in the page's own Canvas, needs a system colour.
+describe('the chosen segment', () => {
+  it('draws on the stronger container when the check is off', () => {
+    const view = setup({ defaultSelectedKeys: FIRST, showSelectedIcon: false })
+    const [first, second] = view.getAllByRole('radio')
+
+    expect(hasClasses(containerOf(first), CLASSES.chosenUnmarked)).toBe(true)
+    expect(hasClasses(first, CLASSES.selectedUnmarked)).toBe(true)
+    expect(hasClasses(second, CLASSES.selectedUnmarked)).toBe(false)
+  })
+
+  it("keeps the page's container while the check is drawn", () => {
+    const view = setup({ defaultSelectedKeys: FIRST })
+    const [first] = view.getAllByRole('radio')
+
+    expect(hasClasses(containerOf(first), CLASSES.chosenUnmarked)).toBe(false)
+    expect(hasClasses(first, CLASSES.selectedUnmarked)).toBe(false)
+  })
+
+  it.each([true, false])(
+    'is Highlight under forced colours, with the check drawn: %s',
+    (showSelectedIcon) => {
+      const view = setup({ defaultSelectedKeys: FIRST, showSelectedIcon })
+      const [first, second] = view.getAllByRole('radio')
+
+      expect(
+        declarationsHeld(containerOf(first), FORCED).get('background-color'),
+      ).toBe('highlight')
+      expect(declarationsHeld(first, FORCED).get('color')).toBe('highlighttext')
+      expect(declarationsHeld(second, FORCED).get('color')).toBeUndefined()
+    },
+  )
+
+  // A ring rather than a fill, so the disabled label inside it stays
+  // readable on the page's own ground.
+  it('rings a disabled chosen segment in GrayText under forced colours', () => {
+    const view = setup({ defaultSelectedKeys: FIRST, isDisabled: true })
+    const [first] = view.getAllByRole('radio')
+    const rules = declarationsHeld(containerOf(first), FORCED)
+
+    expect(rules.get('background-color')).toBe('canvas')
+    expect(rules.get('border-top-style')).toBe('solid')
+    expect(rules.get('border-top-color')).toBe('graytext')
+    expect(declarationsHeld(first, FORCED).get('color')).toBe('graytext')
   })
 })

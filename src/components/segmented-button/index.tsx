@@ -63,6 +63,20 @@ import {
 // check once chosen. `showSelectedIcon` turns it off for a set whose labels
 // already read as chosen or not.
 //
+// Without the check, the page's chosen container is the only cue, and it is
+// about 1.2:1 against the page in the light theme, with the same label
+// colour either way — under WCAG's 3:1 for a state. So a set with the check
+// off draws its chosen segment on the secondary role instead, with the label
+// on it, which clears that comfortably. A departure from the page, taken
+// only where the page's own cue has been turned off; with the check drawn,
+// the chosen segment is the page's.
+//
+// Under forced colours a fill is painted in the page's own `Canvas`, so the
+// chosen container is `Highlight` with its label in `HighlightText` — the
+// pair the mode gives whatever is chosen — and a disabled chosen one keeps
+// a `GrayText` ring rather than a fill, which leaves its `GrayText` label
+// readable.
+//
 // That slot is drawn out of flow, and every segment that could ever use it
 // keeps room for it whether or not it is drawing one. Laid out in flow it
 // was part of the segment's content size, so the widest segment was
@@ -159,6 +173,12 @@ const GLYPH_SIZE = '18px'
 const GLYPH_RESERVE = `calc(${GLYPH_SIZE} + ${spacing.sm})`
 const GLYPH_RESERVE_HALF = `calc((${GLYPH_SIZE} + ${spacing.sm}) / 2)`
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // The check, or the icon a segment carries: the page's 18dp icon, pinned
   // to the leading padding edge and taken out of the segment's flow.
@@ -231,7 +251,10 @@ const styles = stylex.create({
   // run and then collapses in the last frame — so the segment passes down a
   // value already taken down to what it draws.
   indicator: {
-    backgroundColor: colors.secondaryContainer,
+    backgroundColor: {
+      default: colors.secondaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
     borderEndEndRadius: 'var(--segment-indicator-radius-end)',
     borderEndStartRadius: 'var(--segment-indicator-radius-start)',
     borderStartEndRadius: 'var(--segment-indicator-radius-end)',
@@ -249,7 +272,13 @@ const styles = stylex.create({
   // flattens to the surface at 12% instead, which is what every other
   // disabled container here does; see `src/chip/styles.ts`.
   indicatorDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'Canvas',
+    },
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: null, [FORCED_COLORS]: '2px' },
   },
   // Arriving with nowhere to move from, and leaving with nowhere to move to.
   // React Aria marks both states on the element, and the container fades
@@ -291,6 +320,13 @@ const styles = stylex.create({
     transitionDuration: motion.durationMedium1,
     transitionProperty: 'translate, border-radius, opacity',
     transitionTimingFunction: motion.easingEmphasized,
+  },
+  // The chosen container of a set that draws no check — see the header.
+  indicatorUnmarked: {
+    backgroundColor: {
+      default: colors.secondary,
+      [FORCED_COLORS]: 'Highlight',
+    },
   },
   // The label truncates rather than wrapping: the track is one row 40dp
   // tall, and a second line would push its neighbours out of shape.
@@ -417,11 +453,21 @@ const styles = stylex.create({
   // it is drawn on.
   segmentDisabled: {
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
   },
   segmentSelected: {
-    color: colors.onSecondaryContainer,
+    color: {
+      default: colors.onSecondaryContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+  },
+  // The label on `indicatorUnmarked`.
+  segmentSelectedUnmarked: {
+    color: { default: colors.onSecondary, [FORCED_COLORS]: 'HighlightText' },
   },
   segmentUnselected: {
     color: colors.onSurface,
@@ -473,7 +519,9 @@ type SegmentedButtonProps = Omit<
   className?: RACToggleButtonGroupProps['className']
   /**
    * Whether a chosen segment draws a check before its label, as the page
-   * has it. `false` leaves the segment's own icon in place while selected.
+   * has it. `false` leaves the segment's own icon in place while selected,
+   * and draws the chosen segment on the stronger secondary container, since
+   * the page's own is too faint to say which is chosen by itself.
    * @default true
    */
   showSelectedIcon?: boolean
@@ -530,6 +578,7 @@ function glyphFor(
 function indicatorClassName(
   isDisabled: boolean,
   selectionMode: SelectionMode,
+  showSelectedIcon: boolean,
 ): (state: SharedElementRenderProps) => string {
   return (state) =>
     stylex.props(
@@ -537,6 +586,7 @@ function indicatorClassName(
       selectionMode === 'multiple'
         ? styles.indicatorInPlace
         : styles.indicatorSliding,
+      !showSelectedIcon && styles.indicatorUnmarked,
       isDisabled && styles.indicatorDisabled,
       (state.isEntering || state.isExiting) && styles.indicatorHidden,
     ).className ?? ''
@@ -565,7 +615,11 @@ function segmentContent(
     return (
       <>
         <RACSelectionIndicator
-          className={indicatorClassName(state.isDisabled, selectionMode)}
+          className={indicatorClassName(
+            state.isDisabled,
+            selectionMode,
+            showSelectedIcon,
+          )}
         />
         <span
           {...stylex.props(
@@ -690,7 +744,7 @@ function SegmentedButtonSegment({
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(segmentStyles, props)}
+      {...mergeStatefulStyles(segmentStyles(showSelectedIcon), props)}
     >
       {segmentContent(children, icon, ripple, selectionMode, showSelectedIcon)}
     </RACToggleButton>
@@ -700,14 +754,17 @@ function SegmentedButtonSegment({
 // StyleX cannot target `[data-selected]` on the element it is styling, so a
 // segment's state comes from the render state React Aria hands its
 // className. `disabled` is applied last so its label colour wins over both
-// of the others.
-function segmentStyles(state: ToggleButtonRenderProps) {
-  return stylex.props(
-    styles.segment,
-    focus.ring,
-    state.isSelected ? styles.segmentSelected : styles.segmentUnselected,
-    state.isDisabled && styles.segmentDisabled,
-  )
+// of the others. Built by a call, since a set that draws no check labels its
+// chosen segment for the container it draws instead.
+function segmentStyles(showSelectedIcon: boolean) {
+  return (state: ToggleButtonRenderProps) =>
+    stylex.props(
+      styles.segment,
+      focus.ring,
+      state.isSelected ? styles.segmentSelected : styles.segmentUnselected,
+      state.isSelected && !showSelectedIcon && styles.segmentSelectedUnmarked,
+      state.isDisabled && styles.segmentDisabled,
+    )
 }
 
 SegmentedButton.Segment = SegmentedButtonSegment
