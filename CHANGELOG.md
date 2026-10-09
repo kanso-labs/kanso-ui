@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.5](https://github.com/kanso-labs/kanso-ui/compare/v0.40.4...v0.40.5) (2026-10-09)
+
+
+### Dependencies
+
+* update react-spectrum monorepo ([#1572](https://github.com/kanso-labs/kanso-ui/issues/1572)) ([6ce5054](https://github.com/kanso-labs/kanso-ui/commit/6ce5054e99595e189663405f0d5d0efce8267a33))
+
 ## [0.40.4](https://github.com/kanso-labs/kanso-ui/compare/v0.40.3...v0.40.4) (2026-10-09)
 
 
