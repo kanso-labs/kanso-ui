@@ -348,6 +348,15 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
     whiteSpace: 'nowrap',
   },
+  // A chosen label under forced colours, which draws a `Canvas` backplate
+  // behind text to keep it readable on whatever the author painted — and on
+  // a `Highlight` container that backplate put `HighlightText` on white, so
+  // the chosen segment's label vanished into a blank box. Opted out, the
+  // label sits on the container it was coloured for, as a selected list
+  // row's does.
+  labelChosen: {
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
+  },
   // Nothing drawn in the slot: half the room on each side, so the label sits
   // in the middle of the segment. A whole reserve on the leading side alone
   // would hold the track just as still, and is what the first attempt at
@@ -641,6 +650,7 @@ function segmentContent(
             styles.label,
             reserves &&
               (glyph === null ? styles.labelReserved : styles.labelShifted),
+            state.isSelected && !state.isDisabled && styles.labelChosen,
           )}
         >
           {children}

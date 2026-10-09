@@ -1306,6 +1306,11 @@ describe('the chosen segment', () => {
         declarationsHeld(containerOf(first), FORCED).get('background-color'),
       ).toBe('highlight')
       expect(declarationsHeld(first, FORCED).get('color')).toBe('highlighttext')
+      // Without the backplate the mode draws behind text, which put the
+      // label's HighlightText on white.
+      expect(
+        declarationsHeld(labelOf(first), FORCED).get('forced-color-adjust'),
+      ).toBe('none')
       expect(declarationsHeld(second, FORCED).get('color')).toBeUndefined()
     },
   )
