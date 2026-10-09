@@ -8,32 +8,34 @@ import type { AppBarProps } from '.'
 
 import AppBar from '.'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
-import { spacingPx } from '../../tokens/values'
 import Container from '../container'
 import IconButton from '../icon-button'
 import Text from '../text'
 
 // The measure the page under the bar runs at, and the gutter Container pads
-// it with. Both are the call site's, which is the whole point: the bar is told
-// them rather than assuming Material Design's own. The gutter is read off the
-// scale rather than repeated as a figure, so the two cannot drift apart.
+// it with from a medium window up. Both are the call site's, which is the
+// whole point: the bar is told them rather than assuming Material Design's
+// own. The gutter is the spacing token itself rather than its default figure,
+// so a scheme that changes the scale moves the bar and the page together.
 const PAGE_MEASURE = '520px'
-const PAGE_GUTTER = `${spacingPx.xl}px`
+const PAGE_GUTTER = spacing.xl
 
 const PARAGRAPH = <p />
 
 // Two glyphs drawn inline: IconButton takes whatever the call site hands it.
+// At the 24dp the app bar's tokens give an icon, which is the size the bar's
+// layout centres in each button's target.
 const BackIcon = () => (
   <svg
     aria-hidden="true"
     fill="none"
-    height="20"
+    height="24"
     stroke="currentColor"
     strokeLinecap="round"
     strokeLinejoin="round"
     strokeWidth="2"
     viewBox="0 0 24 24"
-    width="20"
+    width="24"
   >
     <path d="M19 12H5M12 19l-7-7 7-7" />
   </svg>
@@ -43,9 +45,9 @@ const MoreIcon = () => (
   <svg
     aria-hidden="true"
     fill="currentColor"
-    height="20"
+    height="24"
     viewBox="0 0 24 24"
-    width="20"
+    width="24"
   >
     <circle cx="12" cy="5" r="2" />
     <circle cx="12" cy="12" r="2" />

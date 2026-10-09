@@ -10,7 +10,12 @@ import type { RenderComponentProps } from '../../render/useRender'
 import { hasContent } from '../../render/content'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
-import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  motion,
+  sizing,
+  spacing,
+} from '../../tokens/design.tokens.stylex'
 import Text from '../text'
 
 // Material Design's app bar, in the three sizes the spec recommends.
@@ -29,16 +34,25 @@ import Text from '../text'
 // to make its bar taller. Fixing the height would truncate exactly the case
 // the variant was redesigned for.
 
-// How far the headline sits inside whatever comes before it, and the figure
-// an icon button's glyph is inset from the edge of its own touch target.
-// Material Design leans on the two agreeing, which is what makes a bar with a
-// leading icon and one without start their text in the same place.
-const HEADLINE_OFFSET = '12px'
+// The geometry Material Design lays a bar's icon buttons out on. Its tokens
+// give a 4dp leading and trailing space between the bar's edge and the first
+// button's 48dp target, no space between one target and the next, and a 24dp
+// icon centred in each — so a glyph lands 4 + 12 = 16dp in, on the page's own
+// margin.
+//
+// The library's icon button draws a 40dp box with its 48dp target out of
+// flow, so a slot pads half the difference either side and puts the whole
+// difference between two buttons, which lays the targets edge to edge as the
+// tokens do. The target is IconButton's TARGET_SIZE, a literal there for the
+// reason it gives: it is a floor the page states, not a step of the control
+// scale.
+const ICON_BUTTON_TARGET = '48px'
+const ICON_SIZE = '24px'
 
-// Where the bar's visible content starts by default, which is Material
-// Design's own margin for a top app bar and the same margin its body content
-// takes.
-const DEFAULT_CONTENT_INSET = '16px'
+// How far an icon sits inside its target, which is how much less than the
+// content inset the row is padded on an edge that holds a slot. That is what
+// puts a leading glyph, rather than the edge of its target, at the inset.
+const GLYPH_INSET = `(${ICON_BUTTON_TARGET} - ${ICON_SIZE}) / 2`
 
 const HEIGHTS = {
   lg: { plain: '120px', withSubtitle: '152px' },
@@ -107,12 +121,16 @@ const styles = stylex.create({
     borderBlockEndStyle: { default: null, [FORCED_COLORS]: 'solid' },
     borderBlockEndWidth: { default: null, [FORCED_COLORS]: '1px' },
   },
-  // Slots hold their own size rather than being squeezed by a long headline.
+  // Slots hold their own size rather than being squeezed by a long headline,
+  // and draw their icon buttons on the targets the spec spaces them by — see
+  // ICON_BUTTON_TARGET.
   slot: {
     alignItems: 'center',
+    boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
-    gap: spacing.xs,
+    gap: `calc(${ICON_BUTTON_TARGET} - ${sizing.controlSm})`,
+    paddingInline: `calc((${ICON_BUTTON_TARGET} - ${sizing.controlSm}) / 2)`,
   },
   // The text block takes the space the slots leave, and wraps inside it —
   // inside a word too, where a word is wider than the room. A line breaks
@@ -130,12 +148,6 @@ const styles = stylex.create({
     minInlineSize: 0,
     overflowWrap: 'anywhere',
     paddingBlock: spacing.sm,
-    // Material Design puts part of the bar's inset on the text rather than all
-    // of it on the container, so a bar with no leading slot still starts its
-    // headline in the same place as one that has it. An icon button's glyph is
-    // centred in a touch target this much wider than itself, so the two land
-    // together.
-    paddingInline: HEADLINE_OFFSET,
   },
   textCenter: {
     textAlign: 'center',
@@ -186,14 +198,17 @@ const heightStyles = stylex.create({
 })
 
 // The row's measure and inset both come from the call site, so both are
-// function styles too. The inset is where the bar's visible content starts,
-// and the row carries `contentInset` minus the offset the text block already
-// holds — which is what keeps a leading icon's glyph and a headline with no
-// icon before it starting in the same place.
+// function styles too. Each edge is worked out on its own: where it holds a
+// slot the row stops short of the inset by GLYPH_INSET, so the glyph rather
+// than its target is what sits at the inset, and where it holds none the
+// headline itself starts there. Clamped at zero, since an inset smaller than
+// a glyph's own room would otherwise ask for a negative padding, which CSS
+// throws away whole.
 const rowStyles = stylex.create({
-  root: (contentInset: string, maxInlineSize: string) => ({
+  root: (start: string, end: string, maxInlineSize: string) => ({
     maxInlineSize,
-    paddingInline: `calc(${contentInset} - ${HEADLINE_OFFSET})`,
+    paddingInlineEnd: end,
+    paddingInlineStart: start,
   }),
 })
 
@@ -236,16 +251,16 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    */
   collapsed?: boolean
   /**
-   * Where the bar's content starts, measured to the headline. A leading slot
-   * sits 12px before that, which is the room an icon button's own padding
-   * fills around its glyph — Material Design's arrangement, and what makes a
-   * bar with an icon and one without start their text in the same place.
+   * Where the bar's content starts on each edge: the headline where nothing
+   * comes before it, and the leading icon's glyph where something does, with
+   * the headline after the icon button's target. The trailing edge is the
+   * same mirrored. Any length works, `0` included, for a bar drawn flush.
    *
-   * The default is Material Design's own margin for a top app bar, which is
-   * also the margin it gives body content, so a bar and the page beneath line
-   * up without either being told about the other. Set it to the page's gutter
-   * where that differs.
-   * @default '16px'
+   * The default is Material Design's own margin for a top app bar, the
+   * spacing scale's `lg` step, which is also the margin it gives body
+   * content, so a bar and the page beneath line up without either being told
+   * about the other. Set it to the page's gutter where that differs.
+   * @default spacing.lg
    */
   contentInset?: string
   /**
@@ -309,7 +324,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
 function AppBar({
   align = 'start',
   collapsed = false,
-  contentInset = DEFAULT_CONTENT_INSET,
+  contentInset = spacing.lg,
   contentMaxInlineSize = 'none',
   headingLevel = 1,
   headline,
@@ -329,6 +344,8 @@ function AppBar({
     ? HEIGHTS[size].withSubtitle
     : HEIGHTS[size].plain
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
+  const hasLeading = hasContent(leading)
+  const hasTrailing = hasContent(trailing)
 
   return useRender({
     defaultTagName: 'header',
@@ -338,10 +355,14 @@ function AppBar({
         <div
           {...stylex.props(
             styles.row,
-            rowStyles.root(contentInset, contentMaxInlineSize),
+            rowStyles.root(
+              edgePadding(contentInset, hasLeading),
+              edgePadding(contentInset, hasTrailing),
+              contentMaxInlineSize,
+            ),
           )}
         >
-          {!hasContent(leading) ? null : (
+          {!hasLeading ? null : (
             <div {...stylex.props(styles.slot)}>{leading}</div>
           )}
           <div
@@ -367,7 +388,7 @@ function AppBar({
               </Text>
             )}
           </div>
-          {!hasContent(trailing) ? null : (
+          {!hasTrailing ? null : (
             <div {...stylex.props(styles.slot)}>{trailing}</div>
           )}
         </div>
@@ -383,6 +404,18 @@ function AppBar({
     },
     render,
   })
+}
+
+/**
+ * The row's padding on one edge, for the inset the call site gave.
+ *
+ * A bare `0` is the one length CSS accepts without a unit, and the one it
+ * rejects inside `max()`, where it reads as a number, so it is given its
+ * unit before the arithmetic sees it.
+ */
+function edgePadding(contentInset: string, hasSlot: boolean) {
+  const inset = contentInset.trim() === '0' ? '0px' : contentInset
+  return hasSlot ? `max(0px, ${inset} - ${GLYPH_INSET})` : inset
 }
 
 export type { AppBarProps }
