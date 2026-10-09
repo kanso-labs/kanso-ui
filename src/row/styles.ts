@@ -175,7 +175,6 @@ const rowStyles = stylex.create({
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
     fontWeight: typography.bodyLargeWeight,
-    hyphens: 'auto',
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
     overflowWrap: 'anywhere',
@@ -184,7 +183,6 @@ const rowStyles = stylex.create({
     fontFamily: typography.labelLargeFont,
     fontSize: typography.labelLargeSize,
     fontWeight: typography.labelLargeWeight,
-    hyphens: 'auto',
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
     overflowWrap: 'anywhere',
@@ -241,7 +239,9 @@ const rowStyles = stylex.create({
   // refuses to go below its content's width and shoves the trailing slot off
   // the end of the row. The column giving way is half of it: the text styles
   // break such a string with `overflowWrap: 'anywhere'`, which is what keeps
-  // it inside the column rather than painting over the trailing slot.
+  // it inside the column rather than painting over the trailing slot. Not
+  // hyphenated, since the string is as often an address as a compound, and a
+  // hyphen drawn inside an address reads as part of it.
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -262,7 +262,6 @@ const rowStyles = stylex.create({
     fontFamily: typography.labelSmallFont,
     fontSize: typography.labelSmallSize,
     fontWeight: typography.labelSmallWeight,
-    hyphens: 'auto',
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,
     overflowWrap: 'anywhere',
@@ -328,7 +327,6 @@ const rowStyles = stylex.create({
     fontFamily: typography.bodyMediumFont,
     fontSize: typography.bodyMediumSize,
     fontWeight: typography.bodyMediumWeight,
-    hyphens: 'auto',
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
     overflowWrap: 'anywhere',
