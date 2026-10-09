@@ -276,6 +276,10 @@ function selectContent(
         // invalid state through context; its `Select` does not, so the box is
         // told outright or its label and its underline never turn.
         isDisabled={state.isDisabled}
+        // Opening the list moves focus into it, out of the box, so the box
+        // is told it is focused while the list is open — otherwise its label
+        // fell back onto the placeholder the select still shows.
+        isFocused={state.isOpen}
         isInvalid={state.isInvalid}
         isRequired={state.isRequired}
         label={label}

@@ -26,6 +26,12 @@ const probeStyles = stylex.create({
   },
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
+  // The label's colour while the field is focused.
+  focusedLabel: { color: colors.primary },
+  // The focused indicator, in each variant: the filled box's 2dp underline
+  // and the outlined box's primary outline.
+  focusedOutline: { color: colors.primary },
+  focusedUnderline: { boxShadow: `inset 0 -2px 0 0 ${colors.primary}` },
   // The muted role, which the placeholder and the leading icon both take.
   muted: { color: colors.onSurfaceVariant },
   // The curve the rest of the library turns a chevron on, read back through
@@ -48,6 +54,9 @@ const CLASSES = {
   disabledIcon: classesOf(stylex.props(probeStyles.disabledIcon)),
   error: classesOf(stylex.props(probeStyles.error)),
   floated: classesOf(stylex.props(probeStyles.floated)),
+  focusedLabel: classesOf(stylex.props(probeStyles.focusedLabel)),
+  focusedOutline: classesOf(stylex.props(probeStyles.focusedOutline)),
+  focusedUnderline: classesOf(stylex.props(probeStyles.focusedUnderline)),
   muted: classesOf(stylex.props(probeStyles.muted)),
 }
 
@@ -335,6 +344,57 @@ describe('select', () => {
     it('takes the error role when there is an error', () => {
       const view = setup({ error: 'Choose an item' })
       expect(hasClasses(view.getByText('Label'), CLASSES.error)).toBe(true)
+    })
+
+    // Opening the list moves focus into it, on an overlay outside the box,
+    // so the box's `:focus-within` lets go. The box stays focused anyway,
+    // which is what keeps the label from falling back onto the placeholder
+    // the select still shows.
+    it('stays floated and focused while the list is open', async () => {
+      const view = setup()
+      const label = view.getByText('Label')
+      expect(hasClasses(label, CLASSES.floated)).toBe(false)
+      expect(hasClasses(boxOf(view), CLASSES.focusedUnderline)).toBe(false)
+
+      await userEvent.click(label, { force: true })
+      await view.findByRole('listbox')
+
+      expect(view.trigger.contains(document.activeElement)).toBe(false)
+      expect(hasClasses(label, CLASSES.floated)).toBe(true)
+      expect(hasClasses(label, CLASSES.focusedLabel)).toBe(true)
+      expect(hasClasses(boxOf(view), CLASSES.focusedUnderline)).toBe(true)
+    })
+
+    it('keeps an outlined box focused while the list is open', async () => {
+      const view = setup({ variant: 'outlined' })
+      expect(hasClasses(boxOf(view), CLASSES.focusedOutline)).toBe(false)
+
+      fireEvent.keyDown(view.trigger, { key: 'ArrowDown' })
+      await view.findByRole('listbox')
+
+      // The outline's notch repeats the label, hidden, to cut the outline
+      // to its width; the label drawn is the one outside it.
+      const label = view
+        .getAllByText('Label')
+        .find((element) => element.closest('legend') === null)
+      expect(label && hasClasses(label, CLASSES.floated)).toBe(true)
+      expect(hasClasses(boxOf(view), CLASSES.focusedOutline)).toBe(true)
+    })
+
+    it('lets go of the focused state once the list closes', async () => {
+      const view = setup()
+      await userEvent.click(view.getByText('Label'), { force: true })
+      await view.findByRole('listbox')
+
+      fireEvent.click(view.getByRole('option', { name: 'Second item' }))
+      await waitFor(() => {
+        expect(view.queryByRole('listbox')).toBeNull()
+      })
+      act(() => {
+        view.trigger.blur()
+      })
+
+      expect(hasClasses(boxOf(view), CLASSES.focusedUnderline)).toBe(false)
     })
   })
 
