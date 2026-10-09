@@ -1,6 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import * as stylex from '@stylexjs/stylex'
+
 import Checkbox from '.'
+
+const styles = stylex.create({
+  // Narrower than the address, so it has to break.
+  narrow: {
+    inlineSize: '200px',
+  },
+})
 
 const meta = {
   args: {
@@ -48,10 +57,26 @@ const Disabled: Story = {
   },
 }
 
+// Its own story because a word with nowhere to break — an address, a long
+// compound — breaks inside the label and the line under it rather than
+// widening the page.
+const LongLabel: Story = {
+  args: {
+    children: 'firstname.lastname@organisation.example.com',
+    description: 'Unterstützungszeilenüberschrift',
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <Checkbox {...args} />
+    </div>
+  ),
+}
+
 export {
   Default,
   Disabled,
   Indeterminate,
+  LongLabel,
   Selected,
   WithDescription,
   WithError,

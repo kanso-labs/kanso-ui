@@ -96,6 +96,13 @@ function firstLineOf(label: Element) {
 // styles keeps one identity across renders.
 const WRAPPING_WIDTH = { width: '220px' }
 
+// Narrower than any of the words below, so each has to break to fit.
+const NARROW = { inlineSize: '160px' }
+
+// Words with nowhere to break: an address, and one German compound.
+const ADDRESS = 'firstname.lastname@organisation.example.com'
+const COMPOUND = 'Unterstützungszeilenüberschrift'
+
 // A line box's height comes from the font's own metrics, which rasterise
 // differently between machines — the same assertion that read exactly 0 here
 // read -0.5 on CI. Half a pixel is the rounding, and the drifts this guards
@@ -215,5 +222,46 @@ describe('the shared control row', () => {
       expect(getComputedStyle(label).paddingBlockStart).toBe('8px')
       expect(label.getBoundingClientRect().height).toBe(40)
     })
+  })
+})
+
+// A label's column was a bare `1fr`, whose minimum is the longest word in
+// it, so an unbroken word held the column at its own width and widened the
+// page. The label, a description under it, and a group's own label and
+// description all break such a word now.
+describe('an unbroken word', () => {
+  it.each([
+    [
+      'a checkbox',
+      <Checkbox description={ADDRESS} key="checkbox">
+        {COMPOUND}
+      </Checkbox>,
+    ],
+    [
+      'a switch',
+      <Switch description={ADDRESS} key="switch">
+        {COMPOUND}
+      </Switch>,
+    ],
+    [
+      'a radio group',
+      <RadioGroup description={ADDRESS} key="radio" label={COMPOUND}>
+        <Radio description={ADDRESS} value="first">
+          {COMPOUND}
+        </Radio>
+      </RadioGroup>,
+    ],
+  ])('stays inside the room %s is given', (_what, element) => {
+    const view = render(<div style={NARROW}>{element}</div>)
+    const room = view.container.firstElementChild!
+
+    expect(room.scrollWidth).toBeLessThanOrEqual(room.clientWidth)
+    for (const text of view.getAllByText(
+      new RegExp(`${COMPOUND}|${ADDRESS}`),
+    )) {
+      expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+        room.getBoundingClientRect().right,
+      )
+    }
   })
 })
