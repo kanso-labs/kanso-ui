@@ -101,14 +101,21 @@ const styles = stylex.create({
     flexShrink: 0,
     gap: spacing.xs,
   },
-  // The text block takes the space the slots leave, and wraps inside it.
+  // The text block takes the space the slots leave, and wraps inside it —
+  // inside a word too, where a word is wider than the room. A line breaks
+  // only between words otherwise, so one long compound held its line at its
+  // own width, ran under the trailing slot and widened the page. Hyphenated
+  // in the page's language where it has one, and broken anywhere where it
+  // does not.
   text: {
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+    hyphens: 'auto',
     justifyContent: 'center',
     minInlineSize: 0,
+    overflowWrap: 'anywhere',
     paddingBlock: spacing.sm,
     // Material Design puts part of the bar's inset on the text rather than all
     // of it on the container, so a bar with no leading slot still starts its

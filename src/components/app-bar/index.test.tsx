@@ -22,6 +22,9 @@ const NARROW = { inlineSize: '280px' }
 // limit rather than the room it was given.
 const WIDE = { inlineSize: '1000px' }
 
+// One word with no space to break at, wider than a narrow bar's headline.
+const LONG_WORD = 'Unterstützungszeilenüberschrift'
+
 const LEADING = <button type="button">Back</button>
 const TRAILING = <button type="button">More</button>
 
@@ -195,6 +198,33 @@ describe('headline', () => {
       view.unmount()
     }
   })
+
+  // A line breaks between words, so a word wider than the room held its line
+  // at its own width: it ran under the trailing slot and widened the page.
+  // Without a language to hyphenate in, the break is the one that holds.
+  it.each(SIZES)(
+    'breaks a word wider than the room inside the %s bar',
+    (size) => {
+      const view = render(
+        <div style={NARROW}>
+          <AppBar
+            headline={LONG_WORD}
+            leading={LEADING}
+            size={size}
+            trailing={TRAILING}
+          />
+        </div>,
+      )
+      const heading = view.getByRole('heading', { level: 1 })
+      const room = view.container.firstElementChild!.getBoundingClientRect()
+
+      expect(heading.scrollWidth).toBeLessThanOrEqual(heading.clientWidth)
+      expect(
+        view.getByRole('button', { name: 'More' }).getBoundingClientRect()
+          .right,
+      ).toBeLessThanOrEqual(room.right)
+    },
+  )
 
   // `h7` is a custom element as far as React is concerned, so it would render
   // silently and leave the outline worse than the default.
