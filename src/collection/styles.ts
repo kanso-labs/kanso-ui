@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 
+import { hasContent } from '../render/content'
 import { rowStyles } from '../row/styles'
 import {
   colors,
@@ -137,7 +138,7 @@ function rowItemStyles(
   extra?: stylex.StyleXStyles,
 ) {
   const lines =
-    (overline === undefined ? 0 : 1) + (supporting === undefined ? 0 : 1)
+    (hasContent(overline) ? 1 : 0) + (hasContent(supporting) ? 1 : 0)
 
   return (state: CollectionItemState) =>
     stylex.props(

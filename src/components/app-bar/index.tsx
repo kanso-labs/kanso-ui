@@ -7,6 +7,7 @@ import { createElement } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
+import { hasContent } from '../../render/content'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
@@ -324,10 +325,9 @@ function AppBar({
   // a no-op rather than an error. A bar whose size is chosen at the call site
   // from a breakpoint would otherwise have to guard the prop as well.
   const collapse = collapsed && size !== 'sm'
-  const expandedHeight =
-    subtitle === undefined || subtitle === null
-      ? HEIGHTS[size].plain
-      : HEIGHTS[size].withSubtitle
+  const expandedHeight = hasContent(subtitle)
+    ? HEIGHTS[size].withSubtitle
+    : HEIGHTS[size].plain
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
 
   return useRender({
@@ -341,7 +341,7 @@ function AppBar({
             rowStyles.root(contentInset, contentMaxInlineSize),
           )}
         >
-          {leading === undefined ? null : (
+          {!hasContent(leading) ? null : (
             <div {...stylex.props(styles.slot)}>{leading}</div>
           )}
           <div
@@ -350,7 +350,7 @@ function AppBar({
               align === 'center' && styles.textCenter,
             )}
           >
-            {headline === undefined ? null : (
+            {!hasContent(headline) ? null : (
               <Text
                 {...stylex.props(styles.headline)}
                 render={heading(headingLevel)}
@@ -361,13 +361,13 @@ function AppBar({
                 {headline}
               </Text>
             )}
-            {subtitle === undefined || collapse ? null : (
+            {!hasContent(subtitle) || collapse ? null : (
               <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
                 {subtitle}
               </Text>
             )}
           </div>
-          {trailing === undefined ? null : (
+          {!hasContent(trailing) ? null : (
             <div {...stylex.props(styles.slot)}>{trailing}</div>
           )}
         </div>
