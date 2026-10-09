@@ -124,8 +124,9 @@ const controlStyles = stylex.create({
     minInlineSize: 0,
   },
   // Breaks inside a word that is wider than the column, and only there, so
-  // ordinary words stay whole; hyphenated in the page's language where it
-  // has one.
+  // ordinary words stay whole. Not hyphenated: the words that need it are as
+  // often an address or a URL as a compound, and a hyphen drawn inside an
+  // address reads as part of it.
   label: {
     boxSizing: 'border-box',
     color: colors.onSurface,
@@ -147,7 +148,6 @@ const controlStyles = stylex.create({
     //
     // A body line taller than the target has no room to centre in, and the
     // declaration falls away to nothing.
-    hyphens: 'auto',
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
     minInlineSize: 0,
