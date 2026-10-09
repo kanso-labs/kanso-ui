@@ -544,8 +544,13 @@ const fieldChromeStyles = stylex.create({
       'color, font-size, inset-block-start, letter-spacing, line-height',
     transitionTimingFunction: motion.easingStandard,
   },
+  // `GrayText` under forced colours, which leaves a group's label alone: a
+  // radio group's legend is a label, not a control the mode would grey.
   labelDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   labelError: {
     color: colors.error,

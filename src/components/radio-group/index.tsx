@@ -120,8 +120,14 @@ const styles = stylex.create({
   toneActive: {
     color: colors.onSurface,
   },
+  // `GrayText` under forced colours, which the ring follows: the mode greys
+  // the hidden native input but not the ring drawn for it, so a disabled
+  // unselected radio was drawn as an enabled one.
   toneDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   toneSelected: {
     color: colors.primary,

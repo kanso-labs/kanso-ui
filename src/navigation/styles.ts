@@ -66,8 +66,14 @@ const navigationItemStyles = stylex.create({
   },
   // A destination React Aria disables: the 38% every disabled control takes,
   // icon and label alike, and no layer.
+  // `GrayText` under forced colours, where an enabled destination is
+  // `LinkText`: without it a disabled one was `CanvasText`, told apart by hue
+  // alone.
   itemDisabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'default',
   },
   // The label never wraps: a destination's name is a word or two, and one

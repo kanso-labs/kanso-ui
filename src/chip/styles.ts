@@ -80,6 +80,12 @@ import {
 // the reason IconButton's `TARGET_SIZE` gives.
 const TARGET_SIZE = '48px'
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const chipStyles = stylex.create({
   // An assist chip's label, the one role the page draws it in that a
   // suggestion chip does not.
@@ -113,9 +119,14 @@ const chipStyles = stylex.create({
     transitionTimingFunction: motion.easingStandard,
   },
   // The content role at 38%, which every disabled chip takes whichever
-  // container it is on.
+  // container it is on. `GrayText` under forced colours: a chip is an
+  // aria-disabled element rather than a native control, which the mode
+  // leaves in `CanvasText` like an enabled one.
   disabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
   },
   // The two containers a disabled chip can be on: the selected one flattens
@@ -125,7 +136,10 @@ const chipStyles = stylex.create({
   },
   disabledUnselected: {
     backgroundColor: 'transparent',
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   // An unselected elevated chip's container, in place of the outline.
   elevated: {
