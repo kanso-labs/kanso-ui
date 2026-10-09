@@ -15,7 +15,7 @@ import {
   RadioField,
 } from 'react-aria-components'
 
-import { ControlLabel } from '../../control'
+import { ControlDescription, ControlLabel } from '../../control'
 import { controlStyles } from '../../control/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
@@ -291,9 +291,7 @@ function Radio({
       <RadioButton {...stylex.props(styles.button)}>
         {buttonContent(children, ripple)}
       </RadioButton>
-      <div {...stylex.props(controlStyles.messages)}>
-        <FieldMessage description={description} inset={false} />
-      </div>
+      <ControlDescription>{description}</ControlDescription>
     </RadioField>
   )
 }
