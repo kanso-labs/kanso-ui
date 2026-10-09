@@ -39,10 +39,16 @@ export function IndicatorLabels({
   return (
     <div {...stylex.props(indicatorStyles.labels)}>
       {label === undefined ? null : (
-        <Label {...stylex.props(indicatorStyles.label)}>{label}</Label>
+        <Label
+          {...stylex.props(indicatorStyles.label, indicatorStyles.labelText)}
+        >
+          {label}
+        </Label>
       )}
       {value === undefined ? null : (
-        <span {...stylex.props(indicatorStyles.label)}>{value}</span>
+        <span {...stylex.props(indicatorStyles.label, indicatorStyles.value)}>
+          {value}
+        </span>
       )}
     </div>
   )

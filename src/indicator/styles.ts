@@ -127,6 +127,14 @@ export const indicatorStyles = stylex.create({
     gap: spacing.sm,
     justifyContent: 'space-between',
   },
+  // The label's own part of the line. It gives way, and breaks a word wider
+  // than the room rather than widening the line — a file name or a compound
+  // otherwise pushed the value off the end and the page with it. Not
+  // hyphenated, since such a word is as often a name as a compound.
+  labelText: {
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
+  },
   // The three parts, with the page's 4dp between them.
   line: {
     alignItems: 'center',
@@ -182,5 +190,13 @@ export const indicatorStyles = stylex.create({
   },
   trackSolid: {
     backgroundColor: colors.secondaryContainer,
+  },
+  // The value: whole, on one line, and at the end of the line whether or not
+  // a label is beside it — a lone child of a spaced-between line otherwise
+  // sat at its start.
+  value: {
+    flexShrink: 0,
+    marginInlineStart: 'auto',
+    whiteSpace: 'nowrap',
   },
 })
