@@ -250,33 +250,35 @@ const chipStyles = stylex.create({
     borderColor: 'transparent',
     color: colors.onSecondaryContainer,
   },
-  // The chips page's 48dp target around the 32dp chip: a transparent box
-  // reaching 8dp past the top and bottom, taking the press because a
-  // pseudo-element is part of the element it belongs to, and moving nothing
-  // because it is out of flow. Across, the label's padding already clears
-  // the target. A chip applies this beside `base`; a token in a field does
-  // not, since a reach above or below a token would take the press meant to
-  // put the caret on the line next to it.
+  // The press target around the chip: a transparent box past its edges,
+  // taking the press because a pseudo-element is part of the element it
+  // belongs to, and moving nothing because it is out of flow. A chip applies
+  // this beside `base`; a token in a field does not, since a reach above or
+  // below a token would take the press meant to put the caret on the line
+  // next to it.
   //
-  // The insets are a pixel longer than the arithmetic, because an absolute
-  // box is placed from inside its parent's border, and the chip's is 1px.
+  // Up and down it reaches halfway across the `spacing.sm` chips wrap apart,
+  // not the 8dp the page's 48dp target would ask: a full reach on each chip
+  // laid one row's target over the next one's, so a press just under one
+  // chip went to the chip below it, whichever was drawn later. Halfway, the
+  // two rows' targets meet in the middle of the gap.
+  //
+  // Across it is the chip's width or the page's 48dp, whichever is wider, so
+  // a chip with a one- or two-character label — a count, a letter — still
+  // takes a 48dp-wide press, centred on it. The percentage is the chip's
+  // own padding box, the box's containing block.
+  //
+  // The block insets are a pixel longer than the arithmetic, because an
+  // absolute box is placed from inside its parent's border, and the chip's is
+  // 1px.
   target: {
     '::before': {
       content: '""',
-      insetBlock: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2 - 1px)`,
-      insetInline: 0,
+      insetBlock: `calc(-1 * ${spacing.sm} / 2 - 1px)`,
+      insetInline: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       position: 'absolute',
     },
     position: 'relative',
-  },
-  // A chip in a group, whose rows wrap `spacing.sm` apart. A full target on
-  // each chip would lay one row's reach over the next one's, so a press
-  // between them would go to whichever was drawn later rather than to the
-  // nearer. Each reaches halfway across the gap instead, and the two meet.
-  targetInGroup: {
-    '::before': {
-      insetBlock: `calc(-1 * ${spacing.sm} / 2 - 1px)`,
-    },
   },
   unselected: {
     backgroundColor: 'transparent',

@@ -547,6 +547,55 @@ function ripplesIn(element: Element) {
   )
 }
 
+// Two rows of chips wrapped `spacing.sm` apart, as a ChipGroup lays them and
+// a call site's own row does: narrow enough that each chip takes a row.
+const wrapStyles = stylex.create({
+  rows: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    inlineSize: '120px',
+  },
+})
+
+describe('its press target', () => {
+  // A full 48dp reach on each chip laid one row's target over the next
+  // one's, so a press just under a chip went to the chip in the row below.
+  it('meets the next row in the middle of the gap', () => {
+    const view = render(
+      <div {...stylex.props(wrapStyles.rows)}>
+        <Chip>First filter</Chip>
+        <Chip>Second filter</Chip>
+      </div>,
+    )
+    const first = view.getByRole('button', { name: 'First filter' })
+    const second = view.getByRole('button', { name: 'Second filter' })
+    const upper = first.getBoundingClientRect()
+    const lower = second.getBoundingClientRect()
+    const x = upper.left + upper.width / 2
+
+    expect(lower.top - upper.bottom).toBe(8)
+    expect(document.elementFromPoint(x, upper.bottom + 2)).toBe(first)
+    expect(document.elementFromPoint(x, lower.top - 2)).toBe(second)
+  })
+
+  // A count or a letter makes a chip narrower than the page's 48dp, and the
+  // target was only as wide as the chip.
+  it('is 48px wide on a chip narrower than that', () => {
+    const view = render(<Chip>1</Chip>)
+    const chip = view.getByRole('button', { name: '1' })
+    const width = chip.getBoundingClientRect().width
+
+    expect(width).toBeLessThan(48)
+    // To a tenth: the chip's width is fractional, and layout rounds the box
+    // centred on it to a sixty-fourth of a pixel.
+    expect(
+      Number.parseFloat(getComputedStyle(chip, '::before').width),
+    ).toBeCloseTo(48, 1)
+    expect(chip.getBoundingClientRect().width).toBe(width)
+  })
+})
+
 describe('focus layer and ripple', () => {
   it.each([
     ['an unselected', {}, focusProbeStyles.unselected],
