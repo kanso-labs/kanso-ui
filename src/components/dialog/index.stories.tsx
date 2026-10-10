@@ -176,6 +176,44 @@ const AlertDialogCompact: Story = {
   render: AlertDialog.render,
 }
 
-export { AlertDialog, AlertDialogCompact, Default, LongBody }
+// Three answers on a phone are more than one row holds, so the actions wrap
+// onto a second row at the trailing edge rather than running the first of
+// them past the container's start edge.
+const ThreeActions: Story = {
+  globals: AlertDialogCompact.globals,
+  parameters: AlertDialogCompact.parameters,
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open alert</Button>
+      <Dialog.Content
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        role="alertdialog"
+      >
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what each answer does.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            First action
+          </Button>
+          <Button slot="close" variant="text">
+            Second action
+          </Button>
+          <Button slot="close" variant="text">
+            Third action
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
+export { AlertDialog, AlertDialogCompact, Default, LongBody, ThreeActions }
 
 export default meta
