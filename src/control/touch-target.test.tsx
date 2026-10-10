@@ -375,15 +375,20 @@ describe('the segmented button, whose track is 40', () => {
 })
 
 describe('the chip, which is 32', () => {
-  it('takes a press out to 48 above and below a chip on its own', () => {
+  // Chips wrap 8dp apart, in a group or in a call site's own row, and a full
+  // 48dp target on each would lay one row's reach over the next one's. A
+  // chip on its own reaches halfway across that gap as one in a group does,
+  // so two rows meet without either covering the other. Across, a chip wider
+  // than 48 is its own target.
+  it('takes a press halfway across the row gap above and below a chip on its own', () => {
     const chip = renderWithRoom(<Chip>Label</Chip>).getByRole('button')
 
-    expect(reaches(chip, (TARGET - 32) / 2 - 1)).toEqual({
+    expect(reaches(chip, 3)).toEqual({
       above: true,
       before: false,
       below: true,
     })
-    expect(reaches(chip, (TARGET - 32) / 2 + 1)).toMatchObject({
+    expect(reaches(chip, 5)).toMatchObject({
       above: false,
       below: false,
     })
