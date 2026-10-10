@@ -3,8 +3,10 @@ import type { Selection } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useState } from 'react'
+import { expect, waitFor } from 'storybook/test'
 
 import ChipGroup from '.'
+import Text from '../text'
 
 const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
@@ -65,6 +67,14 @@ const ITEMS = [
   { id: 'third', label: 'Third item' },
 ]
 
+function emptyState() {
+  return (
+    <Text tone="muted" variant="bodyMedium">
+      Empty state
+    </Text>
+  )
+}
+
 function Removable() {
   const [items, setItems] = useState(ITEMS)
   const remove = useCallback((keys: Selection) => {
@@ -78,6 +88,25 @@ function Removable() {
       {items.map((item) => (
         <ChipGroup.Chip id={item.id} key={item.id}>
           {item.label}
+        </ChipGroup.Chip>
+      ))}
+    </ChipGroup>
+  )
+}
+
+// One removable chip and an empty state for after it, so a single removal
+// empties the group.
+function RemovableToEmpty() {
+  const [ids, setIds] = useState(['first'])
+  const remove = useCallback((keys: Selection) => {
+    setIds((current) => current.filter((id) => keys !== 'all' && !keys.has(id)))
+  }, [])
+
+  return (
+    <ChipGroup label="Label" onRemove={remove} renderEmptyState={emptyState}>
+      {ids.map((id) => (
+        <ChipGroup.Chip id={id} key={id}>
+          First item
         </ChipGroup.Chip>
       ))}
     </ChipGroup>
@@ -177,6 +206,34 @@ const RemovableChips: Story = {
   ),
 }
 
+// The group once its last chip is removed: React Aria moves focus onto the
+// emptied list, which draws the ring a chip draws, and keeps a chip's height
+// so nothing under it moves. Removed by its `play`, so the snapshot shows the
+// state after it.
+const EmptyState: Story = {
+  play: async ({ canvas, userEvent }) => {
+    const chip = canvas.getByRole('row', { name: 'First item' })
+    chip.focus()
+    await userEvent.keyboard('{Delete}')
+    await waitFor(async () => {
+      await expect(canvas.queryByRole('row')).not.toBeInTheDocument()
+    })
+    const list = canvas.getByText('Empty state').parentElement
+    if (list === null) {
+      throw new Error('expected the empty state to sit in the list')
+    }
+    await waitFor(async () => {
+      await expect(document.activeElement).toBe(list)
+    })
+    await expect(getComputedStyle(list).outlineStyle).toBe('solid')
+  },
+  render: () => (
+    <div {...stylex.props(styles.width)}>
+      <RemovableToEmpty />
+    </div>
+  ),
+}
+
 // The `Removing` story shows the close target rather than what pressing it
 // does, which `RemovableChips` covers instead.
 function noop(_keys: Selection) {}
@@ -184,6 +241,7 @@ function noop(_keys: Selection) {}
 export {
   Default,
   Disabled,
+  EmptyState,
   Invalid,
   LongLabel,
   MultipleSelection,
