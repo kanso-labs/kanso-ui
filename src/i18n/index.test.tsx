@@ -111,6 +111,7 @@ describe("the library's own words", () => {
           'confirm',
           'copied',
           'copy',
+          'copySelected',
           'enterTime',
           'loading',
           'loadingMore',

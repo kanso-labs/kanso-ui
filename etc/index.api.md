@@ -584,6 +584,7 @@ export type CopyFieldProps = {
     label?: string;
     onCopied?: (value: string) => void;
     onCopyFailed?: (error: unknown) => void;
+    selectedLabel?: string;
     value: string;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'children'>;
 
