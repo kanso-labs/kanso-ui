@@ -37,6 +37,34 @@ const columnStyles = stylex.create({
   },
 })
 
+// Taller than the content any case below gives a card, which is what a row
+// of cards stretching to its tallest does to the rest.
+const stretchedStyles = stylex.create({
+  tall: { blockSize: '200px' },
+})
+
+// How far the card's first child sits below the card's own top.
+function firstOffset(view: ReturnType<typeof render>) {
+  const card = cardIn(view.container)
+  return (
+    view.getByTestId('first').getBoundingClientRect().top -
+    card.getBoundingClientRect().top
+  )
+}
+
+// The same children in every card the stretched cases compare: a block, and
+// a line holding text and an inline element.
+function stretchedContent() {
+  return (
+    <>
+      <p data-testid="first">Headline</p>
+      <span data-testid="line">
+        Supporting <strong data-testid="inline">line</strong>
+      </span>
+    </>
+  )
+}
+
 // Empty and hoisted for the same reasons the stories hoist theirs: useRender
 // injects the children, so jsx-a11y sees an anchor with no content yet, and a
 // fresh element per render would trip react-perf's no-jsx-as-prop.
@@ -376,6 +404,53 @@ describe('card', () => {
       const column = view.getByTestId('column')
 
       expect(cardIn(column).offsetHeight).toBe(column.clientHeight)
+    })
+  })
+
+  // A row of cards stretches each to the tallest, and a <button> centres its
+  // content top to bottom on its own, so an interactive card drew its
+  // content in the middle where a static one draws it at the top.
+  describe('stretched taller than its content', () => {
+    it('starts the content under the padding whatever the element', () => {
+      const offsets = [
+        <Card key="static" {...stylex.props(stretchedStyles.tall)}>
+          {stretchedContent()}
+        </Card>,
+        <Card interactive key="button" {...stylex.props(stretchedStyles.tall)}>
+          {stretchedContent()}
+        </Card>,
+        <Card
+          interactive
+          key="anchor"
+          render={EXAMPLE_LINK}
+          {...stylex.props(stretchedStyles.tall)}
+        >
+          {stretchedContent()}
+        </Card>,
+      ].map((card) => {
+        // One at a time, since each case names its children the same.
+        const view = render(card)
+        const offset = firstOffset(view)
+        view.unmount()
+        return offset
+      })
+
+      // The padding's 16 and the paragraph's own 16 above it, in every one.
+      expect(offsets).toEqual([32, 32, 32])
+    })
+
+    // Laid out as a block, as the static card is, rather than as a flex or
+    // grid container, which would put each inline child on a line of its own.
+    it('keeps inline content on one line', () => {
+      const view = render(
+        <Card interactive {...stylex.props(stretchedStyles.tall)}>
+          {stretchedContent()}
+        </Card>,
+      )
+      const line = view.getByTestId('line').getBoundingClientRect()
+      const inline = view.getByTestId('inline').getBoundingClientRect()
+
+      expect(inline.top).toBe(line.top)
     })
   })
 
