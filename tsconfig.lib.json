@@ -3,7 +3,10 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.lib.tsbuildinfo",
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // ES2023.Intl for NumberFormat's `negative` and `exceptZero` sign
+    // displays, which Currency uses to leave a zero bare. Chromium 106,
+    // Safari 15.4 and Firefox 116 run them.
+    "lib": ["ES2022", "ES2023.Intl", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client"],
     "skipLibCheck": true,
