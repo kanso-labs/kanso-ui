@@ -1,6 +1,7 @@
 import type { Ref } from 'react'
 import type { FocusableElement } from 'react-aria-components'
 
+import { useState } from 'react'
 import { ButtonContext, useSlottedContext } from 'react-aria-components'
 
 import type { ButtonDOMProps } from '.'
@@ -107,4 +108,33 @@ function useButtonBase<Props extends ButtonBaseInput>(
   }
 }
 
-export { useButtonBase }
+/**
+ * A toggle's state, for a button that is a toggle on its own rather than in
+ * a selecting group: the call site's `isSelected` where it holds the state,
+ * otherwise the button's own, starting from `defaultSelected`. `toggle` is
+ * what a press calls, and reports the new state through `onChange` either
+ * way. Called whether or not the button is a toggle, so that becoming one
+ * changes no hook order.
+ */
+function useSelection({
+  defaultSelected,
+  isSelected,
+  onChange,
+}: {
+  defaultSelected?: boolean | undefined
+  isSelected?: boolean | undefined
+  onChange?: ((isSelected: boolean) => void) | undefined
+}) {
+  const [own, setOwn] = useState(defaultSelected ?? false)
+  const selected = isSelected ?? own
+
+  return {
+    selected,
+    toggle: () => {
+      setOwn(!selected)
+      onChange?.(!selected)
+    },
+  }
+}
+
+export { useButtonBase, useSelection }
