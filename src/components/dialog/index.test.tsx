@@ -123,6 +123,15 @@ function paddingOf(element: HTMLElement) {
   }
 }
 
+/** The element `element` sits in, which a part's own element always has. */
+function parentOf(element: HTMLElement) {
+  const parent = element.parentElement
+  if (parent === null) {
+    throw new Error('expected the element to sit inside a part')
+  }
+  return parent
+}
+
 /** The header, body and footer, which are the three parts that carry padding. */
 function partsOf(view: ReturnType<typeof render>) {
   const header = view.getByText('Headline').parentElement
@@ -159,8 +168,18 @@ function presentationOf(view: ReturnType<typeof render>, role: string) {
       'min-width',
       ...paddings,
     ]),
-    footer: computedOf(footer, ['border-top-style', 'height', ...paddings]),
-    header: computedOf(header, ['border-bottom-style', 'height', ...paddings]),
+    footer: computedOf(footer, [
+      'border-top-style',
+      'height',
+      'min-height',
+      ...paddings,
+    ]),
+    header: computedOf(header, [
+      'border-bottom-style',
+      'height',
+      'min-height',
+      ...paddings,
+    ]),
     scrim: computedOf(scrimOf(container), paddings),
     title: computedOf(title, [
       'font-family',
@@ -246,6 +265,37 @@ function standalone(content: Partial<DialogContentProps> = {}) {
   )
 }
 
+/**
+ * A dialog of the given role whose title is `title`, beside a close button,
+ * read once it has arrived.
+ */
+function titled(title: string, role: 'alertdialog' | 'dialog') {
+  const view = render(
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content role={role}>
+        <Dialog.Header>
+          <Dialog.Title>{title}</Dialog.Title>
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>
+        </Dialog.Header>
+        <Dialog.Body>Supporting line</Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close">Cancel</Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>,
+  )
+  const heading = view.getByText(title)
+  return {
+    close: view.getByRole('button', { name: 'Close' }),
+    container: containerOf(view.getByRole(role)),
+    header: parentOf(heading),
+    title: heading,
+  }
+}
+
 // Sixty lines of body, far more than any viewport holds, which is what shows
 // whether the body scrolls or the container clips it.
 const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
@@ -273,6 +323,21 @@ function longDialog() {
     body: view.getByTestId('body'),
     cancel: view.getByRole('button', { name: 'Cancel' }),
   }
+}
+
+// One word longer than any phone is wide, with nowhere to break it.
+const LONG_WORD = 'Headline'.repeat(8)
+
+/** Whether `inner` lies wholly inside `outer`, to the subpixel. */
+function within(inner: Element, outer: Element) {
+  const a = inner.getBoundingClientRect()
+  const b = outer.getBoundingClientRect()
+  return (
+    a.left >= b.left - 0.5 &&
+    a.right <= b.right + 0.5 &&
+    a.top >= b.top - 0.5 &&
+    a.bottom <= b.bottom + 0.5
+  )
 }
 
 describe('dialog', () => {
@@ -761,6 +826,121 @@ describe('dialog', () => {
       ).toBe(0)
 
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+  })
+
+  // The header and footer are sized for a one-line headline and a row of two
+  // short actions. Each case here is content that runs past that on a phone,
+  // which the container's `overflow: hidden` used to clip without a trace.
+  describe('content longer than the bars', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // A third action on a phone used to push the first past the container's
+    // start edge, where it was cut to the end of its label.
+    it('wraps actions that do not fit onto another row', async () => {
+      await page.viewport(360, 700)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content role="alertdialog">
+            <Dialog.Header>
+              <Dialog.Title>Headline</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Footer>
+              <Button slot="close" variant="text">
+                First action
+              </Button>
+              <Button slot="close" variant="text">
+                Second action
+              </Button>
+              <Button slot="close" variant="text">
+                Third action
+              </Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const container = containerOf(view.getByRole('alertdialog'))
+      const actions = ['First action', 'Second action', 'Third action'].map(
+        (name) => view.getByRole('button', { name }),
+      )
+
+      for (const action of actions) {
+        expect(within(action, container)).toBe(true)
+      }
+      // On two rows rather than squeezed onto one, and still at the
+      // trailing edge: the last action ends where a lone one would.
+      const [first, , third] = actions.map((action) =>
+        action.getBoundingClientRect(),
+      )
+      expect(third.top).toBeGreaterThan(first.top)
+      expect(container.getBoundingClientRect().right - third.right).toBe(24)
+    })
+
+    // The headline is the part that gives way, so the close button keeps its
+    // size and stays on screen.
+    it.each(['dialog', 'alertdialog'] as const)(
+      'breaks one long word in the title of a %s',
+      async (role) => {
+        await page.viewport(360, 700)
+        const { close, container, title } = titled(LONG_WORD, role)
+
+        expect(within(title, container)).toBe(true)
+        expect(within(close, container)).toBe(true)
+        expect(close.getBoundingClientRect().right).toBeLessThanOrEqual(
+          window.innerWidth,
+        )
+        expect(close.getBoundingClientRect().width).toBe(
+          close.getBoundingClientRect().height,
+        )
+      },
+    )
+
+    // Full screen the header was a fixed 56, so a headline of three lines
+    // overflowed it both ways and started above the top of the window.
+    it('grows the full-screen header with a headline of several lines', async () => {
+      await page.viewport(375, 812)
+      const { header, title } = titled(
+        'Headline that runs on for long enough to take several lines',
+        'dialog',
+      )
+      const box = header.getBoundingClientRect()
+      const text = title.getBoundingClientRect()
+
+      expect(text.height).toBeGreaterThan(56)
+      expect(text.top).toBeGreaterThanOrEqual(box.top)
+      expect(text.bottom).toBeLessThanOrEqual(box.bottom)
+    })
+
+    // Likewise an action whose label wraps, which met the divider over a
+    // fixed 56 action bar.
+    it('grows the full-screen action bar with an action of two lines', async () => {
+      await page.viewport(375, 812)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content aria-label="Label">
+            <Dialog.Body>Supporting line</Dialog.Body>
+            <Dialog.Footer>
+              <Button slot="close">
+                Action with a label long enough to run onto a second line
+              </Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      containerOf(view.getByRole('dialog'))
+      const action = view.getByRole('button', { name: /^Action/ })
+      const bar = parentOf(action).getBoundingClientRect()
+      const box = action.getBoundingClientRect()
+
+      expect(box.height).toBeGreaterThan(40)
+      // Clear of the divider, which is the bar's 1px top border, by the
+      // bar's own 4 of padding.
+      expect(box.top - bar.top).toBeGreaterThanOrEqual(5)
+      expect(bar.bottom - box.bottom).toBeGreaterThanOrEqual(4)
     })
   })
 })
