@@ -142,6 +142,7 @@ import {
   TreeItem as ComponentsTreeItem,
   TreeLoadMore as ComponentsTreeLoadMore,
   TreeSection as ComponentsTreeSection,
+  useAppBarScroll as ComponentsUseAppBarScroll,
 } from './components'
 import * as reactAriaModule from './react-aria'
 
@@ -311,6 +312,7 @@ describe('package entry point', () => {
       'isTextDropItem',
       'parseColor',
       'themeScope',
+      'useAppBarScroll',
       'useAsyncList',
       'useDrag',
       'useDragAndDrop',
@@ -498,6 +500,7 @@ describe('package entry point', () => {
     TreeItem: [publicApi.TreeItem, ComponentsTreeItem],
     TreeLoadMore: [publicApi.TreeLoadMore, ComponentsTreeLoadMore],
     TreeSection: [publicApi.TreeSection, ComponentsTreeSection],
+    useAppBarScroll: [publicApi.useAppBarScroll, ComponentsUseAppBarScroll],
   }
 
   // The map has to cover the same surface the exact-name case pins, or it

@@ -1,9 +1,16 @@
-// The one name here from outside `src/components`, and it is a component's
-// prop rather than a part of the chrome: `variant` on every field component
-// is typed by it, and none of them aliases it under a name of its own the way
-// Popover aliases the overlay unions. Without this a call site forwarding
-// `variant` has no name for what it is forwarding.
+// Two names here come from outside `src/components`, and each belongs to a
+// component rather than to the chrome. `FieldVariant` is a prop: `variant` on
+// every field component is typed by it, and none of them aliases it under a
+// name of its own the way Popover aliases the overlay unions, so without it a
+// call site forwarding `variant` has no name for what it is forwarding.
+// `useAppBarScroll` is AppBar's hook, kept in `src/hooks` so the component's
+// module exports components alone and keeps its fast-refresh boundary.
 export type { FieldVariant } from '../field'
+export type {
+  AppBarScroll,
+  AppBarScrollOptions,
+} from '../hooks/useAppBarScroll'
+export { useAppBarScroll } from '../hooks/useAppBarScroll'
 export type { AppBarProps } from './app-bar'
 export { default as AppBar } from './app-bar'
 export type { AutocompleteFilter, AutocompleteProps } from './autocomplete'
