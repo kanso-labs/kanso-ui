@@ -17,6 +17,8 @@ import {
   ToggleButtonGroup as RACToggleButtonGroup,
 } from 'react-aria-components'
 
+import type { LabelledByAttribute } from '../../render/name'
+
 import { CheckGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { useToggleGroupDisabled } from '../../hooks/useToggleGroupDisabled'
@@ -520,23 +522,21 @@ const styles = stylex.create({
   },
 })
 
-type SegmentedButtonProps = Omit<
-  RACToggleButtonGroupProps,
-  'className' | 'orientation' | 'style'
-> & {
-  /** A function may compute the class from the set's render state. */
-  className?: RACToggleButtonGroupProps['className']
-  /**
-   * Whether a chosen segment draws a check before its label, as the page
-   * has it. `false` leaves the segment's own icon in place while selected,
-   * and draws the chosen segment on the stronger secondary container, since
-   * the page's own is too faint to say which is chosen by itself.
-   * @default true
-   */
-  showSelectedIcon?: boolean
-  /** A function may compute the style from the set's render state. */
-  style?: RACToggleButtonGroupProps['style']
-}
+type SegmentedButtonProps = LabelledByAttribute &
+  Omit<RACToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
+    /** A function may compute the class from the set's render state. */
+    className?: RACToggleButtonGroupProps['className']
+    /**
+     * Whether a chosen segment draws a check before its label, as the page
+     * has it. `false` leaves the segment's own icon in place while selected,
+     * and draws the chosen segment on the stronger secondary container, since
+     * the page's own is too faint to say which is chosen by itself.
+     * @default true
+     */
+    showSelectedIcon?: boolean
+    /** A function may compute the style from the set's render state. */
+    style?: RACToggleButtonGroupProps['style']
+  }
 
 type SegmentedButtonSegmentProps = Omit<
   RACToggleButtonProps,
@@ -675,9 +675,9 @@ function segmentContent(
  * </SegmentedButton>
  * ```
  *
- * Name the set with `aria-label` or `aria-labelledby` — nothing here labels
- * it for you, and a set with no name is a group a screen reader cannot
- * announce. What it is announced as follows the selection mode: choosing one
+ * Name the set with `aria-label` or `aria-labelledby`, one of which the
+ * props require — nothing here labels it for you, and a set with no name is
+ * a group a screen reader cannot announce. What it is announced as follows the selection mode: choosing one
  * is a radio group, choosing several a toolbar of two-state buttons. So does
  * how the chosen container moves: it slides between segments while one is
  * chosen, and fades in place while several may be.

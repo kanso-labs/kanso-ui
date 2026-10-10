@@ -52,8 +52,11 @@ import { mergeStatefulStyles } from '../../styles/merge'
 
 /** An assist or suggestion chip: an action, drawn as a plain button. */
 type ChipActionProps = Omit<RACButtonProps, 'children' | 'isPending'> & {
-  /** The chip's label. */
-  children?: ReactNode
+  /**
+   * The chip's label. Required: the page draws no chip without one, and a
+   * chip with none is an empty button to a screen reader.
+   */
+  children: ReactNode
   /**
    * Raises the chip off the page on a container of its own, at the page's
    * elevation 1, in place of the outline.
@@ -79,9 +82,11 @@ type ChipFilterProps = Omit<RACToggleButtonProps, 'children'> & {
    * The chip's label. A node rather than React Aria's node-or-function,
    * since the chip puts its own check before whatever this is and a function
    * would be handed a `defaultChildren` the chip never rendered. ChipGroup's
-   * chip narrows it the same way, for the same reason.
+   * chip narrows it the same way, for the same reason. Required: the page
+   * draws no chip without one, and a chip with none is an empty button to a
+   * screen reader.
    */
-  children?: ReactNode
+  children: ReactNode
   /**
    * Raises the chip off the page on a container of its own, at the page's
    * elevation 1, in place of the outline. A selected one keeps the

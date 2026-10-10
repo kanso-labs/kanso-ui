@@ -1278,6 +1278,32 @@ describe('segmented button', () => {
 // segment. The check is what says which is chosen, so a set that turns the
 // check off needs a stronger cue, and forced colours, which paints every
 // fill in the page's own Canvas, needs a system colour.
+// A set with no name is an unnamed radio group, and nothing warns.
+describe('its accessible name', () => {
+  it('requires aria-label or aria-labelledby', () => {
+    // @ts-expect-error -- a set needs aria-label or aria-labelledby
+    const unnamed = <SegmentedButton />
+
+    expect(unnamed).toBeDefined()
+  })
+
+  it('names the set', () => {
+    const view = render(
+      <SegmentedButton aria-label="Label" defaultSelectedKeys={NAMED_FIRST}>
+        <SegmentedButton.Segment id="first">First item</SegmentedButton.Segment>
+        <SegmentedButton.Segment id="second">
+          Second item
+        </SegmentedButton.Segment>
+      </SegmentedButton>,
+    )
+
+    expect(view.getByRole('radiogroup', { name: 'Label' })).not.toBeNull()
+  })
+})
+
+// Hoisted so the selection is one stable array, for react-perf.
+const NAMED_FIRST = ['first']
+
 describe('the chosen segment', () => {
   it('draws on the stronger container when the check is off', () => {
     const view = setup({ defaultSelectedKeys: FIRST, showSelectedIcon: false })
