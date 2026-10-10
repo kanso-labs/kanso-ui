@@ -51,6 +51,14 @@ const styles = stylex.create({
     inlineSize: '240px',
     maxInlineSize: '100%',
   },
+  // One size's pair, the filled button over the outlined one, each at its
+  // own width so the two ends can be compared.
+  pair: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.sm,
+  },
 })
 
 // A plain shape rather than an icon set, so the stories show the button
@@ -76,6 +84,8 @@ function PlusIcon() {
 // Hoisted so it is one stable element per render, which is what react-perf's
 // no-jsx-as-prop is after.
 const PLUS = <PlusIcon />
+
+const SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
 const meta = {
   args: {
@@ -184,6 +194,26 @@ const FullWidth: Story = {
   ),
 }
 
+// A filled button over an outlined one with the same label at each size,
+// which come out one width: the outlined rule is drawn inside the padding
+// rather than beside it, so a row or a group mixing the two lines up.
+const OutlinedBesideFilled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inline)}>
+      {SIZES.map((size) => (
+        <div key={size} {...stylex.props(styles.pair)}>
+          <Button size={size} variant="filled">
+            Label
+          </Button>
+          <Button size={size} variant="outlined">
+            Label
+          </Button>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
 // A toggle, selected: the tonal pair moved to secondary, and the pill traded
 // for the square corner.
 const Toggle: Story = {
@@ -213,6 +243,7 @@ export {
   Elevated,
   FullWidth,
   LongLabels,
+  OutlinedBesideFilled,
   Pending,
   Pressed,
   Square,

@@ -272,10 +272,17 @@ const styles = stylex.create({
   // taking the press because a pseudo-element is part of the element it
   // belongs to, and moving nothing because it is out of flow. Across, the
   // label's padding already clears the target, so the box stops at the sides.
+  //
+  // The reach is half of what the button lacks of the target, read off the
+  // percentage rather than the container token: an absolutely positioned box
+  // is placed against the padding box, inside any border, so a reach worked
+  // out from the token lost the outlined button's rule twice over and left
+  // its target 46 tall. A label that wraps the button past the target leaves
+  // nothing to make up, and the box stays inside.
   md: {
     '::before': {
       content: '""',
-      insetBlock: `calc((${sizing.controlSm} - ${TARGET_SIZE}) / 2)`,
+      insetBlock: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       insetInline: 0,
       position: 'absolute',
     },
@@ -370,12 +377,12 @@ const styles = stylex.create({
   // reaches 8dp past each edge. See `md`. Across, its 12dp a side clears the
   // target only for a label at least 24dp wide, so for a narrower button the
   // box reaches past the sides as well, by half of what it lacks, and a
-  // wider one keeps it at its sides as `md` does. The percentage is the
-  // button's own width, the box's containing block.
+  // wider one keeps it at its sides as `md` does. Both percentages are of the
+  // button's padding box, the box's containing block.
   xs: {
     '::before': {
       content: '""',
-      insetBlock: `calc((${sizing.controlXs} - ${TARGET_SIZE}) / 2)`,
+      insetBlock: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       insetInline: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       position: 'absolute',
     },
@@ -400,12 +407,40 @@ const styles = stylex.create({
 // tokens have it: 1dp up to M, 2dp at L, 3dp at XL. A style per size rather
 // than a value in the size style, since a border on a filled button would
 // draw in the label colour.
-const outlineWidths = stylex.create({
-  lg: { borderWidth: '1px' },
-  md: { borderWidth: '1px' },
-  xl: { borderWidth: '2px' },
-  xs: { borderWidth: '1px' },
-  xxl: { borderWidth: '3px' },
+const OUTLINE_WIDTHS = {
+  lg: '1px',
+  md: '1px',
+  xl: '2px',
+  xs: '1px',
+  xxl: '3px',
+} as const
+
+// The outlined button draws its rule inside the width the other variants
+// take, as the page's buttons do: the padding gives up what the border takes,
+// so an outlined and a filled button with one label are one width, and a
+// group mixing them lines up. The height needs nothing, since it is a floor
+// the border already counts towards.
+const outlinedSizes = stylex.create({
+  lg: {
+    borderWidth: OUTLINE_WIDTHS.lg,
+    paddingInline: `calc(${spacing.xl} - ${OUTLINE_WIDTHS.lg})`,
+  },
+  md: {
+    borderWidth: OUTLINE_WIDTHS.md,
+    paddingInline: `calc(${spacing.lg} - ${OUTLINE_WIDTHS.md})`,
+  },
+  xl: {
+    borderWidth: OUTLINE_WIDTHS.xl,
+    paddingInline: `calc(48px - ${OUTLINE_WIDTHS.xl})`,
+  },
+  xs: {
+    borderWidth: OUTLINE_WIDTHS.xs,
+    paddingInline: `calc(${spacing.md} - ${OUTLINE_WIDTHS.xs})`,
+  },
+  xxl: {
+    borderWidth: OUTLINE_WIDTHS.xxl,
+    paddingInline: `calc(64px - ${OUTLINE_WIDTHS.xxl})`,
+  },
 })
 
 // The icon each size draws, from the page's size token sets: 20dp for the
@@ -421,7 +456,8 @@ const iconSizes = stylex.create({
 
 // Each size's inline padding again, for the one place it is read at runtime:
 // a standard ButtonGroup widening a pressed button by adding to it. The size
-// styles above write the same values.
+// styles above write the same values, and an outlined button's border comes
+// off them here as it does in `outlinedSizes`.
 const PADDINGS = {
   lg: spacing.xl,
   md: spacing.lg,
@@ -834,12 +870,12 @@ function buttonClasses(
       styles[variant],
       styles[size],
       shape === 'square' && squareShapes[size],
-      variant === 'outlined' && outlineWidths[size],
+      variant === 'outlined' && outlinedSizes[size],
       state.isHovered && hovered[variant],
       state.isFocusVisible && focused[variant],
       state.isPressed && pressed[variant],
       state.isPressed && pressedShapes[size],
-      groupStyles(group, size, state),
+      groupStyles(group, size, variant, state),
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )
@@ -851,15 +887,19 @@ function buttonClasses(
 function groupStyles(
   group: ButtonGroupItem | null,
   size: ButtonSize,
+  variant: ButtonVariant,
   state: ButtonState,
 ) {
   if (group === null) {
     return null
   }
+  const border = variant === 'outlined' ? OUTLINE_WIDTHS[size] : '0px'
   return [
     group.styles?.(state),
     group.shift !== 0 &&
-      shifted.padding(`calc(${PADDINGS[size]} + ${group.shift / 2}px)`),
+      shifted.padding(
+        `calc(${PADDINGS[size]} - ${border} + ${group.shift / 2}px)`,
+      ),
   ]
 }
 
@@ -886,7 +926,7 @@ function toggleClasses(
       styles[size],
       shape === 'square' && squareShapes[size],
       isSelected && (shape === 'square' ? styles.round : squareShapes[size]),
-      variant === 'outlined' && outlineWidths[size],
+      variant === 'outlined' && outlinedSizes[size],
       state.isHovered && hovered[variant],
       state.isHovered && hovered[container],
       state.isFocusVisible && focused[variant],
@@ -894,7 +934,7 @@ function toggleClasses(
       state.isPressed && pressed[variant],
       state.isPressed && pressed[container],
       state.isPressed && pressedShapes[size],
-      groupStyles(group, size, state),
+      groupStyles(group, size, variant, state),
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )

@@ -208,6 +208,30 @@ describe('button group', () => {
       expect(widthsOf(buttons)).toEqual(before)
     })
 
+    // An outlined button gives its border back out of its padding, and the
+    // padding a group writes while it widens or narrows one has to do the
+    // same, or every button it touches jumps by twice the rule.
+    it('widens an outlined button by the same share', () => {
+      render(
+        <ButtonGroup aria-label="Label">
+          <Button variant="outlined">First item</Button>
+          <Button variant="outlined">Second item</Button>
+          <Button variant="outlined">Third item</Button>
+        </ButtonGroup>,
+      )
+      const buttons = screen.getAllByRole('button')
+      const before = widthsOf(buttons)
+
+      fireEvent.keyDown(buttons[1], { key: ' ' })
+      const pressed = widthsOf(buttons)
+      const gain = before[1] * 0.15
+
+      expect(pressed[1] - before[1]).toBeCloseTo(gain, 0)
+      expect(before[0] - pressed[0]).toBeCloseTo(gain / 2, 0)
+      expect(before[2] - pressed[2]).toBeCloseTo(gain / 2, 0)
+      fireEvent.keyUp(buttons[1], { key: ' ' })
+    })
+
     it('takes all the room from the one neighbour of a button at an end', () => {
       render(<Group />)
       const buttons = screen.getAllByRole('button')
