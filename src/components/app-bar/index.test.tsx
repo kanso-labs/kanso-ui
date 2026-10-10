@@ -1,9 +1,12 @@
+import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import type { AppBarProps } from '.'
 
 import AppBar from '.'
+import { spacing } from '../../tokens/design.tokens.stylex'
+import IconButton from '../icon-button'
 
 // Material Design's documented heights for the three sizes this ships, and
 // the second column is the whole point of the flexible bars: they grow for a
@@ -16,6 +19,10 @@ const HEIGHTS = {
 
 const SIZES = ['sm', 'md', 'lg'] as const
 
+// A scheme that widens the spacing scale's `lg` step, which the default inset
+// is drawn from.
+const wideSpacing = stylex.createTheme(spacing, { lg: '20px' })
+
 const NARROW = { inlineSize: '280px' }
 
 // Wider than any measure under test, so what is being read is the row's own
@@ -26,6 +33,26 @@ const WIDE = { inlineSize: '1000px' }
 const LONG_WORD = 'Unterstützungszeilenüberschrift'
 
 const LEADING = <button type="button">Back</button>
+
+// A glyph at the 24dp the app bar's tokens give an icon.
+const GLYPH = (
+  <svg
+    aria-hidden="true"
+    data-glyph=""
+    height="24"
+    viewBox="0 0 24 24"
+    width="24"
+  />
+)
+
+const ICON_LEADING = <IconButton aria-label="Back">{GLYPH}</IconButton>
+
+const ICON_TRAILING = (
+  <>
+    <IconButton aria-label="Edit">{GLYPH}</IconButton>
+    <IconButton aria-label="More">{GLYPH}</IconButton>
+  </>
+)
 const TRAILING = <button type="button">More</button>
 
 function barIn(container: HTMLElement) {
@@ -45,9 +72,34 @@ function barInWrapper(container: HTMLElement) {
   return barIn(wrapper)
 }
 
+/** The box of the glyph at `index` among those the sample drew. */
+function glyphAt(container: HTMLElement, index: number) {
+  const glyph = container.querySelectorAll('[data-glyph]').item(index)
+  if (!(glyph instanceof SVGElement)) {
+    throw new Error(`expected a glyph at ${index}`)
+  }
+  return glyph.getBoundingClientRect()
+}
+
 /** The resolved minimum height, which is what the size tokens come down to. */
 function minHeightOf(bar: HTMLElement) {
   return Number.parseFloat(getComputedStyle(bar).minBlockSize)
+}
+
+/**
+ * How far the first glyph and the headline start from the bar's own edge,
+ * read off their drawn boxes.
+ */
+function offsetsOf(view: ReturnType<typeof render>) {
+  const barLeft = barIn(view.container).getBoundingClientRect().left
+  const hasGlyph = view.container.querySelector('[data-glyph]') !== null
+
+  return {
+    glyph: hasGlyph ? glyphAt(view.container, 0).left - barLeft : undefined,
+    headline:
+      view.getByRole('heading', { level: 1 }).getBoundingClientRect().left -
+      barLeft,
+  }
 }
 
 /** The measured row the bar's contents sit in. */
@@ -408,29 +460,84 @@ describe('content measure', () => {
     ).toBe(24)
   })
 
-  // The reason the inset is split between the row and the text block rather
-  // than sitting entirely on one. A leading slot starts before the headline by
-  // the room an icon button's own padding fills, so a bar with an icon and one
-  // without put their text in the same place.
-  it('leaves a leading slot the room an icon button pads with', () => {
-    const view = render(
-      <AppBar contentInset="24px" headline="Headline" leading={LEADING} />,
-    )
-    const barLeft = barIn(view.container).getBoundingClientRect().left
+  // A bar drawn flush — a drawer's header, a full-bleed band — asks for
+  // less than the room a glyph keeps inside its target, which once clamped
+  // every inset below 12px up to 12.
+  it.each(['0', '0px', '8px'])(
+    'starts the headline at an inset of %s with nothing before it',
+    (contentInset) => {
+      const view = render(
+        <AppBar contentInset={contentInset} headline="Headline" />,
+      )
 
-    expect(view.getByText('Back').getBoundingClientRect().left - barLeft).toBe(
-      12,
+      expect(offsetsOf(view).headline).toBe(Number.parseFloat(contentInset))
+    },
+  )
+
+  // Material Design's tokens: 4dp from the edge to the button's 48dp target,
+  // a 24dp icon centred in it, and the headline 4dp past the target — the
+  // glyph on the page's 16dp margin and the headline at 56.
+  it('puts a leading glyph on the inset and the headline past its target', () => {
+    const view = render(<AppBar headline="Headline" leading={ICON_LEADING} />)
+    const offsets = offsetsOf(view)
+
+    expect(offsets.glyph).toBe(16)
+    expect(offsets.headline).toBe(56)
+  })
+
+  it('follows the inset it is given with a leading slot', () => {
+    const view = render(
+      <AppBar contentInset="24px" headline="Headline" leading={ICON_LEADING} />,
     )
+    const offsets = offsetsOf(view)
+
+    expect(offsets.glyph).toBe(24)
+    expect(offsets.headline).toBe(64)
+  })
+
+  // The row cannot be padded less than nothing, so an inset smaller than a
+  // glyph's own room puts the target against the edge rather than the
+  // padding being thrown away.
+  it('puts the target against the edge for an inset of 0', () => {
+    const view = render(
+      <AppBar contentInset="0" headline="Headline" leading={ICON_LEADING} />,
+    )
+
+    expect(offsetsOf(view).glyph).toBe(12)
+  })
+
+  // The same at the far end, and the targets of two actions edge to edge,
+  // which is the space the tokens give between icon buttons.
+  it('puts the last trailing glyph on the inset, targets edge to edge', () => {
+    const view = render(<AppBar headline="Headline" trailing={ICON_TRAILING} />)
+    const barRight = barIn(view.container).getBoundingClientRect().right
+    const first = glyphAt(view.container, 0)
+    const last = glyphAt(view.container, 1)
+
+    expect(barRight - last.right).toBe(16)
+    expect(last.left - first.left).toBe(48)
   })
 
   it('takes Material Design’s own margin as the default inset', () => {
     const view = render(<AppBar headline="Headline" />)
+
+    expect(offsetsOf(view).headline).toBe(16)
+  })
+
+  // The default is the spacing token rather than its figure, so a scheme
+  // that changes the scale moves the bar with the page beneath it.
+  it('follows the spacing scale for its default inset', () => {
+    const view = render(
+      <div {...stylex.props(wideSpacing)}>
+        <AppBar headline="Headline" />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
     const heading = view.getByRole('heading', { level: 1 })
 
     expect(
-      heading.getBoundingClientRect().left -
-        barIn(view.container).getBoundingClientRect().left,
-    ).toBe(16)
+      heading.getBoundingClientRect().left - bar.getBoundingClientRect().left,
+    ).toBe(20)
   })
 })
 
