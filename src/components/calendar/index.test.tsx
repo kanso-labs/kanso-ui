@@ -88,7 +88,10 @@ const MAY_SIX_WEEKS = new CalendarDate(2026, 5, 15)
 // Six weeks of dates under the weekday row, each of them the 40dp the page
 // gives a date. Written out rather than read off the element, so a grid that
 // lost its rows fails here instead of agreeing with itself.
-const HELD_GRID_BLOCK_SIZE = 280
+const HELD_GRID_BLOCK_SIZE = 336
+
+// A compact window's content: 360dp less its two 16dp margins.
+const COMPACT = { inlineSize: '328px' }
 
 // Hoisted so the identity is stable, which is what react-perf is after.
 const isSixteenth = (date: { day: number }) => date.day === 16
@@ -248,6 +251,66 @@ describe('calendar', () => {
       // range's band can fill the whole 48.
       expect(cell.getBoundingClientRect().width).toBe(40)
       expect(cell.getBoundingClientRect().height).toBe(40)
+    })
+
+    // The circle is the element, and the 48dp square around it is the
+    // target: a press just outside the circle still reaches the date.
+    it('takes a press anywhere in the 48px square around the date', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const cell = cellFor(view, 'Tuesday, September 15, 2026')
+      const box = cell.getBoundingClientRect()
+      const target = getComputedStyle(cell, '::before')
+
+      expect(target.width).toBe('48px')
+      expect(target.height).toBe('48px')
+      for (const [x, y] of [
+        [box.left - 3, box.top + box.height / 2],
+        [box.right + 3, box.top + box.height / 2],
+        [box.left + box.width / 2, box.top - 3],
+        [box.left + box.width / 2, box.bottom + 3],
+      ] as const) {
+        expect(document.elementFromPoint(x, y)).toBe(cell)
+      }
+    })
+
+    // Compose lays its days at the page's 48dp both ways.
+    it('puts the page 48px between one week and the next', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+
+      expect(rowPitch(view.getByRole('grid'))).toBe(48)
+    })
+
+    // A compact window leaves 328dp between its margins, under the page's
+    // 360dp docked calendar.
+    it('fits a container narrower than its own width', () => {
+      const view = render(
+        <div style={COMPACT}>
+          <Calendar aria-label="Label" defaultValue={SEPTEMBER} />
+        </div>,
+      )
+      const wrapper = view.container.firstElementChild
+      if (!(wrapper instanceof HTMLElement)) {
+        throw new Error('expected the sample to render a wrapper')
+      }
+
+      expect(wrapper.scrollWidth).toBeLessThanOrEqual(wrapper.clientWidth)
+      expect(
+        view.getByRole('grid').getBoundingClientRect().right,
+      ).toBeLessThanOrEqual(wrapper.getBoundingClientRect().right)
+    })
+
+    it('reaches a 48px target from the chevrons', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const target = getComputedStyle(headerButton(view, 'Next'), '::before')
+
+      expect(target.width).toBe('48px')
+      expect(target.height).toBe('48px')
     })
 
     it('puts the page 48px between one date and the next', () => {
@@ -607,7 +670,9 @@ describe('calendar', () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={FEBRUARY_FOUR_WEEKS} />,
       )
-      const room = view.getByRole('grid').parentElement
+      // The grid sits in its month, and the months in the room that holds
+      // them.
+      const room = view.getByRole('grid').parentElement?.parentElement
       if (!(room instanceof HTMLElement)) {
         throw new Error('expected a row holding the grids')
       }
@@ -672,6 +737,7 @@ describe('calendar', () => {
       const month = view.getByRole('button', { name: 'Sep month' })
 
       expect(month.getBoundingClientRect().height).toBe(40)
+      expect(getComputedStyle(month, '::before').height).toBe('48px')
 
       fireEvent.click(month)
 

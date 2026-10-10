@@ -164,14 +164,15 @@ function RangeCalendar<T extends DateValue>({
       >
         <div {...stylex.props(calendarStyles.months)}>
           {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-            <RACCalendarGrid
-              key={offset.months}
-              offset={offset}
-              {...stylex.props(calendarStyles.grid)}
-            >
-              <CalendarGridHeader />
-              <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-            </RACCalendarGrid>
+            <div key={offset.months} {...stylex.props(calendarStyles.month)}>
+              <RACCalendarGrid
+                offset={offset}
+                {...stylex.props(calendarStyles.grid)}
+              >
+                <CalendarGridHeader />
+                <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+              </RACCalendarGrid>
+            </div>
           ))}
         </div>
       </CalendarFrame>

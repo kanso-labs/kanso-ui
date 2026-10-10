@@ -35,10 +35,27 @@ import {
 // out or disabled names none, so it hands itself back to the mode.
 
 // One row of the grid. The weekday row and every week of dates are the same
-// 40dp, so `cell`, `headerCell` and the room `months` reserves are all this
-// one number — a date resized without the reservation following it would put
-// the calendar's height back on its month.
-const ROW_BLOCK_SIZE = '40px'
+// 48dp, the page's date container and Compose's own row, so `headerCell`, the
+// room around each date and the room `months` reserves all follow this one
+// number — a row resized without the reservation following it would put the
+// calendar's height back on its month.
+const ROW_BLOCK_SIZE = '48px'
+
+// The date's state layer: the 40dp circle a selected date fills and a hover
+// tints, inside the 48dp row and column it sits in.
+const DATE_SIZE = '40px'
+
+// The room either side of a date's circle, which is the difference between
+// the two: the circle sits in the middle of its 48dp square.
+const DATE_ROOM = `calc((${ROW_BLOCK_SIZE} - ${DATE_SIZE}) / 2)`
+
+// A whole column: the page's 48dp date container, seven to a week. The grid
+// is at most seven of them and narrows with its container below that.
+const WEEK_INLINE_SIZE = `calc(${ROW_BLOCK_SIZE} * 7)`
+
+// What every press target in the calendar reaches to: the page's 48dp, for
+// controls drawn at 40.
+const TARGET_REACH = `calc((${DATE_SIZE} - ${ROW_BLOCK_SIZE}) / 2)`
 
 // The weeks the grid holds room for, which is the most any month occupies: a
 // 31-day month beginning on the last day of a week runs one day, then four
@@ -54,11 +71,22 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 
 const calendarStyles = stylex.create({
   // The date itself: the page's 40dp state layer, which is the circle a
-  // selected date fills and the shape a hover tints.
+  // selected date fills and the shape a hover tints. The 48dp the page gives
+  // it is the square around that circle, and a press anywhere in the square
+  // is a press on the date: a transparent box reaches the 4dp past the
+  // circle on every side, taking the press because a pseudo-element is part
+  // of the element it belongs to. The circle sits in the middle of its
+  // column, whose width is the grid's seventh — 48dp, or less where the grid
+  // has narrowed to its container.
   cell: {
+    '::before': {
+      content: '""',
+      inset: TARGET_REACH,
+      position: 'absolute',
+    },
     alignItems: 'center',
     backgroundColor: 'transparent',
-    blockSize: ROW_BLOCK_SIZE,
+    blockSize: DATE_SIZE,
     borderRadius: radii.circle,
     boxSizing: 'border-box',
     color: colors.onSurface,
@@ -67,12 +95,15 @@ const calendarStyles = stylex.create({
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
     fontWeight: typography.bodyLargeWeight,
-    inlineSize: '40px',
+    inlineSize: DATE_SIZE,
     justifyContent: 'center',
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
-    // The page's 48dp date container: this 40dp layer with 4dp either side.
-    marginInline: spacing.xs,
+    // The page's 48dp row: this 40dp layer with 4dp above and below. Across,
+    // the column is what centres it.
+    marginBlock: DATE_ROOM,
+    marginInline: 'auto',
+    position: 'relative',
   },
   // A date outside `minValue` and `maxValue`, or in a month either side of
   // the one shown. The page's own 38% on the content role, which is the same
@@ -112,8 +143,8 @@ const calendarStyles = stylex.create({
     // The border is today's outline, drawn into the fill, and the outline is
     // the focus ring, drawn on the page around the cell.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
-    // The band fills the whole 48dp its date occupies, rather than the 40dp
-    // circle inside it — which is what lets one day's band meet the next
+    // The band fills the whole column its date occupies, rather than the
+    // 40dp circle inside it — which is what lets one day's band meet the next
     // one's. A negative margin cannot do this: a margin moves a box without
     // widening it, so an earlier version had one and still drew the band as a
     // dashed run of separate blocks.
@@ -176,8 +207,16 @@ const calendarStyles = stylex.create({
   // chrome in src/styles/icon-button.ts, which is where the reason for
   // drawing that square by hand is recorded.
   chevron: {
+    // The page's 48dp target, reached past the shared 40dp square as a
+    // date's is.
+    '::before': {
+      content: '""',
+      inset: TARGET_REACH,
+      position: 'absolute',
+    },
     // The page's 48dp column: the shared 40dp square with 4dp either side.
     marginInline: spacing.xs,
+    position: 'relative',
   },
   // The one that goes back, which is the forward chevron turned around. It
   // says "back" rather than "to the left", so it mirrors with the writing
@@ -196,17 +235,18 @@ const calendarStyles = stylex.create({
   chevronHidden: {
     visibility: 'hidden',
   },
-  // The grid, with no spacing of its own: each date's margin is what puts the
-  // page's 48dp pitch between 40dp circles, rather than a 48dp box drawn
-  // around each one.
+  // The grid, with no spacing of its own: the columns are the page's 48dp,
+  // each date's circle centred in its own, rather than a 48dp box drawn
+  // around each one. It fills the month around it, and a fixed layout shares
+  // that width out evenly whatever the dates hold — see `month`.
   grid: {
     borderCollapse: 'separate',
-    // Zero, with the room put on each date instead. The page's 48dp comes
-    // from a 40dp state layer with 4dp either side, and a range's band has to
-    // be able to fill that 48dp — which it cannot do while the gap belongs to
-    // the table rather than to the cell.
+    // Zero, with the room put inside each column instead. A range's band has
+    // to be able to fill the whole column, which it cannot do while the gap
+    // belongs to the table rather than to the cell.
     borderSpacing: 0,
     inlineSize: '100%',
+    tableLayout: 'fixed',
   },
   // The row the chevrons and the month sit in, at the page's 40dp button
   // height. A `<div>` rather than a `<header>`: a header is a banner
@@ -263,6 +303,13 @@ const calendarStyles = stylex.create({
   // it. Its state layers are the icon buttons' own on-surface-variant pair,
   // which `src/styles/icon-button.ts` already holds.
   menuButton: {
+    // The page's 48dp target, reached past the 40dp pill as a date's is.
+    '::before': {
+      content: '""',
+      insetBlock: TARGET_REACH,
+      insetInline: 0,
+      position: 'absolute',
+    },
     alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: sizing.controlSm,
@@ -280,6 +327,7 @@ const calendarStyles = stylex.create({
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
     paddingInline: spacing.sm,
+    position: 'relative',
   },
   // The check before the entry the calendar shows, at the page's 24dp, and
   // the room it takes on every other row — so every label starts at the same
@@ -344,6 +392,18 @@ const calendarStyles = stylex.create({
     outlineStyle: 'none',
     overflowY: 'auto',
   },
+  // One month's grid: seven of the page's 48dp columns, or the width of the
+  // container where that is narrower, so a calendar fits a compact window's
+  // 328dp of content rather than holding its 336 and scrolling the page
+  // sideways. A box around the table rather than a width on it: a table
+  // ignores a maximum width, and a percentage width leaves a container sized
+  // to its content nothing to size to, which ran the calendar the width of
+  // the page.
+  month: {
+    boxSizing: 'border-box',
+    inlineSize: WEEK_INLINE_SIZE,
+    maxInlineSize: '100%',
+  },
   // Two months side by side, for a `visibleDuration` of more than one, and
   // the room the grid is held at.
   //
@@ -368,15 +428,24 @@ const calendarStyles = stylex.create({
       default: null,
       [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
     },
+    // One column, as wide as the calendar's content box and no wider: a track
+    // left to size to its month holds the month's full 336 and runs past a
+    // compact window's edge.
+    gridTemplateColumns: {
+      default: null,
+      [media.belowExpanded]: 'minmax(0, 1fr)',
+    },
     // The weekday row plus six weeks of dates. Left to the month the grid is
     // as tall as its weeks, so the calendar grew by 80px between February
     // 2026 and May, taking whatever sat under it down the page — and inside a
     // picker's popover moving the panel's own edge while it was open.
     minBlockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
   },
-  // The page's docked container: 360dp on the high surface container. Its
-  // height follows the room `months` holds, which is what keeps it from month
-  // to month.
+  // The page's docked container: 360dp on the high surface container, or
+  // the width of its container where that is narrower — a compact window
+  // leaves 328dp between its margins, and the grid narrows to fit. Its height
+  // follows the room `months` holds, which is what keeps it from month to
+  // month.
   root: {
     backgroundColor: colors.surfaceContainerHigh,
     borderRadius: radii.lg,
@@ -386,7 +455,8 @@ const calendarStyles = stylex.create({
     flexDirection: 'column',
     gap: spacing.md,
     inlineSize: 'fit-content',
-    minInlineSize: '360px',
+    maxInlineSize: '100%',
+    minInlineSize: 'min(360px, 100%)',
     padding: spacing.md,
   },
 })
