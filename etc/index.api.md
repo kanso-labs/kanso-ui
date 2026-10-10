@@ -298,11 +298,11 @@ export type ButtonVariant = 'elevated' | 'filled' | 'outlined' | 'text' | 'tonal
 export function Calendar<T extends DateValue>(input: CalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
-export type CalendarProps<T extends DateValue = DateValue> = Omit<CalendarProps_2<T>, 'children' | 'className' | 'style'> & {
+export type CalendarProps<T extends DateValue = DateValue> = {
     className?: CalendarProps_2<T>['className'];
     showMonthYearMenus?: boolean;
     style?: CalendarProps_2<T>['style'];
-};
+} & Omit<CalendarProps_2<T>, 'children' | 'className' | 'style'>;
 
 // @public
 export function Card(input: CardProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
@@ -1407,11 +1407,11 @@ export type RadioProps = Omit<RadioFieldProps, 'children'> & {
 export function RangeCalendar<T extends DateValue>(input: RangeCalendarProps<T> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
-export type RangeCalendarProps<T extends DateValue = DateValue> = Omit<RangeCalendarProps_2<T>, 'children' | 'className' | 'style'> & {
+export type RangeCalendarProps<T extends DateValue = DateValue> = {
     className?: RangeCalendarProps_2<T>['className'];
     showMonthYearMenus?: boolean;
     style?: RangeCalendarProps_2<T>['style'];
-};
+} & Omit<RangeCalendarProps_2<T>, 'children' | 'className' | 'style'>;
 
 export { RouterProvider }
 
