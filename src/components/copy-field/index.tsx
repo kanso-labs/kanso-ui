@@ -3,7 +3,7 @@
 import type { HTMLAttributes, RefAttributes } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 
 import { useMessages } from '../../i18n'
 import { mergeStyles } from '../../styles/merge'
@@ -120,6 +120,15 @@ type CopyFieldProps = {
    */
   copyLabel?: string
   /**
+   * What the value is — "Repository URL", "Access token" — for a page with
+   * more than one field. It names the field as a group and joins the button's
+   * name, so a screen reader hears "Copy Repository URL" rather than one
+   * "Copy" after another; it is not shown. The value itself stays out of the
+   * button's name, since a token would be read aloud. Left out, the field is
+   * unnamed and its button is "Copy" alone, as it always was.
+   */
+  label?: string
+  /**
    * Called with the value after it reaches the clipboard, never before.
    *
    * Named `onCopied` rather than `onCopy` because the root is a `<div>`, which
@@ -157,6 +166,7 @@ type CopyFieldProps = {
 function CopyField({
   copiedLabel: copiedLabelProp,
   copyLabel: copyLabelProp,
+  label,
   onCopied,
   onCopyFailed,
   value,
@@ -174,6 +184,20 @@ function CopyField({
   const [copy, setCopy] = useState<null | { count: number; text: string }>(null)
   const copied = copy?.text === value
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const generatedId = useId()
+  const rootId = props.id ?? generatedId
+  const copyId = useId()
+  const copiedId = useId()
+  // With a label, the field is a group it names, and the button is named by
+  // the label slot on show and then by the group: "Copy Repository URL",
+  // then "Copied Repository URL". The slot on show rather than both, since
+  // the two swap `aria-hidden` and a name taking both would say both.
+  const named =
+    label === undefined
+      ? undefined
+      : { 'aria-label': label, id: rootId, role: 'group' }
+  const buttonName =
+    label === undefined ? undefined : `${copied ? copiedId : copyId} ${rootId}`
 
   // Without this, a field unmounted inside the dwell leaves a timer holding a
   // setState for a tree that is gone.
@@ -217,22 +241,33 @@ function CopyField({
   }, [onCopied, onCopyFailed, value])
 
   return (
-    <div {...props} {...mergeStyles(stylex.props(styles.root), props)}>
+    <div
+      {...props}
+      {...named}
+      {...mergeStyles(stylex.props(styles.root), props)}
+    >
       <span {...stylex.props(styles.value)}>
         <Code dir="ltr" {...stylex.props(styles.valueText)}>
           {value}
         </Code>
       </span>
-      <Button onClick={handleCopy} size="xs" variant="text">
+      <Button
+        aria-labelledby={buttonName}
+        onClick={handleCopy}
+        size="xs"
+        variant="text"
+      >
         <span {...stylex.props(styles.labels)}>
           <span
             aria-hidden={copied || undefined}
+            id={copyId}
             {...stylex.props(styles.labelSlot, copied && styles.labelHidden)}
           >
             {copyLabel}
           </span>
           <span
             aria-hidden={!copied || undefined}
+            id={copiedId}
             {...stylex.props(styles.labelSlot, !copied && styles.labelHidden)}
           >
             {copiedLabel}

@@ -581,6 +581,7 @@ export function CopyField(input: CopyFieldProps & RefAttributes<HTMLDivElement>)
 export type CopyFieldProps = {
     copiedLabel?: string;
     copyLabel?: string;
+    label?: string;
     onCopied?: (value: string) => void;
     onCopyFailed?: (error: unknown) => void;
     value: string;

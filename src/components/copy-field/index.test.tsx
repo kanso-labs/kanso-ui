@@ -264,6 +264,59 @@ describe('copyField', () => {
   // The control must not claim a value reached the clipboard when it did not.
   // The confirmation is the text written still being the value shown, and
   // the dwell is the component's own, whatever the call site's handler does.
+  // A page with several fields listed one "Copy" after another, and nothing
+  // named which value each one copied.
+  describe('a label', () => {
+    it('names the field and joins each button name', () => {
+      const view = render(
+        <>
+          <CopyField label="Repository URL" value="https://example.com" />
+          <CopyField label="Access token" value="secret-token-value" />
+        </>,
+      )
+
+      expect(view.getByRole('group', { name: 'Repository URL' })).not.toBeNull()
+      expect(
+        view.getByRole('button', { name: 'Copy Repository URL' }),
+      ).not.toBeNull()
+      expect(
+        view.getByRole('button', { name: 'Copy Access token' }),
+      ).not.toBeNull()
+    })
+
+    // A token read aloud is a token disclosed.
+    it('leaves the value out of the button name', () => {
+      const view = render(
+        <CopyField label="Access token" value="secret-token-value" />,
+      )
+
+      expect(
+        view.getByRole('button').getAttribute('aria-labelledby'),
+      ).not.toBeNull()
+      expect(
+        view.queryByRole('button', { name: /secret-token-value/ }),
+      ).toBeNull()
+    })
+
+    it('follows the label on show once copied', async () => {
+      const view = render(<CopyField label="Access token" value={VALUE} />)
+
+      await click(view.getByRole('button'))
+
+      expect(
+        view.getByRole('button', { name: 'Copied Access token' }),
+      ).not.toBeNull()
+    })
+
+    it('leaves a field without one as it was', () => {
+      const { button, field } = setup()
+
+      expect(field.getAttribute('role')).toBeNull()
+      expect(button.getAttribute('aria-labelledby')).toBeNull()
+      expect(buttonNamed(button, 'Copy')).toBe(button)
+    })
+  })
+
   describe('the confirmation', () => {
     // A handler that threw used to skip the timer, which left the button on
     // Copied for good. Its error still reaches the page, raised on its own.
