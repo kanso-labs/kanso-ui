@@ -373,7 +373,7 @@ export function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>): JSX;
 
 // @public
 export type ChipActionProps = Omit<ButtonProps_2, 'children' | 'isPending'> & {
-    children?: ReactNode;
+    children: ReactNode;
     elevated?: boolean;
     icon?: ReactNode;
     variant: 'assist' | 'suggestion';
@@ -381,7 +381,7 @@ export type ChipActionProps = Omit<ButtonProps_2, 'children' | 'isPending'> & {
 
 // @public
 export type ChipFilterProps = Omit<ToggleButtonProps, 'children'> & {
-    children?: ReactNode;
+    children: ReactNode;
     elevated?: boolean;
     icon?: ReactNode;
     variant?: 'filter';
@@ -1466,8 +1466,10 @@ export namespace SegmentedButton {
     Segment: typeof SegmentedButtonSegment;
 }
 
+// Warning: (ae-forgotten-export) The symbol "LabelledByAttribute" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type SegmentedButtonProps = Omit<ToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
+export type SegmentedButtonProps = LabelledByAttribute & Omit<ToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
     className?: ToggleButtonGroupProps['className'];
     showSelectedIcon?: boolean;
     style?: ToggleButtonGroupProps['style'];
@@ -1718,13 +1720,15 @@ export type SupportingPaneProps = Omit<RenderComponentProps<'div'>, 'children'> 
 // @public
 export function Switch(input: RefAttributes<HTMLDivElement> & SwitchProps): JSX;
 
+// Warning: (ae-forgotten-export) The symbol "AccessibleName" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export type SwitchProps = {
     children?: ReactNode;
     description?: string;
     error?: string;
     icon?: boolean;
-} & Omit<SwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>;
+} & AccessibleName & Omit<SwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>;
 
 // @public
 export function Table(input: RefAttributes<HTMLTableElement> & TableProps): JSX;

@@ -20,6 +20,8 @@ import * as stylex from '@stylexjs/stylex'
 import { useCallback, useRef, useState } from 'react'
 import { SwitchButton, SwitchField } from 'react-aria-components'
 
+import type { AccessibleName } from '../../render/name'
+
 import { ControlLabel } from '../../control'
 import { controlStyles } from '../../control/styles'
 import { FieldMessage } from '../../field'
@@ -318,7 +320,9 @@ type Ripple = ReturnType<typeof useRipple<HTMLSpanElement>>
 type SwitchProps = {
   /**
    * The label, beside the switch. A switch that a row labels some other way
-   * leaves it out and passes `aria-label` instead.
+   * leaves it out and passes `aria-label` or `aria-labelledby` instead — one
+   * of the three is required, since a switch with none is announced as an
+   * unnamed switch.
    *
    * A link or a button in it acts on its own, as in a native label, and
    * leaves the switch as it was. A press anywhere else in the label toggles
@@ -346,7 +350,8 @@ type SwitchProps = {
    * @default false
    */
   icon?: boolean
-} & Omit<RACSwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
+} & AccessibleName &
+  Omit<RACSwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
 // What the label draws, chosen from the render state React Aria hands it.
 // Built by a call rather than written inline at the prop, which is what

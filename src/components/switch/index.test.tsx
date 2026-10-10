@@ -551,6 +551,33 @@ function focusByKeyboard(element: HTMLElement) {
   })
 }
 
+// A switch with no name is announced as an unnamed switch, and React Aria's
+// own warning never fires for one, since it always renders a labelled child.
+describe('its accessible name', () => {
+  it('requires one of the three name sources', () => {
+    // @ts-expect-error -- a switch needs a label, aria-label or aria-labelledby
+    const unnamed = <Switch />
+
+    expect(unnamed).toBeDefined()
+  })
+
+  it.each([
+    ['its label', <Switch key="label">Label</Switch>],
+    ['aria-label', <Switch aria-label="Label" key="aria-label" />],
+    [
+      'aria-labelledby',
+      <>
+        <span id="switch-name">Label</span>
+        <Switch aria-labelledby="switch-name" key="labelledby" />
+      </>,
+    ],
+  ])('takes its name from %s', (_source, element) => {
+    const view = render(element)
+
+    expect(view.getByRole('switch', { name: 'Label' })).not.toBeNull()
+  })
+})
+
 describe('focus layer', () => {
   it('lays it over the handle for a keyboard', () => {
     const { input } = setup()

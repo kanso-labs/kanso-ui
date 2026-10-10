@@ -558,6 +558,25 @@ const wrapStyles = stylex.create({
   },
 })
 
+// The page draws no chip without a label, and a chip with none is an empty
+// button to a screen reader.
+describe('its label', () => {
+  it('is required on both forms', () => {
+    // @ts-expect-error -- a filter chip needs a label
+    const filter = <Chip />
+    // @ts-expect-error -- so does an assist chip
+    const assist = <Chip variant="assist" />
+
+    expect([filter, assist]).toHaveLength(2)
+  })
+
+  it('names the chip', () => {
+    const view = render(<Chip>First filter</Chip>)
+
+    expect(view.getByRole('button', { name: 'First filter' })).not.toBeNull()
+  })
+})
+
 describe('its press target', () => {
   // A full 48dp reach on each chip laid one row's target over the next
   // one's, so a press just under a chip went to the chip in the row below.
