@@ -5,13 +5,28 @@ import { act, render, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import CopyField from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // A colour for the page around the field that is not the field's own, and
 // the on surface role resolved the way the page resolves it, so a case
 // compares computed colour with computed colour.
 const probeStyles = stylex.create({
   around: { color: colors.error },
+  // The body-small role as the page resolves it, which the value takes whole.
+  bodySmall: {
+    fontSize: typography.bodySmallSize,
+    fontWeight: typography.bodySmallWeight,
+    letterSpacing: typography.bodySmallTracking,
+    lineHeight: typography.bodySmallLineHeight,
+  },
+  // Everything a page around the field might set on its text, none of which
+  // is the value's to take.
+  loud: {
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    lineHeight: 1.75,
+    textTransform: 'uppercase',
+  },
   onSurface: { color: colors.onSurface },
 })
 
@@ -43,6 +58,15 @@ async function click(button: HTMLElement) {
     button.click()
     await Promise.resolve()
   })
+}
+
+/** The `<code>` a field rendered with the test id `field` shows its value in. */
+function codeIn(view: ReturnType<typeof render>) {
+  const code = view.getByTestId('field').querySelector('code')
+  if (code === null) {
+    throw new Error('expected the field to show its value as code')
+  }
+  return code
 }
 
 function install(behaviour: WriteText) {
@@ -266,6 +290,43 @@ describe('copyField', () => {
   // The control must not claim a value reached the clipboard when it did not.
   // The confirmation is the text written still being the value shown, and
   // the dwell is the component's own, whatever the call site's handler does.
+  // The value's type is the body-small role, whole and its own: it was
+  // 10.5px, under the smallest role, and took line height, weight, tracking
+  // and case from the page around it.
+  describe('the value type', () => {
+    it('is the body-small role whatever the page around it sets', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.loud)}>
+          <CopyField data-testid="field" value={VALUE} />
+          <span data-testid="probe" {...stylex.props(probeStyles.bodySmall)} />
+        </div>,
+      )
+      const code = getComputedStyle(codeIn(view))
+      const role = getComputedStyle(view.getByTestId('probe'))
+
+      expect(code.fontSize).toBe(role.fontSize)
+      expect(code.fontSize).toBe('12px')
+      expect(code.lineHeight).toBe(role.lineHeight)
+      expect(code.letterSpacing).toBe(role.letterSpacing)
+      expect(code.fontWeight).toBe(role.fontWeight)
+      expect(code.textTransform).toBe('none')
+    })
+
+    // A command over several lines, or a value with runs of spaces, is shown
+    // as it is copied.
+    it('shows white space as it is copied', async () => {
+      const value = 'npm install \\\n  --save-dev    kanso-ui\nnpm run build'
+      const view = render(<CopyField data-testid="field" value={value} />)
+      const code = codeIn(view)
+
+      expect(getComputedStyle(code).whiteSpace).toBe('pre-wrap')
+      expect(code.innerText).toBe(value)
+
+      await click(view.getByRole('button'))
+      expect(writeText).toHaveBeenCalledWith(code.innerText)
+    })
+  })
+
   // A page with several fields listed one "Copy" after another, and nothing
   // named which value each one copied.
   describe('a label', () => {

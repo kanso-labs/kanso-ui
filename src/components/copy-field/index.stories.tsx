@@ -112,6 +112,14 @@ const Labelled: Story = {
   ),
 }
 
-export { Copied, Default, Labelled, LongValue, RightToLeft }
+// A value over several lines with runs of spaces in it, which the field shows
+// as written, since that is what it copies.
+const MultiLine: Story = {
+  args: {
+    value: 'npm install \\\n  --save-dev    first-package\nnpm run build',
+  },
+}
+
+export { Copied, Default, Labelled, LongValue, MultiLine, RightToLeft }
 
 export default meta

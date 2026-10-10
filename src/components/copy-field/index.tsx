@@ -14,7 +14,6 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
-import Code from '../code'
 
 // How long the confirmation stands before the control returns to offering the
 // copy again. Not a motion token: those are transition durations, measured in
@@ -77,17 +76,19 @@ const styles = stylex.create({
     paddingBlock: spacing.xs,
     paddingInline: spacing.md,
   },
-  // These sit on a wrapper rather than on the Code itself, so the flex child
-  // and the type are two elements rather than one — Code sets its own font
-  // size relative to the text around it, which a size set on the same element
-  // would then be measured against. `minInlineSize: 0` is the load-bearing
-  // one: left at `auto`, a long unbroken value sets the flex row's floor and
-  // pushes the button out of the box instead of wrapping.
+  // The box the value sits in, in the row beside the button. `minInlineSize:
+  // 0` is the load-bearing rule: left at `auto`, a long unbroken value sets
+  // the flex row's floor and pushes the button out of the box instead of
+  // wrapping. The colour is the on surface role the field's own surface pairs
+  // with, rather than whatever the page around the field sets.
   //
-  // The colour is here for the same reason. Code takes the colour of the
-  // text around it, and the field paints a surface of its own, so the value
-  // takes the on surface role that surface pairs with rather than whatever
-  // colour the page around the field happens to set.
+  // The type is the whole body-small role — size, weight, tracking and line
+  // height — rather than its size alone, with text-transform and ligatures
+  // pinned: the rest used to come from the page, so an uppercase heading
+  // style around the field uppercased a case-sensitive token, which then
+  // read differently from what was copied. White space is kept as written,
+  // for the same reason: a command over several lines, or a value with runs
+  // of spaces, showed one string and copied another.
   //
   // One click or tap selects exactly the value, which is what a reader
   // copying it by hand wants: a double-click took one dotted segment and a
@@ -96,17 +97,35 @@ const styles = stylex.create({
     color: colors.onSurface,
     flexGrow: 1,
     fontSize: typography.bodySmallSize,
+    fontVariantLigatures: 'none',
+    fontWeight: typography.bodySmallWeight,
+    letterSpacing: typography.bodySmallTracking,
+    lineHeight: typography.bodySmallLineHeight,
     minInlineSize: 0,
+    textTransform: 'none',
     userSelect: 'all',
+    whiteSpace: 'pre-wrap',
   },
-  // The value is a literal to copy, so it keeps its own direction whatever
-  // the page's: left to right, isolated from the text around it. Under a
+  // The value itself, in the mono face at the body-small size — 12dp — where
+  // a `0` and an `O`, an `l`, a `1` and an `I` have to be told apart. Its own
+  // `<code>` rather than Code, which sets its size relative to the text
+  // around it: inside the box above that came to 10.5dp, under the smallest
+  // role the page has, and a size set over Code's from outside is a second
+  // StyleX call whose order against Code's own is not guaranteed. It breaks
+  // a long unbroken value as Code does.
+  //
+  // It also keeps its own direction whatever the page's: left to right,
+  // isolated from the text around it, since it is a literal to copy. Under a
   // right-to-left page the bidi algorithm otherwise ran a path, a flag or a
   // command into the page's direction, moving a leading or trailing `/`,
   // `--` or `$` to the other end — so the field showed one string and copied
   // another. On the `<code>` rather than the box around it, which keeps the
   // page's direction and so keeps the value at the row's inline start.
   valueText: {
+    boxSizing: 'border-box',
+    fontFamily: typography.fontFamilyMono,
+    fontSize: 'inherit',
+    overflowWrap: 'anywhere',
     unicodeBidi: 'isolate',
   },
 })
@@ -290,9 +309,9 @@ function CopyField({
       {...mergeStyles(stylex.props(styles.root), props)}
     >
       <span {...stylex.props(styles.value)}>
-        <Code dir="ltr" ref={code} {...stylex.props(styles.valueText)}>
+        <code dir="ltr" ref={code} {...stylex.props(styles.valueText)}>
           {value}
-        </Code>
+        </code>
       </span>
       <Button
         aria-labelledby={buttonName}
