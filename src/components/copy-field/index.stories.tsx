@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { expect, waitFor } from 'storybook/test'
 
 import CopyField from '.'
+import { spacing } from '../../tokens/design.tokens.stylex'
 
 const VALUE = 'first.second.third'
 const LONG_VALUE = 'registry.example/first-second/a-long-unbroken-name'
@@ -13,6 +14,12 @@ const styles = stylex.create({
   // merely asserted.
   narrow: {
     maxInlineSize: '300px',
+  },
+  // Fields stacked down a page, as a settings screen lays them.
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.md,
   },
 })
 
@@ -93,6 +100,18 @@ const RightToLeft: Story = {
   globals: { locale: 'ar-EG' },
 }
 
-export { Copied, Default, LongValue, RightToLeft }
+// Two fields on one page, each named by its `label`: the label is not shown,
+// but it names the field as a group and joins its button's name, so a screen
+// reader tells "Copy Repository URL" from "Copy Access token".
+const Labelled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.stack)}>
+      <CopyField label="Repository URL" value="https://example.com/first" />
+      <CopyField label="Access token" value="first.second.third" />
+    </div>
+  ),
+}
+
+export { Copied, Default, Labelled, LongValue, RightToLeft }
 
 export default meta
