@@ -286,10 +286,10 @@ function ChipGroupChip({
   )
 }
 
-// The pill a standalone Chip draws, from `src/chip`, with the touch target a
-// chip in a group takes instead.
+// The pill a standalone Chip draws, from `src/chip`, touch target included:
+// every chip's reaches halfway across the gap its rows wrap at.
 function groupChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state, { inGroup: true })
+  return chipPropsFor(state)
 }
 
 ChipGroup.Chip = ChipGroupChip

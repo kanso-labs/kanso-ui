@@ -97,8 +97,7 @@ type ChipKind = 'assist' | 'filter' | 'suggestion'
  *
  * `elevated` raises the chip off the page on a container of its own, and
  * `kind` names which of the page's chips it is, which decides the label's
- * role. `inGroup` is a ChipGroup's chip, whose touch target reaches only
- * halfway across the gap to the next row; see `targetInGroup` in `./styles`.
+ * role.
  */
 function chipPropsFor(
   state: {
@@ -110,9 +109,8 @@ function chipPropsFor(
   },
   {
     elevated = false,
-    inGroup = false,
     kind = 'filter',
-  }: { elevated?: boolean; inGroup?: boolean; kind?: ChipKind } = {},
+  }: { elevated?: boolean; kind?: ChipKind } = {},
 ) {
   const roles = CONTAINERS[containerOf(state.isSelected, elevated)]
   const raised = elevated && !state.isDisabled
@@ -120,7 +118,6 @@ function chipPropsFor(
   return stylex.props(
     chipStyles.base,
     chipStyles.target,
-    inGroup && chipStyles.targetInGroup,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
     elevated && !state.isSelected && chipStyles.elevated,
