@@ -164,6 +164,11 @@ type CheckboxProps = {
   /**
    * The label, beside the box. A checkbox that a row labels some other way
    * leaves it out and passes `aria-label` instead.
+   *
+   * A link or a button in it acts on its own, as in a native label: a press
+   * or Enter on "the terms" in "I agree to the terms" follows the link and
+   * leaves the checkbox as it was. A press anywhere else in the label
+   * toggles it.
    */
   children?: ReactNode
   /**

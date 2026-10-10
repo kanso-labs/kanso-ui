@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, SyntheticEvent } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { Text } from 'react-aria-components'
@@ -61,11 +61,19 @@ function ControlDescription({ children }: ControlDescriptionProps) {
   )
 }
 
+// What a press inside a label belongs to rather than the control: anything
+// that acts on its own, where a native `<label>` leaves the press to it too.
+const INTERACTIVE =
+  'a[href], button, input, select, textarea, [role="button"], [role="link"]'
+
 /**
  * The label beside a selection control, in the second column of its grid.
  *
  * Renders nothing without children, which is what a control labelled from
  * outside — by a group's legend, or an `aria-label` — needs.
+ *
+ * A link or a button inside it acts on its own rather than toggling the
+ * control — see `keepToInteractive`.
  */
 function ControlLabel({ children, state }: ControlLabelProps) {
   if (children === undefined) {
@@ -73,7 +81,19 @@ function ControlLabel({ children, state }: ControlLabelProps) {
   }
 
   return (
+    // The handlers only stop events on their way out of the label; they
+    // handle nothing themselves, which is what jsx-a11y cannot tell.
+    // oxlint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
     <span
+      onClick={keepToInteractive}
+      onKeyDown={keepToInteractive}
+      onKeyUp={keepToInteractive}
+      onMouseDown={keepToInteractive}
+      onMouseUp={keepToInteractive}
+      onPointerDown={keepToInteractive}
+      onPointerUp={keepToInteractive}
+      onTouchEnd={keepToInteractive}
+      onTouchStart={keepToInteractive}
       {...stylex.props(
         controlStyles.label,
         state.isReadOnly && controlStyles.labelReadOnly,
@@ -83,6 +103,26 @@ function ControlLabel({ children, state }: ControlLabelProps) {
       {children}
     </span>
   )
+}
+
+/**
+ * Keeps a press or a key that starts in something interactive inside the
+ * label — the link in "I agree to the terms" — from reaching the control's
+ * own press handling, which sits on the element around the label. React Aria
+ * took such a press as a press on the control, toggling it and stopping the
+ * link's own default, so a click toggled the box and left the page where it
+ * was, and Enter did neither. Stopped here, the event goes no further than
+ * the label, and the browser's own default — following the link — is left
+ * alone, as a native label leaves it. A press anywhere else in the label
+ * still reaches the control and toggles it.
+ */
+function keepToInteractive(event: SyntheticEvent<HTMLSpanElement>) {
+  const { currentTarget, target } = event
+  const interactive =
+    target instanceof Element ? target.closest(INTERACTIVE) : null
+  if (interactive !== null && currentTarget.contains(interactive)) {
+    event.stopPropagation()
+  }
 }
 
 export type { ControlDescriptionProps, ControlLabelProps }

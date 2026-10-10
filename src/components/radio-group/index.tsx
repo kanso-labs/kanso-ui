@@ -193,6 +193,10 @@ type RadioProps = Omit<RadioFieldProps, 'children'> & {
   /**
    * The label, beside the button. A button that a row labels some other way
    * leaves it out and passes `aria-label` instead.
+   *
+   * A link or a button in it acts on its own, as in a native label, and
+   * leaves the selection as it was. A press anywhere else in the label
+   * selects this option.
    */
   children?: ReactNode
   /** A hint under the label, read with the button. */

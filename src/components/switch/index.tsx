@@ -319,6 +319,10 @@ type SwitchProps = {
   /**
    * The label, beside the switch. A switch that a row labels some other way
    * leaves it out and passes `aria-label` instead.
+   *
+   * A link or a button in it acts on its own, as in a native label, and
+   * leaves the switch as it was. A press anywhere else in the label toggles
+   * it.
    */
   children?: ReactNode
   /**
