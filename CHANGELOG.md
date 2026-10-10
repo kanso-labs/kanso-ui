@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.40.6](https://github.com/kanso-labs/kanso-ui/compare/v0.40.5...v0.40.6) (2026-10-10)
+
+
+### Bug Fixes
+
+* **app-bar:** honour any contentInset and align the headline on the spacing scale ([#1575](https://github.com/kanso-labs/kanso-ui/issues/1575)) ([1e5f6e2](https://github.com/kanso-labs/kanso-ui/commit/1e5f6e28865e16cd4f90ed3f8ef1171afc0ed32b))
+* **app-bar:** stop the scroll-linked collapse flickering on short pages ([#1577](https://github.com/kanso-labs/kanso-ui/issues/1577)) ([1d0f94e](https://github.com/kanso-labs/kanso-ui/commit/1d0f94ebacf010abd2b09a0899ba852ed015a600))
+* **button:** centre the label in a button wider than its content ([#1578](https://github.com/kanso-labs/kanso-ui/issues/1578)) ([d7c505d](https://github.com/kanso-labs/kanso-ui/commit/d7c505d756bd0407e7e170904d97c97c70e9a4ff))
+* **button:** keep the 48dp target and width of an outlined button independent of its border ([#1579](https://github.com/kanso-labs/kanso-ui/issues/1579)) ([c42e5ad](https://github.com/kanso-labs/kanso-ui/commit/c42e5adeab5c3370a1a348b2aa8f7300f6f8a1b0))
+* **calendar:** give dates a 48dp target and let the grid shrink to its container ([#1582](https://github.com/kanso-labs/kanso-ui/issues/1582)) ([9107825](https://github.com/kanso-labs/kanso-ui/commit/9107825cefb55dcfe77a9b43aab01665a97656b8))
+* **calendar:** let the month and year menus reach distant years and label every visible month ([#1581](https://github.com/kanso-labs/kanso-ui/issues/1581)) ([0e00adc](https://github.com/kanso-labs/kanso-ui/commit/0e00adcdbfc94d2f84d75c7d5fdd6d1366a0f516))
+* **card:** top-align the content of an interactive card like a static one ([#1583](https://github.com/kanso-labs/kanso-ui/issues/1583)) ([b5b8688](https://github.com/kanso-labs/kanso-ui/commit/b5b8688c762ae5d0d5e544c9d87363043b407ab1))
+* **checkbox:** stop checkboxes in a group or Form reserving an empty message line ([#1584](https://github.com/kanso-labs/kanso-ui/issues/1584)) ([e43beb3](https://github.com/kanso-labs/kanso-ui/commit/e43beb360639be32e06c875e75ef6c73b7d774db))
+* **chip-group:** keep focus visible when the last chip is removed ([#1588](https://github.com/kanso-labs/kanso-ui/issues/1588)) ([13072df](https://github.com/kanso-labs/kanso-ui/commit/13072df148ff78326932171d472e61d6a557a038))
+* **chip:** keep the 48dp target of a chip inside its own row and at least 48px wide ([#1587](https://github.com/kanso-labs/kanso-ui/issues/1587)) ([67a8c10](https://github.com/kanso-labs/kanso-ui/commit/67a8c102cc067eab6cf34ea06aa6565723bd10cc))
+* **control:** let a link inside a checkbox, radio or switch label navigate instead of toggling ([#1585](https://github.com/kanso-labs/kanso-ui/issues/1585)) ([865be56](https://github.com/kanso-labs/kanso-ui/commit/865be56d595451de5fdf0241c9beb69911431d7e))
+* **control:** mark a required standalone checkbox or switch as every other field is marked ([#1586](https://github.com/kanso-labs/kanso-ui/issues/1586)) ([232c130](https://github.com/kanso-labs/kanso-ui/commit/232c130001d6bb68d51bec2ab69acd7b606d36bc))
+* **copy-field:** fall back to selecting the value when the clipboard refuses ([#1593](https://github.com/kanso-labs/kanso-ui/issues/1593)) ([92e462b](https://github.com/kanso-labs/kanso-ui/commit/92e462b6b283da25911cfa62dab38d2eea4fc7c5))
+* **copy-field:** name the Copy button after the value it copies ([#1592](https://github.com/kanso-labs/kanso-ui/issues/1592)) ([35b2bec](https://github.com/kanso-labs/kanso-ui/commit/35b2bec930c7569eca577f45e1c48298b201b4b1))
+* **copy-field:** reset the Copied confirmation reliably and announce every copy ([#1591](https://github.com/kanso-labs/kanso-ui/issues/1591)) ([3e62344](https://github.com/kanso-labs/kanso-ui/commit/3e623442e7a7a6f21a9afa3048aa15d10999c592))
+* **copy-field:** show a left-to-right value in the order it is copied under RTL ([#1590](https://github.com/kanso-labs/kanso-ui/issues/1590)) ([d45fc54](https://github.com/kanso-labs/kanso-ui/commit/d45fc54149db5280fdc19955eeeeb2ed6ef198f5))
+* **copy-field:** show the value in the body-small role with whitespace as copied ([#1596](https://github.com/kanso-labs/kanso-ui/issues/1596)) ([3f6b5c6](https://github.com/kanso-labs/kanso-ui/commit/3f6b5c6f807b1b86f2e653cd893070a7d05d9ad8))
+* **currency:** fall back instead of throwing on an empty or invalid locale or currency ([#1598](https://github.com/kanso-labs/kanso-ui/issues/1598)) ([98af876](https://github.com/kanso-labs/kanso-ui/commit/98af876ce396ca9bf9125ff435fb9a5081753486))
+* **currency:** take tone and sign from the displayed amount so a rounded zero reads neutral ([#1599](https://github.com/kanso-labs/kanso-ui/issues/1599)) ([57dc0fd](https://github.com/kanso-labs/kanso-ui/commit/57dc0fd0cb2a670689d9b946e2806dd853119722))
+* **icon-button,button:** reject prop combinations a button form ignores and keep toggles stable ([#1580](https://github.com/kanso-labs/kanso-ui/issues/1580)) ([71ebee2](https://github.com/kanso-labs/kanso-ui/commit/71ebee27448908dc7f2641a7639d1784da467fb9))
+* **menu,list-box:** show and announce a no-results state when filtering leaves nothing ([#1574](https://github.com/kanso-labs/kanso-ui/issues/1574)) ([eb86301](https://github.com/kanso-labs/kanso-ui/commit/eb86301250bca20562d376168827179235cffdab))
+* **switch,chip,segmented-button:** require an accessible name ([#1589](https://github.com/kanso-labs/kanso-ui/issues/1589)) ([56dc05f](https://github.com/kanso-labs/kanso-ui/commit/56dc05fe54d8b53680992bec522e36d1083fcde9))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.23 ([#1594](https://github.com/kanso-labs/kanso-ui/issues/1594)) ([81672e4](https://github.com/kanso-labs/kanso-ui/commit/81672e498136452218526049533a247fe0674310))
+
 ## [0.40.5](https://github.com/kanso-labs/kanso-ui/compare/v0.40.4...v0.40.5) (2026-10-09)
 
 
