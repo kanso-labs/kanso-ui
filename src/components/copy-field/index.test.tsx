@@ -262,6 +262,73 @@ describe('copyField', () => {
 
   // Refused outside a secure context and wherever the permission is denied.
   // The control must not claim a value reached the clipboard when it did not.
+  // The confirmation is the text written still being the value shown, and
+  // the dwell is the component's own, whatever the call site's handler does.
+  describe('the confirmation', () => {
+    // A handler that threw used to skip the timer, which left the button on
+    // Copied for good. Its error still reaches the page, raised on its own.
+    it('returns to Copy after the dwell when onCopied throws', async () => {
+      const failure = new Error('handler threw')
+      const raised: unknown[] = []
+      const schedule = globalThis.queueMicrotask.bind(globalThis)
+      const spy = vi
+        .spyOn(globalThis, 'queueMicrotask')
+        .mockImplementation((callback) => {
+          schedule(() => {
+            try {
+              callback()
+            } catch (error) {
+              raised.push(error)
+            }
+          })
+        })
+      const { button } = setup({
+        onCopied: () => {
+          throw failure
+        },
+      })
+
+      await click(button)
+      await act(async () => {
+        await Promise.resolve()
+      })
+      spy.mockRestore()
+
+      expect(raised).toContain(failure)
+      expect(buttonNamed(button, 'Copied')).toBe(button)
+      act(() => {
+        vi.advanceTimersByTime(COPIED_RESET_MS)
+      })
+      expect(buttonNamed(button, 'Copy')).toBe(button)
+    })
+
+    // A token regenerated or a selection swapped inside the dwell: the field
+    // would otherwise confirm a copy of something it no longer shows.
+    it('stops confirming once the value is no longer what was copied', async () => {
+      const view = setup()
+      await click(view.button)
+      expect(view.status.textContent).toBe('Copied')
+
+      view.rerender(<CopyField data-testid="field" value="second.value" />)
+
+      expect(buttonNamed(view.button, 'Copy')).toBe(view.button)
+      expect(view.status.textContent).toBe('')
+    })
+
+    // A second press inside the dwell left the region's text as it was, so
+    // nothing was announced for a write that did happen.
+    it('announces a second copy inside the dwell', async () => {
+      const { button, status } = setup()
+      await click(button)
+      const first = status.firstChild
+
+      await click(button)
+
+      expect(status.textContent).toBe('Copied')
+      expect(status.firstChild).not.toBe(first)
+    })
+  })
+
   describe('when the clipboard refuses', () => {
     it('stays at rest rather than confirming', async () => {
       install(async () => {

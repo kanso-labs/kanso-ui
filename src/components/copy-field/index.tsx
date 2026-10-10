@@ -165,7 +165,14 @@ function CopyField({
   const messages = useMessages()
   const copiedLabel = copiedLabelProp ?? messages.copied
   const copyLabel = copyLabelProp ?? messages.copy
-  const [copied, setCopied] = useState(false)
+  // What the last write put on the clipboard, and how many writes there have
+  // been. The confirmation is that text still being the value shown, so a
+  // value that changes inside the dwell — a token regenerated, a selection
+  // swapped — takes the label back to Copy at once rather than confirming a
+  // copy of something else. The count is what lets a second press be
+  // announced, below.
+  const [copy, setCopy] = useState<null | { count: number; text: string }>(null)
+  const copied = copy?.text === value
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // Without this, a field unmounted inside the dwell leaves a timer holding a
@@ -191,16 +198,20 @@ function CopyField({
         // nothing is indistinguishable from one that is broken. Nothing is
         // logged — the library writes to the console nowhere, and a warning
         // an app cannot turn off is not its to emit.
-        setCopied(false)
+        setCopy(null)
         onCopyFailed?.(error)
         return
       }
-      setCopied(true)
-      onCopied?.(value)
+      // The component's own state first, the dwell included, and the call
+      // site's handler after it: a handler that threw used to skip the
+      // timer, leaving the button on Copied for good. Its error is still the
+      // call site's to see, raised on its own rather than swallowed.
       clearTimeout(timer.current)
       timer.current = setTimeout(() => {
-        setCopied(false)
+        setCopy(null)
       }, COPIED_RESET_MS)
+      setCopy((current) => ({ count: (current?.count ?? 0) + 1, text: value }))
+      reportCopied(onCopied, value)
     }
     void write()
   }, [onCopied, onCopyFailed, value])
@@ -230,12 +241,39 @@ function CopyField({
       </Button>
       {/* The button's own label changes, but a label changing under a screen
           reader is not reliably announced. This is. `<output>` carries an
-          implicit role of status, so it needs no role attribute of its own. */}
+          implicit role of status, so it needs no role attribute of its own.
+          Each write puts a new node in it, keyed by the count, since a second
+          press inside the dwell otherwise left the text as it was and the
+          region had nothing to announce. */}
       <output {...stylex.props(styles.announcement)}>
-        {copied ? copiedLabel : ''}
+        {copied ? <span key={copy.count}>{copiedLabel}</span> : null}
       </output>
     </div>
   )
+}
+
+/**
+ * Hands the call site the value it copied. What its handler throws is raised
+ * on its own, outside the copy: it still reaches the page's error reporting,
+ * where a rejection of the copy's own promise reached nothing but an
+ * unhandled-rejection warning. Outside the component, since the React
+ * Compiler compiles neither optional chaining nor a captured catch binding
+ * inside a `try`.
+ */
+function reportCopied(
+  onCopied: ((value: string) => void) | undefined,
+  value: string,
+) {
+  if (onCopied === undefined) {
+    return
+  }
+  try {
+    onCopied(value)
+  } catch (thrown) {
+    queueMicrotask(() => {
+      throw thrown
+    })
+  }
 }
 
 export type { CopyFieldProps }
