@@ -9,6 +9,7 @@ import Button from '../components/button'
 import CopyField from '../components/copy-field'
 import IconButton from '../components/icon-button'
 import List from '../components/list'
+import ListBox from '../components/list-box'
 import TextField from '../components/text-field'
 import { MESSAGES } from './messages'
 
@@ -114,6 +115,7 @@ describe("the library's own words", () => {
           'loading',
           'loadingMore',
           'nextSlide',
+          'noResults',
           'previousSlide',
           'selectTime',
           'slide',
@@ -203,6 +205,11 @@ describe("the library's own words", () => {
       expect(
         view.getByRole('progressbar', { name: 'Chargement de la suite' }),
       ).not.toBeNull()
+    })
+
+    it('says when a collection is empty', () => {
+      const view = inFrench(<ListBox aria-label="Label">{[]}</ListBox>)
+      expect(view.getByText('Aucun résultat')).not.toBeNull()
     })
 
     it('labels the copy button and announces the copy', async () => {

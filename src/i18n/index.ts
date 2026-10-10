@@ -10,8 +10,9 @@ import { MESSAGES } from './messages'
 // I18nProvider sets — the same locale every other name a control announces is
 // written in. Each one stands behind a prop that names it otherwise:
 // `pendingLabel`, a LoadMore's `label`, `copyLabel` and `copiedLabel`,
-// `characterLimitLabel`, and the time picker's `cancelLabel`, `confirmLabel`,
-// `selectTimeLabel` and `enterTimeLabel`.
+// `characterLimitLabel`, the time picker's `cancelLabel`, `confirmLabel`,
+// `selectTimeLabel` and `enterTimeLabel`, and a collection's
+// `renderEmptyState` for its empty row.
 
 type LibraryMessages = {
   /** What a search view's back button is called. */
@@ -32,6 +33,8 @@ type LibraryMessages = {
   loadingMore: string
   /** What a carousel's next button is called. */
   nextSlide: string
+  /** What a collection says when filtering leaves nothing in it. */
+  noResults: string
   /** What a carousel's previous button is called. */
   previousSlide: string
   /** The time picker's headline while it shows the dial. */
@@ -74,6 +77,7 @@ function messagesFor(locale: string): LibraryMessages {
     loading: formatter.format('loading'),
     loadingMore: formatter.format('loadingMore'),
     nextSlide: formatter.format('nextSlide'),
+    noResults: formatter.format('noResults'),
     previousSlide: formatter.format('previousSlide'),
     selectTime: formatter.format('selectTime'),
     slide: formatter.format('slide'),

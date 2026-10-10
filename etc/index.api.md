@@ -962,10 +962,11 @@ export type ListBoxLoadMoreProps = Omit<ListBoxLoadMoreItemProps, 'children'> & 
 };
 
 // @public (undocumented)
-export type ListBoxProps<T extends object = object> = Omit<ListBoxProps_2<T>, 'className' | 'style'> & {
+export type ListBoxProps<T extends object = object> = {
     className?: ListBoxProps_2<T>['className'];
+    renderEmptyState?: ListBoxProps_2<T>['renderEmptyState'];
     style?: ListBoxProps_2<T>['style'];
-};
+} & Omit<ListBoxProps_2<T>, 'className' | 'renderEmptyState' | 'style'>;
 
 // @public
 export function ListBoxSection<T extends object = object>(input: ListBoxSectionProps<T> & RefAttributes<HTMLElement>): JSX;
@@ -1083,11 +1084,12 @@ export type MenuContentProps<T extends object = object> = {
     alignOffset?: number;
     className?: ClassNameOrFunction<PopoverRenderProps>;
     container?: Element;
+    renderEmptyState?: MenuProps_2<T>['renderEmptyState'];
     search?: ReactNode;
     side?: MenuSide;
     sideOffset?: number;
     style?: StyleOrFunction<PopoverRenderProps>;
-} & Omit<MenuProps_2<T>, 'className' | 'style'>;
+} & Omit<MenuProps_2<T>, 'className' | 'renderEmptyState' | 'style'>;
 
 // @public
 export function MenuItem<T extends object = object>(input: MenuItemProps<T> & RefAttributes<HTMLDivElement>): JSX;

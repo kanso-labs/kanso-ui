@@ -36,7 +36,11 @@ import {
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
-import { CollectionLoadMore } from '../../collection'
+import {
+  CollectionEmpty,
+  CollectionLoadMore,
+  CollectionStatus,
+} from '../../collection'
 import { textOf } from '../../collection/text'
 import { ChevronEndGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
@@ -208,6 +212,14 @@ type MenuContentProps<T extends object = object> = {
    */
   container?: Element
   /**
+   * What the menu shows when nothing is in it — after a search that matched
+   * nothing, usually. Left out, it is a muted row saying "No results" in the
+   * I18nProvider's locale, which the surface also announces, so the menu
+   * keeps a row's height rather than shrinking to its search bar. One of the
+   * call site's own replaces the announcement as well as the row.
+   */
+  renderEmptyState?: RACMenuProps<T>['renderEmptyState']
+  /**
    * Content drawn on the surface above the items — a search bar that filters
    * them, usually. It goes here rather than among the children because a
    * menu's children are a collection: React Aria walks them for items and
@@ -234,7 +246,7 @@ type MenuContentProps<T extends object = object> = {
   sideOffset?: number
   /** Lands on the surface, as `className` does. */
   style?: StyleOrFunction<PopoverRenderProps>
-} & Omit<RACMenuProps<T>, 'className' | 'style'>
+} & Omit<RACMenuProps<T>, 'className' | 'renderEmptyState' | 'style'>
 
 type MenuItemProps<T extends object = object> = {
   /** The item's label — what it does. */
@@ -308,6 +320,12 @@ type MenuSubmenuProps = {
    * @default 200
    */
   delay?: number
+}
+
+// The default empty state, at module scope so every menu hands React Aria
+// the same function.
+function emptyState() {
+  return <CollectionEmpty variant="menu" />
 }
 
 // What the item draws, from React Aria's render state. Built by a call
@@ -402,6 +420,11 @@ function Menu({ children, ...props }: MenuProps) {
  * below the trigger for a menu, at the item's inline end for a submenu — and
  * a prop set here replaces it, so a default written here opened every
  * submenu below its item, over the rest of the menu it came from.
+ *
+ * A menu with nothing in it shows a muted "No results" row in place of its
+ * items, and says so through a status on the surface, which is what a search
+ * that matches nothing leaves; pass `renderEmptyState` to draw something
+ * else.
  */
 function MenuContent<T extends object = object>({
   align,
@@ -431,8 +454,14 @@ function MenuContent<T extends object = object>({
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(surfaceStyles, { className, style })}
     >
-      {search === undefined ? null : <SearchSlot>{search}</SearchSlot>}
-      <RACMenu<T> {...props} {...stylex.props(styles.menu)} />
+      <CollectionStatus>
+        {search === undefined ? null : <SearchSlot>{search}</SearchSlot>}
+        <RACMenu<T>
+          renderEmptyState={emptyState}
+          {...props}
+          {...stylex.props(styles.menu)}
+        />
+      </CollectionStatus>
     </RACPopover>
   )
 }
