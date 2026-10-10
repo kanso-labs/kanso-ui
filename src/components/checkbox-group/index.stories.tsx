@@ -4,6 +4,8 @@ import * as stylex from '@stylexjs/stylex'
 
 import CheckboxGroup from '.'
 import Checkbox from '../checkbox'
+import Form from '../form'
+import TextField from '../text-field'
 
 const styles = stylex.create({
   // A group fills its container, so the samples need a width to fill.
@@ -64,6 +66,22 @@ const WithError: Story = {
   ),
 }
 
-export { Default, WithError }
+// Inside a form, where the group keeps one empty line for a message that may
+// arrive on submit and its items keep none, so they sit at the same pitch as
+// anywhere else. The field under it is there to show where the group ends.
+const InAForm: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <Form>
+        <CheckboxGroup {...args}>
+          <Items />
+        </CheckboxGroup>
+        <TextField label="Label" />
+      </Form>
+    </div>
+  ),
+}
+
+export { Default, InAForm, WithError }
 
 export default meta
