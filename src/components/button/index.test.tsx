@@ -11,6 +11,8 @@ import { rippleStyles } from '../../styles/ripple'
 import {
   declarationsHeld,
   reducedMotionOf,
+  rulesReaching,
+  valueIn,
 } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -164,11 +166,18 @@ function firePointerLeave(target: Element, init: PointerEventInit = {}) {
 
 // The inline padding one set of props resolves to, with the render torn down
 // again so a caller can compare across sizes and variants.
-function inlinePadding(props: Parameters<typeof setup>[0]) {
+/**
+ * How far the label starts from the button's edge: its padding, and an
+ * outlined button's rule, which is drawn inside the same room.
+ */
+function inlineInset(props: Parameters<typeof setup>[0]) {
   const { button, unmount } = setup(props)
-  const padding = getComputedStyle(button).paddingLeft
+  const computed = getComputedStyle(button)
+  const inset =
+    Number.parseFloat(computed.paddingLeft) +
+    Number.parseFloat(computed.borderLeftWidth)
   unmount()
-  return padding
+  return inset
 }
 
 /**
@@ -319,7 +328,11 @@ describe('appearance', () => {
       const { button, unmount } = setup({ size, variant: 'outlined' })
       const computed = getComputedStyle(button)
       expect(computed.height).toBe(height)
-      expect(computed.paddingLeft).toBe(padding)
+      // The rule is drawn inside the spec's padding rather than beside it.
+      expect(
+        Number.parseFloat(computed.paddingLeft) +
+          Number.parseFloat(computed.borderLeftWidth),
+      ).toBe(Number.parseFloat(padding))
       expect(computed.borderLeftWidth).toBe(outline)
       unmount()
     }
@@ -331,12 +344,12 @@ describe('appearance', () => {
   // arrangement this guards is the whole size axis carrying the geometry,
   // and a variant reaching for a padding of its own would show up wherever
   // it was declared.
-  it('gives every variant the same inline padding at a size', () => {
+  it('gives every variant the same inline inset at a size', () => {
     for (const size of ['xs', 'md', 'lg', 'xl', 'xxl'] as const) {
-      const filled = inlinePadding({ size, variant: 'filled' })
+      const filled = inlineInset({ size, variant: 'filled' })
 
       // A zero would make the comparisons below pass for the wrong reason.
-      expect(filled).not.toBe('0px')
+      expect(filled).not.toBe(0)
 
       for (const variant of [
         'elevated',
@@ -344,7 +357,7 @@ describe('appearance', () => {
         'text',
         'tonal',
       ] as const) {
-        expect(inlinePadding({ size, variant })).toBe(filled)
+        expect(inlineInset({ size, variant })).toBe(filled)
       }
     }
   })
@@ -1108,6 +1121,66 @@ function lineInsets(control: HTMLElement, label: string) {
     start: line.left - outer.left,
   }))
 }
+
+// The rule an outlined button draws, which the page draws inside the width
+// and the target the other variants take.
+describe('an outlined button’s border', () => {
+  // The target box is placed against the padding box, inside the border, so
+  // a reach worked out from the container height lost the rule twice.
+  it.each([
+    ['xs', 'filled'],
+    ['xs', 'outlined'],
+    ['xs', 'text'],
+    ['md', 'filled'],
+    ['md', 'outlined'],
+    ['md', 'text'],
+  ] as const)('leaves the %s %s button a 48px target', (size, variant) => {
+    const view = render(
+      <Button size={size} variant={variant}>
+        Label
+      </Button>,
+    )
+    const target = getComputedStyle(view.getByRole('button'), '::before')
+
+    expect(target.height).toBe('48px')
+  })
+
+  it.each(['xs', 'md', 'lg', 'xl', 'xxl'] as const)(
+    'takes no width of its own at %s',
+    (size) => {
+      const view = render(
+        <>
+          <Button aria-label="Filled" size={size} variant="filled">
+            Label
+          </Button>
+          <Button aria-label="Outlined" size={size} variant="outlined">
+            Label
+          </Button>
+        </>,
+      )
+      const filled = view
+        .getByRole('button', { name: 'Filled' })
+        .getBoundingClientRect()
+      const outlined = view
+        .getByRole('button', { name: 'Outlined' })
+        .getBoundingClientRect()
+
+      expect(outlined.width).toBeCloseTo(filled.width, 1)
+      expect(outlined.height).toBe(filled.height)
+    },
+  )
+
+  // A forced palette drops shadows, so the boundary has to stay a border.
+  it('stays a border under forced colours', () => {
+    const view = render(<Button variant="outlined">Label</Button>)
+    const rules = rulesReaching(view.getByRole('button'), {
+      holding: 'forced-colors: active',
+    })
+
+    expect(valueIn(rules, 'border-top-style')).toBe('solid')
+    expect(valueIn(rules, 'border-top-width')).toBe('1px')
+  })
+})
 
 describe('a button wider than its label', () => {
   const LONG = 'A label long enough that it wraps onto more lines than one'
