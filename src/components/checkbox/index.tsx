@@ -198,8 +198,11 @@ type Tone = 'error' | 'marked' | 'unmarked'
 // the result on its inputs. The ripple's handlers and surface go on the
 // control while the checkbox can change, and are left off while it cannot,
 // since a press that changes nothing should not look like one.
-function buttonContent(children: ReactNode, ripple: Ripple) {
+function buttonContent(children: ReactNode, ripple: Ripple, inGroup: boolean) {
   return (state: CheckboxButtonRenderProps) => {
+    // A checkbox in a group is marked by the group's label rather than its
+    // own: the group is what has to have a choice made in it.
+    const required = state.isRequired && !inGroup
     const marked = state.isSelected || state.isIndeterminate
     const interactive = !state.isDisabled && !state.isReadOnly
     const tone: Tone = state.isInvalid
@@ -249,7 +252,9 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
           </span>
           {interactive ? ripple.surface : null}
         </span>
-        <ControlLabel state={state}>{children}</ControlLabel>
+        <ControlLabel isRequired={required} state={state}>
+          {children}
+        </ControlLabel>
       </>
     )
   }
@@ -261,6 +266,10 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
  * control it, or `defaultSelected` to let it keep its own; `isIndeterminate`
  * draws the dash for a box that stands for a partly selected set. Inside a
  * `CheckboxGroup` it takes its `value` and the group's selection instead.
+ *
+ * `isRequired` ends the label in the asterisk every required field's label
+ * ends in. Inside a `CheckboxGroup` the group's label carries it instead,
+ * since the group is what must have a choice made in it.
  *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions.
@@ -297,7 +306,7 @@ function Checkbox({
       {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
       <CheckboxButton {...stylex.props(styles.button)}>
-        {buttonContent(children, ripple)}
+        {buttonContent(children, ripple, inGroup)}
       </CheckboxButton>
       <div {...stylex.props(controlStyles.messages)}>
         <FieldMessage
