@@ -51,10 +51,17 @@ import { mergeStatefulStyles } from '../../styles/merge'
 //
 // **The cell is a circle in a square.** The page gives the date a 48dp
 // container and a 40dp state layer, which is a 40dp circle with 4dp of room
-// around it. Each date's own inline margin supplies that room, with the
-// grid's `border-spacing` left at zero, so the circle is the element and the
-// square is the room around it — rather than a 48dp box with a 40dp box
-// inside it.
+// around it. The circle is the element, centred in a 48dp column and a 48dp
+// row — the pitch Compose lays its days at — and a transparent box reaching
+// the 4dp past it on every side makes the whole square the press target,
+// rather than a 48dp box with a 40dp box inside it. The chevrons and the
+// month and year menu buttons reach a 48dp target the same way.
+//
+// **It narrows to its container.** The page's docked calendar is 360dp, and
+// a compact window leaves 328dp between its margins, so the calendar is 360
+// at most and the columns share whatever is left below that. Under about
+// 304dp of content a column is narrower than its 40dp circle, and the
+// circles of neighbouring dates meet.
 //
 // **A date from the month either side is faded because it is disabled, not
 // because it is outside.** React Aria marks those cells `data-outside-month`
@@ -130,14 +137,15 @@ function Calendar<T extends DateValue>({
       >
         <div {...stylex.props(calendarStyles.months)}>
           {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-            <RACCalendarGrid
-              key={offset.months}
-              offset={offset}
-              {...stylex.props(calendarStyles.grid)}
-            >
-              <CalendarGridHeader />
-              <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-            </RACCalendarGrid>
+            <div key={offset.months} {...stylex.props(calendarStyles.month)}>
+              <RACCalendarGrid
+                offset={offset}
+                {...stylex.props(calendarStyles.grid)}
+              >
+                <CalendarGridHeader />
+                <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+              </RACCalendarGrid>
+            </div>
           ))}
         </div>
       </CalendarFrame>

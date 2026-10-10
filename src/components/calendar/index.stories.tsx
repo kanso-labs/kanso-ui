@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { DateValue } from 'react-aria-components'
 
+import * as stylex from '@stylexjs/stylex'
 import { expect } from 'storybook/test'
 
 import Calendar from '.'
@@ -21,6 +22,13 @@ const DECEMBER = new CalendarDate(2025, 12, 15)
 const MAX = new CalendarDate(2026, 9, 24)
 const MIN = new CalendarDate(2026, 9, 8)
 const VISIBLE_TWO = { months: 2 }
+
+const styles = stylex.create({
+  // A compact window's content: 360dp less its two 16dp margins.
+  compact: {
+    inlineSize: '328px',
+  },
+})
 
 const meta = {
   args: {
@@ -105,6 +113,17 @@ const TwoMonthsWithMenus: Story = {
   },
 }
 
+// In a compact window's 328dp, under the page's 360dp docked calendar. The
+// columns share what is left, so the calendar fits rather than scrolling the
+// page sideways.
+const Compact: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.compact)}>
+      <Calendar {...args} />
+    </div>
+  ),
+}
+
 function isWeekend(date: DateValue) {
   const day = date.toDate(getLocalTimeZone()).getDay()
   return day === 0 || day === 6
@@ -112,6 +131,7 @@ function isWeekend(date: DateValue) {
 
 export {
   Bounded,
+  Compact,
   Default,
   MonthAndYearMenus,
   MonthList,
