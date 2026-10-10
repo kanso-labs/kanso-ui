@@ -266,25 +266,24 @@ export type ButtonGroupProps = Omit<ToggleButtonGroupProps, 'children' | 'classN
 export type ButtonGroupVariant = 'connected' | 'standard';
 
 // Warning: (ae-forgotten-export) The symbol "ButtonDOMProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ButtonLinkForm" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ButtonPressForm" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ButtonToggleForm" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type ButtonProps = {
+export type ButtonProps = ButtonDOMProps & (ButtonLinkForm | ButtonPressForm | (ButtonToggleForm & {
+    variant?: Exclude<ButtonVariant, 'text'>;
+})) & {
     children?: ReactNode;
     className?: ClassNameOrFunction<ButtonState>;
-    defaultSelected?: boolean;
     disableRipple?: boolean;
-    href?: string;
     icon?: ReactNode;
-    isSelected?: boolean;
-    onChange?: (isSelected: boolean) => void;
     pendingLabel?: string;
-    rel?: string;
     shape?: ButtonShape;
     size?: ButtonSize;
     style?: StyleOrFunction<ButtonState>;
-    target?: string;
     variant?: ButtonVariant;
-} & ButtonDOMProps;
+};
 
 // @public (undocumented)
 export type ButtonShape = 'round' | 'square';
@@ -868,24 +867,20 @@ export { I18nProvider }
 // @public
 export function IconButton(input: IconButtonProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>): JSX;
 
+// Warning: (ae-forgotten-export) The symbol "ButtonForm" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export type IconButtonProps = {
     'aria-label': string | undefined;
     children?: ReactNode;
     className?: ClassNameOrFunction<IconButtonState>;
-    defaultSelected?: boolean;
     disableRipple?: boolean;
-    href?: string;
-    isSelected?: boolean;
-    onChange?: (isSelected: boolean) => void;
     pendingLabel?: string;
-    rel?: string;
     render?: DOMRenderFunction<'button', IconButtonState>;
     size?: IconButtonSize;
     style?: StyleOrFunction<IconButtonState>;
-    target?: string;
     variant?: IconButtonVariant;
-} & Omit<ButtonDOMProps, 'render'>;
+} & ButtonForm & Omit<ButtonDOMProps, 'render'>;
 
 // @public (undocumented)
 export type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl';
@@ -1659,7 +1654,7 @@ export namespace SplitButton {
 export function SplitButtonAction(props: SplitButtonActionProps): JSX;
 
 // @public (undocumented)
-export type SplitButtonActionProps = Omit<ButtonProps, 'shape' | 'size' | 'variant'> & RefAttributes<HTMLAnchorElement | HTMLButtonElement>;
+export type SplitButtonActionProps = (ButtonProps extends (infer Props) ? Props extends unknown ? Omit<Props, 'shape' | 'size' | 'variant'> : never : never) & RefAttributes<HTMLAnchorElement | HTMLButtonElement>;
 
 // @public
 export function SplitButtonMenu(input: SplitButtonMenuProps): JSX;
@@ -2145,7 +2140,7 @@ export { WaterfallLayout }
 
 // Warnings were encountered during analysis:
 //
-// dist/components/button/index.d.ts:8:3 - (ae-forgotten-export) The symbol "ButtonState" needs to be exported by the entry point index.d.ts
+// dist/components/button/index.d.ts:14:3 - (ae-forgotten-export) The symbol "ButtonState" needs to be exported by the entry point index.d.ts
 // dist/components/icon-button/index.d.ts:19:3 - (ae-forgotten-export) The symbol "IconButtonState" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)

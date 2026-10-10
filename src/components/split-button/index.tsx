@@ -133,7 +133,14 @@ const INNER_ACTIVE = {
   xxl: '20px',
 }
 
-type SplitButtonActionProps = Omit<ButtonProps, 'shape' | 'size' | 'variant'> &
+// Omitted form by form: ButtonProps is a union of the plain, link and toggle
+// forms, and an Omit of the whole union keeps only the keys all three share,
+// which would let a link's and a toggle's props back together.
+type SplitButtonActionProps = (ButtonProps extends infer Props
+  ? Props extends unknown
+    ? Omit<Props, 'shape' | 'size' | 'variant'>
+    : never
+  : never) &
   RefAttributes<HTMLAnchorElement | HTMLButtonElement>
 
 type SplitButtonMenuProps = {

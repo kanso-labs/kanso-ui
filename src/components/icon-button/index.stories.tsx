@@ -84,10 +84,22 @@ const ToggleSelected: Story = {
   },
 }
 
+// A toggle whose new state is still being saved: the ring takes the icon's
+// place, and a press changes nothing until the call site clears `isPending`.
+const TogglePending: Story = {
+  args: {
+    'aria-label': 'Star',
+    children: <StarIcon />,
+    defaultSelected: true,
+    isPending: true,
+    variant: 'filled',
+  },
+}
+
 const Outlined: Story = {
   args: { variant: 'outlined' },
 }
 
-export { Default, Outlined, Pending, Toggle, ToggleSelected }
+export { Default, Outlined, Pending, Toggle, TogglePending, ToggleSelected }
 
 export default meta

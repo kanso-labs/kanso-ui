@@ -10,12 +10,20 @@ import * as stylex from '@stylexjs/stylex'
 import { useContext } from 'react'
 import { ToggleGroupStateContext } from 'react-aria-components'
 
-import type { ButtonDOMProps, ButtonState } from '../../button'
+import type {
+  ButtonDOMProps,
+  ButtonLinkForm,
+  ButtonPressForm,
+  ButtonState,
+  ButtonToggleForm,
+} from '../../button'
 import type { ButtonGroupItem } from '../../button/context'
 
 import { ButtonBase, ToggleButtonBase } from '../../button'
 import { ButtonGroupItemContext } from '../../button/context'
 import { groupPressHandlers } from '../../button/group'
+import { useSelection } from '../../button/hooks'
+import { pressThen } from '../../button/toggle'
 import { focus } from '../../styles/focus'
 import {
   colors,
@@ -662,85 +670,66 @@ const toggleContainers = {
   tonal: { selected: 'tonalToggleSelected', unselected: 'tonal' },
 } as const
 
-type ButtonProps = {
-  children?: ReactNode
-  /** A function may compute the class from the button's render state. */
-  className?: ClassNameOrFunction<ButtonState>
-  /**
-   * Whether a toggle starts selected, when it keeps its own state. Passing
-   * this, `isSelected` or `onChange` is what makes the button a toggle —
-   * except a `text` button, which the page gives no selected colours, so it
-   * stays a plain button.
-   */
-  defaultSelected?: boolean
-  /**
-   * Disables the press ripple. The hover/pressed background state layer is
-   * unaffected.
-   * @default false
-   */
-  disableRipple?: boolean
-  /**
-   * Where the button leads. Given one, the button is rendered as a link —
-   * an `<a>`, announced as the link it is — with the same styles and ripple.
-   * `render`, `type`, and the form and pending props apply to the button
-   * form only, and a toggle is never a link.
-   */
-  href?: string
-  /**
-   * An icon before the label, at the page's icon size for the button's size:
-   * 20px at `xs` and `md`, 24px at `lg`, 32px at `xl` and 40px at `xxl`. Draw
-   * it `1em` square in `currentColor`, as every icon here is, and it follows.
-   * Hidden with the label while the button is pending.
-   */
-  icon?: ReactNode
-  /**
-   * Whether a toggle is selected, when the call site holds the state. Pass
-   * it with `onChange`; passing this, `defaultSelected` or `onChange` is what
-   * makes the button a toggle, `text` excepted.
-   */
-  isSelected?: boolean
-  /**
-   * Called with the new state when a toggle is pressed. Passing this,
-   * `isSelected` or `defaultSelected` is what makes the button a toggle,
-   * `text` excepted.
-   */
-  onChange?: (isSelected: boolean) => void
-  /**
-   * The name of the ring shown while the button is pending, for a screen
-   * reader. The label it replaces is hidden while it shows. Left out, it is
-   * the word for it in the I18nProvider's locale — "Loading" in English.
-   */
-  pendingLabel?: string
-  /** The link's `rel`, when `href` is set. */
-  rel?: string
-  /**
-   * The corner the button rests at: `round` is the pill, `square` the
-   * page's rounded rectangle, 12px up to `md`, 16px at `lg` and 28px above.
-   * Either tightens while pressed, and a toggle trades one for the other
-   * once selected.
-   * @default 'round'
-   */
-  shape?: ButtonShape
-  /**
-   * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 96px, `xxl` 136px —
-   * the buttons spec page's XS, S, M, L and XL, each with its own inline
-   * padding and type role. `md` is the page's default.
-   * @default 'md'
-   */
-  size?: ButtonSize
-  /** A function may compute the style from the button's render state. */
-  style?: StyleOrFunction<ButtonState>
-  /** The link's `target`, when `href` is set. */
-  target?: string
-  /**
-   * How much weight the button pulls. `filled` and `tonal` carry a container
-   * of their own; `outlined` and `text` sit on the page; `elevated` sits on
-   * a low surface and lifts off it with a shadow, for a button that has to
-   * separate from a busy background rather than from the page.
-   * @default 'filled'
-   */
-  variant?: ButtonVariant
-} & ButtonDOMProps
+type ButtonProps = ButtonDOMProps &
+  (
+    | ButtonLinkForm
+    | ButtonPressForm
+    | (ButtonToggleForm & {
+        /**
+         * A toggle takes any variant but `text`, which the page gives no
+         * selected colours.
+         */
+        variant?: Exclude<ButtonVariant, 'text'>
+      })
+  ) & {
+    children?: ReactNode
+    /** A function may compute the class from the button's render state. */
+    className?: ClassNameOrFunction<ButtonState>
+    /**
+     * Disables the press ripple. The hover/pressed background state layer is
+     * unaffected.
+     * @default false
+     */
+    disableRipple?: boolean
+    /**
+     * An icon before the label, at the page's icon size for the button's size:
+     * 20px at `xs` and `md`, 24px at `lg`, 32px at `xl` and 40px at `xxl`. Draw
+     * it `1em` square in `currentColor`, as every icon here is, and it follows.
+     * Hidden with the label while the button is pending.
+     */
+    icon?: ReactNode
+    /**
+     * The name of the ring shown while the button is pending, for a screen
+     * reader. The label it replaces is hidden while it shows. Left out, it is
+     * the word for it in the I18nProvider's locale — "Loading" in English.
+     */
+    pendingLabel?: string
+    /**
+     * The corner the button rests at: `round` is the pill, `square` the
+     * page's rounded rectangle, 12px up to `md`, 16px at `lg` and 28px above.
+     * Either tightens while pressed, and a toggle trades one for the other
+     * once selected.
+     * @default 'round'
+     */
+    shape?: ButtonShape
+    /**
+     * Control height: `xs` 32px, `md` 40px, `lg` 56px, `xl` 96px, `xxl` 136px —
+     * the buttons spec page's XS, S, M, L and XL, each with its own inline
+     * padding and type role. `md` is the page's default.
+     * @default 'md'
+     */
+    size?: ButtonSize
+    /** A function may compute the style from the button's render state. */
+    style?: StyleOrFunction<ButtonState>
+    /**
+     * How much weight the button pulls. `filled` and `tonal` carry a container
+     * of their own; `outlined` and `text` sit on the page; `elevated` sits on
+     * a low surface and lifts off it with a shadow, for a button that has to
+     * separate from a busy background rather than from the page.
+     * @default 'filled'
+     */
+    variant?: ButtonVariant
+  }
 
 type ButtonShape = 'round' | 'square'
 
@@ -759,8 +748,12 @@ type ToggleVariant = keyof typeof toggleContainers
  *
  * Given `isSelected`, `defaultSelected` or `onChange` it is a toggle, which
  * reports its state through `aria-pressed` and draws the page's second pair
- * of colour roles for its variant. A toggle takes neither `href` nor the
- * pending props, and a `text` button never toggles.
+ * of colour roles for its variant. The three forms are exclusive, so a toggle
+ * given `href` does not compile, and nor does a `text` toggle, which the page
+ * gives no selected colours — a `text` button in a selecting `ButtonGroup`
+ * is the one that toggles, for the group's sake. A toggle may be pending,
+ * for a state saved somewhere slow: the ring replaces its label and a press
+ * changes nothing until it clears.
  *
  * ```tsx
  * <Button defaultSelected variant="tonal">
@@ -793,6 +786,7 @@ function Button({
   // have to be toggles to take part in its selection.
   const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
   const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
+  const selection = useSelection({ defaultSelected, isSelected, onChange })
 
   // The icon goes in with the label, inside what ButtonBase hides while the
   // button is pending, so the ring takes the place of both.
@@ -806,17 +800,11 @@ function Button({
       </>
     )
 
-  // The three props that make this a toggle, read as IconButton reads them,
-  // for every style the page gives a toggle's colours to — or a selecting
-  // group around it. A text button in such a group is a toggle too, for the
-  // group's sake, and draws its selection by nothing but the group's shape.
-  if (
-    inSelectingGroup ||
-    (variant !== 'text' &&
-      (defaultSelected !== undefined ||
-        isSelected !== undefined ||
-        onChange !== undefined))
-  ) {
+  // A selecting ButtonGroup around it makes it React Aria's ToggleButton, to
+  // take part in the group's selection — a text button too, which draws its
+  // selection by nothing but the group's shape. Whether a button sits in one
+  // does not change from one render to the next.
+  if (inSelectingGroup) {
     return (
       <ToggleButtonBase
         {...props}
@@ -826,23 +814,39 @@ function Button({
             ? buttonClasses(shape, size, variant, group)
             : toggleClasses(shape, size, variant, group)
         }
-        defaultSelected={defaultSelected}
         isPending={isPending}
-        isSelected={isSelected}
-        onChange={onChange}
       >
         {content}
       </ToggleButtonBase>
     )
   }
 
+  // The three props that make this a toggle on its own, read as IconButton
+  // reads them, and on the same component as the plain button so a toggle
+  // whose `isSelected` is still loading stays one element when it arrives.
+  // The types keep them off a `text` button; the check here keeps a call
+  // site that slipped past them a plain button, as it always was.
+  const isToggle =
+    variant !== 'text' &&
+    (defaultSelected !== undefined ||
+      isSelected !== undefined ||
+      onChange !== undefined)
+
   return (
     <ButtonBase
       {...props}
       {...press}
-      classes={buttonClasses(shape, size, variant, group)}
+      classes={
+        isToggle
+          ? toggleClasses(shape, size, variant, group)
+          : buttonClasses(shape, size, variant, group)
+      }
       href={href}
       isPending={isPending}
+      isSelected={isToggle ? selection.selected : undefined}
+      onPress={
+        isToggle ? pressThen(props.onPress, selection.toggle) : props.onPress
+      }
       pendingLabel={pendingLabel}
       rel={rel}
       target={target}

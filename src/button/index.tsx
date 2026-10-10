@@ -28,7 +28,7 @@ import { buttonBaseStyles } from './styles'
 
 // The press-button core Button and IconButton both render through. A button
 // is React Aria's `Button`, its `Link` once given `href`, or its
-// `ToggleButton` once it reports a state, and around each this adds what
+// `ToggleButton` inside a selecting group, and around each this adds what
 // React Aria leaves out: the ripple, the disabled state a parent's context
 // sets, the `aria-*` props and keyboard handlers it would drop or wrap, and
 // the ring drawn over the label while the button is pending. Each component
@@ -50,6 +50,12 @@ type ButtonBaseProps = {
   className?: ClassNameOrFunction<ButtonState>
   disableRipple?: boolean
   href?: string
+  /**
+   * A toggle's state, for a button that reports one through `aria-pressed`.
+   * Left undefined, the button reports none. Handed to every function of the
+   * render state, so the classes can draw it.
+   */
+  isSelected?: boolean
   pendingLabel?: string
   rel?: string
   style?: StyleOrFunction<ButtonState>
@@ -69,6 +75,43 @@ type ButtonDOMProps = Omit<
 > &
   Pick<DOMAttributes<HTMLElement>, GlobalEventKey>
 
+/**
+ * The three forms a button takes, of which a call site writes exactly one:
+ * a plain button, a link, or a toggle. Each names the props of the other two
+ * as `never`, so a combination the rendered form would ignore — a toggle
+ * given `href`, a link given `isPending` — is a compile error rather than a
+ * prop that silently does nothing.
+ */
+type ButtonForm = ButtonLinkForm | ButtonPressForm | ButtonToggleForm
+
+type ButtonLinkForm = {
+  defaultSelected?: never
+  /**
+   * Where the button leads. Given one, the button is rendered as a link —
+   * an `<a>`, announced as the link it is — with the same styles and ripple.
+   * A link is never a toggle and never pending, and `render`, `type` and the
+   * form props apply to the other two forms only.
+   */
+  href: string
+  isPending?: never
+  isSelected?: never
+  onChange?: never
+  pendingLabel?: never
+  /** The link's `rel`. */
+  rel?: string
+  /** The link's `target`. */
+  target?: string
+}
+
+type ButtonPressForm = {
+  defaultSelected?: never
+  href?: never
+  isSelected?: never
+  onChange?: never
+  rel?: never
+  target?: never
+}
+
 // The render state React Aria's three elements share. A className or style
 // function written against it serves the button, the link and the toggle
 // alike; `isPending` belongs to the button alone, and `isCurrent` to the
@@ -82,6 +125,29 @@ type ButtonState = Pick<
   ButtonRenderProps,
   'isDisabled' | 'isFocused' | 'isFocusVisible' | 'isHovered' | 'isPressed'
 > & { isSelected?: boolean }
+
+type ButtonToggleForm = {
+  /**
+   * Whether a toggle starts selected, when it keeps its own state. Passing
+   * this, `isSelected` or `onChange` is what makes the button a toggle.
+   */
+  defaultSelected?: boolean
+  href?: never
+  /**
+   * Whether a toggle is selected, when the call site holds the state. Pass
+   * it with `onChange`; passing this, `defaultSelected` or `onChange` is what
+   * makes the button a toggle. A value still loading may be `undefined` for a
+   * while: the button stays the same element when it arrives.
+   */
+  isSelected?: boolean
+  /**
+   * Called with the new state when a toggle is pressed. Passing this,
+   * `isSelected` or `defaultSelected` is what makes the button a toggle.
+   */
+  onChange?: (isSelected: boolean) => void
+  rel?: never
+  target?: never
+}
 
 type GlobalEventKey = Exclude<
   keyof DOMAttributes<HTMLElement> & keyof RACButtonProps,
@@ -110,6 +176,7 @@ function ButtonBase({
   classes,
   href,
   isPending = false,
+  isSelected,
   pendingLabel,
   rel,
   render,
@@ -117,11 +184,31 @@ function ButtonBase({
   ...input
 }: ButtonBaseProps) {
   const messages = useMessages()
-  const { disabled, element, props, ref, ripple } = useButtonBase(
-    input,
-    isPending,
-  )
-  const styleProps = mergeStatefulStyles(classes, props)
+  const base = useButtonBase(input, isPending)
+  const { disabled, props, ref, ripple } = base
+  const merged = mergeStatefulStyles(classes, props)
+
+  // A toggle is still React Aria's `Button`, which knows nothing of a
+  // selected state, so the state goes onto the element as `aria-pressed` and
+  // into every function of the render state from here. Being the same
+  // component as the plain button is what keeps a button the same element
+  // when it becomes a toggle — `isSelected` arriving once its data loads.
+  const element =
+    isSelected === undefined
+      ? base.element
+      : {
+          ...base.element,
+          aria: { ...base.element.aria, 'aria-pressed': isSelected },
+        }
+  const styleProps =
+    isSelected === undefined
+      ? merged
+      : {
+          className: (state: Parameters<typeof merged.className>[0]) =>
+            merged.className({ ...state, isSelected }),
+          style: (state: Parameters<typeof merged.style>[0]) =>
+            merged.style({ ...state, isSelected }),
+        }
 
   if (href !== undefined) {
     return (
@@ -147,7 +234,7 @@ function ButtonBase({
       isDisabled={disabled}
       isPending={isPending}
       ref={ref}
-      render={buttonRenderer(element, render)}
+      render={buttonRenderer(element, selectedRender(render, isSelected))}
       {...ripple.handlers}
       {...props}
       {...styleProps}
@@ -204,13 +291,31 @@ function buttonContent(
   )
 }
 
+// A toggle drawn through ButtonBase hands a call site's `render` the state of
+// React Aria's plain button, which has no `isSelected`; this fills it in.
+function selectedRender(
+  render: RACButtonProps['render'],
+  isSelected: boolean | undefined,
+): RACButtonProps['render'] {
+  if (render === undefined || isSelected === undefined) {
+    return render
+  }
+  // Through a binding rather than as a literal at the call: React Aria types
+  // the state as its plain button's, and a call site's `render` is written
+  // against ButtonState, which is that plus `isSelected`.
+  return (props, state) => {
+    const selected = { ...state, isSelected }
+    return render(props, selected)
+  }
+}
+
 /**
- * A toggle drawn with the classes a component hands it: React Aria's
- * `ToggleButton`, which reports its state through `aria-pressed`. It is never
- * a link and never pending — React Aria's toggle takes neither, and neither
- * means anything for a control whose whole job is to report which of two
- * states it is in — so `isPending` reaches it only to keep the ripple off,
- * as it does for the plain button.
+ * A toggle in a selecting group, drawn with the classes a component hands
+ * it: React Aria's `ToggleButton`, which is what takes part in the group's
+ * selection and reports its state through `aria-pressed`. A toggle on its
+ * own is ButtonBase given `isSelected` instead — see there. React Aria's
+ * toggle takes no pending state, so `isPending` reaches it only to keep the
+ * ripple off.
  */
 function ToggleButtonBase({
   children,
@@ -274,6 +379,13 @@ function toggleRender(
   return (props, state) => render(props, { ...state, isPending: false })
 }
 
-export type { ButtonDOMProps, ButtonState }
+export type {
+  ButtonDOMProps,
+  ButtonForm,
+  ButtonLinkForm,
+  ButtonPressForm,
+  ButtonState,
+  ButtonToggleForm,
+}
 
 export { ButtonBase, ToggleButtonBase }

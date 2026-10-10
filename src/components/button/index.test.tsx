@@ -245,7 +245,10 @@ function resolved(style: stylex.StyleXStyles) {
   return values
 }
 
-function setup(props: Partial<ComponentProps<typeof Button>> = {}) {
+// The props a test hands `setup`. Button's props are a union of the plain,
+// link and toggle forms, all of whose props are optional but a link's
+// `href`, so the union itself is what a test passes.
+function setup(props: ComponentProps<typeof Button> = {}) {
   const view = render(<Button {...props}>Button</Button>)
   const button = view.getByRole('button')
 
@@ -542,6 +545,9 @@ describe('as a link', () => {
 // Hoisted so each context value is one stable object rather than a fresh one
 // per render, which is what react-perf's no-new-object-as-prop is after.
 const DISABLED_CONTEXT = { isDisabled: true }
+
+// A change handler that does nothing, hoisted for react-perf.
+function NOOP() {}
 const SLOTTED_CONTEXT = { slots: { first: { isDisabled: true }, second: {} } }
 
 // A parent may disable the buttons it gives a context to, as React Aria's own
@@ -1263,9 +1269,58 @@ describe('toggle', () => {
     expect(onChange).toHaveBeenCalledWith(true)
   })
 
+  // A state still loading arrives as `undefined` first, and the button is
+  // one component either way, so it stays one element and keeps focus.
+  it('stays the same element, focused, when it becomes a toggle', () => {
+    const view = render(<Button variant="tonal">Label</Button>)
+    const button = view.getByRole('button')
+    act(() => {
+      button.focus()
+    })
+
+    view.rerender(
+      <Button isSelected variant="tonal">
+        Label
+      </Button>,
+    )
+
+    expect(view.getByRole('button')).toBe(button)
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('shows the ring and ignores a press while pending', () => {
+    const onChange = vi.fn<(isSelected: boolean) => void>()
+    const { button } = setup({ isPending: true, isSelected: false, onChange })
+
+    fireEvent.click(button)
+
+    expect(button.querySelector('[role="progressbar"]')).not.toBeNull()
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.getAttribute('aria-pressed')).toBe('false')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  // Each form ignores the others' props, so writing them together is a
+  // compile error rather than a prop that silently does nothing.
+  it('rejects the props of another form', () => {
+    // @ts-expect-error -- a text button never toggles
+    const textSelected = <Button isSelected variant="text" />
+    // @ts-expect-error -- nor from a default
+    const textDefault = <Button defaultSelected variant="text" />
+    // @ts-expect-error -- nor from a change handler
+    const textChange = <Button onChange={NOOP} variant="text" />
+    // @ts-expect-error -- a toggle is never a link
+    const toggleLink = <Button defaultSelected href="#a" />
+
+    expect([textSelected, textDefault, textChange, toggleLink]).toHaveLength(4)
+  })
+
   // The page gives text no selected pair, so there would be nothing to show
-  // the state with.
+  // the state with. The types reject it, and a call site that slips past
+  // them still gets the plain button it always did.
   it('stays a plain button as text', () => {
+    // @ts-expect-error -- a text button takes no toggle props
     const { button } = setup({ isSelected: true, variant: 'text' })
     expect(button.hasAttribute('aria-pressed')).toBe(false)
   })

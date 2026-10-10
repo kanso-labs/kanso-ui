@@ -11,12 +11,14 @@ import * as stylex from '@stylexjs/stylex'
 import { useContext } from 'react'
 import { ToggleGroupStateContext } from 'react-aria-components'
 
-import type { ButtonDOMProps, ButtonState } from '../../button'
+import type { ButtonDOMProps, ButtonForm, ButtonState } from '../../button'
 import type { ButtonGroupItem } from '../../button/context'
 
 import { ButtonBase, ToggleButtonBase } from '../../button'
 import { ButtonGroupItemContext } from '../../button/context'
 import { groupPressHandlers } from '../../button/group'
+import { useSelection } from '../../button/hooks'
+import { pressThen } from '../../button/toggle'
 import { focus } from '../../styles/focus'
 import {
   colors,
@@ -546,42 +548,17 @@ type IconButtonProps = {
   /** A function may compute the class from the button's render state. */
   className?: ClassNameOrFunction<IconButtonState>
   /**
-   * Whether a toggle starts chosen, when it keeps its own state. Passing
-   * this, `isSelected` or `onChange` is what makes the button a toggle.
-   */
-  defaultSelected?: boolean
-  /**
    * Disables the press ripple. The hover and pressed state layers are
    * unaffected.
    * @default false
    */
   disableRipple?: boolean
   /**
-   * Where the button leads. Given one, the button is rendered as a link —
-   * an `<a>`, announced as the link it is — with the same styles and ripple.
-   * `render`, `type`, and the form and pending props apply to the button
-   * form only, and a toggle is never a link.
-   */
-  href?: string
-  /**
-   * Whether a toggle is chosen, when the call site holds the state. Pass it
-   * with `onChange`; passing this, `defaultSelected` or `onChange` is what
-   * makes the button a toggle.
-   */
-  isSelected?: boolean
-  /**
-   * Called with the new state when a toggle is pressed. Passing this,
-   * `isSelected` or `defaultSelected` is what makes the button a toggle.
-   */
-  onChange?: (isSelected: boolean) => void
-  /**
    * The name of the ring shown while the button is pending, for a screen
    * reader. The label it replaces is hidden while it shows. Left out, it is
    * the word for it in the I18nProvider's locale — "Loading" in English.
    */
   pendingLabel?: string
-  /** The link's `rel`, when `href` is set. */
-  rel?: string
   /**
    * The element to render, given the props it would have carried. React
    * Aria's own form: it has to return the element the component would have
@@ -598,8 +575,6 @@ type IconButtonProps = {
   size?: IconButtonSize
   /** A function may compute the style from the button's render state. */
   style?: StyleOrFunction<IconButtonState>
-  /** The link's `target`, when `href` is set. */
-  target?: string
   /**
    * `standard` is transparent and tints what it sits on; `outlined` is
    * transparent with a rule around it; `filled` and `tonal` carry a container
@@ -607,7 +582,8 @@ type IconButtonProps = {
    * @default 'standard'
    */
   variant?: IconButtonVariant
-} & Omit<ButtonDOMProps, 'render'>
+} & ButtonForm &
+  Omit<ButtonDOMProps, 'render'>
 
 type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 
@@ -643,8 +619,10 @@ function groupStyles(
  *
  * Given `isSelected`, `defaultSelected` or `onChange` it is a toggle, which
  * reports its state through `aria-pressed` and draws the page's second pair
- * of colour roles for its variant. A toggle takes neither `href` nor the
- * pending props.
+ * of colour roles for its variant. The three forms are exclusive, so a toggle
+ * given `href` does not compile. A toggle may be pending, for a state saved
+ * somewhere slow: the ring replaces its icon and a press changes nothing
+ * until it clears.
  *
  * ```tsx
  * <IconButton aria-label="Label" defaultSelected variant="tonal">
@@ -672,38 +650,49 @@ function IconButton({
   const size = ownSize ?? group?.size ?? 'md'
   const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
   const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
+  const selection = useSelection({ defaultSelected, isSelected, onChange })
 
-  // The three props that make this a toggle. Read together rather than behind
-  // a `toggle` word of its own, the way `href` already turns the button into
-  // a link: a button given none of them has no state to report, and one given
-  // any of them has nothing else it could mean. A selecting ButtonGroup
-  // around it makes it one as well, to take part in the group's selection.
-  if (
-    inSelectingGroup ||
-    defaultSelected !== undefined ||
-    isSelected !== undefined ||
-    onChange !== undefined
-  ) {
+  // A selecting ButtonGroup around it makes it React Aria's ToggleButton, to
+  // take part in the group's selection. Whether a button sits in one does
+  // not change from one render to the next.
+  if (inSelectingGroup) {
     return (
       <ToggleButtonBase
         {...props}
         {...press}
         classes={toggleStyleProps(size, variant, group)}
-        defaultSelected={defaultSelected}
         isPending={isPending}
-        isSelected={isSelected}
-        onChange={onChange}
       />
     )
   }
+
+  // The three props that make this a toggle on its own. Read together rather
+  // than behind a `toggle` word of its own, the way `href` already turns the
+  // button into a link: a button given none of them has no state to report,
+  // and one given any of them has nothing else it could mean. Either way it
+  // is the same component underneath, so a toggle whose `isSelected` is
+  // still loading stays the same element when the value arrives, and keeps
+  // focus.
+  const isToggle =
+    defaultSelected !== undefined ||
+    isSelected !== undefined ||
+    onChange !== undefined
 
   return (
     <ButtonBase
       {...props}
       {...press}
-      classes={iconButtonClasses(size, variant, group)}
+      classes={
+        isToggle
+          ? toggleStyleProps(size, variant, group)
+          : iconButtonClasses(size, variant, group)
+      }
       href={href}
       isPending={isPending}
+      isSelected={isToggle ? selection.selected : undefined}
+      onPress={
+        isToggle ? pressThen(props.onPress, selection.toggle) : props.onPress
+      }
       pendingLabel={pendingLabel}
       rel={rel}
       target={target}

@@ -82,11 +82,25 @@ function probe(element: ReactElement) {
   return read
 }
 
+// Hoisted so neither is a new element or function per render, which is what
+// react-perf's rules are after.
+const ICON = <svg data-testid="icon" />
+function NOOP() {}
+
 // Hoisted so the context value is one stable object rather than a fresh one
 // per render, which is what react-perf's no-new-object-as-prop is after.
 const DISABLED_CONTEXT = { isDisabled: true }
 
-function setup(props: Partial<Parameters<typeof IconButton>[0]> = {}) {
+// The props a test hands `setup`, which names the button itself. Taken form
+// by form, since IconButton's props are a union of the plain, link and toggle
+// forms and a `Partial` of the whole union would make a link's `href`
+// optional and fit none of them.
+type SetupProps<Props = Parameters<typeof IconButton>[0]> =
+  Props extends unknown
+    ? Omit<Props, 'aria-label'> & { 'aria-label'?: string }
+    : never
+
+function setup(props: SetupProps = {}) {
   const view = render(
     <IconButton aria-label="Add" {...props}>
       <svg data-testid="icon" />
@@ -543,6 +557,54 @@ describe('icon button', () => {
 
       expect(button.getAttribute('aria-pressed')).toBe('true')
       expect(onChange).not.toHaveBeenCalled()
+    })
+
+    // A state still loading arrives as `undefined` first. The plain button
+    // and the toggle are one component underneath, so it stays one element
+    // and keeps the focus a keyboard put on it.
+    it('stays the same element, focused, when it becomes a toggle', () => {
+      const view = render(<IconButton aria-label="Add">{ICON}</IconButton>)
+      const button = view.getByRole('button')
+      act(() => {
+        button.focus()
+      })
+
+      view.rerender(
+        <IconButton aria-label="Add" isSelected>
+          {ICON}
+        </IconButton>,
+      )
+
+      expect(view.getByRole('button')).toBe(button)
+      expect(document.activeElement).toBe(button)
+      expect(button.getAttribute('aria-pressed')).toBe('true')
+    })
+
+    // A toggle saved somewhere slow — a favourite, a mute — is pending while
+    // the change is in flight, and a second press must not send another.
+    it('shows the ring and ignores a press while pending', () => {
+      const onChange = vi.fn<(isSelected: boolean) => void>()
+      const view = setup({ isPending: true, isSelected: false, onChange })
+
+      fireEvent.click(view.button)
+
+      expect(view.getByRole('progressbar', { name: 'Loading' })).not.toBeNull()
+      expect(view.button.getAttribute('aria-disabled')).toBe('true')
+      expect(view.button.getAttribute('aria-pressed')).toBe('false')
+      expect(onChange).not.toHaveBeenCalled()
+    })
+
+    // Each form ignores the others' props, so writing them together is a
+    // compile error rather than a prop that silently does nothing.
+    it('rejects the props of another form', () => {
+      // @ts-expect-error -- a toggle is never a link
+      const toggleLink = <IconButton aria-label="A" defaultSelected href="#a" />
+      // @ts-expect-error -- a link is never pending
+      const pendingLink = <IconButton aria-label="A" href="#a" isPending />
+      // @ts-expect-error -- nor a toggle's change handler
+      const changing = <IconButton aria-label="A" href="#a" onChange={NOOP} />
+
+      expect([toggleLink, pendingLink, changing]).toHaveLength(3)
     })
 
     it('still renders a ripple surface', () => {
