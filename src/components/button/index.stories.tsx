@@ -27,13 +27,22 @@ function isPressed(button: HTMLElement) {
 }
 
 const styles = stylex.create({
+  // Narrower than the long label on one line, so it wraps.
+  // A column that stretches what it holds, as a form's footer or a sheet's
+  // actions do.
+  column: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    inlineSize: '240px',
+    maxInlineSize: '100%',
+  },
   inline: {
     alignItems: 'flex-end',
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.lg,
   },
-  // Narrower than the long label on one line, so it wraps.
   narrow: {
     alignItems: 'flex-start',
     display: 'flex',
@@ -161,6 +170,20 @@ const LongLabels: Story = {
   ),
 }
 
+// Its own story because a button is often wider than its label: stretched by
+// a column, as here, or given a width. The label sits in the middle either
+// way, and a link wraps its lines centred, as the button form does.
+const FullWidth: Story = {
+  render: () => (
+    <div {...stylex.props(styles.column)}>
+      <Button variant="filled">Label</Button>
+      <Button href="#label" variant="outlined">
+        A label long enough that it wraps onto more lines than one
+      </Button>
+    </div>
+  ),
+}
+
 // A toggle, selected: the tonal pair moved to secondary, and the pill traded
 // for the square corner.
 const Toggle: Story = {
@@ -188,6 +211,7 @@ const WithIcon: Story = {
 export {
   Default,
   Elevated,
+  FullWidth,
   LongLabels,
   Pending,
   Pressed,

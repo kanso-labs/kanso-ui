@@ -148,6 +148,11 @@ const styles = stylex.create({
     fontSize: typography.labelLargeSize,
     fontWeight: typography.labelLargeWeight,
     gap: spacing.sm,
+    // The label in the middle of a button wider than it — one stretched by a
+    // column, or given a width — as the spec draws every button. The label
+    // span is `display: contents`, so its text is a flex item of the button
+    // and would otherwise pack at the start.
+    justifyContent: 'center',
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
     // Never wider than its container, and a label with a word wider than
@@ -156,6 +161,10 @@ const styles = stylex.create({
     maxInlineSize: '100%',
     overflowWrap: 'anywhere',
     position: 'relative',
+    // A wrapped label's lines centred too. A <button> gets this from the
+    // user agent and an <a> does not, so without it the `href` form wrapped
+    // its lines at the start while the button form centred them.
+    textAlign: 'center',
     // `href` makes a button an <a>, and an <a> arrives underlined. Reset
     // here rather than per variant, since every variant sets a colour of
     // its own but none of them touches the rule. Card does the same for the
