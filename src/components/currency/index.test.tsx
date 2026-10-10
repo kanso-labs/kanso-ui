@@ -246,6 +246,69 @@ describe('currency', () => {
     })
   })
 
+  // The text and the tone both come from the amount as printed, so a value
+  // too small to reach a printed digit reads as settled in both: no sign, and
+  // the neutral role. Float residue is the everyday source of one.
+  describe('an amount shown as zero', () => {
+    const shownAsZero = [
+      ['negative zero', -0],
+      ['a debt under half a cent', -0.004],
+      ['a credit under half a cent', 0.004],
+      ['a vanishingly small debt', -1e-7],
+      ['float residue', 0.1 + 0.2 - 0.3],
+    ] as const
+
+    it.each(shownAsZero)('prints %s without a sign', (_case, value) => {
+      expect(setup({ value }).currency.textContent).toBe('$0.00')
+    })
+
+    it.each(shownAsZero)('renders %s in the neutral role', (_case, value) => {
+      const expected = toneColors()
+      const { currency } = setup({ value })
+      expect(getComputedStyle(currency).color).toBe(expected.neutral)
+    })
+
+    // `always` signs every amount it prints except a zero, which is neither
+    // a credit nor a debt.
+    it.each([
+      [-0.004, '$0.00'],
+      [0.004, '$0.00'],
+      [-12.5, `${String.fromCodePoint(MINUS_SIGN)}$12.50`],
+    ])('signs %s as %s when told to always show the sign', (value, text) => {
+      expect(setup({ sign: 'always', value }).currency.textContent).toBe(text)
+    })
+
+    it('reads as neutral when told to always show the sign', () => {
+      const expected = toneColors()
+      const { currency } = setup({ sign: 'always', value: -0.004 })
+      expect(getComputedStyle(currency).color).toBe(expected.neutral)
+    })
+
+    // Half a cent rounds up to a cent, which is an amount: the boundary sits
+    // where the printed digits stop being zeros, not at the raw value.
+    it.each([
+      [0.005, '$0.01', 'positive'],
+      [-0.005, `${String.fromCodePoint(MINUS_SIGN)}$0.01`, 'negative'],
+    ] as const)('keeps the sign of %s, printed as %s', (value, text, tone) => {
+      const expected = toneColors()
+      const { currency } = setup({ value })
+      expect(currency.textContent).toBe(text)
+      expect(getComputedStyle(currency).color).toBe(expected[tone])
+    })
+
+    // Where zero falls follows the currency's own minor units: a yen has
+    // none, so 0.4 prints as zero and 0.6 as one.
+    it.each([
+      [0.4, '￥0', 'neutral'],
+      [0.6, '￥1', 'positive'],
+    ] as const)('reads %s yen, printed as %s, as %s', (value, text, tone) => {
+      const expected = toneColors()
+      const { currency } = setup({ currency: 'JPY', locale: 'ja-JP', value })
+      expect(currency.textContent).toBe(text)
+      expect(getComputedStyle(currency).color).toBe(expected[tone])
+    })
+  })
+
   // The formatters are cached on the three options that decide one, so these
   // cover both halves of that: that the cache is reached at all, and that its
   // key does not collapse two option sets into one. A wrong key would serve

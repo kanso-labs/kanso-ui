@@ -64,12 +64,16 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * prefixes positives with a plus, and `never` shows neither — which leaves
    * colour as the only thing separating a credit from a debt, so reach for it
    * only where the direction is already stated some other way.
+   *
+   * An amount that shows as zero carries no sign under any of them, since
+   * there is nothing owed or owing: `-0.004` reads `$0.00`, not `−$0.00`.
    * @default 'auto'
    */
   sign?: CurrencySignDisplay
   /**
-   * Which colour role to render in. `auto` follows the sign of `value`, with
-   * zero reading as neutral.
+   * Which colour role to render in. `auto` follows the sign of the amount as
+   * it is shown, so one that rounds to zero — float residue, or a fraction
+   * of a cent — reads as neutral rather than as a gain or a debt.
    *
    * The positive and negative roles are guaranteed legible on the surface
    * family, which is what the library's own tokens and every demo scheme are
@@ -117,21 +121,26 @@ function Currency({
   // would not match.
   const provided = useLocale().locale
 
+  const amount = formatCurrency(value, {
+    currency,
+    fallbackLocale: provided,
+    // An empty string asks for the provider's locale as `undefined` does —
+    // it is what clearing a locale control leaves — rather than reaching the
+    // formatter as a tag it rejects.
+    locale: locale === undefined || locale === '' ? provided : locale,
+    sign,
+  })
+
   return useRender({
     defaultTagName: 'span',
     props: {
       ...props,
-      children: formatCurrency(value, {
-        currency,
-        fallbackLocale: provided,
-        // An empty string asks for the provider's locale as `undefined` does
-        // — it is what clearing a locale control leaves — rather than reaching
-        // the formatter as a tag it rejects.
-        locale: locale === undefined || locale === '' ? provided : locale,
-        sign,
-      }),
+      children: amount.text,
       ...mergeStyles(
-        stylex.props(styles.base, tones[resolveTone(value, tone)]),
+        stylex.props(
+          styles.base,
+          tones[resolveTone(value, tone, amount.shownAsZero)],
+        ),
         props,
       ),
     },
@@ -187,12 +196,34 @@ function formatCurrency(
     options.sign,
     options.fallbackLocale,
   )
-  const amount = formatter
-    .formatToParts(value)
+  const parts = formatter.formatToParts(value)
+  const amount = parts
     .map((part) => (part.type === 'minusSign' ? MINUS_SIGN : part.value))
     .join('')
-  return code === null || code === '' ? amount : `${amount} ${code}`
+  return {
+    // Whether every digit shown is a zero, which is what the tone reads
+    // rather than the raw value: the two never saw the same number before.
+    shownAsZero: parts.every(
+      (part) =>
+        (part.type !== 'integer' && part.type !== 'fraction') ||
+        /^0+$/.test(part.value),
+    ),
+    text: code === null || code === '' ? amount : `${amount} ${code}`,
+  }
 }
+
+// The sign each setting asks Intl for. `negative` and `exceptZero` are the
+// forms that leave a zero bare, which `auto` and `always` do not: they put a
+// minus on any negative input, and a plus on any positive one, including
+// those that round to a displayed zero.
+const SIGN_DISPLAY = {
+  always: 'exceptZero',
+  auto: 'negative',
+  never: 'never',
+} as const satisfies Record<
+  CurrencySignDisplay,
+  Intl.NumberFormatOptions['signDisplay']
+>
 
 // A component that only shows an amount must not take the page down with it,
 // and `new Intl.NumberFormat` throws for a malformed locale (`xx_YY`, an
@@ -226,7 +257,7 @@ function formatterFor(
       code: null,
       formatter: new Intl.NumberFormat(usable, {
         currency,
-        signDisplay: sign,
+        signDisplay: SIGN_DISPLAY[sign],
         style: 'currency',
       }),
     }
@@ -236,7 +267,7 @@ function formatterFor(
       formatter: new Intl.NumberFormat(usable, {
         maximumFractionDigits: 2,
         minimumFractionDigits: 2,
-        signDisplay: sign,
+        signDisplay: SIGN_DISPLAY[sign],
       }),
     }
   }
@@ -254,12 +285,15 @@ function isLocale(tag: string) {
   }
 }
 
-// Zero is neither owed nor owing, so it takes the neutral role rather than
-// being forced into one of the two. Negative zero lands here too, which is
-// what a rounded-away debt should read as.
-function resolveTone(value: number, tone: CurrencyTone) {
+// An amount shown as zero is neither owed nor owing, so it takes the neutral
+// role whatever the raw value's sign: negative zero, a rounded-away debt and
+// float residue all read as settled. Otherwise the sign decides.
+function resolveTone(value: number, tone: CurrencyTone, shownAsZero: boolean) {
   if (tone !== 'auto') {
     return tone
+  }
+  if (shownAsZero) {
+    return 'neutral'
   }
   if (value > 0) {
     return 'positive'
