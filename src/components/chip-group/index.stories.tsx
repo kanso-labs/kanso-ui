@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react'
 import { expect, waitFor } from 'storybook/test'
 
 import ChipGroup from '.'
+import Text from '../text'
 
 const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
@@ -67,7 +68,11 @@ const ITEMS = [
 ]
 
 function emptyState() {
-  return 'Empty state'
+  return (
+    <Text tone="muted" variant="bodyMedium">
+      Empty state
+    </Text>
+  )
 }
 
 function Removable() {
@@ -213,7 +218,10 @@ const EmptyState: Story = {
     await waitFor(async () => {
       await expect(canvas.queryByRole('row')).not.toBeInTheDocument()
     })
-    const list = canvas.getByText('Empty state')
+    const list = canvas.getByText('Empty state').parentElement
+    if (list === null) {
+      throw new Error('expected the empty state to sit in the list')
+    }
     await waitFor(async () => {
       await expect(document.activeElement).toBe(list)
     })
