@@ -3,6 +3,7 @@ import type { ReactNode, SyntheticEvent } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { Text } from 'react-aria-components'
 
+import { RequiredMark } from '../field'
 import { fieldChromeStyles } from '../field/styles'
 import { controlStyles } from './styles'
 
@@ -14,6 +15,12 @@ type ControlDescriptionProps = {
 type ControlLabelProps = {
   /** The label's text. Nothing renders when there is none. */
   children: ReactNode
+  /**
+   * Whether the control must be chosen, which ends the label in the asterisk
+   * every required field's label ends in.
+   * @default false
+   */
+  isRequired?: boolean
   /** The render state React Aria hands the component. */
   state: ControlLabelState
 }
@@ -75,7 +82,11 @@ const INTERACTIVE =
  * A link or a button inside it acts on its own rather than toggling the
  * control — see `keepToInteractive`.
  */
-function ControlLabel({ children, state }: ControlLabelProps) {
+function ControlLabel({
+  children,
+  isRequired = false,
+  state,
+}: ControlLabelProps) {
   if (children === undefined) {
     return null
   }
@@ -101,6 +112,7 @@ function ControlLabel({ children, state }: ControlLabelProps) {
       )}
     >
       {children}
+      {isRequired ? <RequiredMark /> : null}
     </span>
   )
 }

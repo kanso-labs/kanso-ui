@@ -33,6 +33,9 @@ import { colors } from '../tokens/design.tokens.stylex'
 const OPTION = <ListBox.Item id="first">First item</ListBox.Item>
 
 const FIELDS: Record<string, (isRequired: boolean) => ReactElement> = {
+  // A checkbox on its own, as an "accept the terms" box is: its label is the
+  // control's own rather than a field's, and was never marked.
+  Checkbox: (isRequired) => <Checkbox isRequired={isRequired}>Label</Checkbox>,
   CheckboxGroup: (isRequired) => (
     <CheckboxGroup isRequired={isRequired} label="Label">
       <Checkbox value="first">First item</Checkbox>
@@ -112,6 +115,7 @@ describe('a required field', () => {
   // The mark is hidden, so the control's name is the label alone — read
   // once, with no "star" on the end.
   it.each([
+    ['Checkbox', 'checkbox'],
     ['TextField', 'textbox'],
     ['ComboBox', 'combobox'],
     ['RadioGroup', 'radiogroup'],
@@ -120,6 +124,21 @@ describe('a required field', () => {
     const view = render(FIELDS[name](true))
 
     expect(view.getByRole(role, { name: 'Label' })).not.toBeNull()
+  })
+
+  // The group is what must have a choice made in it, and its label carries
+  // the mark; an item marked as well would say every option is required —
+  // even one given `isRequired` of its own, which React Aria hands its state.
+  it('leaves a checkbox in a required group unmarked', () => {
+    const view = render(
+      <CheckboxGroup isRequired label="Group">
+        <Checkbox isRequired value="first">
+          Label
+        </Checkbox>
+      </CheckboxGroup>,
+    )
+
+    expect(markOf(labelOf(view))).toBeNull()
   })
 
   // In the label rather than beside it, so it takes the label's colour —

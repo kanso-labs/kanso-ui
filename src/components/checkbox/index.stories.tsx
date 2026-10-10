@@ -90,11 +90,18 @@ const WithLink: Story = {
   args: { children: AGREEMENT },
 }
 
+// A checkbox that must be ticked, as an "accept the terms" box is: its label
+// ends in the asterisk every required field's label ends in.
+const Required: Story = {
+  args: { isRequired: true },
+}
+
 export {
   Default,
   Disabled,
   Indeterminate,
   LongLabel,
+  Required,
   Selected,
   WithDescription,
   WithError,

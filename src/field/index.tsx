@@ -1090,6 +1090,14 @@ function FieldMessage({
   )
 }
 
+/**
+ * The same asterisk for a label that is not a field's own — a checkbox's, a
+ * switch's — so every required control is marked by one element.
+ */
+function RequiredMark() {
+  return REQUIRED_MARK
+}
+
 // The count in the reader's digits and grouping, as React Aria writes a
 // number field's value and a meter's percentage beside it — Arabic-Indic
 // under ar-EG, `1 200` under fr-FR, and `1,200` in English. One formatter per
@@ -1132,4 +1140,5 @@ export {
   FieldTextArea,
   FieldTrigger,
   FieldValue,
+  RequiredMark,
 }
