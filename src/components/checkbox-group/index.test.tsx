@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import CheckboxGroup from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
 import Checkbox from '../checkbox'
+import Form from '../form'
 
 // The same declarations the checkbox writes for its states — see
 // checkbox/index.test.tsx for the pattern.
@@ -59,6 +60,37 @@ function setup(props: Partial<Parameters<typeof CheckboxGroup>[0]> = {}) {
     second: view.getByRole('checkbox', { name: 'Second item' }),
   }
 }
+
+// The group owns the one message its items can have, and keeps the one line
+// for it in a form. Each item kept a line of its own as well, so a group in a
+// form stood a line taller at every item.
+describe('checkbox group in a form', () => {
+  it('keeps one line under the group and none under its items', () => {
+    const view = render(
+      <Form>
+        <CheckboxGroup label="Label">
+          <Checkbox value="first">First item</Checkbox>
+          <Checkbox value="second">Second item</Checkbox>
+          <Checkbox value="third">Third item</Checkbox>
+        </CheckboxGroup>
+        <p>After the group</p>
+      </Form>,
+    )
+    const tops = ['First item', 'Second item', 'Third item'].map(
+      (label) => view.getByText(label).getBoundingClientRect().top,
+    )
+    const last = view
+      .getByText('Third item')
+      .closest('label')
+      ?.getBoundingClientRect()
+    const after = view.getByText('After the group').getBoundingClientRect()
+
+    expect([tops[1] - tops[0], tops[2] - tops[1]]).toEqual([40, 40])
+    // The group's own line, 4dp above a 16dp line of type, after its last
+    // item.
+    expect(after.top - (last?.bottom ?? 0)).toBeGreaterThanOrEqual(20)
+  })
+})
 
 describe('checkbox group', () => {
   describe('semantics', () => {

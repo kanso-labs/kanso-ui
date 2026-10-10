@@ -7,7 +7,12 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { CheckboxButton, CheckboxField } from 'react-aria-components'
+import { useContext } from 'react'
+import {
+  CheckboxButton,
+  CheckboxField,
+  CheckboxGroupStateContext,
+} from 'react-aria-components'
 
 import { ControlLabel } from '../../control'
 import { controlStyles } from '../../control/styles'
@@ -265,6 +270,20 @@ function Checkbox({
 
   const validationBehavior = useFieldValidationBehavior()
 
+  // Whether a message can ever reach this checkbox, which is what a form
+  // keeps an empty line under a field for. One in a group cannot — the
+  // group owns the one message and keeps its own line for it — and one on
+  // its own can only where something can find it wanting: a requirement, a
+  // check of its own, or a name a form's errors can be keyed by. Without
+  // this every checkbox in a form sat a line taller than it draws, and a
+  // group of them in a form gained a line after every item.
+  const inGroup = useContext(CheckboxGroupStateContext) !== null
+  const reachable =
+    !inGroup &&
+    (props.isRequired === true ||
+      props.validate !== undefined ||
+      props.name !== undefined)
+
   return (
     <CheckboxField
       isInvalid={invalidFrom(error)}
@@ -276,7 +295,12 @@ function Checkbox({
         {buttonContent(children, ripple)}
       </CheckboxButton>
       <div {...stylex.props(controlStyles.messages)}>
-        <FieldMessage description={description} error={error} inset={false} />
+        <FieldMessage
+          description={description}
+          error={error}
+          inset={false}
+          reserve={reachable}
+        />
       </div>
     </CheckboxField>
   )

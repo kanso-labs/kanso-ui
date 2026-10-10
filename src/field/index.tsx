@@ -230,6 +230,14 @@ interface FieldMessageProps {
   inset?: boolean
   /** The limit the count is shown against. */
   maxLength?: number | undefined
+  /**
+   * Whether an empty line is kept inside a `Form`, where a message can
+   * arrive after the fact. Off for a field no message can reach — a
+   * checkbox in a group, whose group owns the one line — which would
+   * otherwise keep a line nothing will ever fill.
+   * @default true
+   */
+  reserve?: boolean
 }
 
 type FieldTextAreaProps = TextAreaProps & {
@@ -926,6 +934,7 @@ function FieldMessage({
   errorId,
   inset = true,
   maxLength,
+  reserve = true,
 }: FieldMessageProps) {
   const validation = useContext(FieldErrorContext)
   const invalid = error !== undefined || (validation?.isInvalid ?? false)
@@ -965,7 +974,12 @@ function FieldMessage({
   // it. The line is one line of type plus the 4dp above it, so drawing it
   // for something nobody can see would make a field with a limit taller than
   // the same field without one.
-  if (!invalid && description === undefined && !characterCount && !insideForm) {
+  if (
+    !invalid &&
+    description === undefined &&
+    !characterCount &&
+    !(insideForm && reserve)
+  ) {
     return hidden
   }
 

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Checkbox from '.'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import Form from '../form'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -280,6 +281,50 @@ function focusByKeyboard(element: HTMLElement) {
     element.focus()
   })
 }
+
+// How far each label sits below the one before it, which is the height a
+// stacked checkbox takes.
+function pitches(view: ReturnType<typeof render>, labels: string[]) {
+  const tops = labels.map(
+    (label) => view.getByText(label).getBoundingClientRect().top,
+  )
+  return tops.slice(1).map((top, index) => top - (tops[index] ?? 0))
+}
+
+// A form keeps an empty line under a field a message can reach after the
+// fact, so the fields below do not move when it does. A checkbox nothing can
+// find wanting gets no message, and took the line anyway.
+describe('in a form', () => {
+  it('keeps no empty line under a checkbox no message can reach', () => {
+    const view = render(
+      <Form>
+        <Checkbox>First item</Checkbox>
+        <Checkbox>Second item</Checkbox>
+        <Checkbox>Third item</Checkbox>
+      </Form>,
+    )
+
+    expect(pitches(view, ['First item', 'Second item', 'Third item'])).toEqual([
+      40, 40,
+    ])
+  })
+
+  // A name is what a form's errors are keyed by, and a requirement is what
+  // the browser checks on submit, so either can bring a message.
+  it.each([
+    ['named', { name: 'first' }],
+    ['required', { isRequired: true }],
+  ] as const)('keeps the line under a %s checkbox', (_kind, props) => {
+    const view = render(
+      <Form>
+        <Checkbox {...props}>First item</Checkbox>
+        <Checkbox>Second item</Checkbox>
+      </Form>,
+    )
+
+    expect(pitches(view, ['First item', 'Second item'])).toEqual([60])
+  })
+})
 
 describe('focus layer', () => {
   it.each([
