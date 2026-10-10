@@ -28,7 +28,11 @@ import { motionDurationMs } from '../../tokens/values'
 // assertion pins the role rather than the numbers it resolves to today.
 // Narrower than a long label on one line at every size, so it has to wrap.
 const layoutProbeStyles = stylex.create({
+  // Wider than a short label by far, which is what a column stretches a
+  // button to.
+  fill: { inlineSize: '100%' },
   narrow: { inlineSize: '240px' },
+  wide: { inlineSize: '300px' },
 })
 
 const typeProbeStyles = stylex.create({
@@ -1078,6 +1082,82 @@ describe('a label longer than one line', () => {
       expect(box.height).toBeGreaterThan(height)
       expect(text.top).toBeGreaterThan(box.top)
       expect(text.bottom).toBeLessThan(box.bottom)
+    },
+  )
+})
+
+// How far each line of the label sits in from either side of the control,
+// read off a range over the label's own text node: the flex item it sits in
+// can be as wide as the button, and the control also holds the ripple's
+// surface, which covers the whole of it.
+function lineInsets(control: HTMLElement, label: string) {
+  const walker = document.createTreeWalker(control, NodeFilter.SHOW_TEXT)
+  let node = walker.nextNode()
+  while (node !== null && node.textContent !== label) {
+    node = walker.nextNode()
+  }
+  if (node === null) {
+    throw new Error(`expected a text node reading "${label}"`)
+  }
+
+  const range = document.createRange()
+  range.selectNodeContents(node)
+  const outer = control.getBoundingClientRect()
+  return [...range.getClientRects()].map((line) => ({
+    end: outer.right - line.right,
+    start: line.left - outer.left,
+  }))
+}
+
+describe('a button wider than its label', () => {
+  const LONG = 'A label long enough that it wraps onto more lines than one'
+
+  // Stretched by a column or given a width, a button draws its label in the
+  // middle, as the spec draws every button.
+  it.each([
+    ['button', {}],
+    ['link', { href: '#label' }],
+  ] as const)('centres a short label, as a %s', (role, props) => {
+    const view = render(
+      <div {...stylex.props(layoutProbeStyles.wide)}>
+        <Button {...props} {...stylex.props(layoutProbeStyles.fill)}>
+          Label
+        </Button>
+      </div>,
+    )
+    const control = view.getByRole(role)
+    const lines = lineInsets(control, 'Label')
+
+    expect(control.getBoundingClientRect().width).toBe(300)
+    expect(getComputedStyle(control).justifyContent).toBe('center')
+    expect(lines).toHaveLength(1)
+    for (const line of lines) {
+      expect(line.start).toBeGreaterThan(100)
+      expect(Math.abs(line.start - line.end)).toBeLessThan(1)
+    }
+  })
+
+  // A <button> centres wrapped lines from the user agent and an <a> does
+  // not, so the two forms of one component wrapped differently.
+  it.each([
+    ['button', {}],
+    ['link', { href: '#label' }],
+  ] as const)(
+    'centres every line of a wrapped label, as a %s',
+    (role, props) => {
+      const view = render(
+        <div {...stylex.props(layoutProbeStyles.narrow)}>
+          <Button {...props}>{LONG}</Button>
+        </div>,
+      )
+      const control = view.getByRole(role)
+      const lines = lineInsets(control, LONG)
+
+      expect(getComputedStyle(control).textAlign).toBe('center')
+      expect(lines.length).toBeGreaterThan(1)
+      for (const line of lines) {
+        expect(Math.abs(line.start - line.end)).toBeLessThan(1)
+      }
     },
   )
 })
