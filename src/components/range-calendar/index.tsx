@@ -45,21 +45,24 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // width of its cell, so one day's band meets the next one's. Without it the
 // band arrives as a dashed run of separate blocks.
 
-type RangeCalendarProps<T extends DateValue = DateValue> = Omit<
-  RACRangeCalendarProps<T>,
-  'children' | 'className' | 'style'
-> & {
+type RangeCalendarProps<T extends DateValue = DateValue> = {
   /** A function may compute the class from the calendar's render state. */
   className?: RACRangeCalendarProps<T>['className']
   /**
    * Whether the header draws the month and the year as menu buttons, each
-   * opening a list of them in the grid's place, as `Calendar`'s does.
+   * opening a list of them in the grid's place, as `Calendar`'s does. The
+   * year list runs a century either side of the year shown, or to
+   * `minValue` and `maxValue` where they are closer.
+   *
+   * For one visible month. With `visibleDuration` of more than one, the
+   * header is the plain one, whose heading names every month shown — the
+   * menus name only the first, which would leave the others unlabelled.
    * @default false
    */
   showMonthYearMenus?: boolean
   /** A function may compute the style from the calendar's render state. */
   style?: RACRangeCalendarProps<T>['style']
-}
+} & Omit<RACRangeCalendarProps<T>, 'children' | 'className' | 'style'>
 
 // A date's classes, from React Aria's render state. StyleX cannot target
 // `[data-selected]` on the element it is styling, so the state comes from
@@ -155,7 +158,10 @@ function RangeCalendar<T extends DateValue>({
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarFrame showMonthYearMenus={showMonthYearMenus}>
+      <CalendarFrame
+        months={props.visibleDuration?.months ?? 1}
+        showMonthYearMenus={showMonthYearMenus}
+      >
         <div {...stylex.props(calendarStyles.months)}>
           {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
             <RACCalendarGrid

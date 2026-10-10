@@ -7,7 +7,6 @@ import * as stylex from '@stylexjs/stylex'
 import {
   useCallback,
   useContext,
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -50,20 +49,34 @@ type MenuPicker = {
 
 type OpenMenu = 'month' | 'year'
 
+// How many years the open year list holds: a century either side of the year
+// shown, and that year. Material Design's own list scrolls a whole range of
+// years rather than a window that moves with each choice, and Compose's
+// default range is two centuries. Bounds cut it short where they fall inside.
+const LISTED_YEARS = 201
+
 /**
  * What a calendar draws above its months, and the months themselves. With
  * `showMonthYearMenus` the header is the date pickers page's docked one —
  * the month and the year as menu buttons — and while either is open its list
  * takes the months' place.
+ *
+ * The menus are for one visible month. They name and pick the first month
+ * alone, so a second grid beside it would have no visible month or year of
+ * its own; with more than one month the header is the plain one, whose
+ * heading names the whole range, both years included where it spans two.
  */
 function CalendarFrame({
   children,
+  months,
   showMonthYearMenus,
 }: {
   children: ReactNode
+  /** How many months the calendar shows side by side. */
+  months: number
   showMonthYearMenus: boolean
 }): ReactElement {
-  if (showMonthYearMenus) {
+  if (showMonthYearMenus && months <= 1) {
     return <CalendarMenus>{children}</CalendarMenus>
   }
 
@@ -129,9 +142,10 @@ function calendarHeaderCell(day: string): ReactElement {
  *
  * The lists are React Aria's month and year pickers, rendered twice: the
  * header names the month short, as the page's button does, and the list in
- * full. The year list holds the years `minValue` and `maxValue` allow and no
- * others, which React Aria bounds itself; a month with no day inside them is
- * disabled here.
+ * full. The year list runs a century either side of the year shown — React
+ * Aria's own default is ten, which took several passes through the list to
+ * reach a date of birth — and `minValue` and `maxValue` cut it short, which
+ * React Aria does itself. A month with no day inside them is disabled here.
  */
 function CalendarMenus({ children }: { children: ReactNode }): ReactElement {
   const single = useContext(CalendarStateContext)
@@ -235,12 +249,40 @@ function CalendarMenus({ children }: { children: ReactNode }): ReactElement {
         </RACCalendarMonthPicker>
       ) : null}
       {open === 'year' ? (
-        <RACCalendarYearPicker>
+        <RACCalendarYearPicker visibleYears={LISTED_YEARS}>
           {(picker) => <MenuList id={listId} onClose={close} picker={picker} />}
         </RACCalendarYearPicker>
       ) : null}
     </>
   )
+}
+
+/**
+ * Scrolls an open list so its checked entry sits in the middle, as the page
+ * draws it, with the entries either side of it in view. React Aria scrolls
+ * the entry it focuses only as far as the nearest edge, which left the year
+ * shown at the bottom with every later year out of sight; with it already
+ * centred, that scroll has nothing to do.
+ *
+ * A ref on the checked entry's check rather than an effect on the list,
+ * because React Aria builds its entries in a render of its own, after the
+ * list's effects have run: the ref is called as the entry is attached,
+ * before the first paint, so the list never draws a frame at its top and
+ * then jumps. The list's own scroll alone moves, where `scrollIntoView` would
+ * move the page around it too. A check rendered anywhere but an attached
+ * list — React Aria renders its entries once out of the document to collect
+ * them — finds no list and does nothing.
+ */
+function centreInList(check: null | SVGSVGElement) {
+  const entry = check?.closest('[role="option"]')
+  const list = check?.closest('[role="listbox"]')
+  if (!(entry instanceof HTMLElement) || !(list instanceof HTMLElement)) {
+    return
+  }
+  list.scrollTop +=
+    entry.getBoundingClientRect().top -
+    list.getBoundingClientRect().top -
+    (list.clientHeight - entry.offsetHeight) / 2
 }
 
 // A chevron's classes, from React Aria's own render state. React Aria
@@ -367,7 +409,10 @@ function menuEntryContent(label: string) {
   return ({ isSelected }: { isSelected: boolean }) => (
     <>
       {isSelected ? (
-        <CheckGlyph {...stylex.props(calendarStyles.menuCheck)} />
+        <CheckGlyph
+          ref={centreInList}
+          {...stylex.props(calendarStyles.menuCheck)}
+        />
       ) : (
         <span {...stylex.props(calendarStyles.menuCheck)} />
       )}
@@ -426,7 +471,6 @@ function MenuList({
   onClose: () => void
   picker: MenuPicker
 }): ReactElement {
-  const list = useRef<HTMLDivElement>(null)
   const selected = useMemo(() => [picker.value], [picker.value])
   const choose = useCallback(
     (keys: Selection) => {
@@ -442,30 +486,6 @@ function MenuList({
     [onClose, picker],
   )
 
-  // The checked entry opens in the middle of the list, as the page draws it,
-  // with the entries either side of it in view. React Aria scrolls the entry
-  // it focuses only as far as the nearest edge, which left the year shown at
-  // the bottom with every later year out of sight. A frame after opening,
-  // since React Aria renders its entries a render after the list mounts and
-  // scrolls once it has; and the list's own scroll alone moves, where
-  // `scrollIntoView` would move the page around it too.
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      const element = list.current
-      const checked = element?.querySelector('[aria-selected="true"]')
-      if (element == null || !(checked instanceof HTMLElement)) {
-        return
-      }
-      element.scrollTop +=
-        checked.getBoundingClientRect().top -
-        element.getBoundingClientRect().top -
-        (element.clientHeight - checked.offsetHeight) / 2
-    })
-    return () => {
-      cancelAnimationFrame(frame)
-    }
-  }, [])
-
   return (
     <RACListBox
       aria-label={picker['aria-label']}
@@ -475,7 +495,6 @@ function MenuList({
       id={id}
       items={picker.items}
       onSelectionChange={choose}
-      ref={list}
       selectedKeys={selected}
       selectionMode="single"
       // On the release rather than the press, so the pointer is done with the

@@ -15,6 +15,9 @@ import { CalendarDate, getLocalTimeZone, today } from '../../date'
 // date, since what it shows is the outline today carries.
 const SEPTEMBER = new CalendarDate(2026, 9, 15)
 const FEBRUARY = new CalendarDate(2026, 2, 15)
+// December 2025, so a two-month view crosses into a second year and still
+// lies wholly before today.
+const DECEMBER = new CalendarDate(2025, 12, 15)
 const MAX = new CalendarDate(2026, 9, 24)
 const MIN = new CalendarDate(2026, 9, 8)
 const VISIBLE_TWO = { months: 2 }
@@ -85,11 +88,36 @@ const MonthList: Story = {
   },
 }
 
+// The menus asked for beside a second month. They name only the first, so
+// the header is the plain one instead, whose heading names both months and
+// both years.
+const TwoMonthsWithMenus: Story = {
+  args: {
+    defaultValue: DECEMBER,
+    showMonthYearMenus: true,
+    visibleDuration: VISIBLE_TWO,
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getAllByRole('grid')).toHaveLength(2)
+    await expect(
+      canvas.queryByRole('button', { name: /month$/ }),
+    ).not.toBeInTheDocument()
+  },
+}
+
 function isWeekend(date: DateValue) {
   const day = date.toDate(getLocalTimeZone()).getDay()
   return day === 0 || day === 6
 }
 
-export { Bounded, Default, MonthAndYearMenus, MonthList, Today, TwoMonths }
+export {
+  Bounded,
+  Default,
+  MonthAndYearMenus,
+  MonthList,
+  Today,
+  TwoMonths,
+  TwoMonthsWithMenus,
+}
 
 export default meta

@@ -45,8 +45,9 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // side of it that step a year, which would need two names React Aria has no
 // message for — the library writes a word of its own only behind a prop that
 // can replace it, and it would take a pair on four components. The year list
-// reaches any year the bounds allow in one press, and Shift with Page Up or
-// Page Down steps a year from the keyboard.
+// reaches any year within a century of the one shown in one press, or any
+// the bounds allow where they are closer, and Shift with Page Up or Page
+// Down steps a year from the keyboard.
 //
 // **The cell is a circle in a square.** The page gives the date a 48dp
 // container and a 40dp state layer, which is a 40dp circle with 4dp of room
@@ -72,23 +73,26 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // the slot would put two buttons where the page draws one. The chevrons take
 // the standard icon button's 40dp square and its state layer instead.
 
-type CalendarProps<T extends DateValue = DateValue> = Omit<
-  RACCalendarProps<T>,
-  'children' | 'className' | 'style'
-> & {
+type CalendarProps<T extends DateValue = DateValue> = {
   /** A function may compute the class from the calendar's render state. */
   className?: RACCalendarProps<T>['className']
   /**
    * Whether the header draws the month and the year as menu buttons, each
    * opening a list of them in the grid's place, as the docked date picker's
    * header does, rather than one heading between the chevrons. For a date
-   * far from the one shown, such as a date of birth.
+   * far from the one shown, such as a date of birth: the year list runs a
+   * century either side of the year shown, or to `minValue` and `maxValue`
+   * where they are closer.
+   *
+   * For one visible month. With `visibleDuration` of more than one, the
+   * header is the plain one, whose heading names every month shown — the
+   * menus name only the first, which would leave the others unlabelled.
    * @default false
    */
   showMonthYearMenus?: boolean
   /** A function may compute the style from the calendar's render state. */
   style?: RACCalendarProps<T>['style']
-}
+} & Omit<RACCalendarProps<T>, 'children' | 'className' | 'style'>
 
 /**
  * A month calendar for picking a date. The value is React Aria's: pass
@@ -120,7 +124,10 @@ function Calendar<T extends DateValue>({
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarFrame showMonthYearMenus={showMonthYearMenus}>
+      <CalendarFrame
+        months={props.visibleDuration?.months ?? 1}
+        showMonthYearMenus={showMonthYearMenus}
+      >
         <div {...stylex.props(calendarStyles.months)}>
           {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
             <RACCalendarGrid

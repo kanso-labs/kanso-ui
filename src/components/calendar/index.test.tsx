@@ -77,6 +77,7 @@ function probe(style: stylex.StyleXStyles) {
 // 2026 begins on a Tuesday and runs 30 days, which is five weeks with days
 // from August and October filling the ends.
 const SEPTEMBER = new CalendarDate(2026, 9, 15)
+const DECEMBER = new CalendarDate(2026, 12, 15)
 
 // The three lengths a month grid comes in, and 2026 has all of them.
 // February is the short end at four weeks, September the ordinary five, and
@@ -818,6 +819,56 @@ describe('calendar', () => {
       expect(
         Math.abs(year.top + year.height / 2 - (list.top + list.height / 2)),
       ).toBeLessThanOrEqual(1)
+    })
+
+    // Before the first paint rather than a frame after it, so the list never
+    // draws itself at its top and then jumps. No frame is let pass here.
+    it('centres the year shown before the list first paints', () => {
+      const view = render(<Menus />)
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+
+      const list = view.getByRole('listbox').getBoundingClientRect()
+      const year = view
+        .getByRole('option', { name: '2026' })
+        .getBoundingClientRect()
+      expect(
+        Math.abs(year.top + year.height / 2 - (list.top + list.height / 2)),
+      ).toBeLessThanOrEqual(1)
+    })
+
+    // A date of birth is decades from today. React Aria's own list is ten
+    // years either side, and moved by ten with each choice.
+    it('lists a century either side of the year shown in one open', () => {
+      const view = render(<Menus />)
+
+      fireEvent.click(view.getByRole('button', { name: '2026 year' }))
+      const years = view
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+
+      expect(years).toHaveLength(201)
+      expect(years.at(0)).toBe('1926')
+      expect(years).toContain('1990')
+      expect(years.at(-1)).toBe('2126')
+    })
+
+    // The menus name only the first month, so beside a second grid the
+    // header is the plain one, whose heading names the range — both years
+    // where it crosses one.
+    it('labels every month when more than one is shown', () => {
+      const view = render(
+        <Menus defaultValue={DECEMBER} visibleDuration={VISIBLE_TWO} />,
+      )
+      const heading = [
+        ...view.container.querySelectorAll('h1, h2, h3, h4, h5, h6'),
+      ].find((element) => element.textContent.includes('January'))
+
+      expect(view.getAllByRole('grid')).toHaveLength(2)
+      expect(view.queryByRole('button', { name: /month$/ })).toBeNull()
+      expect(heading?.textContent).toMatch(/December 2026/)
+      expect(heading?.textContent).toMatch(/January 2027/)
+      expect(heading?.checkVisibility()).toBe(true)
     })
 
     it('lists only the years the bounds allow', () => {
