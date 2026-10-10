@@ -1,3 +1,5 @@
+import type { MockInstance } from 'vitest'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, render, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -382,14 +384,49 @@ describe('copyField', () => {
     })
   })
 
+  // A refusal used to leave the button at rest and the region silent, and
+  // the value unselected, so the reader was left with nothing. The field now
+  // selects the value and tries the older copy command on it; this stub is
+  // that command, refused unless a case says otherwise.
   describe('when the clipboard refuses', () => {
-    it('stays at rest rather than confirming', async () => {
+    // oxlint-disable-next-line typescript/no-deprecated -- the fallback under test
+    let execCommand: MockInstance<Document['execCommand']>
+
+    beforeEach(() => {
+      // oxlint-disable-next-line typescript/no-deprecated -- the fallback under test
+      execCommand = vi.spyOn(document, 'execCommand').mockReturnValue(false)
+    })
+
+    afterEach(() => {
+      execCommand.mockRestore()
+      window.getSelection()?.removeAllRanges()
+    })
+
+    // The button keeps saying Copy: a slot wide enough for the selection's
+    // words would double its width at rest. The selection is what shows.
+    it('selects the value and announces so rather than confirming', async () => {
       install(async () => {
         await Promise.reject(new Error('denied'))
       })
-      const { button } = setup()
+      const { button, status } = setup()
       await click(button)
+
+      expect(window.getSelection()?.toString()).toBe(VALUE)
       expect(buttonNamed(button, 'Copy')).toBe(button)
+      expect(status.textContent).toBe('Selected to copy')
+    })
+
+    it('clears the announcement after the dwell', async () => {
+      install(async () => {
+        await Promise.reject(new Error('denied'))
+      })
+      const { button, status } = setup()
+      await click(button)
+
+      act(() => {
+        vi.advanceTimersByTime(COPIED_RESET_MS)
+      })
+      expect(status.textContent).toBe('')
     })
 
     it('tells the call site nothing was copied', async () => {
@@ -402,9 +439,8 @@ describe('copyField', () => {
       expect(onCopied).not.toHaveBeenCalled()
     })
 
-    // The absence of `onCopied` is not a signal an app can act on, so the
-    // refusal is reported in its own right — otherwise a control that does
-    // nothing cannot be told from one that is broken.
+    // The field's own fallback is the field's, and an app that wants to say
+    // more still hears of the refusal in its own right.
     it('hands the refusal to the call site', async () => {
       const denied = new Error('denied')
       install(async () => {
@@ -432,7 +468,7 @@ describe('copyField', () => {
     // Outside a secure context the clipboard is not there at all, so the
     // throw is a TypeError from reading `writeText` off nothing rather than
     // the DOMException a denied permission gives. Both reach the same place.
-    it('reports a clipboard that is not there at all', async () => {
+    it('falls back where the clipboard is not there at all', async () => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
         value: undefined,
@@ -445,11 +481,31 @@ describe('copyField', () => {
 
       expect(onCopyFailed).toHaveBeenCalledTimes(1)
       expect(onCopied).not.toHaveBeenCalled()
+      expect(window.getSelection()?.toString()).toBe(VALUE)
       expect(buttonNamed(button, 'Copy')).toBe(button)
     })
 
-    // The whole point of reporting it is that the control does not change, so
-    // this pins that reporting did not quietly move the button.
+    // Where the older command still copies, the value is on the clipboard
+    // after all, and that is a copy like any other.
+    it('confirms when the older copy command copies', async () => {
+      execCommand.mockReturnValue(true)
+      install(async () => {
+        await Promise.reject(new Error('denied'))
+      })
+      const onCopied = vi.fn<(value: string) => void>()
+      const onCopyFailed = vi.fn<(error: unknown) => void>()
+      const { button } = setup({ onCopied, onCopyFailed })
+
+      await click(button)
+
+      expect(execCommand).toHaveBeenCalledWith('copy')
+      expect(buttonNamed(button, 'Copied')).toBe(button)
+      expect(onCopied).toHaveBeenCalledWith(VALUE)
+      expect(onCopyFailed).not.toHaveBeenCalled()
+    })
+
+    // The button does not change, which is also why it keeps the width it
+    // had at rest.
     it('leaves the button exactly as it was at rest', async () => {
       install(async () => {
         await Promise.reject(new Error('denied'))
@@ -463,6 +519,29 @@ describe('copyField', () => {
       expect(button.className).toBe(before)
       expect(button.getBoundingClientRect().width).toBe(width)
     })
+
+    it('takes words of its own for the selection', async () => {
+      install(async () => {
+        await Promise.reject(new Error('denied'))
+      })
+      const { button, status } = setup({ selectedLabel: 'Ready to copy' })
+      await click(button)
+
+      expect(status.textContent).toBe('Ready to copy')
+    })
+  })
+
+  // One click selects exactly the value for a reader copying it by hand: a
+  // double-click took one dotted segment, and a triple-click the line break
+  // after it.
+  it('selects the whole value from one click', () => {
+    const { field } = setup()
+    const value = field.querySelector('code')?.parentElement
+    if (!(value instanceof HTMLElement)) {
+      throw new Error('expected the value in a box of its own')
+    }
+
+    expect(getComputedStyle(value).userSelect).toBe('all')
   })
 
   // A button's own label changing is not reliably announced, so the

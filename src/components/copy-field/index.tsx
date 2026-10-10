@@ -88,11 +88,16 @@ const styles = stylex.create({
   // text around it, and the field paints a surface of its own, so the value
   // takes the on surface role that surface pairs with rather than whatever
   // colour the page around the field happens to set.
+  //
+  // One click or tap selects exactly the value, which is what a reader
+  // copying it by hand wants: a double-click took one dotted segment and a
+  // triple-click the line break after it, which a shell runs on paste.
   value: {
     color: colors.onSurface,
     flexGrow: 1,
     fontSize: typography.bodySmallSize,
     minInlineSize: 0,
+    userSelect: 'all',
   },
   // The value is a literal to copy, so it keeps its own direction whatever
   // the page's: left to right, isolated from the text around it. Under a
@@ -139,9 +144,10 @@ type CopyFieldProps = {
    */
   onCopied?: (value: string) => void
   /**
-   * Called when the write is refused, with whatever was thrown. The button
-   * stays at rest, so this is the only signal an app gets — reach for it to
-   * fall back, by selecting the value or saying so in a snackbar.
+   * Called when the write is refused, with whatever was thrown, and the
+   * field's own fallback has not copied the value either. By then the value
+   * is selected and the field says so — see `selectedLabel` — so this is for
+   * an app that wants to say more, in a snackbar say.
    *
    * Takes the error where `onCopied` takes the value, because the value is
    * the one thing the call site already has and the reason is the one thing
@@ -150,6 +156,15 @@ type CopyFieldProps = {
    * permission is denied it is a `DOMException`.
    */
   onCopyFailed?: (error: unknown) => void
+  /**
+   * What is announced when the clipboard refused the write and the value has
+   * been selected for the reader to copy themselves. The button keeps saying
+   * `copyLabel`, since a label slot wide enough for this would double the
+   * button's width at rest; the selection itself is what shows. Left out, it
+   * is the phrase for it in the I18nProvider's locale — "Selected to copy"
+   * in English.
+   */
+  selectedLabel?: string
   /** The text shown, and the text copied. */
   value: string
 } & Omit<HTMLAttributes<HTMLDivElement>, 'children'>
@@ -160,8 +175,11 @@ type CopyFieldProps = {
  * on the button itself.
  *
  * A write refused — outside a secure context, or where the permission is
- * denied — leaves the button at rest rather than confirming, and calls
- * `onCopyFailed`.
+ * denied — does not leave the reader with nothing. The field selects the
+ * value and tries the older copy command, which some of those places still
+ * allow; failing that, the selection is left ready for the keyboard's own
+ * copy, the field announces so, and `onCopyFailed` is called. One click on
+ * the value selects exactly the value too.
  */
 function CopyField({
   copiedLabel: copiedLabelProp,
@@ -169,25 +187,36 @@ function CopyField({
   label,
   onCopied,
   onCopyFailed,
+  selectedLabel: selectedLabelProp,
   value,
   ...props
 }: CopyFieldProps & RefAttributes<HTMLDivElement>) {
   const messages = useMessages()
   const copiedLabel = copiedLabelProp ?? messages.copied
   const copyLabel = copyLabelProp ?? messages.copy
+  const selectedLabel = selectedLabelProp ?? messages.copySelected
   // What the last write put on the clipboard, and how many writes there have
   // been. The confirmation is that text still being the value shown, so a
   // value that changes inside the dwell — a token regenerated, a selection
   // swapped — takes the label back to Copy at once rather than confirming a
   // copy of something else. The count is what lets a second press be
-  // announced, below.
-  const [copy, setCopy] = useState<null | { count: number; text: string }>(null)
-  const copied = copy?.text === value
+  // announced, below. `kind` is whether the text reached the clipboard or
+  // was only selected for the reader to copy, after a refusal.
+  const [copy, setCopy] = useState<null | {
+    count: number
+    kind: 'copied' | 'selected'
+    text: string
+  }>(null)
+  const shown: 'copied' | 'copy' | 'selected' =
+    copy?.text === value ? copy.kind : 'copy'
+  const copied = shown === 'copied'
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const code = useRef<HTMLElement>(null)
   const generatedId = useId()
   const rootId = props.id ?? generatedId
   const copyId = useId()
   const copiedId = useId()
+
   // With a label, the field is a group it names, and the button is named by
   // the label slot on show and then by the group: "Copy Repository URL",
   // then "Copied Repository URL". The slot on show rather than both, since
@@ -209,32 +238,46 @@ function CopyField({
   )
 
   const handleCopy = useCallback(() => {
+    // The component's own state first, the dwell included, and the call
+    // site's handler after it: a handler that threw used to skip the timer,
+    // leaving the button on Copied for good. Its error is still the call
+    // site's to see, raised on its own rather than swallowed.
+    const settle = (kind: 'copied' | 'selected') => {
+      clearTimeout(timer.current)
+      timer.current = setTimeout(() => {
+        setCopy(null)
+      }, COPIED_RESET_MS)
+      setCopy((current) => ({
+        count: (current?.count ?? 0) + 1,
+        kind,
+        text: value,
+      }))
+    }
     const write = async () => {
       try {
         await navigator.clipboard.writeText(value)
       } catch (error) {
         // A clipboard write is refused outside a secure context and wherever
-        // the permission is denied, and neither is something the call site can
-        // fix. Staying at rest is the honest report: the value is not on the
-        // clipboard, so the control must not claim it is.
+        // the permission is denied, neither of which the call site can fix,
+        // and a button that did nothing there left the reader with nothing.
+        // So the value is selected, which is what the keyboard's own copy
+        // acts on, and the older copy command is tried on that selection,
+        // since some of those places still allow it. Only where that fails
+        // too does the field announce that the value is selected — not that
+        // it is copied, which it is not — and report the refusal.
         //
-        // It is reported rather than swallowed, since a control that does
-        // nothing is indistinguishable from one that is broken. Nothing is
-        // logged — the library writes to the console nowhere, and a warning
-        // an app cannot turn off is not its to emit.
-        setCopy(null)
+        // Nothing is logged — the library writes to the console nowhere, and
+        // a warning an app cannot turn off is not its to emit.
+        if (selectAndCopy(code.current)) {
+          settle('copied')
+          reportCopied(onCopied, value)
+          return
+        }
+        settle('selected')
         onCopyFailed?.(error)
         return
       }
-      // The component's own state first, the dwell included, and the call
-      // site's handler after it: a handler that threw used to skip the
-      // timer, leaving the button on Copied for good. Its error is still the
-      // call site's to see, raised on its own rather than swallowed.
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => {
-        setCopy(null)
-      }, COPIED_RESET_MS)
-      setCopy((current) => ({ count: (current?.count ?? 0) + 1, text: value }))
+      settle('copied')
       reportCopied(onCopied, value)
     }
     void write()
@@ -247,7 +290,7 @@ function CopyField({
       {...mergeStyles(stylex.props(styles.root), props)}
     >
       <span {...stylex.props(styles.value)}>
-        <Code dir="ltr" {...stylex.props(styles.valueText)}>
+        <Code dir="ltr" ref={code} {...stylex.props(styles.valueText)}>
           {value}
         </Code>
       </span>
@@ -281,7 +324,11 @@ function CopyField({
           press inside the dwell otherwise left the text as it was and the
           region had nothing to announce. */}
       <output {...stylex.props(styles.announcement)}>
-        {copied ? <span key={copy.count}>{copiedLabel}</span> : null}
+        {copy !== null && shown !== 'copy' ? (
+          <span key={copy.count}>
+            {shown === 'copied' ? copiedLabel : selectedLabel}
+          </span>
+        ) : null}
       </output>
     </div>
   )
@@ -308,6 +355,29 @@ function reportCopied(
     queueMicrotask(() => {
       throw thrown
     })
+  }
+}
+
+/**
+ * Selects the value's text, which is what the keyboard's own copy acts on,
+ * and tries the older copy command on that selection, saying whether it
+ * copied. The command is deprecated, and still the one way to the clipboard
+ * on an insecure origin, which is where the newer one is refused.
+ */
+function selectAndCopy(element: HTMLElement | null) {
+  const selection = window.getSelection()
+  if (element === null || selection === null) {
+    return false
+  }
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  selection.removeAllRanges()
+  selection.addRange(range)
+  try {
+    // oxlint-disable-next-line typescript/no-deprecated -- the one fallback an insecure origin still allows
+    return document.execCommand('copy')
+  } catch {
+    return false
   }
 }
 

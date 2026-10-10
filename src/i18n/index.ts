@@ -9,7 +9,8 @@ import { MESSAGES } from './messages'
 // The words the library writes itself, in the locale React Aria's
 // I18nProvider sets — the same locale every other name a control announces is
 // written in. Each one stands behind a prop that names it otherwise:
-// `pendingLabel`, a LoadMore's `label`, `copyLabel` and `copiedLabel`,
+// `pendingLabel`, a LoadMore's `label`, `copyLabel`, `copiedLabel` and
+// `selectedLabel`,
 // `characterLimitLabel`, the time picker's `cancelLabel`, `confirmLabel`,
 // `selectTimeLabel` and `enterTimeLabel`, and a collection's
 // `renderEmptyState` for its empty row.
@@ -27,6 +28,11 @@ type LibraryMessages = {
   confirm: string
   copied: string
   copy: string
+  /**
+   * What a copy field says when the clipboard refused it and the value has
+   * been selected for the reader to copy themselves.
+   */
+  copySelected: string
   /** The time picker's headline while it takes a time typed. */
   enterTime: string
   loading: string
@@ -73,6 +79,7 @@ function messagesFor(locale: string): LibraryMessages {
     confirm: formatter.format('confirm'),
     copied: formatter.format('copied'),
     copy: formatter.format('copy'),
+    copySelected: formatter.format('copySelected'),
     enterTime: formatter.format('enterTime'),
     loading: formatter.format('loading'),
     loadingMore: formatter.format('loadingMore'),
