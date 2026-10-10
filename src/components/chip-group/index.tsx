@@ -30,8 +30,9 @@ import { invalidFrom } from '../../field/root'
 import { groupStyles } from '../../field/styles'
 import { CloseGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { sizing, spacing } from '../../tokens/design.tokens.stylex'
 
 // The chips page's filter and input chips as a set: one or more chosen from a
 // row, each one removable. The pill is the chip module's in `src/chip`,
@@ -69,14 +70,19 @@ import { spacing } from '../../tokens/design.tokens.stylex'
 const styles = stylex.create({
   // The chips wrap rather than scroll: a set is read all at once, and a row
   // that ran off the edge would hide the ones at the end.
+  //
+  // The chips draw their own rings, and the list draws one only when it
+  // holds focus itself — which it does once the last chip is removed, when
+  // React Aria moves focus onto the empty list, or onto the empty state it
+  // holds. That ring is `focus.ring`, the one a chip draws. And the list
+  // keeps a chip's height when it empties, so removing the last chip leaves
+  // what sits under the group where it was rather than drawing it up.
   list: {
     boxSizing: 'border-box',
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    // The list is a collection React Aria focuses when it is empty, and the
-    // chips inside draw their own rings.
-    outlineStyle: 'none',
+    minBlockSize: sizing.controlXs,
   },
 })
 
@@ -234,7 +240,7 @@ function ChipGroup<T extends object = object>({
         <RACTagList<T>
           items={items}
           renderEmptyState={renderEmptyState}
-          {...stylex.props(styles.list)}
+          {...stylex.props(styles.list, focus.ring)}
         >
           {children}
         </RACTagList>

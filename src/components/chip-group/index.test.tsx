@@ -1,7 +1,8 @@
-import type { Selection } from 'react-aria-components'
+import type { Key, Selection } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ChipGroup from '.'
@@ -103,6 +104,33 @@ function chipFor(item: (typeof ITEMS)[number]) {
   return <ChipGroup.Chip id={item.id}>{item.name}</ChipGroup.Chip>
 }
 
+function emptyState() {
+  return 'Empty state'
+}
+
+// A group whose chips are removed from state, as a call site's are: one chip
+// to start, so a single removal empties it.
+function OneRemovable({ empty }: { empty?: boolean }) {
+  const [ids, setIds] = useState(['first'])
+  const remove = useCallback((keys: 'all' | Set<Key>) => {
+    setIds((current) => current.filter((id) => keys !== 'all' && !keys.has(id)))
+  }, [])
+
+  return (
+    <ChipGroup
+      label="Label"
+      onRemove={remove}
+      renderEmptyState={empty === true ? emptyState : undefined}
+    >
+      {ids.map((id) => (
+        <ChipGroup.Chip id={id} key={id}>
+          First item
+        </ChipGroup.Chip>
+      ))}
+    </ChipGroup>
+  )
+}
+
 function setupWithIcons(
   props: Partial<Parameters<typeof ChipGroup<object>>[0]> = {},
 ) {
@@ -117,6 +145,51 @@ function setupWithIcons(
     </ChipGroup>,
   )
 }
+
+describe('the last chip removed', () => {
+  // React Aria moves focus onto the list once it is empty, and the list drew
+  // no ring, so focus went somewhere nobody could see; and the group lost the
+  // chip's height, drawing everything under it up.
+  it.each([
+    ['with nothing in its place', false],
+    ['with an empty state', true],
+  ])('keeps focus visible and the height, %s', async (_case, empty) => {
+    const view = render(<OneRemovable empty={empty} />)
+    // The group's own element: React Aria puts a template it collects the
+    // chips from beside it.
+    const root = view.container.querySelector(':scope > div')
+    if (!(root instanceof HTMLElement)) {
+      throw new Error('expected the group to render an element')
+    }
+    const before = root.getBoundingClientRect().height
+    const chip = view.getByRole('row', { name: 'First item' })
+    act(() => {
+      chip.focus()
+    })
+    fireEvent.keyDown(chip, { key: 'Delete' })
+    fireEvent.keyUp(chip, { key: 'Delete' })
+
+    await waitFor(() => {
+      expect(view.queryByRole('row', { name: 'First item' })).toBeNull()
+    })
+    // React Aria moves focus onto the list a moment after the row goes.
+    await waitFor(() => {
+      expect(root.contains(document.activeElement)).toBe(true)
+    })
+    // The list, which React Aria gives the group role once it holds no rows.
+    const list = document.activeElement
+    if (!(list instanceof HTMLElement)) {
+      throw new Error('expected focus on an element')
+    }
+    const outline = getComputedStyle(list)
+
+    expect(root.contains(list)).toBe(true)
+    expect(list.getAttribute('role')).toBe('group')
+    expect(outline.outlineStyle).toBe('solid')
+    expect(outline.outlineWidth).toBe('2px')
+    expect(root.getBoundingClientRect().height).toBe(before)
+  })
+})
 
 describe('chip group', () => {
   describe('semantics', () => {
