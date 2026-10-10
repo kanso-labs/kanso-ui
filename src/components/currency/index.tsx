@@ -123,7 +123,11 @@ function Currency({
       ...props,
       children: formatCurrency(value, {
         currency,
-        locale: locale ?? provided,
+        fallbackLocale: provided,
+        // An empty string asks for the provider's locale as `undefined` does
+        // — it is what clearing a locale control leaves — rather than reaching
+        // the formatter as a tag it rejects.
+        locale: locale === undefined || locale === '' ? provided : locale,
         sign,
       }),
       ...mergeStyles(
@@ -152,7 +156,17 @@ function Currency({
 // Unbounded on purpose. The keys are the option sets an app actually uses —
 // its locales times its currencies times the three sign settings — so the map
 // settles at that size rather than growing with renders or with values.
-const formatters = new Map<string, Intl.NumberFormat>()
+//
+// A request the runtime rejects is cached too, under its own key, as the
+// fallback it resolved to, so a bad pair costs one failed construction rather
+// than one a render.
+const formatters = new Map<string, ResolvedFormat>()
+
+/**
+ * A formatter, and the currency code written beside its number when it is
+ * the decimal fallback for a code the runtime rejected.
+ */
+type ResolvedFormat = { code: null | string; formatter: Intl.NumberFormat }
 
 // formatToParts rather than a replace over the formatted string, so only the
 // sign is substituted. A blind replace would also hit a hyphen inside a
@@ -162,37 +176,82 @@ function formatCurrency(
   value: number,
   options: {
     currency: string
+    fallbackLocale: string
     locale: string
     sign: CurrencySignDisplay
   },
 ) {
-  return formatterFor(options.locale, options.currency, options.sign)
+  const { code, formatter } = formatterFor(
+    options.locale,
+    options.currency,
+    options.sign,
+    options.fallbackLocale,
+  )
+  const amount = formatter
     .formatToParts(value)
     .map((part) => (part.type === 'minusSign' ? MINUS_SIGN : part.value))
     .join('')
+  return code === null || code === '' ? amount : `${amount} ${code}`
 }
 
+// A component that only shows an amount must not take the page down with it,
+// and `new Intl.NumberFormat` throws for a malformed locale (`xx_YY`, an
+// empty string) and for a currency code that is not one (`xx`, `US`). Valid
+// input takes exactly the path it always did; the rest falls back. A locale
+// the runtime rejects gives way to the provider's, and a currency code it
+// rejects to the plain number in that locale with the code written after it,
+// so the amount still reads and what was wrong with it stays visible.
+//
+// Nothing is logged: the library writes to the console nowhere, and a
+// warning an app cannot turn off is not its to emit.
 function formatterFor(
   locale: string,
   currency: string,
   sign: CurrencySignDisplay,
+  fallbackLocale: string,
 ) {
   // Neither a BCP 47 locale nor an ISO 4217 code can contain a vertical bar
   // and `sign` is one of three known words, so joining on one cannot make two
   // different option sets share a key.
-  const key = `${locale}|${currency}|${sign}`
+  const key = `${locale}|${currency}|${sign}|${fallbackLocale}`
   const cached = formatters.get(key)
   if (cached) {
     return cached
   }
 
-  const formatter = new Intl.NumberFormat(locale, {
-    currency,
-    signDisplay: sign,
-    style: 'currency',
-  })
-  formatters.set(key, formatter)
-  return formatter
+  const usable = [locale, fallbackLocale].find(isLocale) ?? 'en-US'
+  let resolved: ResolvedFormat
+  try {
+    resolved = {
+      code: null,
+      formatter: new Intl.NumberFormat(usable, {
+        currency,
+        signDisplay: sign,
+        style: 'currency',
+      }),
+    }
+  } catch {
+    resolved = {
+      code: currency,
+      formatter: new Intl.NumberFormat(usable, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+        signDisplay: sign,
+      }),
+    }
+  }
+  formatters.set(key, resolved)
+  return resolved
+}
+
+// Whether the runtime takes `tag` as a locale at all — one it parses, whether
+// or not it has data for it, which it then fills in from the nearest it has.
+function isLocale(tag: string) {
+  try {
+    return Intl.NumberFormat.supportedLocalesOf(tag).length >= 0
+  } catch {
+    return false
+  }
 }
 
 // Zero is neither owed nor owing, so it takes the neutral role rather than

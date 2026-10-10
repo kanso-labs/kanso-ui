@@ -1,3 +1,5 @@
+import type { JSX } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
@@ -61,6 +63,14 @@ function setup(props: Partial<Parameters<typeof Currency>[0]> = {}) {
   return { ...view, currency: view.getByTestId('currency') }
 }
 
+/** The text an element renders, with the render cleaned up after. */
+function textOf(element: JSX.Element) {
+  const view = render(element)
+  const text = view.container.textContent
+  view.unmount()
+  return text
+}
+
 // The three tone roles read off probes rather than named as literals, so the
 // assertions follow the tokens the component draws from.
 function toneColors() {
@@ -118,6 +128,55 @@ describe('currency', () => {
         value: 1284,
       })
       expect(currency.textContent).toBe('￥1,284')
+    })
+  })
+
+  // An amount on its own must not take the page down with it, and the
+  // formatter throws for a malformed locale or a code that is not one. Each
+  // of these threw during render before.
+  describe('input the runtime rejects', () => {
+    // Clearing a locale control leaves an empty string, which asks for the
+    // provider's locale as leaving the prop out does.
+    it('reads an empty locale as the provider’s', () => {
+      expect(
+        textOf(
+          <I18nProvider locale="de-DE">
+            <Currency locale="" value={1234.5} />
+          </I18nProvider>,
+        ),
+      ).toBe(
+        textOf(
+          <I18nProvider locale="de-DE">
+            <Currency value={1234.5} />
+          </I18nProvider>,
+        ),
+      )
+    })
+
+    it('falls back to the provider’s locale for a malformed one', () => {
+      expect(
+        textOf(
+          <I18nProvider locale="de-DE">
+            <Currency locale="xx_YY" value={1234.5} />
+          </I18nProvider>,
+        ),
+      ).toBe(
+        textOf(
+          <I18nProvider locale="de-DE">
+            <Currency value={1234.5} />
+          </I18nProvider>,
+        ),
+      )
+    })
+
+    // The number still reads, and the code beside it says what was wrong.
+    it.each([
+      ['an empty code', '', '1,234.50'],
+      ['a code that is not one', 'US', '1,234.50 US'],
+    ])('shows the number for %s', (_case, currency, expected) => {
+      expect(
+        textOf(<Currency currency={currency} locale="en-US" value={1234.5} />),
+      ).toBe(expected)
     })
   })
 
