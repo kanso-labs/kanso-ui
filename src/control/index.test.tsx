@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import Checkbox from '../components/checkbox'
 import RadioGroup, { Radio } from '../components/radio-group'
@@ -229,6 +229,112 @@ describe('the shared control row', () => {
 // it, so an unbroken word held the column at its own width and widened the
 // page. The label, a description under it, and a group's own label and
 // description all break such a word now.
+// The label "I agree to the terms", with the terms a plain anchor, as rich
+// text from a translation or markdown arrives.
+function agreement() {
+  return (
+    <>
+      I agree to the <a href="#terms">terms</a>
+    </>
+  )
+}
+
+const LINKED: ReadonlyArray<{
+  element: ReactElement
+  name: string
+  role: 'checkbox' | 'radio' | 'switch'
+}> = [
+  {
+    element: <Checkbox>{agreement()}</Checkbox>,
+    name: 'Checkbox',
+    role: 'checkbox',
+  },
+  { element: <Switch>{agreement()}</Switch>, name: 'Switch', role: 'switch' },
+  {
+    element: (
+      <RadioGroup label="Group">
+        <Radio value="first">{agreement()}</Radio>
+      </RadioGroup>
+    ),
+    name: 'Radio',
+    role: 'radio',
+  },
+]
+
+function controlIn(view: ReturnType<typeof render>, role: string) {
+  const control = view.getByRole(role)
+  if (!(control instanceof HTMLInputElement)) {
+    throw new Error(`expected the ${role} to be an input`)
+  }
+  return control
+}
+
+// A press as a mouse makes one, which is what React Aria reads a press from:
+// a bare click is a virtual press to it.
+function pressWithMouse(target: Element) {
+  fireEvent.pointerDown(target, { button: 0, pointerType: 'mouse' })
+  fireEvent.mouseDown(target, { button: 0 })
+  fireEvent.pointerUp(target, { button: 0, pointerType: 'mouse' })
+  fireEvent.mouseUp(target, { button: 0 })
+  fireEvent.click(target, { button: 0 })
+}
+
+// A link in a native label is followed, and the control left alone. React
+// Aria took a press in one as a press on the control: it toggled, and the
+// link went nowhere.
+describe('a link in the label', () => {
+  afterEach(() => {
+    history.replaceState(null, '', `${location.pathname}${location.search}`)
+  })
+
+  it.each(LINKED)(
+    'is followed rather than toggling the $name',
+    ({ element, role }) => {
+      const view = render(element)
+      const control = controlIn(view, role)
+
+      pressWithMouse(view.getByRole('link', { name: 'terms' }))
+
+      expect(location.hash).toBe('#terms')
+      expect(control.checked).toBe(false)
+    },
+  )
+
+  // Enter is the link's to act on: its default is left alone, and the click
+  // a browser sends a link on Enter — one with no pointer behind it, which
+  // React Aria reads as a virtual press — follows the link rather than
+  // toggling the control.
+  it.each(LINKED)(
+    'follows the link on Enter in the $name',
+    ({ element, role }) => {
+      const view = render(element)
+      const control = controlIn(view, role)
+      const link = view.getByRole('link', { name: 'terms' })
+
+      link.focus()
+      const defaultLeft = fireEvent.keyDown(link, { key: 'Enter' })
+      fireEvent.click(link, { detail: 0 })
+      fireEvent.keyUp(link, { key: 'Enter' })
+
+      expect(defaultLeft).toBe(true)
+      expect(location.hash).toBe('#terms')
+      expect(control.checked).toBe(false)
+    },
+  )
+
+  it.each(LINKED)(
+    'leaves the rest of the $name label toggling it',
+    ({ element, role }) => {
+      const view = render(element)
+      const control = controlIn(view, role)
+
+      pressWithMouse(view.getByText('I agree to the', { exact: false }))
+
+      expect(control.checked).toBe(true)
+    },
+  )
+})
+
 describe('an unbroken word', () => {
   it.each([
     [

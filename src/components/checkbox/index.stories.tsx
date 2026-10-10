@@ -72,6 +72,24 @@ const LongLabel: Story = {
   ),
 }
 
+// A label carrying a link, as rich text from a translation or markdown
+// arrives. The link is a plain anchor; it is followed on a press or Enter, as
+// in a native label, and the checkbox stays as it was. Hoisted so it is one
+// element rather than a fresh one per render.
+const AGREEMENT = (
+  <>
+    I agree to the <a href="#terms">terms</a>
+  </>
+)
+
+// No `play`: Storybook's `userEvent` acts out a label's forwarding of a click
+// to its control in script, without the exception a native label makes for a
+// link inside it, so it toggles the box where a real click does not. The
+// press and Enter are pinned in src/control/index.test.tsx instead.
+const WithLink: Story = {
+  args: { children: AGREEMENT },
+}
+
 export {
   Default,
   Disabled,
@@ -80,6 +98,7 @@ export {
   Selected,
   WithDescription,
   WithError,
+  WithLink,
 }
 
 export default meta
