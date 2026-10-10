@@ -78,6 +78,21 @@ const styles = stylex.create({
     position: 'relative',
     textDecoration: 'none',
   },
+  // What an interactive card's children sit in. A <button> centres its
+  // content top to bottom in a box of the browser's own, which no property on
+  // the button reaches — not `align-content`, and not a `display` that keeps
+  // it a block — so a card stretched taller than its content by a row of
+  // cards drew it in the middle where a static card draws it at the top.
+  // This box is at least as tall as the card's own, which leaves the browser
+  // nothing to centre, and lays the children out as the static card does:
+  // as a block, so inline content stays on a line and margins still
+  // collapse, which a flex or grid card would change. A <span>, since a
+  // button may only hold phrasing content.
+  content: {
+    boxSizing: 'border-box',
+    display: 'block',
+    minBlockSize: '100%',
+  },
   elevated: {
     backgroundColor: colors.surfaceContainerLow,
     boxShadow: shadows.elevation1,
@@ -86,9 +101,10 @@ const styles = stylex.create({
     backgroundColor: colors.surfaceContainerHighest,
   },
   // Resets the parts of a <button> that would otherwise fight the card: its
-  // centred text, its own font, and its shrink-to-fit width. Without these an
-  // interactive card would lay its contents out differently from a static one
-  // holding exactly the same children.
+  // centred text, its own font, and its shrink-to-fit width — and, through
+  // `content`, its centring top to bottom. Without these an interactive card
+  // would lay its contents out differently from a static one holding exactly
+  // the same children.
   interactive: {
     cursor: 'pointer',
     font: 'inherit',
@@ -274,7 +290,11 @@ function Card({
       ...ripple.handlers,
       children: (
         <>
-          {children}
+          {interactive ? (
+            <span {...stylex.props(styles.content)}>{children}</span>
+          ) : (
+            children
+          )}
           {ripple.surface}
         </>
       ),

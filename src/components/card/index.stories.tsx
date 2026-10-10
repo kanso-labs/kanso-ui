@@ -18,6 +18,13 @@ const styles = stylex.create({
     paddingBlock: spacing.md,
     paddingInline: spacing.lg,
   },
+  // A row that stretches the cards in it to the tallest, as a feed's row
+  // does.
+  row: {
+    display: 'grid',
+    gap: spacing.md,
+    gridTemplateColumns: 'repeat(3, 160px)',
+  },
   stack: {
     display: 'flex',
     flexDirection: 'column',
@@ -114,6 +121,29 @@ const Interactive: Story = {
 // exercised: tabbing to it, the status bar showing where it goes, the browser
 // menu on a right-click. `render` takes an element rather than a string, so
 // none of that is reachable through the controls panel either.
+// A static card, an interactive one and a link card in one row, stretched to
+// the tallest, which is the static card holding a longer supporting line.
+// Each draws its content at the top, under its padding, whichever element it
+// is.
+const Stretched: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Card>
+        <div {...stylex.props(styles.stack)}>
+          <Text variant="titleMedium">Headline</Text>
+          <Text tone="muted" variant="bodySmall">
+            A supporting line long enough to take more lines than the others
+          </Text>
+        </div>
+      </Card>
+      <Card interactive>{CONTENT}</Card>
+      <Card interactive render={EXAMPLE_LINK}>
+        {CONTENT}
+      </Card>
+    </div>
+  ),
+}
+
 const Link: Story = {
   args: {
     interactive: true,
@@ -122,6 +152,6 @@ const Link: Story = {
   decorators: [Wide],
 }
 
-export { BorderedList, Default, Interactive, Link }
+export { BorderedList, Default, Interactive, Link, Stretched }
 
 export default meta
