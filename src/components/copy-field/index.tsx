@@ -94,6 +94,16 @@ const styles = stylex.create({
     fontSize: typography.bodySmallSize,
     minInlineSize: 0,
   },
+  // The value is a literal to copy, so it keeps its own direction whatever
+  // the page's: left to right, isolated from the text around it. Under a
+  // right-to-left page the bidi algorithm otherwise ran a path, a flag or a
+  // command into the page's direction, moving a leading or trailing `/`,
+  // `--` or `$` to the other end — so the field showed one string and copied
+  // another. On the `<code>` rather than the box around it, which keeps the
+  // page's direction and so keeps the value at the row's inline start.
+  valueText: {
+    unicodeBidi: 'isolate',
+  },
 })
 
 type CopyFieldProps = {
@@ -198,7 +208,9 @@ function CopyField({
   return (
     <div {...props} {...mergeStyles(stylex.props(styles.root), props)}>
       <span {...stylex.props(styles.value)}>
-        <Code>{value}</Code>
+        <Code dir="ltr" {...stylex.props(styles.valueText)}>
+          {value}
+        </Code>
       </span>
       <Button onClick={handleCopy} size="xs" variant="text">
         <span {...stylex.props(styles.labels)}>

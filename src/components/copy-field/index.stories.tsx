@@ -84,6 +84,15 @@ const Copied: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
-export { Copied, Default, LongValue }
+// Under a right-to-left locale, with a value whose ends are neutral
+// characters. The value keeps its own left-to-right order, so the field shows
+// the string it copies, and still sits at the row's inline start. Pinned to
+// Arabic through `globals`, which the locale toolbar cannot override.
+const RightToLeft: Story = {
+  args: { value: '/usr/local/bin' },
+  globals: { locale: 'ar-EG' },
+}
+
+export { Copied, Default, LongValue, RightToLeft }
 
 export default meta

@@ -125,6 +125,61 @@ describe('copyField', () => {
     })
   })
 
+  // A literal to copy keeps its own order under a right-to-left page. The
+  // bidi algorithm otherwise moved a leading or trailing neutral to the
+  // other end, so the field showed one string and copied another.
+  describe('under a right-to-left page', () => {
+    it.each(['/usr/local/bin', '--flag=value', '$ npm install kanso-ui'])(
+      'shows %s in the order it copies',
+      (value) => {
+        const view = render(
+          <div dir="rtl">
+            <CopyField data-testid="field" value={value} />
+          </div>,
+        )
+        const code = view.getByTestId('field').querySelector('code')
+        const text = code?.firstChild
+        if (code === null || !(text instanceof Text)) {
+          throw new Error('expected the field to show its value as code')
+        }
+        const style = getComputedStyle(code)
+        // One offset per UTF-16 unit, which every value here is one of.
+        const lefts = Array.from({ length: value.length }, (_unit, index) => {
+          const range = document.createRange()
+          range.setStart(text, index)
+          range.setEnd(text, index + 1)
+          return range.getBoundingClientRect().left
+        })
+
+        expect(style.direction).toBe('ltr')
+        expect(style.unicodeBidi).toBe('isolate')
+        // Each character to the right of the one before it: string order.
+        expect(
+          lefts.every((left, index) => index === 0 || left > lefts[index - 1]),
+        ).toBe(true)
+      },
+    )
+
+    // The box around the value keeps the page's direction, so the value
+    // still starts at the row's inline start — the right, here.
+    it('keeps the value at the inline start of the row', () => {
+      const view = render(
+        <div dir="rtl">
+          <CopyField data-testid="field" value="/usr/local/bin" />
+        </div>,
+      )
+      const field = view.getByTestId('field').getBoundingClientRect()
+      const code = view
+        .getByTestId('field')
+        .querySelector('code')
+        ?.getBoundingClientRect()
+
+      expect(field.right - (code?.right ?? 0)).toBeLessThan(
+        (code?.left ?? 0) - field.left,
+      )
+    })
+  })
+
   describe('copying', () => {
     it('writes the value to the clipboard', async () => {
       const { button } = setup()
