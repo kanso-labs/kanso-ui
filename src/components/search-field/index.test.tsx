@@ -12,6 +12,7 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // first thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   errorText: { color: colors.error },
+  primaryText: { color: colors.primary },
   surface: { backgroundColor: colors.surfaceContainerHigh },
 })
 
@@ -41,6 +42,14 @@ function barOf(input: HTMLElement) {
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** A colour token as the browser resolves it, for comparing with a shadow. */
+function resolvedColor(style: stylex.StyleXStyles) {
+  const view = render(<span data-testid="probe" {...stylex.props(style)} />)
+  const { color } = getComputedStyle(view.getByTestId('probe'))
+  view.unmount()
+  return color
 }
 
 /** Finishes the bar's transitions, so a computed style is the settled one. */
@@ -154,6 +163,43 @@ describe('search field', () => {
       settle(bar)
       expect(getComputedStyle(bar).boxShadow).toContain('inset')
       input.blur()
+      settle(bar)
+      expect(getComputedStyle(bar).boxShadow).toBe('none')
+    })
+
+    // The search page names no error state, so the bar takes the text
+    // fields page's: the outline in the error role, 1dp at rest and 2dp
+    // focused. The valid bar's ring is pinned beside it, so an error ring
+    // drawn whatever the state fails as surely as one never drawn.
+    it('rings an invalid bar in the error colour, focused or not', () => {
+      const error = resolvedColor(probeStyles.errorText)
+      const { input } = setup({ error: 'Enter a keyword.' })
+      const bar = barOf(input)
+      settle(bar)
+      expect(getComputedStyle(bar).boxShadow).toBe(
+        `${error} 0px 0px 0px 1px inset`,
+      )
+      input.focus()
+      settle(bar)
+      expect(getComputedStyle(bar).boxShadow).toBe(
+        `${error} 0px 0px 0px 2px inset`,
+      )
+    })
+
+    it('rings a valid bar in the primary colour while focused', () => {
+      const primary = resolvedColor(probeStyles.primaryText)
+      const { input } = setup()
+      const bar = barOf(input)
+      input.focus()
+      settle(bar)
+      expect(getComputedStyle(bar).boxShadow).toBe(
+        `${primary} 0px 0px 0px 2px inset`,
+      )
+    })
+
+    it('draws no error ring on a disabled bar', () => {
+      const { input } = setup({ error: 'Enter a keyword.', isDisabled: true })
+      const bar = barOf(input)
       settle(bar)
       expect(getComputedStyle(bar).boxShadow).toBe('none')
     })

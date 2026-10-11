@@ -1421,10 +1421,17 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The field with a glyph at its leading edge, which takes the same muted role the supporting text does."
+            description="The field with a glyph at its leading edge, which takes the same muted role the supporting text does, and a ring in the error role once there is a message."
             title="SearchField"
           >
-            <SearchField label="Label" placeholder="Supporting text" />
+            <Stack gap="md">
+              <SearchField label="Label" placeholder="Supporting text" />
+              <SearchField
+                error="Supporting line"
+                label="Label"
+                placeholder="Supporting text"
+              />
+            </Stack>
           </Section>
 
           <Section
