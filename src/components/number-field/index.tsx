@@ -26,6 +26,7 @@ import {
   colors,
   motion,
   radii,
+  sizing,
   spacing,
   stateLayerOpacity,
   typography,
@@ -78,6 +79,22 @@ import IconButton from '../icon-button'
 // for re-declaring the forced-colours query. The two have to move together.
 const BOX_HALF = `calc((2 * ${spacing.sm} + ${typography.bodySmallLineHeight} + ${typography.bodyLargeLineHeight}) / 2)`
 const BOX_OUTLINED_HALF = `calc((2 * ${spacing.lg} + ${typography.bodyLargeLineHeight}) / 2)`
+
+// How much of the end of the box's column the steppers take, with the 8dp
+// between them and the input, which the label stops short of — FieldBox's
+// `endInset`. Without it the label ran the column's width, under the
+// steppers, and a long one was cut short beneath them. Each is the input's
+// own end, so the label ends where the value does.
+//
+// Stacked, the 32dp column less the 16dp of the box's padding it reaches
+// into; side by side, the two extra-small buttons and the 8dp between them,
+// less the 4dp they reach into the padding.
+// How far a side-by-side stepper reaches past the control's line above and
+// below it: a negative margin, half the difference between the two.
+const STEPPER_REACH = `calc((${typography.bodyLargeLineHeight} - ${sizing.controlXs}) / 2)`
+
+const STACKED_INSET = `calc(32px - ${spacing.lg} + ${spacing.sm})`
+const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${spacing.sm} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
 
 const styles = stylex.create({
   // The input and the steppers on one line, the input taking the room. The
@@ -158,6 +175,7 @@ const styles = stylex.create({
   // Stacked: the column reaches out of the box's padding to sit flush with
   // its top, end and bottom.
   steppers: {
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
@@ -172,10 +190,18 @@ const styles = stylex.create({
   // glyph would land on its neighbour's target, and a reader pressing minus
   // would increment. The gap is that reach, which puts each target's edge
   // exactly on the other's, with neither over a glyph.
+  //
+  // They take no more of the row's height than the control's line, the
+  // 32dp buttons reaching past it by the same amount above and below. As
+  // tall as the buttons, the row sat on the outlined box's 16dp of padding
+  // and dropped the value and the buttons 4dp below the box's centre; the
+  // filled box's row is as tall as its input and its label, which holds
+  // either way.
   steppersInline: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBlockStart: 0,
+    marginBlockEnd: STEPPER_REACH,
+    marginBlockStart: STEPPER_REACH,
     marginInlineEnd: `calc(${spacing.md} - ${spacing.lg})`,
   },
   // In the outlined box the column starts 16dp down rather than 8, so the
@@ -295,6 +321,7 @@ function NumberField({
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
       <FieldBox
+        endInset={inline ? INLINE_INSET : STACKED_INSET}
         floatingLabel={floatingLabel}
         isRequired={props.isRequired}
         label={label}

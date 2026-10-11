@@ -39,6 +39,7 @@ import {
 
 import { useMessages } from '../i18n'
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
+import { spacing } from '../tokens/design.tokens.stylex'
 import { useInsideForm } from './root'
 import { fieldChromeStyles, groupStyles } from './styles'
 
@@ -76,8 +77,18 @@ interface BoxControl {
 // below.
 type BoxLabel = 'fixed' | 'floating' | 'none'
 
-type FieldBoxProps = {
+type FieldBoxProps = Omit<GroupProps, 'children'> & {
   children?: ReactNode
+  /**
+   * How much of the inline end of the column the control's own parts take,
+   * beside the control, as a CSS length: a number field's steppers. The
+   * label, and the outlined box's notch with it, stop that far short of the
+   * column's end, so a long label is cut short beside them rather than
+   * drawn under them. A part in `trailing` needs none of this, since it sits
+   * outside the column.
+   * @default '0px'
+   */
+  endInset?: string
   /**
    * Whether the label sits in the empty box and floats to the top once the
    * field is focused or holds a value, as the text fields page draws it.
@@ -141,7 +152,7 @@ type FieldBoxProps = {
    * @default 'filled'
    */
   variant?: FieldVariant
-} & Omit<GroupProps, 'children'>
+}
 
 // `prefix` is also an HTML attribute — the RDFa one, which nothing here
 // wants — and React's element types carry it as a string, so it is left out
@@ -294,6 +305,7 @@ const BoxContext = createContext<BoxControl>(OUTSIDE_BOX)
 function boxContent(
   label: string,
   children: ReactNode,
+  endInset: string,
   floatingLabel: boolean,
   isFocused: boolean,
   isPopulated: boolean | undefined,
@@ -306,6 +318,7 @@ function boxContent(
 ) {
   return (state: GroupRenderProps) => (
     <BoxContent
+      endInset={endInset}
       floatingLabel={floatingLabel}
       isFocused={isFocused}
       isPopulated={isPopulated}
@@ -332,6 +345,7 @@ function boxContent(
  */
 function BoxContent({
   children,
+  endInset,
   floatingLabel,
   isFocused,
   isPopulated,
@@ -345,6 +359,7 @@ function BoxContent({
   variant,
 }: {
   children: ReactNode
+  endInset: string
   floatingLabel: boolean
   isFocused: boolean
   isPopulated: boolean | undefined
@@ -375,6 +390,10 @@ function BoxContent({
             leading !== undefined && fieldChromeStyles.outlineLeading,
             trailing !== undefined && fieldChromeStyles.outlineTrailing,
             focused && fieldChromeStyles.outlineFocused,
+            endInset !== '0px' &&
+              fieldChromeStyles.outlineEndInset(
+                `calc(${spacing.lg} - ${spacing.xs} + ${endInset})`,
+              ),
           )}
         >
           <legend
@@ -423,6 +442,12 @@ function BoxContent({
             floatingLabel && floated && fieldChromeStyles.boxLabelFloated,
             outlined && fieldChromeStyles.boxLabelOutlined,
             outlined && floated && fieldChromeStyles.boxLabelOutlinedFloated,
+            endInset !== '0px' &&
+              fieldChromeStyles.boxLabelEndInset(
+                outlined
+                  ? `calc(100% + 2 * ${spacing.xs} - ${endInset})`
+                  : `calc(100% - ${endInset})`,
+              ),
           )}
         >
           {label}
@@ -524,6 +549,7 @@ function commitWhileInvalid<E extends HTMLElement>(
  */
 function FieldBox({
   children,
+  endInset = '0px',
   floatingLabel = true,
   isFocused = false,
   isPopulated,
@@ -561,6 +587,7 @@ function FieldBox({
       {boxContent(
         label,
         children,
+        endInset,
         floatingLabel,
         isFocused,
         isPopulated,
