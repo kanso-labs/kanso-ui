@@ -21,6 +21,7 @@ import {
   ModalOverlay,
 } from 'react-aria-components'
 
+import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollable } from '../../hooks/useScrollable'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -401,10 +402,33 @@ function SheetContent({
   )
 }
 
-function SheetFooter(
-  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
-) {
-  return <div {...props} {...mergeStyles(stylex.props(styles.footer), props)} />
+/**
+ * The sheet's actions. The panel is pinned to the window's bottom edge in
+ * both presentations, so they sit on that edge, and a toast rises clear of
+ * them while the sheet is open rather than lying over its buttons. A side
+ * sheet's are included: the toast is centred in the window, and on any
+ * window narrower than about 1376px its 576 reach into the sheet's 400.
+ */
+function SheetFooter({
+  ref: callerRef,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
+  const ref = useRef<HTMLDivElement>(null)
+  useHoldBottomEdge(ref, true)
+  // The footer measures itself through its own ref, and the call site's
+  // lands on the same element.
+  const merged = useMemo(
+    () => mergeRefs(ref, callerRef ?? undefined),
+    [callerRef],
+  )
+
+  return (
+    <div
+      {...props}
+      ref={merged}
+      {...mergeStyles(stylex.props(styles.footer), props)}
+    />
+  )
 }
 
 /**

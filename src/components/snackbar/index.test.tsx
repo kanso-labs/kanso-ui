@@ -1,11 +1,15 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { page } from 'vitest/browser'
 
 import type { SnackbarOptions } from '.'
 
 import Snackbar from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Dialog from '../dialog'
+import Sheet from '../sheet'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -50,6 +54,89 @@ function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
 /** The element carrying the alertdialog role: the snackbar's container. */
 function snackbarIn(view: ReturnType<typeof render>) {
   return view.getByRole('alertdialog')
+}
+
+// The runner's own viewport, restored after any test that changes it.
+const DEFAULT_VIEWPORT = {
+  height: window.innerHeight,
+  width: window.innerWidth,
+}
+
+/** The footer an overlay's action sits in. */
+function footerOf(action: Element) {
+  const footer = action.parentElement
+  if (footer === null) {
+    throw new Error('expected the action to sit in a footer')
+  }
+  return footer
+}
+
+/**
+ * Whether a tap at the centre of `element` lands on it, rather than on
+ * something drawn over it.
+ */
+function takesTapsAtItsCentre(element: Element) {
+  const { height, left, top, width } = element.getBoundingClientRect()
+  const hit = document.elementFromPoint(left + width / 2, top + height / 2)
+  return hit !== null && element.contains(hit)
+}
+
+/**
+ * A toast with an action raised over an open overlay with a Confirm action
+ * in its footer, read once both have arrived. The overlay is `Dialog` or
+ * `Sheet`, of the role given.
+ */
+async function toastOver(
+  overlay: 'alertdialog' | 'dialog' | 'sheet',
+  { finishEntries = true }: { finishEntries?: boolean } = {},
+) {
+  const queue = new Snackbar.Queue()
+  const footer = (
+    <>
+      <Button>Confirm</Button>
+    </>
+  )
+  const view = render(
+    <>
+      {overlay === 'sheet' ? (
+        <Sheet.Content aria-label="Label" isOpen>
+          <Sheet.Body>Supporting line</Sheet.Body>
+          <Sheet.Footer>{footer}</Sheet.Footer>
+        </Sheet.Content>
+      ) : (
+        <Dialog.Content aria-label="Label" isOpen role={overlay}>
+          <Dialog.Body>Supporting line</Dialog.Body>
+          <Dialog.Footer>{footer}</Dialog.Footer>
+        </Dialog.Content>
+      )}
+      <Snackbar queue={queue} />
+    </>,
+  )
+  act(() => {
+    queue.add('First item', { action: UNDO })
+  })
+  await waitFor(() => {
+    expect(view.getByText('First item')).not.toBeNull()
+  })
+  // The overlay arrives from below and the toast rises into place, so both
+  // are drawn short of where they rest until their entries have run.
+  if (finishEntries) {
+    for (const animation of document.getAnimations()) {
+      animation.finish()
+    }
+  }
+  const toast = view.getByText('First item').closest('[role="alertdialog"]')
+  const region = view.getByText('First item').closest('[role="region"]')
+  if (toast === null || region === null) {
+    throw new Error('expected the message to sit in a toast in its region')
+  }
+  return {
+    confirm: view.getByText('Confirm').closest('button') ?? toast,
+    queue,
+    region,
+    toast,
+    view,
+  }
 }
 
 describe('snackbar', () => {
@@ -427,6 +514,94 @@ describe('snackbar', () => {
         view.getByRole('button', { name: 'Close' }).getBoundingClientRect()
           .height,
       ).toBe(48)
+    })
+  })
+
+  // A full-screen dialog's action bar and a sheet's actions sit on the
+  // window's bottom edge, as the snackbar does, and the snackbar is drawn
+  // above both. A toast with an action stays until it is answered, so one
+  // lying over those actions took every tap meant for them: a tap on the
+  // dialog's Close fired the toast's Undo instead.
+  describe('over an overlay holding the bottom edge', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it.each([
+      { name: 'a full-screen dialog', overlay: 'dialog', width: 360 },
+      { name: 'a bottom sheet', overlay: 'sheet', width: 360 },
+      { name: 'a side sheet', overlay: 'sheet', width: 1024 },
+    ] as const)(
+      'rises clear of the actions of $name',
+      async ({ overlay, width }) => {
+        await page.viewport(width, 640)
+        const { confirm, toast } = await toastOver(overlay)
+
+        // Read once the overlay's entry has ended, which is when the strip
+        // it holds is measured where it rests.
+        await waitFor(() => {
+          // Above the actions with the page's 8dp of margin between them,
+          // rather than anywhere above them, and still on screen.
+          const actions = footerOf(confirm).getBoundingClientRect()
+          const box = toast.getBoundingClientRect()
+          expect(Math.round(actions.top - box.bottom)).toBe(8)
+          expect(box.top).toBeGreaterThan(0)
+        })
+        expect(takesTapsAtItsCentre(confirm)).toBe(true)
+      },
+    )
+
+    // The dialog is drawn lower than it rests until its entry has run, so a
+    // strip measured as it arrives is short. Left to run in real time here,
+    // rather than finished as the cases above finish it, which is what shows
+    // the strip is measured again once the dialog has arrived.
+    it('measures the action bar where it rests once the dialog arrives', async () => {
+      await page.viewport(360, 640)
+      const { confirm, toast } = await toastOver('dialog', {
+        finishEntries: false,
+      })
+
+      await waitFor(
+        () => {
+          expect(document.getAnimations()).toHaveLength(0)
+          const actions = footerOf(confirm).getBoundingClientRect()
+          expect(
+            Math.round(actions.top - toast.getBoundingClientRect().bottom),
+          ).toBe(8)
+        },
+        { timeout: 3000 },
+      )
+    })
+
+    // Above the breakpoint the dialog is the basic one, centred with room
+    // below it, and an alert dialog is the basic one at every width: neither
+    // holds the edge, so the toast stays where it always sits.
+    it.each([
+      { name: 'a basic dialog', overlay: 'dialog', width: 1024 },
+      {
+        name: 'an alert dialog on a phone',
+        overlay: 'alertdialog',
+        width: 360,
+      },
+    ] as const)('stays at the edge over $name', async ({ overlay, width }) => {
+      await page.viewport(width, 640)
+      const { region } = await toastOver(overlay)
+
+      expect(getComputedStyle(region).bottom).toBe('0px')
+    })
+
+    it('settles back to the edge once the overlay closes', async () => {
+      await page.viewport(360, 640)
+      const { queue, region, view } = await toastOver('dialog')
+      await waitFor(() => {
+        expect(getComputedStyle(region).bottom).not.toBe('0px')
+      })
+
+      view.rerender(<Snackbar queue={queue} />)
+
+      await waitFor(() => {
+        expect(getComputedStyle(view.getByRole('region')).bottom).toBe('0px')
+      })
     })
   })
 })
