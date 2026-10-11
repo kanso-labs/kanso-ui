@@ -12,6 +12,7 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import IconButton from '../icon-button'
 
 const FORCED_COLORS = 'forced-colors: active'
 
@@ -26,6 +27,14 @@ const probeStyles = stylex.create({
   surface: { backgroundColor: colors.surface },
 })
 
+// The frames the layout cases put the rail in: a row beside a page far wider
+// than the window, and a column shorter than ten destinations.
+const frameStyles = stylex.create({
+  row: { display: 'flex' },
+  short: { blockSize: '440px', display: 'flex' },
+  wide: { flexShrink: 0, inlineSize: '3000px' },
+})
+
 function Icon() {
   return <svg aria-hidden="true" height="1em" viewBox="0 0 24 24" width="1em" />
 }
@@ -34,6 +43,27 @@ function Icon() {
 // react-perf's no-jsx-as-prop is after.
 const ICON = <Icon />
 const HEADER = <button type="button">Menu</button>
+const MENU_BUTTON = (
+  <IconButton aria-label="Menu">
+    <Icon />
+  </IconButton>
+)
+
+// Ten destinations, more than a 440px rail holds in either form.
+const TEN = Array.from({ length: 10 }, (_, index) => (
+  <NavigationRail.Item href={`#${index}`} icon={ICON} key={index}>
+    {`Item ${String(index + 1).padStart(2, '0')}`}
+  </NavigationRail.Item>
+))
+
+/** The block the rail scrolls its destinations in: what holds the links. */
+function destinationsOf(view: RenderResult) {
+  const block = view.getAllByRole('link')[0].parentElement
+  if (block === null) {
+    throw new Error('expected the destinations to sit in a block')
+  }
+  return block
+}
 
 // Focus as a keyboard brings it, which is what React Aria reports as
 // focus-visible and what the layer and the ring are drawn from.
@@ -211,6 +241,33 @@ describe('navigation rail', () => {
       expect(first.top - header.bottom).toBe(40)
     })
 
+    // The header spans the rail, so a menu button sits at its leading edge
+    // as the pills do, with its icon over theirs rather than in the middle.
+    it.each(['ltr', 'rtl'] as const)(
+      'lines the header button icon up with the destination icons, %s',
+      (dir) => {
+        const view = render(
+          <div dir={dir}>
+            <Rail header={MENU_BUTTON} isExpanded />
+          </div>,
+        )
+        const menu = view.getByRole('button', { name: 'Menu' })
+        const headerIcon = menu.querySelector('svg')?.getBoundingClientRect()
+        const linkIcon = view
+          .getAllByRole('link')[0]
+          .querySelector('svg')
+          ?.getBoundingClientRect()
+
+        expect(headerIcon).toBeDefined()
+        expect(linkIcon).toBeDefined()
+        if (dir === 'ltr') {
+          expect(headerIcon?.left).toBe(linkIcon?.left)
+        } else {
+          expect(headerIcon?.right).toBe(linkIcon?.right)
+        }
+      },
+    )
+
     it('is between 220dp and 360dp wide', () => {
       const view = render(<Rail isExpanded />)
       const width = view.getByRole('navigation').getBoundingClientRect().width
@@ -305,6 +362,64 @@ describe('navigation rail', () => {
         expect(
           partsOf(link).label.getBoundingClientRect().left,
         ).toBeGreaterThan(mark.getBoundingClientRect().right)
+      },
+    )
+  })
+
+  describe('layout', () => {
+    // A flex item shrinks by default, and beside a wide page the collapsed
+    // rail came to 85dp.
+    it('keeps its width beside a page wider than the window', () => {
+      const view = render(
+        <div {...stylex.props(frameStyles.row)}>
+          <Rail />
+          <div {...stylex.props(frameStyles.wide)} />
+        </div>,
+      )
+
+      expect(view.getByRole('navigation').getBoundingClientRect().width).toBe(
+        96,
+      )
+    })
+
+    // Ten destinations in a 440px rail: they keep their height and scroll in
+    // their own block, rather than squashing below the target when expanded
+    // or running past the rail's surface when collapsed.
+    it.each([
+      { height: 64, isExpanded: false, name: 'collapsed' },
+      { height: 56, isExpanded: true, name: 'expanded' },
+    ])(
+      'scrolls ten destinations at $height dp each, $name',
+      ({ height, isExpanded }) => {
+        const view = render(
+          <div {...stylex.props(frameStyles.short)}>
+            <NavigationRail
+              aria-label="Label"
+              header={HEADER}
+              isExpanded={isExpanded}
+            >
+              {TEN}
+            </NavigationRail>
+          </div>,
+        )
+        const rail = view.getByRole('navigation').getBoundingClientRect()
+        const block = destinationsOf(view)
+
+        for (const link of view.getAllByRole('link')) {
+          expect(link.getBoundingClientRect().height).toBe(height)
+        }
+        expect(getComputedStyle(block).overflowY).toBe('auto')
+        expect(block.scrollHeight).toBeGreaterThan(block.clientHeight)
+        expect(block.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          rail.bottom,
+        )
+
+        // The header stays put while the destinations scroll under it.
+        const header = headerBoxOf(view).top
+        block.scrollTop = 200
+        expect(block.scrollTop).toBe(200)
+        expect(headerBoxOf(view).top).toBe(header)
+        expect(header - rail.top).toBe(44)
       },
     )
   })
