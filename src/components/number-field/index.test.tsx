@@ -52,6 +52,14 @@ const longLineType = stylex.createTheme(typography, {
 })
 const longLineSpacing = stylex.createTheme(spacing, { lg: '26px', sm: '10px' })
 
+// A frame narrower than a long label, so it is cut short and where it ends
+// is what decides whether it reaches the steppers.
+const frameStyles = stylex.create({
+  narrow: { inlineSize: '328px' },
+})
+
+const LONG_LABEL = 'A label long enough to run the whole width of the box'
+
 // The box the control sits in: the label's column is in it.
 function boxOf(container: HTMLElement) {
   const box = container.querySelector('label')?.parentElement?.parentElement
@@ -290,5 +298,116 @@ describe('number field', () => {
         expect(steppers[0]).toBe(steppers[1])
       },
     )
+
+    // In the outlined box the value sits on the box's centre, as it does with
+    // the stacked steppers and in a text field. Side by side, the buttons'
+    // 32dp made the row taller than the value's line and dropped both 4dp.
+    it.each(['vertical', 'horizontal'] as const)(
+      'centres the value and the steppers in an outlined box with %s steppers',
+      (steppers) => {
+        const { increment, input } = setup({ steppers, variant: 'outlined' })
+        const box = input.closest('[role="group"]')?.getBoundingClientRect()
+        const pair = increment.parentElement?.getBoundingClientRect()
+        const value = input.getBoundingClientRect()
+        if (box === undefined || pair === undefined) {
+          throw new Error('expected the input and the steppers in the box')
+        }
+        const centre = box.top + box.height / 2
+
+        expect(value.top + value.height / 2).toBe(centre)
+        expect(pair.top + pair.height / 2).toBe(centre)
+      },
+    )
+
+    // The label is positioned against the column the input and the steppers
+    // share, so it ran under the steppers and a long one was cut short
+    // beneath them. It ends where the input does.
+    it.each([
+      { steppers: 'vertical', variant: 'filled' },
+      { steppers: 'horizontal', variant: 'filled' },
+      { steppers: 'vertical', variant: 'outlined' },
+      { steppers: 'horizontal', variant: 'outlined' },
+    ] as const)(
+      'keeps a long label clear of $steppers steppers in a $variant box',
+      ({ steppers, variant }) => {
+        const view = render(
+          <div {...stylex.props(frameStyles.narrow)}>
+            <NumberField
+              label={LONG_LABEL}
+              steppers={steppers}
+              variant={variant}
+            />
+          </div>,
+        )
+        const label = view.container.querySelector('label')
+        if (label === null) {
+          throw new Error('expected the field to draw its label')
+        }
+        const steppersLeft = Math.min(
+          ...[...view.container.querySelectorAll('button')].map(
+            (button) => button.getBoundingClientRect().left,
+          ),
+        )
+        const input = view.getByRole('textbox').getBoundingClientRect()
+
+        expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+        expect(label.getBoundingClientRect().right).toBeLessThanOrEqual(
+          steppersLeft,
+        )
+        expect(label.getBoundingClientRect().right).toBeLessThanOrEqual(
+          input.right + 4,
+        )
+      },
+    )
+
+    // Floated in the outlined box, the label sits in a notch cut in the
+    // outline, which has to end where the label does: a notch running on
+    // past a cut-short label leaves a gap in the outline over the steppers.
+    it.each(['vertical', 'horizontal'] as const)(
+      'ends the outlined notch with a long label beside %s steppers',
+      (steppers) => {
+        const view = render(
+          <div {...stylex.props(frameStyles.narrow)}>
+            <NumberField
+              defaultValue={1}
+              label={LONG_LABEL}
+              steppers={steppers}
+              variant="outlined"
+            />
+          </div>,
+        )
+        const label = view.container.querySelector('label')
+        const notch = view.container.querySelector('legend')
+        if (label === null || notch === null) {
+          throw new Error('expected the outlined box to draw a notch')
+        }
+
+        // Within the outline's 1px border, which the notch sits inside at
+        // either end, as it does beside a trailing icon.
+        expect(
+          Math.abs(
+            notch.getBoundingClientRect().right -
+              label.getBoundingClientRect().right,
+          ),
+        ).toBeLessThanOrEqual(1)
+      },
+    )
+
+    // Every element the library renders is border-box, so none depends on a
+    // reset the consumer might not have.
+    it('draws the stepper column, the box column and the message border-box', () => {
+      const view = render(<NumberField error="Enter a value." label="Label" />)
+      const steppers = view.getAllByRole('button')[0].parentElement
+      const column = view.container.querySelector('label')?.parentElement
+      const message = view.getByText('Enter a value.')
+      const parts = [steppers, column, message].filter(
+        (part) => part instanceof HTMLElement,
+      )
+
+      expect(parts).toHaveLength(3)
+      for (const part of parts) {
+        expect(getComputedStyle(part).boxSizing).toBe('border-box')
+      }
+    })
   })
 })

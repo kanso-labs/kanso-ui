@@ -286,6 +286,15 @@ const fieldChromeStyles = stylex.create({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
+  // Outlined, the label rests on the value's line and moves up onto the
+  // outline, with the page's 4dp beside it — which the notch has too, so
+  // the two line up. The 4dp either side is outside the column, so the
+  // widest the label goes is the column and the two 4dps, which leaves its
+  // text the column's width as a filled label's is.
+  // Short of the control's own parts at the column's end — see FieldBox's
+  // `endInset`. The width the label may take, written out by the box from
+  // the inset and the label's own margins.
+  boxLabelEndInset: (maxInlineSize: string) => ({ maxInlineSize }),
   // The floated label's type, for a field whose control CSS cannot ask
   // about. `boxFloating` shrinks the label by keying the box on
   // `:focus-within` or on an input that is not showing its placeholder, and
@@ -300,11 +309,6 @@ const fieldChromeStyles = stylex.create({
     letterSpacing: typography.bodySmallTracking,
     lineHeight: typography.bodySmallLineHeight,
   },
-  // Outlined, the label rests on the value's line and moves up onto the
-  // outline, with the page's 4dp beside it — which the notch has too, so
-  // the two line up. The 4dp either side is outside the column, so the
-  // widest the label goes is the column and the two 4dps, which leaves its
-  // text the column's width as a filled label's is.
   boxLabelOutlined: {
     insetInlineStart: `calc(-1 * ${spacing.xs})`,
     maxInlineSize: `calc(100% + 2 * ${spacing.xs})`,
@@ -420,6 +424,7 @@ const fieldChromeStyles = stylex.create({
   // none of their own: the muted role while the field is focused or holds a
   // value, and nothing at rest under a floating label.
   column: {
+    boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     flexGrow: 1,
     minInlineSize: 0,
@@ -563,6 +568,7 @@ const fieldChromeStyles = stylex.create({
     color: colors.primary,
   },
   message: {
+    boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     fontFamily: typography.bodySmallFont,
     fontSize: typography.bodySmallSize,
@@ -648,6 +654,10 @@ const fieldChromeStyles = stylex.create({
     transitionProperty: 'border-color, border-width',
     transitionTimingFunction: motion.easingStandard,
   },
+  // Short of the control's own parts at the column's end, as the label is,
+  // so the notch ends with a label cut short beside them — see FieldBox's
+  // `endInset`.
+  outlineEndInset: (paddingInlineEnd: string) => ({ paddingInlineEnd }),
   outlineFocused: {
     borderWidth: '2px',
   },
