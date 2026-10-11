@@ -43,6 +43,30 @@ const FRAME_WIDTH = 400
 const INSET_FRAME = { inlineSize: `${FRAME_WIDTH}px` }
 const INSET_COLUMN = { blockSize: '200px', display: 'flex' } as const
 
+// Parents that do not stretch a child across them. An `<hr>` has no content,
+// so a rule sized `auto` came out 0 wide in each of these and vanished.
+const UNSTRETCHED = [
+  ['a flex row', { display: 'flex', inlineSize: `${FRAME_WIDTH}px` }],
+  [
+    'a flex column centring its children',
+    {
+      alignItems: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      inlineSize: `${FRAME_WIDTH}px`,
+    },
+  ],
+  [
+    'a grid centring its children',
+    { display: 'grid', inlineSize: `${FRAME_WIDTH}px`, justifyItems: 'center' },
+  ],
+] as const
+
+const INSET_WIDTHS = [
+  ['start', FRAME_WIDTH - 16],
+  ['both', FRAME_WIDTH - 32],
+] as const
+
 // The rule's margins and the width it is left with, measured together: a
 // margin outside a `100%` box overflows the parent, so the length has to
 // give way with it.
@@ -131,6 +155,25 @@ describe('separator', () => {
         start: '16px',
         width: FRAME_WIDTH - 32,
       })
+    })
+
+    // The page's stories frame a rule in a centred flex column, which is how
+    // both inset stories came to show an empty frame.
+    describe.each(UNSTRETCHED)('in %s', (_parent, frame) => {
+      it.each(INSET_WIDTHS)(
+        'keeps the %s inset rule its width',
+        (inset, width) => {
+          const view = render(
+            <div style={frame}>
+              <Separator data-testid="rule" inset={inset} />
+            </div>,
+          )
+
+          expect(
+            Math.round(view.getByTestId('rule').getBoundingClientRect().width),
+          ).toBe(width)
+        },
+      )
     })
 
     // A vertical rule takes its length from the parent, so the inset goes on
