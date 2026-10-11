@@ -140,11 +140,29 @@ const styles = stylex.create({
     // above are author colours the mode repaints, so a disabled bar would
     // otherwise be drawn exactly like one that can be typed into.
     borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    // Applied after `barError`, so a disabled field is never drawn invalid,
+    // as the chrome's disabled box takes over its error underline.
+    boxShadow: 'none',
     color: {
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
       [FORCED_COLORS]: 'GrayText',
     },
     cursor: 'default',
+  },
+  // The text fields page's error state, which the search page does not
+  // name: the outline in the error role, 1dp at rest and 2dp once focused,
+  // so a focused invalid bar keeps its error colour rather than taking the
+  // primary ring. The chrome's `boxError` draws an underline, which a pill
+  // has no edge for, so the bar draws the whole ring, as its focus does.
+  // Forced colours drops the ring with every other shadow and leaves the
+  // border and outline above as they are: the error state changes a colour,
+  // not a shape, so what says so in that mode is the message under the bar
+  // and `aria-invalid` on the input, as for the chrome's box.
+  barError: {
+    boxShadow: {
+      ':focus-within': `inset 0 0 0 2px ${colors.error}`,
+      default: `inset 0 0 0 1px ${colors.error}`,
+    },
   },
   // 4dp in from the padding, so the icon inside the 40dp button ends 28dp
   // from the end, where the page's 48dp target puts it.
@@ -216,7 +234,7 @@ type SearchFieldProps = {
 } & Omit<RACSearchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
 // What the bar draws, from the field's render state: the clear button only
-// while the field holds something. Built by a call rather than written
+// while the field holds something, and the error ring while it is invalid. Built by a call rather than written
 // inline at the prop, which is what react-perf's no-new-function-as-prop is
 // after; the React Compiler memoises the result on its inputs.
 //
@@ -241,7 +259,11 @@ function fieldContent(
       </VisuallyHidden>
       <div
         onPointerDown={focusesControl(undefined)}
-        {...stylex.props(styles.bar, state.isDisabled && styles.barDisabled)}
+        {...stylex.props(
+          styles.bar,
+          state.isInvalid && styles.barError,
+          state.isDisabled && styles.barDisabled,
+        )}
       >
         <SearchGlyph {...stylex.props(styles.glyph)} />
         <FieldInput
