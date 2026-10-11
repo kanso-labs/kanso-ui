@@ -1474,6 +1474,7 @@ export namespace SegmentedButton {
 // @public (undocumented)
 export type SegmentedButtonProps = LabelledByAttribute & Omit<ToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
     className?: ToggleButtonGroupProps['className'];
+    disallowEmptySelection?: boolean;
     showSelectedIcon?: boolean;
     style?: ToggleButtonGroupProps['style'];
 };

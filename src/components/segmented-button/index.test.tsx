@@ -81,6 +81,13 @@ const FIRST_AND_THIRD = ['first', 'third']
 
 const ICON = <svg aria-hidden="true" data-testid="icon" viewBox="0 0 24 24" />
 
+// Which segments are chosen, as each one reports it to a screen reader.
+function checked(view: ReturnType<typeof setup>) {
+  return view
+    .getAllByRole('radio')
+    .map((radio) => radio.getAttribute('aria-checked'))
+}
+
 // The chosen container is an element React Aria renders inside the chosen
 // segment alone, so an unchosen segment has none at all. It is the segment's
 // only child element that is a div — the state layer, the glyph, the label
@@ -153,6 +160,12 @@ function layerOf(segment: Element) {
     throw new Error('expected the segment to carry a state layer')
   }
   return found
+}
+
+// A key pressed and let go on the focused segment.
+function press(segment: Element, key: string) {
+  fireEvent.keyDown(segment, { key })
+  fireEvent.keyUp(segment, { key })
 }
 
 // Every transition the track has running, played out.
@@ -348,6 +361,49 @@ describe('segmented button', () => {
       ).toStrictEqual(['true', 'true', 'false'])
     })
 
+    // A radio group always holds a choice, and so does the page's
+    // single-select set: React Aria's own default lets a press clear it,
+    // which left a radio group with nothing checked.
+    it('keeps the chosen segment chosen when it is pressed again', () => {
+      const onSelectionChange = vi.fn<(keys: Set<unknown>) => void>()
+      const view = setup({ defaultSelectedKeys: FIRST, onSelectionChange })
+      const [first] = view.getAllByRole('radio')
+
+      fireEvent.click(first)
+      act(() => {
+        first.focus()
+      })
+      press(first, ' ')
+
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+      for (const [keys] of onSelectionChange.mock.calls) {
+        expect(keys.size).toBe(1)
+      }
+    })
+
+    it('lets a press clear the choice when empty selection is allowed', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        disallowEmptySelection: false,
+      })
+
+      fireEvent.click(view.getAllByRole('radio')[0])
+
+      expect(checked(view)).toStrictEqual(['false', 'false', 'false'])
+    })
+
+    it('lets a press turn a segment off while several may be', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'multiple',
+      })
+      const buttons = view.getAllByRole('button')
+
+      fireEvent.click(buttons[0])
+
+      expect(buttons[0].getAttribute('aria-pressed')).toBe('false')
+    })
+
     it('does not choose on its own when controlled', () => {
       const onSelectionChange = vi.fn<(keys: unknown) => void>()
       const view = setup({ onSelectionChange, selectedKeys: FIRST })
@@ -362,17 +418,186 @@ describe('segmented button', () => {
   })
 
   describe('keyboard', () => {
-    it('moves between segments with the arrow keys', () => {
+    // The radio group pattern rather than React Aria's toolbar: an arrow
+    // moves focus and the choice together, so what a screen reader announces
+    // on arrival is the segment now checked, and it wraps at both ends.
+    it('moves to a segment and chooses it with the arrow keys, wrapping at the ends', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first, second, third] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      press(first, 'ArrowRight')
+      expect(document.activeElement).toBe(second)
+      expect(checked(view)).toStrictEqual(['false', 'true', 'false'])
+
+      press(second, 'ArrowRight')
+      press(third, 'ArrowRight')
+      expect(document.activeElement).toBe(first)
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+
+      press(first, 'ArrowLeft')
+      expect(document.activeElement).toBe(third)
+      expect(checked(view)).toStrictEqual(['false', 'false', 'true'])
+    })
+
+    it('takes up and down as back and on, as a radio group does', () => {
       const view = setup({ defaultSelectedKeys: FIRST })
       const [first, second] = view.getAllByRole('radio')
 
       act(() => {
         first.focus()
       })
-      fireEvent.keyDown(first, { key: 'ArrowRight' })
-      fireEvent.keyUp(first, { key: 'ArrowRight' })
+      press(first, 'ArrowDown')
+      expect(checked(view)).toStrictEqual(['false', 'true', 'false'])
+
+      press(second, 'ArrowUp')
+      expect(document.activeElement).toBe(first)
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    it('moves to the first and last segment, choosing each, with Home and End', () => {
+      const view = setup({ defaultSelectedKeys: SECOND })
+      const [first, second, third] = view.getAllByRole('radio')
+
+      act(() => {
+        second.focus()
+      })
+      press(second, 'End')
+      expect(document.activeElement).toBe(third)
+      expect(checked(view)).toStrictEqual(['false', 'false', 'true'])
+
+      press(third, 'Home')
+      expect(document.activeElement).toBe(first)
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    // Focus can sit on a segment that is not the chosen one — Tab lands on
+    // the first — and Home there is a move of no distance that still has to
+    // choose.
+    it('chooses the focused segment when a key leaves focus where it is', () => {
+      const view = setup({ defaultSelectedKeys: SECOND })
+      const [first] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      press(first, 'Home')
+
+      expect(document.activeElement).toBe(first)
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    it('passes over a disabled segment', () => {
+      const view = setup(
+        { defaultSelectedKeys: FIRST },
+        <>
+          <SegmentedButton.Segment id="first">
+            First item
+          </SegmentedButton.Segment>
+          <SegmentedButton.Segment id="second" isDisabled>
+            Second item
+          </SegmentedButton.Segment>
+          <SegmentedButton.Segment id="third">
+            Third item
+          </SegmentedButton.Segment>
+        </>,
+      )
+      const [first, , third] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      press(first, 'ArrowRight')
+
+      expect(document.activeElement).toBe(third)
+      expect(checked(view)).toStrictEqual(['false', 'false', 'true'])
+    })
+
+    // Right and left follow the track, so under `dir="rtl"` the right arrow
+    // heads for the segment drawn to the right, which is the one before.
+    it('turns right and left over in a right-to-left track', () => {
+      const view = render(
+        <div dir="rtl">
+          <SegmentedButton aria-label="Label" defaultSelectedKeys={SECOND}>
+            <SegmentedButton.Segment id="first">
+              First item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="second">
+              Second item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="third">
+              Third item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+        </div>,
+      )
+      const [first, second, third] = view.getAllByRole('radio')
+      expect(first.getBoundingClientRect().left).toBeGreaterThan(
+        second.getBoundingClientRect().left,
+      )
+
+      act(() => {
+        second.focus()
+      })
+      press(second, 'ArrowRight')
+      expect(document.activeElement).toBe(first)
+
+      press(first, 'ArrowLeft')
+      expect(document.activeElement).toBe(second)
+      press(second, 'ArrowLeft')
+      expect(document.activeElement).toBe(third)
+    })
+
+    // Through `onSelectionChange` like any other choice, so a controlled set
+    // hears of it and moves only once its keys come back.
+    it('reports an arrow-key choice without making it when controlled', () => {
+      const onSelectionChange = vi.fn<(keys: Set<unknown>) => void>()
+      const view = setup({ onSelectionChange, selectedKeys: FIRST })
+      const [first, second] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      press(first, 'ArrowRight')
 
       expect(document.activeElement).toBe(second)
+      expect(onSelectionChange).toHaveBeenCalledTimes(1)
+      expect([...onSelectionChange.mock.calls[0][0]]).toStrictEqual(['second'])
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    // A numeric key has to come back from the element a number, or it never
+    // matches the one React Aria's selection holds.
+    it('chooses a segment with a numeric key', () => {
+      const view = setup(
+        { defaultSelectedKeys: [1] },
+        <>
+          <SegmentedButton.Segment id={1}>First item</SegmentedButton.Segment>
+          <SegmentedButton.Segment id={2}>Second item</SegmentedButton.Segment>
+        </>,
+      )
+      const [first] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      press(first, 'ArrowRight')
+
+      expect(checked(view)).toStrictEqual(['false', 'true'])
+    })
+
+    it('leaves an arrow held with a modifier to the browser', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first] = view.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { altKey: true, key: 'ArrowRight' })
+
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
     })
 
     // Choosing several is a toolbar rather than a radio group, and React Aria
@@ -530,11 +755,14 @@ describe('segmented button', () => {
       expect(new Set(widths).size).toBe(1)
     })
 
-    // Nothing here passes `disallowEmptySelection`, so pressing the chosen
-    // segment clears the selection — which used to take the check out of the
-    // track and shrink it a second time.
+    // A set allowing an empty choice is cleared by pressing the chosen
+    // segment, which used to take the check out of the track and shrink it a
+    // second time.
     it('does not change when the choice is cleared', async () => {
-      const view = setup({ defaultSelectedKeys: FIRST })
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        disallowEmptySelection: false,
+      })
       const first = view.getAllByRole('radio')[0]
       const chosen = trackOf(first).getBoundingClientRect().width
 

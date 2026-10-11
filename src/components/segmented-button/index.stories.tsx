@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import { expect } from 'storybook/test'
+
 import SegmentedButton from '.'
 
 // Hoisted so the keys are not new arrays on every render, which is what
@@ -83,6 +85,29 @@ const Disabled: Story = {
   args: { isDisabled: true },
 }
 
+// What `disallowEmptySelection={false}` gives back: pressing the chosen
+// segment clears it, leaving nothing chosen, which a single-select set
+// otherwise never allows. Pressed from the keyboard as the story opens, so
+// it opens on the cleared set rather than on one that looks like Default.
+const EmptySelectionAllowed: Story = {
+  args: { disallowEmptySelection: false },
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    const first = canvas.getByRole('radio', { name: 'First item' })
+    first.focus()
+    await userEvent.keyboard(' ')
+    await expect(first).toHaveAttribute('aria-checked', 'false')
+
+    // The press ripple and the chosen container's fade, played out, so what
+    // is snapshotted is the state they end in. One cut short by the next
+    // rejects rather than finishing.
+    await Promise.all(
+      canvasElement
+        .getAnimations({ subtree: true })
+        .map(async (animation) => animation.finished.catch(() => null)),
+    )
+  },
+}
+
 // Its own story because a single segment can be turned off without the set,
 // which is a prop of the segment that the Controls panel cannot reach.
 const DisabledSegment: Story = {
@@ -103,6 +128,7 @@ export {
   Default,
   Disabled,
   DisabledSegment,
+  EmptySelectionAllowed,
   MultipleSelection,
   TwoSegments,
   WithIcons,
