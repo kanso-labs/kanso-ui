@@ -76,6 +76,46 @@ describe('avatar', () => {
       expect(avatar.textContent).toBe(initials)
     })
 
+    // A display name carries more than the name: a title before it, a
+    // suffix after it, an aside in brackets, punctuation around a word.
+    // None of it is an initial.
+    it.each([
+      ['Ada Lovelace (she/her)', 'AL'],
+      ['(Ada) Lovelace', 'AL'],
+      ['"Ada" Lovelace', 'AL'],
+      ['Dr. Ada Lovelace', 'AL'],
+      ['Ada Lovelace Jr.', 'AL'],
+      ['Ada Lovelace, Jr.', 'AL'],
+      ['Ada Lovelace III', 'AL'],
+      ['Ada Lovelace 3rd', 'AL'],
+      ['A. B. Lovelace', 'AL'],
+    ])('initialises %s as %s', (name, initials) => {
+      const { avatar } = setup({ name })
+      expect(avatar.textContent).toBe(initials)
+    })
+
+    // Upper-casing can lengthen a letter — "ß" is "SS" — and two initials
+    // stay two.
+    it('keeps to two initials when a letter upper-cases to two', () => {
+      const { avatar } = setup({ name: '\u00DFen M\u00FCller' })
+      expect(avatar.textContent).toBe('SM')
+    })
+
+    // Arabic letters join to the next, so two initials side by side shaped
+    // into one connected word. A zero-width non-joiner between them keeps
+    // them two letters, and only where the script joins.
+    it('keeps two initials in a joining script apart', () => {
+      const view = render(
+        <I18nProvider locale="ar-EG">
+          <Avatar name={'\u0645\u062D\u0645\u062F \u0639\u0644\u064A'} />
+        </I18nProvider>,
+      )
+      expect(view.getByRole('img').textContent).toBe('\u0645\u200C\u0639')
+      view.unmount()
+
+      expect(setup().avatar.textContent).toBe('AL')
+    })
+
     // Turkish upper-cases a dotted "i" to "İ" where English gives "I", so
     // the case only passes in the provider's locale.
     it("upper-cases in the I18nProvider's locale", () => {
