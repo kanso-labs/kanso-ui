@@ -40,10 +40,11 @@ type FormProps = {
    *
    * Under `aria`, moving focus after a server answers is the call site's.
    * The errors are associated — `aria-invalid` on each control, the message
-   * in its `aria-describedby` — but nothing moves and nothing is read out,
-   * because no part of the form knows a round trip happened. `validationErrors`
-   * is a prop rather than an event, so a form cannot tell a submission coming
-   * back from a first render that was given errors to begin with.
+   * in its `aria-describedby` — and each is read out politely as it appears
+   * under its field, but nothing moves, because no part of the form knows a
+   * round trip happened. `validationErrors` is a prop rather than an event,
+   * so a form cannot tell a submission coming back from a first render that
+   * was given errors to begin with. The Async submit story shows the move.
    * @default 'aria'
    */
   validationBehavior?: 'aria' | 'native'

@@ -964,24 +964,23 @@ function FieldMessage({
       </VisuallyHidden>
     )
 
-  // Nothing to say, and nowhere a message could arrive from: the field ends
-  // at its control. Inside a form the line is drawn anyway, empty, since a
-  // form is where a message appears after the fact — a server's answer, or
-  // the browser's own on submit — and every field below this one would
-  // otherwise move by the line's height when it does.
+  // Nothing to say: the field ends at its control. Inside a form the line is
+  // drawn anyway, empty, since a form is where a message appears after the
+  // fact — a server's answer, or the browser's own on submit — and every
+  // field below this one would otherwise move by the line's height when it
+  // does.
   //
-  // A limit to announce leaves on its own rather than bringing the line with
-  // it. The line is one line of type plus the 4dp above it, so drawing it
-  // for something nobody can see would make a field with a limit taller than
-  // the same field without one.
-  if (
+  // Outside one the line is still there, collapsed out of the flow so the
+  // field is no taller for it, because it holds the live region below: a
+  // region has to be in the document before the error it announces arrives,
+  // and one mounted with its text already in it is not read out. A limit to
+  // announce rides in it the same way, rather than drawing the line for
+  // something nobody can see.
+  const collapsed =
     !invalid &&
     description === undefined &&
     !characterCount &&
     !(insideForm && reserve)
-  ) {
-    return hidden
-  }
 
   const value = input?.value ?? textArea?.value ?? ''
   const length = String(value).length
@@ -1054,20 +1053,39 @@ function FieldMessage({
         fieldChromeStyles.message,
         fieldChromeStyles.messageLine,
         inset && fieldChromeStyles.messageInset,
+        collapsed && fieldChromeStyles.messageLineCollapsed,
       )}
     >
-      {validation === null && error !== undefined ? (
-        written
-      ) : (
-        <FieldError
-          {...stylex.props(
-            fieldChromeStyles.message,
-            fieldChromeStyles.messageError,
-          )}
-        >
-          {error}
-        </FieldError>
-      )}
+      {/*
+       * The error, read out politely as it appears, since the move into
+       * `aria-describedby` that associates it is not: a screen reader does
+       * not re-read a description that changes under a control it is on,
+       * and after a submit, focus is on the submit button rather than the
+       * field. Typing-time, blur-time and a server's errors all arrive this
+       * way.
+       *
+       * The error alone rather than the whole line, so the description
+       * coming back once the error clears is not read out, and neither is
+       * the limit beside it. Atomic, so a changed message is read whole.
+       */}
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        {...stylex.props(fieldChromeStyles.messageRegion)}
+      >
+        {validation === null && error !== undefined ? (
+          written
+        ) : (
+          <FieldError
+            {...stylex.props(
+              fieldChromeStyles.message,
+              fieldChromeStyles.messageError,
+            )}
+          >
+            {error}
+          </FieldError>
+        )}
+      </span>
       {described}
       {characterCount ? (
         // Hidden from the tree, and the limit above is why. A count is the
