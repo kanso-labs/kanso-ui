@@ -83,6 +83,15 @@ function headerBoxOf(view: RenderResult) {
   return box.getBoundingClientRect()
 }
 
+/** The box of the icon inside `element`. */
+function iconIn(element: HTMLElement) {
+  const icon = element.querySelector('svg')
+  if (icon === null) {
+    throw new Error('expected an icon')
+  }
+  return icon.getBoundingClientRect()
+}
+
 // The indicator a destination draws its icon in, and the label after it.
 function partsOf(link: HTMLElement) {
   const indicator = link.firstElementChild
@@ -243,28 +252,23 @@ describe('navigation rail', () => {
 
     // The header spans the rail, so a menu button sits at its leading edge
     // as the pills do, with its icon over theirs rather than in the middle.
-    it.each(['ltr', 'rtl'] as const)(
-      'lines the header button icon up with the destination icons, %s',
-      (dir) => {
+    // The leading edge is the left under left-to-right and the right under
+    // right-to-left.
+    it.each([
+      { dir: 'ltr', edge: 'left' },
+      { dir: 'rtl', edge: 'right' },
+    ] as const)(
+      'lines the header button icon up with the destination icons, $dir',
+      ({ dir, edge }) => {
         const view = render(
           <div dir={dir}>
             <Rail header={MENU_BUTTON} isExpanded />
           </div>,
         )
-        const menu = view.getByRole('button', { name: 'Menu' })
-        const headerIcon = menu.querySelector('svg')?.getBoundingClientRect()
-        const linkIcon = view
-          .getAllByRole('link')[0]
-          .querySelector('svg')
-          ?.getBoundingClientRect()
 
-        expect(headerIcon).toBeDefined()
-        expect(linkIcon).toBeDefined()
-        if (dir === 'ltr') {
-          expect(headerIcon?.left).toBe(linkIcon?.left)
-        } else {
-          expect(headerIcon?.right).toBe(linkIcon?.right)
-        }
+        expect(iconIn(view.getByRole('button', { name: 'Menu' }))[edge]).toBe(
+          iconIn(view.getAllByRole('link')[0])[edge],
+        )
       },
     )
 
