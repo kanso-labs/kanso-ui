@@ -321,3 +321,12 @@ A field's character counter and its limit are written with the locale's digits
 and grouping: `12/1,200` where it was `12/1200`, and "Up to 1,200 characters"
 where it was "Up to 1200 characters". `characterLimitLabel` takes a sentence of
 your own.
+
+### A single-select SegmentedButton keeps its choice (after 0.40.8)
+
+Pressing the chosen segment of a `SegmentedButton` no longer clears it, so a set
+announced as a radio group always holds a choice. Pass
+`disallowEmptySelection={false}` to let a press clear it again. The arrow keys
+now choose the segment they move to and wrap at either end, and Home and End
+choose the first and last segment, so a test that presses an arrow finds the
+choice on the segment focus moved to. `selectionMode="multiple"` is unchanged.

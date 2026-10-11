@@ -1,16 +1,18 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type { KeyboardEventHandler, ReactNode, RefAttributes } from 'react'
 import type {
   FocusableElement,
+  Key,
   ToggleButtonGroupProps as RACToggleButtonGroupProps,
   ToggleButtonProps as RACToggleButtonProps,
   SharedElementRenderProps,
   ToggleButtonRenderProps,
+  ToggleGroupState,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
+import { createContext, createElement, useContext } from 'react'
 import {
   SelectionIndicator as RACSelectionIndicator,
   ToggleButton as RACToggleButton,
@@ -46,6 +48,20 @@ import {
 // reporting `aria-checked`; choosing several is a `toolbar` of buttons each
 // reporting `aria-pressed`. That is the right mapping for both, and it is
 // why the mode is a word on the group rather than two components.
+//
+// React Aria stops at the name, though: its single mode is announced as a
+// radio group and behaves as a toolbar. So that mode takes the rest of the
+// radio group pattern from the ARIA Authoring Practices, a deliberate
+// departure from React Aria's `ToggleButtonGroup`, in two parts. The chosen
+// segment cannot be pressed off, since a radio group always holds a choice
+// and the page's single-select set always keeps one segment chosen;
+// `disallowEmptySelection={false}` gives React Aria's default back. And the
+// arrow keys choose as they move, wrapping at either end, with Home and End
+// choosing the first and last segment. Under React Aria the arrows moved
+// focus alone and stopped at the ends, so a screen reader reached each radio
+// without it being checked, and choosing one took a separate Space. Choosing
+// several keeps React Aria's toolbar keys, where the arrows only move between
+// buttons and Space toggles one.
 //
 // Six things are this component's own.
 //
@@ -163,9 +179,111 @@ const ShowSelectedIconContext = createContext(true)
 // holds the mode in a shape this would have to narrow before using.
 const SelectionModeContext = createContext<SelectionMode>('single')
 
+type GroupRender = RACToggleButtonGroupProps['render']
+
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
 type SelectionMode = NonNullable<RACToggleButtonGroupProps['selectionMode']>
+
+// A segment's key, back from the attribute `SegmentedButtonSegment` writes
+// it into. JSON rather than the key as written, so a numeric key comes back
+// a number and matches the one React Aria's selection holds.
+function keyOf(segment: HTMLElement): Key | null {
+  const written = segment.dataset.key
+  if (written === undefined) {
+    return null
+  }
+  const key: unknown = JSON.parse(written)
+  return typeof key === 'string' || typeof key === 'number' ? key : null
+}
+
+// The group's element, with `radioKeys` in place of React Aria's keyboard
+// handler, then handed to the call site's own `render` if it passed one.
+function radioGroupRenderer(render: GroupRender): NonNullable<GroupRender> {
+  return (domProps, renderProps) => {
+    const merged = {
+      ...domProps,
+      onKeyDownCapture: radioKeys(renderProps.state, domProps.onKeyDownCapture),
+    }
+    return render === undefined
+      ? createElement('div', merged)
+      : render(merged, renderProps)
+  }
+}
+
+// The radio group's keys, taken ahead of React Aria's toolbar ones on the
+// same capture listener: the arrows, Home and End move focus to a segment
+// and choose it, wrapping at the ends and passing over a disabled segment,
+// which is what the toolbar's own handler would otherwise do with focus
+// alone. Everything else — Tab, and an arrow held with a modifier the
+// browser may want — is handed to the toolbar as before.
+function radioKeys(
+  state: ToggleGroupState,
+  toolbar: KeyboardEventHandler<HTMLDivElement> | undefined,
+): KeyboardEventHandler<HTMLDivElement> {
+  return (event) => {
+    const group = event.currentTarget
+    const segments = [
+      ...group.querySelectorAll<HTMLElement>('[data-key]:not([data-disabled])'),
+    ].filter((segment) => segment.closest('[role="radiogroup"]') === group)
+    const from = segments.findIndex((segment) => segment === event.target)
+    const step =
+      event.altKey || event.ctrlKey || event.metaKey
+        ? null
+        : stepOf(event.key, getComputedStyle(group).direction === 'rtl')
+    if (from === -1 || step === null) {
+      toolbar?.(event)
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    const to =
+      step === 'first'
+        ? 0
+        : step === 'last'
+          ? segments.length - 1
+          : (from + step + segments.length) % segments.length
+    const segment = segments[to]
+    const key = keyOf(segment)
+    if (key === null) {
+      return
+    }
+    segment.focus()
+    state.setSelected(key, true)
+  }
+}
+
+// Where a key moves the choice in a radio group: one segment on, one back,
+// or to either end. Right and left follow the direction the track is drawn
+// in, read off the track itself rather than the locale, so a `dir` on a
+// wrapper turns them over as it turns the track over; up and down, and Home
+// and End, follow the document order whatever the direction.
+function stepOf(key: string, rtl: boolean): -1 | 1 | 'first' | 'last' | null {
+  switch (key) {
+    case 'ArrowDown': {
+      return 1
+    }
+    case 'ArrowLeft': {
+      return rtl ? 1 : -1
+    }
+    case 'ArrowRight': {
+      return rtl ? -1 : 1
+    }
+    case 'ArrowUp': {
+      return -1
+    }
+    case 'End': {
+      return 'last'
+    }
+    case 'Home': {
+      return 'first'
+    }
+    default: {
+      return null
+    }
+  }
+}
 
 // The page's 18dp icon slot, and the room a segment keeps for it: the slot
 // plus the gap between it and the label. Half of that room sits on each side
@@ -527,6 +645,15 @@ type SegmentedButtonProps = LabelledByAttribute &
     /** A function may compute the class from the set's render state. */
     className?: RACToggleButtonGroupProps['className']
     /**
+     * Whether the chosen segment stays chosen when it is pressed again. On
+     * by default while one is chosen, since a radio group always holds a
+     * choice; `false` lets a press clear it, as React Aria's own default
+     * does. Off by default while several may be, where any of them can be
+     * turned off.
+     * @default true while one is chosen, false while several may be
+     */
+    disallowEmptySelection?: boolean
+    /**
      * Whether a chosen segment draws a check before its label, as the page
      * has it. `false` leaves the segment's own icon in place while selected,
      * and draws the chosen segment on the stronger secondary container, since
@@ -682,19 +809,32 @@ function segmentContent(
  * how the chosen container moves: it slides between segments while one is
  * chosen, and fades in place while several may be.
  *
+ * Choosing one behaves as a radio group too, which React Aria's
+ * `ToggleButtonGroup` does not. The chosen segment stays chosen when it is
+ * pressed again, unless `disallowEmptySelection` is `false`. The arrow keys
+ * move to a segment and choose it, wrapping at either end, and Home and End
+ * choose the first and last. Choosing several keeps React Aria's keys: the
+ * arrows move between segments, and Space or Enter toggles the focused one.
+ *
  * The call site's `className` and `style` land on the track, which is the
  * element a layout positions.
  */
 function SegmentedButton({
+  disallowEmptySelection,
+  render,
   selectionMode = 'single',
   showSelectedIcon = true,
   ...props
 }: RefAttributes<HTMLDivElement> & SegmentedButtonProps) {
+  const single = selectionMode === 'single'
+
   return (
     <ShowSelectedIconContext value={showSelectedIcon}>
       <SelectionModeContext value={selectionMode}>
         <RACToggleButtonGroup
           {...props}
+          disallowEmptySelection={disallowEmptySelection ?? single}
+          render={single ? radioGroupRenderer(render) : render}
           selectionMode={selectionMode}
           {...mergeStatefulStyles(stylex.props(styles.root), props)}
         />
@@ -751,6 +891,13 @@ function SegmentedButtonSegment({
 
   return (
     <RACToggleButton
+      // The key the radio group's arrow keys choose this segment by; see
+      // `radioKeys`. React Aria keeps a segment's key off its element.
+      data-key={
+        selectionMode === 'single' && props.id !== undefined
+          ? JSON.stringify(props.id)
+          : undefined
+      }
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
