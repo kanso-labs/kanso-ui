@@ -1274,11 +1274,12 @@ export type NumberFieldProps = {
     floatingLabel?: boolean;
     incrementLabel?: string;
     inputRef?: Ref<HTMLInputElement>;
+    isWheelDisabled?: boolean;
     label: string;
     numeric?: boolean;
     steppers?: 'horizontal' | 'vertical';
     variant?: FieldVariant;
-} & Omit<NumberFieldProps_2, 'children' | 'isInvalid' | 'validationBehavior'>;
+} & Omit<NumberFieldProps_2, 'children' | 'isInvalid' | 'isWheelDisabled' | 'validationBehavior'>;
 
 export { parseColor }
 

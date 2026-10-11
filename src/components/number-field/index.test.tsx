@@ -174,6 +174,48 @@ describe('number field', () => {
 
     // Formatting is React Aria's, in the page's locale — the runner's is
     // en-US, which is what the symbols and separators below are.
+    // React Aria steps a focused field's value with the wheel, so scrolling
+    // a form past a field left focused changed its value instead of moving
+    // the page. The wheel is left to the page unless the call site asks.
+    it('leaves the value to the keyboard and the page to the wheel', () => {
+      const { input } = setup({ defaultValue: 5 })
+      act(() => {
+        input.focus()
+      })
+      const wheel = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+      })
+
+      act(() => {
+        input.dispatchEvent(wheel)
+      })
+
+      expect(input).toHaveProperty('value', '5')
+      expect(wheel.defaultPrevented).toBe(false)
+    })
+
+    it('steps the value with the wheel when asked to', () => {
+      const { input } = setup({ defaultValue: 5, isWheelDisabled: false })
+      act(() => {
+        input.focus()
+      })
+
+      act(() => {
+        input.dispatchEvent(
+          new WheelEvent('wheel', {
+            bubbles: true,
+            cancelable: true,
+            deltaY: -100,
+          }),
+        )
+      })
+
+      // Which way a turn steps is React Aria's; that it steps is the point.
+      expect(input).not.toHaveProperty('value', '5')
+    })
+
     it('reads the value in the format it is given', () => {
       const { input } = setup({ defaultValue: 1234.5, formatOptions: EURO })
       expect(input).toHaveProperty('value', '€1,234.50')
