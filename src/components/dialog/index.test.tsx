@@ -899,11 +899,14 @@ describe('dialog', () => {
     )
 
     // Full screen the header was a fixed 56, so a headline of three lines
-    // overflowed it both ways and started above the top of the window.
+    // overflowed it both ways and started above the top of the window. The
+    // headline is long enough to take more than two lines in any face: the
+    // line count comes from the runner's fonts, and a shorter one took three
+    // here and two on CI, where two lines exactly fill the old 56.
     it('grows the full-screen header with a headline of several lines', async () => {
       await page.viewport(375, 812)
       const { header, title } = titled(
-        'Headline that runs on for long enough to take several lines',
+        'Headline that runs on for long enough to take several lines, and then a good many more words after that',
         'dialog',
       )
       const box = header.getBoundingClientRect()

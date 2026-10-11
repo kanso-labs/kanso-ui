@@ -735,6 +735,18 @@ describe('field chrome', () => {
       )
     })
 
+    // The region is a part of the line, and the error a box inside it: as an
+    // inline span the error's box was the face's content area, which sits a
+    // pixel off the counter beside it under some fonts and not others.
+    it('draws the error as a box of its own line height', () => {
+      const view = render(<Validated error="Enter a value." />)
+      const error = view.getByText('Enter a value.')
+
+      expect(error.getBoundingClientRect().height).toBe(
+        Number.parseFloat(getComputedStyle(error).lineHeight),
+      )
+    })
+
     // The line is a flex row with 16dp between its parts, so an empty region
     // left in it would push the description 16dp in from the line's start.
     it('leaves the description at the start of the line', () => {

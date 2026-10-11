@@ -606,7 +606,14 @@ const fieldChromeStyles = stylex.create({
   // which is whenever the field is valid: the line is a flex row with 16dp
   // between its parts, and an empty part is still a part, so the
   // description beside it would otherwise start 16dp in.
+  //
+  // A flex container itself, so the error inside it is laid out as a box of
+  // its own line height, as it was when it was the line's part directly. As
+  // an inline span its box was the face's content area instead, whose top
+  // depends on the face's metrics: level with the counter beside it under
+  // one set of fonts and a pixel lower under another.
   messageRegion: {
+    display: 'flex',
     position: { ':empty': 'absolute', default: null },
   },
   numeric: {
