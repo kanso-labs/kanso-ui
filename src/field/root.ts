@@ -13,14 +13,14 @@ import { FormContext, useSlottedContext } from 'react-aria-components'
  * One constant rather than a literal in each field, so the decision has one
  * place to be changed.
  *
- * **It leaves announcing and focusing to the app**, and that is the half of
- * the browser's behaviour this gives up. An error under `aria` is associated
- * the way it should be — `aria-invalid` on the control, the message in its
- * `aria-describedby` — so a reader who moves to the field is told. What does
- * not happen is the move: after a server answers, focus is still wherever
- * the submit left it and nothing has been read out. Nothing here knows a
- * round trip happened, so the call site that made it is what moves focus to
- * the first field that came back invalid.
+ * **It leaves focusing to the app**, and that is the half of the browser's
+ * behaviour this gives up. An error under `aria` is associated the way it
+ * should be — `aria-invalid` on the control, the message in its
+ * `aria-describedby` — and read out politely as it appears, from a live
+ * region in the line under the field. What does not happen is the move:
+ * after a server answers, focus is still wherever the submit left it.
+ * Nothing here knows a round trip happened, so the call site that made it is
+ * what moves focus to the first field that came back invalid.
  */
 const FIELD_VALIDATION_BEHAVIOR = 'aria'
 

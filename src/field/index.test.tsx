@@ -17,8 +17,8 @@ import {
   stateLayerOpacity,
   typography,
 } from '../tokens/design.tokens.stylex'
-import { FIELD_VALIDATION_BEHAVIOR } from './root'
-import { fieldChromeStyles } from './styles'
+import { FIELD_VALIDATION_BEHAVIOR, invalidFrom } from './root'
+import { fieldChromeStyles, groupStyles } from './styles'
 
 // The same declarations the module writes for its states, so they hash to the
 // same atomic classes — see chip/index.test.tsx for the pattern and the flake
@@ -214,6 +214,15 @@ function pressAt(x: number, y: number) {
 // The page's trailing icon: 24dp, the size the slot is laid out for.
 const TRAILING_ICON = <svg aria-hidden="true" height="24" width="24" />
 
+/** The live region under the field, which holds the error. */
+function regionIn(container: HTMLElement) {
+  const region = container.querySelector('[aria-live]')
+  if (!(region instanceof HTMLElement)) {
+    throw new Error('expected the field to hold a live region')
+  }
+  return region
+}
+
 // A field of one variant, optionally under the theme whose body lines are
 // longer, measured for the room its box leaves around the control.
 function renderField(variant: 'filled' | 'outlined', themed: boolean) {
@@ -272,6 +281,34 @@ function setup(
     input: view.getByLabelText('Label'),
     label: view.getByText('Label'),
   }
+}
+
+/**
+ * A field validated by its own `error` prop, re-rendered with one to stand for
+ * an error arriving later. `gapped` puts it under a group's root, a flex
+ * column with a gap between its parts.
+ */
+function Validated({
+  description,
+  error,
+  gapped = false,
+}: {
+  description?: string
+  error?: string
+  gapped?: boolean
+}) {
+  return (
+    <TextField
+      isInvalid={invalidFrom(error)}
+      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+      {...stylex.props(gapped && groupStyles.root)}
+    >
+      <FieldBox label="Label">
+        <FieldInput />
+      </FieldBox>
+      <FieldMessage description={description} error={error} />
+    </TextField>
+  )
 }
 
 describe('field chrome', () => {
@@ -613,6 +650,105 @@ describe('field chrome', () => {
       expect(input.getAttribute('aria-describedby')?.split(' ')).toContain(
         view.getByText('Taken.').id,
       )
+    })
+  })
+
+  // An error joining `aria-describedby` is not read out: a screen reader does
+  // not re-read a description that changes under the control it is on, and
+  // after a submit, focus is on the submit button. The error is read from a
+  // polite live region instead, which has to be in the document before the
+  // error arrives — one mounted with its text already in it is not read out.
+  describe('announcing an error', () => {
+    it('reads out an error given after the field rendered', () => {
+      const view = render(<Validated />)
+      const before = regionIn(view.container)
+      expect(before.getAttribute('aria-live')).toBe('polite')
+      expect(before.textContent).toBe('')
+
+      view.rerender(<Validated error="Enter a value." />)
+
+      // The same element, now holding the error, rather than a new one
+      // mounted with it.
+      expect(regionIn(view.container)).toBe(before)
+      expect(before.textContent).toBe('Enter a value.')
+    })
+
+    it('reads out the errors a form is handed after it rendered', () => {
+      const field = (
+        <TextField name="first" validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+          <FieldBox label="Label">
+            <FieldInput />
+          </FieldBox>
+          <FieldMessage />
+        </TextField>
+      )
+      const view = render(<Form>{field}</Form>)
+      const before = regionIn(view.container)
+      expect(before.textContent).toBe('')
+
+      view.rerender(<Form validationErrors={SERVER_ERRORS}>{field}</Form>)
+
+      expect(regionIn(view.container)).toBe(before)
+      expect(before.textContent).toBe('Taken.')
+    })
+
+    // The description leaves when the error arrives and comes back when it
+    // clears, and a region holding it would read it out each time.
+    it('holds the error alone, not the description beside it', () => {
+      const view = render(
+        <Validated description="Supporting line" error="Enter a value." />,
+      )
+      expect(regionIn(view.container).textContent).toBe('Enter a value.')
+
+      view.rerender(<Validated description="Supporting line" />)
+
+      const region = regionIn(view.container)
+      expect(region.textContent).toBe('')
+      expect(region.contains(view.getByText('Supporting line'))).toBe(false)
+    })
+
+    // Outside a form, a field with nothing to say ends at its control; the
+    // line that holds the region is in the document but takes no room. Read
+    // under a group's root, a flex column with a gap between its parts, since
+    // that is where a line taking no height would still take the gap.
+    it('adds no height to a field with nothing to show', () => {
+      const view = render(
+        <>
+          <div data-testid="with">
+            <Validated gapped />
+          </div>
+          <div data-testid="without">
+            <TextField
+              validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+              {...stylex.props(groupStyles.root)}
+            >
+              <FieldBox label="Other label">
+                <FieldInput />
+              </FieldBox>
+            </TextField>
+          </div>
+        </>,
+      )
+
+      expect(view.getByTestId('with').getBoundingClientRect().height).toBe(
+        view.getByTestId('without').getBoundingClientRect().height,
+      )
+    })
+
+    // The line is a flex row with 16dp between its parts, so an empty region
+    // left in it would push the description 16dp in from the line's start.
+    it('leaves the description at the start of the line', () => {
+      const view = render(<Validated description="Supporting line" />)
+      const description = view.getByText('Supporting line')
+      const line = regionIn(view.container).parentElement
+      if (line === null) {
+        throw new Error('expected the region to sit in the message line')
+      }
+
+      expect(
+        description.getBoundingClientRect().left -
+          line.getBoundingClientRect().left,
+      ).toBe(0)
     })
   })
 

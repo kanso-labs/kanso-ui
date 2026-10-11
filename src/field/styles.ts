@@ -593,6 +593,22 @@ const fieldChromeStyles = stylex.create({
     // see `FieldMessage`, which is where the line is drawn empty.
     minBlockSize: typography.bodySmallLineHeight,
   },
+  // The line with nothing to show, outside a form: out of the flow, so the
+  // field ends at its control as it would without one, and so a flex gap
+  // around it does not count it as a part. It stays in the document for the
+  // live region inside it — see `FieldMessage`.
+  messageLineCollapsed: {
+    marginBlockStart: 0,
+    minBlockSize: 0,
+    position: 'absolute',
+  },
+  // The live region holding the error. Out of the flow while it is empty,
+  // which is whenever the field is valid: the line is a flex row with 16dp
+  // between its parts, and an empty part is still a part, so the
+  // description beside it would otherwise start 16dp in.
+  messageRegion: {
+    position: { ':empty': 'absolute', default: null },
+  },
   numeric: {
     fontFamily: typography.fontFamilyMono,
     // Amounts are read in columns and compared against each other, so the
