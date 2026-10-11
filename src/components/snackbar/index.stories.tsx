@@ -5,6 +5,8 @@ import * as stylex from '@stylexjs/stylex'
 import Snackbar from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
+import Dialog from '../dialog'
+import Text from '../text'
 
 // One queue for the page. A real app makes one where it can be reached from
 // anywhere and mounts the region once, near the root; a story page is the
@@ -113,6 +115,49 @@ const OnDemand: Story = {
   ),
 }
 
-export { Default, OnDemand, WithAction, WithCloseButton }
+// A message with an action over a full-screen dialog, on a phone. The two
+// share the window's bottom edge and the snackbar is drawn above the dialog,
+// so the message rises to sit over the dialog's action bar rather than on it,
+// where it would take the taps meant for Cancel and Confirm until answered.
+const OverAFullScreenDialog: Story = {
+  args: { queue: seeded({ action: UNDO }) },
+  // Sizes the frame in Storybook itself, as Dialog's AlertDialogCompact
+  // does, so the story shows the full-screen dialog without narrowing the
+  // window by hand.
+  globals: { viewport: { isRotated: false, value: 'mobile1' } },
+  parameters: {
+    // Chromatic is told the width through `modes`, under the project's own
+    // mode names, for the reasons BottomSheet in sheet/index.stories.tsx
+    // gives.
+    chromatic: {
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 375 } },
+        light: { theme: 'light', viewport: { height: 700, width: 375 } },
+      },
+    },
+    docs: { story: { height: '600px', inline: false } },
+  },
+  render: (args) => (
+    <>
+      <Dialog.Content isOpen>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what the dialog is asking.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button variant="text">Cancel</Button>
+          <Button variant="text">Confirm</Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+      <Snackbar {...args} />
+    </>
+  ),
+}
+
+export { Default, OnDemand, OverAFullScreenDialog, WithAction, WithCloseButton }
 
 export default meta

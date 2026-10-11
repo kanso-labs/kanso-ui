@@ -692,8 +692,8 @@ export type DialogContentProps = {
     style?: StyleOrFunction<ModalRenderProps>;
 } & Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'>;
 
-// @public (undocumented)
-export function DialogFooter(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
+// @public
+export function DialogFooter(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export function DialogHeader(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
@@ -1555,8 +1555,8 @@ export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pic
     style?: StyleOrFunction<ModalRenderProps>;
 };
 
-// @public (undocumented)
-export function SheetFooter(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
+// @public
+export function SheetFooter(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
 export function SheetHandle(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;

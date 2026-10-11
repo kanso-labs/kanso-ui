@@ -18,6 +18,7 @@ import {
 } from 'react-aria-components'
 
 import { CloseGlyph } from '../../glyphs'
+import { useBottomEdgeClearance } from '../../hooks/useBottomEdge'
 import { useRipple } from '../../hooks/useRipple'
 import { layers } from '../../styles/layers.stylex'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -224,6 +225,15 @@ const styles = stylex.create({
     // Above a modal's scrim — see src/styles/layers.stylex.ts.
     zIndex: layers.toast,
   },
+  // The region risen clear of the actions an open overlay holds the bottom
+  // edge with: a full-screen dialog's action bar, or a sheet's actions. Its
+  // 8dp of margin is then counted from the top of those actions, and the
+  // safe area is left out of it, since the strip they hold already reaches
+  // the bottom of the window. See src/hooks/useBottomEdge.ts.
+  risen: (clearance: string) => ({
+    insetBlockEnd: clearance,
+    paddingBlockEnd: spacing.sm,
+  }),
   // The container: the page's 8dp either side, and nothing above or below,
   // since what sets the height is the message and the close button.
   toast: {
@@ -447,17 +457,29 @@ function controlClassName(style: stylex.StyleXStyles) {
  *
  * The call site's `className` and `style` land on that region, which is the
  * element a layout positions.
+ *
+ * While a full-screen `Dialog` or a `Sheet` with a footer is open, the region
+ * rises to sit above those actions rather than over them, since they share
+ * the bottom edge of the window and the snackbar is drawn above both.
  */
 function Snackbar({
   closeLabel,
   queue,
   ...props
 }: RefAttributes<HTMLDivElement> & SnackbarProps) {
+  const clearance = useBottomEdgeClearance()
+
   return (
     <RACToastRegion<SnackbarMessage>
       queue={queue.rac}
       {...props}
-      {...mergeStatefulStyles(stylex.props(styles.region), props)}
+      {...mergeStatefulStyles(
+        stylex.props(
+          styles.region,
+          clearance > 0 && styles.risen(`${clearance}px`),
+        ),
+        props,
+      )}
     >
       {snackbarContent(queue, closeLabel)}
     </RACToastRegion>

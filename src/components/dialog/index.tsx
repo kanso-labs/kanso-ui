@@ -12,7 +12,13 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext, useMemo, useRef } from 'react'
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from 'react'
 import {
   DialogTrigger,
   Heading,
@@ -21,6 +27,7 @@ import {
   Dialog as RACDialog,
 } from 'react-aria-components'
 
+import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollable } from '../../hooks/useScrollable'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -40,6 +47,12 @@ import {
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
 // module, and the generated one holds design tokens rather than queries.
 const FORCED_COLORS = '@media (forced-colors: active)'
+
+// The window size the full-screen dialog is drawn at, which the styles read
+// as `media.belowMedium`. Spelled again for `matchMedia`, which is the one
+// thing in this file that has to know it outside a stylesheet: the footer
+// holds the window's bottom edge only there. See `useFullScreen`.
+const FULL_SCREEN = '(width < 600px)'
 
 // The dialogs page's two dialogs, which are one component here for the same
 // reason Sheet's two presentations are: the page pairs them by window size
@@ -477,14 +490,29 @@ function DialogContent({
   )
 }
 
-function DialogFooter(
-  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
-) {
+/**
+ * The dialog's actions. Full screen they are the action bar on the window's
+ * bottom edge, which a toast rises clear of while the dialog is open, so a
+ * tap meant for one of them never lands on the toast's own action instead.
+ */
+function DialogFooter({
+  ref: callerRef,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const isBasic = useContext(BasicContext)
+  const ref = useRef<HTMLDivElement>(null)
+  useHoldBottomEdge(ref, useFullScreen() && !isBasic)
+  // The footer measures itself through its own ref, and the call site's
+  // lands on the same element.
+  const merged = useMemo(
+    () => mergeRefs(ref, callerRef ?? undefined),
+    [callerRef],
+  )
 
   return (
     <div
       {...props}
+      ref={merged}
       {...mergeStyles(
         stylex.props(styles.footer, isBasic && basic.footer),
         props,
@@ -528,6 +556,33 @@ function DialogTitle(
         props,
       )}
     />
+  )
+}
+
+// Whether the window is at the size the full-screen dialog is drawn at, kept
+// current as it resizes. False on the server, where there is no window and
+// nothing is open.
+function isFullScreen() {
+  return window.matchMedia(FULL_SCREEN).matches
+}
+
+function isFullScreenOnServer() {
+  return false
+}
+
+function subscribeToFullScreen(listener: () => void) {
+  const query = window.matchMedia(FULL_SCREEN)
+  query.addEventListener('change', listener)
+  return () => {
+    query.removeEventListener('change', listener)
+  }
+}
+
+function useFullScreen() {
+  return useSyncExternalStore(
+    subscribeToFullScreen,
+    isFullScreen,
+    isFullScreenOnServer,
   )
 }
 
