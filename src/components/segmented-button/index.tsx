@@ -12,7 +12,13 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, createElement, useContext } from 'react'
+import {
+  createContext,
+  createElement,
+  useContext,
+  useLayoutEffect,
+  useState,
+} from 'react'
 import {
   SelectionIndicator as RACSelectionIndicator,
   ToggleButton as RACToggleButton,
@@ -89,35 +95,42 @@ import {
 // only where the page's own cue has been turned off; with the check drawn,
 // the chosen segment is the page's.
 //
+// A segment with an `icon` and no label is drawn that way whatever the set
+// says. It keeps its icon when chosen, since the icon is all that tells it
+// from its neighbours, and a check in its place would hide which of them is
+// the chosen one.
+//
 // Under forced colours a fill is painted in the page's own `Canvas`, so the
 // chosen container is `Highlight` with its label in `HighlightText` — the
 // pair the mode gives whatever is chosen — and a disabled chosen one keeps
 // a `GrayText` ring rather than a fill, which leaves its `GrayText` label
 // readable.
 //
-// That slot is drawn out of flow, and every segment that could ever use it
-// keeps room for it whether or not it is drawing one. Laid out in flow it
-// was part of the segment's content size, so the widest segment was
-// whichever one was chosen and the whole track changed width with the
-// choice — moving every label, and moving the ground under the chosen
+// Every segment that could ever draw that slot keeps room for it whether
+// or not it is drawing one. Sized by what it drew, the slot made the widest
+// segment whichever one was chosen, and the whole track changed width with
+// the choice — moving every label, and moving the ground under the chosen
 // container while it was sliding across it. The mechanism is Angular
-// Material's button toggle: the slot is absolute at the leading padding
-// edge and opens from 0 to 18dp, and the label's own margins open the space
-// it lands in, both over `durationShort2`. Two things here are not theirs.
-// The room is a margin on the label rather than padding on the segment,
-// because padding would be part of the content size the equal columns are
-// measured from — which is the thing being fixed. And it is split across
-// both of the label's sides while nothing is drawn, so a bare label stays
-// centred; Angular Material has no such case, since its toggles are sized
-// by their own content rather than by the widest of them.
+// Material's button toggle: the slot opens from 0 to 18dp and the space it
+// lands in opens beside it, both over `durationShort2`. Here that space is
+// two spacers either side of the label, which trade it between them: half
+// on each side while nothing is drawn, so a bare label stays centred, and
+// all of it on the leading side, where the slot sits, once something is.
+// Their total never changes, so neither does the segment's width. Angular
+// Material has no case of the first kind, since its toggles are sized by
+// their own content rather than by the widest of them.
 //
-// The cost is that a track able to draw a check is 26dp per segment wider
-// than its labels alone would ask for. It is not wider than it used to
-// get, though, and that falls out rather than being arranged: the reserve
-// puts every column at the widest label plus the room, which is exactly
-// what the widest column already measured while its own segment was the
-// chosen one. What changes is that the track is always that, instead of
-// only while the longest label is the one chosen.
+// That room gives way before the label does. A track with room to spare is
+// the widest label plus 26dp per segment, which is what the widest column
+// already measured while its own segment was the chosen one. A track
+// squeezed below that — long labels on a phone — gives the reserve back
+// first, then the 4dp of the page's 12dp padding beyond the 8dp a segment
+// always keeps, and only then cuts a label short, with an ellipsis and a
+// `title` that shows it whole. A segment drawing a glyph keeps the glyph and
+// its 8dp gap, so the chosen label is the first to be cut. A label shows
+// whole in a segment 16dp wider than it, or 42dp while a glyph is drawn
+// beside it, plus the segment's rule. The track's width still never depends
+// on the choice: squeezed, its columns are the container's, shared equally.
 //
 // Angular Material delays the check's own transition by 45ms so the space
 // opens before the glyph arrives. That is dropped rather than carried as a
@@ -293,6 +306,10 @@ const GLYPH_SIZE = '18px'
 const GLYPH_RESERVE = `calc(${GLYPH_SIZE} + ${spacing.sm})`
 const GLYPH_RESERVE_HALF = `calc((${GLYPH_SIZE} + ${spacing.sm}) / 2)`
 
+// The part of the page's 12dp padding a segment gives back on a narrow
+// track: the padding is 8dp, and the rest sits in the spacers, which shrink.
+const PADDING_GIVE = `calc(${spacing.md} - ${spacing.sm})`
+
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -300,20 +317,12 @@ const GLYPH_RESERVE_HALF = `calc((${GLYPH_SIZE} + ${spacing.sm}) / 2)`
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 const styles = stylex.create({
-  // The check, or the icon a segment carries: the page's 18dp icon, pinned
-  // to the leading padding edge and taken out of the segment's flow.
-  //
-  // Out of flow is the point. A glyph laid out beside the label is part of
-  // the segment's content size, and with `1fr` columns every column is as
-  // wide as the widest one asks — so a check that only a chosen segment
-  // draws made the whole track's width depend on the choice. Absolute, it
-  // contributes nothing, and the room it needs is reserved on the label
-  // instead, where it is reserved whether or not anything is drawn.
+  // The check, or the icon a segment carries: the page's 18dp icon, at the
+  // end of the leading spacer, so it sits against the label it marks.
   //
   // `fontSize` as well as the box, so a glyph drawn in `em` or an icon font
   // lands at the same size an SVG does, exactly as the field chrome sizes
-  // the icons it is handed. `insetInlineStart` rather than `left` is what
-  // mirrors it under RTL.
+  // the icons it is handed.
   //
   // The slot is 0 wide and clips until something is drawn in it, so the
   // check wipes out from the centre rather than appearing at full size. It
@@ -326,23 +335,25 @@ const styles = stylex.create({
     },
     alignItems: 'center',
     blockSize: GLYPH_SIZE,
+    boxSizing: 'border-box',
     display: 'inline-flex',
+    flexShrink: 0,
     fontSize: GLYPH_SIZE,
     inlineSize: 0,
-    insetBlockStart: '50%',
-    insetInlineStart: spacing.md,
     justifyContent: 'center',
     overflow: 'hidden',
     // Neither the check nor an icon is a press target; the segment is.
     pointerEvents: 'none',
-    position: 'absolute',
-    transform: 'translate3d(0, -50%, 0)',
     transitionDuration: motion.durationShort2,
-    transitionProperty: 'inline-size',
+    transitionProperty: 'inline-size, margin-inline-end',
     transitionTimingFunction: motion.easingStandard,
   },
   glyphDrawn: {
     inlineSize: GLYPH_SIZE,
+  },
+  // The page's 8dp between a glyph and the label beside it.
+  glyphGap: {
+    marginInlineEnd: spacing.sm,
   },
   // Sized rather than filling the slot, so that a slot part-way through its
   // transition clips the glyph instead of squashing it.
@@ -451,22 +462,27 @@ const styles = stylex.create({
   // The label truncates rather than wrapping: the track is one row 40dp
   // tall, and a second line would push its neighbours out of shape.
   //
-  // It is also the element that carries the room the glyph slot needs, which
-  // is why it transitions: the slot is absolute, so the label's own margins
-  // are what open the space it is drawn in. Both margins move together and
-  // their total never changes, so the segment asks for the same width in
-  // every state — which is the whole of the fix.
+  // It holds its own width while the spacers beside it give theirs back —
+  // `flexShrink: 0` is what puts the label last — and the most it can take
+  // is the segment's content box, which is where it starts to be cut.
   label: {
     '@media (prefers-reduced-motion: reduce)': {
       transitionDuration: '0s',
     },
+    flexShrink: 0,
+    maxInlineSize: '100%',
     minInlineSize: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     transitionDuration: motion.durationShort2,
-    transitionProperty: 'margin-inline-start, margin-inline-end',
+    transitionProperty: 'max-inline-size',
     transitionTimingFunction: motion.easingStandard,
     whiteSpace: 'nowrap',
+  },
+  // Beside a glyph: the content box less the glyph and its gap, which the
+  // leading spacer keeps however narrow the segment is.
+  labelBeside: {
+    maxInlineSize: `calc(100% - ${GLYPH_RESERVE})`,
   },
   // A chosen label under forced colours, which draws a `Canvas` backplate
   // behind text to keep it readable on whatever the author painted — and on
@@ -476,23 +492,6 @@ const styles = stylex.create({
   // row's does.
   labelChosen: {
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
-  },
-  // Nothing drawn in the slot: half the room on each side, so the label sits
-  // in the middle of the segment. A whole reserve on the leading side alone
-  // would hold the track just as still, and is what the first attempt at
-  // this did — it leaves every unchosen label 13px off centre.
-  labelReserved: {
-    marginInlineEnd: GLYPH_RESERVE_HALF,
-    marginInlineStart: GLYPH_RESERVE_HALF,
-  },
-  // Something drawn in it: the same room, moved to the leading side. The
-  // label shifts by half the reserve, which is exactly what centres the
-  // glyph and the label together — Angular Material's `padding-left` while
-  // checked, written as a margin because padding on the segment would be
-  // part of its content size again.
-  labelShifted: {
-    marginInlineEnd: 0,
-    marginInlineStart: GLYPH_RESERVE,
   },
   // The track: equal columns, each as wide as the widest segment asks for,
   // which is the page's segment width of the container over their number.
@@ -520,10 +519,11 @@ const styles = stylex.create({
   // the browser draws it at — half the track's height — so that the chosen
   // container can interpolate between them. See `indicator`.
   //
-  // There is no `gap`: the label is the only child laid out in flow, since
-  // the glyph slot, the chosen container, the state layer and the ripple are
-  // all positioned. The page's 8dp between a glyph and its label is part of
-  // the room the label reserves instead — see `label`.
+  // There is no `gap`: the label and the two spacers either side of it are
+  // the only children laid out in flow, since the chosen container, the
+  // state layer and the ripple are all positioned, and the page's 8dp
+  // between a glyph and its label is the glyph's own margin — see `spacer`.
+  // The padding is 8dp of the page's 12; the spacers hold the rest.
   segment: {
     '--segment-indicator-radius-end': {
       ':last-child': `min(${radii.pill}, 20px)`,
@@ -568,7 +568,7 @@ const styles = stylex.create({
     lineHeight: typography.labelLargeLineHeight,
     minInlineSize: 0,
     paddingBlock: 0,
-    paddingInline: spacing.md,
+    paddingInline: spacing.sm,
     // The ripple fills and clips to this, and the chosen container and the
     // state layer are placed against it, so it only has to be a positioning
     // context.
@@ -600,6 +600,46 @@ const styles = stylex.create({
   },
   segmentUnselected: {
     color: colors.onSurface,
+  },
+  // The two spacers either side of the label, which hold the room a glyph
+  // needs — see the header. Each is at least the 4dp of the page's padding
+  // the segment does not keep, and everything in them is given back before
+  // the label is cut. A width rather than a `flex-basis`, since an empty
+  // element's own size is what the track's columns are measured from.
+  spacer: {
+    '@media (prefers-reduced-motion: reduce)': {
+      transitionDuration: '0s',
+    },
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexShrink: 1,
+    inlineSize: PADDING_GIVE,
+    justifyContent: 'flex-end',
+    minInlineSize: 0,
+    transitionDuration: motion.durationShort2,
+    transitionProperty: 'inline-size, min-inline-size',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  // Nothing drawn: half the reserve on each side, so the label sits in the
+  // middle of the segment. A whole reserve on the leading side alone would
+  // hold the track just as still, and is what an earlier version did — it
+  // leaves every unchosen label 13px off centre.
+  spacerHalf: {
+    inlineSize: `calc(${PADDING_GIVE} + ${GLYPH_RESERVE_HALF})`,
+  },
+  // The leading spacer beside a drawn glyph: the whole reserve, which is
+  // exactly what centres the glyph and the label together, and of which the
+  // glyph and its gap are never given back.
+  spacerHolding: {
+    inlineSize: `calc(${PADDING_GIVE} + ${GLYPH_RESERVE})`,
+    minInlineSize: GLYPH_RESERVE,
+  },
+  // The leading spacer of a segment with an icon and no label: the icon
+  // alone, matched by the trailing spacer's padding, so the icon is centred.
+  spacerIcon: {
+    inlineSize: `calc(${PADDING_GIVE} + ${GLYPH_SIZE})`,
+    minInlineSize: GLYPH_SIZE,
   },
   // The hover, focus and press layers. Behind the segments with the chosen
   // container, and written after it so it is drawn over it, which is what
@@ -683,6 +723,9 @@ type SegmentedButtonSegmentProps = Omit<
    * An icon before the label, in the page's 18dp size. Replaced by the check
    * while the segment is chosen, unless the set turns that off. An icon drawn
    * in `em` takes that size from the slot.
+   *
+   * Given with no label, the icon is the segment, centred in it and kept
+   * while chosen; name the segment with `aria-label` then.
    */
   icon?: ReactNode
   /** A function may compute the style from the segment's render state. */
@@ -699,12 +742,23 @@ type SegmentedButtonSegmentProps = Omit<
 function glyphFor(
   state: ToggleButtonRenderProps,
   icon: ReactNode,
-  showSelectedIcon: boolean,
+  marked: boolean,
 ): ReactNode {
-  if (state.isSelected && showSelectedIcon) {
+  if (state.isSelected && marked) {
     return <CheckGlyph {...stylex.props(styles.glyphSvg)} />
   }
   return icon ?? null
+}
+
+// Whether a segment has a label, rather than an icon alone. An empty string
+// and a `false` from a condition at the call site are no label either.
+function hasLabel(children: ReactNode) {
+  return (
+    children !== undefined &&
+    children !== null &&
+    children !== false &&
+    children !== ''
+  )
 }
 
 // The chosen container's class, from the segment's own state and the shared
@@ -714,7 +768,7 @@ function glyphFor(
 function indicatorClassName(
   isDisabled: boolean,
   selectionMode: SelectionMode,
-  showSelectedIcon: boolean,
+  marked: boolean,
 ): (state: SharedElementRenderProps) => string {
   return (state) =>
     stylex.props(
@@ -722,7 +776,7 @@ function indicatorClassName(
       selectionMode === 'multiple'
         ? styles.indicatorInPlace
         : styles.indicatorSliding,
-      !showSelectedIcon && styles.indicatorUnmarked,
+      !marked && styles.indicatorUnmarked,
       isDisabled && styles.indicatorDisabled,
       (state.isEntering || state.isExiting) && styles.indicatorHidden,
     ).className ?? ''
@@ -737,16 +791,20 @@ function segmentContent(
   icon: ReactNode,
   ripple: Ripple,
   selectionMode: SelectionMode,
-  showSelectedIcon: boolean,
+  marked: boolean,
+  labelRef: (element: HTMLSpanElement | null) => void,
+  labelTitle: string | undefined,
 ) {
+  const labelled = hasLabel(children)
   // Whether this segment can ever draw a glyph, and so whether it keeps room
   // for one. A set that draws no check and a segment with no icon of its own
   // never needs the slot, and reserving it there would be dead space in
   // every segment of the track.
-  const reserves = showSelectedIcon || icon !== undefined
+  const reserves = marked || icon !== undefined
 
   return (state: ToggleButtonRenderProps) => {
-    const glyph = glyphFor(state, icon, showSelectedIcon)
+    const glyph = glyphFor(state, icon, marked)
+    const drawn = glyph !== null
 
     return (
       <>
@@ -754,7 +812,7 @@ function segmentContent(
           className={indicatorClassName(
             state.isDisabled,
             selectionMode,
-            showSelectedIcon,
+            marked,
           )}
         />
         <span
@@ -765,23 +823,48 @@ function segmentContent(
             state.isPressed && styles.stateLayerPressed,
           )}
         />
-        {reserves && (
+        <span
+          {...stylex.props(
+            styles.spacer,
+            reserves &&
+              (drawn
+                ? labelled
+                  ? styles.spacerHolding
+                  : styles.spacerIcon
+                : styles.spacerHalf),
+          )}
+        >
+          {reserves && (
+            <span
+              {...stylex.props(
+                styles.glyph,
+                drawn && styles.glyphDrawn,
+                drawn && labelled && styles.glyphGap,
+              )}
+            >
+              {glyph}
+            </span>
+          )}
+        </span>
+        {labelled && (
           <span
-            {...stylex.props(styles.glyph, glyph !== null && styles.glyphDrawn)}
+            ref={labelRef}
+            title={labelTitle}
+            {...stylex.props(
+              styles.label,
+              drawn && styles.labelBeside,
+              state.isSelected && !state.isDisabled && styles.labelChosen,
+            )}
           >
-            {glyph}
+            {children}
           </span>
         )}
         <span
           {...stylex.props(
-            styles.label,
-            reserves &&
-              (glyph === null ? styles.labelReserved : styles.labelShifted),
-            state.isSelected && !state.isDisabled && styles.labelChosen,
+            styles.spacer,
+            reserves && !drawn && styles.spacerHalf,
           )}
-        >
-          {children}
-        </span>
+        />
         {ripple.surface}
       </>
     )
@@ -864,7 +947,11 @@ function SegmentedButtonSegment({
   ...props
 }: RefAttributes<HTMLButtonElement> & SegmentedButtonSegmentProps) {
   const selectionMode = useContext(SelectionModeContext)
-  const showSelectedIcon = useContext(ShowSelectedIconContext)
+  // Whether this segment draws the check when chosen: the set's choice,
+  // unless the segment has no label — see the header.
+  const marked = useContext(ShowSelectedIconContext) && hasLabel(children)
+  const [label, setLabel] = useState<HTMLSpanElement | null>(null)
+  const labelTitle = useTruncatedText(label)
   // The `aria-*` props React Aria would drop and the keyboard handlers it
   // would wrap go on the element itself, as they do on Chip, Button and
   // IconButton; see src/render/aria.tsx.
@@ -901,9 +988,17 @@ function SegmentedButtonSegment({
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(segmentStyles(showSelectedIcon), props)}
+      {...mergeStatefulStyles(segmentStyles(marked), props)}
     >
-      {segmentContent(children, icon, ripple, selectionMode, showSelectedIcon)}
+      {segmentContent(
+        children,
+        icon,
+        ripple,
+        selectionMode,
+        marked,
+        setLabel,
+        labelTitle,
+      )}
     </RACToggleButton>
   )
 }
@@ -913,15 +1008,50 @@ function SegmentedButtonSegment({
 // className. `disabled` is applied last so its label colour wins over both
 // of the others. Built by a call, since a set that draws no check labels its
 // chosen segment for the container it draws instead.
-function segmentStyles(showSelectedIcon: boolean) {
+function segmentStyles(marked: boolean) {
   return (state: ToggleButtonRenderProps) =>
     stylex.props(
       styles.segment,
       focus.ring,
       state.isSelected ? styles.segmentSelected : styles.segmentUnselected,
-      state.isSelected && !showSelectedIcon && styles.segmentSelectedUnmarked,
+      state.isSelected && !marked && styles.segmentSelectedUnmarked,
       state.isDisabled && styles.segmentDisabled,
     )
+}
+
+// The text of a label its segment is cutting short, for a `title` that shows
+// it whole; undefined while it fits. Measured again whenever the label's box
+// or its text changes, which is when it can start or stop being cut.
+function useTruncatedText(label: HTMLElement | null): string | undefined {
+  const [text, setText] = useState<string | undefined>(undefined)
+
+  useLayoutEffect(() => {
+    if (label === null) {
+      return undefined
+    }
+
+    const measure = () => {
+      const cut = label.scrollWidth > label.clientWidth
+      setText(cut && label.textContent !== '' ? label.textContent : undefined)
+    }
+
+    measure()
+    const resize = new ResizeObserver(measure)
+    resize.observe(label)
+    const relabel = new MutationObserver(measure)
+    relabel.observe(label, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    })
+
+    return () => {
+      resize.disconnect()
+      relabel.disconnect()
+    }
+  }, [label])
+
+  return text
 }
 
 SegmentedButton.Segment = SegmentedButtonSegment

@@ -11,11 +11,7 @@ import {
   declarationsHeld,
   reducedMotionOf,
 } from '../../styles/stylesheet.testing'
-import {
-  colors,
-  spacing,
-  stateLayerOpacity,
-} from '../../tokens/design.tokens.stylex'
+import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -33,9 +29,9 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   focusLayer: { opacity: stateLayerOpacity.focus },
-  // The glyph slot is the only thing in a segment pinned to the leading
-  // padding edge, which is what tells it apart from the label beside it.
-  glyphSlot: { insetInlineStart: spacing.md },
+  // The glyph slot is the only thing in a segment sized in the page's 18dp
+  // icon font, which is what tells it apart from the spacer it sits in.
+  glyphSlot: { fontSize: '18px' },
   hidden: { opacity: 0 },
   hoverLayer: { opacity: stateLayerOpacity.hover },
   pressedLayer: { opacity: stateLayerOpacity.pressed },
@@ -70,6 +66,11 @@ const CLASSES = {
   stateLayer: classesOf(stylex.props(probeStyles.stateLayer)),
   unselected: classesOf(stylex.props(probeStyles.unselected)),
 }
+
+// A container of a given width, for a track squeezed below what it asks.
+const sizeStyles = stylex.create({
+  width: (width: string) => ({ inlineSize: width }),
+})
 
 // The query a forced-colours rule is held under, for `declarationsHeld`.
 const FORCED = 'forced-colors: active'
@@ -119,9 +120,9 @@ function cornersFor(keys: string[], index: number) {
 }
 
 // The glyph slot, which every segment that could ever draw a check or an
-// icon carries whether or not it is drawing one.
+// icon carries whether or not it is drawing one, inside its leading spacer.
 function glyphSlotOf(segment: Element) {
-  const found = [...segment.children].find((child) =>
+  const found = [...segment.querySelectorAll('span')].find((child) =>
     hasClasses(child, CLASSES.glyphSlot),
   )
   if (!(found instanceof HTMLElement)) {
@@ -136,6 +137,31 @@ function hasClasses(element: Element, classes: string[]) {
 
 function hasContainer(segment: Element) {
   return segment.querySelector(':scope > div') !== null
+}
+
+// Three segments of an icon each and no label, the second chosen.
+function iconOnly(dir: 'ltr' | 'rtl') {
+  return render(
+    <div dir={dir}>
+      <SegmentedButton aria-label="Label" defaultSelectedKeys={SECOND}>
+        <SegmentedButton.Segment
+          aria-label="First item"
+          icon={ICON}
+          id="first"
+        />
+        <SegmentedButton.Segment
+          aria-label="Second item"
+          icon={ICON}
+          id="second"
+        />
+        <SegmentedButton.Segment
+          aria-label="Third item"
+          icon={ICON}
+          id="third"
+        />
+      </SegmentedButton>
+    </div>,
+  )
 }
 
 // The label. The glyph slot, the state layer and the ripple surface are
@@ -217,6 +243,48 @@ function setup(
   )
 }
 
+// The leading and trailing spacers, in that order: the children laid out
+// in flow that hold no text, which the label is the one that does.
+function spacersOf(segment: Element) {
+  const found = [...segment.children].filter(
+    (child) =>
+      getComputedStyle(child).position === 'static' && child.textContent === '',
+  )
+  if (found.length !== 2) {
+    throw new Error('expected the segment to carry two spacers')
+  }
+  return found
+}
+
+// How wide each spacer of a segment is drawn, leading first.
+function spacerWidths(segment: Element) {
+  return spacersOf(segment).map(
+    (spacer) => spacer.getBoundingClientRect().width,
+  )
+}
+
+// The default set in a container of the given width.
+function squeezed(
+  width: number,
+  props: Partial<Parameters<typeof SegmentedButton>[0]> = {},
+) {
+  return render(
+    <div {...stylex.props(sizeStyles.width(`${width}px`))}>
+      <SegmentedButton
+        aria-label="Label"
+        defaultSelectedKeys={FIRST}
+        {...props}
+      >
+        <SegmentedButton.Segment id="first">First item</SegmentedButton.Segment>
+        <SegmentedButton.Segment id="second">
+          Second item
+        </SegmentedButton.Segment>
+        <SegmentedButton.Segment id="third">Third item</SegmentedButton.Segment>
+      </SegmentedButton>
+    </div>,
+  )
+}
+
 function trackOf(segment: Element) {
   const track = segment.parentElement
   if (track === null) {
@@ -239,6 +307,18 @@ function transitionRules(element: Element) {
     ...reducedMotionOf(element, 'transition-duration'),
     properties: reducedMotionOf(element, 'transition-property').resting,
   }
+}
+
+// The widest of the default set's labels, measured where nothing cuts it.
+function widestLabel() {
+  const view = setup()
+  const widest = Math.max(
+    ...view
+      .getAllByRole('radio')
+      .map((segment) => labelOf(segment).scrollWidth),
+  )
+  view.unmount()
+  return widest
 }
 
 // One press, played out, and what the track measures once it has settled.
@@ -668,7 +748,7 @@ describe('segmented button', () => {
     // own shows the icon until it is chosen and the check after.
     it('is drawn on the chosen segment alone', () => {
       const view = setup({ defaultSelectedKeys: SECOND })
-      const svgs = view.container.querySelectorAll('button > span > svg')
+      const svgs = view.container.querySelectorAll('button svg')
       expect(svgs).toHaveLength(1)
       expect(
         view.getAllByRole('radio')[1].querySelector('span > svg'),
@@ -680,9 +760,7 @@ describe('segmented button', () => {
         defaultSelectedKeys: SECOND,
         showSelectedIcon: false,
       })
-      expect(
-        view.container.querySelectorAll('button > span > svg'),
-      ).toHaveLength(0)
+      expect(view.container.querySelectorAll('button svg')).toHaveLength(0)
     })
 
     it('replaces the segment icon while chosen, and not before', () => {
@@ -822,11 +900,10 @@ describe('segmented button', () => {
       expect(overflowing).toStrictEqual([])
     })
 
-    // The other half of what the room buys. The slot is pinned to the
-    // leading padding edge and draws over whatever is under it, so a label
-    // that did not move for it would have the check drawn across its first
-    // characters — on the widest segment, which is the one whose label fills
-    // its column exactly.
+    // The other half of what the room buys: a label that did not move for
+    // the slot would have the check drawn against its first characters — on
+    // the widest segment, which is the one whose label fills its column
+    // exactly.
     it('leaves the page gap between the glyph and the label', async () => {
       const view = setup({ defaultSelectedKeys: FIRST })
       const segments = view.getAllByRole('radio')
@@ -867,32 +944,16 @@ describe('segmented button', () => {
       expect(leading).toBeCloseTo(trailing, 1)
     })
 
-    // The mechanism the rest rest on: the slot is positioned, so it is no
-    // part of what the columns are measured from, and the label's two
-    // margins hold the room instead — the same total in both states, moved
-    // to the leading side when something is drawn.
-    it('draws the glyph slot out of the segment flow', () => {
+    // The mechanism the rest rest on: the room is two spacers either side of
+    // the label, half on each side while nothing is drawn and all of it on
+    // the leading side, where the slot sits, once something is. The total is
+    // the same in both states, so the segment asks for the same width.
+    it('keeps the same room either side of the label in both states', () => {
       const view = setup({ defaultSelectedKeys: FIRST })
-      const slot = getComputedStyle(glyphSlotOf(view.getAllByRole('radio')[0]))
+      const [chosen, unchosen] = view.getAllByRole('radio')
 
-      expect(slot.position).toBe('absolute')
-      expect(slot.insetInlineStart).toBe('12px')
-    })
-
-    it('keeps the same room on the label in both states', () => {
-      const view = setup({ defaultSelectedKeys: FIRST })
-      const [chosen, unchosen] = view
-        .getAllByRole('radio')
-        .map((segment) => getComputedStyle(labelOf(segment)))
-
-      expect([chosen.marginInlineStart, chosen.marginInlineEnd]).toStrictEqual([
-        '26px',
-        '0px',
-      ])
-      expect([
-        unchosen.marginInlineStart,
-        unchosen.marginInlineEnd,
-      ]).toStrictEqual(['13px', '13px'])
+      expect(spacerWidths(chosen)).toStrictEqual([30, 4])
+      expect(spacerWidths(unchosen)).toStrictEqual([17, 17])
     })
 
     // A set that can draw neither a check nor an icon has no slot to keep
@@ -902,12 +963,128 @@ describe('segmented button', () => {
         defaultSelectedKeys: FIRST,
         showSelectedIcon: false,
       })
-      const label = getComputedStyle(labelOf(view.getAllByRole('radio')[0]))
 
-      expect([label.marginInlineStart, label.marginInlineEnd]).toStrictEqual([
-        '0px',
-        '0px',
-      ])
+      expect(spacerWidths(view.getAllByRole('radio')[0])).toStrictEqual([4, 4])
+    })
+  })
+
+  // A track squeezed below the width it asks for — long labels on a phone —
+  // gives the room back before it cuts a label. The widths are worked out
+  // from the labels as this browser draws them rather than written down, so
+  // the font a run happens to have changes nothing about what is checked.
+  describe('a narrow track', () => {
+    // Columns 26px wider than the widest label: the reserve alone was 26 on
+    // top of the padding, so every label but the shortest was cut, while
+    // given back it leaves each one room to spare.
+    it('gives the room back before cutting a label', () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 26))
+      const segments = view.getAllByRole('radio')
+
+      expect(trackOf(segments[0]).getBoundingClientRect().width).toBeCloseTo(
+        3 * (widest + 26),
+        0,
+      )
+      expect(
+        segments
+          .map((segment) => labelOf(segment))
+          .filter((label) => label.scrollWidth > label.clientWidth)
+          .map((label) => label.textContent),
+      ).toStrictEqual([])
+    })
+
+    // The chosen segment keeps its glyph and the gap beside it whatever
+    // happens, so it is the spacers of the others that went to nothing.
+    it('keeps the glyph and its gap while giving the rest back', () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 26))
+      const [chosen, , third] = view.getAllByRole('radio')
+
+      expect(spacerWidths(chosen)[0]).toBeGreaterThanOrEqual(26)
+      expect(spacerWidths(third).every((width) => width < 17)).toBe(true)
+    })
+
+    it('titles a label it cuts with the label, and nothing it does not', async () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 4))
+      const labels = view
+        .getAllByRole('radio')
+        .map((segment) => labelOf(segment))
+
+      await waitFor(() => {
+        for (const label of labels) {
+          const cut = label.scrollWidth > label.clientWidth
+          expect(label.getAttribute('title')).toBe(
+            cut ? label.textContent : null,
+          )
+        }
+      })
+      expect(labels.some((label) => label.hasAttribute('title'))).toBe(true)
+    })
+
+    it('drops the title once the label fits again', async () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 4))
+      const second = labelOf(view.getAllByRole('radio')[1])
+      await waitFor(() => {
+        expect(second.getAttribute('title')).toBe('Second item')
+      })
+
+      view.rerender(
+        <div {...stylex.props(sizeStyles.width('2000px'))}>
+          <SegmentedButton aria-label="Label" defaultSelectedKeys={FIRST}>
+            <SegmentedButton.Segment id="first">
+              First item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="second">
+              Second item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="third">
+              Third item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+        </div>,
+      )
+
+      await waitFor(() => {
+        expect(second.hasAttribute('title')).toBe(false)
+      })
+    })
+  })
+
+  // A segment with an icon and no label is the icon alone, so it has no label
+  // to keep room beside and no reason to stand the icon off centre.
+  describe('an icon-only segment', () => {
+    it.each(['ltr', 'rtl'] as const)(
+      'centres its icon in the segment, %s',
+      (dir) => {
+        const view = iconOnly(dir)
+        const offsets = view.getAllByRole('radio').map((segment) => {
+          const box = segment.getBoundingClientRect()
+          const glyph = glyphSlotOf(segment).getBoundingClientRect()
+          return Math.abs(
+            glyph.left + glyph.width / 2 - (box.left + box.width / 2),
+          )
+        })
+
+        expect(offsets.every((offset) => offset <= 1)).toBe(true)
+      },
+    )
+
+    // The icon is all that tells it from its neighbours, so a check in its
+    // place would hide which of them is chosen; the stronger container the
+    // set without a check draws says so instead.
+    it('keeps its icon while chosen, on the stronger container', () => {
+      const view = iconOnly('ltr')
+      const chosen = view.getAllByRole('radio')[1]
+
+      expect(chosen.querySelector('[data-testid="icon"]')).not.toBeNull()
+      expect(hasClasses(chosen, CLASSES.selectedUnmarked)).toBe(true)
+    })
+
+    it('is named by its aria-label', () => {
+      const view = iconOnly('ltr')
+      expect(view.getByRole('radio', { name: 'Second item' })).not.toBeNull()
     })
   })
 
