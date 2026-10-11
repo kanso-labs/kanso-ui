@@ -210,26 +210,39 @@ const styles = stylex.create({
   // The page's 24dp between the body and the actions, and 8dp between the
   // buttons themselves. Full screen, the actions are its bottom action bar:
   // 56dp tall, over a divider.
+  //
+  // Actions that do not fit on one row wrap onto another, still at the
+  // trailing edge and 8dp apart, rather than running the first of them past
+  // the container's start edge, where the container clips it. Three actions,
+  // or two with long translated labels, are enough on a phone.
+  //
+  // Full screen, 56dp is the bar's least height rather than its height, so
+  // an action whose label wraps grows the bar instead of meeting the divider.
+  // The 4dp at either end is what keeps it off the divider then; a row of
+  // ordinary 40dp buttons needs less than 56dp with it, so the bar the page
+  // draws is the same height as before.
   footer: {
     alignItems: 'center',
-    blockSize: { default: 'auto', [media.belowMedium]: '56px' },
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: { default: 'none', [media.belowMedium]: 'solid' },
     borderBlockStartWidth: '1px',
     boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
+    flexWrap: 'wrap',
     gap: spacing.sm,
     justifyContent: 'flex-end',
-    paddingBlockEnd: { default: spacing.xl, [media.belowMedium]: 0 },
-    paddingBlockStart: { default: spacing.xl, [media.belowMedium]: 0 },
+    minBlockSize: { default: null, [media.belowMedium]: '56px' },
+    paddingBlockEnd: { default: spacing.xl, [media.belowMedium]: spacing.xs },
+    paddingBlockStart: { default: spacing.xl, [media.belowMedium]: spacing.xs },
     paddingInline: spacing.xl,
   },
   // The page's 24dp above the headline and 16dp between it and the body.
   // Full screen, the header is the page's own: 56dp tall, under a divider.
+  // That height is a least height for the reason the footer's is, so a
+  // headline that wraps grows the bar rather than starting above it.
   header: {
     alignItems: 'center',
-    blockSize: { default: 'auto', [media.belowMedium]: '56px' },
     borderBlockEndColor: colors.outlineVariant,
     borderBlockEndStyle: { default: 'none', [media.belowMedium]: 'solid' },
     borderBlockEndWidth: '1px',
@@ -238,12 +251,19 @@ const styles = stylex.create({
     flexShrink: 0,
     gap: spacing.md,
     justifyContent: 'space-between',
-    paddingBlockEnd: { default: spacing.lg, [media.belowMedium]: 0 },
-    paddingBlockStart: { default: spacing.xl, [media.belowMedium]: 0 },
+    minBlockSize: { default: null, [media.belowMedium]: '56px' },
+    paddingBlockEnd: { default: spacing.lg, [media.belowMedium]: spacing.xs },
+    paddingBlockStart: { default: spacing.xl, [media.belowMedium]: spacing.xs },
     paddingInline: spacing.xl,
   },
   // Full screen the headline shares a 56dp row with the close button, so it
   // takes the title role there rather than the headline one.
+  //
+  // It is the part of that row that gives way. As a flex item it would
+  // otherwise keep its longest word's width as its least one, so a single
+  // long word, which a German compound easily is, pushed the close button
+  // off the screen; the headline now shrinks and breaks that word instead,
+  // and the button keeps its size and its place.
   title: {
     boxSizing: 'border-box',
     color: colors.onSurface,
@@ -268,6 +288,8 @@ const styles = stylex.create({
       [media.belowMedium]: typography.titleLargeLineHeight,
     },
     margin: 0,
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
   },
 })
 
@@ -297,14 +319,14 @@ const basic = stylex.create({
     paddingRight: null,
   },
   footer: {
-    blockSize: 'auto',
     borderBlockStartStyle: 'none',
+    minBlockSize: null,
     paddingBlockEnd: spacing.xl,
     paddingBlockStart: spacing.xl,
   },
   header: {
-    blockSize: 'auto',
     borderBlockEndStyle: 'none',
+    minBlockSize: null,
     paddingBlockEnd: spacing.lg,
     paddingBlockStart: spacing.xl,
   },
