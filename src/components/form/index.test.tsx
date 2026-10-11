@@ -1,4 +1,4 @@
-import type { SyntheticEvent } from 'react'
+import type { InputEventHandler, SyntheticEvent } from 'react'
 
 import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -35,6 +35,17 @@ function messageOf(control: HTMLElement, view: ReturnType<typeof render>) {
   const ids = control.getAttribute('aria-describedby')?.split(' ') ?? []
   const messages = ids.map((id) => view.container.querySelector(`#${id}`))
   return messages.filter((element) => element !== null)
+}
+
+/**
+ * Types `value` into a control that keeps focus: an `input` event and no
+ * `change`, which a text control fires only once focus leaves.
+ */
+function typeInto(control: HTMLElement, value: string) {
+  act(() => {
+    control.focus()
+    fireEvent.input(control, { target: { value } })
+  })
 }
 
 describe('form', () => {
@@ -288,6 +299,91 @@ describe('form', () => {
         formOf(view).requestSubmit()
       })
       expect(onSubmit).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  // React Aria commits a field's validation on the control's `change` event,
+  // which a text control fires only on blur, so an error used to outlive the
+  // edit that fixed it until focus left. Each case here edits a control that
+  // keeps focus throughout.
+  describe('an error being fixed', () => {
+    it.each([
+      ['a text field', <TextField key="field" label="Name" name="name" />],
+      ['a text area', <TextArea key="field" label="Name" name="name" />],
+    ])("clears a server's error from %s on the first edit", (_case, field) => {
+      const view = render(
+        <Form aria-label="Label" validationErrors={SERVER_ERRORS}>
+          {field}
+        </Form>,
+      )
+      const control = view.getByLabelText('Name')
+      expect(control.getAttribute('aria-invalid')).toBe('true')
+
+      typeInto(control, 'Edited')
+
+      expect(document.activeElement).toBe(control)
+      expect(control.getAttribute('aria-invalid')).not.toBe('true')
+      expect(view.queryByText('Choose another name.')).toBeNull()
+    })
+
+    it("checks the browser's error again against the edited value", () => {
+      const view = render(
+        <Form aria-label="Label" validationBehavior="native">
+          <TextField isRequired label="Field" name="field" type="email" />
+        </Form>,
+      )
+      const control = view.getByRole('textbox', { name: 'Field' })
+      act(() => {
+        formOf(view).requestSubmit()
+      })
+      expect(control.getAttribute('aria-invalid')).toBe('true')
+
+      // Still not an address, so still an error, with the message for this
+      // value rather than for the empty one.
+      const empty = messageOf(control, view)[0]?.textContent
+      typeInto(control, 'name')
+      expect(control.getAttribute('aria-invalid')).toBe('true')
+      expect(messageOf(control, view)[0]?.textContent).not.toBe(empty)
+
+      typeInto(control, 'name@example.com')
+      expect(document.activeElement).toBe(control)
+      expect(control.getAttribute('aria-invalid')).not.toBe('true')
+    })
+
+    // An error is shown late and taken back early: a field with no error
+    // shows none in the middle of typing, even a value it will reject.
+    it('flags nothing new while a valid field is typed in', () => {
+      const view = render(
+        <Form aria-label="Label" validationBehavior="native">
+          <TextField label="Field" name="field" type="email" />
+        </Form>,
+      )
+      const control = view.getByRole('textbox', { name: 'Field' })
+
+      typeInto(control, 'name')
+
+      expect(control.getAttribute('aria-invalid')).not.toBe('true')
+    })
+
+    it("still runs the call site's own input and change handlers once each", () => {
+      const onInput = vi.fn<InputEventHandler<HTMLInputElement>>()
+      const onChange = vi.fn<(value: string) => void>()
+      const view = render(
+        <Form aria-label="Label" validationErrors={SERVER_ERRORS}>
+          <TextField
+            label="Name"
+            name="name"
+            onChange={onChange}
+            onInput={onInput}
+          />
+        </Form>,
+      )
+
+      typeInto(view.getByLabelText('Name'), 'Edited')
+
+      expect(onInput).toHaveBeenCalledTimes(1)
+      expect(onChange).toHaveBeenCalledTimes(1)
+      expect(onChange).toHaveBeenCalledWith('Edited')
     })
   })
 })

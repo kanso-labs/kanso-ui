@@ -1,6 +1,7 @@
 import type {
   FocusEvent,
   HTMLAttributes,
+  InputEventHandler,
   PointerEvent,
   ReactNode,
   Ref,
@@ -485,6 +486,35 @@ function boxStyles(
 }
 
 /**
+ * The control's `onInput`, which also commits the field's validation while it
+ * shows an error, so an edit that fixes the value clears the error as it is
+ * typed rather than once focus leaves.
+ *
+ * React Aria commits a field's validation — the moment a server's error is
+ * cleared, or the browser's own is checked again — on the control's native
+ * `change` event, and a text control fires that only on blur. So a reader
+ * typing the fix saw the error, red and `aria-invalid`, until they tabbed
+ * away from a value that was already right. Re-dispatching `change` on input
+ * is what commits early, through React Aria's own listener.
+ *
+ * Only while the field is invalid. A valid field still commits on blur, so
+ * nothing new is flagged in the middle of typing a value: an error is shown
+ * late and taken back early. React's `onChange` does not run a second time
+ * for it, since the value it tracks has not moved since the input.
+ */
+function commitWhileInvalid<E extends HTMLElement>(
+  isInvalid: boolean,
+  onInput: InputEventHandler<E> | undefined,
+): InputEventHandler<E> {
+  return (event) => {
+    onInput?.(event)
+    if (isInvalid) {
+      event.currentTarget.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+  }
+}
+
+/**
  * The box a control sits in, filled or outlined, with its label. React
  * Aria's `Group`, so
  * the field around it hands down `isDisabled` and `isInvalid` through context
@@ -570,11 +600,16 @@ function FieldInput({
   ...props
 }: FieldInputProps & RefAttributes<HTMLInputElement>) {
   const box = useContext(BoxContext)
+  const validation = useContext(FieldErrorContext)
 
   const control = (
     <Input
       placeholder={placeholder ?? (box.label === 'floating' ? ' ' : undefined)}
       {...props}
+      onInput={commitWhileInvalid(
+        validation?.isInvalid ?? false,
+        props.onInput,
+      )}
       {...mergeStatefulStyles(
         (state: InputRenderProps) =>
           stylex.props(
@@ -670,12 +705,17 @@ function FieldTextArea({
 }: FieldTextAreaProps & RefAttributes<HTMLTextAreaElement>) {
   const box = useContext(BoxContext)
   const context = useSlottedContext(TextAreaContext)
+  const validation = useContext(FieldErrorContext)
   const value = typeof context?.value === 'string' ? context.value : ''
 
   const control = (
     <TextArea
       placeholder={placeholder ?? (box.label === 'floating' ? ' ' : undefined)}
       {...props}
+      onInput={commitWhileInvalid(
+        validation?.isInvalid ?? false,
+        props.onInput,
+      )}
       {...mergeStatefulStyles(
         (state: InputRenderProps) =>
           stylex.props(
