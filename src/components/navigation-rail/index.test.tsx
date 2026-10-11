@@ -275,6 +275,38 @@ describe('navigation rail', () => {
 
       expect(rail.right - first.right).toBe(20)
     })
+
+    // A count overhangs the icon on the label's side by up to 22dp, against
+    // the 8dp between the two, so the mark joins the flow beside the icon
+    // and the label starts after it.
+    it.each([3, 99, 1000])(
+      'starts the label after a count badge of %i',
+      (count) => {
+        const view = render(
+          <NavigationRail aria-label="Label" isExpanded>
+            <NavigationRail.Item
+              aria-label={`First item, ${count} new`}
+              badge={count}
+              href="#first"
+              icon={ICON}
+            >
+              First item
+            </NavigationRail.Item>
+          </NavigationRail>,
+        )
+        const link = view.getByRole('link', {
+          name: `First item, ${count} new`,
+        })
+        const mark = link.querySelector('span[aria-hidden="true"]')
+        if (mark === null) {
+          throw new Error('expected the destination to draw a badge')
+        }
+
+        expect(
+          partsOf(link).label.getBoundingClientRect().left,
+        ).toBeGreaterThan(mark.getBoundingClientRect().right)
+      },
+    )
   })
 
   describe('under forced colours', () => {

@@ -10,6 +10,7 @@ import { Link as RACLink } from 'react-aria-components'
 
 import type { NavigationForm } from './context'
 
+import { BadgeMarkContext } from '../badge'
 import Badge from '../components/badge'
 import { focus } from '../styles/focus'
 import { mergeStatefulStyles } from '../styles/merge'
@@ -17,6 +18,7 @@ import { NavigationContext } from './context'
 import {
   barItemStyles,
   collapsedItemStyles,
+  crampedBarItemStyles,
   expandedItemStyles,
   navigationItemStyles,
 } from './styles'
@@ -33,6 +35,7 @@ import {
 
 const FORMS = {
   bar: barItemStyles,
+  barCramped: { ...collapsedItemStyles, item: crampedBarItemStyles.item },
   collapsed: collapsedItemStyles,
   expanded: expandedItemStyles,
 }
@@ -44,6 +47,7 @@ const FORMS = {
 // are its own, each giving way at the width the other takes over.
 const RINGS = {
   bar: { indicator: barItemStyles.indicatorRing, item: barItemStyles.itemRing },
+  barCramped: { indicator: focus.ringVisible, item: null },
   collapsed: { indicator: focus.ringVisible, item: null },
   expanded: { indicator: null, item: focus.ringVisible },
 }
@@ -108,7 +112,9 @@ function itemContent(
     badge === undefined || badge === false ? (
       icon
     ) : (
-      <Badge count={badge === true ? undefined : badge}>{icon}</Badge>
+      <BadgeMarkContext value={styles.badgeMark}>
+        <Badge count={badge === true ? undefined : badge}>{icon}</Badge>
+      </BadgeMarkContext>
     )
 
   return (state: LinkRenderProps) => (

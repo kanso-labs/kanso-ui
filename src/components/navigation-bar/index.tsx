@@ -3,13 +3,14 @@
 import type { RefAttributes } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 
 import type { NavigationItemProps } from '../../navigation'
 import type { RenderComponentProps } from '../../render/useRender'
 
 import { NavigationItem } from '../../navigation'
 import { NavigationContext } from '../../navigation/context'
+import { mergeRefs } from '../../render/ref'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import { colors, media, spacing } from '../../tokens/design.tokens.stylex'
@@ -26,6 +27,14 @@ import { colors, media, spacing } from '../../tokens/design.tokens.stylex'
 // each pill in an item of a fixed width it does not give, and with no space
 // at all the pills met edge to edge.
 //
+// A horizontal destination is as wide as its icon, its label and 16dp either
+// side, so five of them need far more than the 600dp the breakpoint starts
+// at: five fifteen-letter labels come to about 780. Drawn anyway, every label
+// was cut short the moment the window crossed the breakpoint, while one
+// pixel narrower the vertical form showed them whole. So the bar measures
+// what its horizontal labels lack, and keeps the vertical form until it is
+// that much wider — see `useCramped`.
+//
 // The bar is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 
@@ -40,7 +49,17 @@ const styles = stylex.create({
     inlineSize: '100%',
     justifyContent: 'center',
   },
+  // The vertical form's spacing, at a width that would otherwise draw the
+  // horizontal one.
+  barCramped: {
+    gap: 0,
+  },
 })
+
+// The window size the bar draws its horizontal form at, which the styles read
+// as `media.medium`. Spelled again for `matchMedia`, the one thing here that
+// has to know it outside a stylesheet — see `useCramped`.
+const HORIZONTAL = '(width >= 600px)'
 
 type NavigationBarProps = RenderComponentProps<'nav'> & {
   /**
@@ -77,15 +96,33 @@ function NavigationBar({
   selectedRoute,
   ...props
 }: NavigationBarProps) {
+  // The element, held as state rather than in a ref object, since the bar
+  // measures it from an effect and has to run again when it changes.
+  const [element, setElement] = useState<HTMLElement | null>(null)
+  const isCramped = useCramped(element)
+  // The call site's ref lands on the same element. Read off `props` rather
+  // than destructured, as `useRender` reads it, so the compiler sees a prop
+  // holding still rather than a ref read during render.
+  const merged = useMemo(
+    () => mergeRefs(setElement, props.ref ?? undefined),
+    [props.ref],
+  )
   const context = useMemo(
-    () => ({ form: 'bar' as const, selectedRoute }),
-    [selectedRoute],
+    () => ({
+      form: isCramped ? ('barCramped' as const) : ('bar' as const),
+      selectedRoute,
+    }),
+    [isCramped, selectedRoute],
   )
   const bar = useRender({
     defaultTagName: 'nav',
     props: {
       ...props,
-      ...mergeStyles(stylex.props(styles.bar), props),
+      ...mergeStyles(
+        stylex.props(styles.bar, isCramped && styles.barCramped),
+        props,
+      ),
+      ref: merged,
     },
     render,
   })
@@ -106,6 +143,78 @@ function NavigationBarItem(
   props: NavigationItemProps & RefAttributes<HTMLAnchorElement>,
 ) {
   return <NavigationItem {...props} />
+}
+
+/**
+ * How much wider the bar would have to be for none of its labels to be cut
+ * short: what each one lacks of its own width, summed. A label is the last
+ * part of its destination.
+ */
+function shortfallOf(bar: HTMLElement) {
+  let total = 0
+  for (const destination of bar.children) {
+    const label = destination.lastElementChild
+    if (label instanceof HTMLElement) {
+      total += Math.max(0, label.scrollWidth - label.clientWidth)
+    }
+  }
+  return total
+}
+
+/**
+ * Whether `bar`, at a width that draws its horizontal form, is too narrow
+ * for it, so it draws the vertical one instead.
+ *
+ * The horizontal form is measured as it is drawn: where it cuts labels short,
+ * the bar records the width it would need and switches, and it switches back
+ * once it is that wide. A change to the destinations' text clears the record,
+ * since what they need has changed with it. Measured in a layout effect, so
+ * a bar that cannot fit is never painted cut short.
+ */
+function useCramped(bar: HTMLElement | null) {
+  // The bar's width the horizontal form needs, while it is wider than the
+  // bar; undefined while the horizontal form fits, or has not been measured.
+  const [needed, setNeeded] = useState<number | undefined>(undefined)
+
+  useLayoutEffect(() => {
+    if (bar === null) {
+      return undefined
+    }
+
+    const measure = () => {
+      if (needed !== undefined) {
+        if (bar.clientWidth >= needed) {
+          setNeeded(undefined)
+        }
+        return
+      }
+      if (!window.matchMedia(HORIZONTAL).matches) {
+        return
+      }
+      const shortfall = shortfallOf(bar)
+      if (shortfall > 0) {
+        // A pixel over, so a bar exactly as wide as the sum of fractional
+        // widths does not flip back and forth.
+        setNeeded(bar.clientWidth + shortfall + 1)
+      }
+    }
+    const relabel = () => {
+      setNeeded(undefined)
+    }
+
+    measure()
+    const resize = new ResizeObserver(measure)
+    resize.observe(bar)
+    const text = new MutationObserver(relabel)
+    text.observe(bar, { characterData: true, childList: true, subtree: true })
+
+    return () => {
+      resize.disconnect()
+      text.disconnect()
+    }
+  }, [bar, needed])
+
+  return needed !== undefined
 }
 
 NavigationBar.Item = NavigationBarItem

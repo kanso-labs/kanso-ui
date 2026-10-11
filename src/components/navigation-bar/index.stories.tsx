@@ -144,6 +144,50 @@ const BADGED = (
   </>
 )
 
+const LARGE_COUNTS = (
+  <>
+    <NavigationBar.Item
+      aria-label="First item, 99 new"
+      badge={99}
+      href="#first"
+      icon={CIRCLE}
+    >
+      First item
+    </NavigationBar.Item>
+    <NavigationBar.Item
+      aria-label="Second item, more than 999 new"
+      badge={1000}
+      href="#second"
+      icon={SQUARE}
+    >
+      Second item
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#third" icon={TRIANGLE}>
+      Third item
+    </NavigationBar.Item>
+  </>
+)
+
+const LONG_LABELS = (
+  <>
+    <NavigationBar.Item href="#first" icon={CIRCLE}>
+      First destination
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#second" icon={SQUARE}>
+      Second destination
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#third" icon={TRIANGLE}>
+      Third destination
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#fourth" icon={STAR}>
+      Fourth destination
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#fifth" icon={DIAMOND}>
+      Fifth destination
+    </NavigationBar.Item>
+  </>
+)
+
 // Below the medium breakpoint, where the destinations turn vertical. Sizes
 // the frame in Storybook itself, and tells Chromatic the width through its
 // modes — see sheet/index.stories.tsx, `BottomSheet`, for why both.
@@ -194,6 +238,39 @@ const WithBadges: Story = {
   },
 }
 
-export { Compact, Default, FiveDestinations, WithBadges }
+// Counts of two and four characters beside the labels, in the horizontal
+// form: each label starts after its badge rather than under it.
+const WithLargeCounts: Story = {
+  args: {
+    children: LARGE_COUNTS,
+  },
+}
+
+// Five labels the horizontal form has no room for at 640px, so the bar keeps
+// the vertical form there and turns horizontal once the window is wide
+// enough to show every label whole. Chromatic is told the width through its
+// modes; in Storybook the form follows the window.
+const LongLabels: Story = {
+  args: {
+    children: LONG_LABELS,
+  },
+  parameters: {
+    chromatic: {
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 640 } },
+        light: { theme: 'light', viewport: { height: 700, width: 640 } },
+      },
+    },
+  },
+}
+
+export {
+  Compact,
+  Default,
+  FiveDestinations,
+  LongLabels,
+  WithBadges,
+  WithLargeCounts,
+}
 
 export default meta

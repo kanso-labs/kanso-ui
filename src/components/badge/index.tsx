@@ -1,10 +1,12 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import { useLocale } from 'react-aria-components'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
+import { BadgeMarkContext } from '../../badge'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import {
@@ -138,6 +140,7 @@ type BadgeProps = RenderComponentProps<'span'> & {
  */
 function Badge({ children, count, max = 999, render, ...props }: BadgeProps) {
   const { locale } = useLocale()
+  const placed = useContext(BadgeMarkContext)
   const numbers = new Intl.NumberFormat(locale)
   const label =
     count === undefined
@@ -160,6 +163,10 @@ function Badge({ children, count, max = 999, render, ...props }: BadgeProps) {
               styles.mark,
               label === undefined ? styles.small : styles.large,
               (children === undefined || children === null) && styles.inFlow,
+              // What a destination drawing it asks of a count's mark — see
+              // src/badge. The small mark stays inside its icon's box, so
+              // nothing has to make room for it.
+              label !== undefined && placed,
             )}
           >
             {label}

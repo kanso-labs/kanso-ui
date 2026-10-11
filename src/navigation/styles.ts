@@ -103,9 +103,27 @@ const navigationItemStyles = stylex.create({
   },
 })
 
+// The pages' least touch target, which a horizontal bar destination's 40dp
+// pill falls short of.
+const TARGET_SIZE = '48px'
+
 // The navigation bar's destination: vertical below the medium breakpoint and
 // horizontal at it and above, so every value that differs is a pair.
 const barItemStyles = stylex.create({
+  // A count badge's mark, placed by the badge itself against the icon's
+  // top trailing corner. Beside the label, at the medium breakpoint and
+  // above, it overhangs the icon on the label's side by 4dp at one digit
+  // and 22dp at "999+", against the 4dp between icon and label: a count of
+  // 99 covered the label's first letter. There the mark joins the flow
+  // instead, 12dp back over the icon and 2dp above it, which is where the
+  // badge's own placement puts it, so the label starts after it. Below the
+  // breakpoint the label is under the icon and the badge places itself.
+  badgeMark: {
+    alignSelf: { default: null, [media.medium]: 'flex-start' },
+    insetInlineStart: { default: 'calc(100% - 12px)', [media.medium]: 0 },
+    marginInlineStart: { default: null, [media.medium]: '-12px' },
+    position: { default: 'absolute', [media.medium]: 'relative' },
+  },
   indicator: {
     alignItems: 'center',
     blockSize: { default: '32px', [media.medium]: 'auto' },
@@ -176,7 +194,19 @@ const barItemStyles = stylex.create({
   },
   // Each vertical destination shares the bar's width with the others; a
   // horizontal one is as wide as its pill, the group centred in the bar.
+  //
+  // The horizontal pill is the page's 40dp, and the press reaches past it to
+  // the pages' 48dp target through a box drawn above and below it: a box
+  // taking the press because a pseudo-element is part of the element it
+  // belongs to, and moving nothing because it is out of flow. The vertical
+  // destination is the bar's full height already, so it draws none.
   item: {
+    '::after': {
+      content: { default: null, [media.medium]: '""' },
+      insetBlock: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
+      insetInline: 0,
+      position: 'absolute',
+    },
     blockSize: { default: '100%', [media.medium]: '40px' },
     borderRadius: radii.pill,
     flexBasis: { default: 0, [media.medium]: 'auto' },
@@ -263,6 +293,8 @@ const barItemStyles = stylex.create({
 // The collapsed rail's destination: always vertical, the pitch from one to
 // the next the rail's 4dp gap.
 const collapsedItemStyles = stylex.create({
+  // The label is under the icon, so the badge places its own mark.
+  badgeMark: {},
   indicator: {
     alignItems: 'center',
     blockSize: '32px',
@@ -334,6 +366,15 @@ const collapsedItemStyles = stylex.create({
 // The expanded rail's destination: always horizontal, a 56dp pill as wide as
 // what it holds.
 const expandedItemStyles = stylex.create({
+  // A count badge's mark in the flow beside the icon, for the reason the
+  // bar's horizontal form gives: it overhangs the icon on the label's side by
+  // up to 22dp, against the 8dp between the two here.
+  badgeMark: {
+    alignSelf: 'flex-start',
+    insetInlineStart: 0,
+    marginInlineStart: '-12px',
+    position: 'relative',
+  },
   indicator: {
     alignItems: 'center',
     display: 'flex',
@@ -393,9 +434,29 @@ const expandedItemStyles = stylex.create({
   },
 })
 
+// The bar's destination when the bar is too narrow for its horizontal form
+// at a width that would otherwise draw it — see NavigationBar. Vertical at
+// every width: the bar's own vertical item, with the collapsed rail's
+// indicator, label and badge placement, which are the bar's vertical ones.
+const crampedBarItemStyles = stylex.create({
+  item: {
+    blockSize: '100%',
+    borderRadius: radii.pill,
+    flexBasis: 0,
+    flexDirection: 'column',
+    flexGrow: 1,
+    gap: spacing.xs,
+    justifyContent: 'center',
+    minInlineSize: 0,
+    paddingBlock: '6px',
+    paddingInline: 0,
+  },
+})
+
 export {
   barItemStyles,
   collapsedItemStyles,
+  crampedBarItemStyles,
   expandedItemStyles,
   navigationItemStyles,
 }

@@ -12,8 +12,11 @@ type NavigationContextValue = {
   selectedRoute?: string | undefined
 }
 
-/** Which of the three forms a destination draws — see ./styles.ts. */
-type NavigationForm = 'bar' | 'collapsed' | 'expanded'
+/**
+ * Which form a destination draws — see ./styles.ts. `barCramped` is the bar's
+ * vertical form at every width, for a bar too narrow for its horizontal one.
+ */
+type NavigationForm = 'bar' | 'barCramped' | 'collapsed' | 'expanded'
 
 const NavigationContext = createContext<NavigationContextValue>({
   form: 'bar',
