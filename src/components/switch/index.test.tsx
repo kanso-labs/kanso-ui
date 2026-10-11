@@ -403,6 +403,85 @@ describe('switch', () => {
       },
     )
 
+    // A finger drifts further on an ordinary tap than a mouse does. Under the
+    // mouse's slop, 6 to 10px of drift was read as a drag let go before the
+    // middle, which settled where it began and dropped the tap.
+    it('still flips on a touch tap that drifts 8px', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      fireEvent.pointerDown(seat, {
+        button: 0,
+        clientX: 100,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      fireEvent.pointerMove(seat, {
+        clientX: 108,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      fireEvent.pointerUp(seat, {
+        clientX: 108,
+        pointerId: 1,
+        pointerType: 'touch',
+      })
+      fireEvent.click(seat)
+
+      expect(input).toHaveProperty('checked', true)
+    })
+
+    // The mouse keeps its own slop: a deliberate 7px drag let go before the
+    // middle is still a drag, and springs back.
+    it('springs back from a 7px mouse drag', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      fireEvent.pointerDown(seat, {
+        button: 0,
+        clientX: 100,
+        pointerId: 1,
+        pointerType: 'mouse',
+      })
+      fireEvent.pointerMove(seat, {
+        clientX: 107,
+        pointerId: 1,
+        pointerType: 'mouse',
+      })
+      fireEvent.pointerUp(seat, {
+        clientX: 107,
+        pointerId: 1,
+        pointerType: 'mouse',
+      })
+      fireEvent.click(seat)
+
+      expect(input).toHaveProperty('checked', false)
+    })
+
+    // A tap focuses the input through the label; a drag settles the switch
+    // with a programmatic click, which focuses nothing, so focus was left on
+    // the page and the next Space went nowhere. With focus on the input,
+    // Space is the checkbox's own; it is not pressed here, since a real key
+    // goes through the page-wide channel AGENTS.md's "Media queries a test
+    // cannot set" describes, which stalls under a full run.
+    it('leaves focus on the input after a drag', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 15).release()
+      expect(input).toHaveProperty('checked', true)
+      expect(document.activeElement).toBe(input)
+    })
+
+    it('focuses the input after a drag that settles where it began', () => {
+      const { input } = setup()
+      const { seat } = partsOf(input)
+
+      dragBy(seat, 9).release()
+      expect(input).toHaveProperty('checked', false)
+      expect(document.activeElement).toBe(input)
+    })
+
     // A touch dragged past the browser's own slop sends no click at all, so
     // the guard armed for that click is still set when the next tap comes —
     // and has to be cleared by the next press rather than swallow it.
