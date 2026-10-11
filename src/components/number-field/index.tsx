@@ -255,6 +255,15 @@ type NumberFieldProps = {
    */
   inputRef?: Ref<HTMLInputElement>
   /**
+   * Whether the mouse wheel and a trackpad's scroll leave the value alone.
+   * React Aria steps a focused number field's value with the wheel, so a
+   * reader scrolling a long form past a field they had left focused changed
+   * its value instead of moving the page. Stepping from the wheel is the
+   * call site's to ask for, with `false`.
+   * @default true
+   */
+  isWheelDisabled?: boolean
+  /**
    * What the field is for. Required rather than optional: a field with no
    * label is a box a screen reader cannot name.
    */
@@ -280,7 +289,10 @@ type NumberFieldProps = {
    * @default 'filled'
    */
   variant?: FieldVariant
-} & Omit<RACNumberFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
+} & Omit<
+  RACNumberFieldProps,
+  'children' | 'isInvalid' | 'isWheelDisabled' | 'validationBehavior'
+>
 
 /**
  * A labelled number input with steppers. Its value is React Aria's: pass
@@ -289,6 +301,8 @@ type NumberFieldProps = {
  * empty. `minValue`, `maxValue` and `step` shape it, and `formatOptions`
  * says how it reads, in the locale the page is in: a currency, a percentage,
  * a unit. Arrow keys step the value, and Page Up and Page Down by ten steps.
+ * The mouse wheel scrolls the page past it rather than stepping it, unless
+ * `isWheelDisabled` is `false`.
  *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions. The box, label, input and message
@@ -302,6 +316,7 @@ function NumberField({
   incrementLabel,
   inputRef,
   isDisabled = false,
+  isWheelDisabled = true,
   label,
   numeric = true,
   steppers = 'vertical',
@@ -316,6 +331,7 @@ function NumberField({
     <RACNumberField
       isDisabled={isDisabled}
       isInvalid={invalidFrom(error)}
+      isWheelDisabled={isWheelDisabled}
       validationBehavior={validationBehavior}
       {...props}
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
