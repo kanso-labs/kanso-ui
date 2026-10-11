@@ -130,6 +130,25 @@ const MultipleSelection: Story = {
   ),
 }
 
-export { Default, Loading, MultipleSelection, Sections, Submenu }
+// An item given an `href` renders as an anchor and follows it when chosen,
+// drawn exactly as the items beside it are: a menu's items are all followed
+// the same way, so none of them is set apart as a link.
+const WithLink: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
+  render: (args) => (
+    <Menu {...args} defaultOpen>
+      <Button variant="outlined">Label</Button>
+      <Menu.Content>
+        <Menu.Item id="first">First item</Menu.Item>
+        <Menu.Item href="#second" id="second">
+          Second item
+        </Menu.Item>
+        <Menu.Item id="third">Third item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+}
+
+export { Default, Loading, MultipleSelection, Sections, Submenu, WithLink }
 
 export default meta

@@ -57,12 +57,20 @@ const HOVER_CAPABLE = '@media (hover: hover)'
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 const rowStyles = stylex.create({
+  // A row given an `href` is an anchor, which the browser underlines and,
+  // under forced colours, draws in `LinkText`. Neither is reset by anything
+  // else here, so a link row read as a link in a list of rows that are all
+  // equally followed — a menu item, a list or tree item. The underline is
+  // taken off, and the forced-colours text named as `CanvasText`, which the
+  // mode keeps because it is already one of its own colours, so a link row
+  // and the row beside it are drawn alike. A selected or disabled row still
+  // names its own colour after this.
   base: {
     alignItems: 'center',
     backgroundColor: 'transparent',
     borderWidth: 0,
     boxSizing: 'border-box',
-    color: colors.onSurface,
+    color: { default: colors.onSurface, [FORCED_COLORS]: 'CanvasText' },
     display: 'flex',
     gap: spacing.lg,
     inlineSize: '100%',
@@ -70,6 +78,7 @@ const rowStyles = stylex.create({
     paddingInline: spacing.lg,
     position: 'relative',
     textAlign: 'start',
+    textDecorationLine: 'none',
   },
   // Applied from render state rather than `:disabled`, since a collection
   // item is a div React Aria marks with aria-disabled. Listed after the
