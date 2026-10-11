@@ -115,6 +115,25 @@ describe('colorScheme', () => {
     )
   })
 
+  // The same paint and `color-scheme` as ThemeScope with `scheme` set, since
+  // they are the same classes in two forms.
+  it.each([
+    ['dark', 'rgb(20, 18, 24)', 'rgb(230, 224, 233)'],
+    ['light', 'rgb(254, 247, 255)', 'rgb(29, 27, 32)'],
+  ] as const)(
+    'paints the %s surface and sets its color-scheme',
+    (scheme, background, text) => {
+      const view = render(
+        <div className={colorScheme[scheme]} data-testid="pinned" />,
+      )
+      const style = getComputedStyle(view.getByTestId('pinned'))
+
+      expect(style.backgroundColor).toBe(background)
+      expect(style.color).toBe(text)
+      expect(style.colorScheme).toBe(scheme)
+    },
+  )
+
   // A pinned scheme reads the same `--kui-color-*` the OS's one does, so an
   // app's own override still applies under it. A bare value in the class
   // would win over the override instead.

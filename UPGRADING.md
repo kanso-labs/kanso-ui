@@ -339,3 +339,14 @@ newest and reappear one by one as it closed, which could bring back an Undo long
 after its moment. `clear` now runs `onClose` too, where it closed the snackbar
 silently. A call site that relied on several messages showing in turn now
 combines them into one, or adds the next from the previous one's `onClose`.
+
+### A pinned scheme paints its surface (after 0.40.8)
+
+A `ThemeScope` with `scheme` set, and an element carrying a `colorScheme` class,
+now paints its own background in that scheme's surface and its text in on
+surface, and sets `color-scheme`, so native inputs and scrollbars inside follow
+it. They painted nothing before, which left a dark scope's text close to
+invisible on a light page. A scope with no `scheme`, and the `themeScope` class,
+still paint nothing. Your own stylesheet still wins over the paint, since the
+library's rules sit in a cascade layer; a `colorScheme` class on `<html>` now
+gives the page its background and text colour unless you set them.
