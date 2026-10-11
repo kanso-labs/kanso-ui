@@ -72,13 +72,17 @@ function footerOf(action: Element) {
 }
 
 /**
- * Whether a tap at the centre of `element` lands on it, rather than on
- * something drawn over it.
+ * What a tap at the centre of `element` lands on: `'itself'` where it lands
+ * on the element or inside it, and otherwise the text of whatever it lands
+ * on, or `'nothing'` off the page — so a failure says what took the tap.
  */
-function takesTapsAtItsCentre(element: Element) {
+function tapAtTheCentreOf(element: Element) {
   const { height, left, top, width } = element.getBoundingClientRect()
   const hit = document.elementFromPoint(left + width / 2, top + height / 2)
-  return hit !== null && element.contains(hit)
+  if (hit === null) {
+    return 'nothing'
+  }
+  return element.contains(hit) ? 'itself' : hit.textContent || hit.tagName
 }
 
 /**
@@ -538,7 +542,9 @@ describe('snackbar', () => {
         const { confirm, toast } = await toastOver(overlay)
 
         // Read once the overlay's entry has ended, which is when the strip
-        // it holds is measured where it rests.
+        // it holds is measured where it rests and the actions sit where a
+        // tap finds them. A side sheet arrives across the window, so a tap
+        // read while it was still on its way could land past its edge.
         await waitFor(() => {
           // Above the actions with the page's 8dp of margin between them,
           // rather than anywhere above them, and still on screen.
@@ -546,8 +552,8 @@ describe('snackbar', () => {
           const box = toast.getBoundingClientRect()
           expect(Math.round(actions.top - box.bottom)).toBe(8)
           expect(box.top).toBeGreaterThan(0)
+          expect(tapAtTheCentreOf(confirm)).toBe('itself')
         })
-        expect(takesTapsAtItsCentre(confirm)).toBe(true)
       },
     )
 
