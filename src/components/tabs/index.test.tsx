@@ -1116,7 +1116,8 @@ describe('tabs', () => {
       const mark = markIn(tab)
       const anchor = tab.querySelector('[data-testid="icon"]')?.parentElement
 
-      expect(mark.textContent).toBe('3')
+      // The count is the mark's generated content, not its text.
+      expect(getComputedStyle(mark, '::before').content).toBe('"3"')
       expect(anchor?.contains(mark)).toBe(true)
       expect(iconSlotOf(tab).contains(mark)).toBe(true)
     })
