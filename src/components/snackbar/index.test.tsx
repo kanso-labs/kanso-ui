@@ -44,6 +44,13 @@ function hasClasses(element: Element, classes: string[]) {
 
 const UNDO = { label: 'Undo', onPress: () => {} }
 
+// A word longer than a phone-width strip holds, which a file name or a German
+// compound easily is.
+const LONG_WORD = 'Supporting'.repeat(6)
+
+const LONG_MESSAGE =
+  'Supporting text long enough to run onto a second line of the strip'
+
 /** A fresh queue and a mounted region, since the queue outlives React. */
 function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
   const queue = new Snackbar.Queue()
@@ -85,6 +92,27 @@ async function shown() {
     animation.finish()
   }
   return { strip, view }
+}
+
+/** A snackbar at a phone's width, its rise played out, and its parts. */
+async function shownAt360(message: string, options: SnackbarOptions) {
+  await page.viewport(360, 640)
+  const { queue, view } = setup()
+  act(() => {
+    queue.add(message, options)
+  })
+  await waitFor(() => {
+    expect(view.getByRole('alertdialog')).not.toBeNull()
+  })
+  const strip = snackbarIn(view)
+  for (const animation of strip.getAnimations()) {
+    animation.finish()
+  }
+  const content = view.getByText(message).parentElement
+  if (content === null) {
+    throw new Error('expected the message to sit inside a content element')
+  }
+  return { content, strip, view }
 }
 
 /**
@@ -586,6 +614,81 @@ describe('snackbar', () => {
         view.getByRole('button', { name: 'Close' }).getBoundingClientRect()
           .height,
       ).toBe(48)
+    })
+  })
+
+  // Content longer than one line of the strip holds, on a phone. A word
+  // with no break in it ran under the controls and past the strip's edge,
+  // and a long action squeezed the message into a column a word wide.
+  describe('content longer than the strip', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('breaks a word with no break in it inside the strip', async () => {
+      const { content, strip } = await shownAt360(LONG_WORD, {
+        action: UNDO,
+        showCloseButton: true,
+      })
+
+      expect(content.scrollWidth).toBeLessThanOrEqual(content.clientWidth)
+      expect(content.getBoundingClientRect().right).toBeLessThanOrEqual(
+        strip.getBoundingClientRect().right,
+      )
+    })
+
+    // Material Design's two-line snackbar with a longer action: the action
+    // and the close button drop onto a line of their own under the message,
+    // at the trailing edge, and the message keeps the strip's width.
+    it('moves a long action and the close button under the message', async () => {
+      const { content, strip, view } = await shownAt360(LONG_MESSAGE, {
+        action: { label: 'Long action label', onPress: () => {} },
+        showCloseButton: true,
+      })
+      const action = view
+        .getByRole('button', { name: 'Long action label' })
+        .getBoundingClientRect()
+      const close = view
+        .getByRole('button', { name: 'Close' })
+        .getBoundingClientRect()
+      const message = content.getBoundingClientRect()
+      const edge = strip.getBoundingClientRect()
+
+      expect(action.top).toBeGreaterThanOrEqual(message.bottom)
+      expect(close.left).toBeGreaterThanOrEqual(action.right)
+      expect(edge.right - close.right).toBe(8)
+      expect(message.width).toBeGreaterThan(edge.width / 2)
+    })
+
+    // What moves the controls is their width, not the message's: a message
+    // of two lines beside a short action keeps the action beside it.
+    it('keeps a short action beside a message of several lines', async () => {
+      const { content, view } = await shownAt360(LONG_MESSAGE, {
+        action: UNDO,
+      })
+      const action = view
+        .getByRole('button', { name: 'Undo' })
+        .getBoundingClientRect()
+      const message = content.getBoundingClientRect()
+
+      expect(action.left).toBeGreaterThanOrEqual(message.right)
+      expect(action.top).toBeLessThan(message.bottom)
+    })
+
+    // A short action still shares the message's row, at the page's 48.
+    it('keeps a short action beside the message', async () => {
+      const { content, strip, view } = await shownAt360('First item', {
+        action: UNDO,
+        showCloseButton: true,
+      })
+      const action = view
+        .getByRole('button', { name: 'Undo' })
+        .getBoundingClientRect()
+
+      expect(action.left).toBeGreaterThanOrEqual(
+        content.getBoundingClientRect().right,
+      )
+      expect(strip.getBoundingClientRect().height).toBe(48)
     })
   })
 

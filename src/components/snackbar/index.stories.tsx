@@ -29,9 +29,12 @@ function clear() {
 // here rather than from the story, since the queue lives outside React, and
 // with the page's indefinite length so the message is still there whenever
 // the snapshot is taken.
-function seeded(options: Parameters<typeof messages.add>[1]) {
+function seeded(
+  options: Parameters<typeof messages.add>[1],
+  message = 'First item saved',
+) {
   const queue = new Snackbar.Queue()
-  queue.add('First item saved', { ...options, timeout: 0 })
+  queue.add(message, { ...options, timeout: 0 })
   return queue
 }
 
@@ -78,6 +81,51 @@ const WithAction: Story = {
 const WithCloseButton: Story = {
   args: { queue: seeded({ action: RETRY, showCloseButton: true }) },
   parameters: { docs: { story: { height: '240px', inline: false } } },
+}
+
+// A phone's width, where a strip is as wide as the screen less its margins
+// and content runs out of room first. Chromatic is told it through `modes`
+// as sheet/index.stories.tsx explains, keeping the project's two mode names.
+const PHONE = {
+  globals: { viewport: { isRotated: false, value: 'mobile1' } },
+  parameters: {
+    chromatic: {
+      modes: {
+        dark: { theme: 'dark', viewport: { height: 700, width: 375 } },
+        light: { theme: 'light', viewport: { height: 700, width: 375 } },
+      },
+    },
+    docs: { story: { height: '240px', inline: false } },
+  },
+}
+
+// A word longer than the strip holds — a file name, an address, a German
+// compound — breaks inside itself rather than running under the controls
+// and past the strip's edge.
+const LongWord: Story = {
+  ...PHONE,
+  args: {
+    queue: seeded(
+      { action: UNDO, showCloseButton: true },
+      'Supporting'.repeat(8),
+    ),
+  },
+}
+
+// Material Design's two-line snackbar with a longer action: an action too
+// long to leave the message half the strip drops onto a line of its own
+// under it, with the close button, at the trailing edge.
+const LongAction: Story = {
+  ...PHONE,
+  args: {
+    queue: seeded(
+      {
+        action: { label: 'Long action label', onPress: noop },
+        showCloseButton: true,
+      },
+      'Supporting text long enough to run onto a second line of the strip',
+    ),
+  },
 }
 
 // Its own story because the others are seeded to stay up. Here a press adds
@@ -158,6 +206,14 @@ const OverAFullScreenDialog: Story = {
   ),
 }
 
-export { Default, OnDemand, OverAFullScreenDialog, WithAction, WithCloseButton }
+export {
+  Default,
+  LongAction,
+  LongWord,
+  OnDemand,
+  OverAFullScreenDialog,
+  WithAction,
+  WithCloseButton,
+}
 
 export default meta
