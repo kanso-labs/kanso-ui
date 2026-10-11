@@ -14,6 +14,7 @@ import {
   installFakeAnimate,
   isPressed,
 } from '../../hooks/useRipple.testing'
+import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 import Autocomplete from '../autocomplete'
 import Button from '../button'
@@ -142,6 +143,29 @@ function submenuChevronUnder(locale: string) {
 
 // Hoisted, which is what react-perf's no-new-object-as-prop is after.
 const RIGHT_TO_LEFT = { dir: 'rtl' } as const
+
+/** The colour the forced-colours mode is told to draw `element`'s text in. */
+function forcedColorOf(element: Element) {
+  return valueIn(
+    rulesReaching(element, { holding: 'forced-colors: active' }),
+    'color',
+  )
+}
+
+/** A menu holding a plain item, then one given an `href`. */
+function linkAndPlain() {
+  const view = setup(
+    {},
+    <>
+      <Menu.Item id="first">First item</Menu.Item>
+      <Menu.Item href="#second" id="second">
+        Second item
+      </Menu.Item>
+    </>,
+  )
+  const [plain, link] = view.getAllByRole('menuitem')
+  return { link, plain }
+}
 
 /**
  * Where React Aria placed the submenu an item opens, with the menu rendered
@@ -475,6 +499,28 @@ describe('menu', () => {
       expect(view.getByText('Second item').getBoundingClientRect().left).toBe(
         view.getByText('First item').getBoundingClientRect().left,
       )
+    })
+  })
+
+  // An item given an `href` is an anchor, which the browser underlines and,
+  // under forced colours, draws in `LinkText` — a row standing out as a link
+  // among rows that are all equally followed.
+  describe('an item that is a link', () => {
+    it('draws no underline, as the item beside it draws none', () => {
+      const { link, plain } = linkAndPlain()
+
+      expect(link.tagName).toBe('A')
+      expect(getComputedStyle(link).textDecorationLine).toBe('none')
+      expect(getComputedStyle(plain).textDecorationLine).toBe('none')
+    })
+
+    // The mode keeps a colour that is already one of its own, so naming
+    // `CanvasText` is what overrides the anchor's `LinkText`.
+    it('names its text in the forced-colours mode, as the item beside it does', () => {
+      const { link, plain } = linkAndPlain()
+
+      expect(forcedColorOf(link)?.toLowerCase()).toBe('canvastext')
+      expect(forcedColorOf(plain)).toBe(forcedColorOf(link))
     })
   })
 
