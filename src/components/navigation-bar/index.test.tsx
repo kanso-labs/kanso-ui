@@ -64,6 +64,25 @@ function Bar(props: Partial<Parameters<typeof NavigationBar>[0]>) {
   )
 }
 
+/** A bar whose second destination carries a count badge of `count`. */
+function Counted({ count }: { count: number }) {
+  return (
+    <NavigationBar aria-label="Label">
+      <NavigationBar.Item href="#first" icon={ICON}>
+        First item
+      </NavigationBar.Item>
+      <NavigationBar.Item
+        aria-label={`Second item, ${count} new`}
+        badge={count}
+        href="#second"
+        icon={ICON}
+      >
+        Second item
+      </NavigationBar.Item>
+    </NavigationBar>
+  )
+}
+
 // Focus as a keyboard brings it, which is what React Aria reports as
 // focus-visible and what the layer and the ring are drawn from.
 function focusByKeyboard(element: HTMLElement) {
@@ -91,6 +110,15 @@ function labelOf(link: HTMLElement) {
   return label
 }
 
+/** A count badge's mark: the badge's own span, hidden from the tree. */
+function markOf(link: HTMLElement) {
+  const mark = link.querySelector('span[aria-hidden="true"]')
+  if (!(mark instanceof HTMLElement)) {
+    throw new Error('expected the destination to draw a badge')
+  }
+  return mark
+}
+
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -101,6 +129,36 @@ function probe(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return read
+}
+
+// Five labels long enough that their horizontal destinations need more than
+// a medium window's first few hundred pixels, as five translated labels do.
+const LONG_LABELS = [
+  'First destination',
+  'Second destination',
+  'Third destination',
+  'Fourth destination',
+  'Fifth destination',
+]
+
+/** Whether any label in the bar is cut short. */
+function anyCut(links: HTMLElement[]) {
+  return links.some((link) => {
+    const label = labelOf(link)
+    return label.scrollWidth > label.clientWidth
+  })
+}
+
+function LongLabels() {
+  return (
+    <NavigationBar aria-label="Label">
+      {LONG_LABELS.map((label) => (
+        <NavigationBar.Item href={`#${label}`} icon={ICON} key={label}>
+          {label}
+        </NavigationBar.Item>
+      ))}
+    </NavigationBar>
+  )
 }
 
 afterAll(async () => {
@@ -175,6 +233,15 @@ describe('navigation bar', () => {
 
     afterAll(async () => {
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // The label is under the icon here, so the badge places its own mark on
+    // the icon's corner, out of the flow.
+    it('leaves a count badge where the badge puts it', () => {
+      const view = render(<Counted count={99} />)
+      const link = view.getByRole('link', { name: 'Second item, 99 new' })
+
+      expect(getComputedStyle(markOf(link)).position).toBe('absolute')
     })
 
     it("is the page's 64dp bar on the surface container", () => {
@@ -325,6 +392,87 @@ describe('navigation bar', () => {
       expect(
         Math.abs(first.left - bar.left - (bar.right - last.right)),
       ).toBeLessThanOrEqual(1)
+    })
+
+    // A count overhangs the icon on the label's side by up to 22dp, against
+    // the 4dp between the two: 99 covered the label's first letter.
+    it.each([3, 99, 1000])(
+      'starts the label after a count badge of %i',
+      (count) => {
+        const view = render(<Counted count={count} />)
+        const link = view.getByRole('link', {
+          name: `Second item, ${count} new`,
+        })
+        const mark = markOf(link).getBoundingClientRect()
+        const icon = indicatorOf(link).getBoundingClientRect()
+
+        expect(labelOf(link).getBoundingClientRect().left).toBeGreaterThan(
+          mark.right,
+        )
+        // Still where the badge puts it: 2dp above the icon and 12dp back
+        // over its trailing edge.
+        expect(mark.top).toBeCloseTo(icon.top - 2, 0)
+        expect(mark.left).toBeCloseTo(icon.left + 24 - 12, 0)
+      },
+    )
+
+    // The pill is the page's 40dp, and a press 3px above or below it still
+    // lands on the destination: the pages' 48dp target, and no further.
+    it('takes a press across the 48dp target around the pill', () => {
+      const view = render(<Bar />)
+      const link = view.getByRole('link', { name: 'Second item, 3 new' })
+      const pill = link.getBoundingClientRect()
+      const x = pill.left + pill.width / 2
+      const hits = (y: number) => link.contains(document.elementFromPoint(x, y))
+
+      expect(hits(pill.top - 3)).toBe(true)
+      expect(hits(pill.bottom + 3)).toBe(true)
+      expect(hits(pill.top - 6)).toBe(false)
+      expect(hits(pill.bottom + 6)).toBe(false)
+    })
+  })
+
+  // Five horizontal destinations need more than the 600px the form starts
+  // at, and drawn there anyway every label was cut short. The bar keeps the
+  // vertical form until it is wide enough.
+  describe('with labels the horizontal form has no room for', () => {
+    it.each([600, 640])('stays vertical at %ipx', async (width) => {
+      await page.viewport(width, DEFAULT_VIEWPORT.height)
+      const view = render(<LongLabels />)
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(link).flexDirection).toBe('column')
+      }
+      expect(getComputedStyle(view.getByRole('navigation')).columnGap).toBe(
+        '0px',
+      )
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('turns horizontal once the window has room, with no label cut', async () => {
+      await page.viewport(600, DEFAULT_VIEWPORT.height)
+      const view = render(<LongLabels />)
+      const links = view.getAllByRole('link')
+      expect(getComputedStyle(links[0]).flexDirection).toBe('column')
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+
+      await expect
+        .poll(() => getComputedStyle(links[0]).flexDirection)
+        .toBe('row')
+      expect(anyCut(links)).toBe(false)
+    })
+
+    // Labels that fit keep the page's horizontal form from the breakpoint.
+    it('leaves short labels horizontal at 600px', async () => {
+      await page.viewport(600, DEFAULT_VIEWPORT.height)
+      const view = render(<Bar />)
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(link).flexDirection).toBe('row')
+      }
+      expect(anyCut(view.getAllByRole('link'))).toBe(false)
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
   })
 
