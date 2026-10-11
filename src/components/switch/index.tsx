@@ -308,10 +308,16 @@ const pressedLayers = stylex.create({
 // seat's own 28dp.
 const TRAVEL = 20
 
-// How far a press has to move before it is a drag: a quarter of the travel.
-// A finger, a mouse and a pen all move a pixel or two between pressing and
-// lifting, and a press inside this is still a tap, which flips the switch.
-const DRAG_SLOP = TRAVEL / 4
+// How far a press has to move before it is a drag, by the pointer making it.
+// Anything moves a little between pressing and lifting, and a press inside
+// this is still a tap, which flips the switch. A mouse moves a pixel or two,
+// so a quarter of the travel is room enough. A finger drifts further on an
+// ordinary tap — 6 to 10px was common — and under that same 5px the tap was
+// read as a drag let go before the middle, which settled where it began and
+// dropped the tap without a sign. A finger and a pen take half the travel,
+// the platforms' own touch slop; a drag past it is past the middle too.
+const MOUSE_SLOP = TRAVEL / 4
+const TOUCH_SLOP = TRAVEL / 2
 
 type Drag = ReturnType<typeof useHandleDrag>
 
@@ -500,6 +506,9 @@ function Switch({
  * A press that moves no further than the slop is left alone entirely, so a
  * tap flips the switch however still the pointer was — a drag starts only
  * once the pointer passes it, and from then on the handle follows every move.
+ * The slop is the pointer's own: a finger and a pen drift further on a tap
+ * than a mouse does. A mouse or pen drag then focuses the input, as a tap
+ * does.
  *
  * The guard for the click after a drag is cleared by the next press, not by
  * that click, since the click may never come: a touch dragged past the
@@ -510,8 +519,10 @@ function useHandleDrag() {
   const [offset, setOffset] = useState<null | number>(null)
   const origin = useRef<null | {
     base: number
+    focuses: boolean
     on: boolean
     rtl: boolean
+    slop: number
     x: number
   }>(null)
   const settled = useRef<null | number>(null)
@@ -544,7 +555,7 @@ function useHandleDrag() {
         return
       }
       const along = from.rtl ? from.x - event.clientX : event.clientX - from.x
-      if (settled.current === null && Math.abs(along) <= DRAG_SLOP) {
+      if (settled.current === null && Math.abs(along) <= from.slop) {
         return
       }
       const next = Math.min(TRAVEL, Math.max(0, from.base + along))
@@ -579,10 +590,19 @@ function useHandleDrag() {
       // The pointer's own click follows this, by which time the switch has
       // already settled.
       cancelClick.current = true
+      const input = seat.closest('label')?.querySelector('input')
+      // Where a tap leaves focus, a drag leaves it too, whichever side it
+      // settles on. A tap reaches the input through the label, which focuses
+      // it; the click below is programmatic and moves nothing, and React
+      // Aria's press, which would, was cancelled above — so a mouse drag left
+      // focus on the page, and a Space after it did nothing. A touch is left
+      // alone, as a touch tap leaves no ring to find.
+      if (from.focuses) {
+        input?.focus({ preventScroll: true })
+      }
       if (stopped > TRAVEL / 2 === from.on) {
         return
       }
-      const input = seat.closest('label')?.querySelector('input')
       input?.click()
     },
     [],
@@ -597,10 +617,13 @@ function useHandleDrag() {
         if (event.pointerType === 'mouse' && event.button !== 0) {
           return
         }
+        const touch = event.pointerType === 'touch'
         origin.current = {
           base: on ? TRAVEL : 0,
+          focuses: !touch,
           on,
           rtl: getComputedStyle(event.currentTarget).direction === 'rtl',
+          slop: touch || event.pointerType === 'pen' ? TOUCH_SLOP : MOUSE_SLOP,
           x: event.clientX,
         }
         settled.current = null
