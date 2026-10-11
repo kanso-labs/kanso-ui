@@ -177,8 +177,7 @@ describe('snackbar', () => {
       })
     })
 
-    // The page shows one at a time and a newer message takes the screen,
-    // with the one it replaced shown after it rather than discarded.
+    // The page shows one at a time, and a newer message takes the screen.
     it('shows one message at a time, newest first', async () => {
       const { queue, view } = setup()
       act(() => {
@@ -191,7 +190,9 @@ describe('snackbar', () => {
       expect(view.queryByText('First item')).toBeNull()
     })
 
-    it('shows the message it replaced once the newer one closes', async () => {
+    // Replaced rather than queued: the message a newer one took the place of
+    // used to come back once that closed, an Undo long after its moment.
+    it('does not bring back the message it replaced once the newer one closes', async () => {
       const { queue, view } = setup()
       let second = ''
       act(() => {
@@ -209,7 +210,28 @@ describe('snackbar', () => {
       })
 
       await waitFor(() => {
+        expect(view.queryByText('Second item')).toBeNull()
+      })
+      expect(view.queryByText('First item')).toBeNull()
+    })
+
+    it('closes the message it replaces, running its onClose once', async () => {
+      const onClose = vi.fn<() => void>()
+      const { queue, view } = setup()
+      act(() => {
+        queue.add('First item', { onClose })
+      })
+      await waitFor(() => {
         expect(view.getByText('First item')).not.toBeNull()
+      })
+
+      act(() => {
+        queue.add('Second item')
+      })
+
+      expect(onClose).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(view.getByText('Second item')).not.toBeNull()
       })
     })
 
@@ -230,10 +252,14 @@ describe('snackbar', () => {
       })
     })
 
-    it('clears every message at once', async () => {
+    // React Aria's own clear empties its list without running a single
+    // onClose, so a call site committing a change unless Undo was pressed
+    // never heard of a message cleared this way.
+    it('clears the message on screen, running its onClose', async () => {
+      const onClose = vi.fn<() => void>()
       const { queue, view } = setup()
       act(() => {
-        queue.add('First item')
+        queue.add('First item', { onClose })
       })
       await waitFor(() => {
         expect(view.getByText('First item')).not.toBeNull()
@@ -244,6 +270,32 @@ describe('snackbar', () => {
       await waitFor(() => {
         expect(view.queryByText('First item')).toBeNull()
       })
+      expect(onClose).toHaveBeenCalledTimes(1)
+    })
+
+    // Three messages added in quick succession are one message on screen for
+    // one lifetime, not three drained one after another.
+    it('leaves nothing behind three messages added at once', () => {
+      vi.useFakeTimers()
+      try {
+        const { queue, view } = setup()
+        act(() => {
+          queue.add('First item')
+          queue.add('Second item')
+          queue.add('Third item')
+        })
+        expect(view.getByText('Third item')).not.toBeNull()
+
+        act(() => {
+          vi.advanceTimersByTime(5000)
+        })
+
+        expect(document.querySelectorAll('[role="alertdialog"]')).toHaveLength(
+          0,
+        )
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 

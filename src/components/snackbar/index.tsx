@@ -44,7 +44,11 @@ import {
 // 576dp wide above the page's 600dp breakpoint — full width below it.
 //
 // One at a time. The page shows a single snackbar and replaces it rather
-// than stacking, which is `maxVisibleToasts: 1` on the queue.
+// than stacking, so a message added while another is up closes that one —
+// its `onClose` runs — and takes its place. Nothing waits behind it: React
+// Aria's queue, left to itself, kept every message and showed the one it had
+// replaced again once the newer closed, so an Undo could come back long after
+// the thing it undid.
 //
 // React Aria's toast is the behaviour: the region is a landmark that holds
 // the message, moves focus into it for a keyboard, and pauses every timer
@@ -311,7 +315,11 @@ type SnackbarOptions = {
    * closes the snackbar, which is what the page draws.
    */
   action?: SnackbarAction
-  /** Run when the snackbar closes, however it was closed. */
+  /**
+   * Run when the snackbar closes, however it was closed: by its timer, its
+   * action or close button, `close`, `clear`, or a newer message added in its
+   * place.
+   */
   onClose?: () => void
   /**
    * Whether a close button is shown at the end. The page draws one for a
@@ -391,29 +399,49 @@ class SnackbarQueue {
    */
   readonly rac: RACToastQueue<SnackbarMessage>
 
+  // The keys of the snackbars not yet closed, which `add` and `clear` close.
+  // Kept here because React Aria keeps its own list private, and its own
+  // `clear` empties that list without running a single `onClose`.
+  readonly #open = new Set<string>()
+
   constructor() {
-    // One at a time, which is what the page shows: a second message replaces
-    // the first rather than stacking under it.
+    // One at a time, which is what the page shows. `add` closes whatever is
+    // up before it adds, so nothing is ever left waiting for this to hold
+    // back; it says the same thing to React Aria in its own terms.
     this.rac = new RACToastQueue<SnackbarMessage>({ maxVisibleToasts: 1 })
   }
 
   /**
-   * Shows a message, and returns the key that closes it.
+   * Shows a message in place of the one on screen, and returns the key that
+   * closes it. The message it replaces is closed, so its `onClose` runs, and
+   * it does not come back.
    */
   add(message: ReactNode, options: SnackbarOptions = {}) {
     const { action, onClose, showCloseButton = false, timeout } = options
-    return this.rac.add(
+    this.clear()
+    const key = this.rac.add(
       { action, message, showCloseButton },
       {
-        onClose,
+        // However it closes — its timer runs inside React Aria's queue,
+        // past this one — it leaves the open set on the way out.
+        onClose: () => {
+          this.#open.delete(key)
+          onClose?.()
+        },
         timeout: timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
       },
     )
+    this.#open.add(key)
+    return key
   }
 
-  /** Closes every snackbar, shown or waiting. */
+  /** Closes the snackbar on screen, running its `onClose`. */
   clear() {
-    this.rac.clear()
+    // Each close runs that message's `onClose`, which deletes its own key
+    // from the set — the entry being visited, which a Set allows.
+    for (const key of this.#open) {
+      this.rac.close(key)
+    }
   }
 
   /** Closes one snackbar, by the key `add` returned. */

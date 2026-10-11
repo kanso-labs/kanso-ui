@@ -330,3 +330,12 @@ announced as a radio group always holds a choice. Pass
 now choose the segment they move to and wrap at either end, and Home and End
 choose the first and last segment, so a test that presses an arrow finds the
 choice on the segment focus moved to. `selectionMode="multiple"` is unchanged.
+
+### A newer snackbar closes the one it replaces (after 0.40.8)
+
+`SnackbarQueue.add` closes the snackbar on screen before showing the new one, so
+its `onClose` runs and it does not come back. Messages used to wait behind the
+newest and reappear one by one as it closed, which could bring back an Undo long
+after its moment. `clear` now runs `onClose` too, where it closed the snackbar
+silently. A call site that relied on several messages showing in turn now
+combines them into one, or adds the next from the previous one's `onClose`.
