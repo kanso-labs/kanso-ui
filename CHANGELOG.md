@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.40.8](https://github.com/kanso-labs/kanso-ui/compare/v0.40.7...v0.40.8) (2026-10-11)
+
+
+### Bug Fixes
+
+* **dialog:** wrap long titles and footer actions instead of clipping them ([#1600](https://github.com/kanso-labs/kanso-ui/issues/1600)) ([747b2fd](https://github.com/kanso-labs/kanso-ui/commit/747b2fd051c958fc5001e6c0f3e2d4e95de9a45f))
+* **field:** announce a validation error that appears after the field is rendered ([#1610](https://github.com/kanso-labs/kanso-ui/issues/1610)) ([4f65b3d](https://github.com/kanso-labs/kanso-ui/commit/4f65b3db7c23b0c347c381f48310bf7b78baf860))
+* **field:** clear the error of a field once the user edits the value ([#1611](https://github.com/kanso-labs/kanso-ui/issues/1611)) ([be179a9](https://github.com/kanso-labs/kanso-ui/commit/be179a9cc38e4576ff74b42fc6bd03d39d517eec))
+* **link:** gate hover on hover-capable pointers and keep the underline legible ([#1612](https://github.com/kanso-labs/kanso-ui/issues/1612)) ([bfd2129](https://github.com/kanso-labs/kanso-ui/commit/bfd21293ea9473eca6ad780a77d8197b2a1a7c1f))
+* **menu:** mark a selected item with a check, not a fill alone ([#1613](https://github.com/kanso-labs/kanso-ui/issues/1613)) ([3f2f084](https://github.com/kanso-labs/kanso-ui/commit/3f2f084ebc89a841eaeefc29aa83255d98f3127f))
+* **navigation-bar:** give the horizontal form room for its labels, badges and targets ([#1615](https://github.com/kanso-labs/kanso-ui/issues/1615)) ([b47f858](https://github.com/kanso-labs/kanso-ui/commit/b47f8587b5be822e123cfa0dabe38085a40fd411))
+* **navigation-rail:** hold the rail width, align its header and scroll overflowing destinations ([#1616](https://github.com/kanso-labs/kanso-ui/issues/1616)) ([07addcf](https://github.com/kanso-labs/kanso-ui/commit/07addcf4978766adf4585de4c7cdefa9d4da6c9c))
+* **number-field:** centre the steppers in an outlined box and keep the label clear of them ([#1617](https://github.com/kanso-labs/kanso-ui/issues/1617)) ([941c07f](https://github.com/kanso-labs/kanso-ui/commit/941c07fab2eb62dee8393ba422f2f6ef500bf8cb))
+* **number-field:** stop the mouse wheel changing a focused value ([#1618](https://github.com/kanso-labs/kanso-ui/issues/1618)) ([dd8ae05](https://github.com/kanso-labs/kanso-ui/commit/dd8ae0548829149e8eb5bf8a2a0e113d53f163cb))
+* **row:** stop a link row drawing an underline ([#1614](https://github.com/kanso-labs/kanso-ui/issues/1614)) ([7356e65](https://github.com/kanso-labs/kanso-ui/commit/7356e656a1456daad1672bd452efff17513e4d70))
+* **snackbar:** keep toasts clear of the action bar of a full-screen dialog ([#1609](https://github.com/kanso-labs/kanso-ui/issues/1609)) ([4c8ad87](https://github.com/kanso-labs/kanso-ui/commit/4c8ad8733eb86bc41c24b0adf63b14e5a159e05c))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.25 ([#1607](https://github.com/kanso-labs/kanso-ui/issues/1607)) ([f6cff73](https://github.com/kanso-labs/kanso-ui/commit/f6cff735db91e1bfd2fd5bf03dce99aac405901c))
+
 ## [0.40.7](https://github.com/kanso-labs/kanso-ui/compare/v0.40.6...v0.40.7) (2026-10-10)
 
 
