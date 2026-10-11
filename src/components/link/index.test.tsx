@@ -4,6 +4,7 @@ import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Link from '.'
+import { rulesReaching } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than hex
@@ -16,6 +17,10 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   primary: { color: colors.primary },
+  // The resting rule of the primary tone, read as a colour the same way.
+  restingRule: {
+    color: `color-mix(in srgb, ${colors.primary} 70%, transparent)`,
+  },
 })
 
 const harnessStyles = stylex.create({
@@ -38,10 +43,27 @@ function classesOf(props: { className?: string | undefined }) {
 
 const DISABLED_CLASSES = classesOf(stylex.props(probeStyles.disabledColor))
 
+/**
+ * A pointer of `pointerType` moving onto the link. React derives
+ * `onPointerEnter` from the bubbling `pointerover`, which is what React
+ * Aria's hover listens to.
+ */
+function pointerOnto(link: HTMLElement, pointerType: 'mouse' | 'touch') {
+  fireEvent.pointerOver(link, { pointerId: 1, pointerType })
+}
+
 function primaryColor() {
   const probe = render(
     <div data-testid="probe" {...stylex.props(probeStyles.primary)} />,
   )
+  const value = getComputedStyle(probe.getByTestId('probe')).color
+  probe.unmount()
+  return value
+}
+
+/** The computed colour a probe styled with `style` resolves to. */
+function probeColor(style: stylex.StyleXStyles) {
+  const probe = render(<div data-testid="probe" {...stylex.props(style)} />)
   const value = getComputedStyle(probe.getByTestId('probe')).color
   probe.unmount()
   return value
@@ -221,6 +243,69 @@ describe('link', () => {
     it('draws no rule at all when asked', () => {
       const { link } = setup({ underline: 'none' })
       expect(getComputedStyle(link).textDecorationLine).toBe('none')
+    })
+
+    // The rule is what tells the link from its sentence, so it has to clear
+    // 3:1 against the surface; 70% of the primary role is what does that in
+    // every scheme the library is shown in.
+    it('draws the primary rule at rest in 70% of the primary role', () => {
+      const { link } = setup()
+      expect(getComputedStyle(link).textDecorationColor).toBe(
+        probeColor(probeStyles.restingRule),
+      )
+    })
+  })
+
+  // Hover is React Aria's render state rather than `:hover`: a tap leaves a
+  // touch screen's emulated pointer over what was tapped, which kept a
+  // tapped link lit until the next tap.
+  describe('hover', () => {
+    it('lights the link and draws its rule under a mouse', () => {
+      const expected = primaryColor()
+      const { link } = setup({ tone: 'inherit', underline: 'hover' })
+
+      pointerOnto(link, 'mouse')
+
+      const style = getComputedStyle(link)
+      expect(style.textDecorationLine).toBe('underline')
+      expect(style.color).toBe(expected)
+      expect(style.textDecorationColor).toBe(expected)
+    })
+
+    it('stays at rest under a touch', () => {
+      const expected = primaryColor()
+      const { link } = setup({ tone: 'inherit', underline: 'hover' })
+
+      pointerOnto(link, 'touch')
+
+      const style = getComputedStyle(link)
+      expect(style.textDecorationLine).toBe('none')
+      expect(style.color).not.toBe(expected)
+    })
+
+    // Its cursor says it cannot be followed, and an underline coming on
+    // under the pointer said the opposite.
+    it('draws no rule under a pointer on a disabled link', () => {
+      const { link } = setup({ isDisabled: true, underline: 'hover' })
+
+      pointerOnto(link, 'mouse')
+
+      expect(getComputedStyle(link).textDecorationLine).toBe('none')
+    })
+
+    it.each([
+      ['an underlined link', { underline: 'always' }],
+      ['a link underlined on hover', { underline: 'hover' }],
+      [
+        'a disabled link underlined on hover',
+        { isDisabled: true, underline: 'hover' },
+      ],
+    ] as const)('reaches %s through no `:hover` rule', (_case, props) => {
+      const { link } = setup(props)
+      const viaHover = rulesReaching(link).filter(
+        (rule) => rule.pseudo === 'hover',
+      )
+      expect(viaHover).toEqual([])
     })
   })
 

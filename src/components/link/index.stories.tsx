@@ -6,6 +6,7 @@ import Link from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 import Text from '../text'
 
+const BLOCK = <div />
 const PARAGRAPH = <p />
 
 const FOOTER_LINKS = ['First item', 'Second item', 'Third item'] as const
@@ -50,16 +51,20 @@ const InProse: Story = {
 }
 
 // Its own story because a row of links needs no colour to be read as links, so
-// this pairs the inherit tone with a rule that waits for the pointer.
+// this pairs the inherit tone with a rule that waits for the pointer. The row
+// sits in muted body text, which is what the inherit tone takes its colour and
+// face from.
 const InFooter: Story = {
   render: () => (
-    <nav {...stylex.props(styles.footer)}>
-      {FOOTER_LINKS.map((label) => (
-        <Link href="#first" key={label} tone="inherit" underline="hover">
-          {label}
-        </Link>
-      ))}
-    </nav>
+    <Text render={BLOCK} tone="muted" variant="bodyMedium">
+      <nav {...stylex.props(styles.footer)}>
+        {FOOTER_LINKS.map((label) => (
+          <Link href="#first" key={label} tone="inherit" underline="hover">
+            {label}
+          </Link>
+        ))}
+      </nav>
+    </Text>
   ),
 }
 
