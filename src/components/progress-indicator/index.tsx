@@ -241,10 +241,18 @@ const buffering = stylex.keyframes({
 // Material's square-cut ends give at the same angle. 8 is the shortest the
 // cap still draws as an arc, and it is the floor for that reason rather
 // than because the page names it.
+//
+// Each pattern's dash and gap sum to the circle's 100, at every step of the
+// interpolation between them, so the pattern repeats exactly once round
+// the ring. A dash does not wrap past the start of a closed path, so with a
+// longer period — the dash and a gap of 100 — an arc that had travelled late
+// round the ring was cut off at the path's end, down to a dot, and grew back
+// from somewhere else. And the 100 is what makes `travelArc`'s last offset,
+// -300, the same position as its first, so the loop has no seam.
 const expandArc = stylex.keyframes({
-  '0%': { strokeDasharray: '8 100' },
-  '50%': { strokeDasharray: '75 100' },
-  '100%': { strokeDasharray: '8 100' },
+  '0%': { strokeDasharray: '8 92' },
+  '50%': { strokeDasharray: '75 25' },
+  '100%': { strokeDasharray: '8 92' },
 })
 
 // Where the arc starts. Material turns it in eight increments of 135 degrees

@@ -82,6 +82,14 @@ function linearPartsOf(bar: HTMLElement) {
   return { active, row, stop, track }
 }
 
+/** The two numbers a dash pattern holds: the dash, then the gap. */
+function patternOf(value: string) {
+  return value
+    .split(/[\s,]+/u)
+    .filter(Boolean)
+    .map((number) => Number.parseFloat(number))
+}
+
 const REDUCED_MOTION = 'prefers-reduced-motion: reduce'
 
 function setup(props: Partial<Parameters<typeof ProgressIndicator>[0]> = {}) {
@@ -346,6 +354,98 @@ describe('progress indicator', () => {
 
       const [dash] = getComputedStyle(arc).strokeDasharray.split(',')
       expect(Number.parseFloat(dash)).toBeGreaterThanOrEqual(8)
+    })
+  })
+
+  // The arc is a dash along a path normalised to 100, and a dash does not
+  // wrap past the start of a closed path. A pattern repeating each 100 is
+  // what carries an arc that has travelled late round the ring on through
+  // the start; with a longer one it was cut off at the path's end, down to a
+  // dot, and grew back from elsewhere, and the loop snapped at its seam.
+  describe('the indeterminate arc', () => {
+    it.each(['flat', 'wavy'] as const)(
+      'repeats its dash pattern exactly once round the %s ring',
+      async (shape) => {
+        const view = render(
+          <ProgressIndicator
+            isIndeterminate
+            label="Label"
+            shape={shape}
+            variant="circular"
+          />,
+        )
+        const arcs = [
+          ...view
+            .getByRole('progressbar', { name: 'Label' })
+            .querySelectorAll('[pathLength="100"]'),
+        ]
+        expect(arcs.length).toBeGreaterThan(0)
+
+        for (const arc of arcs) {
+          // Every keyframe of the growth, read off the running animation.
+          const growth = arc
+            .getAnimations()
+            .flatMap((animation) =>
+              animation.effect instanceof KeyframeEffect
+                ? animation.effect.getKeyframes()
+                : [],
+            )
+            .map((keyframe) => keyframe.strokeDasharray)
+            .filter((value) => typeof value === 'string')
+          expect(growth).not.toHaveLength(0)
+          for (const value of growth) {
+            const [dash, gap] = patternOf(value)
+            expect(dash + gap).toBeCloseTo(100, 3)
+          }
+
+          // And between the keyframes, where the browser interpolates the
+          // two numbers: held at points through the cycle, the pattern is
+          // still the circle.
+          const running = arc.getAnimations()
+          for (const at of [0, 333, 667, 1000, 1333, 2500, 4792, 5328]) {
+            for (const animation of running) {
+              animation.pause()
+              animation.currentTime = at
+            }
+            // oxlint-disable-next-line no-await-in-loop -- each time is held and read before the next is set
+            await Promise.all(
+              running.map(async (animation) => {
+                await animation.ready
+              }),
+            )
+            const [dash, gap] = patternOf(getComputedStyle(arc).strokeDasharray)
+            expect(dash + gap).toBeCloseTo(100, 3)
+            expect(dash).toBeGreaterThanOrEqual(8)
+          }
+        }
+      },
+    )
+
+    // The travel ends three turns round, which only a period of 100 makes
+    // the same place it started from.
+    it('ends its travel where it started, so the loop has no seam', () => {
+      const view = render(
+        <ProgressIndicator isIndeterminate label="Label" variant="circular" />,
+      )
+      const arc = view
+        .getByRole('progressbar', { name: 'Label' })
+        .querySelector('circle')
+      if (!(arc instanceof SVGElement)) {
+        throw new Error('expected the ring to draw one arc')
+      }
+      const offsets = arc
+        .getAnimations()
+        .flatMap((animation) =>
+          animation.effect instanceof KeyframeEffect
+            ? animation.effect.getKeyframes()
+            : [],
+        )
+        .map((keyframe) => keyframe.strokeDashoffset)
+        .filter((value) => typeof value === 'string')
+        .map((value) => Number.parseFloat(value))
+
+      expect(offsets.at(-1)).toBeDefined()
+      expect((offsets.at(-1) ?? 1) % 100).toBe(-0)
     })
   })
 
