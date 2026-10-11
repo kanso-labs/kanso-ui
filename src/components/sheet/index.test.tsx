@@ -104,6 +104,10 @@ function panelOf(dialog: HTMLElement) {
   return panel
 }
 
+// One word longer than a phone-width header holds, which a German compound
+// easily is.
+const LONG_WORD = 'Headline'.repeat(4)
+
 /**
  * A press on the scrim, outside the panel, which is what React Aria reads as
  * outside. Every animation is run to its end on either side of it and React
@@ -161,6 +165,39 @@ function setup(
 }
 
 /**
+ * A sheet with the given headline and actions, with its entry played out so
+ * every box read from it is where it comes to rest.
+ */
+function sheetHolding(title: string, actions: string[]) {
+  const view = render(
+    <Sheet defaultOpen>
+      <Button>Open</Button>
+      <Sheet.Content>
+        <Sheet.Header>
+          <Sheet.Title>{title}</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>Supporting line</Sheet.Body>
+        <Sheet.Footer>
+          {actions.map((label) => (
+            <Button key={label} slot="close">
+              {label}
+            </Button>
+          ))}
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>,
+  )
+  const panel = panelOf(view.getByRole('dialog'))
+  for (const animation of document.getAnimations()) {
+    animation.finish()
+  }
+  return { panel, view }
+}
+
+/**
  * A sheet with no trigger: the content part on its own, holding the open
  * state `Sheet` would otherwise hold.
  */
@@ -170,6 +207,18 @@ function standalone(content: Partial<SheetContentProps> = {}) {
       <Sheet.Title>Headline</Sheet.Title>
       <Button slot="close">Cancel</Button>
     </Sheet.Content>,
+  )
+}
+
+/** Whether `inner` lies wholly inside `outer`, to the subpixel. */
+function within(inner: Element, outer: Element) {
+  const a = inner.getBoundingClientRect()
+  const b = outer.getBoundingClientRect()
+  return (
+    a.left >= b.left - 0.5 &&
+    a.right <= b.right + 0.5 &&
+    a.top >= b.top - 0.5 &&
+    a.bottom <= b.bottom + 0.5
   )
 }
 
@@ -589,6 +638,53 @@ describe('sheet', () => {
         'true',
       )
       expect(view.queryAllByRole('separator')).toHaveLength(0)
+    })
+  })
+
+  // The header and footer are sized for a one-line headline and a row of two
+  // short actions. Each case here is content that runs past that on a phone,
+  // which the panel's `overflow: hidden` used to clip or squeeze.
+  describe('content longer than the bars', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // The headline is the part that gives way, so the close button keeps its
+    // size and stays inside the panel.
+    it('breaks one long word in the title rather than pushing the close button out', async () => {
+      await page.viewport(360, 640)
+      const { panel, view } = sheetHolding(LONG_WORD, ['Confirm'])
+      const close = view.getByRole('button', { name: 'Close' })
+      const title = view.getByRole('heading', { name: LONG_WORD })
+
+      expect(within(title, panel)).toBe(true)
+      expect(within(close, panel)).toBe(true)
+      expect(close.getBoundingClientRect().width).toBe(
+        close.getBoundingClientRect().height,
+      )
+    })
+
+    // Two actions too long to share a row used to be squeezed onto it, each
+    // label broken over two or three lines; each now keeps its one-line
+    // height on a row of its own.
+    it('wraps actions onto another row, each at its one-line height', async () => {
+      await page.viewport(360, 640)
+      const { panel, view } = sheetHolding('Headline', [
+        'First long action label',
+        'Second long action label',
+      ])
+      const [first, second] = [
+        'First long action label',
+        'Second long action label',
+      ].map((name) => view.getByRole('button', { name }))
+
+      expect(second.getBoundingClientRect().top).toBeGreaterThan(
+        first.getBoundingClientRect().top,
+      )
+      for (const action of [first, second]) {
+        expect(within(action, panel)).toBe(true)
+        expect(action.getBoundingClientRect().height).toBe(40)
+      }
     })
   })
 })
