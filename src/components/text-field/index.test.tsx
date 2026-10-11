@@ -399,6 +399,22 @@ describe('text field', () => {
       expect(prefix.top).toBe(input.top)
     })
 
+    // A screen reader hears the affixes as part of the field's description,
+    // ahead of its own: as bare text they were heard nowhere, and only the
+    // label was announced.
+    it('describes the input by its prefix and suffix, then its description', () => {
+      const view = setup({
+        description: 'Supporting line',
+        prefix: 'Prefix',
+        suffix: 'Suffix',
+      })
+      const described = (view.input.getAttribute('aria-describedby') ?? '')
+        .split(' ')
+        .map((id) => document.getElementById(id)?.textContent)
+
+      expect(described).toStrictEqual(['Prefix', 'Suffix', 'Supporting line'])
+    })
+
     // Under a floating label the affixes show as the placeholder does: once
     // the field is focused or holds a value, since at rest the label sits
     // on their line.
