@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import * as stylex from '@stylexjs/stylex'
 import { expect } from 'storybook/test'
 
 import SegmentedButton from '.'
@@ -16,6 +17,13 @@ const DOT = (
     <circle cx="12" cy="12" r="6" />
   </svg>
 )
+
+const styles = stylex.create({
+  // A phone's 360dp less the 16dp margins either side.
+  narrow: {
+    inlineSize: '328px',
+  },
+})
 
 const SEGMENTS = (
   <>
@@ -62,6 +70,44 @@ const WithIcons: Story = {
       </>
     ),
   },
+}
+
+// An icon and an `aria-label` with no label: the icon is centred in its
+// segment and kept while chosen, on the stronger container a set without a
+// check draws, since a check in its place would hide which one is chosen.
+const IconOnly: Story = {
+  args: {
+    children: (
+      <>
+        <SegmentedButton.Segment
+          aria-label="First item"
+          icon={DOT}
+          id="first"
+        />
+        <SegmentedButton.Segment
+          aria-label="Second item"
+          icon={DOT}
+          id="second"
+        />
+        <SegmentedButton.Segment
+          aria-label="Third item"
+          icon={DOT}
+          id="third"
+        />
+      </>
+    ),
+  },
+}
+
+// The set on a phone-width container, narrower than the track asks for. The
+// room a check needs is given back from the segments not drawing one before
+// any label is cut, and a label that is cut still shows whole in its title.
+const Narrow: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <SegmentedButton {...args} />
+    </div>
+  ),
 }
 
 const WithoutSelectedIcon: Story = {
@@ -129,7 +175,9 @@ export {
   Disabled,
   DisabledSegment,
   EmptySelectionAllowed,
+  IconOnly,
   MultipleSelection,
+  Narrow,
   TwoSegments,
   WithIcons,
   WithoutSelectedIcon,
