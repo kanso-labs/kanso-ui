@@ -23,6 +23,7 @@ import {
 
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollable } from '../../hooks/useScrollable'
+import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
@@ -375,30 +376,32 @@ function SheetContent({
   ...props
 }: RefAttributes<HTMLDivElement> & SheetContentProps) {
   return (
-    <ModalOverlay
-      defaultOpen={defaultOpen}
-      isDismissable={isDismissable}
-      isKeyboardDismissDisabled={isKeyboardDismissDisabled}
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
-      UNSTABLE_portalContainer={container}
-      {...stylex.props(overlay.scrim)}
-    >
-      <Modal
-        // The panel, where the call site's class and style land, rather than
-        // the dialog inside it, which takes the rest of the props.
-        ref={ref}
-        {...mergeStatefulStyles(stylex.props(styles.content), {
-          className,
-          style,
-        })}
+    <OverlayScope>
+      <ModalOverlay
+        defaultOpen={defaultOpen}
+        isDismissable={isDismissable}
+        isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+        UNSTABLE_portalContainer={container}
+        {...stylex.props(overlay.scrim)}
       >
-        <Dialog {...props} {...stylex.props(overlay.modalDialog)}>
-          {children}
-        </Dialog>
-      </Modal>
-    </ModalOverlay>
+        <Modal
+          // The panel, where the call site's class and style land, rather than
+          // the dialog inside it, which takes the rest of the props.
+          ref={ref}
+          {...mergeStatefulStyles(stylex.props(styles.content), {
+            className,
+            style,
+          })}
+        >
+          <Dialog {...props} {...stylex.props(overlay.modalDialog)}>
+            {children}
+          </Dialog>
+        </Modal>
+      </ModalOverlay>
+    </OverlayScope>
   )
 }
 

@@ -35,7 +35,11 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 // else — along the row, where it is invisible. This provides React Aria's
 // separator context with the perpendicular orientation, and `Separator`
 // reads it, so a rule between two controls is correct without the call site
-// saying which way it runs.
+// saying which way it runs. The context reaches the bar's own controls and
+// stops at an overlay opened from one: React context crosses the portal a
+// popover, sheet or dialog renders through, so their content parts clear it
+// — see `src/overlay` — and a rule inside one runs across the overlay as it
+// does anywhere else.
 //
 // **Arrow-key navigation is React Aria's and is not wrapped.** The arrows
 // move between the controls, and — worth knowing, since the pattern usually
@@ -139,8 +143,9 @@ type ToolbarTone = 'neutral' | 'vibrant'
  * you, and a toolbar with no name is a group a screen reader cannot announce.
  *
  * `orientation` is React Aria's, and it decides both which arrows move and
- * which way the bar runs. A `Separator` inside draws across that direction
- * without being told.
+ * which way the bar runs. A `Separator` among its controls draws across that
+ * direction without being told; one inside an overlay opened from the bar
+ * draws as it would anywhere else.
  *
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.

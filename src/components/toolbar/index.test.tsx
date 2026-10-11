@@ -4,8 +4,12 @@ import { describe, expect, it } from 'vitest'
 
 import Toolbar from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Dialog from '../dialog'
 import IconButton from '../icon-button'
+import Popover from '../popover'
 import Separator from '../separator'
+import Sheet from '../sheet'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -15,6 +19,12 @@ import Separator from '../separator'
 const probeStyles = stylex.create({
   neutral: { backgroundColor: colors.surfaceContainer },
   vibrant: { backgroundColor: colors.primaryContainer },
+})
+
+// A width for the rule inside an overlay to run across: a popover is as wide
+// as what it holds, and a rule alone holds nothing.
+const testStyles = stylex.create({
+  span: { inlineSize: '200px' },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -31,6 +41,56 @@ const CLASSES = {
   neutral: classesOf(stylex.props(probeStyles.neutral)),
   vibrant: classesOf(stylex.props(probeStyles.vibrant)),
 }
+
+// An overlay opened from inside the bar, holding a rule of its own. Each is a
+// portal, which React context crosses, so the bar's separator context
+// reached the rule inside before the overlay's content cleared it.
+const OVERLAYS = [
+  [
+    'a popover',
+    <Popover defaultOpen key="popover">
+      <Button>Open</Button>
+      <Popover.Content>
+        <div {...stylex.props(testStyles.span)}>
+          <Separator data-testid="inside" />
+        </div>
+      </Popover.Content>
+    </Popover>,
+  ],
+  [
+    'a modal popover',
+    <Popover defaultOpen key="modal" modal>
+      <Button>Open</Button>
+      <Popover.Content aria-label="Label">
+        <div {...stylex.props(testStyles.span)}>
+          <Separator data-testid="inside" />
+        </div>
+      </Popover.Content>
+    </Popover>,
+  ],
+  [
+    'a sheet',
+    <Sheet defaultOpen key="sheet">
+      <Button>Open</Button>
+      <Sheet.Content aria-label="Label">
+        <div {...stylex.props(testStyles.span)}>
+          <Separator data-testid="inside" />
+        </div>
+      </Sheet.Content>
+    </Sheet>,
+  ],
+  [
+    'a dialog',
+    <Dialog defaultOpen key="dialog">
+      <Button>Open</Button>
+      <Dialog.Content aria-label="Label">
+        <div {...stylex.props(testStyles.span)}>
+          <Separator data-testid="inside" />
+        </div>
+      </Dialog.Content>
+    </Dialog>,
+  ],
+] as const
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
@@ -143,6 +203,29 @@ describe('toolbar', () => {
       const view = render(<Separator />)
       expect(view.getByRole('separator').tagName).toBe('HR')
     })
+
+    // The bar's context reaches its own controls and stops at an overlay:
+    // a rule inside one runs across the overlay, horizontally, while a rule
+    // among the bar's controls still turns across the bar.
+    it.each(OVERLAYS)(
+      'leaves a rule inside %s opened from the bar horizontal',
+      (_overlay, opened) => {
+        const view = setup(
+          {},
+          <>
+            <Separator data-testid="among" />
+            {opened}
+          </>,
+        )
+        const inside = view.getByTestId('inside')
+
+        expect(inside.tagName).toBe('HR')
+        expect(inside.getBoundingClientRect().width).toBeGreaterThan(0)
+        expect(view.getByTestId('among').getAttribute('aria-orientation')).toBe(
+          'vertical',
+        )
+      },
+    )
 
     it('takes an orientation of its own over the bar', () => {
       const view = setup(
