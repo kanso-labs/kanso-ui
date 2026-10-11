@@ -1,4 +1,5 @@
 import { render, waitFor } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import ProductIcon from '.'
@@ -147,6 +148,49 @@ describe('the fallback', () => {
     const view = render(<ProductIcon name="𝒜 label" />)
 
     expect(iconIn(view.container).textContent).toBe('𝒜')
+  })
+
+  // The initial is a grapheme, what a reader sees as one character, rather
+  // than a code point, which drops an accent written as a combining mark and
+  // cuts a flag or a joined emoji in half. And it is one grapheme after
+  // upper-casing too, which turns "ß" into "SS".
+  it.each([
+    ['an accent written as a combining mark', 'e\u0301clair', 'E\u0301'],
+    ['a flag', '\u{1F1E7}\u{1F1F7} label', '\u{1F1E7}\u{1F1F7}'],
+    [
+      'a joined emoji',
+      '\u{1F468}\u200D\u{1F469}\u200D\u{1F467} label',
+      '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}',
+    ],
+    ['a letter that upper-cases to two', '\u00DFeta', 'S'],
+  ])('keeps %s whole, as one grapheme', (_case, name, initial) => {
+    const view = render(<ProductIcon name={name} />)
+
+    expect(iconIn(view.container).textContent).toBe(initial)
+  })
+
+  it("upper-cases in the I18nProvider's locale", () => {
+    const view = render(
+      <I18nProvider locale="tr-TR">
+        <ProductIcon name="ilk" />
+      </I18nProvider>,
+    )
+
+    expect(iconIn(view.container).textContent).toBe('\u0130')
+  })
+
+  // A name can open with punctuation that stands for nothing — the @ of a
+  // handle, the # of a channel, a bracket — and the initial is the first
+  // letter after it.
+  it.each([
+    ['@first', 'F'],
+    ['#second', 'S'],
+    ['(third) item', 'T'],
+    ['"fourth"', 'F'],
+  ])('passes over the punctuation that opens %s', (name, initial) => {
+    const view = render(<ProductIcon name={name} />)
+
+    expect(iconIn(view.container).textContent).toBe(initial)
   })
 
   it('renders nothing for a blank name', () => {

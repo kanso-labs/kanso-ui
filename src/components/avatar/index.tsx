@@ -18,6 +18,13 @@ type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * The person this represents. Supplies both the initials and the accessible
    * name, so a screen reader announces who it is rather than reading two
    * letters aloud.
+   *
+   * A display name, as a reader would see it written: the initials are its
+   * first and last words. A title before the name ("Dr."), a generational
+   * suffix after it ("Jr.", "III") and an aside in brackets at its end
+   * ("(she/her)") are passed over, as is punctuation a word opens with. A
+   * name written without spaces between its words, as Japanese and Chinese
+   * names are, is one word, and takes one initial.
    */
   name: string
   /**

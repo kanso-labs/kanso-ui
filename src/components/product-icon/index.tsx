@@ -19,7 +19,9 @@ type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
    * What this identifies. Supplies both the fallback initial and the
    * accessible name, so a screen reader announces the thing rather than
-   * reading a letter aloud.
+   * reading a letter aloud. The initial is the name's first letter, number or
+   * emoji, passing over punctuation it opens with: a handle's at sign, a
+   * channel's hash or a bracket.
    */
   name: string
   /**
