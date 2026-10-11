@@ -33,8 +33,19 @@ import {
 // on its own is left out — the button's height, padding, type and state
 // layer. A link takes its size and face from the sentence it sits in, and
 // says it can be followed with its underline instead, which is this
-// component's own: a 1px rule in 45% of the primary role, or in the outline
+// component's own: a 1px rule in 70% of the primary role, or in the outline
 // role under `inherit`, turning fully primary on hover.
+//
+// 70% is the least that keeps the rule at 3:1 against the surface in every
+// scheme the library is shown in — Nordic, the closest, comes to 3.15:1. The
+// rule is what separates a link from its sentence, since the primary role
+// sits as close as 1.3:1 to body text in the dark theme, and at the 45% it
+// was drawn in before it measured 2:1 on the light surface.
+//
+// Hover is React Aria's render state rather than `:hover`, as Button's and
+// Tabs' are. A tap leaves a touch screen's emulated pointer over what was
+// tapped, so `:hover` kept a tapped link lit until the next tap, and React
+// Aria ignores that pointer; it also never reports a disabled link hovered.
 
 const styles = stylex.create({
   base: {
@@ -54,9 +65,9 @@ const styles = stylex.create({
   },
   // React Aria renders a disabled link as a span, which no `:disabled`
   // matches, so the state is applied from the render state — the same reason
-  // Tabs and Button style theirs that way. Applied after the tone, and StyleX
-  // replaces a property whole, so the tone's hover colour goes with it: a
-  // hovered disabled link does not light up.
+  // Tabs and Button style theirs that way. A disabled link is never hovered,
+  // so neither its colour nor an underline held back until hover comes on
+  // under a pointer, and the rule of an `always` link stays, greyed.
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
@@ -66,15 +77,12 @@ const styles = stylex.create({
 
 const tones = stylex.create({
   inherit: {
-    color: { ':hover': colors.primary, default: 'inherit' },
-    textDecorationColor: { ':hover': colors.primary, default: colors.outline },
+    color: 'inherit',
+    textDecorationColor: colors.outline,
   },
   primary: {
     color: colors.primary,
-    textDecorationColor: {
-      ':hover': colors.primary,
-      default: `color-mix(in srgb, ${colors.primary} 45%, transparent)`,
-    },
+    textDecorationColor: `color-mix(in srgb, ${colors.primary} 70%, transparent)`,
   },
 })
 
@@ -83,10 +91,23 @@ const underlines = stylex.create({
     textDecorationLine: 'underline',
   },
   hover: {
-    textDecorationLine: { ':hover': 'underline', default: 'none' },
+    textDecorationLine: 'none',
   },
   none: {
     textDecorationLine: 'none',
+  },
+})
+
+// Under a pointer, from the render state — see the comment at the top. Either
+// tone turns its text and its rule fully primary, and a rule held back until
+// hover is drawn.
+const hovered = stylex.create({
+  tone: {
+    color: colors.primary,
+    textDecorationColor: colors.primary,
+  },
+  underline: {
+    textDecorationLine: 'underline',
   },
 })
 
@@ -170,6 +191,8 @@ function Link({
             focus.ring,
             tones[tone],
             underlines[underline],
+            state.isHovered && hovered.tone,
+            state.isHovered && underline === 'hover' && hovered.underline,
             state.isDisabled && styles.disabled,
           ),
         props,
