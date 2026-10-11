@@ -17,7 +17,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useId } from 'react'
 import {
   FieldError,
   FieldErrorContext,
@@ -612,6 +612,11 @@ function FieldBox({
  * populated control from an empty one: its own where it was given one, a
  * blank otherwise. Outside a box it has no label over it and shows the
  * placeholder it was given in every state.
+ *
+ * A prefix or a suffix describes the control, ahead of its description and
+ * error, so a reader hears the unit or currency the value is read against —
+ * as a sighted one sees it beside the value. As bare text beside the input
+ * it was in no name and no description, and a reader heard the label alone.
  */
 function FieldInput({
   numeric = false,
@@ -622,11 +627,24 @@ function FieldInput({
 }: FieldInputProps & RefAttributes<HTMLInputElement>) {
   const box = useContext(BoxContext)
   const validation = useContext(FieldErrorContext)
+  const prefixId = useId()
+  const suffixId = useId()
+  // React Aria hands the input its description and error ids through this
+  // context, and a prop written on the input replaces them rather than
+  // joining them, so they are read here and written back after the affixes.
+  const field = useSlottedContext(InputContext)
+  const describedBy = idsOf(
+    prefix === undefined ? undefined : prefixId,
+    suffix === undefined ? undefined : suffixId,
+    field?.['aria-describedby'],
+    props['aria-describedby'],
+  )
 
   const control = (
     <Input
       placeholder={placeholder ?? (box.label === 'floating' ? ' ' : undefined)}
       {...props}
+      aria-describedby={describedBy}
       onInput={commitWhileInvalid(
         validation?.isInvalid ?? false,
         props.onInput,
@@ -654,6 +672,7 @@ function FieldInput({
     <span {...stylex.props(fieldChromeStyles.affixLine)}>
       {prefix === undefined ? null : (
         <span
+          id={prefixId}
           {...stylex.props(
             fieldChromeStyles.affix,
             box.underLabel && fieldChromeStyles.inputUnderLabel,
@@ -665,6 +684,7 @@ function FieldInput({
       {control}
       {suffix === undefined ? null : (
         <span
+          id={suffixId}
           {...stylex.props(
             fieldChromeStyles.affix,
             box.underLabel && fieldChromeStyles.inputUnderLabel,
@@ -849,6 +869,19 @@ function focusedStyle(outlined: boolean, invalid: boolean) {
   return invalid
     ? fieldChromeStyles.boxErrorFocused
     : fieldChromeStyles.boxFocused
+}
+
+/**
+ * Element ids as one `aria-describedby`, in the order given, leaving out any
+ * that are missing or already named — a list of several ids is split, since
+ * the same one can arrive from the field and from the call site both — and
+ * undefined when none are left, so the attribute is dropped rather than
+ * written empty.
+ */
+function idsOf(...lists: (string | undefined)[]) {
+  const ids = new Set(lists.flatMap((list) => list?.split(' ') ?? []))
+  ids.delete('')
+  return ids.size === 0 ? undefined : [...ids].join(' ')
 }
 
 // Back to the start of the line once focus has left every segment on it —

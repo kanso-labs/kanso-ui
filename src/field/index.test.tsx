@@ -214,6 +214,17 @@ function pressAt(x: number, y: number) {
 // The page's trailing icon: 24dp, the size the slot is laid out for.
 const TRAILING_ICON = <svg aria-hidden="true" height="24" width="24" />
 
+/**
+ * What a reader hears the control described by, in order: the text of each
+ * element its `aria-describedby` names.
+ */
+function descriptionOf(input: HTMLElement) {
+  return (input.getAttribute('aria-describedby') ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map((id) => document.getElementById(id)?.textContent)
+}
+
 /** The live region under the field, which holds the error. */
 function regionIn(container: HTMLElement) {
   const region = container.querySelector('[aria-live]')
@@ -261,6 +272,8 @@ function setup(
     isDisabled?: boolean
     numeric?: boolean
     placeholder?: string
+    prefix?: string
+    suffix?: string
   } = {},
 ) {
   const view = render(
@@ -271,7 +284,12 @@ function setup(
       validationBehavior={FIELD_VALIDATION_BEHAVIOR}
     >
       <FieldBox floatingLabel={props.floatingLabel} label="Label">
-        <FieldInput numeric={props.numeric} placeholder={props.placeholder} />
+        <FieldInput
+          numeric={props.numeric}
+          placeholder={props.placeholder}
+          prefix={props.prefix}
+          suffix={props.suffix}
+        />
       </FieldBox>
       <FieldMessage description={props.description} error={props.error} />
     </TextField>,
@@ -573,6 +591,40 @@ describe('field chrome', () => {
       const { input } = setup({ isDisabled: true })
       expect(input).toHaveProperty('disabled', true)
       expect(hasClasses(input, CLASSES.disabledText)).toBe(true)
+    })
+
+    // The unit or currency a value is read against, which a sighted reader
+    // sees beside it. As bare text it was in no name and no description, so
+    // a screen reader announced the label alone.
+    it('is described by its prefix and suffix', () => {
+      const { input } = setup({ prefix: 'Prefix', suffix: 'Suffix' })
+      expect(descriptionOf(input)).toStrictEqual(['Prefix', 'Suffix'])
+    })
+
+    // React Aria hands the control its description and error ids, and a
+    // prop on the control replaces them, so the affixes join rather than
+    // take their place.
+    it('keeps its description after the affixes', () => {
+      const { input } = setup({
+        description: 'Supporting line',
+        prefix: 'Prefix',
+        suffix: 'Suffix',
+      })
+      expect(descriptionOf(input)).toStrictEqual([
+        'Prefix',
+        'Suffix',
+        'Supporting line',
+      ])
+    })
+
+    it('keeps its error after the affixes', () => {
+      const { input } = setup({ error: 'Error line', prefix: 'Prefix' })
+      expect(descriptionOf(input)).toStrictEqual(['Prefix', 'Error line'])
+    })
+
+    it('carries no description of its own without affixes', () => {
+      const { input } = setup()
+      expect(input.hasAttribute('aria-describedby')).toBe(false)
     })
   })
 
