@@ -589,6 +589,46 @@ describe('snackbar', () => {
     })
   })
 
+  // Material Design's text button: 40dp tall with a 48dp target, as
+  // Button's medium size is. Sized by its padding alone it was 36dp, or 32
+  // in a tighter type scale, and a press just off it landed on the strip.
+  describe("the action's size", () => {
+    it('is 40 tall', async () => {
+      const { view } = await shown()
+      expect(
+        view.getByRole('button', { name: 'Undo' }).getBoundingClientRect()
+          .height,
+      ).toBe(40)
+    })
+
+    it('takes a press just above and just below its box', async () => {
+      const { view } = await shown()
+      const action = view.getByRole('button', { name: 'Undo' })
+      const box = action.getBoundingClientRect()
+      const x = box.left + box.width / 2
+
+      for (const y of [box.top - 3, box.bottom + 3]) {
+        expect(action.contains(document.elementFromPoint(x, y))).toBe(true)
+      }
+    })
+
+    // The height is a least height rather than padding around the line, so
+    // a scheme with a shorter label line keeps the 40.
+    it('stays 40 tall under a shorter label line', async () => {
+      const root = document.documentElement.style
+      root.setProperty('--kui-typography-label-large-line-height', '16px')
+      try {
+        const { view } = await shown()
+        expect(
+          view.getByRole('button', { name: 'Undo' }).getBoundingClientRect()
+            .height,
+        ).toBe(40)
+      } finally {
+        root.removeProperty('--kui-typography-label-large-line-height')
+      }
+    })
+  })
+
   // A ring outside the strip was drawn on the page, in a colour made to read
   // on the strip rather than on the page — 1.07:1 against it in the light
   // scheme. Each ring is now inside the strip, over the fill its colour reads

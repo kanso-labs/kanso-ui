@@ -117,16 +117,36 @@ const rise = stylex.keyframes({
 // module, and the generated one holds design tokens rather than queries.
 const FORCED_COLORS = '@media (forced-colors: active)'
 
+// The least press area the action keeps, as Button's medium size does. A
+// literal rather than a token, for the reason Button's `TARGET_SIZE` gives: a
+// consumer resizing their controls should not shrink a floor the page states.
+const TARGET_SIZE = '48px'
+
 const styles = stylex.create({
-  // The action: a text button in the page's inverse primary, at the label
-  // large the page gives it.
+  // The action: Material Design's text button in the page's inverse primary,
+  // at the label large the page gives it. That button is 40dp tall with a
+  // 48dp target, as Button's medium size is; sized by its padding alone, it
+  // came out 36dp in the default type scale and 32dp in a tighter one, and a
+  // press just off its box landed on the strip and did nothing.
+  //
+  // The target is a transparent box reaching past the top and bottom to
+  // 48dp, which is the strip's own height, and the 40dp a least height
+  // rather than a height, so a scale with a taller line grows the button
+  // instead of clipping its label.
   action: {
+    '::before': {
+      content: '""',
+      insetBlock: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
+      insetInline: 0,
+      position: 'absolute',
+    },
     color: colors.inversePrimary,
     fontFamily: typography.labelLargeFont,
     fontSize: typography.labelLargeSize,
     fontWeight: typography.labelLargeWeight,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
+    minBlockSize: sizing.controlSm,
     paddingBlock: spacing.sm,
     paddingInline: spacing.md,
   },
@@ -169,7 +189,9 @@ const styles = stylex.create({
     outlineOffset: '-4px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
-    overflow: 'hidden',
+    // A positioning context for the ripple and the action's target. Nothing
+    // here clips: the ripple's surface clips itself to the corner, and the
+    // action's target has to reach past the action's box to be pressed.
     position: 'relative',
   },
   // A control's three layers, from React Aria's render state rather than
