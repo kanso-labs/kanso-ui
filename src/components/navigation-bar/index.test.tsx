@@ -221,8 +221,12 @@ describe('navigation bar', () => {
       const mark = indicatorOf(link).querySelector(
         '[aria-hidden="true"]:not(svg)',
       )
+      if (mark === null) {
+        throw new Error('expected the destination to draw a badge')
+      }
 
-      expect(mark?.textContent).toBe('3')
+      // The count is the mark's generated content, not its text.
+      expect(getComputedStyle(mark, '::before').content).toBe('"3"')
     })
   })
 

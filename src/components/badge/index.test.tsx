@@ -25,6 +25,17 @@ const LIST_ITEM = <li />
 // mode here, so what is proved is that the rule exists and reaches the mark.
 const FORCED_COLORS = 'forced-colors: active'
 
+/**
+ * The count a mark draws: its generated content, unquoted, or '' for none.
+ * Read off the drawn box rather than the mark's text, which it has none of.
+ */
+function countOf(mark: HTMLElement) {
+  const content = getComputedStyle(mark, '::before').content
+  return content === 'none' || content === 'normal'
+    ? ''
+    : content.replaceAll('"', '')
+}
+
 function Icon() {
   return (
     <svg
@@ -114,7 +125,7 @@ describe('badge', () => {
       expect(getComputedStyle(mark).backgroundColor).toBe(
         probe(probeStyles.error).background,
       )
-      expect(mark.textContent).toBe('')
+      expect(countOf(mark)).toBe('')
     })
 
     it("fills the icon's top trailing corner", () => {
@@ -131,7 +142,7 @@ describe('badge', () => {
       const { mark } = setup({ count: 3 })
       const style = getComputedStyle(mark)
 
-      expect(mark.textContent).toBe('3')
+      expect(countOf(mark)).toBe('3')
       expect(mark.getBoundingClientRect().height).toBe(16)
       expect(mark.getBoundingClientRect().width).toBe(16)
       expect(style.backgroundColor).toBe(probe(probeStyles.error).background)
@@ -163,15 +174,15 @@ describe('badge', () => {
 
     it('caps a count above max with a plus', () => {
       const capped = setup({ count: 1200 })
-      expect(capped.mark.textContent).toBe('999+')
+      expect(countOf(capped.mark)).toBe('999+')
       capped.unmount()
 
       const lowered = setup({ count: 120, max: 99 })
-      expect(lowered.mark.textContent).toBe('99+')
+      expect(countOf(lowered.mark)).toBe('99+')
       lowered.unmount()
 
       const atMax = setup({ count: 99, max: 99 })
-      expect(atMax.mark.textContent).toBe('99')
+      expect(countOf(atMax.mark)).toBe('99')
     })
 
     it("writes the count in the reader's own digits", () => {
@@ -183,7 +194,7 @@ describe('badge', () => {
         </I18nProvider>,
       )
 
-      expect(parts(view).mark.textContent).toBe('٣')
+      expect(countOf(parts(view).mark)).toBe('٣')
     })
   })
 
@@ -201,6 +212,25 @@ describe('badge', () => {
       expect(
         view.getByRole('button', { name: 'Label, 3 new' }),
       ).toBeInTheDocument()
+    })
+
+    // The count is drawn rather than written, so it is no part of the text
+    // of what it sits on. Written, a destination labelled "Second item" with
+    // a count of 3 read "3Second item": no name a speech-input user could
+    // say, and one axe's label-in-name check fails against "Second item, 3
+    // new".
+    it('keeps the count out of the text of the control it sits on', () => {
+      const view = render(
+        <a aria-label="Label, 3 new" href="#first">
+          <Badge count={3} data-testid="badge">
+            <Icon />
+          </Badge>
+          Label
+        </a>,
+      )
+
+      expect(parts(view).mark.childNodes).toHaveLength(0)
+      expect(view.getByRole('link').textContent).toBe('Label')
     })
   })
 
