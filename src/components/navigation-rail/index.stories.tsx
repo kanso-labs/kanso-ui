@@ -100,6 +100,37 @@ const DESTINATIONS = (
   </>
 )
 
+const ORDINALS = [
+  'First',
+  'Second',
+  'Third',
+  'Fourth',
+  'Fifth',
+  'Sixth',
+  'Seventh',
+  'Eighth',
+  'Ninth',
+  'Tenth',
+]
+const SHAPES = [CIRCLE, SQUARE, TRIANGLE]
+
+// Ten destinations, more than the 440px frame holds.
+const TEN_DESTINATIONS = ORDINALS.map((ordinal, index) => (
+  <NavigationRail.Item
+    href={`#${ordinal.toLowerCase()}`}
+    icon={SHAPES[index % SHAPES.length]}
+    key={ordinal}
+  >
+    {`${ordinal} item`}
+  </NavigationRail.Item>
+))
+
+const MENU_BUTTON = (
+  <IconButton aria-label="Menu">
+    <MenuIcon />
+  </IconButton>
+)
+
 // A rail whose header holds the menu button that expands and collapses it,
 // which is how the page has a reader move between the two forms.
 function Expandable() {
@@ -161,6 +192,18 @@ const WithHeader: Story = {
   render: () => <Expandable />,
 }
 
-export { Default, Expanded, WithHeader }
+// More destinations than the rail has room for: they scroll in their own
+// block under the header, each keeping the page's 56dp, rather than
+// squashing or running past the rail. The header's menu button sits at the
+// leading edge with its icon over the destinations' icons.
+const ManyDestinations: Story = {
+  args: {
+    children: TEN_DESTINATIONS,
+    header: MENU_BUTTON,
+    isExpanded: true,
+  },
+}
+
+export { Default, Expanded, ManyDestinations, WithHeader }
 
 export default meta

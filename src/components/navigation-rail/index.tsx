@@ -28,10 +28,40 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // The rail is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 
+// How far a destination's focus ring reaches past it: the 2dp offset and
+// the 2dp ring. The destinations scroll, and a scroll container clips what
+// overflows it, so the block they scroll in is padded by this much and
+// pulled back out by as much, which leaves every destination where it was
+// and every ring whole.
+const RING_REACH = '4px'
+
 const styles = stylex.create({
   collapsed: {
     gap: spacing.xs,
     inlineSize: '96px',
+  },
+  // The destinations, in a block of their own between the header and the
+  // rail's foot. A rail shorter than its destinations scrolls them here,
+  // rather than painting them past its surface and off the window, and the
+  // header stays where it is above them.
+  destinations: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexBasis: 'auto',
+    flexDirection: 'column',
+    flexGrow: 1,
+    flexShrink: 1,
+    marginBlock: `calc(-1 * ${RING_REACH})`,
+    marginInline: `calc(-1 * ${RING_REACH})`,
+    minBlockSize: 0,
+    overflowY: 'auto',
+    paddingBlock: RING_REACH,
+    paddingInline: RING_REACH,
+  },
+  destinationsCollapsed: {
+    gap: spacing.xs,
   },
   // The page's 20dp either side of the pills, which falls between two steps
   // of the spacing scale and so is written out.
@@ -52,12 +82,22 @@ const styles = stylex.create({
   },
   // The expanded rail has no gap between destinations, so its header keeps
   // the whole 40dp.
+  //
+  // It spans the rail, so what it holds starts at the leading edge where the
+  // pills do rather than in the middle, and 8dp in from there: a 40dp icon
+  // button centres its 24dp icon, and 8dp puts that icon under the pills'
+  // icons, 16dp into each pill.
   headerExpanded: {
     alignItems: 'flex-start',
+    alignSelf: 'stretch',
     marginBlockEnd: spacing.xxxl,
+    paddingInlineStart: spacing.sm,
   },
   // The page's 44dp above the contents, header or not, which falls between
   // two steps of the spacing scale and so is written out.
+  //
+  // It keeps its width whatever sits beside it: in a row with a wide page,
+  // a flex item's default shrink took the collapsed rail from 96dp to 85.
   rail: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -65,6 +105,7 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
+    flexShrink: 0,
     paddingBlockEnd: spacing.xl,
     paddingBlockStart: '44px',
   },
@@ -147,7 +188,14 @@ function NavigationRail({
               {header}
             </div>
           )}
-          {children}
+          <div
+            {...stylex.props(
+              styles.destinations,
+              !isExpanded && styles.destinationsCollapsed,
+            )}
+          >
+            {children}
+          </div>
         </>
       ),
     },

@@ -335,8 +335,12 @@ const collapsedItemStyles = stylex.create({
   // written out. 4dp in from either edge of the rail, which leaves a label
   // 88dp of its 96. At the 16dp a horizontal destination is set in by, a
   // two-word label was cut short in a rail that had room for it.
+  //
+  // It keeps its height in a rail too short for every destination, which
+  // scrolls them instead — see NavigationRail.
   item: {
     flexDirection: 'column',
+    flexShrink: 0,
     gap: spacing.xs,
     inlineSize: '100%',
     justifyContent: 'center',
@@ -389,11 +393,15 @@ const expandedItemStyles = stylex.create({
   indicatorHoveredCurrent: {},
   indicatorPressed: {},
   indicatorPressedCurrent: {},
+  // The page's 56dp whatever the rail's height: a rail too short for every
+  // destination scrolls them rather than squashing each below the 48dp
+  // target — see NavigationRail.
   item: {
     alignSelf: 'flex-start',
     blockSize: '56px',
     borderRadius: radii.pill,
     flexDirection: 'row',
+    flexShrink: 0,
     gap: spacing.sm,
     maxInlineSize: '100%',
     paddingInline: spacing.lg,
