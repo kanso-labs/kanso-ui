@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.40.9](https://github.com/kanso-labs/kanso-ui/compare/v0.40.8...v0.40.9) (2026-10-11)
+
+
+### Bug Fixes
+
+* **badge:** draw the count as generated content so it stays out of a control's name ([#1620](https://github.com/kanso-labs/kanso-ui/issues/1620)) ([fb46f99](https://github.com/kanso-labs/kanso-ui/commit/fb46f998ec97a4aac5bafca207b226958349e054))
+* **mark:** derive initials by grapheme and locale, skipping punctuation and joining ([#1624](https://github.com/kanso-labs/kanso-ui/issues/1624)) ([3cdbc38](https://github.com/kanso-labs/kanso-ui/commit/3cdbc38740a8a9619c06d2412a73ee0714f7976a))
+* **popover:** dismiss on an outside press and close when the trigger is pressed again ([#1623](https://github.com/kanso-labs/kanso-ui/issues/1623)) ([42af499](https://github.com/kanso-labs/kanso-ui/commit/42af4990e04da9e6b5dcb85ba1d3f6a8abd817c0))
+* **progress-indicator:** keep the indeterminate ring arc whole as it loops ([#1626](https://github.com/kanso-labs/kanso-ui/issues/1626)) ([99a32ab](https://github.com/kanso-labs/kanso-ui/commit/99a32ab6d6eb0bd8cca7b3909ad50ad75d6758af))
+* **search-field:** draw the error state on the bar ([#1628](https://github.com/kanso-labs/kanso-ui/issues/1628)) ([73e46a7](https://github.com/kanso-labs/kanso-ui/commit/73e46a7e5c9cae8f3fda7d956463173394d6f21f))
+* **search-field:** focus the input from a press anywhere on the bar ([#1627](https://github.com/kanso-labs/kanso-ui/issues/1627)) ([cd05a07](https://github.com/kanso-labs/kanso-ui/commit/cd05a07d17e511c0352de09d4bcabb3e23c7b0b4))
+* **segmented-button:** make single selection behave like a radio group ([#1629](https://github.com/kanso-labs/kanso-ui/issues/1629)) ([00c1496](https://github.com/kanso-labs/kanso-ui/commit/00c1496b9f75aeb036a0b342c8291be455dc8d16))
+
 ## [0.40.8](https://github.com/kanso-labs/kanso-ui/compare/v0.40.7...v0.40.8) (2026-10-11)
 
 
