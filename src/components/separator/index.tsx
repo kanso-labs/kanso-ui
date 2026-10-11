@@ -47,9 +47,11 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // it follows the writing mode and works for a vertical rule as well — the
 // page only draws horizontal ones, but a shortened vertical rule between two
 // columns is the same idea and would otherwise have to be written at the
-// call site. An inset rule also drops its `100%` length: a margin sits
-// outside the box, so a full-width rule with one would overflow its parent
-// by exactly the inset.
+// call site. An inset rule's length is `100%` less its margins: a margin
+// sits outside the box, so a full-width rule with one would overflow its
+// parent by exactly the inset, and `auto` in its place gives an empty `<hr>`
+// a width only where the parent stretches it — in a flex row, or a parent
+// centring its children, the rule came out 0 wide and vanished.
 //
 // The orientation is resolved rather than defaulted eagerly, so a container
 // that sets one through React Aria's separator context reaches it. Toolbar
@@ -92,17 +94,22 @@ const styles = stylex.create({
   },
 })
 
-// The page's 16dp, on whichever axis the rule runs along. `auto` replaces the
-// `100%` a full-width rule takes, since a margin outside a 100% box overflows
-// the parent by the inset.
+// The page's 16dp, on whichever axis the rule runs along. The length is the
+// full-width rule's `100%` less the margins, which keeps the rule inside its
+// parent — a margin outside a 100% box overflows by the inset — and still
+// gives it a width in every layout, where `auto` gives an `<hr>` with no
+// content one only in a parent that stretches it.
 const horizontalInsets = stylex.create({
   both: {
-    inlineSize: 'auto',
+    inlineSize: `calc(100% - ${spacing.lg} - ${spacing.lg})`,
     marginInlineEnd: spacing.lg,
     marginInlineStart: spacing.lg,
   },
   none: {},
-  start: { inlineSize: 'auto', marginInlineStart: spacing.lg },
+  start: {
+    inlineSize: `calc(100% - ${spacing.lg})`,
+    marginInlineStart: spacing.lg,
+  },
 })
 
 // A vertical rule takes its length from the parent through `alignSelf`, so
