@@ -143,6 +143,14 @@ const styles = stylex.create({
   // The action, and the close button after it. Both take the colour set on
   // them and lay their state layer over it, so one set of rules serves the
   // two of them at their two different colours.
+  //
+  // Their focus ring is drawn inside the control, 2dp in from its edge,
+  // where the library's ring stands 2dp outside. The close button is 48dp in
+  // a strip 48dp tall, so a ring outside it crossed the strip's top and
+  // bottom edges onto the page, in a colour chosen to read on the strip and
+  // close to the page by design — 1.07:1 against it in the light scheme.
+  // Inside, it is drawn on the strip's fill, where each control's own colour
+  // already reads. The action takes the same, so the two rings match.
   control: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -154,7 +162,7 @@ const styles = stylex.create({
     flexShrink: 0,
     justifyContent: 'center',
     outlineColor: 'currentColor',
-    outlineOffset: '2px',
+    outlineOffset: '-4px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     overflow: 'hidden',
@@ -236,6 +244,13 @@ const styles = stylex.create({
   }),
   // The container: the page's 8dp either side, and nothing above or below,
   // since what sets the height is the message and the close button.
+  //
+  // Its focus ring is in inverse on surface, drawn inside the fill, 2dp in
+  // from the edge. That role is the one made to read on the inverse surface
+  // the strip is filled with, and the one made to sit close to the page:
+  // drawn outside the strip, as the library's ring is, it was 1.07:1 against
+  // the page in the light scheme and 1.41:1 in the dark one, under the 3:1 a
+  // focus indicator needs. Still an `outline`, which forced colours keeps.
   toast: {
     alignItems: 'center',
     // Reduced motion zeroes the duration, so the strip arrives in its settled
@@ -267,7 +282,7 @@ const styles = stylex.create({
     minBlockSize: sizing.controlMd,
     minInlineSize: { default: 0, [WIDE]: '320px' },
     outlineColor: colors.inverseOnSurface,
-    outlineOffset: '2px',
+    outlineOffset: '-4px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
     paddingBlock: 0,
