@@ -14,6 +14,7 @@ import {
 } from 'react-aria-components'
 
 import { FieldInput, FieldMessage } from '../../field'
+import { focusesControl } from '../../field/press'
 import {
   fieldStyles,
   invalidFrom,
@@ -110,6 +111,9 @@ const styles = stylex.create({
     },
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
+    // The whole bar takes a press for the input — see `fieldContent` — so
+    // it says as much under a pointer, not only over the input's own line.
+    cursor: 'text',
     display: 'flex',
     gap: spacing.lg,
     inlineSize: '100%',
@@ -140,6 +144,7 @@ const styles = stylex.create({
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
       [FORCED_COLORS]: 'GrayText',
     },
+    cursor: 'default',
   },
   // 4dp in from the padding, so the icon inside the 40dp button ends 28dp
   // from the end, where the page's 48dp target puts it.
@@ -214,6 +219,13 @@ type SearchFieldProps = {
 // while the field holds something. Built by a call rather than written
 // inline at the prop, which is what react-perf's no-new-function-as-prop is
 // after; the React Compiler memoises the result on its inputs.
+//
+// A press anywhere on the bar focuses the input, as a press anywhere on the
+// box of every other field does. The bar is 56dp and the input's line 24dp
+// of it, so the magnifier, the padding at either end and the strips above
+// and below the text took a press, darkened the bar for it, and focused
+// nothing. A press on the input itself or on the clear button is left to
+// them, and a disabled field takes none.
 function fieldContent(
   label: string,
   placeholder: string | undefined,
@@ -228,6 +240,7 @@ function fieldContent(
         <Label>{label}</Label>
       </VisuallyHidden>
       <div
+        onPointerDown={focusesControl(undefined)}
         {...stylex.props(styles.bar, state.isDisabled && styles.barDisabled)}
       >
         <SearchGlyph {...stylex.props(styles.glyph)} />

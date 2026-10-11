@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SearchField from '.'
@@ -156,6 +156,57 @@ describe('search field', () => {
       input.blur()
       settle(bar)
       expect(getComputedStyle(bar).boxShadow).toBe('none')
+    })
+
+    // The bar is 56dp and the input's line 24dp of it: a press on the
+    // magnifier, the padding or the strips above and below the text focused
+    // nothing, though the bar darkened for it.
+    it.each([
+      ['the bar around the input', (bar: HTMLElement) => bar],
+      ['the magnifier', (bar: HTMLElement) => bar.querySelector('svg') ?? bar],
+    ])('focuses the input from a press on %s', (_case, target) => {
+      const { input } = setup()
+      const pressed = target(barOf(input))
+      expect(pressed).not.toBe(input)
+
+      fireEvent.pointerDown(pressed, { button: 0 })
+
+      expect(document.activeElement).toBe(input)
+    })
+
+    // The clear button is a press of its own: it clears and hands focus back
+    // to the input rather than to the bar or the page.
+    it('leaves a press on the clear button to the button', () => {
+      const { getByRole, input } = setup({ defaultValue: 'typed' })
+      const clear = getByRole('button')
+
+      act(() => {
+        fireEvent.pointerDown(clear, { button: 0 })
+        fireEvent.pointerUp(clear, { button: 0 })
+        fireEvent.click(clear)
+      })
+
+      expect(input).toHaveProperty('value', '')
+      expect(document.activeElement).toBe(input)
+    })
+
+    it('takes no press while disabled', () => {
+      const { input } = setup({ isDisabled: true })
+      const before = document.activeElement
+
+      fireEvent.pointerDown(barOf(input), { button: 0 })
+
+      expect(document.activeElement).toBe(before)
+      expect(document.activeElement).not.toBe(input)
+    })
+
+    it('shows a text cursor over the whole bar, and none while disabled', () => {
+      const enabled = setup()
+      expect(getComputedStyle(barOf(enabled.input)).cursor).toBe('text')
+      enabled.unmount()
+
+      const disabled = setup({ isDisabled: true })
+      expect(getComputedStyle(barOf(disabled.input)).cursor).toBe('default')
     })
   })
 
