@@ -135,7 +135,8 @@ const Small: Story = {
 
 // Its own story because an IconButton opens a popover the way a Button does,
 // with no visible label to name it, so its `aria-label` does. Escape, a press
-// outside and the button given `slot="close"` each dismiss the panel.
+// anywhere outside the panel and the button given `slot="close"` each dismiss
+// it, and a press on the trigger toggles it.
 const OnAnIconButton: Story = {
   parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (

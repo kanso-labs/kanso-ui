@@ -22,6 +22,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useInteractOutside } from 'react-aria'
 import {
   ButtonContext,
   DEFAULT_SLOT,
@@ -33,12 +34,15 @@ import {
   OverlayTriggerStateContext,
   PreviewTrigger,
   Popover as RACPopover,
+  PopoverContext as RACPopoverContext,
   Text,
   TextContext,
+  useSlottedContext,
 } from 'react-aria-components'
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
+import { mergeRefs } from '../../render/ref'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
@@ -212,6 +216,7 @@ function PanelDialog({
   'aria-labelledby': labelledBy,
   children,
   id,
+  onPressWithin,
   // React Aria's render prop is the one part of a dialog's props this
   // element cannot honour, being an element of its own rather than React
   // Aria's; left out rather than spread onto the DOM.
@@ -228,7 +233,14 @@ function PanelDialog({
   | 'sideOffset'
   | 'style'
   | 'triggerRef'
->) {
+> & {
+  /**
+   * Called when a press starts anywhere inside the panel in React's tree,
+   * which takes in what an overlay opened from the panel draws elsewhere in
+   * the document — see `PopoverContent`.
+   */
+  onPressWithin: () => void
+}) {
   const ref = useRef<HTMLElement>(null)
   const state = useContext(OverlayTriggerStateContext)
   // What the trigger hands its overlay: the id the trigger's
@@ -285,6 +297,7 @@ function PanelDialog({
       {...props}
       aria-labelledby={labelledBy ?? (titled ? titleId : trigger?.labelledBy)}
       id={id ?? trigger?.id}
+      onPointerDownCapture={onPressWithin}
       ref={ref}
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a `<dialog>` element would bring the browser's own positioning and top layer, which the panel around it already decides
       role="dialog"
@@ -312,7 +325,10 @@ function PanelDialog({
  * keep its own.
  *
  * Non-modal by design — the page behind stays scrollable and clickable, which
- * is the difference from `Sheet`. Pass `modal` to change that.
+ * is the difference from `Sheet`. Pass `modal` to change that. Escape, a press
+ * anywhere outside the panel and a button given `slot="close"` close it, and
+ * a press on its trigger toggles it. Inside a dialog, a press on the scrim
+ * closes the popover first and the dialog on the next, as a menu does.
  *
  * Composed rather than configured by props, because a popover's contents are
  * arbitrary — the parts are `Popover.Content`, `Popover.Title`, and
@@ -380,6 +396,58 @@ function PopoverContent({
   ...props
 }: PopoverContentProps & RefAttributes<HTMLElement>) {
   const { modal, size } = useContext(PopoverContext)
+  const state = useContext(OverlayTriggerStateContext)
+  // The trigger React Aria hands its popover, for a content part given no
+  // `triggerRef` of its own.
+  const handed = useSlottedContext(RACPopoverContext)?.triggerRef
+
+  // A non-modal popover is one React Aria closes on blur alone: a press on
+  // blank page left it open, and a press on its own trigger closed it as
+  // focus left the panel and opened it again on the same press. Here a
+  // press anywhere outside the panel closes it, and a press on the trigger
+  // is left to the trigger, which toggles it.
+  //
+  // What an overlay opened from inside the panel draws — a select's list, a
+  // menu — is portalled elsewhere in the document, so a press there is
+  // outside the panel's element though it is within the panel's tree. React
+  // carries the press up that tree, and the panel marks it as within before
+  // the press ends; the outside press is read on its end, so the mark is
+  // there to read. Each press outside clears it as it starts.
+  const panel = useRef<HTMLElement>(null)
+  const merged = useMemo(() => mergeRefs(panel, ref ?? undefined), [ref])
+  const pressedWithin = useRef(false)
+  const markPressWithin = useCallback(() => {
+    pressedWithin.current = true
+  }, [])
+  // The two refs the trigger may come through, kept where a callback can
+  // read them at the moment of a press rather than as dependencies, which a
+  // ref is not.
+  const triggers = useRef({ handed, own: triggerRef })
+  useEffect(() => {
+    triggers.current = { handed, own: triggerRef }
+  })
+  const isOutsideTrigger = useCallback((element: Element) => {
+    const { handed: fromTrigger, own } = triggers.current
+    const trigger = own?.current ?? fromTrigger?.current
+    return !(trigger?.contains(element) ?? false)
+  }, [])
+  useInteractOutside({
+    isDisabled: modal || state === null || !state.isOpen,
+    onInteractOutside: (event) => {
+      if (pressedWithin.current) {
+        pressedWithin.current = false
+        return
+      }
+      if (event.target instanceof Element && !isOutsideTrigger(event.target)) {
+        return
+      }
+      state?.close()
+    },
+    onInteractOutsideStart: () => {
+      pressedWithin.current = false
+    },
+    ref: panel,
+  })
 
   const descriptionId = useId()
   const [described, setDescribed] = useState(false)
@@ -402,17 +470,20 @@ function PopoverContent({
       placement={placementOf(side, align)}
       // The surface, where the call site's class and style land, rather than
       // the dialog inside it, which takes the rest of the props.
-      ref={ref}
+      ref={merged}
+      // Focus leaving for the trigger closes nothing: the trigger's own
+      // press toggles the panel, and closing it first reopened it.
+      shouldCloseOnInteractOutside={modal ? undefined : isOutsideTrigger}
       triggerRef={triggerRef}
       // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
       UNSTABLE_portalContainer={container}
       {...mergeStatefulStyles(
-        (state: PopoverRenderProps) =>
+        (render: PopoverRenderProps) =>
           stylex.props(
             overlay.popup,
             styles.content,
             styles[size],
-            popupOrigin(state.placement),
+            popupOrigin(render.placement),
           ),
         { className, style },
       )}
@@ -430,6 +501,7 @@ function PopoverContent({
       ) : (
         <PanelDialog
           aria-describedby={described ? descriptionId : undefined}
+          onPressWithin={markPressWithin}
           {...props}
         >
           <DescriptionContext value={description}>

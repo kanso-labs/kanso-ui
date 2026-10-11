@@ -1,10 +1,12 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 
 import Popover from '.'
 import { colors, radii, typography } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
+import Dialog from '../dialog'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -118,6 +120,52 @@ function panelOf(dialog: HTMLElement) {
     throw new Error('expected the dialog to sit inside its panel')
   }
   return panel
+}
+
+const MOUSE = {
+  button: 0,
+  isPrimary: true,
+  pointerId: 1,
+  pointerType: 'mouse',
+} as const
+
+/** A button an overlay opened from the panel draws elsewhere in the page. */
+function Portalled() {
+  return createPortal(<button type="button">Portalled</button>, document.body)
+}
+
+/**
+ * A mouse pressing `element`: down, up and the click after. A press on a
+ * control moves focus to it, which a dispatched event never does, so
+ * `focuses` does it between the two, where a real press does.
+ */
+function pressWithMouse(element: Element, { focuses = false } = {}) {
+  act(() => {
+    fireEvent.pointerDown(element, MOUSE)
+    if (focuses && element instanceof HTMLElement) {
+      element.focus()
+    }
+  })
+  act(() => {
+    fireEvent.pointerUp(element, MOUSE)
+    fireEvent.click(element, MOUSE)
+  })
+}
+
+/**
+ * Lets a close that a press started run its course: a panel that is closing
+ * stays on screen until it has gone, so a check made at once reads one that
+ * is on its way out as open.
+ */
+async function settle() {
+  for (const animation of document.getAnimations()) {
+    animation.finish()
+  }
+  await act(async () => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 100)
+    })
+  })
 }
 
 function setup(props: Partial<Parameters<typeof Popover>[0]> = {}) {
@@ -263,6 +311,135 @@ describe('popover', () => {
 
       await waitFor(() => {
         expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    // A non-modal popover is one React Aria closes on blur alone, so a press
+    // on blank page, or on text that takes no focus, left it open.
+    it('closes on a press on blank page', async () => {
+      const view = setup()
+      pressWithMouse(document.body)
+
+      await waitFor(() => {
+        expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    it('closes on a press on text outside it that takes no focus', async () => {
+      const view = render(
+        <>
+          <p>Supporting line outside</p>
+          <Popover defaultOpen>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+            </Popover.Content>
+          </Popover>
+        </>,
+      )
+      pressWithMouse(view.getByText('Supporting line outside'))
+
+      await waitFor(() => {
+        expect(view.queryByRole('dialog')).toBeNull()
+      })
+    })
+
+    it('stays open on a press inside it', async () => {
+      const view = setup()
+      pressWithMouse(view.getByText('Supporting line'))
+      await settle()
+
+      expect(view.queryByRole('dialog')).not.toBeNull()
+    })
+
+    // What an overlay opened from the panel draws is elsewhere in the
+    // document but within the panel's tree, and a press there is within it.
+    it('stays open on a press in what it opened elsewhere in the page', async () => {
+      const view = render(
+        <Popover defaultOpen>
+          <Button>Open</Button>
+          <Popover.Content>
+            <Popover.Title>Headline</Popover.Title>
+            <Portalled />
+          </Popover.Content>
+        </Popover>,
+      )
+      pressWithMouse(view.getByRole('button', { name: 'Portalled' }))
+      await settle()
+
+      expect(view.queryByRole('dialog')).not.toBeNull()
+    })
+
+    // Pressing the trigger moved focus out of the panel, and the blur closed
+    // it as the press went down; the press then opened it again on release.
+    // The trigger's own press toggles it instead.
+    it('closes when its trigger is pressed again, and stays closed', async () => {
+      const view = setup()
+      const trigger = view.getByRole('button', { name: 'Open' })
+
+      act(() => {
+        fireEvent.pointerDown(trigger, MOUSE)
+        trigger.focus()
+      })
+      expect(view.queryByRole('dialog')).not.toBeNull()
+
+      act(() => {
+        fireEvent.pointerUp(trigger, MOUSE)
+        fireEvent.click(trigger, MOUSE)
+      })
+      await waitFor(() => {
+        expect(view.queryByRole('dialog')).toBeNull()
+      })
+      await settle()
+      expect(view.queryByRole('dialog')).toBeNull()
+    })
+
+    // Layered as a menu is: the first press on the scrim closes the popover
+    // over the dialog, and the second closes the dialog.
+    it('closes before the dialog it sits in, one press on the scrim at a time', async () => {
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open dialog</Button>
+          <Dialog.Content aria-label="Label">
+            <Dialog.Body>
+              <Popover>
+                <Button>Open</Button>
+                <Popover.Content>
+                  <Popover.Title>Headline</Popover.Title>
+                </Popover.Content>
+              </Popover>
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const container = view.getByRole('dialog', {
+        name: 'Label',
+      }).parentElement
+      const scrim = container?.parentElement
+      if (scrim === null || scrim === undefined) {
+        throw new Error('expected the dialog to sit on its scrim')
+      }
+      for (const animation of document.getAnimations()) {
+        animation.finish()
+      }
+      // Opened from inside the dialog, as a reader opens it: the dialog is
+      // there first, and keeps the popover it opens out of what it hides.
+      pressWithMouse(view.getByRole('button', { name: 'Open' }), {
+        focuses: true,
+      })
+      await waitFor(() => {
+        expect(view.getAllByRole('dialog')).toHaveLength(2)
+      })
+
+      pressWithMouse(scrim)
+      await waitFor(() => {
+        expect(view.queryByRole('dialog', { name: 'Headline' })).toBeNull()
+      })
+      expect(view.getByRole('dialog', { name: 'Label' })).not.toBeNull()
+
+      pressWithMouse(scrim)
+      await waitFor(() => {
+        expect(view.queryByRole('dialog', { name: 'Label' })).toBeNull()
       })
     })
 
