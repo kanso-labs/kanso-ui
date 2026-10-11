@@ -71,6 +71,22 @@ function footerOf(action: Element) {
   return footer
 }
 
+/** A snackbar with an action and a close button, its rise played out. */
+async function shown() {
+  const { queue, view } = setup()
+  act(() => {
+    queue.add('First item', { action: UNDO, showCloseButton: true })
+  })
+  await waitFor(() => {
+    expect(view.getByRole('button', { name: 'Close' })).not.toBeNull()
+  })
+  const strip = snackbarIn(view)
+  for (const animation of strip.getAnimations()) {
+    animation.finish()
+  }
+  return { strip, view }
+}
+
 /**
  * What a tap at the centre of `element` lands on: `'itself'` where it lands
  * on the element or inside it, and otherwise the text of whatever it lands
@@ -518,6 +534,50 @@ describe('snackbar', () => {
         view.getByRole('button', { name: 'Close' }).getBoundingClientRect()
           .height,
       ).toBe(48)
+    })
+  })
+
+  // A ring outside the strip was drawn on the page, in a colour made to read
+  // on the strip rather than on the page — 1.07:1 against it in the light
+  // scheme. Each ring is now inside the strip, over the fill its colour reads
+  // on: its outer edge, the element's box grown by the offset and the width,
+  // lies within the strip.
+  describe('the focus rings', () => {
+    it.each(['the strip', 'Undo', 'Close'])(
+      'draws the ring of %s inside the strip',
+      async (part) => {
+        const { strip, view } = await shown()
+        const element =
+          part === 'the strip'
+            ? strip
+            : view.getByRole('button', { name: part })
+        const style = getComputedStyle(element)
+        const reach =
+          Number.parseFloat(style.outlineOffset) +
+          Number.parseFloat(style.outlineWidth)
+        const box = element.getBoundingClientRect()
+        const edge = strip.getBoundingClientRect()
+
+        expect(reach).toBeLessThanOrEqual(0)
+        expect(box.top - reach).toBeGreaterThanOrEqual(edge.top)
+        expect(box.bottom + reach).toBeLessThanOrEqual(edge.bottom)
+        expect(box.left - reach).toBeGreaterThanOrEqual(edge.left)
+        expect(box.right + reach).toBeLessThanOrEqual(edge.right)
+      },
+    )
+
+    // The strip's ring lies on its fill, so it is the fill's own contrast
+    // role — the message's colour — rather than the fill's colour.
+    it("draws the strip's ring in the role that reads on its fill", async () => {
+      const { strip, view } = await shown()
+      const message = view.getByText('First item').parentElement
+      if (message === null) {
+        throw new Error('expected the message to sit inside a content element')
+      }
+      const ring = getComputedStyle(strip).outlineColor
+
+      expect(ring).toBe(getComputedStyle(message).color)
+      expect(ring).not.toBe(getComputedStyle(strip).backgroundColor)
     })
   })
 
