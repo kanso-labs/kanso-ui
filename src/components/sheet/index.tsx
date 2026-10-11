@@ -220,6 +220,11 @@ const styles = stylex.create({
   // is a floor rather than a height, since those paddings around a 40px
   // button come to 80, and a footer holding a second line of actions grows
   // further still.
+  //
+  // Actions that do not fit on one row wrap onto another, 8dp below and
+  // still from the leading edge, each at its own one-line width. Held to one
+  // row, two actions with long translated labels were squeezed into pills of
+  // two and three lines instead, against the page's single-line label.
   footer: {
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
@@ -227,6 +232,7 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     flexShrink: 0,
+    flexWrap: 'wrap',
     gap: spacing.sm,
     justifyContent: 'flex-start',
     minBlockSize: '72px',
@@ -277,6 +283,13 @@ const styles = stylex.create({
   },
   // The headline in the role the side sheets page gives it, on surface
   // variant, rather than the on surface the body's text takes.
+  //
+  // It is the part of the header's row that gives way. As a flex item it
+  // would otherwise keep its longest word's width as its least one, so a
+  // single long word, which a German compound easily is, pushed the close
+  // button past the panel's edge, where the panel clipped it; the headline
+  // now shrinks and breaks that word instead, and the button keeps its size
+  // and its place, as Dialog's does.
   title: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -286,6 +299,8 @@ const styles = stylex.create({
     letterSpacing: typography.titleLargeTracking,
     lineHeight: typography.titleLargeLineHeight,
     margin: 0,
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
   },
 })
 

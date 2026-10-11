@@ -163,6 +163,41 @@ const LongBody: Story = {
   ),
 }
 
+// A headline of one word longer than a phone-width header holds, which a
+// German compound easily is, and two actions too long to share a row. The
+// headline breaks inside the word and the close button keeps its place; the
+// actions wrap onto a row each, at their own one-line height, rather than
+// squeezing their labels onto several lines.
+const LongHeadlineAndActions: Story = {
+  globals: BottomSheet.globals,
+  parameters: BottomSheet.parameters,
+  render: (args) => (
+    <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
+      <Sheet.Content>
+        <Sheet.Handle />
+        <Sheet.Header>
+          <Sheet.Title>{'Headline'.repeat(4)}</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseIcon />
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting line describing what the sheet is for.
+          </Text>
+        </Sheet.Body>
+        <Sheet.Footer>
+          <Button>First long action label</Button>
+          <Button slot="close" variant="outlined">
+            Second long action label
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>
+  ),
+}
+
 // The one check that runs against the real entry animation rather than a
 // stubbed clock — 250ms of it — which is why it is a story and not a case in
 // index.test.tsx. See AGENTS.md, "Controlling time".
@@ -213,6 +248,12 @@ const OpensAndCloses: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
-export { BottomSheet, Default, LongBody, OpensAndCloses }
+export {
+  BottomSheet,
+  Default,
+  LongBody,
+  LongHeadlineAndActions,
+  OpensAndCloses,
+}
 
 export default meta
