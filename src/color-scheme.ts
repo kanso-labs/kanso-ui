@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 
+import { pinnedScheme } from './styles/scheme'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
@@ -46,10 +47,20 @@ const themeScope = stylex.props(tokenScope).className ?? ''
  *
  * A `--kui-color-*` override still applies under either, declared on the
  * same element or above it.
+ *
+ * Either also paints the element's surface and text in its scheme and sets
+ * `color-scheme`, which native controls and scrollbars follow, as
+ * `ThemeScope` does with `scheme` set. On `<html>` that makes the page's
+ * own background and text colour the scheme's; an app's own stylesheet
+ * still wins over both, since the library's rules sit in a cascade layer.
  */
 const colorScheme = {
-  dark: stylex.props(tokenScope, colorDefaultsDarkTheme).className ?? '',
-  light: stylex.props(tokenScope, colorDefaultsLightTheme).className ?? '',
+  dark:
+    stylex.props(tokenScope, colorDefaultsDarkTheme, pinnedScheme.dark)
+      .className ?? '',
+  light:
+    stylex.props(tokenScope, colorDefaultsLightTheme, pinnedScheme.light)
+      .className ?? '',
 }
 
 export { colorScheme, themeScope }

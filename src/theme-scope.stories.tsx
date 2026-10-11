@@ -28,6 +28,13 @@ const styles = stylex.create({
     '--kui-color-on-primary': '#492532',
     '--kui-color-primary': '#efb8c8',
   },
+  // A scope with nothing of its own but room around its text: no surface, no
+  // text colour. What it paints is the pinned scheme's own.
+  bare: {
+    borderRadius: radii.lg,
+    boxSizing: 'border-box',
+    padding: spacing.xl,
+  },
   columns: {
     display: 'grid',
     gap: spacing.xl,
@@ -48,13 +55,13 @@ const styles = stylex.create({
     padding: spacing.xl,
   },
   // Painted from the tokens of whichever element carries it, so on the scope
-  // it is the scope's surface and on the page the page's. Tall enough to
-  // leave the open popover room under its trigger.
+  // it is the scope's container and on the page the page's. The text colour
+  // is left to what is around it: the scope sets its own once it is pinned.
+  // Tall enough to leave the open popover room under its trigger.
   panel: {
     backgroundColor: colors.surfaceContainer,
     borderRadius: radii.lg,
     boxSizing: 'border-box',
-    color: colors.onSurface,
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.md,
@@ -91,7 +98,8 @@ function ThemeScopePage() {
           The page&apos;s tokens on the left. On the right, a scope pinned to
           the dark scheme, with two colour roles of its own declared on it. The
           popover opened inside the scope is portalled into it, so it follows
-          the scope rather than the page.
+          the scope rather than the page. Below, a pinned scope with no colour
+          of its own, which paints its scheme&apos;s surface and text itself.
         </Text>
       </header>
 
@@ -122,6 +130,12 @@ function ThemeScopePage() {
           </Stack>
         </Scope>
       </div>
+
+      <Scope scheme="dark" {...stylex.props(styles.bare)}>
+        <Text render={PARAGRAPH} variant="bodyMedium">
+          Supporting line
+        </Text>
+      </Scope>
     </div>
   )
 }

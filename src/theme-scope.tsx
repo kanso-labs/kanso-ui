@@ -8,6 +8,7 @@ import type { RenderComponentProps } from './render/useRender'
 
 import { useRender } from './render/useRender'
 import { mergeStyles } from './styles/merge'
+import { pinnedScheme } from './styles/scheme'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
@@ -16,7 +17,8 @@ import {
 
 // The component form of `themeScope` and `colorScheme` in ./color-scheme.ts:
 // the same classes, on an element of its own, plus the one thing a class
-// cannot do — take the overlays along.
+// cannot do — take the overlays along. A pinned scheme paints the scope's
+// surface and sets its `color-scheme` too; see src/styles/scheme.ts.
 //
 // React Aria portals every overlay to the end of `<body>` unless a portal
 // provider names another container, so a popover, a sheet, a tooltip or a
@@ -50,8 +52,11 @@ const schemes = {
 type ThemeScopeProps = RenderComponentProps<'div'> & {
   /**
    * Pins the scope to the library's light or dark scheme, whatever the
-   * reader's OS asks for. Left unset, the scope keeps the scheme around it:
-   * the one an enclosing scope or the `<html>` element pins, or the OS's.
+   * reader's OS asks for. A pinned scope paints its own surface and text in
+   * that scheme and sets `color-scheme` for the native controls inside, so
+   * it reads on any page. Left unset, the scope paints nothing and keeps the
+   * scheme around it: the one an enclosing scope or the `<html>` element
+   * pins, or the OS's.
    */
   scheme?: 'dark' | 'light' | undefined
 }
@@ -99,6 +104,7 @@ function ThemeScope({ children, render, scheme, ...props }: ThemeScopeProps) {
           styles.root,
           tokenScope,
           scheme !== undefined && schemes[scheme],
+          scheme !== undefined && pinnedScheme[scheme],
         ),
         props,
       ),

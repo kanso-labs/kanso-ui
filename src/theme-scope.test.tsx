@@ -20,6 +20,30 @@ const LIGHT_PRIMARY = 'rgb(103, 80, 164)'
 const DARK_PRIMARY = 'rgb(208, 188, 255)'
 const OVERRIDDEN = 'rgb(1, 2, 3)'
 
+// Each scheme's surface and on surface, which a pinned scope paints itself in.
+const PAINT = {
+  dark: { background: 'rgb(20, 18, 24)', text: 'rgb(230, 224, 233)' },
+  light: { background: 'rgb(254, 247, 255)', text: 'rgb(29, 27, 32)' },
+}
+
+/** WCAG's contrast ratio between two `rgb()` colours. */
+function contrastOf(one: string, two: string) {
+  const a = luminanceOf(one)
+  const b = luminanceOf(two)
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
+
+/** WCAG's relative luminance of an `rgb()` colour. */
+function luminanceOf(colour: string) {
+  const [r, g, b] = (colour.match(/\d+/g) ?? []).map((part) => {
+    const channel = Number(part) / 255
+    return channel <= 0.039_28
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
 const OVERRIDE: CSSProperties & Record<'--kui-color-primary', string> = {
   '--kui-color-primary': OVERRIDDEN,
 }
@@ -159,6 +183,69 @@ describe('theme scope', () => {
       )
 
       expect(colourOf(view.getByTestId('probe'))).toBe(LIGHT_PRIMARY)
+    })
+
+    // A theme pins the tokens alone, so a dark scope on a light page left its
+    // own background transparent and its text the page's colour, and a Text
+    // inside drew the dark on surface over the light page at 1.23:1.
+    it.each(['dark', 'light'] as const)(
+      'paints its own surface and text in the %s scheme',
+      (scheme) => {
+        const view = render(
+          <ThemeScope data-testid="scope" scheme={scheme}>
+            Label
+          </ThemeScope>,
+        )
+        const style = getComputedStyle(view.getByTestId('scope'))
+
+        expect(style.backgroundColor).toBe(PAINT[scheme].background)
+        expect(style.color).toBe(PAINT[scheme].text)
+      },
+    )
+
+    // The runner's page is light, so the dark scope is the one that has to
+    // stand on its own.
+    it('reads on its own surface on a page of the other scheme', () => {
+      const view = render(
+        <ThemeScope data-testid="scope" scheme="dark">
+          Label
+        </ThemeScope>,
+      )
+      const style = getComputedStyle(view.getByTestId('scope'))
+
+      expect(
+        contrastOf(style.color, style.backgroundColor),
+      ).toBeGreaterThanOrEqual(4.5)
+    })
+
+    // Native controls, scrollbars and autofill follow `color-scheme` rather
+    // than any token: a dark scope's input stayed white with black text.
+    it.each(['dark', 'light'] as const)(
+      'tells the browser and the controls inside it the %s scheme',
+      (scheme) => {
+        const view = render(
+          <ThemeScope data-testid="scope" scheme={scheme}>
+            <input aria-label="Label" />
+          </ThemeScope>,
+        )
+
+        expect(getComputedStyle(view.getByTestId('scope')).colorScheme).toBe(
+          scheme,
+        )
+        expect(
+          getComputedStyle(view.getByRole('textbox', { name: 'Label' }))
+            .colorScheme,
+        ).toBe(scheme)
+      },
+    )
+
+    // An unpinned scope keeps whatever is around it, paint included.
+    it('paints nothing and sets no scheme when given none', () => {
+      const view = render(<ThemeScope data-testid="scope">Label</ThemeScope>)
+      const style = getComputedStyle(view.getByTestId('scope'))
+
+      expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+      expect(style.colorScheme).toBe('normal')
     })
 
     it('keeps the scheme an enclosing scope pins when given none', () => {
