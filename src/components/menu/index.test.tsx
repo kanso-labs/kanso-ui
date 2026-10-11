@@ -28,6 +28,23 @@ import SearchField from '../search-field'
 // Hoisted so the key list is not a new array on every render.
 const FIRST = ['first']
 
+// A leading icon at the menus page's 24dp, which is the box a selected
+// item's check takes in its place.
+const iconStyles = stylex.create({
+  icon: {
+    blockSize: '24px',
+    display: 'inline-block',
+    inlineSize: '24px',
+  },
+})
+
+const FIRST_ICON = (
+  <span data-testid="icon-1" {...stylex.props(iconStyles.icon)} />
+)
+const SECOND_ICON = (
+  <span data-testid="icon-2" {...stylex.props(iconStyles.icon)} />
+)
+
 const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
@@ -370,6 +387,94 @@ describe('menu', () => {
 
       expect(onSelectionChange).toHaveBeenCalledTimes(1)
       expect(first.getAttribute('aria-checked')).toBe('true')
+    })
+  })
+
+  // The selected container sits as close as 1.1:1 to the surface, so a fill
+  // alone left a reader who cannot tell the two apart with no sign of which
+  // item is chosen. A check carries it, hidden from the tree since
+  // `aria-checked` already says so.
+  describe('the check on a selected item', () => {
+    it.each([
+      ['single', 'menuitemradio'],
+      ['multiple', 'menuitemcheckbox'],
+    ] as const)(
+      'marks the chosen item in %s selection and no other',
+      (selectionMode, role) => {
+        const view = setup({ defaultSelectedKeys: SECOND, selectionMode })
+        const [first, second] = view.getAllByRole(role)
+
+        const checks = second.querySelectorAll('svg')
+        expect(checks).toHaveLength(1)
+        expect(checks[0]?.getAttribute('aria-hidden')).toBe('true')
+        expect(first.querySelectorAll('svg')).toHaveLength(0)
+      },
+    )
+
+    it('moves to the item chosen next', () => {
+      const view = setup({ selectionMode: 'single' })
+      const [first, second] = view.getAllByRole('menuitemradio')
+
+      fireEvent.click(first)
+      expect(first.querySelectorAll('svg')).toHaveLength(1)
+
+      fireEvent.click(second)
+      expect(second.querySelectorAll('svg')).toHaveLength(1)
+      expect(first.querySelectorAll('svg')).toHaveLength(0)
+    })
+
+    // Choosing an item moves nothing in the menu: without leading content
+    // the check comes at the end of the row, after a shortcut, and the label
+    // starts where every other item's does.
+    it('comes at the end of a row with no leading content', () => {
+      const view = setup(
+        { defaultSelectedKeys: SECOND, selectionMode: 'single' },
+        <>
+          <Menu.Item id="first">First item</Menu.Item>
+          <Menu.Item id="second" shortcut={SHORTCUT}>
+            Second item
+          </Menu.Item>
+        </>,
+      )
+      const [first, second] = view.getAllByRole('menuitemradio')
+      const check = second.querySelector('svg')
+      const shortcut = view.getByText('⌘X')
+
+      if (check === null) {
+        throw new Error('expected the chosen item to draw a check')
+      }
+      expect(
+        shortcut.compareDocumentPosition(check) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(view.getByText('Second item').getBoundingClientRect().left).toBe(
+        view.getByText('First item').getBoundingClientRect().left,
+      )
+      expect(first.querySelectorAll('svg')).toHaveLength(0)
+    })
+
+    // Where the item has leading content, the check takes its place in the
+    // slot, which keeps the label where it was too.
+    it('takes the place of leading content', () => {
+      const view = setup(
+        { defaultSelectedKeys: SECOND, selectionMode: 'single' },
+        <>
+          <Menu.Item id="first" leading={FIRST_ICON}>
+            First item
+          </Menu.Item>
+          <Menu.Item id="second" leading={SECOND_ICON}>
+            Second item
+          </Menu.Item>
+        </>,
+      )
+      const [, second] = view.getAllByRole('menuitemradio')
+
+      expect(view.queryByTestId('icon-2')).toBeNull()
+      expect(view.getByTestId('icon-1')).not.toBeNull()
+      expect(second.querySelectorAll('svg')).toHaveLength(1)
+      expect(view.getByText('Second item').getBoundingClientRect().left).toBe(
+        view.getByText('First item').getBoundingClientRect().left,
+      )
     })
   })
 
