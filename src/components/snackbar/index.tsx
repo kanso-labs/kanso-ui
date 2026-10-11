@@ -209,6 +209,24 @@ const styles = stylex.create({
   controlPressed: {
     backgroundColor: `color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
+  // The action and the close button, kept together after the message. They
+  // share its row while that leaves the message half the strip, and drop
+  // onto a line of their own beneath it, at the trailing edge, once they
+  // take more — Material Design's two-line snackbar with a longer action,
+  // which Compose's `actionOnNewLine` draws the same way, the close button
+  // on that line beside the action. Held on one row whatever their length,
+  // a long action squeezed the message into a column a word or two wide.
+  //
+  // The trailing edge is the auto margin: on the message's row the message
+  // grows into all the room first and leaves it nothing, and on a row of
+  // their own it is all the room there is.
+  controls: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexShrink: 0,
+    marginInlineStart: 'auto',
+  },
   // The message: body-medium in inverse on surface, with the page's 8dp
   // either side of it inside the container's own 8dp, and the 14dp above and
   // below that makes a single line 48 tall. The height is the message's
@@ -218,17 +236,26 @@ const styles = stylex.create({
   // Drawn on React Aria's content element rather than on the text inside it,
   // since that element is the flex child: growing the text would leave the
   // action and the close button beside the words instead of at the end.
+  //
+  // Its basis is half the strip, which is what decides when the controls
+  // drop beneath it — see `controls`. A word longer than the line holds, a
+  // file name or a German compound, breaks inside itself rather than running
+  // under the controls and past the strip's edge; a word of the reader's
+  // language breaks at a syllable where the browser can hyphenate it.
   message: {
     boxSizing: 'border-box',
     color: colors.inverseOnSurface,
+    flexBasis: '50%',
     flexGrow: 1,
     fontFamily: typography.bodyMediumFont,
     fontSize: typography.bodyMediumSize,
     fontWeight: typography.bodyMediumWeight,
+    hyphens: 'auto',
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
     marginInline: spacing.sm,
     minInlineSize: 0,
+    overflowWrap: 'anywhere',
     paddingBlock: '14px',
   },
   // The region: a landmark pinned to the bottom of the screen with the
@@ -303,6 +330,8 @@ const styles = stylex.create({
     boxShadow: shadows.elevation3,
     boxSizing: 'border-box',
     display: 'flex',
+    // See `controls`.
+    flexWrap: 'wrap',
     inlineSize: '100%',
     maxInlineSize: { default: 'none', [WIDE]: '576px' },
     minBlockSize: sizing.controlMd,
@@ -592,7 +621,10 @@ function snackbarContent(queue: SnackbarQueue, closeLabel: string | undefined) {
   )
 }
 
-/** The action, the close button, or nothing, after the message. */
+/**
+ * The action, the close button, or nothing, after the message — together, so
+ * they move beneath it together.
+ */
 function SnackbarControls({
   action,
   close,
@@ -604,8 +636,12 @@ function SnackbarControls({
   closeLabel: string | undefined
   showCloseButton: boolean
 }) {
+  if (action === undefined && !showCloseButton) {
+    return null
+  }
+
   return (
-    <>
+    <div {...stylex.props(styles.controls)}>
       {action === undefined ? null : (
         <SnackbarButton
           onPress={actionPress(action, close)}
@@ -623,7 +659,7 @@ function SnackbarControls({
           <CloseGlyph {...stylex.props(styles.closeGlyph)} />
         </SnackbarButton>
       ) : null}
-    </>
+    </div>
   )
 }
 
