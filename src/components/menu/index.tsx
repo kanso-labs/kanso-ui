@@ -42,7 +42,7 @@ import {
   CollectionStatus,
 } from '../../collection'
 import { textOf } from '../../collection/text'
-import { ChevronEndGlyph } from '../../glyphs'
+import { CheckGlyph, ChevronEndGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { RowContent } from '../../row'
 import { rowStyles } from '../../row/styles'
@@ -60,7 +60,9 @@ import Separator from '../separator'
 // The menus page's menu: a surface between 112 and 280 wide with a 4dp
 // corner and 8dp above and below its items, holding rows of the row module's
 // menu variant — 48dp tall, a label-large label, tertiary container when
-// selected. The surface itself is the overlay module's, shared with Popover
+// selected, with a check beside the label. The container alone sits as close
+// as 1.1:1 to the surface, so the check is what carries the selection for a
+// reader who cannot tell the two apart. The surface itself is the overlay module's, shared with Popover
 // and Sheet, with the two things the menus page decides differently applied
 // over it: the corner, which is the extra-small step rather than the
 // medium one every other overlay takes, and the container colour, which is
@@ -109,6 +111,14 @@ const MENU_MIN = '112px'
 const MENU_MAX = '280px'
 
 const styles = stylex.create({
+  // The check on a selected item, at the menus page's 24dp icon size, in the
+  // colour the selected row gives its text.
+  check: {
+    blockSize: '24px',
+    boxSizing: 'border-box',
+    flexShrink: 0,
+    inlineSize: '24px',
+  },
   // The chevron on an item that opens a submenu. Mirrored under a
   // right-to-left writing mode, since it points further in rather than right.
   chevron: {
@@ -333,10 +343,16 @@ function emptyState() {
 // no-new-function-as-prop is after; the React Compiler memoises the result
 // on its inputs.
 //
-// The render state decides two things: the chevron, which an item inside a
-// SubmenuTrigger gets without the call site asking twice, and the supporting
-// line's colour, which the row module takes from whether the row is selected
-// or disabled.
+// The render state decides three things: the chevron, which an item inside a
+// SubmenuTrigger gets without the call site asking twice, the check on a
+// selected item, and the supporting line's colour, which the row module takes
+// from whether the row is selected or disabled.
+//
+// The check takes the leading slot where the item has leading content, in
+// place of it, and comes at the end of the row where it has none. Either way
+// the label stays where it was, so choosing an item moves nothing in the
+// menu. Hidden from the tree, since React Aria's `aria-checked` already says
+// the item is chosen.
 function itemContent(
   children: ReactNode,
   leading: ReactNode,
@@ -344,20 +360,32 @@ function itemContent(
   trailing: ReactNode,
   ripple: ReactNode,
 ) {
-  return (state: MenuItemRenderProps) => (
-    <>
-      <RowContent
-        isDisabled={state.isDisabled}
-        isSelected={state.isSelected}
-        leading={leading}
-        trailing={trailingOf(state, shortcut, trailing)}
-        variant="menu"
-      >
-        <Text slot="label">{children}</Text>
-      </RowContent>
-      {state.isDisabled ? null : ripple}
-    </>
-  )
+  return (state: MenuItemRenderProps) => {
+    const check = state.isSelected ? (
+      <CheckGlyph {...stylex.props(styles.check)} />
+    ) : undefined
+    const hasLeading = leading !== undefined && leading !== null
+
+    return (
+      <>
+        <RowContent
+          isDisabled={state.isDisabled}
+          isSelected={state.isSelected}
+          leading={hasLeading ? (check ?? leading) : undefined}
+          trailing={trailingOf(
+            state,
+            shortcut,
+            trailing,
+            hasLeading ? undefined : check,
+          )}
+          variant="menu"
+        >
+          <Text slot="label">{children}</Text>
+        </RowContent>
+        {state.isDisabled ? null : ripple}
+      </>
+    )
+  }
 }
 
 // StyleX cannot target `[data-selected]` on the element it is styling, so an
@@ -625,6 +653,7 @@ function trailingOf(
   state: MenuItemRenderProps,
   shortcut: ReactNode,
   trailing: ReactNode,
+  check: ReactNode,
 ) {
   if (state.hasSubmenu) {
     return (
@@ -634,7 +663,7 @@ function trailingOf(
       </>
     )
   }
-  if (shortcut === undefined && trailing === undefined) {
+  if (shortcut === undefined && trailing === undefined && check === undefined) {
     return undefined
   }
   return (
@@ -650,6 +679,7 @@ function trailingOf(
           {shortcut}
         </Keyboard>
       )}
+      {check}
     </>
   )
 }

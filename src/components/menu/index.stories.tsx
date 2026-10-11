@@ -9,6 +9,7 @@ import Keycap from '../keycap'
 // Hoisted so neither the keys nor the slots are new values on every render,
 // which is what react-perf's array and JSX rules are after.
 const SECOND = ['second']
+const FIRST_AND_THIRD = ['first', 'third']
 const CUT = <Keycap>⌘X</Keycap>
 const COPY = <Keycap>⌘C</Keycap>
 
@@ -109,6 +110,26 @@ const Loading: Story = {
   ),
 }
 
-export { Default, Loading, Sections, Submenu }
+// Any number chosen at once, each marked by the check at the end of its row
+// as well as the container — the check is what carries the choice where the
+// container is hard to tell from the surface.
+const MultipleSelection: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
+  render: (args) => (
+    <Menu {...args} defaultOpen>
+      <Button variant="outlined">Label</Button>
+      <Menu.Content
+        defaultSelectedKeys={FIRST_AND_THIRD}
+        selectionMode="multiple"
+      >
+        <Menu.Item id="first">First item</Menu.Item>
+        <Menu.Item id="second">Second item</Menu.Item>
+        <Menu.Item id="third">Third item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+}
+
+export { Default, Loading, MultipleSelection, Sections, Submenu }
 
 export default meta
