@@ -42,6 +42,7 @@ import {
 
 import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
+import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -463,53 +464,55 @@ function PopoverContent({
   )
 
   return (
-    <RACPopover
-      crossOffset={alignOffset}
-      isNonModal={!modal}
-      offset={sideOffset}
-      placement={placementOf(side, align)}
-      // The surface, where the call site's class and style land, rather than
-      // the dialog inside it, which takes the rest of the props.
-      ref={merged}
-      // Focus leaving for the trigger closes nothing: the trigger's own
-      // press toggles the panel, and closing it first reopened it.
-      shouldCloseOnInteractOutside={modal ? undefined : isOutsideTrigger}
-      triggerRef={triggerRef}
-      // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
-      UNSTABLE_portalContainer={container}
-      {...mergeStatefulStyles(
-        (render: PopoverRenderProps) =>
-          stylex.props(
-            overlay.popup,
-            styles.content,
-            styles[size],
-            popupOrigin(render.placement),
-          ),
-        { className, style },
-      )}
-    >
-      {modal ? (
-        <Dialog
-          aria-describedby={described ? descriptionId : undefined}
-          {...props}
-          {...stylex.props(overlay.popupDialog, focus.ring)}
-        >
-          <DescriptionContext value={description}>
-            {children}
-          </DescriptionContext>
-        </Dialog>
-      ) : (
-        <PanelDialog
-          aria-describedby={described ? descriptionId : undefined}
-          onPressWithin={markPressWithin}
-          {...props}
-        >
-          <DescriptionContext value={description}>
-            {children}
-          </DescriptionContext>
-        </PanelDialog>
-      )}
-    </RACPopover>
+    <OverlayScope>
+      <RACPopover
+        crossOffset={alignOffset}
+        isNonModal={!modal}
+        offset={sideOffset}
+        placement={placementOf(side, align)}
+        // The surface, where the call site's class and style land, rather than
+        // the dialog inside it, which takes the rest of the props.
+        ref={merged}
+        // Focus leaving for the trigger closes nothing: the trigger's own
+        // press toggles the panel, and closing it first reopened it.
+        shouldCloseOnInteractOutside={modal ? undefined : isOutsideTrigger}
+        triggerRef={triggerRef}
+        // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+        UNSTABLE_portalContainer={container}
+        {...mergeStatefulStyles(
+          (render: PopoverRenderProps) =>
+            stylex.props(
+              overlay.popup,
+              styles.content,
+              styles[size],
+              popupOrigin(render.placement),
+            ),
+          { className, style },
+        )}
+      >
+        {modal ? (
+          <Dialog
+            aria-describedby={described ? descriptionId : undefined}
+            {...props}
+            {...stylex.props(overlay.popupDialog, focus.ring)}
+          >
+            <DescriptionContext value={description}>
+              {children}
+            </DescriptionContext>
+          </Dialog>
+        ) : (
+          <PanelDialog
+            aria-describedby={described ? descriptionId : undefined}
+            onPressWithin={markPressWithin}
+            {...props}
+          >
+            <DescriptionContext value={description}>
+              {children}
+            </DescriptionContext>
+          </PanelDialog>
+        )}
+      </RACPopover>
+    </OverlayScope>
   )
 }
 
