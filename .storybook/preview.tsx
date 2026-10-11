@@ -102,10 +102,25 @@ const preview: Preview = {
         // The rule's own selector is `*`, so narrowing it to everything but
         // that element leaves it running everywhere else rather than turning
         // it off. Drop this once axe resolves a fallback role list.
+        //
+        // `label-content-name-mismatch` takes all of a control's visible text
+        // for its label, so a menu item showing a shortcut — "Cut" then "⌘X",
+        // read as "Cut⌘X" — fails against its name, "Cut". React Aria names
+        // the item by its label alone and describes it by the shortcut,
+        // through `aria-describedby` on the `<kbd>`, so a screen reader reads
+        // the keystroke apart from what the item does and a speech-input user
+        // says the label they see. The shortcut is not part of the label, so
+        // the rule is narrowed past an element holding one rather than the
+        // name made to carry the keystroke. Axe runs it by default from 4.14,
+        // where it stopped being experimental.
         rules: [
           {
             id: 'aria-allowed-attr',
             selector: '*:not([role="meter progressbar"])',
+          },
+          {
+            id: 'label-content-name-mismatch',
+            selector: '*:not(:has(kbd))',
           },
         ],
       },

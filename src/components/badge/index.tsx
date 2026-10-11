@@ -39,6 +39,14 @@ import {
 // where a reader meets it with what it counts — "Notifications, 3 new" — and
 // the stories show it there.
 //
+// The count is drawn as the mark's generated content rather than written as
+// its text, so it is no part of the text of what it sits on. Written as text
+// it was, hidden or not: a destination labelled "Second item" with a count of
+// 3 read "3Second item", which is no name a speech-input user could say and
+// which axe's label-in-name check fails against the name "Second item, 3 new"
+// the library recommends. It also ran into anything that copied the
+// control's text.
+//
 // Under forced colours the error fill is painted over in the mode's
 // background, which left the small badge as nothing at all. It takes a 1px
 // border there instead, which the mode keeps and paints in its text colour.
@@ -56,6 +64,13 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'inline-flex',
     position: 'relative',
+  },
+  // The count, drawn from the mark's `data-count` — see the comment at the
+  // top of this file for why it is not the mark's text.
+  count: {
+    '::before': {
+      content: 'attr(data-count)',
+    },
   },
   // A badge with nothing to be drawn on: the mark in the line, where the
   // text before it puts it, so the insets below place nothing.
@@ -159,18 +174,17 @@ function Badge({ children, count, max = 999, render, ...props }: BadgeProps) {
           {children}
           <span
             aria-hidden="true"
+            data-count={label}
             {...stylex.props(
               styles.mark,
-              label === undefined ? styles.small : styles.large,
+              label === undefined ? styles.small : [styles.large, styles.count],
               (children === undefined || children === null) && styles.inFlow,
               // What a destination drawing it asks of a count's mark — see
               // src/badge. The small mark stays inside its icon's box, so
               // nothing has to make room for it.
               label !== undefined && placed,
             )}
-          >
-            {label}
-          </span>
+          />
         </>
       ),
     },
