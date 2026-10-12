@@ -310,6 +310,7 @@ export function Card(input: CardProps): ReactElement<unknown, string | JSXElemen
 // @public (undocumented)
 export type CardProps = {
     interactive?: boolean;
+    isDisabled?: boolean;
     padding?: 'default' | 'none';
     variant?: CardVariant;
 } & RenderComponentProps<'div'>;

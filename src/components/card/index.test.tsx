@@ -6,7 +6,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Card from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  colors,
+  radii,
+  spacing,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than
 // literals, so the assertions pin which role each variant reaches for without
@@ -18,6 +24,24 @@ const probeStyles = stylex.create({
   surface: { backgroundColor: colors.surface },
   surfaceContainerHighest: { backgroundColor: colors.surfaceContainerHighest },
   surfaceContainerLow: { backgroundColor: colors.surfaceContainerLow },
+})
+
+// The query a forced-colours rule is held under, for `declarationsHeld`.
+const FORCED = 'forced-colors: active'
+
+// The cards page's disabled containers, written as the component writes them:
+// each variant's container at 38%, and the outlined card's rule in the
+// outline role at 12%.
+const disabledProbeStyles = stylex.create({
+  elevated: {
+    backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerLow} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  outlined: {
+    color: `color-mix(in srgb, ${colors.outline} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
 })
 
 // A column shorter than the card it holds, scrolling whatever overflows it:
@@ -71,6 +95,15 @@ function stretchedContent() {
 const ARTICLE = <article />
 // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by useRender
 const EXAMPLE_LINK = <a href="https://example.com" />
+
+// A link of the call site's carrying its own click and tab stop, which a
+// disabled card has to take away. The click is a spy the test reads, cleared
+// at its start, since the element is hoisted with it.
+const LINK_CLICK = vi.fn<() => void>()
+const ACTIVE_LINK = (
+  // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by useRender
+  <a href="https://example.com" onClick={LINK_CLICK} tabIndex={0} />
+)
 
 // The ripple's inner span carries these classes only while the hook considers
 // itself pressed, so their presence is an observable signal for its state
@@ -182,6 +215,137 @@ describe('card', () => {
       expect(
         view.container.querySelector('span[aria-hidden="true"]'),
       ).not.toBeNull()
+    })
+  })
+
+  // The cards page draws a disabled state for each variant; a card with no
+  // way to take one looked and acted pressable however it was meant.
+  describe('disabled', () => {
+    it.each(['elevated', 'filled', 'outlined'] as const)(
+      'disables the %s card, fades it, and takes no press',
+      (variant) => {
+        const onClick = vi.fn<() => void>()
+        const view = render(
+          <Card interactive isDisabled onClick={onClick} variant={variant}>
+            content
+          </Card>,
+        )
+        const card = view.getByRole('button')
+        const content = view.getByText('content')
+
+        expect(card).toHaveProperty('disabled', true)
+        expect(getComputedStyle(card).cursor).not.toBe('pointer')
+        expect(getComputedStyle(content).opacity).toBe('0.38')
+
+        fireEvent.click(card)
+        expect(onClick).not.toHaveBeenCalled()
+        pressWithMouse(card)
+        expect(isPressed(view.container)).toBe(false)
+      },
+    )
+
+    it.each(['elevated', 'filled'] as const)(
+      'draws the %s container at 38 per cent, flat',
+      (variant) => {
+        const expected = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(disabledProbeStyles[variant])}
+          />,
+        ).background
+        const view = render(
+          <Card interactive isDisabled variant={variant}>
+            content
+          </Card>,
+        )
+        const style = getComputedStyle(view.getByRole('button'))
+
+        expect(style.backgroundColor).toBe(expected)
+        expect(style.boxShadow).toBe('none')
+      },
+    )
+
+    it('draws the outlined rule in the outline role at 12%', () => {
+      const expected = probe(
+        <div
+          data-testid="probe"
+          {...stylex.props(disabledProbeStyles.outlined)}
+        />,
+      ).color
+      const view = render(
+        <Card interactive isDisabled variant="outlined">
+          content
+        </Card>,
+      )
+
+      expect(getComputedStyle(view.getByRole('button')).borderTopColor).toBe(
+        expected,
+      )
+    })
+
+    // GrayText is the one keyword forced colours has for disabled, and the
+    // boundary is what that mode keeps of a card. Read out of the compiled
+    // stylesheet, since no test can turn the mode on — see AGENTS.md.
+    it.each(['elevated', 'outlined'] as const)(
+      'draws the %s boundary in GrayText under forced colours',
+      (variant) => {
+        const view = render(
+          <Card interactive isDisabled variant={variant}>
+            content
+          </Card>,
+        )
+
+        expect(
+          declarationsHeld(view.getByRole('button'), FORCED).get(
+            'border-top-color',
+          ),
+        ).toBe('graytext')
+      },
+    )
+
+    // A link card's element is the call site's, whose own props win over the
+    // card's — so the card takes away what would still follow or focus it.
+    it('marks a link card disabled and takes away its href, focus and click', () => {
+      LINK_CLICK.mockClear()
+      const view = render(
+        <Card interactive isDisabled render={ACTIVE_LINK}>
+          content
+        </Card>,
+      )
+      const link = cardIn(view.container)
+
+      expect(link.tagName).toBe('A')
+      expect(link.getAttribute('aria-disabled')).toBe('true')
+      expect(link.hasAttribute('href')).toBe(false)
+      expect(link.hasAttribute('tabindex')).toBe(false)
+      expect(fireEvent.click(link)).toBe(false)
+      expect(LINK_CLICK).not.toHaveBeenCalled()
+    })
+
+    // Only an interactive card can be pressed, so only one can be disabled.
+    it('leaves a card that is not interactive as it was', () => {
+      const view = render(<Card isDisabled>content</Card>)
+      const card = cardIn(view.container)
+
+      expect(card.tagName).toBe('DIV')
+      expect(card.hasAttribute('aria-disabled')).toBe(false)
+      expect(getComputedStyle(view.getByText('content')).opacity).toBe('1')
+    })
+
+    // The same card left enabled, so each assertion above is shown to be one
+    // the disabled state makes true.
+    it('draws none of it while enabled', () => {
+      const view = render(
+        <Card interactive variant="elevated">
+          content
+        </Card>,
+      )
+      const card = view.getByRole('button')
+
+      expect(card).toHaveProperty('disabled', false)
+      expect(getComputedStyle(card).cursor).toBe('pointer')
+      expect(getComputedStyle(view.getByText('content')).opacity).toBe('1')
+      expect(getComputedStyle(card).boxShadow).not.toBe('none')
     })
   })
 
