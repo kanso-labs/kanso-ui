@@ -54,6 +54,13 @@ const BesideAName: Story = {
   ),
 }
 
-export { BesideAName, Default, WithPhoto }
+// A blank name has no initials to take, so the avatar draws Material
+// Design's anonymous person in its tone's on-container colour — a name still
+// loading, or a person with none on record.
+const Anonymous: Story = {
+  args: { name: '' },
+}
+
+export { Anonymous, BesideAName, Default, WithPhoto }
 
 export default meta

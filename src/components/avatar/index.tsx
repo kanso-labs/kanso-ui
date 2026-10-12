@@ -54,6 +54,13 @@ type AvatarProps = {
    */
   name: string
   /**
+   * Whether an avatar with no initials to take, for a blank `name`, draws
+   * Material Design's anonymous person. `false` leaves the tinted disc empty,
+   * for a loading skeleton.
+   * @default true
+   */
+  showPersonIcon?: boolean
+  /**
    * Diameter: `sm` 36px, `md` 40px, `lg` 56px.
    * @default 'md'
    */

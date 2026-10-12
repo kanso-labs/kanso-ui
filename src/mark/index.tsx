@@ -6,6 +6,7 @@ import { useLocale } from 'react-aria-components'
 import type { RenderComponentProps } from '../render/useRender'
 import type { MarkSize, MarkTone } from './styles'
 
+import { PersonGlyph } from '../glyphs'
 import { useImageLoadingStatus } from '../hooks/useImageLoadingStatus'
 import { useRender } from '../render/useRender'
 import { mergeStyles } from '../styles/merge'
@@ -30,7 +31,7 @@ const KINDS = {
   },
 } as const
 
-type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
+type MarkProps = {
   /**
    * Hides the mark from assistive technology, for one beside the name it
    * stands for, which would otherwise be announced twice.
@@ -53,11 +54,16 @@ type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   kind: keyof typeof KINDS
   /** Supplies the fallback's initials, and the accessible name unless decorative. */
   name: string
+  /**
+   * Whether a person with no initials to take — a blank name — draws the
+   * anonymous person glyph, or an empty disc, as a loading skeleton wants.
+   */
+  showPersonIcon?: boolean | undefined
   size: MarkSize
   /** An image to show in place of the initials once it has loaded. */
   src?: string
   tone: MarkTone
-}
+} & Omit<RenderComponentProps<'span'>, 'children'>
 
 /**
  * The small identity mark Avatar and ProductIcon both render: an image once
@@ -73,6 +79,7 @@ function Mark({
   kind,
   name,
   render,
+  showPersonIcon = true,
   size,
   src,
   tone,
@@ -110,7 +117,15 @@ function Mark({
   // parts.
   const showsPicture = status === 'loaded' || previous !== undefined
   let initialsNode = null
-  if (!showsPicture) {
+  if (!showsPicture && kind === 'person' && fallback === '') {
+    // A person with no initials to take — a blank name, one still loading —
+    // draws Material Design's anonymous person in the tone's on-container
+    // colour, where it drew an empty disc. Decoration: a blank name is
+    // unnamed, and the glyph announces nothing either.
+    initialsNode = showPersonIcon ? (
+      <PersonGlyph {...stylex.props(markStyles.personGlyph)} />
+    ) : null
+  } else if (!showsPicture) {
     initialsNode = tintsFallback ? (
       <span {...stylex.props(markStyles.fallback, markStyles[tone])}>
         {fallback}

@@ -189,6 +189,33 @@ describe('avatar', () => {
       expect(avatar?.textContent).toBe('AL')
     })
 
+    // A blank name has no initials to take, and drew an empty disc. It
+    // draws the anonymous person instead — decoration, so still unnamed.
+    it('draws the anonymous person for a blank name, announcing nothing', () => {
+      for (const name of ['', '   ']) {
+        const view = render(<Avatar name={name} />)
+        const avatar = view.container.firstElementChild
+        const glyph = avatar?.querySelector('svg')
+
+        expect(glyph?.getAttribute('aria-hidden')).toBe('true')
+        expect(avatar?.hasAttribute('role')).toBe(false)
+        expect(avatar?.hasAttribute('aria-label')).toBe(false)
+        view.unmount()
+      }
+    })
+
+    // A loading skeleton wants the plain disc.
+    it('leaves the disc empty for a blank name when asked', () => {
+      const view = render(<Avatar name="" showPersonIcon={false} />)
+      expect(view.container.firstElementChild?.childElementCount).toBe(0)
+    })
+
+    // A name with initials draws them, never the glyph.
+    it('draws no glyph for a name with initials', () => {
+      const view = render(<Avatar name="Ada Lovelace" />)
+      expect(view.container.querySelector('svg')).toBeNull()
+    })
+
     // A blank name names nothing. Announced as an image, the avatar would be
     // one with no name, which a screen reader reads as a bare "image" and an
     // accessibility audit fails; left as a plain element, its empty initials

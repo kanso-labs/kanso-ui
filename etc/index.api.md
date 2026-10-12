@@ -208,6 +208,7 @@ export type AvatarProps = {
     decorative?: boolean;
     imgProps?: Pick<ImgHTMLAttributes<HTMLImageElement>, 'crossOrigin' | 'decoding' | 'fetchPriority' | 'loading' | 'referrerPolicy' | 'sizes' | 'srcSet'>;
     name: string;
+    showPersonIcon?: boolean;
     size?: 'lg' | 'md' | 'sm';
     src?: string;
     tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary';
