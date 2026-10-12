@@ -123,6 +123,20 @@ function textBlockOf(bar: HTMLElement) {
   return text
 }
 
+// A scroll container with a positioned block in it taller than it is, for a
+// pinned bar to stay over.
+const pinnedStyles = stylex.create({
+  block: {
+    backgroundColor: 'rgb(1, 2, 3)',
+    blockSize: '600px',
+    position: 'relative',
+  },
+  scroller: {
+    blockSize: '240px',
+    overflowY: 'auto',
+  },
+})
+
 describe('size', () => {
   it('takes Material Design’s height for each size', () => {
     for (const size of SIZES) {
@@ -703,6 +717,50 @@ describe('align', () => {
       expect(getComputedStyle(text).textAlign).toBe('center')
       view.unmount()
     }
+  })
+})
+
+// A pinned bar is held at the top of its scroll container, and painted over
+// the content that scrolls under it — most of the library's controls are
+// positioned, and with no layer of its own the bar was painted under them.
+describe('pinned', () => {
+  it('sticks to the top of its scroll container, on the bar layer', () => {
+    const view = render(<AppBar headline="Headline" pinned />)
+    const style = getComputedStyle(barIn(view.container))
+
+    expect(style.position).toBe('sticky')
+    expect(style.insetBlockStart).toBe('0px')
+    expect(style.zIndex).toBe('10')
+  })
+
+  it('stays in the flow, on no layer, when not pinned', () => {
+    const view = render(<AppBar headline="Headline" />)
+    const style = getComputedStyle(barIn(view.container))
+
+    expect(style.position).toBe('static')
+    expect(style.zIndex).toBe('auto')
+  })
+
+  it('stays over positioned content scrolled beneath it', () => {
+    const view = render(
+      <div data-testid="scroller" {...stylex.props(pinnedStyles.scroller)}>
+        <AppBar headline="Headline" pinned />
+        <div {...stylex.props(pinnedStyles.block)} />
+      </div>,
+    )
+    const scroller = view.getByTestId('scroller')
+    act(() => {
+      scroller.scrollTop = 120
+    })
+    const bar = barIn(scroller)
+    const box = bar.getBoundingClientRect()
+
+    expect(box.top).toBe(scroller.getBoundingClientRect().top)
+    expect(
+      bar.contains(
+        document.elementFromPoint(box.left + box.width / 2, box.bottom - 4),
+      ),
+    ).toBe(true)
   })
 })
 

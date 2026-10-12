@@ -10,6 +10,7 @@ import type { RenderComponentProps } from '../../render/useRender'
 import { COLLAPSED_BLOCK_SIZE } from '../../hooks/useAppBarScroll'
 import { hasContent } from '../../render/content'
 import { useRender } from '../../render/useRender'
+import { layers } from '../../styles/layers.stylex'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
@@ -85,6 +86,16 @@ const styles = stylex.create({
     transitionDuration: motion.durationMedium1,
     transitionProperty: 'font-size, letter-spacing, line-height',
     transitionTimingFunction: motion.easingEmphasized,
+  },
+  // Held at the top of the scroll container as the content scrolls beneath
+  // it, and painted over that content — see `bar` in
+  // src/styles/layers.stylex.ts. Without the layer, anything in the content
+  // that is positioned, which is most of the library's controls, painted
+  // over the bar as it passed under.
+  pinned: {
+    insetBlockStart: 0,
+    position: 'sticky',
+    zIndex: layers.bar,
   },
   root: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
@@ -225,7 +236,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   align?: 'center' | 'start'
   /**
    * Collapses a flexible bar to the height and headline of the small one, for
-   * a pinned bar over content that has been scrolled. Material Design
+   * a bar `pinned` over content that has been scrolled. Material Design
    * specifies it for the flexible sizes, and without it a pinned `lg` costs
    * 152px of the viewport for as long as the page is open.
    *
@@ -292,6 +303,15 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /** Usually a back or menu icon button. Sits before the text. */
   leading?: ReactNode
   /**
+   * Holds the bar at the top of its scroll container while the content
+   * scrolls beneath it, and keeps it painted over that content. The bar
+   * still needs a scrolling ancestor to stick inside: the window, or an
+   * element with its own overflow. A pinned bar is the one `collapsed` and
+   * `scrolled` are for.
+   * @default false
+   */
+  pinned?: boolean
+  /**
    * Whether the content beneath has been scrolled. Material Design separates
    * a bar from scrolled content with a fill colour rather than a shadow, and
    * this is what applies it.
@@ -336,6 +356,7 @@ function AppBar({
   headingLevel = 1,
   headline,
   leading,
+  pinned = false,
   render,
   scrolled = false,
   size = 'sm',
@@ -405,6 +426,7 @@ function AppBar({
           styles.root,
           heightStyles.root(height),
           scrolled && styles.scrolled,
+          pinned && styles.pinned,
         ),
         props,
       ),
