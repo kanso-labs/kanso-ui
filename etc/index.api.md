@@ -203,12 +203,13 @@ export type AutocompleteProps<T extends object = object> = {
 export function Avatar(input: AvatarProps): JSX;
 
 // @public (undocumented)
-export type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
+export type AvatarProps = {
+    decorative?: boolean;
     name: string;
     size?: 'lg' | 'md' | 'sm';
     src?: string;
     tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary';
-};
+} & Omit<RenderComponentProps<'span'>, 'children'>;
 
 // @public
 export function Badge(input: BadgeProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
@@ -1357,6 +1358,7 @@ export function ProductIcon(input: ProductIconProps): JSX;
 
 // @public (undocumented)
 export type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
+    decorative?: boolean;
     name: string;
     size?: 'lg' | 'md' | 'sm';
     src?: string;

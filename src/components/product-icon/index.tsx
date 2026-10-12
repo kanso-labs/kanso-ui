@@ -17,6 +17,13 @@ import Mark from '../../mark'
 
 type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
   /**
+   * Hides the mark from assistive technology, for one beside the name of
+   * what it identifies, where it would otherwise announce the name a second
+   * time. `name` still supplies the initial, and is not announced.
+   * @default false
+   */
+  decorative?: boolean
+  /**
    * What this identifies. Supplies both the fallback initial and the
    * accessible name, so a screen reader announces the thing rather than
    * reading a letter aloud. The initial is the name's first letter, number or
@@ -50,6 +57,9 @@ type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
  *
  * The mark is letterboxed rather than cropped, so a logo of any aspect ratio
  * can be handed over as it was drawn.
+ *
+ * When the thing's name is already written next to the mark, mark it
+ * `decorative`, so a screen reader reads the name once.
  */
 function ProductIcon({
   size = 'md',

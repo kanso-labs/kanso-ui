@@ -148,6 +148,21 @@ describe('avatar', () => {
       expect(view.queryByRole('img', { name: 'AL' })).toBeNull()
     })
 
+    // Beside the name it stands for — a row whose headline is the person —
+    // an avatar announced the name a second time. Decorative, it is hidden
+    // whole, so its initials are not read as bare letters either, and still
+    // drawn.
+    it('is hidden from assistive technology while decorative', () => {
+      const view = render(<Avatar decorative name="Ada Lovelace" />)
+      const avatar = view.container.firstElementChild
+
+      expect(view.queryByRole('img')).toBeNull()
+      expect(avatar?.hasAttribute('role')).toBe(false)
+      expect(avatar?.hasAttribute('aria-label')).toBe(false)
+      expect(avatar?.getAttribute('aria-hidden')).toBe('true')
+      expect(avatar?.textContent).toBe('AL')
+    })
+
     // A blank name names nothing. Announced as an image, the avatar would be
     // one with no name, which a screen reader reads as a bare "image" and an
     // accessibility audit fails; left as a plain element, its empty initials

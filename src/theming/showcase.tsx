@@ -1202,7 +1202,7 @@ function Showcase({ name }: ShowcaseProps) {
                   {index === 0 ? null : <Separator inset="start" />}
                   <ListItem
                     interactive
-                    leading={<Avatar name={person} tone={tone} />}
+                    leading={<Avatar decorative name={person} tone={tone} />}
                     supporting="Supporting line"
                     trailing={<Currency value={amount} />}
                   >
