@@ -257,7 +257,7 @@ describe('headline', () => {
   // heading's children rather than the heading, so a call site handing it one
   // of its own nests that inside this one instead of replacing it.
   it('draws one heading and no more', () => {
-    for (const level of [1, 2, 3, 4, 5, 6]) {
+    for (const level of [1, 2, 3, 4, 5, 6] as const) {
       const view = render(
         <AppBar headingLevel={level} headline="Headline" size="lg" />,
       )
@@ -295,13 +295,30 @@ describe('headline', () => {
     },
   )
 
-  // `h7` is a custom element as far as React is concerned, so it would render
-  // silently and leave the outline worse than the default.
-  it('draws a real heading for a level outside the six', () => {
-    const view = render(<AppBar headingLevel={9} headline="Headline" />)
-
-    expect(view.getByRole('heading', { level: 6 }).textContent).toBe('Headline')
+  // The type is the six levels, so a level outside them is a compile error
+  // rather than a heading rounded or clamped into one of them.
+  it('takes the six heading levels and nothing else', () => {
+    // @ts-expect-error -- there is no heading level 0
+    expect(render(<AppBar headingLevel={0} />).container).not.toBeNull()
+    // @ts-expect-error -- `h7` is a custom element, not a heading
+    expect(render(<AppBar headingLevel={9} />).container).not.toBeNull()
   })
+
+  // A value from a call site the type does not reach still draws a heading.
+  // `NaN` rounded and clamped to no element at all, which took the headline
+  // out of the outline without a word.
+  it.each([Number.NaN, 0, 2.5, 9])(
+    'falls back to an h1 for a level of %s',
+    (level) => {
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the untyped call site under test
+      const untyped = level as 1
+      const view = render(<AppBar headingLevel={untyped} headline="Headline" />)
+
+      expect(view.getByRole('heading', { level: 1 }).textContent).toBe(
+        'Headline',
+      )
+    },
+  )
 })
 
 describe('scrolled', () => {
