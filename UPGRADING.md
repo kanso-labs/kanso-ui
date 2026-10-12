@@ -235,12 +235,13 @@ Three props that predated the library's shared prop vocabularies now use them.
 Each of these is narrower than the ones above, but a call site written against
 the earlier type stops compiling.
 
-| Version | What changed                                                                                                    | The edit                                                                                  |
-| ------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 0.28.5  | Chip's `children` is a node, where it could be a function                                                       | Pass a node.                                                                              |
-| 0.30.4  | `Menu.Content`'s `className` and `style` land on the popover surface rather than on the list inside it          | Recheck styles aimed at the list, and write a function form against `PopoverRenderProps`. |
-| 0.34.2  | `MenuSubmenuProps['children']` is a `[trigger, content]` tuple, where it was any array of elements              | Type a stored value as the tuple. Children written inline in JSX are unaffected.          |
-| 0.36.0  | `NavigationTreeHeaderProps` and `TreeHeaderProps` are no longer exported; both described parts that are private | Drop the imports.                                                                         |
+| Version      | What changed                                                                                                    | The edit                                                                                  |
+| ------------ | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 0.28.5       | Chip's `children` is a node, where it could be a function                                                       | Pass a node.                                                                              |
+| 0.30.4       | `Menu.Content`'s `className` and `style` land on the popover surface rather than on the list inside it          | Recheck styles aimed at the list, and write a function form against `PopoverRenderProps`. |
+| 0.34.2       | `MenuSubmenuProps['children']` is a `[trigger, content]` tuple, where it was any array of elements              | Type a stored value as the tuple. Children written inline in JSX are unaffected.          |
+| 0.36.0       | `NavigationTreeHeaderProps` and `TreeHeaderProps` are no longer exported; both described parts that are private | Drop the imports.                                                                         |
+| After 0.40.9 | AppBar's `headingLevel` takes `1` to `6`, where it took any number                                              | Pass one of the six, narrowing a `number` held in a variable first.                       |
 
 ## Removed custom properties
 

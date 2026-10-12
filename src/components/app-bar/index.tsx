@@ -192,14 +192,17 @@ const HEADLINE_VARIANT = {
 //
 // The level is looked up rather than interpolated into a tag name. `h7` is a
 // custom element as far as React is concerned, so it renders without a word
-// said and leaves the outline worse than the default would have. Disclosure's
-// own `headingLevel` hands the number to React Aria, which is why that one
-// needs no equivalent.
+// said and leaves the outline worse than the default would have. The prop's
+// type is the six levels, and a value outside them from a call site the type
+// does not reach — `NaN`, which rounded and clamped to no element at all and
+// took the headline out of the outline — falls back to the default h1.
+// Disclosure's own `headingLevel` hands the number to React Aria, which is
+// why that one needs no equivalent.
 const HEADINGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
 function heading(level: number) {
-  const index = Math.min(Math.max(Math.round(level), 1), HEADINGS.length) - 1
-  return createElement(HEADINGS[index])
+  const known = Number.isInteger(level) && level >= 1 && level <= 6
+  return createElement(known ? HEADINGS[level - 1] : HEADINGS[0])
 }
 
 const PARAGRAPH = <p />
@@ -292,12 +295,13 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    */
   contentMaxInlineSize?: string
   /**
-   * Where the headline sits in the page's outline. A screen reader moves
-   * between headings, so a bar drawn beside another bar, or under a page
-   * heading of its own, should lower it.
+   * Where the headline sits in the page's outline, as one of the six heading
+   * levels. A screen reader moves between headings, so a bar drawn beside
+   * another bar, or under a page heading of its own, should lower it. A value
+   * outside the six that reaches it untyped falls back to 1.
    * @default 1
    */
-  headingLevel?: number
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
   /** The page's title. Wraps rather than truncating, and grows the bar with it. */
   headline?: ReactNode
   /** Usually a back or menu icon button. Sits before the text. */
