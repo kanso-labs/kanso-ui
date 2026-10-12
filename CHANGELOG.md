@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.41.0](https://github.com/kanso-labs/kanso-ui/compare/v0.40.9...v0.41.0) (2026-10-12)
+
+
+### Features
+
+* **app-bar:** add a pinned prop that keeps the bar above scrolling content ([#1644](https://github.com/kanso-labs/kanso-ui/issues/1644)) ([12ef950](https://github.com/kanso-labs/kanso-ui/commit/12ef95020f9b24746a4e1439007190b0c824e274))
+* **card:** add isDisabled to interactive cards ([#1643](https://github.com/kanso-labs/kanso-ui/issues/1643)) ([fa0f49d](https://github.com/kanso-labs/kanso-ui/commit/fa0f49d7a687ea31e5dbffb1d545d7408949e777))
+
+
+### Bug Fixes
+
+* **segmented-button:** reserve the check slot only where a segment draws it ([#1630](https://github.com/kanso-labs/kanso-ui/issues/1630)) ([aea11d3](https://github.com/kanso-labs/kanso-ui/commit/aea11d342b39480020250fecc7647403985e822e))
+* **separator:** keep inset separators visible in flex and centred parents ([#1631](https://github.com/kanso-labs/kanso-ui/issues/1631)) ([dfbad75](https://github.com/kanso-labs/kanso-ui/commit/dfbad756fccad362f51eeb97edeecca906029423))
+* **separator:** keep the Toolbar separator context out of nested overlays ([#1633](https://github.com/kanso-labs/kanso-ui/issues/1633)) ([74cc92f](https://github.com/kanso-labs/kanso-ui/commit/74cc92fda8f2ab15a69cd8b86c7c3773743dcfb1))
+* **sheet:** wrap a long title and the footer actions ([#1634](https://github.com/kanso-labs/kanso-ui/issues/1634)) ([86aba60](https://github.com/kanso-labs/kanso-ui/commit/86aba60802a547a4303c2868342210b18efc34d5))
+* **snackbar:** draw focus rings inside the strip where they contrast ([#1635](https://github.com/kanso-labs/kanso-ui/issues/1635)) ([8a4d4b5](https://github.com/kanso-labs/kanso-ui/commit/8a4d4b510c3bd6ccfa4e630a8000884cece55af0))
+* **snackbar:** drop superseded messages and call onClose when the queue clears ([#1636](https://github.com/kanso-labs/kanso-ui/issues/1636)) ([5978626](https://github.com/kanso-labs/kanso-ui/commit/5978626d7ab743f58185629b0838aa64139486a6))
+* **snackbar:** give the action a 40dp height and a 48dp target ([#1637](https://github.com/kanso-labs/kanso-ui/issues/1637)) ([a373cf8](https://github.com/kanso-labs/kanso-ui/commit/a373cf822868ce22c5259b879ff882de4ce93668))
+* **snackbar:** wrap long words and stack the action under long text ([#1638](https://github.com/kanso-labs/kanso-ui/issues/1638)) ([d3b9cb6](https://github.com/kanso-labs/kanso-ui/commit/d3b9cb61609d67e7e705880496a46a23f74c6f38))
+* **switch:** toggle on a tap with finger drift and focus after a drag ([#1639](https://github.com/kanso-labs/kanso-ui/issues/1639)) ([e0ca35e](https://github.com/kanso-labs/kanso-ui/commit/e0ca35ee53a25cf166e91512bc4a3e54930a38af))
+* **text-field:** expose prefix and suffix text to assistive technology ([#1640](https://github.com/kanso-labs/kanso-ui/issues/1640)) ([93b1618](https://github.com/kanso-labs/kanso-ui/commit/93b161881ec61299b8638b5410edc6809ab588c8))
+* **theme-scope:** paint the surface and colour-scheme of a pinned scheme ([#1641](https://github.com/kanso-labs/kanso-ui/issues/1641)) ([3ef793f](https://github.com/kanso-labs/kanso-ui/commit/3ef793fa165c50c27576f4c967ef782890252cf7))
+
 ## [0.40.9](https://github.com/kanso-labs/kanso-ui/compare/v0.40.8...v0.40.9) (2026-10-11)
 
 
