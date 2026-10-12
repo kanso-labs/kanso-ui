@@ -223,6 +223,19 @@ describe('accessibility', () => {
     expect(view.getByRole('img', { name: 'First item' })).toBeInTheDocument()
   })
 
+  // Beside the name of what it identifies, the mark announced the name a
+  // second time. Decorative, it is hidden whole and still drawn.
+  it('is hidden from assistive technology while decorative', () => {
+    const view = render(<ProductIcon decorative name="First item" />)
+    const icon = view.container.firstElementChild
+
+    expect(view.queryByRole('img')).toBeNull()
+    expect(icon?.hasAttribute('role')).toBe(false)
+    expect(icon?.hasAttribute('aria-label')).toBe(false)
+    expect(icon?.getAttribute('aria-hidden')).toBe('true')
+    expect(icon?.textContent).toBe('F')
+  })
+
   // A blank name names nothing. Announced as an image, the icon would be one
   // with no name, which a screen reader reads as a bare "image" and an
   // accessibility audit fails; left as a plain element, its empty initial or

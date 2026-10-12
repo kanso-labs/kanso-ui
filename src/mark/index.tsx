@@ -29,9 +29,14 @@ const KINDS = {
 } as const
 
 type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
+  /**
+   * Hides the mark from assistive technology, for one beside the name it
+   * stands for, which would otherwise be announced twice.
+   */
+  decorative?: boolean | undefined
   /** A person, which Avatar draws, or anything else, which ProductIcon does. */
   kind: keyof typeof KINDS
-  /** Supplies both the fallback's initials and the accessible name. */
+  /** Supplies the fallback's initials, and the accessible name unless decorative. */
   name: string
   size: MarkSize
   /** An image to show in place of the initials once it has loaded. */
@@ -47,7 +52,16 @@ type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
  * from the package; see `src/chip` for the same arrangement around a chip's
  * pill.
  */
-function Mark({ kind, name, render, size, src, tone, ...props }: MarkProps) {
+function Mark({
+  decorative = false,
+  kind,
+  name,
+  render,
+  size,
+  src,
+  tone,
+  ...props
+}: MarkProps) {
   const { fit, initials, shape, tintsFallback } = KINDS[kind]
   // The image is shown only once it has loaded, and the initials stay until
   // then and come back if it fails — see useImageLoadingStatus.
@@ -66,7 +80,12 @@ function Mark({ kind, name, render, size, src, tone, ...props }: MarkProps) {
   // then a plain element rather than an image with no name, which a screen
   // reader reads as a bare "image". Its empty initials, or its image with an
   // empty alt, leave it nothing to announce.
-  const named = name.trim() !== ''
+  //
+  // A decorative mark is hidden outright. Beside the name it stands for — a
+  // list row whose headline is the person — the name came out twice, once as
+  // the image and once as the text, and with no role the initials would be
+  // read as bare letters instead.
+  const named = !decorative && name.trim() !== ''
 
   let children
   if (status === 'loaded') {
@@ -85,6 +104,7 @@ function Mark({ kind, name, render, size, src, tone, ...props }: MarkProps) {
     defaultTagName: 'span',
     props: {
       ...(named ? { 'aria-label': name, role: 'img' } : {}),
+      ...(decorative ? { 'aria-hidden': true } : {}),
       ...props,
       children,
       ...mergeStyles(

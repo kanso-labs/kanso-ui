@@ -13,7 +13,15 @@ import Mark from '../../mark'
 // cycles colours per person, and that cycle belongs where the list of people
 // is, not in this component.
 
-type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
+type AvatarProps = {
+  /**
+   * Hides the avatar from assistive technology, for one beside the person's
+   * name — a row whose headline is the name, a byline — where it would
+   * otherwise announce the name a second time. `name` still supplies the
+   * initials, and is not announced.
+   * @default false
+   */
+  decorative?: boolean
   /**
    * The person this represents. Supplies both the initials and the accessible
    * name, so a screen reader announces who it is rather than reading two
@@ -42,7 +50,7 @@ type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * @default 'primary'
    */
   tone?: 'negative' | 'positive' | 'primary' | 'secondary' | 'tertiary'
-}
+} & Omit<RenderComponentProps<'span'>, 'children'>
 
 /**
  * A person, as a circle holding their photo or, until it loads or when there
@@ -52,6 +60,9 @@ type AvatarProps = Omit<RenderComponentProps<'span'>, 'children'> & {
  * ```tsx
  * <Avatar name="Ada Lovelace" src={photo} size="lg" />
  * ```
+ *
+ * When the person's name is already written next to the avatar, mark it
+ * `decorative`, so a screen reader reads the name once.
  *
  * Reach for ProductIcon when what is drawn is not a person; the two share
  * their sizes, so either fills the same slot in a row or a card.

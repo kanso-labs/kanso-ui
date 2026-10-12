@@ -121,12 +121,15 @@ const AspectRatios: Story = {
 
 // Its own story because this is where a mark mostly sits: leading a card, with
 // a name and a line about what the thing is.
+// The mark beside the name of what it identifies, which is where these
+// mostly sit — so it is decorative, and a screen reader reads the name once,
+// from the text.
 const InACard: Story = {
   render: () => (
     <div {...stylex.props(styles.wide)}>
       <Card variant="outlined">
         <div {...stylex.props(styles.row)}>
-          <ProductIcon name="First item" src={WIDE_MARK} />
+          <ProductIcon decorative name="First item" src={WIDE_MARK} />
           <div {...stylex.props(styles.stack)}>
             <Text variant="titleSmall">First item</Text>
             <Text tone="muted" variant="bodySmall">
