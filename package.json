@@ -79,7 +79,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@babel/core": "7.29.7",
-    "@chromatic-com/storybook": "5.4.0",
+    "@chromatic-com/storybook": "5.5.0",
     "@codecov/rollup-plugin": "2.0.1",
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
