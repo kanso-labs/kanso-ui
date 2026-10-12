@@ -1,60 +1,72 @@
-import { useEffect, useState } from 'react'
+import type { SyntheticEvent } from 'react'
+
+import { useCallback, useState } from 'react'
 
 type ImageLoadingStatus = 'error' | 'loaded' | 'loading'
 
-interface Settled {
+interface Loaded {
+  /** The resource the browser chose and loaded, out of a `srcSet` too. */
+  shown: string
+  /** The `src` it loaded for. */
   src: string
-  status: 'error' | 'loaded'
 }
 
 /**
- * Whether an image at `src` can be shown yet. It is loaded off-screen first,
- * so a component can keep its fallback in place until the picture is ready
- * and bring the fallback back if the picture fails — an `<img>` swapped in
- * as soon as `src` is known would show the browser's broken-image glyph in
- * between.
+ * Whether the picture at `src` can be shown yet, from what the component's
+ * own `<img>` reports. The image is rendered from the start and hidden until
+ * it loads, so the browser fetches it as it would any image — `loading`,
+ * `srcSet` and `sizes` all apply, which a detached preloader started on
+ * mount left them no part in — and hand `onLoad` and `onError` to that
+ * element. A component keeps its fallback until the picture is ready and
+ * brings it back if the picture fails, so the browser's broken-image glyph
+ * is never what shows.
+ *
+ * `previous` is the picture last loaded, while a new `src` is still loading,
+ * so the component can keep showing it rather than drop back to the fallback
+ * for as long as the new one takes — a theme swapping one logo for another
+ * flashed the initial between them. It is the resource the browser actually
+ * loaded, which is cached, so an element showing it needs no `srcSet`.
  *
  * No `src` counts as a failure, since the outcome is the same: the fallback
- * shows. What settled is remembered against the `src` it settled for, so a
- * change of `src` reads as loading again rather than as the old outcome.
+ * shows. Outcomes are remembered against the `src` they came for, so a
+ * change of `src` reads as loading rather than as the old outcome.
  */
-function useImageLoadingStatus(src: string | undefined): ImageLoadingStatus {
-  const [settled, setSettled] = useState<null | Settled>(null)
+function useImageLoadingStatus(src: string | undefined) {
+  const [loaded, setLoaded] = useState<Loaded | null>(null)
+  const [failed, setFailed] = useState<null | string>(null)
 
-  useEffect(() => {
-    if (src === undefined) {
-      return undefined
+  // Read off the element rather than closed over, so the one pair of
+  // handlers serves whichever `src` the element carries when it settles.
+  const onLoad = useCallback((event: SyntheticEvent<HTMLImageElement>) => {
+    const image = event.currentTarget
+    const from = image.getAttribute('src')
+    if (from !== null) {
+      setLoaded({
+        shown: image.currentSrc === '' ? from : image.currentSrc,
+        src: from,
+      })
     }
-
-    const onLoad = () => {
-      setSettled({ src, status: 'loaded' })
+  }, [])
+  const onError = useCallback((event: SyntheticEvent<HTMLImageElement>) => {
+    const from = event.currentTarget.getAttribute('src')
+    if (from !== null) {
+      setFailed(from)
     }
-    const onError = () => {
-      setSettled({ src, status: 'error' })
-    }
+  }, [])
 
-    const image = new window.Image()
-    image.addEventListener('load', onLoad, { once: true })
-    image.addEventListener('error', onError, { once: true })
-    image.src = src
-
-    // A load `src` has moved on from, or one the component went before, is
-    // stopped rather than left to run. Taking the listeners off is what keeps
-    // it from reporting an outcome nobody asked for, and lets the image go
-    // once nothing else holds it; removing its source aborts the fetch. That
-    // is the source removed rather than set empty, which would also abort it
-    // but queue an `error` event on the way.
-    return () => {
-      image.removeEventListener('load', onLoad)
-      image.removeEventListener('error', onError)
-      image.removeAttribute('src')
-    }
-  }, [src])
-
-  if (src === undefined) {
-    return 'error'
+  let status: ImageLoadingStatus = 'loading'
+  if (src === undefined || failed === src) {
+    status = 'error'
+  } else if (loaded?.src === src) {
+    status = 'loaded'
   }
-  return settled?.src === src ? settled.status : 'loading'
+
+  return {
+    onError,
+    onLoad,
+    previous: status === 'loading' ? loaded?.shown : undefined,
+    status,
+  }
 }
 
 export type { ImageLoadingStatus }

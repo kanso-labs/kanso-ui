@@ -20,6 +20,32 @@ const probeStyles = stylex.create({
   },
 })
 
+// A 1x1 gif, inline so the load resolves without touching the network.
+const PHOTO =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
+// Never answered, so its load is still in flight when the case reads it.
+const PENDING = 'https://example.invalid/pending.png'
+
+// Well-formed as a URL and not as an image, so the browser reports an error.
+const NOT_AN_IMAGE = 'data:image/gif;base64,AAAA'
+
+const IMG_PROPS = {
+  loading: 'eager',
+  referrerPolicy: 'no-referrer',
+  sizes: '40px',
+  srcSet: `${PHOTO} 1x`,
+} as const
+
+/** The photo the avatar renders: the first image inside it. */
+function photoIn(container: HTMLElement) {
+  const photo = container.querySelector('img')
+  if (photo === null) {
+    throw new Error('expected the avatar to render its photo')
+  }
+  return photo
+}
+
 function setup(props: Partial<Parameters<typeof Avatar>[0]> = {}) {
   const view = render(<Avatar name="Ada Lovelace" {...props} />)
   return { ...view, avatar: view.getByRole('img') }
@@ -240,18 +266,61 @@ describe('avatar', () => {
       expect(view.container.querySelector('img')).toBeNull()
     })
 
-    it('renders the photo once it has loaded, keeping the initials until then', async () => {
-      // A 1x1 gif, inline so the load resolves without touching the network.
-      const src =
-        'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-      const view = render(<Avatar name="Ada Lovelace" src={src} />)
+    // The photo is the real element from the first render, so the browser
+    // fetches it as it would any image: lazily, which a detached preloader
+    // started on mount never allowed. It is hidden, over the initials, until
+    // it has loaded.
+    it('renders the photo lazily from the start, hidden until it loads', async () => {
+      const view = render(<Avatar name="Ada Lovelace" src={PHOTO} />)
+      const photo = photoIn(view.container)
 
-      expect(view.getByRole('img', { name: 'Ada Lovelace' })).not.toBeNull()
+      expect(photo.getAttribute('loading')).toBe('lazy')
+      expect(photo.getAttribute('decoding')).toBe('async')
+      expect(getComputedStyle(photo).opacity).toBe('0')
+      expect(view.container.firstElementChild?.textContent).toBe('AL')
+
       await waitFor(() => {
-        expect(view.container.querySelector('img')?.getAttribute('src')).toBe(
-          src,
-        )
+        expect(getComputedStyle(photoIn(view.container)).opacity).toBe('1')
       })
+      expect(view.container.firstElementChild?.textContent).toBe('')
+    })
+
+    it('hands the image attributes it is given to the photo', () => {
+      const view = render(
+        <Avatar imgProps={IMG_PROPS} name="Ada Lovelace" src={PHOTO} />,
+      )
+      const photo = photoIn(view.container)
+
+      expect(photo.getAttribute('srcset')).toBe(IMG_PROPS.srcSet)
+      expect(photo.getAttribute('sizes')).toBe(IMG_PROPS.sizes)
+      expect(photo.getAttribute('referrerpolicy')).toBe('no-referrer')
+      expect(photo.getAttribute('loading')).toBe('eager')
+    })
+
+    // A new photo used to drop the avatar back to its initials for as long as
+    // it took to load. The one before stays until it has, and the initials
+    // come back only if the new one fails.
+    it('keeps the photo before while a new one loads', async () => {
+      const view = render(<Avatar name="Ada Lovelace" src={PHOTO} />)
+      await waitFor(() => {
+        expect(getComputedStyle(photoIn(view.container)).opacity).toBe('1')
+      })
+
+      view.rerender(<Avatar name="Ada Lovelace" src={PENDING} />)
+      const photos = [...view.container.querySelectorAll('img')]
+
+      expect(photos.map((photo) => photo.getAttribute('src'))).toStrictEqual([
+        PHOTO,
+        PENDING,
+      ])
+      expect(getComputedStyle(photos[0]).opacity).toBe('1')
+      expect(view.container.firstElementChild?.textContent).toBe('')
+
+      view.rerender(<Avatar name="Ada Lovelace" src={NOT_AN_IMAGE} />)
+      await waitFor(() => {
+        expect(view.container.querySelector('img')).toBeNull()
+      })
+      expect(view.container.firstElementChild?.textContent).toBe('AL')
     })
   })
 })

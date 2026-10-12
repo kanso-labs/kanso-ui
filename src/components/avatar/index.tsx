@@ -1,5 +1,7 @@
 'use client'
 
+import type { ImgHTMLAttributes } from 'react'
+
 import type { RenderComponentProps } from '../../render/useRender'
 
 import Mark from '../../mark'
@@ -22,6 +24,22 @@ type AvatarProps = {
    * @default false
    */
   decorative?: boolean
+  /**
+   * Attributes for the picture's own `<img>`: a `srcSet` and `sizes` for a
+   * screen's density, a `referrerPolicy` or `crossOrigin` for where it is
+   * served from, a `fetchPriority`, or `loading` and `decoding`, which are
+   * `lazy` and `async` unless given.
+   */
+  imgProps?: Pick<
+    ImgHTMLAttributes<HTMLImageElement>,
+    | 'crossOrigin'
+    | 'decoding'
+    | 'fetchPriority'
+    | 'loading'
+    | 'referrerPolicy'
+    | 'sizes'
+    | 'srcSet'
+  >
   /**
    * The person this represents. Supplies both the initials and the accessible
    * name, so a screen reader announces who it is rather than reading two

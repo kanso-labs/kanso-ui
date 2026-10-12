@@ -1,3 +1,5 @@
+import type { ImgHTMLAttributes } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { useLocale } from 'react-aria-components'
 
@@ -34,6 +36,19 @@ type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * stands for, which would otherwise be announced twice.
    */
   decorative?: boolean | undefined
+  /** Attributes for the picture's own `<img>`, as Avatar and ProductIcon take them. */
+  imgProps?:
+    | Pick<
+        ImgHTMLAttributes<HTMLImageElement>,
+        | 'crossOrigin'
+        | 'decoding'
+        | 'fetchPriority'
+        | 'loading'
+        | 'referrerPolicy'
+        | 'sizes'
+        | 'srcSet'
+      >
+    | undefined
   /** A person, which Avatar draws, or anything else, which ProductIcon does. */
   kind: keyof typeof KINDS
   /** Supplies the fallback's initials, and the accessible name unless decorative. */
@@ -54,6 +69,7 @@ type MarkProps = Omit<RenderComponentProps<'span'>, 'children'> & {
  */
 function Mark({
   decorative = false,
+  imgProps,
   kind,
   name,
   render,
@@ -63,9 +79,10 @@ function Mark({
   ...props
 }: MarkProps) {
   const { fit, initials, shape, tintsFallback } = KINDS[kind]
-  // The image is shown only once it has loaded, and the initials stay until
-  // then and come back if it fails — see useImageLoadingStatus.
-  const status = useImageLoadingStatus(src)
+  // The image is rendered from the start and shown once it has loaded, and
+  // the initials stay until then and come back if it fails — see
+  // useImageLoadingStatus.
+  const { onError, onLoad, previous, status } = useImageLoadingStatus(src)
   const { locale } = useLocale()
   const fallback = initials(name, locale)
 
@@ -87,18 +104,59 @@ function Mark({
   // read as bare letters instead.
   const named = !decorative && name.trim() !== ''
 
-  let children
-  if (status === 'loaded') {
-    children = <img alt="" src={src} {...stylex.props(markStyles.image, fit)} />
-  } else if (tintsFallback) {
-    children = (
+  // The initials while no picture shows: before the first loads, and once
+  // one fails. They are left out under a picture rather than kept beneath
+  // it, since a letterboxed logo would show them through its transparent
+  // parts.
+  const showsPicture = status === 'loaded' || previous !== undefined
+  let initialsNode = null
+  if (!showsPicture) {
+    initialsNode = tintsFallback ? (
       <span {...stylex.props(markStyles.fallback, markStyles[tone])}>
         {fallback}
       </span>
+    ) : (
+      fallback
     )
-  } else {
-    children = fallback
   }
+
+  // Two pictures at most, laid over the initials. The one last loaded stays
+  // while a new `src` loads, and the new one is rendered on top of it from
+  // the start, hidden until it has loaded: lazy, so an avatar far down an
+  // unvirtualised list is not fetched on mount, and decoded off the main
+  // thread, both of which the call site can change through `imgProps`. The
+  // last loaded one is the resource the browser chose, out of a `srcSet`
+  // too, and is cached, so it needs none of those.
+  const children = (
+    <>
+      {initialsNode}
+      {previous === undefined ? null : (
+        <img
+          alt=""
+          key={previous}
+          src={previous}
+          {...stylex.props(markStyles.image, fit)}
+        />
+      )}
+      {src === undefined || status === 'error' ? null : (
+        <img
+          alt=""
+          decoding="async"
+          key={src}
+          loading="lazy"
+          {...imgProps}
+          onError={onError}
+          onLoad={onLoad}
+          src={src}
+          {...stylex.props(
+            markStyles.image,
+            fit,
+            status !== 'loaded' && markStyles.imagePending,
+          )}
+        />
+      )}
+    </>
+  )
 
   return useRender({
     defaultTagName: 'span',

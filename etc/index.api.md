@@ -55,6 +55,7 @@ import { GridListSectionProps } from 'react-aria-components';
 import { HeadingProps } from 'react-aria-components';
 import { HTMLAttributes } from 'react';
 import { I18nProvider } from 'react-aria-components';
+import { ImgHTMLAttributes } from 'react';
 import { isDirectoryDropItem } from 'react-aria-components';
 import { isFileDropItem } from 'react-aria-components';
 import { isTextDropItem } from 'react-aria-components';
@@ -205,6 +206,7 @@ export function Avatar(input: AvatarProps): JSX;
 // @public (undocumented)
 export type AvatarProps = {
     decorative?: boolean;
+    imgProps?: Pick<ImgHTMLAttributes<HTMLImageElement>, 'crossOrigin' | 'decoding' | 'fetchPriority' | 'loading' | 'referrerPolicy' | 'sizes' | 'srcSet'>;
     name: string;
     size?: 'lg' | 'md' | 'sm';
     src?: string;
@@ -1359,6 +1361,7 @@ export function ProductIcon(input: ProductIconProps): JSX;
 // @public (undocumented)
 export type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
     decorative?: boolean;
+    imgProps?: Pick<ImgHTMLAttributes<HTMLImageElement>, 'crossOrigin' | 'decoding' | 'fetchPriority' | 'loading' | 'referrerPolicy' | 'sizes' | 'srcSet'>;
     name: string;
     size?: 'lg' | 'md' | 'sm';
     src?: string;
