@@ -586,7 +586,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="A circle for a person, tinted from a container/on-container pair, at each tone and at both sizes."
+            description="A circle for a person, tinted from a container/on-container pair, at each tone and at both sizes, and the anonymous person a blank name draws in the on-container role."
             title="Avatar"
           >
             <div {...stylex.props(styles.inline)}>
@@ -594,6 +594,7 @@ function Showcase({ name }: ShowcaseProps) {
                 <Avatar key={tone} name="Ada Lovelace" tone={tone} />
               ))}
               <Avatar name="Grace Hopper" size="lg" />
+              <Avatar name="" />
             </div>
           </Section>
 

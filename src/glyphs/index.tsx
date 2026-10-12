@@ -15,7 +15,8 @@ import { glyphStyles } from './styles'
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
 // close, the right and down chevrons, the two sort arrows, the back arrow,
-// the drop-down arrow, the calendar, the schedule clock and the keyboard from
+// the drop-down arrow, the calendar, the schedule clock, the keyboard and the
+// person from
 // Material Symbols on their 24-unit grid, which is what the checkbox page
 // draws at 18dp, the icon buttons page at 20 and the search, menus, date
 // picker and time picker pages at 24 — the date picker's menu
@@ -163,6 +164,16 @@ function CloseGlyph(props: GlyphProps) {
   )
 }
 
+// What an avatar with no name to take initials from draws: Material Design's
+// anonymous person, a head over shoulders.
+function PersonGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </Glyph>
+  )
+}
+
 function PlusGlyph(props: GlyphProps) {
   return (
     <Glyph {...props}>
@@ -193,6 +204,7 @@ export {
   IndeterminateGlyph,
   KeyboardGlyph,
   MinusGlyph,
+  PersonGlyph,
   PlusGlyph,
   SearchGlyph,
 }

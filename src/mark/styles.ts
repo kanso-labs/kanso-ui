@@ -118,6 +118,14 @@ const markStyles = stylex.create({
     backgroundColor: colors.negativeContainer,
     color: colors.onNegativeContainer,
   },
+  // The anonymous person, at three fifths of the disc: 24dp in the 40dp
+  // avatar, as Material Design draws its placeholder, and the same share of
+  // the other two sizes. Its fill is the text colour, so the tone's
+  // on-container role, which follows a scheme.
+  personGlyph: {
+    blockSize: '60%',
+    inlineSize: '60%',
+  },
   positive: {
     backgroundColor: colors.positiveContainer,
     color: colors.onPositiveContainer,
