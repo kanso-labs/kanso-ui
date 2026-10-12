@@ -8,6 +8,11 @@ import * as stylex from '@stylexjs/stylex'
 // own chrome.
 //
 // - Page content, at whatever the page gives it.
+// - `bar`: a pinned app bar, which the page's content scrolls beneath.
+//   Above anything positioned with no `z-index` or a small one — `Button`,
+//   `Card` and a list row are positioned, and a table's sticky header and a
+//   dragged item sit at 1 — and below every overlay, so a modal's scrim
+//   still covers the bar.
 // - `modal`: a modal's scrim, which holds the panel and so takes it along —
 //   Dialog and Sheet, through `overlay.scrim`.
 // - `toast`: the snackbar region, above a modal, so a toast raised from
@@ -21,6 +26,7 @@ import * as stylex from '@stylexjs/stylex'
 // `.stylex.ts` module, which is the one place the StyleX compiler resolves a
 // constant from across files.
 const layers = stylex.defineConsts({
+  bar: 10,
   modal: 900,
   toast: 1000,
 })

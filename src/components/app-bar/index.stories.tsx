@@ -90,13 +90,6 @@ const styles = stylex.create({
   narrow: {
     inlineSize: '320px',
   },
-  // A pinned bar needs a scroll container to be pinned inside, and this is
-  // the call site's job rather than the component's — the bar paints a
-  // surface and sets a height, and nothing else.
-  pinned: {
-    insetBlockStart: 0,
-    position: 'sticky',
-  },
   sample: {
     display: 'flex',
     flexDirection: 'column',
@@ -182,11 +175,12 @@ function ScrollingPage({ paragraphs }: { paragraphs: number }) {
 
   return (
     <div {...stylex.props(styles.scroller)} onScroll={onScroll}>
+      {/* Pinned inside this panel, which is the scroll container it needs. */}
       <AppBar
-        {...stylex.props(styles.pinned)}
         collapsed={collapsed}
         headline="Headline"
         leading={LEADING}
+        pinned
         ref={ref}
         scrolled={scrolled}
         size="lg"
