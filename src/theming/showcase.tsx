@@ -680,7 +680,7 @@ function Showcase({ name }: ShowcaseProps) {
           </Section>
 
           <Section
-            description="The three variants separate themselves by shadow, by a darker surface, and by a rule — one axis per variant, and a scheme can move any of them."
+            description="The three variants separate themselves by shadow, by a darker surface, and by a rule — one axis per variant, and a scheme can move any of them. A disabled card fades its container and what it holds."
             title="Card"
           >
             <Feed minItemWidth="260px">
@@ -698,6 +698,14 @@ function Showcase({ name }: ShowcaseProps) {
                   </Stack>
                 </Card>
               ))}
+              <Card interactive isDisabled variant="filled">
+                <Stack gap="sm">
+                  <Text variant="titleMedium">Headline</Text>
+                  <Text tone="muted" variant="bodySmall">
+                    Supporting line
+                  </Text>
+                </Stack>
+              </Card>
             </Feed>
           </Section>
 

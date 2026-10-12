@@ -1,6 +1,9 @@
 'use client'
 
+import type { MouseEvent } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
+import { cloneElement, isValidElement } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -92,6 +95,39 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'block',
     minBlockSize: '100%',
+  },
+  // The cards page's disabled states: each variant's container at 38%, and
+  // the outlined card's rule in the outline role at 12%. The page draws a
+  // disabled card flat, so the elevated card drops its shadow. Applied last,
+  // after the interaction styles, so no hover or press layer shows through,
+  // and the pointer is the plain one, since nothing happens under it.
+  //
+  // Under forced colours the boundary an interactive card draws there is
+  // `GrayText`, the one keyword that mode has for disabled; the fades above
+  // are author colours it repaints.
+  disabled: {
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    cursor: 'default',
+  },
+  // What the card holds, at the 38% Material Design fades disabled content
+  // to. A card's content is the call site's — text, an image, a row of its
+  // own — so no colour role reaches all of it, and an opacity is the one
+  // fade that does.
+  disabledContent: {
+    opacity: stateLayerOpacity.disabledContent,
+  },
+  disabledElevated: {
+    backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerLow} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+    boxShadow: 'none',
+  },
+  disabledFilled: {
+    backgroundColor: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  disabledOutlined: {
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.outline} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
   elevated: {
     backgroundColor: colors.surfaceContainerLow,
@@ -222,6 +258,17 @@ type CardProps = {
    */
   interactive?: boolean
   /**
+   * Turns an interactive card off: it fades as the cards page draws a
+   * disabled card, stops rippling and lifting, and takes no press. The
+   * default `<button>` is disabled outright. An element of the call site's
+   * own through `render` is marked `aria-disabled`, and an element handed in
+   * directly loses its `href`, `tabIndex` and `onClick`, so a link card can
+   * neither be followed nor focused. Has no effect on a card that is not
+   * `interactive`, which cannot be pressed to begin with.
+   * @default false
+   */
+  isDisabled?: boolean
+  /**
    * `none` removes the card's own padding, for a card whose children run to
    * its edges — a list of rows separated by rules.
    * @default 'default'
@@ -252,6 +299,7 @@ type CardVariant = 'elevated' | 'filled' | 'outlined'
 function Card({
   children,
   interactive = false,
+  isDisabled = false,
   onClick,
   onContextMenu,
   onPointerCancel,
@@ -268,8 +316,9 @@ function Card({
   // does and for the same reason: a plain spread means whichever object
   // comes last silently wins, so an onPointerDown on the call site would
   // replace the one driving the ripple and the card would stop rippling.
-  const ripple = useRipple(interactive, {
-    onClick,
+  const disabled = interactive && isDisabled
+  const ripple = useRipple(interactive && !disabled, {
+    onClick: disabled ? undefined : onClick,
     onContextMenu,
     onPointerCancel,
     onPointerDown,
@@ -288,10 +337,19 @@ function Card({
       // element's own attributes are the call site's to write.
       ...(interactive && render === undefined ? { type: 'button' } : undefined),
       ...ripple.handlers,
+      // After the ripple's handlers, whose click it replaces while disabled.
+      ...disabledAttributes(disabled, render),
       children: (
         <>
           {interactive ? (
-            <span {...stylex.props(styles.content)}>{children}</span>
+            <span
+              {...stylex.props(
+                styles.content,
+                disabled && styles.disabledContent,
+              )}
+            >
+              {children}
+            </span>
           ) : (
             children
           )}
@@ -305,13 +363,59 @@ function Card({
           padded,
           interactive && styles.interactive,
           interactive && variant !== 'outlined' && styles.interactiveBoundary,
-          interactive && focus.ring,
-          interactive && interactionStyles[variant],
+          interactive && !disabled && focus.ring,
+          interactive && !disabled && interactionStyles[variant],
+          disabled && styles.disabled,
+          disabled && disabledStyles[variant],
         ),
         props,
       ),
     },
-    render,
+    render: disabled ? withoutActivation(render) : render,
+  })
+}
+
+const disabledStyles = {
+  elevated: styles.disabledElevated,
+  filled: styles.disabledFilled,
+  outlined: styles.disabledOutlined,
+}
+
+// How a disabled card says so, by the element it renders. The default
+// <button> takes the native `disabled`, which removes it from the tab order
+// and fires nothing on a press. Any other element has no such attribute, so
+// it is marked `aria-disabled` for assistive technology, and a click on it
+// has its default prevented, which is what would follow a link — the click
+// a function passed as `render` wires up is its own, and runs first.
+function disabledAttributes(disabled: boolean, render: CardProps['render']) {
+  if (!disabled) {
+    return undefined
+  }
+  if (render === undefined) {
+    return { disabled: true }
+  }
+  return { 'aria-disabled': true, onClick: preventDefault }
+}
+
+function preventDefault(event: MouseEvent) {
+  event.preventDefault()
+}
+
+// An element handed in as `render`, without what would still activate it: an
+// element's own props win over the card's, so an <a href> stays a link the
+// card cannot switch off from outside. Without an `href` it is neither
+// followed nor focusable, and without its `tabIndex` it is not focusable
+// either. Its `onClick` is replaced rather than removed, since a key the
+// element carries wins even when its value is undefined, and would drop the
+// card's own prevented click along with it.
+function withoutActivation(render: CardProps['render']): CardProps['render'] {
+  if (!isValidElement<Record<string, unknown>>(render)) {
+    return render
+  }
+  return cloneElement(render, {
+    href: undefined,
+    onClick: preventDefault,
+    tabIndex: undefined,
   })
 }
 

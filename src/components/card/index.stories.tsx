@@ -144,6 +144,25 @@ const Stretched: Story = {
   ),
 }
 
+// The cards page's disabled state for each variant: the container at 38%,
+// the outlined card's rule at 12%, the content faded with it, and the
+// elevated card flat. Each takes no press and no focus.
+const Disabled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Card interactive isDisabled variant="elevated">
+        {CONTENT}
+      </Card>
+      <Card interactive isDisabled variant="filled">
+        {CONTENT}
+      </Card>
+      <Card interactive isDisabled variant="outlined">
+        {CONTENT}
+      </Card>
+    </div>
+  ),
+}
+
 const Link: Story = {
   args: {
     interactive: true,
@@ -152,6 +171,6 @@ const Link: Story = {
   decorators: [Wide],
 }
 
-export { BorderedList, Default, Interactive, Link, Stretched }
+export { BorderedList, Default, Disabled, Interactive, Link, Stretched }
 
 export default meta
