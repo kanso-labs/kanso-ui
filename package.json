@@ -125,7 +125,7 @@
     "style-dictionary": "5.6.1",
     "tsdown": "0.23.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.1",
+    "typescript-eslint": "8.71.2",
     "vite": "8.3.4",
     "vitest": "4.1.11"
   },
