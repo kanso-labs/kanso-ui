@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.42.0](https://github.com/kanso-labs/kanso-ui/compare/v0.41.0...v0.42.0) (2026-10-12)
+
+
+### Features
+
+* **mark:** let Avatar and ProductIcon render as decorative ([#1647](https://github.com/kanso-labs/kanso-ui/issues/1647)) ([13da239](https://github.com/kanso-labs/kanso-ui/commit/13da2399750c3c320cd3044de92d3e21f0779083))
+
+
+### Bug Fixes
+
+* **app-bar:** type headingLevel as a heading level from 1 to 6 ([#1646](https://github.com/kanso-labs/kanso-ui/issues/1646)) ([90dca07](https://github.com/kanso-labs/kanso-ui/commit/90dca07918d121fad556aab09820236536456acc))
+* **mark:** draw a person glyph when a name yields no initials ([#1650](https://github.com/kanso-labs/kanso-ui/issues/1650)) ([5d75bc3](https://github.com/kanso-labs/kanso-ui/commit/5d75bc3a83e1c9f51c0d7418393a3312e024e500))
+* **mark:** load photos lazily through the real image and keep the previous one while a new src loads ([#1649](https://github.com/kanso-labs/kanso-ui/issues/1649)) ([0234ed7](https://github.com/kanso-labs/kanso-ui/commit/0234ed7a05c206ed62fda45625b337a062759bd4))
+
+
+### Dependencies
+
+* update dependency @chromatic-com/storybook to v5.5.0 ([#1652](https://github.com/kanso-labs/kanso-ui/issues/1652)) ([8476e0d](https://github.com/kanso-labs/kanso-ui/commit/8476e0d031ab950a70269064b9455c253aca06ff))
+
 ## [0.41.0](https://github.com/kanso-labs/kanso-ui/compare/v0.40.9...v0.41.0) (2026-10-12)
 
 
