@@ -1,5 +1,7 @@
 'use client'
 
+import type { ImgHTMLAttributes } from 'react'
+
 import type { RenderComponentProps } from '../../render/useRender'
 
 import Mark from '../../mark'
@@ -23,6 +25,22 @@ type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * @default false
    */
   decorative?: boolean
+  /**
+   * Attributes for the picture's own `<img>`: a `srcSet` and `sizes` for a
+   * screen's density, a `referrerPolicy` or `crossOrigin` for where it is
+   * served from, a `fetchPriority`, or `loading` and `decoding`, which are
+   * `lazy` and `async` unless given.
+   */
+  imgProps?: Pick<
+    ImgHTMLAttributes<HTMLImageElement>,
+    | 'crossOrigin'
+    | 'decoding'
+    | 'fetchPriority'
+    | 'loading'
+    | 'referrerPolicy'
+    | 'sizes'
+    | 'srcSet'
+  >
   /**
    * What this identifies. Supplies both the fallback initial and the
    * accessible name, so a screen reader announces the thing rather than

@@ -65,6 +65,8 @@ const markStyles = stylex.create({
     // Clips the image to the shape, so one of any aspect ratio can be handed
     // over without the call site having to crop it first.
     overflow: 'hidden',
+    // What the pictures are laid over the initials against.
+    position: 'relative',
     userSelect: 'none',
   },
   circle: {
@@ -87,9 +89,20 @@ const markStyles = stylex.create({
     inlineSize: '100%',
     justifyContent: 'center',
   },
+  // Laid over the initials and over the picture before it, filling the
+  // mark, so a new picture can load in place without moving anything.
   image: {
     blockSize: '100%',
+    boxSizing: 'border-box',
     inlineSize: '100%',
+    insetBlockStart: 0,
+    insetInlineStart: 0,
+    position: 'absolute',
+  },
+  // Loading: present, so the browser fetches it as it would any image in
+  // the viewport, and invisible until it has loaded.
+  imagePending: {
+    opacity: 0,
   },
   lg: {
     blockSize: '56px',

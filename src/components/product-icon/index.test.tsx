@@ -96,6 +96,30 @@ describe('the mark', () => {
     expect(view.container.querySelector('img')).toBeNull()
   })
 
+  // A theme swapping one logo for another used to show the tinted initial
+  // for as long as the new logo took to load. The logo before stays until
+  // the new one has, with no initial behind or between them.
+  it('keeps the mark before while a new one loads', async () => {
+    const view = render(<ProductIcon name="First item" src={WIDE_MARK} />)
+    await waitFor(() => {
+      const image = view.container.querySelector('img')
+      expect(image === null ? null : getComputedStyle(image).opacity).toBe('1')
+    })
+
+    view.rerender(
+      <ProductIcon
+        name="First item"
+        src="https://example.invalid/pending.png"
+      />,
+    )
+
+    expect(view.container.querySelectorAll('img')).toHaveLength(2)
+    expect(
+      getComputedStyle(view.container.querySelectorAll('img')[0]).opacity,
+    ).toBe('1')
+    expect(iconIn(view.container).textContent).toBe('')
+  })
+
   // The tint belongs to the fallback, not to the square. A mark is letterboxed
   // into that square and may be drawn with transparency, so a tone on the root
   // showed as a coloured box around every logo that was not an opaque square.
