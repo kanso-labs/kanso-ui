@@ -1,0 +1,177 @@
+{
+  "families": {
+    "opacity": "State-layer opacities: the on-colour of a container, painted over it at this strength.",
+    "radius": "Material Design's corner scale, from square to fully round.",
+    "shadow": "Two-layer key and ambient shadows, one per elevation level. Level 0 has none.",
+    "sizing": "Container heights from the Material Design spec pages. A component takes the step its spec names.",
+    "spacing": "A 4px grid. Stack's `gap` takes the same step names."
+  },
+  "palettes": {
+    "error": "Error tonal palette",
+    "negative": "Negative custom palette, for amounts the reader owes; kept apart from error",
+    "neutral": "Neutral tonal palette: surfaces, backgrounds and primary text",
+    "neutralVariant": "Neutral variant tonal palette: borders and muted text, tinted toward the brand hue",
+    "positive": "Positive custom palette, for amounts owed to the reader",
+    "primary": "Primary tonal palette, violet seed #6750a4",
+    "secondary": "Secondary tonal palette, a muted relative of primary",
+    "tertiary": "Tertiary tonal palette, roughly complementary to primary"
+  },
+  "styles": {
+    "bodyLarge": {
+      "sample": "Supporting line that runs long enough to wrap.",
+      "usage": "Running text and supporting lines."
+    },
+    "bodyMedium": {
+      "sample": "Supporting line that runs long enough to wrap.",
+      "usage": "Running text and supporting lines."
+    },
+    "bodySmall": {
+      "sample": "Supporting line that runs long enough to wrap.",
+      "usage": "Running text and supporting lines."
+    },
+    "displayLarge": {
+      "sample": "01 234",
+      "usage": "The largest text on a screen: a short hero number or statement."
+    },
+    "displayMedium": {
+      "sample": "01 234",
+      "usage": "The largest text on a screen: a short hero number or statement."
+    },
+    "displaySmall": {
+      "sample": "01 234",
+      "usage": "The largest text on a screen: a short hero number or statement."
+    },
+    "headlineLarge": {
+      "sample": "Headline",
+      "usage": "Page and section headings."
+    },
+    "headlineMedium": {
+      "sample": "Headline",
+      "usage": "Page and section headings."
+    },
+    "headlineSmall": {
+      "sample": "Headline",
+      "usage": "Page and section headings."
+    },
+    "labelLarge": {
+      "sample": "Label",
+      "usage": "Text inside controls: buttons, chips, tabs, field labels, badges."
+    },
+    "labelMedium": {
+      "sample": "Label",
+      "usage": "Text inside controls: buttons, chips, tabs, field labels, badges."
+    },
+    "labelSmall": {
+      "sample": "Label",
+      "usage": "Text inside controls: buttons, chips, tabs, field labels, badges."
+    },
+    "titleLarge": {
+      "sample": "Title",
+      "usage": "Card, dialog and list headings; `titleMedium` and `titleSmall` set controls' own titles."
+    },
+    "titleMedium": {
+      "sample": "Title",
+      "usage": "Card, dialog and list headings; `titleMedium` and `titleSmall` set controls' own titles."
+    },
+    "titleSmall": {
+      "sample": "Title",
+      "usage": "Card, dialog and list headings; `titleMedium` and `titleSmall` set controls' own titles."
+    }
+  },
+  "tokens": {
+    "kui-color-background": "The page behind every surface, from the older role set; the same tone as `kui-color-surface`, which components use instead.",
+    "kui-color-error": "Validation errors: an invalid field's outline, its supporting text and the error badge.",
+    "kui-color-error-container": "A quieter error fill for a design's own error banner. No component draws it.",
+    "kui-color-inverse-on-surface": "Text and icons on `kui-color-inverse-surface`.",
+    "kui-color-inverse-primary": "Primary actions on `kui-color-inverse-surface`, such as a snackbar's action.",
+    "kui-color-inverse-surface": "Surfaces that contrast with the page: snackbars, plain tooltips, the slider's value label.",
+    "kui-color-negative": "Money the reader owes, kept apart from validation errors: a negative `Currency`, `Text` tone `negative`, a negative `Tag`. Text on `kui-color-surface`.",
+    "kui-color-negative-container": "A quieter negative fill: a negative `Tag`, a negative avatar mark.",
+    "kui-color-on-background": "Text and icons on `kui-color-background`.",
+    "kui-color-on-error": "Text and icons on `kui-color-error`.",
+    "kui-color-on-error-container": "Text and icons on `kui-color-error-container`.",
+    "kui-color-on-negative": "Text and icons on `kui-color-negative`.",
+    "kui-color-on-negative-container": "Text and icons on `kui-color-negative-container`.",
+    "kui-color-on-positive": "Text and icons on `kui-color-positive`.",
+    "kui-color-on-positive-container": "Text and icons on `kui-color-positive-container`.",
+    "kui-color-on-primary": "Text and icons on `kui-color-primary`.",
+    "kui-color-on-primary-container": "Text and icons on `kui-color-primary-container`.",
+    "kui-color-on-primary-fixed": "Text and icons on `kui-color-primary-fixed` and `kui-color-primary-fixed-dim`.",
+    "kui-color-on-primary-fixed-variant": "Lower-emphasis text and icons on `kui-color-primary-fixed`.",
+    "kui-color-on-secondary": "Text and icons on `kui-color-secondary`.",
+    "kui-color-on-secondary-container": "Text and icons on `kui-color-secondary-container`.",
+    "kui-color-on-secondary-fixed": "Text and icons on `kui-color-secondary-fixed` and `kui-color-secondary-fixed-dim`.",
+    "kui-color-on-secondary-fixed-variant": "Lower-emphasis text and icons on `kui-color-secondary-fixed`.",
+    "kui-color-on-surface": "Body text, headings and icons on every surface and surface container.",
+    "kui-color-on-surface-variant": "Secondary text, supporting lines, placeholder text and inactive icons, on every surface and surface container.",
+    "kui-color-on-tertiary": "Text and icons on `kui-color-tertiary`.",
+    "kui-color-on-tertiary-container": "Text and icons on `kui-color-tertiary-container`.",
+    "kui-color-on-tertiary-fixed": "Text and icons on `kui-color-tertiary-fixed` and `kui-color-tertiary-fixed-dim`.",
+    "kui-color-on-tertiary-fixed-variant": "Lower-emphasis text and icons on `kui-color-tertiary-fixed`.",
+    "kui-color-outline": "Borders on interactive controls: an outlined field, an outlined button, a checkbox's box.",
+    "kui-color-outline-variant": "Dividers and decorative borders: `Separator`, an outlined card, table rules, tab rules; never alone on a control.",
+    "kui-color-positive": "Money owed to the reader and other good outcomes: a positive `Currency`, `Text` tone `positive`, a positive `Tag`. Text on `kui-color-surface`.",
+    "kui-color-positive-container": "A quieter positive fill: a positive `Tag`, a positive avatar mark.",
+    "kui-color-primary": "High-emphasis fills: filled buttons, the active indicator, focus rings, a selected control. Text in `kui-color-on-primary` sits on it.",
+    "kui-color-primary-container": "Prominent tonal fills quieter than primary: a primary FAB, a selected switch handle, a selected table row, the drop zone while a file is over it.",
+    "kui-color-primary-fixed": "A primary container that keeps one tone in both themes. Defined for themes; no component draws it.",
+    "kui-color-primary-fixed-dim": "A deeper fixed primary fill, the same in both themes. Defined for themes; no component draws it.",
+    "kui-color-scrim": "The dark layer behind a modal dialog, sheet or picker, applied with an opacity.",
+    "kui-color-secondary": "Less prominent accents than primary: secondary FABs, icon buttons and the navigation's selected icon.",
+    "kui-color-secondary-container": "Tonal buttons, the navigation active indicator, a selected chip or segmented button, the progress track.",
+    "kui-color-secondary-fixed": "A secondary container that keeps one tone in both themes. Defined for themes; no component draws it.",
+    "kui-color-secondary-fixed-dim": "A deeper fixed secondary fill, the same in both themes. Defined for themes; no component draws it.",
+    "kui-color-shadow": "The ink of elevation shadows.",
+    "kui-color-surface": "The default canvas: page backgrounds, outlined cards, app bars at rest. Paint a design's root with it.",
+    "kui-color-surface-bright": "The brightest surface, for content that comes forward. Defined for themes; no component draws it.",
+    "kui-color-surface-container": "The default container: the navigation bar, a scrolled app bar, toolbars, overlays.",
+    "kui-color-surface-container-high": "High-emphasis containers: dialogs, the date and time pickers, the search bar and search view.",
+    "kui-color-surface-container-highest": "The most prominent container: filled fields, filled cards, the switch track, a neutral `Tag`.",
+    "kui-color-surface-container-low": "Low-emphasis containers: elevated cards and buttons, menus, select and combo box lists, sheets.",
+    "kui-color-surface-container-lowest": "The lowest container: the light squares of the chequer behind a transparent colour swatch.",
+    "kui-color-surface-dim": "The dimmest surface, for content that sits back. Defined for themes; no component draws it.",
+    "kui-color-surface-tint": "The primary tint some surfaces blend in for elevation. Defined for themes; no component draws it.",
+    "kui-color-surface-variant": "A quieter surface from the older role set, used by the calendar's range fill; prefer a surface container.",
+    "kui-color-tertiary": "Contrasting accents that balance primary and secondary: the tertiary FAB.",
+    "kui-color-tertiary-container": "Tonal fills for a contrasting accent: a tertiary FAB, a tertiary avatar mark.",
+    "kui-color-tertiary-fixed": "A tertiary container that keeps one tone in both themes. Defined for themes; no component draws it.",
+    "kui-color-tertiary-fixed-dim": "A deeper fixed tertiary fill, the same in both themes. Defined for themes; no component draws it.",
+    "kui-radius-circle": "A circle on a square box: radio buttons, avatar marks, the loading indicator, slider handles.",
+    "kui-radius-lg": "Large shape: the FAB, the calendar and date pickers, a sheet's corners, a square button at `lg`.",
+    "kui-radius-md": "Medium shape: cards, the drop zone, popovers and other overlays, a square button at the smaller sizes.",
+    "kui-radius-none": "Square corners: a full-screen dialog, a sheet edge that meets the window, a segmented button's inner seams.",
+    "kui-radius-pill": "Fully rounded ends: buttons at rest, badges, the search bar, the navigation indicator, switches.",
+    "kui-radius-sm": "Small shape: chips, tags, the copy field, colour areas and sliders, the time picker's fields.",
+    "kui-radius-xl": "Extra-large shape: dialogs, sheets, the search view, carousel items, the time picker, the largest buttons and FAB.",
+    "kui-radius-xs": "Extra-small shape: fields, menus, selects, snackbars, plain tooltips, keycaps.",
+    "kui-shadow-elevation1": "Level 1: elevated cards, buttons and chips at rest; a modal sheet. Theme-invariant black; in dark mode elevation shows through the surface-container tones.",
+    "kui-shadow-elevation2": "Level 2: menus, popovers and pickers; a hovered elevated card or button. Theme-invariant black; in dark mode elevation shows through the surface-container tones.",
+    "kui-shadow-elevation3": "Level 3: dialogs, the FAB, the snackbar, the search view. Theme-invariant black; in dark mode elevation shows through the surface-container tones.",
+    "kui-shadow-elevation4": "Level 4: a hovered FAB, a dragged row. Theme-invariant black; in dark mode elevation shows through the surface-container tones.",
+    "kui-shadow-elevation5": "Level 5: the highest lift; no component draws it. Theme-invariant black; in dark mode elevation shows through the surface-container tones.",
+    "kui-sizing-control-lg": "The large control height: large buttons, the FAB, the search bar.",
+    "kui-sizing-control-md": "The medium control height: medium buttons, tabs, the snackbar's single line.",
+    "kui-sizing-control-sm": "The small control height: the default button and icon button, a segmented button.",
+    "kui-sizing-control-xl": "The extra-large control height: XL buttons and the large FAB.",
+    "kui-sizing-control-xs": "The extra-small control height: XS buttons and icon buttons, chips, the number field's steppers.",
+    "kui-sizing-control-xxl": "The largest control height: XXL buttons and icon buttons.",
+    "kui-sizing-row-lg": "Three-line list rows.",
+    "kui-sizing-row-md": "Two-line list rows.",
+    "kui-sizing-row-sm": "One-line list rows and table rows.",
+    "kui-sizing-row-xs": "Menu items and the shortest list row.",
+    "kui-spacing-lg": "The default padding: card and field insets, the page gutter on compact windows.",
+    "kui-spacing-md": "Padding inside compact containers and gaps between list content.",
+    "kui-spacing-sm": "Gaps between related controls: buttons in a row, chips in a group.",
+    "kui-spacing-xl": "Padding in dialogs and between sections of a card.",
+    "kui-spacing-xs": "Tight gaps inside a control: icon to label in a chip.",
+    "kui-spacing-xxl": "Gaps between page sections.",
+    "kui-spacing-xxs": "Hairline gaps: a badge's offset, the space between a label and its count.",
+    "kui-spacing-xxxl": "The widest gap: between unrelated page regions.",
+    "kui-state-layer-opacity-disabled-container": "A disabled control's container: `kui-color-on-surface` at this opacity.",
+    "kui-state-layer-opacity-disabled-content": "A disabled control's label and icon: `kui-color-on-surface` at this opacity.",
+    "kui-state-layer-opacity-dragged": "The on-colour layered over an item while dragged.",
+    "kui-state-layer-opacity-focus": "The on-colour layered over a container while focused by keyboard.",
+    "kui-state-layer-opacity-hover": "The on-colour layered over a container while hovered.",
+    "kui-state-layer-opacity-pressed": "The on-colour layered over a container while pressed, under the ripple."
+  }
+}
