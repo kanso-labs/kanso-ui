@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria/PortalProvider'
 
 import type { RenderComponentProps } from './render/useRender'
+import type { KuiTheme } from './tokens/theme'
 
 import { useRender } from './render/useRender'
 import { mergeStyles } from './styles/merge'
@@ -59,21 +60,32 @@ type ThemeScopeProps = RenderComponentProps<'div'> & {
    * pins, or the OS's.
    */
   scheme?: 'dark' | 'light' | undefined
+  /**
+   * `--kui-*` overrides for everything inside, as a map of the custom
+   * properties `tokens.css` lists to CSS values. The scope declares them on
+   * its own element, as an override in `style` would be, with `style` winning
+   * where the two set the same property.
+   *
+   * The values hold for both schemes. To give light and dark a value each,
+   * keep two maps and hand the scope the one for the scheme in use.
+   */
+  theme?: KuiTheme | undefined
 }
 
 /**
  * Themes what is inside it, overlays included.
  *
- * A `--kui-*` override declared on the scope — through `className` or
- * `style` — or on any element around it reaches every component inside,
+ * A `--kui-*` override declared on the scope — through `theme`, `className`
+ * or `style` — or on any element around it reaches every component inside,
  * where on any element but `<html>` it would otherwise reach none, since the
  * tokens resolve once on `:root`. Popovers, sheets, tooltips and toasts
  * opened inside portal into the scope rather than into the body, so they
  * follow it too. The rest of the page keeps its own tokens.
  *
  * ```tsx
- * // .accent { --kui-color-primary: #7d5260; }
- * <ThemeScope className="accent" scheme="dark">
+ * const accent: KuiTheme = { '--kui-color-primary': '#7d5260' }
+ *
+ * <ThemeScope scheme="dark" theme={accent}>
  *   <Select label="Label">…</Select>
  * </ThemeScope>
  * ```
@@ -87,7 +99,13 @@ type ThemeScopeProps = RenderComponentProps<'div'> & {
  * `render` swaps the element, for a scope that should be a `<main>`, a
  * `<section>`, or the `<body>` itself.
  */
-function ThemeScope({ children, render, scheme, ...props }: ThemeScopeProps) {
+function ThemeScope({
+  children,
+  render,
+  scheme,
+  theme,
+  ...props
+}: ThemeScopeProps) {
   // State rather than a ref, so the overlays render again once the container
   // exists. React Aria renders an overlay nowhere while `getContainer` hands
   // back nothing, and one open on the scope's first render would otherwise
@@ -106,7 +124,9 @@ function ThemeScope({ children, render, scheme, ...props }: ThemeScopeProps) {
           scheme !== undefined && schemes[scheme],
           scheme !== undefined && pinnedScheme[scheme],
         ),
-        props,
+        theme === undefined
+          ? props
+          : { ...props, style: { ...theme, ...props.style } },
       ),
       children: (
         <>
@@ -121,6 +141,7 @@ function ThemeScope({ children, render, scheme, ...props }: ThemeScopeProps) {
   })
 }
 
+export type { KuiTheme } from './tokens/theme'
 export type { ThemeScopeProps }
 
 export { ThemeScope }

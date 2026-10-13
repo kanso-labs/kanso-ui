@@ -650,4 +650,11 @@ describe('the main entry', () => {
       types: './dist/stylesheet.d.ts',
     })
   })
+
+  // The DTCG source as it stands in src/tokens, for a library that builds its
+  // own tokens from it. A bare target, since a JSON file needs no declaration:
+  // TypeScript reads its type off the file under `resolveJsonModule`.
+  it('publishes the token source', () => {
+    expect(packageJson.exports['./tokens.json']).toBe('./dist/tokens.json')
+  })
 })

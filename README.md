@@ -491,6 +491,11 @@ default value — useful for discovering names, not required at runtime
 import '@kanso-labs/kanso-ui/tokens.css'
 ```
 
+The tokens themselves, as the
+[W3C Design Tokens (DTCG)](https://design-tokens.github.io/community-group/format/)
+source they are built from, are published as `@kanso-labs/kanso-ui/tokens.json`,
+for a library or tool that builds its own output from the same values.
+
 ### A scheme from Material Theme Builder
 
 The colour roles are Material Design's, so a whole scheme can come from
@@ -562,28 +567,33 @@ every colour role `tokens.css` lists.
 The tokens resolve once, on `:root`, and every component inherits them already
 resolved, so a `--kui-*` property redeclared on a smaller element — a wrapping
 `<div>` — reaches nothing on its own. `ThemeScope` resolves them again on an
-element of its own. An override declared on the scope, through `className` or
-`style`, or on any element around it, reaches every component inside, and the
-rest of the page keeps its own tokens:
-
-```css
-.accent {
-  --kui-color-primary: #7d5260;
-  --kui-color-on-primary: #ffffff;
-}
-```
+element of its own. An override handed to the scope's `theme`, or declared on it
+through `className` or `style`, or on any element around it, reaches every
+component inside, and the rest of the page keeps its own tokens:
 
 ```tsx
-import { Select, ThemeScope } from '@kanso-labs/kanso-ui'
+import { type KuiTheme, Select, ThemeScope } from '@kanso-labs/kanso-ui'
+
+const accent: KuiTheme = {
+  '--kui-color-on-primary': '#ffffff',
+  '--kui-color-primary': '#7d5260',
+}
 
 function Section() {
   return (
-    <ThemeScope className="accent">
+    <ThemeScope theme={accent}>
       <Select label="Label">…</Select>
     </ThemeScope>
   )
 }
 ```
+
+`KuiTheme` is the list `tokens.css` declares, as a type: every property is
+optional, takes a value in CSS syntax, and shows its default in an editor. A
+class carrying the same declarations does the same job, for an app that would
+rather keep them in a stylesheet. `theme` holds one value per property for both
+schemes, so a theme with a light and a dark value is two maps, the scope handed
+the one for the scheme in use.
 
 `scheme` pins the scope to `'light'` or `'dark'`, whatever the OS asks for. Left
 unset, the scope keeps the scheme around it, so a scope inside a dark page stays
