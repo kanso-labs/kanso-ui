@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.42.1](https://github.com/kanso-labs/kanso-ui/compare/v0.42.0...v0.42.1) (2026-10-13)
+
+
+### Dependencies
+
+* update dependency @chromatic-com/storybook to v5.5.1 ([#1653](https://github.com/kanso-labs/kanso-ui/issues/1653)) ([8b06726](https://github.com/kanso-labs/kanso-ui/commit/8b06726986d59b66dbc8fba033fc304a14f3239a))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.26 ([#1654](https://github.com/kanso-labs/kanso-ui/issues/1654)) ([6743f56](https://github.com/kanso-labs/kanso-ui/commit/6743f561184ea009f51eb2c5b3640aea49e03247))
+* update dependency oxfmt to v0.73.0 ([#1658](https://github.com/kanso-labs/kanso-ui/issues/1658)) ([f8482f5](https://github.com/kanso-labs/kanso-ui/commit/f8482f53b1049aadbb38954eaa56927c5ab985e8))
+* update dependency typescript-eslint to v8.71.2 ([#1655](https://github.com/kanso-labs/kanso-ui/issues/1655)) ([be0d06b](https://github.com/kanso-labs/kanso-ui/commit/be0d06bff6f85ba61b7ab239a7fde5e40fe44139))
+* update storybook to v10.6.2 ([#1656](https://github.com/kanso-labs/kanso-ui/issues/1656)) ([09b841a](https://github.com/kanso-labs/kanso-ui/commit/09b841ae3be6c90d90b39b06453b393ce7850c0b))
+
 ## [0.42.0](https://github.com/kanso-labs/kanso-ui/compare/v0.41.0...v0.42.0) (2026-10-12)
 
 
