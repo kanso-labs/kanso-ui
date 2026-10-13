@@ -42,6 +42,7 @@
       ]
     },
     {
+      "description": "eslint-plugin-oxlint peers oxlint at a tilde range on its own minor, and is published hours to a day after it, or not at all: oxlint 1.74.0 never had one. Whenever oxlint landed first, Renovate's group carried it alone, its lockfile update failed on the peer, and every check died at npm ci, as on #1659. The overrides entry in package.json points the plugin's peer at the root's own oxlint, so oxlint moves on its own and the plugin follows when it is published. The plugin imports nothing from oxlint; it reads .oxlintrc.json to turn off the ESLint rules oxlint covers, so a minor apart costs at most a rule oxlint has just added being reported twice.",
       "groupName": "oxlint",
       "matchPackageNames": ["eslint-plugin-oxlint", "oxlint"]
     },
