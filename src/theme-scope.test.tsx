@@ -11,7 +11,7 @@ import Popover from './components/popover'
 import Sheet from './components/sheet'
 import Snackbar from './components/snackbar'
 import Tooltip from './components/tooltip'
-import { ThemeScope } from './theme-scope'
+import { type KuiTheme, ThemeScope } from './theme-scope'
 import { colors } from './tokens/design.tokens.stylex'
 
 // The scheme's primary in design.tokens.json, light and dark — the runner's
@@ -46,6 +46,14 @@ function luminanceOf(colour: string) {
 
 const OVERRIDE: CSSProperties & Record<'--kui-color-primary', string> = {
   '--kui-color-primary': OVERRIDDEN,
+}
+
+const THEME: KuiTheme = { '--kui-color-primary': OVERRIDDEN }
+
+// A second value for the same property, set through `style` beside `THEME`.
+const RESTYLED = 'rgb(4, 5, 6)'
+const RESTYLE: CSSProperties & Record<'--kui-color-primary', string> = {
+  '--kui-color-primary': RESTYLED,
 }
 
 const MARGIN = { marginTop: '3px' }
@@ -121,6 +129,37 @@ describe('theme scope', () => {
       )
 
       expect(colourOf(view.getByTestId('probe'))).toBe(OVERRIDDEN)
+    })
+
+    it('resolves a theme handed to it for everything inside', () => {
+      const view = render(
+        <ThemeScope theme={THEME}>
+          <Probe />
+        </ThemeScope>,
+      )
+
+      expect(colourOf(view.getByTestId('probe'))).toBe(OVERRIDDEN)
+    })
+
+    it('keeps the style it is handed beside a theme', () => {
+      const view = render(
+        <ThemeScope data-testid="scope" style={MARGIN} theme={THEME}>
+          <Probe />
+        </ThemeScope>,
+      )
+
+      expect(view.getByTestId('scope').style.marginTop).toBe('3px')
+      expect(colourOf(view.getByTestId('probe'))).toBe(OVERRIDDEN)
+    })
+
+    it('lets style win where it and the theme set the same property', () => {
+      const view = render(
+        <ThemeScope style={RESTYLE} theme={THEME}>
+          <Probe />
+        </ThemeScope>,
+      )
+
+      expect(colourOf(view.getByTestId('probe'))).toBe(RESTYLED)
     })
 
     it('resolves an override declared around it', () => {

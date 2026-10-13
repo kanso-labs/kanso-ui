@@ -92,13 +92,6 @@ export default defineConfig({
     babel({
       presets: [reactCompilerPreset({ panicThreshold: 'all_errors' })],
     }),
-    // design.tokens.css (the public CSS-custom-property override contract —
-    // see build-tokens.mjs) is written straight to src/tokens/ by Style
-    // Dictionary, not through rolldown's module graph, so nothing else
-    // copies it into the published package. writeBundle fires once per
-    // output format (esm, cjs); copying to the same dist/tokens.css both
-    // times is redundant but harmless, and simpler than detecting "first
-    // format wins".
     // The published types, made to stand without a `*.css` declaration of a
     // consumer's own. TypeScript 6 turns `noUncheckedSideEffectImports` on by
     // default, which makes a side-effect import of a file with no
@@ -136,11 +129,24 @@ export default defineConfig({
         )
       },
     },
+    // design.tokens.css (the public CSS-custom-property override contract —
+    // see build-tokens.mjs) is written straight to src/tokens/ by Style
+    // Dictionary, not through rolldown's module graph, so nothing else
+    // copies it into the published package. writeBundle fires once per
+    // output format (esm, cjs); copying to the same dist/tokens.css both
+    // times is redundant but harmless, and simpler than detecting "first
+    // format wins".
+    //
+    // design.tokens.json goes out beside it as dist/tokens.json, the DTCG
+    // source itself rather than anything built from it, for a library that
+    // builds its own tokens from the same file — react-native-kanso-ui reads
+    // it to give React Native the same `--kui-*` properties and defaults.
     {
-      name: 'copy-tokens-css',
+      name: 'copy-tokens',
       writeBundle() {
         mkdirSync('dist', { recursive: true })
         copyFileSync('src/tokens/design.tokens.css', 'dist/tokens.css')
+        copyFileSync('src/tokens/design.tokens.json', 'dist/tokens.json')
       },
     },
     // The StyleX plugin compiles every rule the library uses into one

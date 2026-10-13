@@ -8,7 +8,7 @@ import Popover from './components/popover'
 import Separator from './components/separator'
 import Stack from './components/stack'
 import Text from './components/text'
-import { ThemeScope as Scope } from './theme-scope'
+import { type KuiTheme, ThemeScope as Scope } from './theme-scope'
 import { colors, radii, spacing } from './tokens/design.tokens.stylex'
 
 // See getting-started.stories.tsx for why the page is built from the
@@ -19,15 +19,15 @@ const HEADING_1 = <h1 />
 const HEADING_2 = <h2 />
 const PARAGRAPH = <p />
 
+// The two roles a filled button reads, moved to the dark scheme's tertiary
+// pair, so the scope differs from the page in more than its scheme. Handed to
+// `theme`, the form the README shows.
+const ACCENT: KuiTheme = {
+  '--kui-color-on-primary': '#492532',
+  '--kui-color-primary': '#efb8c8',
+}
+
 const styles = stylex.create({
-  // An override written as an app's own stylesheet would write it: the two
-  // roles a filled button reads, moved to the dark scheme's tertiary pair, so
-  // the scope differs from the page in more than its scheme. A class rather
-  // than inline styles, the form the README shows.
-  accent: {
-    '--kui-color-on-primary': '#492532',
-    '--kui-color-primary': '#efb8c8',
-  },
   // A scope with nothing of its own but room around its text: no surface, no
   // text colour. What it paints is the pinned scheme's own.
   bare: {
@@ -112,7 +112,8 @@ function ThemeScopePage() {
         <Scope
           data-testid="scope"
           scheme="dark"
-          {...stylex.props(styles.panel, styles.accent)}
+          theme={ACCENT}
+          {...stylex.props(styles.panel)}
         >
           <Panel title="Scope" />
           {/* In a row of its own, so the trigger keeps its own width rather

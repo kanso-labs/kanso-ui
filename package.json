@@ -43,6 +43,7 @@
       "types": "./dist/stylesheet.d.ts",
       "default": "./dist/tokens.css"
     },
+    "./tokens.json": "./dist/tokens.json",
     "./package.json": "./package.json"
   },
   "sideEffects": [
