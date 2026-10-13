@@ -600,6 +600,38 @@ The two are different things: `styles.css` is the library's own compiled rules
 and is required, `tokens.css` is the `--kui-*` override contract and is a
 reference rather than a runtime dependency.
 
+## The design system artifact
+
+**The design system's source of truth is a Claude Design System artifact**,
+<https://claude.ai/artifact/TJSpYMBeBEMx1agnDVuZdv>: the tokens and their usage
+notes, the type styles and families, the brand book, and each component's
+guidelines and live preview. A person changes the design system there.
+`src/tokens/design.tokens.json` is the copy the packages build from — this
+library's StyleX tokens and `tokens.css`, and the `./tokens.json` export that
+react-native-kanso-ui reads — so a token edited in the artifact reaches both
+libraries through a pull request here, and one changed here reaches the artifact
+on the next sync.
+
+A daily routine runs the sync `.design-sync/artifact/README.md` sets out, after
+release-please's 09:00 UTC run. It brings the artifact's edits into a pull
+request from the `design-sync/artifact` branch, and publishes what changed here
+to the artifact: the bundle, the types, and the preview and guidelines of a
+component whose props, states or behaviour moved. A pull request here never
+updates the artifact itself. Three things follow from how it works:
+
+- **A token changed here survives the sync, and the artifact wins a clash.**
+  `tokens.mjs pull` applies only the fields the artifact changed since the
+  commit its `meta.ref` names, so a repository edit it never touched is kept;
+  where both sides changed one value, the artifact's lands and the pull request
+  names the clash.
+- **A token's usage note lives in `.design-sync/artifact/notes.json`**, since
+  the token file has no field for one. A note edited in the artifact comes back
+  into that file.
+- **`node .design-sync/artifact/tokens.mjs check` proves the mapping**: a pull
+  of an unedited build changes nothing, one edit of every kind lands, and a
+  repository edit survives. Run it after changing either direction; a field the
+  token file gains needs a place in both.
+
 ## The API reports
 
 **`etc/index.api.md` and `etc/date.api.md` are the package's public types, as a
