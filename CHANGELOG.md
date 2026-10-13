@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.43.0](https://github.com/kanso-labs/kanso-ui/compare/v0.42.2...v0.43.0) (2026-10-13)
+
+
+### Features
+
+* **theme-scope:** take a typed theme map and publish the token source ([#1663](https://github.com/kanso-labs/kanso-ui/issues/1663)) ([8ac1414](https://github.com/kanso-labs/kanso-ui/commit/8ac1414f675a13dc77614d2ec1ae300267eec08d))
+
+
+### Dependencies
+
+* update dependency eslint-plugin-oxlint to v1.88.0 ([#1665](https://github.com/kanso-labs/kanso-ui/issues/1665)) ([f62c7d1](https://github.com/kanso-labs/kanso-ui/commit/f62c7d1116bd3f698ba260d74f92f0a3295640f6))
+
 ## [0.42.2](https://github.com/kanso-labs/kanso-ui/compare/v0.42.1...v0.42.2) (2026-10-13)
 
 
