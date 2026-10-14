@@ -84,6 +84,14 @@ import {
 // to the same radius — so the size's pressed corner is the value it already
 // assigns to that size, used here at rest rather than invented.
 //
+// The circle is half the button's edge as a length, not the pill token's
+// 9999px. The browser draws a corner no larger than half the box but eases
+// the value as written, so from 9999px a press spent all but the last frame
+// or two of its 150ms above the 20dp a medium button can show: the corner
+// held round and then jumped. Nor is it 50%, which a standard ButtonGroup
+// would stretch into an ellipse as it narrows the buttons beside a pressed
+// one, where a length still draws their ends round.
+//
 // **Under forced colours a container is drawn as a rule, and a chosen toggle
 // as the mode's own chosen pair.** That mode paints author backgrounds in a
 // system colour and forces the icon's, which left a filled or tonal icon
@@ -119,7 +127,6 @@ const styles = stylex.create({
     alignItems: 'center',
     // The container's rule under forced colours — see the header.
     borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
-    borderRadius: radii.pill,
     borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
     borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
@@ -140,7 +147,6 @@ const styles = stylex.create({
     transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingEmphasized}`,
   },
   disabled: {
-    borderRadius: radii.pill,
     cursor: 'not-allowed',
   },
   filled: {
@@ -194,7 +200,6 @@ const styles = stylex.create({
   // difference that the reachable half was unreachable instead.
   lg: {
     blockSize: sizing.controlLg,
-    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlLg,
   },
@@ -207,7 +212,6 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlSm,
-    borderRadius: radii.pill,
     fontSize: '24px',
     inlineSize: sizing.controlSm,
   },
@@ -298,7 +302,6 @@ const styles = stylex.create({
   },
   xl: {
     blockSize: sizing.controlXl,
-    borderRadius: radii.pill,
     fontSize: '32px',
     inlineSize: sizing.controlXl,
   },
@@ -311,13 +314,11 @@ const styles = stylex.create({
       position: 'absolute',
     },
     blockSize: sizing.controlXs,
-    borderRadius: radii.pill,
     fontSize: '20px',
     inlineSize: sizing.controlXs,
   },
   xxl: {
     blockSize: sizing.controlXxl,
-    borderRadius: radii.pill,
     fontSize: '40px',
     inlineSize: sizing.controlXxl,
   },
@@ -484,11 +485,25 @@ const shifted = stylex.create({
   width: (value: string) => ({ inlineSize: value }),
 })
 
+// The circle each size rests at: half its edge, written as a length rather
+// than as the pill token's 9999px or as 50% — see the header. `min()` leaves
+// the pill token in charge below that, so a scheme that sets
+// `--kui-radius-pill` small still draws its icon buttons at that corner.
+// Applied after the size's style, and again for a disabled button, which
+// keeps its circle whether or not a press is still held.
+const roundShapes = stylex.create({
+  lg: { borderRadius: `min(${radii.pill}, calc(${sizing.controlLg} / 2))` },
+  md: { borderRadius: `min(${radii.pill}, calc(${sizing.controlSm} / 2))` },
+  xl: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXl} / 2))` },
+  xs: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXs} / 2))` },
+  xxl: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXxl} / 2))` },
+})
+
 // The corner each size presses to, which is the page's round-to-square
 // morph, and the corner a chosen toggle rests at. A style per size rather than
 // a value inside each size style, since StyleX replaces the property whole:
-// it comes after the size's circle while pressed, and after the disabled
-// style's circle too for a chosen toggle, which keeps its corner disabled.
+// it comes after the size's circle while pressed, and after a disabled
+// button's circle too for a chosen toggle, which keeps its corner disabled.
 const selectedShapes = stylex.create({
   lg: { borderRadius: radii.md },
   md: { borderRadius: radii.sm },
@@ -716,12 +731,14 @@ function iconButtonClasses(
       focus.ring,
       styles[variant],
       styles[size],
+      roundShapes[size],
       variant === 'outlined' && outlineWidths[size],
       state.isHovered && hovered[variant],
       state.isFocusVisible && focused[variant],
       state.isPressed && pressed[variant],
       state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
+      state.isDisabled && roundShapes[size],
       state.isDisabled && disabledStyles[variant],
       groupStyles(group, size, state),
     )
@@ -748,6 +765,7 @@ function toggleStyleProps(
         ? toggleStyles[variant].selected
         : toggleStyles[variant].unselected,
       styles[size],
+      roundShapes[size],
       // A chosen outlined toggle has a container rather than a rule, so the
       // width goes on only while it is unchosen.
       variant === 'outlined' &&
@@ -758,6 +776,7 @@ function toggleStyleProps(
       state.isPressed && pressed[container],
       state.isPressed && selectedShapes[size],
       state.isDisabled && styles.disabled,
+      state.isDisabled && roundShapes[size],
       state.isDisabled && disabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
       groupStyles(group, size, state),

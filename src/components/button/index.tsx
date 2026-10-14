@@ -114,13 +114,21 @@ import {
 // a text button given those props stays a plain one.
 //
 // **The corner is a shape the button morphs between**, from the page's size
-// token sets. `round` rests as the pill and `square` at the size's square
-// corner: 12dp up to the page's S, 16dp at M and 28dp above. A press tightens
-// either to the size's pressed corner, 8dp, 12dp or 16dp, and a toggle
-// trades its shape for the other once selected — a round one for the square
-// corner, a square one for the pill. The corner eases over the motion
-// tokens' short duration, and moves at once for a reader who asks for
-// reduced motion.
+// token sets. `round` rests at half the container's height, which is the pill
+// for a label on one line, and `square` at the size's square corner: 12dp up
+// to the page's S, 16dp at M and 28dp above. A press tightens either to the
+// size's pressed corner, 8dp, 12dp or 16dp, and a toggle trades its shape for
+// the other once selected — a round one for the square corner, a square one
+// for the round. The corner eases over the motion tokens' short duration, and
+// moves at once for a reader who asks for reduced motion.
+//
+// The round corner is a length rather than the pill token's 9999px, because
+// the browser draws a corner no larger than half the box and eases the value
+// as written. From 9999px a press spent all but the last frame or two of its
+// 150ms above the 20dp a medium button can show, so the corner held round and
+// then jumped. From half the height every frame of the ease is one the eye
+// can see. A label that wraps makes a button taller than that, and its ends a
+// little less than round, as a connected ButtonGroup's already are.
 //
 // What every button does past its own styles — the ripple, the link and
 // toggle forms, the pending ring, a parent's disabled state — is
@@ -146,7 +154,6 @@ const styles = stylex.create({
     alignItems: 'center',
     // The container's rule under forced colours — see the header.
     borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
-    borderRadius: radii.pill,
     borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
     borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
     boxSizing: 'border-box',
@@ -330,10 +337,6 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'HighlightText',
     },
   },
-  // The pill, for a square toggle once selected.
-  round: {
-    borderRadius: radii.pill,
-  },
   text: {
     backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
@@ -477,6 +480,18 @@ const PADDINGS = {
 // The padding a standard group sets while it widens or narrows the button.
 const shifted = stylex.create({
   padding: (value: string) => ({ paddingInline: value }),
+})
+
+// The round corner each size rests at, and a square toggle once selected:
+// half the container's height — see the header for why not the pill's
+// 9999px. `min()` leaves the pill token in charge below that, so a scheme
+// that sets `--kui-radius-pill` small still draws round buttons at its corner.
+const roundShapes = stylex.create({
+  lg: { borderRadius: `min(${radii.pill}, calc(${sizing.controlLg} / 2))` },
+  md: { borderRadius: `min(${radii.pill}, calc(${sizing.controlSm} / 2))` },
+  xl: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXl} / 2))` },
+  xs: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXs} / 2))` },
+  xxl: { borderRadius: `min(${radii.pill}, calc(${sizing.controlXxl} / 2))` },
 })
 
 // The square corner each size rests at, and a round toggle once selected.
@@ -873,7 +888,7 @@ function buttonClasses(
       focus.ring,
       styles[variant],
       styles[size],
-      shape === 'square' && squareShapes[size],
+      shape === 'square' ? squareShapes[size] : roundShapes[size],
       variant === 'outlined' && outlinedSizes[size],
       state.isHovered && hovered[variant],
       state.isFocusVisible && focused[variant],
@@ -928,8 +943,9 @@ function toggleClasses(
       styles[variant],
       styles[container],
       styles[size],
-      shape === 'square' && squareShapes[size],
-      isSelected && (shape === 'square' ? styles.round : squareShapes[size]),
+      shape === 'square' ? squareShapes[size] : roundShapes[size],
+      isSelected &&
+        (shape === 'square' ? roundShapes[size] : squareShapes[size]),
       variant === 'outlined' && outlinedSizes[size],
       state.isHovered && hovered[variant],
       state.isHovered && hovered[container],

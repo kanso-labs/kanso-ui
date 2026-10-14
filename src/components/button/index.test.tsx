@@ -98,7 +98,6 @@ const shapeProbeStyles = stylex.create({
   extraLarge: { borderRadius: radii.xl },
   large: { borderRadius: radii.lg },
   medium: { borderRadius: radii.md },
-  pill: { borderRadius: radii.pill },
   small: { borderRadius: radii.sm },
 })
 
@@ -1443,13 +1442,74 @@ describe('toggle', () => {
   })
 })
 
+// The transition moving an element's corner. The browser starts one per
+// longhand, whatever shorthand the style names, so one corner stands for all
+// four.
+function cornerTransition(element: Element) {
+  const transition = element
+    .getAnimations()
+    .find(
+      (animation): animation is CSSTransition =>
+        animation instanceof CSSTransition &&
+        animation.transitionProperty === 'border-top-left-radius',
+    )
+  if (transition === undefined) {
+    throw new Error('expected the corner to be transitioning')
+  }
+  return transition
+}
+
+// A computed length as a number of pixels.
+function px(value: string) {
+  return Number.parseFloat(value)
+}
+
 // The page's two shapes and its shape morph, from its size token sets.
 describe('shape', () => {
-  it('rests as the pill by default', () => {
+  // Half the height as a length, not the pill token's 9999px, which draws the
+  // same corner but is what a press eases from — see the component's header.
+  it.each(['xs', 'md', 'lg', 'xl', 'xxl'] as const)(
+    'rests a round %s button at half its height',
+    (size) => {
+      const { button } = setup({ size })
+      const { borderTopLeftRadius, height } = getComputedStyle(button)
+      expect(borderTopLeftRadius).toBe(`${px(height) / 2}px`)
+    },
+  )
+
+  // Paused halfway, the press's corner is one the button can draw, between
+  // where it rests and where it presses to. Eased from 9999px, the same
+  // moment read over a thousand pixels, which draws as the full round end:
+  // the corner held and then jumped in the last frames.
+  it('eases a press through corners the eye can see', () => {
+    const pressedCorner = px(resolved(shapeProbeStyles.small).radius)
     const { button } = setup()
-    expect(getComputedStyle(button).borderTopLeftRadius).toBe(
-      resolved(shapeProbeStyles.pill).radius,
-    )
+    const { borderTopLeftRadius, height } = getComputedStyle(button)
+    expect(pressedCorner).toBeLessThan(px(borderTopLeftRadius))
+
+    fireEvent.keyDown(button, { key: ' ' })
+    const transition = cornerTransition(button)
+    transition.pause()
+    transition.currentTime =
+      Number(transition.effect?.getComputedTiming().duration) / 2
+    const halfway = px(getComputedStyle(button).borderTopLeftRadius)
+    fireEvent.keyUp(button, { key: ' ' })
+
+    expect(halfway).toBeLessThan(px(height) / 2)
+    expect(halfway).toBeGreaterThan(pressedCorner)
+  })
+
+  // A scheme that draws its pill small draws a round button at that corner,
+  // as it did while the button rested at the pill itself.
+  it('takes a pill token set below half its height', () => {
+    const root = document.documentElement.style
+    root.setProperty('--kui-radius-pill', '2px')
+    try {
+      const { button } = setup()
+      expect(getComputedStyle(button).borderTopLeftRadius).toBe('2px')
+    } finally {
+      root.removeProperty('--kui-radius-pill')
+    }
   })
 
   it.each([
@@ -1493,17 +1553,21 @@ describe('shape', () => {
     },
   )
 
-  it('trades a round toggle for the square corner once selected, and a square one for the pill', () => {
+  it('trades a round toggle for the square corner once selected, and a square one for the round', () => {
     const square = resolved(shapeProbeStyles.medium).radius
-    const pill = resolved(shapeProbeStyles.pill).radius
-    expect(square).not.toBe(pill)
+    const plain = setup()
+    const round = getComputedStyle(plain.button).borderTopLeftRadius
+    plain.unmount()
+    expect(square).not.toBe(round)
 
-    const round = setup({ isSelected: true })
-    expect(getComputedStyle(round.button).borderTopLeftRadius).toBe(square)
-    round.unmount()
+    const roundToggle = setup({ isSelected: true })
+    expect(getComputedStyle(roundToggle.button).borderTopLeftRadius).toBe(
+      square,
+    )
+    roundToggle.unmount()
 
     const { button } = setup({ isSelected: true, shape: 'square' })
-    expect(getComputedStyle(button).borderTopLeftRadius).toBe(pill)
+    expect(getComputedStyle(button).borderTopLeftRadius).toBe(round)
   })
 
   // Which of the two states a disabled toggle is in should still be readable.
