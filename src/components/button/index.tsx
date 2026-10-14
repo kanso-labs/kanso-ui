@@ -11,6 +11,7 @@ import { useContext } from 'react'
 import { ToggleGroupStateContext } from 'react-aria-components'
 
 import type {
+  ButtonClassesState,
   ButtonDOMProps,
   ButtonLinkForm,
   ButtonPressForm,
@@ -132,8 +133,8 @@ import {
 // little less than round, as a connected ButtonGroup's already are.
 //
 // What every button does past its own styles — the ripple, the link and
-// toggle forms, the pending ring, a parent's disabled state — is
-// `src/button`'s, shared with IconButton.
+// toggle forms, the pending ring and `aria-busy`, a parent's disabled state
+// — is `src/button`'s, shared with IconButton.
 
 /**
  * The press area the buttons page requires, which its two smallest sizes are
@@ -340,6 +341,12 @@ const styles = stylex.create({
       default: colors.inverseOnSurface,
       [FORCED_COLORS]: 'HighlightText',
     },
+  },
+  // A pending button takes no press, and says so with the cursor that means
+  // work is under way rather than the pointer. Before the disabled cursor in
+  // every list, so a button both disabled and pending reads as disabled.
+  pending: {
+    cursor: 'progress',
   },
   text: {
     backgroundColor: 'transparent',
@@ -886,7 +893,7 @@ function buttonClasses(
   variant: ButtonVariant,
   group: ButtonGroupItem | null,
 ) {
-  return (state: ButtonState) =>
+  return (state: ButtonClassesState) =>
     stylex.props(
       styles.base,
       focus.ring,
@@ -899,6 +906,7 @@ function buttonClasses(
       state.isPressed && pressed[variant],
       state.isPressed && pressedShapes[size],
       groupStyles(group, size, variant, state),
+      state.isPending === true && styles.pending,
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )
@@ -937,7 +945,7 @@ function toggleClasses(
   variant: ToggleVariant,
   group: ButtonGroupItem | null,
 ) {
-  return (state: ButtonState) => {
+  return (state: ButtonClassesState) => {
     const isSelected = state.isSelected === true
     const container =
       toggleContainers[variant][isSelected ? 'selected' : 'unselected']
@@ -959,6 +967,7 @@ function toggleClasses(
       state.isPressed && pressed[container],
       state.isPressed && pressedShapes[size],
       groupStyles(group, size, variant, state),
+      state.isPending === true && styles.pending,
       state.isDisabled && styles.disabled,
       state.isDisabled && disabledStyles[variant],
     )

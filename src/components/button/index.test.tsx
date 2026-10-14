@@ -1047,6 +1047,72 @@ describe('pending', () => {
     expect(button.hasAttribute('disabled')).toBe(false)
     expect(button.getAttribute('aria-disabled')).toBe('true')
   })
+
+  // A press does nothing while the button is pending, so the pointer would
+  // promise one; the progress cursor says work is under way instead. A
+  // toggle on its own may be pending too, and draws it the same way.
+  it.each([
+    ['a button', {}],
+    ['a toggle', { isSelected: false, onChange: () => {} }],
+  ])('shows %s pending with the progress cursor', (_, props) => {
+    const pending = render(
+      <Button isPending {...props}>
+        Label
+      </Button>,
+    )
+    expect(getComputedStyle(pending.getByRole('button')).cursor).toBe(
+      'progress',
+    )
+    pending.unmount()
+
+    const idle = render(<Button {...props}>Label</Button>)
+    expect(getComputedStyle(idle.getByRole('button')).cursor).toBe('pointer')
+  })
+
+  it('keeps the disabled cursor on a button both disabled and pending', () => {
+    const view = render(
+      <Button isDisabled isPending>
+        Label
+      </Button>,
+    )
+    expect(getComputedStyle(view.getByRole('button')).cursor).toBe(
+      'not-allowed',
+    )
+  })
+
+  // The ring's progress bar sits inside the button, whose children are
+  // presentational, so assistive technology that flattens them never
+  // announces it. The button says it is busy itself.
+  it('marks the button itself busy while pending, and only then', () => {
+    const pending = render(<Button isPending>Label</Button>)
+    expect(pending.getByRole('button').getAttribute('aria-busy')).toBe('true')
+    pending.unmount()
+
+    const idle = render(<Button>Label</Button>)
+    expect(idle.getByRole('button').hasAttribute('aria-busy')).toBe(false)
+  })
+
+  it("leaves a call site's own aria-busy as it is", () => {
+    const view = render(
+      <Button aria-busy={false} isPending>
+        Label
+      </Button>,
+    )
+    expect(view.getByRole('button').getAttribute('aria-busy')).toBe('false')
+  })
+
+  // A link is never pending: the types refuse `isPending` beside `href`, and
+  // a call site that slips one past them gets the link it would have had,
+  // neither busy nor drawn with the progress cursor.
+  it('never draws a link as pending', () => {
+    const pendingLink = { href: '#a', isPending: true } as const
+    // @ts-expect-error -- a link is never pending
+    const view = render(<Button {...pendingLink}>Label</Button>)
+    const link = view.getByRole('link')
+
+    expect(link.hasAttribute('aria-busy')).toBe(false)
+    expect(getComputedStyle(link).cursor).toBe('pointer')
+  })
 })
 
 // A label the row is too narrow for wraps, as a German one does at phone
