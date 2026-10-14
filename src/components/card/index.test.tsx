@@ -6,7 +6,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Card from '.'
 import { rippleStyles } from '../../styles/ripple'
-import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+  transitionOf,
+} from '../../styles/stylesheet.testing'
 import {
   colors,
   radii,
@@ -488,6 +492,26 @@ describe('card', () => {
       expect(getComputedStyle(cardIn(elevated.container)).borderTopWidth).toBe(
         '0px',
       )
+    })
+
+    // The state layer and the elevated card's lift, each with a duration and
+    // a curve of its own. A static card has neither to ease.
+    it('eases an interactive card between states, and moves it at once for reduced motion', () => {
+      const view = render(<Card interactive>content</Card>)
+      const card = cardIn(view.container)
+      const { durations, easings, properties } = transitionOf(card)
+
+      expect(properties).toEqual(['background-color', 'box-shadow'])
+      expect(durations).toHaveLength(properties.length)
+      expect(easings).toHaveLength(properties.length)
+      for (const duration of durations) {
+        expect(Number.parseFloat(duration)).toBeGreaterThan(0)
+      }
+      expect(reducedMotionOf(card, 'transition-duration').reduced).toBe('0s')
+      view.unmount()
+
+      const still = render(<Card>content</Card>)
+      expect(transitionOf(cardIn(still.container)).durations).toEqual(['0s'])
     })
 
     it('casts a shadow on the elevated variant only', () => {

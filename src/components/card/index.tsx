@@ -13,6 +13,7 @@ import { focus } from '../../styles/focus'
 import { mergeStyles } from '../../styles/merge'
 import {
   colors,
+  motion,
   radii,
   shadows,
   spacing,
@@ -141,11 +142,22 @@ const styles = stylex.create({
   // `content`, its centring top to bottom. Without these an interactive card
   // would lay its contents out differently from a static one holding exactly
   // the same children.
+  //
+  // It also eases the state layers and the elevated card's lift between
+  // states, over the motion tokens' short duration on the standard curve, as
+  // Button's do, and moves them at once for a reader who asks for reduced
+  // motion.
   interactive: {
     cursor: 'pointer',
     font: 'inherit',
     inlineSize: '100%',
     textAlign: 'start',
+    transitionDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: `${motion.durationShort2}, ${motion.durationShort2}`,
+    },
+    transitionProperty: 'background-color, box-shadow',
+    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingStandard}`,
   },
   // An elevated or filled card that can be pressed is told apart from the
   // page by its container's fill and shadow, and forced colours removes the

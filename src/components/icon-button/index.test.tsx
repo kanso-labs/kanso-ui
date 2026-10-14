@@ -8,6 +8,7 @@ import { ButtonContext } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import IconButton from '.'
+import { reducedMotionOf, transitionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   radii,
@@ -502,6 +503,28 @@ describe('icon button', () => {
         expect(getComputedStyle(button).borderTopWidth).toBe(width)
         unmount()
       }
+    })
+
+    // The container, the rule an outlined toggle trades and the icon's
+    // colour, the corner for the shape morph and the width a standard
+    // ButtonGroup changes, each with a duration and a curve of its own.
+    it('eases its states and its corner, and moves them at once for reduced motion', () => {
+      const { button } = setup()
+      const { durations, easings, properties } = transitionOf(button)
+
+      expect(properties).toEqual([
+        'background-color',
+        'border-color',
+        'border-radius',
+        'color',
+        'inline-size',
+      ])
+      expect(durations).toHaveLength(properties.length)
+      expect(easings).toHaveLength(properties.length)
+      for (const duration of durations) {
+        expect(Number.parseFloat(duration)).toBeGreaterThan(0)
+      }
+      expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
     })
 
     it('draws no border on a variant that carries a container', () => {

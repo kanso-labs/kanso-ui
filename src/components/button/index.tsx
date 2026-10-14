@@ -119,8 +119,9 @@ import {
 // to the page's S, 16dp at M and 28dp above. A press tightens either to the
 // size's pressed corner, 8dp, 12dp or 16dp, and a toggle trades its shape for
 // the other once selected — a round one for the square corner, a square one
-// for the round. The corner eases over the motion tokens' short duration, and
-// moves at once for a reader who asks for reduced motion.
+// for the round. The corner eases over the motion tokens' short duration, as
+// the container, label and rule colours and the shadow do between states, and
+// all of them move at once for a reader who asks for reduced motion.
 //
 // The round corner is a length rather than the pill token's 9999px, because
 // the browser draws a corner no larger than half the box and eases the value
@@ -186,13 +187,16 @@ const styles = stylex.create({
     // same reason; without it the two disagreed about what a
     // link-as-control looks like.
     textDecoration: 'none',
-    // The shape morph — see the header.
+    // The state layers, the shadow's lift and the shape morph — see the
+    // header. The colours and the shadow take the standard curve and the
+    // shape and padding the emphasized one, so the three lists run in step.
     transitionDuration: {
       '@media (prefers-reduced-motion: reduce)': '0s',
-      default: motion.durationShort2,
+      default: `${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}`,
     },
-    transitionProperty: 'border-radius, padding',
-    transitionTimingFunction: motion.easingEmphasized,
+    transitionProperty:
+      'background-color, border-color, border-radius, box-shadow, color, padding',
+    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingStandard}, ${motion.easingStandard}, ${motion.easingEmphasized}`,
   },
   disabled: {
     cursor: 'not-allowed',
