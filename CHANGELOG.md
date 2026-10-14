@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.43.2](https://github.com/kanso-labs/kanso-ui/compare/v0.43.1...v0.43.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* **button,icon-button,card:** transition hover, focus and elevation changes ([#1673](https://github.com/kanso-labs/kanso-ui/issues/1673)) ([e1c6e3c](https://github.com/kanso-labs/kanso-ui/commit/e1c6e3c544b8e8992b89353b66e13ff620881598))
+* **button,icon-button:** animate the shape morph from a finite resting radius ([#1671](https://github.com/kanso-labs/kanso-ui/issues/1671)) ([562521b](https://github.com/kanso-labs/kanso-ui/commit/562521b5d3feb47d4c712137df415ebd8e772dab))
+
+
+### Dependencies
+
+* update dependency playwright to v1.64.1 ([#1674](https://github.com/kanso-labs/kanso-ui/issues/1674)) ([242d471](https://github.com/kanso-labs/kanso-ui/commit/242d4715a2004b514a541dd8ffc2d2c49d38099f))
+
 ## [0.43.1](https://github.com/kanso-labs/kanso-ui/compare/v0.43.0...v0.43.1) (2026-10-14)
 
 
