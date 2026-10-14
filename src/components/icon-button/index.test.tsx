@@ -51,7 +51,6 @@ const probeStyles = stylex.create({
   },
   primary: { backgroundColor: colors.primary },
   primaryText: { color: colors.primary },
-  radiusFull: { borderRadius: radii.pill },
   radiusSmall: { borderRadius: radii.sm },
   secondary: { backgroundColor: colors.secondary },
   secondaryContainer: { backgroundColor: colors.secondaryContainer },
@@ -70,6 +69,23 @@ function classesOf(style: StyleXStyles) {
   return classes
 }
 
+// The transition moving an element's corner. The browser starts one per
+// longhand, whatever shorthand the style names, so one corner stands for all
+// four.
+function cornerTransition(element: Element) {
+  const transition = element
+    .getAnimations()
+    .find(
+      (animation): animation is CSSTransition =>
+        animation instanceof CSSTransition &&
+        animation.transitionProperty === 'border-top-left-radius',
+    )
+  if (transition === undefined) {
+    throw new Error('expected the corner to be transitioning')
+  }
+  return transition
+}
+
 function probe(element: ReactElement) {
   const view = render(element)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -80,6 +96,11 @@ function probe(element: ReactElement) {
   }
   view.unmount()
   return read
+}
+
+// A computed length as a number of pixels.
+function px(value: string) {
+  return Number.parseFloat(value)
 }
 
 // Hoisted so neither is a new element or function per render, which is what
@@ -488,13 +509,58 @@ describe('icon button', () => {
       expect(getComputedStyle(button).borderTopWidth).toBe('0px')
     })
 
-    it('is a circle at rest', () => {
-      const expected = probe(
-        <div data-testid="probe" {...stylex.props(probeStyles.radiusFull)} />,
-      ).radius
-      const { button } = setup()
-      expect(getComputedStyle(button).borderTopLeftRadius).toBe(expected)
-      expect(expected).not.toBe('0px')
+    // Half its edge as a length, not the pill token's 9999px, which draws the
+    // same circle but is what a press eases from — see the header.
+    it.each(['xs', 'md', 'lg', 'xl', 'xxl'] as const)(
+      'rests a %s button as a circle of half its edge',
+      (size) => {
+        const { button } = setup({ size })
+        const { borderTopLeftRadius, height } = getComputedStyle(button)
+        expect(borderTopLeftRadius).toBe(`${px(height) / 2}px`)
+        expect(borderTopLeftRadius).not.toBe('0px')
+      },
+    )
+
+    // Paused halfway, the press's corner is one the button can draw, between
+    // the circle and the corner it presses to. Eased from 9999px, the same
+    // moment read over a thousand pixels, which draws as the full circle: the
+    // corner held and then jumped in the last frames.
+    it('eases a press through corners the eye can see', () => {
+      const pressedCorner = px(
+        probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.radiusSmall)}
+          />,
+        ).radius,
+      )
+      const { button } = setup({ variant: 'filled' })
+      const { borderTopLeftRadius, height } = getComputedStyle(button)
+      expect(pressedCorner).toBeLessThan(px(borderTopLeftRadius))
+
+      fireEvent.keyDown(button, { key: ' ' })
+      const transition = cornerTransition(button)
+      transition.pause()
+      transition.currentTime =
+        Number(transition.effect?.getComputedTiming().duration) / 2
+      const halfway = px(getComputedStyle(button).borderTopLeftRadius)
+      fireEvent.keyUp(button, { key: ' ' })
+
+      expect(halfway).toBeLessThan(px(height) / 2)
+      expect(halfway).toBeGreaterThan(pressedCorner)
+    })
+
+    // A scheme that draws its pill small draws the button at that corner, as
+    // it did while the button rested at the pill itself.
+    it('takes a pill token set below half its edge', () => {
+      const root = document.documentElement.style
+      root.setProperty('--kui-radius-pill', '2px')
+      try {
+        const { button } = setup()
+        expect(getComputedStyle(button).borderTopLeftRadius).toBe('2px')
+      } finally {
+        root.removeProperty('--kui-radius-pill')
+      }
     })
   })
 
@@ -725,9 +791,9 @@ describe('icon button', () => {
     // once chosen, at the corner its size otherwise presses to.
     describe('shape', () => {
       it('rests round while unchosen and square once chosen', () => {
-        const round = probe(
-          <div data-testid="probe" {...stylex.props(probeStyles.radiusFull)} />,
-        ).radius
+        const plain = setup()
+        const round = getComputedStyle(plain.button).borderTopLeftRadius
+        plain.unmount()
         const square = probe(
           <div
             data-testid="probe"
