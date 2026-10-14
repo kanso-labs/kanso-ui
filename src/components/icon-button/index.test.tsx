@@ -965,6 +965,58 @@ describe('icon button', () => {
       expect(button.hasAttribute('disabled')).toBe(false)
       expect(button.getAttribute('aria-disabled')).toBe('true')
     })
+
+    // As Button's: the progress cursor rather than a pointer promising a
+    // press, on a toggle on its own as on a plain button.
+    it.each([
+      ['a button', {}],
+      ['a toggle', { isSelected: false, onChange: () => {} }],
+    ])('shows %s pending with the progress cursor', (_, props) => {
+      const pending = render(
+        <IconButton aria-label="Add" isPending {...props}>
+          <svg />
+        </IconButton>,
+      )
+      expect(getComputedStyle(pending.getByRole('button')).cursor).toBe(
+        'progress',
+      )
+      pending.unmount()
+
+      const idle = render(
+        <IconButton aria-label="Add" {...props}>
+          <svg />
+        </IconButton>,
+      )
+      expect(getComputedStyle(idle.getByRole('button')).cursor).toBe('pointer')
+    })
+
+    it('keeps the disabled cursor on a button both disabled and pending', () => {
+      const view = render(
+        <IconButton aria-label="Add" isDisabled isPending>
+          <svg />
+        </IconButton>,
+      )
+      expect(getComputedStyle(view.getByRole('button')).cursor).toBe(
+        'not-allowed',
+      )
+    })
+
+    it('marks the button itself busy while pending, and only then', () => {
+      const pending = render(
+        <IconButton aria-label="Add" isPending>
+          <svg />
+        </IconButton>,
+      )
+      expect(pending.getByRole('button').getAttribute('aria-busy')).toBe('true')
+      pending.unmount()
+
+      const idle = render(
+        <IconButton aria-label="Add">
+          <svg />
+        </IconButton>,
+      )
+      expect(idle.getByRole('button').hasAttribute('aria-busy')).toBe(false)
+    })
   })
 })
 

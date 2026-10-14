@@ -14,6 +14,8 @@ import {
   ToggleButton as RACToggleButton,
 } from 'react-aria-components'
 
+import type { ElementProps } from '../render/aria'
+
 import ProgressIndicator from '../components/progress-indicator'
 import { useToggleGroupDisabled } from '../hooks/useToggleGroupDisabled'
 import { useMessages } from '../i18n'
@@ -31,7 +33,8 @@ import { buttonBaseStyles } from './styles'
 // `ToggleButton` inside a selecting group, and around each this adds what
 // React Aria leaves out: the ripple, the disabled state a parent's context
 // sets, the `aria-*` props and keyboard handlers it would drop or wrap, and
-// the ring drawn over the label while the button is pending. Each component
+// the ring drawn over the label while the button is pending, with the
+// `aria-busy` that says so. Each component
 // brings its own classes, as a function of the render state, and the call
 // site's `className` and `style` are merged over them.
 //
@@ -46,7 +49,7 @@ type ButtonBaseProps = {
    * The component's own classes, from the render state. The call site's
    * `className` and `style` are merged over them.
    */
-  classes: (state: ButtonState) => ReturnType<typeof stylex.props>
+  classes: (state: ButtonClassesState) => ReturnType<typeof stylex.props>
   className?: ClassNameOrFunction<ButtonState>
   disableRipple?: boolean
   href?: string
@@ -62,6 +65,14 @@ type ButtonBaseProps = {
   target?: string
 } & ButtonDOMProps &
   RefAttributes<HTMLAnchorElement | HTMLButtonElement>
+
+// The state a component's own classes are handed: the render state above,
+// and whether the button is pending, so the classes can draw it. React
+// Aria's `Button` reports that and its `Link` and `ToggleButton` do not, so
+// it is optional — a link, and a toggle in a selecting group, are never
+// pending — and it stays out of ButtonState, which a call site's own
+// `className` and `style` are written against.
+type ButtonClassesState = ButtonState & { isPending?: boolean }
 
 // The props a button hands React Aria. React Aria types the global DOM events
 // — pointer, mouse, touch, wheel and the rest — against the element each
@@ -167,6 +178,17 @@ type ToggleButtonBaseProps = {
 } & ButtonDOMProps &
   RefAttributes<HTMLAnchorElement | HTMLButtonElement>
 
+// A pending button says it is busy on the element itself. React Aria marks
+// it disabled and nests the ring's progress bar inside it, but a button's
+// children are presentational, and assistive technology that flattens them
+// never announces the bar. Only the button takes it, since a link is never
+// pending, and a call site's own `aria-busy` still wins.
+function busyElement(element: ElementProps, isPending: boolean) {
+  return isPending
+    ? { ...element, aria: { 'aria-busy': true, ...element.aria } }
+    : element
+}
+
 /**
  * A button drawn with the classes a component hands it: React Aria's
  * `Button`, or its `Link` given `href`. See the header.
@@ -234,7 +256,10 @@ function ButtonBase({
       isDisabled={disabled}
       isPending={isPending}
       ref={ref}
-      render={buttonRenderer(element, selectedRender(render, isSelected))}
+      render={buttonRenderer(
+        busyElement(element, isPending),
+        selectedRender(render, isSelected),
+      )}
       {...ripple.handlers}
       {...props}
       {...styleProps}
@@ -380,6 +405,7 @@ function toggleRender(
 }
 
 export type {
+  ButtonClassesState,
   ButtonDOMProps,
   ButtonForm,
   ButtonLinkForm,

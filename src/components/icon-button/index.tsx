@@ -11,7 +11,12 @@ import * as stylex from '@stylexjs/stylex'
 import { useContext } from 'react'
 import { ToggleGroupStateContext } from 'react-aria-components'
 
-import type { ButtonDOMProps, ButtonForm, ButtonState } from '../../button'
+import type {
+  ButtonClassesState,
+  ButtonDOMProps,
+  ButtonForm,
+  ButtonState,
+} from '../../button'
 import type { ButtonGroupItem } from '../../button/context'
 
 import { ButtonBase, ToggleButtonBase } from '../../button'
@@ -252,6 +257,10 @@ const styles = stylex.create({
       default: colors.inverseOnSurface,
       [FORCED_COLORS]: 'HighlightText',
     },
+  },
+  // The progress cursor while pending, as Button's; see there.
+  pending: {
+    cursor: 'progress',
   },
   // Transparent, so it tints whatever it is sitting on rather than carrying a
   // container of its own, as ListItem's rows do. The tint is its icon's
@@ -729,7 +738,7 @@ function iconButtonClasses(
   variant: IconButtonVariant,
   group: ButtonGroupItem | null,
 ) {
-  return (state: ButtonState) =>
+  return (state: ButtonClassesState) =>
     stylex.props(
       styles.base,
       focus.ring,
@@ -741,6 +750,7 @@ function iconButtonClasses(
       state.isFocusVisible && focused[variant],
       state.isPressed && pressed[variant],
       state.isPressed && selectedShapes[size],
+      state.isPending === true && styles.pending,
       state.isDisabled && styles.disabled,
       state.isDisabled && roundShapes[size],
       state.isDisabled && disabledStyles[variant],
@@ -757,7 +767,7 @@ function toggleStyleProps(
   variant: IconButtonVariant,
   group: ButtonGroupItem | null,
 ) {
-  return (state: IconButtonState) => {
+  return (state: ButtonClassesState) => {
     const container =
       toggleContainers[variant][
         state.isSelected === true ? 'selected' : 'unselected'
@@ -779,6 +789,7 @@ function toggleStyleProps(
       state.isFocusVisible && focused[container],
       state.isPressed && pressed[container],
       state.isPressed && selectedShapes[size],
+      state.isPending === true && styles.pending,
       state.isDisabled && styles.disabled,
       state.isDisabled && roundShapes[size],
       state.isDisabled && disabledStyles[variant],
