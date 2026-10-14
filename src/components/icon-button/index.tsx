@@ -72,10 +72,11 @@ import {
 // is the shape morph the icon buttons spec page gives this control, at the
 // pressed corner its size token set names: 8 for the two small sizes, 12 at
 // medium, 16 at the two large. Each size carries its own pressed radius, since
-// StyleX replaces the property whole. The two transitioned properties take
-// different curves — the colour change is linear-ish and the shape change is
-// emphasized — so the timing functions are a matching comma list rather than
-// one value.
+// StyleX replaces the property whole. The transitioned properties take two
+// curves — the container, icon and rule colours the standard one, the corner
+// and a group's change of width the emphasized one — so the timing functions
+// are a matching comma list rather than one value. All of them move at once
+// for a reader who asks for reduced motion.
 //
 // A chosen toggle rests at that same pressed corner, which is the page's
 // shape morph: a toggle icon button moves from round while unchosen to
@@ -123,7 +124,6 @@ const TARGET_SIZE = '48px'
 
 const styles = stylex.create({
   base: {
-    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
     // The container's rule under forced colours — see the header.
     borderColor: { default: null, [FORCED_COLORS]: 'ButtonText' },
@@ -142,9 +142,13 @@ const styles = stylex.create({
     // same reason; without it the two disagreed about what a
     // link-as-control looks like.
     textDecoration: 'none',
-    transitionDuration: `${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}`,
-    transitionProperty: 'background-color, border-radius, inline-size',
-    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingEmphasized}`,
+    transitionDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: `${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}, ${motion.durationShort2}`,
+    },
+    transitionProperty:
+      'background-color, border-color, border-radius, color, inline-size',
+    transitionTimingFunction: `${motion.easingStandard}, ${motion.easingStandard}, ${motion.easingEmphasized}, ${motion.easingStandard}, ${motion.easingEmphasized}`,
   },
   disabled: {
     cursor: 'not-allowed',

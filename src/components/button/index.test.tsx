@@ -12,6 +12,7 @@ import {
   declarationsHeld,
   reducedMotionOf,
   rulesReaching,
+  transitionOf,
   valueIn,
 } from '../../styles/stylesheet.testing'
 import {
@@ -1577,14 +1578,27 @@ describe('shape', () => {
     expect(getComputedStyle(button).borderTopLeftRadius).toBe(square)
   })
 
-  it('eases the corner, and moves it at once for reduced motion', () => {
+  // The state layers, the rule and the label a toggle trades, the shadow's
+  // lift, the corner for the shape morph and the padding a standard
+  // ButtonGroup widens a pressed button by, each with a duration and a curve
+  // of its own.
+  it('eases its states and its corner, and moves them at once for reduced motion', () => {
     const { button } = setup()
-    const computed = getComputedStyle(button)
+    const { durations, easings, properties } = transitionOf(button)
 
-    // The corner for the shape morph, and the padding a standard ButtonGroup
-    // widens a pressed button by.
-    expect(computed.transitionProperty).toBe('border-radius, padding')
-    expect(Number.parseFloat(computed.transitionDuration)).toBeGreaterThan(0)
+    expect(properties).toEqual([
+      'background-color',
+      'border-color',
+      'border-radius',
+      'box-shadow',
+      'color',
+      'padding',
+    ])
+    expect(durations).toHaveLength(properties.length)
+    expect(easings).toHaveLength(properties.length)
+    for (const duration of durations) {
+      expect(Number.parseFloat(duration)).toBeGreaterThan(0)
+    }
     expect(reducedMotionOf(button, 'transition-duration').reduced).toBe('0s')
   })
 })

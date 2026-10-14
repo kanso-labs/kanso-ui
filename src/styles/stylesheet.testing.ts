@@ -68,6 +68,15 @@ function declarationsHeld(
 }
 
 /**
+ * A computed comma list's entries, split on the commas between them rather
+ * than the ones inside a function's parentheses: `cubic-bezier(0.2, 0, 0, 1)`
+ * is one entry.
+ */
+function entriesOf(list: string) {
+  return list.split(/,(?![^(]*\))/u).map((entry) => entry.trim())
+}
+
+/**
  * What `property` rests at on `element`, and what
  * `@media (prefers-reduced-motion: reduce)` gives it — the pair a test of a
  * transition or an animation pins together, since a duration of `0s` in both
@@ -157,6 +166,24 @@ function rulesReaching(
 }
 
 /**
+ * An element's transition as the page computes it, as three lists — the
+ * properties, their durations and their curves — so a test can hold them to
+ * one length. A list shorter than the properties repeats from its start, so a
+ * single duration silently reaches every property, including one added after
+ * it was written. Not a walk, since nothing here is behind a query; it sits
+ * beside `reducedMotionOf` because the two are read together.
+ */
+function transitionOf(element: Element) {
+  const computed = getComputedStyle(element)
+
+  return {
+    durations: entriesOf(computed.transitionDuration),
+    easings: entriesOf(computed.transitionTimingFunction),
+    properties: entriesOf(computed.transitionProperty),
+  }
+}
+
+/**
  * The value the last of `rules` to set `property` gives it, which is the one
  * the page applies, or `undefined` where none does.
  */
@@ -176,4 +203,10 @@ function valueIn(rules: readonly ReachingRule[], property: string) {
 
 export type { ReachingRule }
 
-export { declarationsHeld, reducedMotionOf, rulesReaching, valueIn }
+export {
+  declarationsHeld,
+  reducedMotionOf,
+  rulesReaching,
+  transitionOf,
+  valueIn,
+}
