@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.43.3](https://github.com/kanso-labs/kanso-ui/compare/v0.43.2...v0.43.3) (2026-10-14)
+
+
+### Bug Fixes
+
+* **button:** show a pending button as busy ([#1675](https://github.com/kanso-labs/kanso-ui/issues/1675)) ([9f0922a](https://github.com/kanso-labs/kanso-ui/commit/9f0922a6546cdef7df849c898dfd3c5b9c46276b))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.29 ([#1676](https://github.com/kanso-labs/kanso-ui/issues/1676)) ([faab2c0](https://github.com/kanso-labs/kanso-ui/commit/faab2c067d43c11c0fd35ddb394a7a1d02813a1a))
+* update node.js to v24.22.0 ([#1682](https://github.com/kanso-labs/kanso-ui/issues/1682)) ([247e6fe](https://github.com/kanso-labs/kanso-ui/commit/247e6feaa38538301995b7193b63f25ca8dc241d))
+
 ## [0.43.2](https://github.com/kanso-labs/kanso-ui/compare/v0.43.1...v0.43.2) (2026-10-14)
 
 
