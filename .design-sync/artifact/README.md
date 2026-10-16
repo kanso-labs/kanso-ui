@@ -92,8 +92,11 @@ copy.
    this commit. A later pull then finds the same unreleased edits again, which
    keeps the pull request from step 2 current until it merges.
 4. **Bring the repository's changes into the artifact.** Diff
-   `git diff <meta.ref sha> HEAD` over `src/components`, `src/index.ts`,
-   `src/react-aria.ts`, `src/theme-scope.tsx`, `src/tokens` and `README.md`.
+   `git diff <meta.ref sha> HEAD -- src README.md ':!src/**/*.test.*' ':!src/**/*.testing.ts' ':!src/**/*.stories.*'`.
+   That is all of `src` rather than `src/components` alone, because the shared
+   internals beside it — `src/button`, `src/field`, `src/row` and the rest —
+   change every component that draws them: `aria-busy` reached `Button` and
+   `IconButton` through `src/button` alone.
    For each component whose props, states or behaviour changed, read its
    `preview.html` and `README.md` from the artifact, update them, and add a new
    component's pair, its marker's `group` one of the groups the others use. A
