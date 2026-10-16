@@ -796,7 +796,11 @@ Four things about them are worth knowing before adding another:
 - **Each of them pins its scheme with `globals`**, which beat both the toolbar
   and a mode's globals, so the page renders the same whatever is asked of it.
   That also makes the project's light and dark modes redundant there, which is
-  why the meta disables the dark one — one snapshot per scheme.
+  why the meta disables the dark one. What Chromatic snapshots is not the page
+  but its two halves, `FirstHalf` and `SecondHalf`, which the file exports
+  beside it under `!dev`: Chromatic refuses a snapshot over 25 million pixels,
+  and the whole page reached that, so a new scheme carries the same pair and
+  `disableSnapshot` on its own story.
 
 **A new component goes into `src/theming/showcase.tsx` too, not only into its
 own stories.** That page is the only one rendering the whole library at once

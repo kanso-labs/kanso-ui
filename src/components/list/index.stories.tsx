@@ -208,7 +208,12 @@ const Loading: Story = {
 // gives the drag its styled line and preview without wiring either.
 const Reorderable: Story = {
   play: async ({ canvas, userEvent }) => {
-    const [handle] = canvas.getAllByRole('button', { name: 'Reorder' })
+    // Found rather than got: in a built Storybook, which is what Chromatic
+    // captures, the list's rows arrive a render after the story mounts, so
+    // the play starts on an empty grid. The dev server the test run uses
+    // happens to have them in place already, which is why only Chromatic
+    // ever saw it.
+    const [handle] = await canvas.findAllByRole('button', { name: 'Reorder' })
     handle.focus()
     await userEvent.keyboard('{Enter}')
     // React Aria puts focus on the first place the row could land a frame
