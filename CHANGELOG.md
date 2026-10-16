@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.43.5](https://github.com/kanso-labs/kanso-ui/compare/v0.43.4...v0.43.5) (2026-10-16)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.13.0 ([#1694](https://github.com/kanso-labs/kanso-ui/issues/1694)) ([a652d9e](https://github.com/kanso-labs/kanso-ui/commit/a652d9e0e423ab61d10216df211353046472f5ca))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.31 ([#1689](https://github.com/kanso-labs/kanso-ui/issues/1689)) ([172f1cb](https://github.com/kanso-labs/kanso-ui/commit/172f1cb289f5217bc8404d2d09771cca6696c13b))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.32 ([#1693](https://github.com/kanso-labs/kanso-ui/issues/1693)) ([4464151](https://github.com/kanso-labs/kanso-ui/commit/4464151251241f2ec414b13a7ae2e87f9a1cb10a))
+* update dependency eslint to v10.13.0 ([#1695](https://github.com/kanso-labs/kanso-ui/issues/1695)) ([c6ccd5c](https://github.com/kanso-labs/kanso-ui/commit/c6ccd5cb51479cc4b1717b06ea645c8cac3bfc8b))
+* update dependency style-dictionary to v5.7.0 ([#1692](https://github.com/kanso-labs/kanso-ui/issues/1692)) ([126adde](https://github.com/kanso-labs/kanso-ui/commit/126addecb240aa5be0fd407786b3d710d68b7e97))
+* update vitest to v4.1.12 ([#1690](https://github.com/kanso-labs/kanso-ui/issues/1690)) ([78614b3](https://github.com/kanso-labs/kanso-ui/commit/78614b3b2d77890f6e367a830e6e6e112c56a1c7))
+
 ## [0.43.4](https://github.com/kanso-labs/kanso-ui/compare/v0.43.3...v0.43.4) (2026-10-15)
 
 
