@@ -1,6 +1,8 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
+import type { ShowcaseProps } from './showcase'
+
 import Showcase from './showcase'
 
 // The showcase is the only page that draws the whole library under a scheme
@@ -29,6 +31,16 @@ const EXPECTED = Object.keys(import.meta.glob('../components/*/index.tsx'))
       .join(''),
   )
 
+// The section headings a render of the page draws, in order, scoped as the
+// first case below explains.
+function titlesOf(half?: ShowcaseProps['half']) {
+  const { container } = render(<Showcase half={half} name="editorial" />)
+
+  return [...container.querySelectorAll('section > div > h2')].map(
+    (heading) => heading.textContent,
+  )
+}
+
 describe('the showcase', () => {
   // What this catches is omission, not hollowness: a Section with a title and
   // no children satisfies it. That is deliberate — AppBar's own section is
@@ -55,5 +67,16 @@ describe('the showcase', () => {
 
     expect({ missing, unexpected }).toEqual({ missing: [], unexpected: [] })
     expect(titles).toHaveLength(EXPECTED.length)
+  })
+
+  // Chromatic snapshots the two halves rather than the page, so a section
+  // neither half draws is one no snapshot ever shows.
+  it('draws every section in exactly one half', () => {
+    const first = titlesOf('first')
+    const second = titlesOf('second')
+
+    expect(first.length).toBeGreaterThan(0)
+    expect(second.length).toBeGreaterThan(0)
+    expect([...first, ...second]).toEqual(titlesOf())
   })
 })

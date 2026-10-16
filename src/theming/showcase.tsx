@@ -25,6 +25,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { createContext, useContext } from 'react'
 import { TokenFieldValue } from 'react-aria-components'
 
 import type { DemoThemeName } from './themes'
@@ -432,7 +433,16 @@ type SectionProps = {
   title: string
 }
 
+type ShowcaseHalf = 'first' | 'second'
+
 type ShowcaseProps = {
+  /**
+   * Which half of the sections the page draws, or all of them when left out.
+   * Chromatic caps a snapshot at 25 million pixels, which the whole page has
+   * reached at the width it captures, so it snapshots the page as two halves
+   * instead — see `HALF_BOUNDARY`.
+   */
+  half?: ShowcaseHalf
   /**
    * Which scheme the page names — the same one its story pins the toolbar
    * to. `dark` is the library's own dark theme, which the accessibility
@@ -440,6 +450,17 @@ type ShowcaseProps = {
    */
   name: 'dark' | DemoThemeName
 }
+
+// Where the second half starts: a section whose title sorts before this is in
+// the first. Split by name rather than by count so a component added to the
+// page lands in the same half as its neighbours, and at M because that is
+// about halfway down the page, leaving each half room to nearly double before
+// it reaches the cap again.
+const HALF_BOUNDARY = 'M'
+
+// The half the page is drawing, read by each section rather than passed to
+// it, so the page stays a plain list of sections.
+const HalfContext = createContext<ShowcaseHalf | undefined>(undefined)
 
 // What the page says about the library's own dark theme, which is no demo
 // scheme and so has no entry beside them.
@@ -508,6 +529,13 @@ function Placeholder({ children }: PlaceholderProps) {
 // two sections at the call site, so a section is one element and the page is
 // the list of them.
 function Section({ children, description, title }: SectionProps) {
+  const half = useContext(HalfContext)
+  const ownHalf = title < HALF_BOUNDARY ? 'first' : 'second'
+
+  if (half !== undefined && half !== ownHalf) {
+    return null
+  }
+
   return (
     <section {...stylex.props(styles.section)}>
       <Separator />
@@ -529,7 +557,17 @@ function Section({ children, description, title }: SectionProps) {
  * around it changes, so anything that differs between two of them is something
  * a token moved.
  */
-function Showcase({ name }: ShowcaseProps) {
+function Showcase({ half, name }: ShowcaseProps) {
+  return (
+    <HalfContext value={half}>
+      <ShowcasePage name={name} />
+    </HalfContext>
+  )
+}
+
+// The page itself, apart from `Showcase` so the half it draws reaches every
+// section through context while the page stays a plain list of them.
+function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
   const { description, label } =
     name === 'dark' ? LIBRARY_DARK : demoThemes[name]
 
