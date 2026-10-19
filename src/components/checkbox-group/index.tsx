@@ -9,6 +9,7 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import { CheckboxGroup as RACCheckboxGroup } from 'react-aria-components'
 
+import { controlStyles } from '../../control/styles'
 import { FieldLabel, FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
 import { groupStyles } from '../../field/styles'
@@ -20,13 +21,6 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // whole — and its label, description and error are the field chrome's, so a
 // group reads like the fields beside it. The label is label-large, the role
 // a field's label takes at rest, since a group has no box to float it in.
-const styles = stylex.create({
-  items: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-})
-
 type CheckboxGroupProps = {
   /** The checkboxes, each with a `value` of its own. */
   children?: ReactNode
@@ -99,7 +93,7 @@ function groupContent(
       <FieldLabel isRequired={state.isRequired} state={state} variant="group">
         {label}
       </FieldLabel>
-      <div {...stylex.props(styles.items)}>{children}</div>
+      <div {...stylex.props(controlStyles.stack)}>{children}</div>
       <FieldMessage description={description} error={error} inset={false} />
     </>
   )

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import Button from '../components/button'
 import Checkbox from '../components/checkbox'
+import CheckboxGroup from '../components/checkbox-group'
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import IconButton from '../components/icon-button'
@@ -30,6 +31,9 @@ const ROOM = { padding: '24px' }
 // Narrow enough that three chips wrap onto more than one row, so the gap
 // between rows is there to be measured across.
 const NARROW = { inlineSize: '160px', padding: '24px' }
+
+// Narrower than two radio buttons with their labels side by side.
+const WRAPPING = { inlineSize: '160px' }
 
 // A remove handler that does nothing, hoisted so its identity is stable,
 // which is what react-perf is after. What is measured is the target, not
@@ -163,6 +167,125 @@ describe('the 40dp control, which presses to 48', () => {
       })
     },
   )
+})
+
+// Three options of each group, one under another as a group draws them.
+const STACKED: ReadonlyArray<{ element: ReactElement; name: string }> = [
+  {
+    element: (
+      <CheckboxGroup label="Group">
+        <Checkbox value="first">First item</Checkbox>
+        <Checkbox value="second">Second item</Checkbox>
+        <Checkbox value="third">Third item</Checkbox>
+      </CheckboxGroup>
+    ),
+    name: 'CheckboxGroup',
+  },
+  {
+    element: (
+      <RadioGroup label="Group">
+        <Radio value="first">First item</Radio>
+        <Radio value="second">Second item</Radio>
+        <Radio value="third">Third item</Radio>
+      </RadioGroup>
+    ),
+    name: 'RadioGroup',
+  },
+  // Too narrow for two options on a line, so a horizontal group wraps each
+  // onto a line of its own and stacks them after all.
+  {
+    element: (
+      <div style={WRAPPING}>
+        <RadioGroup label="Group" orientation="horizontal">
+          <Radio value="first">First item</Radio>
+          <Radio value="second">Second item</Radio>
+          <Radio value="third">Third item</Radio>
+        </RadioGroup>
+      </div>
+    ),
+    name: 'a horizontal RadioGroup that wraps',
+  },
+]
+
+/** The 40dp layer of the option labelled `text`. */
+function discOf(view: ReturnType<typeof render>, text: string) {
+  const label = view.getByText(text).closest('label')
+
+  if (label === null) {
+    throw new Error(`expected ${text} inside a label`)
+  }
+
+  return drawnAt(label, 40, 40)
+}
+
+describe('a group of them, whose targets meet without overlapping', () => {
+  // A target reaching into the next row's is painted under that row's, so
+  // the press went to whichever row came later: the bottom of one option's
+  // visible layer toggled the option below it.
+  it.each(STACKED)(
+    "keeps a press anywhere on an option's layer on that option in $name",
+    ({ element }) => {
+      const view = renderWithRoom(element)
+
+      for (const text of ['First item', 'Second item', 'Third item']) {
+        expect(reaches(discOf(view, text), -1)).toEqual({
+          above: true,
+          before: true,
+          below: true,
+        })
+      }
+    },
+  )
+
+  it.each(STACKED)(
+    'still reaches 4dp past the layer between two options in $name',
+    ({ element }) => {
+      const view = renderWithRoom(element)
+      const reach = (TARGET - 40) / 2
+
+      expect(reaches(discOf(view, 'Second item'), reach - 1)).toEqual({
+        above: true,
+        before: true,
+        below: true,
+      })
+    },
+  )
+})
+
+// The 8dp between the control and its label, which a gap left to the grid:
+// the target covered the first 4dp of it and the label started after the
+// rest, so a press in between toggled nothing.
+describe('the space between a control and its label', () => {
+  const ROWS: ReadonlyArray<{
+    element: ReactElement
+    name: string
+    width: number
+  }> = [
+    { element: <Checkbox>Label</Checkbox>, name: 'Checkbox', width: 40 },
+    {
+      element: (
+        <RadioGroup label="Group">
+          <Radio value="first">Label</Radio>
+        </RadioGroup>
+      ),
+      name: 'Radio',
+      width: 40,
+    },
+    { element: <Switch>Label</Switch>, name: 'Switch', width: 52 },
+  ]
+
+  it.each(ROWS)('belongs to the control in $name', ({ element, width }) => {
+    const view = renderWithRoom(element)
+    const control = drawnAt(view.container, width, 40)
+    const box = control.getBoundingClientRect()
+    const middle = box.top + box.height / 2
+
+    for (const past of [1, 3, 5, 7]) {
+      expect(
+        document.elementFromPoint(box.right + past, middle)?.closest('label'),
+      ).toBe(control.closest('label'))
+    }
+  })
 })
 
 describe('the switch, whose track carries its own layer', () => {
