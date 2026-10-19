@@ -57,11 +57,7 @@ function firePointer(
 
 /** Whether `host` holds a ripple surface at all. */
 function hasRipple(host: Element) {
-  return [...host.querySelectorAll('span')].some(
-    (span) =>
-      surfaceClassNames.length > 0 &&
-      surfaceClassNames.every((name) => span.classList.contains(name)),
-  )
+  return [...host.querySelectorAll('span')].some(isSurface)
 }
 
 /**
@@ -105,6 +101,28 @@ function isPressed(host: Element) {
   )
 }
 
+// Whether `span` is a ripple surface: the box the ripple fills and is
+// clipped to.
+function isSurface(span: Element) {
+  return (
+    surfaceClassNames.length > 0 &&
+    surfaceClassNames.every((name) => span.classList.contains(name))
+  )
+}
+
+/**
+ * The ripple surface `host` holds, for a test reading the corner the ripple
+ * is clipped to. Throws where there is none, so a host that lost its ripple
+ * fails as that rather than as a corner read off nothing.
+ */
+function surfaceOf(host: Element) {
+  const surface = [...host.querySelectorAll('span')].find(isSurface)
+  if (surface === undefined) {
+    throw new Error('expected the host to hold a ripple surface')
+  }
+  return surface
+}
+
 export {
   advance,
   firePointer,
@@ -112,4 +130,5 @@ export {
   installFakeAnimate,
   isPressed,
   MINIMUM_PRESS_MS,
+  surfaceOf,
 }

@@ -22,6 +22,7 @@ import {
   installFakeAnimate,
   isPressed,
   MINIMUM_PRESS_MS,
+  surfaceOf,
 } from '../../hooks/useRipple.testing'
 import { rowStyles } from '../../row/styles'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
@@ -119,6 +120,18 @@ describe('navigation tree', () => {
       firePointer(row, 'pointerup', { buttons: 0 })
       await advance(MINIMUM_PRESS_MS)
       expect(isPressed(row)).toBe(false)
+    })
+
+    // A drawer row is a pill, and React Aria puts a cell with a square corner
+    // of its own between the row and its content, so a ripple inheriting its
+    // corner from its parent painted past the pill's ends.
+    it("clips the ripple to the row's pill", () => {
+      const view = render(<Basic />)
+      const [row] = view.getAllByRole('row')
+      const pill = getComputedStyle(row).borderRadius
+
+      expect(Number.parseFloat(pill)).toBeGreaterThan(0)
+      expect(getComputedStyle(surfaceOf(row)).borderRadius).toBe(pill)
     })
 
     it('draws no ripple on a disabled row', () => {

@@ -168,7 +168,11 @@ function actionChipContent(
 ) {
   return (state: ButtonRenderProps) => (
     <>
-      {chipGlyph({ isDisabled: state.isDisabled, isSelected: false }, icon)}
+      {chipGlyph(
+        { isDisabled: state.isDisabled, isSelected: false },
+        icon,
+        false,
+      )}
       {chipLabel(children)}
       {surface}
     </>

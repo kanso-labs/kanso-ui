@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ChipGroup from '.'
+import { surfaceOf } from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
@@ -19,6 +20,8 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
   error: { color: colors.error },
+  // The slot of an unselected chip with no icon, folded to nothing.
+  folded: { inlineSize: 0, opacity: 0 },
   icon: { color: colors.primary },
   selected: { color: colors.onSecondaryContainer },
   unselected: { color: colors.onSurfaceVariant },
@@ -37,6 +40,7 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   disabled: classesOf(stylex.props(probeStyles.disabled)),
   error: classesOf(stylex.props(probeStyles.error)),
+  folded: classesOf(stylex.props(probeStyles.folded)),
   icon: classesOf(stylex.props(probeStyles.icon)),
   selected: classesOf(stylex.props(probeStyles.selected)),
   unselected: classesOf(stylex.props(probeStyles.unselected)),
@@ -46,9 +50,16 @@ const SECOND = ['second']
 
 // The check a chosen chip draws, or null where it draws none. A removable
 // chip also renders the close target's cross, so this takes the first SVG —
-// the check is before the label and the cross after it.
+// the check is before the label and the cross after it. An unselected chip
+// with no icon keeps the check in a folded slot, which draws nothing, so a
+// check there counts as none — see the same helper in
+// chip/index.test.tsx.
 function checkIn(chip: Element) {
-  return chip.querySelector('svg')
+  const check = chip.querySelector('svg')
+  const slot = check?.parentElement
+  return slot === null || slot === undefined || hasClasses(slot, CLASSES.folded)
+    ? null
+    : check
 }
 
 function hasClasses(element: Element, classes: string[]) {
@@ -619,6 +630,24 @@ describe('focus layer and ripple', () => {
     pressDown(first)
 
     expect(ripplesIn(first)).toBe(true)
+  })
+
+  // React Aria puts a cell between the chip and its content, so a ripple
+  // inheriting its corner from its parent took the cell's square one and
+  // painted past the chip's rounded corners. Its box is the inside of the
+  // chip's border, so its corner is the chip's less that border.
+  it("clips the ripple to the chip's corner, inside its border", () => {
+    const view = setup({ selectionMode: 'multiple' })
+    const [first] = view.getAllByRole('row')
+    const chip = getComputedStyle(first)
+    const inside =
+      Number.parseFloat(chip.borderTopLeftRadius) -
+      Number.parseFloat(chip.borderTopWidth)
+
+    pressDown(first)
+
+    expect(inside).toBeGreaterThan(0)
+    expect(getComputedStyle(surfaceOf(first)).borderRadius).toBe(`${inside}px`)
   })
 
   // A chip in a group that selects nothing changes nothing when pressed, and

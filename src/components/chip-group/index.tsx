@@ -155,6 +155,10 @@ type ChipGroupProps<T extends object = object> = {
 // nothing is a control only for its close target, and React Aria reports
 // neither hover nor press on it, so a ripple there would answer a press that
 // changes nothing.
+//
+// It sits in a box of its own carrying the chip's corner, since React Aria's
+// cell between the chip and this content would otherwise hand the ripple a
+// square one to inherit; see the header of src/chip/styles.ts.
 function chipContent(
   children: ReactNode,
   icon: ReactNode,
@@ -163,9 +167,11 @@ function chipContent(
 ) {
   return (state: TagRenderProps) => (
     <>
-      {chipGlyph(state, icon)}
+      {chipGlyph(state, icon, state.selectionMode !== 'none')}
       {chipLabel(children)}
-      {state.selectionMode !== 'none' && !state.isDisabled ? surface : null}
+      {state.selectionMode !== 'none' && !state.isDisabled ? (
+        <span {...stylex.props(chipStyles.surfaceCorners)}>{surface}</span>
+      ) : null}
       {state.allowsRemoving ? (
         <RACButton
           aria-label={removeLabel}

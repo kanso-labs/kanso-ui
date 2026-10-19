@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import TokenField from '../components/token-field'
+import { reducedMotionOf, transitionOf } from '../styles/stylesheet.testing'
 
 const LONG_LABEL =
   'A label long enough that it has nowhere left to go on one line'
@@ -102,4 +103,103 @@ describe('chip', () => {
       expect(fitOf(token, label, view.getByTestId('room'))).toEqual(FITS)
     })
   })
+
+  // A chip with no icon grows by the check's slot once selected, and the slot
+  // opens over the chip's own motion rather than in one frame, so the chips
+  // after it in a wrapped row glide. It stays mounted while folded, which is
+  // what gives the growth a width to start from. See the header of
+  // ./styles.ts.
+  describe('the slot a chip with no icon opens once selected', () => {
+    it("opens and folds with the chip's own duration and curve", () => {
+      const view = render(<Chip>Label</Chip>)
+      const chip = view.getByRole('button', { name: 'Label' })
+      const slot = slotOf(chip)
+      const { durations, easings, properties } = transitionOf(slot)
+      const own = transitionOf(chip)
+
+      expect(properties).toEqual(
+        expect.arrayContaining(['inline-size', 'opacity']),
+      )
+      expect(durations).toEqual(own.durations)
+      expect(easings).toEqual(own.easings)
+      for (const duration of durations) {
+        expect(Number.parseFloat(duration)).toBeGreaterThan(0)
+      }
+    })
+
+    it('opens at once under reduced motion', () => {
+      const view = render(<Chip>Label</Chip>)
+      const { reduced, resting } = reducedMotionOf(
+        slotOf(view.getByRole('button', { name: 'Label' })),
+        'transition-duration',
+      )
+
+      expect(resting).toBeDefined()
+      expect(resting).not.toBe('0s')
+      expect(reduced).toBe('0s')
+    })
+
+    // Folded, the slot gives back the chip's gap after it, so an unselected
+    // chip measures what one that can never be selected does.
+    it('measures nothing while folded', () => {
+      const view = render(
+        <>
+          <Chip>Label</Chip>
+          <Chip variant="suggestion">Label</Chip>
+        </>,
+      )
+      const [filter, suggestion] = view.getAllByRole('button')
+
+      expect(filter.getBoundingClientRect().width).toBe(
+        suggestion.getBoundingClientRect().width,
+      )
+    })
+
+    it("is the group's chip's too, in a group that selects", () => {
+      const view = render(
+        <>
+          <ChipGroup label="Selecting" selectionMode="multiple">
+            <ChipGroup.Chip id="first">Label</ChipGroup.Chip>
+          </ChipGroup>
+          <ChipGroup label="Not selecting">
+            <ChipGroup.Chip id="first">Label</ChipGroup.Chip>
+          </ChipGroup>
+        </>,
+      )
+      const [selecting, still] = view.getAllByRole('row')
+
+      expect(transitionOf(slotOf(selecting)).properties).toEqual(
+        expect.arrayContaining(['inline-size', 'opacity']),
+      )
+      expect(selecting.getBoundingClientRect().width).toBe(
+        still.getBoundingClientRect().width,
+      )
+    })
+
+    // An action chip and a chip in a group that selects nothing are never
+    // selected, so they have no slot to open.
+    it('is left out of a chip that is never selected', () => {
+      const view = render(
+        <>
+          <Chip variant="assist">Label</Chip>
+          <ChipGroup label="Label">
+            <ChipGroup.Chip id="first">Label</ChipGroup.Chip>
+          </ChipGroup>
+        </>,
+      )
+
+      expect(view.getByRole('button').querySelector('svg')).toBeNull()
+      expect(view.getByRole('row').querySelector('svg')).toBeNull()
+    })
+  })
 })
+
+// The slot a chip draws its check in: the check's parent, since the check is
+// the only SVG a chip with no icon renders.
+function slotOf(chip: Element) {
+  const slot = chip.querySelector('svg')?.parentElement
+  if (!(slot instanceof HTMLElement)) {
+    throw new TypeError('expected the chip to hold a slot for its check')
+  }
+  return slot
+}

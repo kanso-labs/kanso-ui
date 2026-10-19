@@ -8,14 +8,17 @@ import { chipLayers, chipStyles } from './styles'
 
 /**
  * What a chip draws before its label: the check while it is selected, its own
- * icon while it is not, and nothing for an unselected chip with no icon.
- * Returns a node rather than letting the type be inferred, since `ReactNode`
- * is a union that includes a promise and an inferred one has to be `async`.
+ * icon while it is not, and for an unselected chip with no icon, a slot folded
+ * to nothing that opens when it is selected. A chip that can never be selected
+ * passes `selectable` as false and draws nothing there. Returns a node rather
+ * than letting the type be inferred, since `ReactNode` is a union that
+ * includes a promise and an inferred one has to be `async`.
  *
  * The check takes the icon's place rather than joining it, as the chips page
  * draws a filter chip and as a segmented button's segments do. So a chip with
  * an icon keeps its width when it is chosen, where one without grows by the
- * slot.
+ * slot, and the slot is kept mounted while folded so that growth has a width
+ * to transition from; see the header of `./styles`.
  *
  * Shared rather than written at each of the two call sites: Chip and
  * ChipGroup's chip draw the same pill from `./styles`, and a check written
@@ -26,7 +29,22 @@ import { chipLayers, chipStyles } from './styles'
 function chipGlyph(
   state: { isDisabled: boolean; isSelected: boolean },
   icon?: ReactNode,
+  selectable = true,
 ): ReactNode {
+  const hasIcon = icon !== undefined && icon !== null
+  if (!hasIcon && (selectable || state.isSelected)) {
+    return (
+      <span
+        {...stylex.props(
+          chipStyles.glyph,
+          chipStyles.glyphOpening,
+          !state.isSelected && chipStyles.glyphFolded,
+        )}
+      >
+        <CheckGlyph {...stylex.props(chipStyles.glyphSvg)} />
+      </span>
+    )
+  }
   if (state.isSelected) {
     return (
       <span {...stylex.props(chipStyles.glyph)}>
@@ -34,7 +52,7 @@ function chipGlyph(
       </span>
     )
   }
-  if (icon === undefined || icon === null) {
+  if (!hasIcon) {
     return null
   }
   return (

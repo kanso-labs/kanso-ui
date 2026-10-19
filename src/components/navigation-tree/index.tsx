@@ -250,7 +250,8 @@ function chevronFor(state: NavigationTreeItemRenderProps): ReactNode {
 
 // What a row draws, from React Aria's render state. The caret comes first,
 // then whatever the row was given — one order, always, which is what keeps a
-// column of rows reading down.
+// column of rows reading down. The ripple goes in a box carrying the row's
+// pill — see `drawerSurface` in src/row/styles.ts.
 function itemContent(
   label: ReactNode,
   leading: ReactNode,
@@ -271,7 +272,9 @@ function itemContent(
       >
         {label}
       </RowContent>
-      {state.isDisabled ? null : ripple}
+      {state.isDisabled ? null : (
+        <span {...stylex.props(rowStyles.drawerSurface)}>{ripple}</span>
+      )}
     </>
   )
 }
