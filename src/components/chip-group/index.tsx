@@ -353,8 +353,8 @@ function ChipGroupChip({
 }
 
 // The pill a standalone Chip draws, from `src/chip`, touch target included:
-// every chip's reaches halfway across the gap its rows wrap at.
-// A chip's pill, inert where the group selects nothing — see the header.
+// every chip's reaches halfway across the gap its rows wrap at. Inert where
+// the group selects nothing and the chip has no action — see the header.
 function groupChipPropsFor(state: TagRenderProps) {
   return chipPropsFor(state, { inert: state.selectionMode === 'none' })
 }
