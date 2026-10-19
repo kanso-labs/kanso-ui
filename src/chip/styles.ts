@@ -223,6 +223,13 @@ const chipStyles = stylex.create({
   icon: {
     color: colors.primary,
   },
+  // A chip a press does nothing to, in a group that selects nothing and has
+  // no action for it: the arrow rather than the pointer, since nothing but
+  // its close target answers a press. React Aria reports neither hover nor
+  // press on one either, so it draws no layer to contradict.
+  inert: {
+    cursor: 'default',
+  },
   // The label, on one line and ending in an ellipsis where the pill does.
   // `overflow: hidden` does two jobs: `text-overflow` draws nothing without
   // it, and a flex item that clips may narrow below the text it holds, where
@@ -280,6 +287,11 @@ const chipStyles = stylex.create({
     outlineWidth: '2px',
     padding: 0,
     position: 'relative',
+  },
+  // A disabled chip's close target, which a press no more reaches than the
+  // chip itself, so it takes the chip's cursor rather than the pointer.
+  removeDisabled: {
+    cursor: 'not-allowed',
   },
   removeGlyph: {
     blockSize: '18px',

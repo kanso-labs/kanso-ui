@@ -60,6 +60,20 @@ import { sizing, spacing } from '../../tokens/design.tokens.stylex'
 // and a set that chooses several are the same component with a different
 // word. A chip on its own that toggles nothing else is still Chip.
 //
+// **Escape leaves the selection alone.** React Aria's collections clear the
+// selection on Escape and stop the key there, which suits a list whose
+// selection is what an action is about to act on. A set of chips holds a
+// value, as a checkbox group does, and usually sits in a Sheet, Dialog or
+// Popover, where Escape is what dismisses it: clearing it there wiped the
+// reader's filters and took a second press to close. So the group passes
+// React Aria's `escapeKeyBehavior` as `none` unless told `clearSelection`.
+//
+// **A chip a press does nothing to does not look pressable.** In a group
+// that selects nothing, a chip with no action of its own or the group's is
+// a control only for its close target. It draws the arrow cursor, no layer
+// and no ripple, and its close target keeps the pointer. A disabled chip's
+// close target takes the chip's `not-allowed` with it.
+//
 // One thing is worth knowing about how this maps onto React Aria. A chip's
 // text value is read off its children and found only when they are a plain
 // string, and a chip here is always an element — the label sits beside a
@@ -126,6 +140,16 @@ type ChipGroupProps<T extends object = object> = {
    */
   error?: string
   /**
+   * What Escape does on a chip. `none`, the default, keeps the selection and
+   * lets the key through to whatever is around the group, so a group in a
+   * Sheet, Dialog or Popover closes it on the first press. `clearSelection`
+   * empties the selection first, as React Aria's own default does, and lets
+   * a second press through.
+   *
+   * @default 'none'
+   */
+  escapeKeyBehavior?: 'clearSelection' | 'none'
+  /**
    * What the group is for. Required rather than optional: a set of chips
    * with no name is a row a screen reader cannot introduce.
    */
@@ -137,7 +161,7 @@ type ChipGroupProps<T extends object = object> = {
    * Aria names it in the reader's locale — "Remove" in English.
    */
   removeLabel?: string
-} & Omit<RACTagGroupProps, 'children'> &
+} & Omit<RACTagGroupProps, 'children' | 'escapeKeyBehavior'> &
   Pick<RACTagListProps<T>, 'items' | 'renderEmptyState'>
 
 // What the chip draws, from React Aria's render state. Built by a call rather
@@ -150,11 +174,12 @@ type ChipGroupProps<T extends object = object> = {
 // only where the group allows removing, which React Aria reports rather than
 // the call site saying so on every chip.
 //
-// The ripple is drawn only on a chip a press does something to: one the
-// group lets be selected, and not disabled. A chip in a group that selects
-// nothing is a control only for its close target, and React Aria reports
-// neither hover nor press on it, so a ripple there would answer a press that
-// changes nothing.
+// The ripple is drawn only on a chip a press does something to, and not
+// disabled: one the group lets be selected, or one with an action, its own
+// or the group's. Any other chip in a group that selects nothing is a
+// control only for its close target, and React Aria reports neither hover
+// nor press on it, so a ripple there would answer a press that changes
+// nothing. `acts` is the action half, which the render state does not carry.
 //
 // It sits in a box of its own carrying the chip's corner, since React Aria's
 // cell between the chip and this content would otherwise hand the ripple a
@@ -164,12 +189,13 @@ function chipContent(
   icon: ReactNode,
   removeLabel: string | undefined,
   surface: ReactNode,
+  acts: boolean,
 ) {
   return (state: TagRenderProps) => (
     <>
       {chipGlyph(state, icon, state.selectionMode !== 'none')}
       {chipLabel(children)}
-      {state.selectionMode !== 'none' && !state.isDisabled ? (
+      {(acts || state.selectionMode !== 'none') && !state.isDisabled ? (
         <span {...stylex.props(chipStyles.surfaceCorners)}>{surface}</span>
       ) : null}
       {state.allowsRemoving ? (
@@ -191,9 +217,19 @@ function chipContent(
 // the name React Aria gives in the reader's locale.
 const RemoveLabelContext = createContext<string | undefined>(undefined)
 
+// Whether the group was given `onAction`, which makes every chip in it
+// pressable whether or not it selects. A context for the reason the close
+// target's name is one.
+const GroupActionContext = createContext(false)
+
 // Hoisted so neither is a new object on every render.
 const LABEL_STATE_VALID = { isInvalid: false }
 const LABEL_STATE_INVALID = { isInvalid: true }
+
+// The pill of a chip with an action, which a press always reaches.
+function actingChipPropsFor(state: TagRenderProps) {
+  return chipPropsFor(state)
+}
 
 /**
  * A labelled set of chips, one or more of which can be chosen, each of which
@@ -210,6 +246,11 @@ const LABEL_STATE_INVALID = { isInvalid: true }
  * Give the group `onRemove` and each chip draws a close target. The arrow
  * keys move between chips, so a set of many is one tab stop rather than many.
  *
+ * Escape on a chip keeps the selection and reaches whatever is around the
+ * group, so a group in a Sheet, Dialog or Popover closes it. Pass
+ * `escapeKeyBehavior="clearSelection"` for React Aria's own default, which
+ * empties the selection on the first press and lets the second through.
+ *
  * A chip that toggles nothing else is Chip; this is for a set that shares a
  * value.
  *
@@ -220,6 +261,7 @@ function ChipGroup<T extends object = object>({
   children,
   description,
   error,
+  escapeKeyBehavior = 'none',
   items,
   label,
   removeLabel,
@@ -230,6 +272,7 @@ function ChipGroup<T extends object = object>({
 
   return (
     <RACTagGroup
+      escapeKeyBehavior={escapeKeyBehavior}
       {...props}
       {...mergeStyles(stylex.props(groupStyles.root), props)}
     >
@@ -243,13 +286,15 @@ function ChipGroup<T extends object = object>({
         {label}
       </FieldLabel>
       <RemoveLabelContext value={removeLabel}>
-        <RACTagList<T>
-          items={items}
-          renderEmptyState={renderEmptyState}
-          {...stylex.props(styles.list, focus.ring)}
-        >
-          {children}
-        </RACTagList>
+        <GroupActionContext value={props.onAction !== undefined}>
+          <RACTagList<T>
+            items={items}
+            renderEmptyState={renderEmptyState}
+            {...stylex.props(styles.list, focus.ring)}
+          >
+            {children}
+          </RACTagList>
+        </GroupActionContext>
       </RemoveLabelContext>
       <FieldMessage description={description} error={error} inset={false} />
     </RACTagGroup>
@@ -271,6 +316,12 @@ function ChipGroupChip({
   ...props
 }: ChipGroupChipProps & RefAttributes<HTMLDivElement>) {
   const removeLabel = useContext(RemoveLabelContext)
+  // An action of its own, a link or the group's makes a chip pressable even
+  // in a group that selects nothing, as React Aria treats it.
+  const acts =
+    useContext(GroupActionContext) ||
+    props.onAction !== undefined ||
+    props.href !== undefined
   // The press ripple a list's rows draw — see ListItem there. A chip in a
   // group is a collection row, whose clicks React Aria keeps for itself, so
   // the press ends when the pointer is released rather than on a click.
@@ -291,17 +342,21 @@ function ChipGroupChip({
       textValue={props.textValue ?? textOf(children)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(groupChipPropsFor, props)}
+      {...mergeStatefulStyles(
+        acts ? actingChipPropsFor : groupChipPropsFor,
+        props,
+      )}
     >
-      {chipContent(children, icon, removeLabel, ripple.surface)}
+      {chipContent(children, icon, removeLabel, ripple.surface, acts)}
     </RACTag>
   )
 }
 
 // The pill a standalone Chip draws, from `src/chip`, touch target included:
 // every chip's reaches halfway across the gap its rows wrap at.
+// A chip's pill, inert where the group selects nothing — see the header.
 function groupChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state)
+  return chipPropsFor(state, { inert: state.selectionMode === 'none' })
 }
 
 ChipGroup.Chip = ChipGroupChip
