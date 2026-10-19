@@ -305,6 +305,7 @@ export function Calendar<T extends DateValue>(input: CalendarProps<T> & RefAttri
 // @public (undocumented)
 export type CalendarProps<T extends DateValue = DateValue> = {
     className?: CalendarProps_2<T>['className'];
+    error?: string;
     showMonthYearMenus?: boolean;
     style?: CalendarProps_2<T>['style'];
 } & Omit<CalendarProps_2<T>, 'children' | 'className' | 'style'>;

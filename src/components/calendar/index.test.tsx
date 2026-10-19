@@ -12,6 +12,17 @@ import {
 
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
+  // The disabled filled container and the content fade over it, written the
+  // way the calendar writes them.
+  disabledContainer: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
+  disabledContent: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+  },
+  error: { color: colors.error },
+  errorContainer: { color: colors.errorContainer },
+  onErrorContainer: { color: colors.onErrorContainer },
   onPrimary: { color: colors.onPrimary },
   onSurface: { color: colors.onSurface },
   primary: { color: colors.primary },
@@ -33,6 +44,12 @@ const stateStyles = stylex.create({
   },
   chevronPressed: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  invalidHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.errorContainer})`,
+  },
+  plainHovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
   selectedHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
@@ -499,6 +516,228 @@ describe('calendar', () => {
       expect(getComputedStyle(outside).color).not.toBe(
         probe(probeStyles.onSurface).color,
       )
+    })
+  })
+
+  describe('disabled', () => {
+    // React Aria stops calling a disabled date selected, so a calendar drawn
+    // from the cell's own state alone lost its value the moment it was
+    // disabled.
+    it('keeps the date it holds as a disabled filled circle', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isDisabled />,
+      )
+      const held = getComputedStyle(
+        cellFor(view, 'Tuesday, September 15, 2026'),
+      )
+      const other = getComputedStyle(
+        cellFor(view, 'Wednesday, September 16, 2026'),
+      )
+
+      expect(held.backgroundColor).toBe(
+        probe(probeStyles.disabledContainer).color,
+      )
+      expect(held.color).toBe(probe(probeStyles.disabledContent).color)
+      expect(other.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    // The held date's copy in a neighbouring month's grid is a different
+    // cell, which React Aria never selects with the calendar enabled either.
+    it('leaves the copy of that date in a neighbouring month unfilled', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultFocusedValue={SEPTEMBER}
+          defaultValue={new CalendarDate(2026, 10, 1)}
+          isDisabled
+        />,
+      )
+      const copy = cellFor(view, 'Thursday, October 1, 2026')
+
+      expect(copy.getAttribute('data-outside-month')).toBe('true')
+      expect(getComputedStyle(copy).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it("fades today's outline with its date", () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultFocusedValue={today(getLocalTimeZone())}
+          isDisabled
+        />,
+      )
+      const cell = view.container.querySelector('[data-today]')
+      if (!(cell instanceof HTMLElement)) {
+        throw new Error('expected a cell marked today')
+      }
+      const drawn = getComputedStyle(cell)
+
+      expect(drawn.borderTopStyle).toBe('solid')
+      expect(drawn.borderTopColor).toBe(drawn.color)
+      expect(drawn.color).toBe(probe(probeStyles.disabledContent).color)
+    })
+
+    it('fades the weekday row with the dates', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isDisabled />,
+      )
+      const [first] = view.container.querySelectorAll('th')
+
+      expect(getComputedStyle(first).color).toBe(
+        probe(probeStyles.disabledContent).color,
+      )
+    })
+  })
+
+  describe('read-only', () => {
+    it('draws its dates with the arrow rather than the pointer', () => {
+      const enabled = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const pointer = getComputedStyle(
+        cellFor(enabled, 'Wednesday, September 16, 2026'),
+      ).cursor
+      enabled.unmount()
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isReadOnly />,
+      )
+
+      expect(pointer).toBe('pointer')
+      expect(
+        getComputedStyle(cellFor(view, 'Wednesday, September 16, 2026')).cursor,
+      ).toBe('default')
+    })
+
+    // A press leaves the value where it was, so a layer answering the
+    // pointer would promise a change that never comes. React Aria still
+    // reports the hover, which is what the layer used to be drawn from.
+    it('lays no state layer over a date the pointer is on', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isReadOnly />,
+      )
+      const plain = cellFor(view, 'Wednesday, September 16, 2026')
+
+      fireEvent.pointerOver(plain, { pointerType: 'mouse' })
+
+      expect(plain.getAttribute('data-hovered')).toBe('true')
+      expect(hasClasses(plain, stateStyles.plainHovered)).toBe(false)
+      expect(getComputedStyle(plain).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it('lays none over the date it holds either', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isReadOnly />,
+      )
+      const held = cellFor(view, 'Tuesday, September 15, 2026')
+
+      fireEvent.pointerOver(held, { pointerType: 'mouse' })
+
+      expect(held.getAttribute('data-hovered')).toBe('true')
+      expect(hasClasses(held, stateStyles.selectedHovered)).toBe(false)
+      expect(getComputedStyle(held).backgroundColor).toBe(
+        probe(probeStyles.primary).color,
+      )
+    })
+
+    it('keeps the date it holds when another is pressed', () => {
+      const onChange = vi.fn<(value: CalendarDate) => void>()
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          isReadOnly
+          onChange={onChange}
+        />,
+      )
+
+      fireEvent.click(cellFor(view, 'Wednesday, September 16, 2026'))
+
+      expect(onChange).not.toHaveBeenCalled()
+      expect(
+        cellFor(view, 'Tuesday, September 15, 2026').getAttribute(
+          'data-selected',
+        ),
+      ).toBe('true')
+    })
+
+    it('still moves the month through its chevrons', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isReadOnly />,
+      )
+
+      fireEvent.click(headerButton(view, 'Next'))
+
+      expect(
+        view.getByRole('grid', { name: 'Label, October 2026' }),
+      ).not.toBeNull()
+    })
+  })
+
+  describe('invalid', () => {
+    it('draws the date it holds in the error container roles', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isInvalid />,
+      )
+      const cell = cellFor(view, 'Tuesday, September 15, 2026')
+
+      expect(cell.getAttribute('data-invalid')).toBe('true')
+      expect(getComputedStyle(cell).backgroundColor).toBe(
+        probe(probeStyles.errorContainer).color,
+      )
+      expect(getComputedStyle(cell).color).toBe(
+        probe(probeStyles.onErrorContainer).color,
+      )
+    })
+
+    it("lays the error container's own state layer while hovered", () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} isInvalid />,
+      )
+      const cell = cellFor(view, 'Tuesday, September 15, 2026')
+
+      fireEvent.pointerOver(cell, { pointerType: 'mouse' })
+
+      expect(hasClasses(cell, stateStyles.invalidHovered)).toBe(true)
+      expect(hasClasses(cell, stateStyles.selectedHovered)).toBe(false)
+    })
+
+    it('writes the error under the months and describes the date with it', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          error="Choose another date."
+        />,
+      )
+      const message = view.getByText('Choose another date.')
+      const cell = cellFor(view, 'Tuesday, September 15, 2026')
+
+      expect(message.id).not.toBe('')
+      expect(cell.getAttribute('aria-describedby')?.split(' ')).toContain(
+        message.id,
+      )
+      expect(cell.getAttribute('aria-invalid')).toBe('true')
+      expect(getComputedStyle(message).color).toBe(
+        probe(probeStyles.error).color,
+      )
+    })
+
+    it('writes nothing while the calendar is valid', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          error="Choose another date."
+          isInvalid={false}
+        />,
+      )
+
+      expect(view.queryByText('Choose another date.')).toBeNull()
+      expect(
+        cellFor(view, 'Tuesday, September 15, 2026').getAttribute(
+          'aria-invalid',
+        ),
+      ).toBeNull()
     })
   })
 

@@ -787,6 +787,22 @@ describe('a state told by a fill alone', () => {
     expect(rules.get('color')).toBe('highlighttext')
   })
 
+  // An invalid date is told apart by the error container colours, which the
+  // mode has no counterpart for, so it keeps the chosen pair rather than
+  // losing its selection to the repaint; the calendar's message says why.
+  it('keeps the invalid date in Highlight', () => {
+    const view = render(
+      <Calendar aria-label="Label" defaultValue={RANGE.end} isInvalid />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 15, 2026/ }),
+    )
+
+    expect(rules.get('background-color')).toBe('highlight')
+    expect(rules.get('border-top-color')).toBe('highlight')
+    expect(rules.get('color')).toBe('highlighttext')
+  })
+
   // Left to adjust, the mode lays a `Canvas` backplate behind the date, and
   // `HighlightText` on it is a blank box. So the chosen cells opt out, and
   // name a system colour for the two other things they draw: today's
@@ -822,7 +838,23 @@ describe('a state told by a fill alone', () => {
     expect(rules.get('forced-color-adjust')).toBe('auto')
   })
 
-  it('hands the date a disabled calendar holds back to the mode', () => {
+  it('hands a date in a disabled calendar back to the mode', () => {
+    const view = render(
+      <Calendar aria-label="Label" defaultValue={RANGE.end} isDisabled />,
+    )
+    const rules = forcedColorRules(
+      view.getByRole('button', { name: /September 16, 2026/ }),
+    )
+
+    expect(rules.get('forced-color-adjust')).toBe('auto')
+    expect(rules.get('background-color')).toBeUndefined()
+  })
+
+  // The date a disabled calendar holds keeps a circle, and left to the mode
+  // that circle's translucent fill is repainted as `Canvas` on `Canvas`, so
+  // the calendar showed no value at all. It takes the mode's disabled colour
+  // as its fill instead: a choice that is there and cannot be changed.
+  it('draws the date a disabled calendar holds in GrayText', () => {
     const view = render(
       <Calendar aria-label="Label" defaultValue={RANGE.end} isDisabled />,
     )
@@ -830,7 +862,9 @@ describe('a state told by a fill alone', () => {
       view.getByRole('button', { name: /September 15, 2026/ }),
     )
 
-    expect(rules.get('forced-color-adjust')).toBe('auto')
+    expect(rules.get('forced-color-adjust')).toBe('none')
+    expect(rules.get('background-color')).toBe('graytext')
+    expect(rules.get('color')).toBe('canvas')
   })
 
   it.each([

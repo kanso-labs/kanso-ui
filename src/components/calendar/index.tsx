@@ -3,21 +3,29 @@
 import type { CalendarDate } from '@internationalized/date'
 import type { ReactElement, RefAttributes } from 'react'
 import type {
+  CalendarCellRenderProps,
+  CalendarRenderProps,
   DateValue,
   CalendarProps as RACCalendarProps,
 } from 'react-aria-components'
 
+import { isSameDay } from '@internationalized/date'
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import {
+  CalendarStateContext,
   Calendar as RACCalendar,
   CalendarCell as RACCalendarCell,
   CalendarGrid as RACCalendarGrid,
   CalendarGridBody as RACCalendarGridBody,
+  Text as RACText,
 } from 'react-aria-components'
 
 import { CalendarFrame, CalendarGridHeader } from '../../calendar'
 import { monthOffsets } from '../../calendar/months'
 import { calendarStyles, dateLayers } from '../../calendar/styles'
+import { invalidFrom } from '../../field/root'
+import { fieldChromeStyles } from '../../field/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 
@@ -38,6 +46,23 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // the month's menu button between the chevrons that step it and the year's
 // after them, each opening its list where the grid was. The parts are in
 // `src/calendar`, shared with RangeCalendar.
+//
+// The calendar's own disabled, read-only and invalid states are drawn on its
+// dates, from React Aria's calendar state rather than each date's, since
+// that is the one place all three are known:
+//
+// - **Disabled** fades every date, the weekday row, the chevrons and the
+//   menu buttons to the page's 38%, and keeps the date it holds as a
+//   disabled filled circle — React Aria stops calling a disabled date
+//   selected, which left the calendar looking empty.
+// - **Read-only** keeps every date at full strength, since it still reports
+//   a value, but drops the pointer and the state layers from the dates, which
+//   a press no longer changes. The chevrons and the menus still move the
+//   month, so they keep theirs.
+// - **Invalid** draws the date held in the error container roles, and
+//   `error` writes the reason under the months in the field's supporting
+//   type and error colour. Each date React Aria marks invalid points
+//   `aria-describedby` at it, so a screen reader hears why as well as that.
 //
 // Five things are this component's own.
 //
@@ -84,6 +109,13 @@ type CalendarProps<T extends DateValue = DateValue> = {
   /** A function may compute the class from the calendar's render state. */
   className?: RACCalendarProps<T>['className']
   /**
+   * The message shown under the months, which also marks the calendar
+   * invalid: the date it holds turns to the error container colours, and
+   * React Aria points that date's description at the message. `isInvalid`
+   * on its own marks the date with no message.
+   */
+  error?: string
+  /**
    * Whether the header draws the month and the year as menu buttons, each
    * opening a list of them in the grid's place, as the docked date picker's
    * header does, rather than one heading between the chevrons. For a date
@@ -100,6 +132,17 @@ type CalendarProps<T extends DateValue = DateValue> = {
   /** A function may compute the style from the calendar's render state. */
   style?: RACCalendarProps<T>['style']
 } & Omit<RACCalendarProps<T>, 'children' | 'className' | 'style'>
+
+/** What a date's classes read off the calendar around it. */
+type CalendarStates = {
+  /**
+   * Whether this date is the one a disabled calendar holds, inside its
+   * bounds. A copy of it in a neighbouring month's grid is told apart by
+   * React Aria's own `isOutsideMonth`.
+   */
+  isHeldWhileDisabled: boolean
+  isReadOnly: boolean
+}
 
 /**
  * A month calendar for picking a date. The value is React Aria's: pass
@@ -123,76 +166,166 @@ type CalendarProps<T extends DateValue = DateValue> = {
  * element a layout positions.
  */
 function Calendar<T extends DateValue>({
+  error,
   showMonthYearMenus = false,
   ...props
 }: CalendarProps<T> & RefAttributes<HTMLDivElement>) {
   return (
     <RACCalendar<T>
+      isInvalid={invalidFrom(error)}
       {...props}
       {...mergeStatefulStyles(stylex.props(calendarStyles.root), props)}
     >
-      <CalendarFrame
-        months={props.visibleDuration?.months ?? 1}
-        showMonthYearMenus={showMonthYearMenus}
-      >
-        <div {...stylex.props(calendarStyles.months)}>
-          {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-            <div key={offset.months} {...stylex.props(calendarStyles.month)}>
-              <RACCalendarGrid
-                offset={offset}
-                {...stylex.props(calendarStyles.grid)}
-              >
-                <CalendarGridHeader />
-                <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-              </RACCalendarGrid>
+      {({ isInvalid }: CalendarRenderProps) => (
+        <>
+          <CalendarFrame
+            months={props.visibleDuration?.months ?? 1}
+            showMonthYearMenus={showMonthYearMenus}
+          >
+            <div {...stylex.props(calendarStyles.months)}>
+              {monthOffsets(props.visibleDuration?.months ?? 1).map(
+                (offset) => (
+                  <div
+                    key={offset.months}
+                    {...stylex.props(calendarStyles.month)}
+                  >
+                    <RACCalendarGrid
+                      offset={offset}
+                      {...stylex.props(calendarStyles.grid)}
+                    >
+                      <CalendarGridHeader />
+                      <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
+                    </RACCalendarGrid>
+                  </div>
+                ),
+              )}
             </div>
-          ))}
-        </div>
-      </CalendarFrame>
+          </CalendarFrame>
+          {/*
+           * Through React Aria's error slot, which gives it the id an
+           * invalid date's `aria-describedby` names. Drawn only while the
+           * calendar is invalid: React Aria looks for the element when
+           * `isInvalid` changes, which is when this appears and goes.
+           */}
+          {isInvalid && error !== undefined ? (
+            <RACText
+              slot="errorMessage"
+              {...stylex.props(
+                fieldChromeStyles.message,
+                fieldChromeStyles.messageError,
+              )}
+            >
+              {error}
+            </RACText>
+          ) : null}
+        </>
+      )}
     </RACCalendar>
   )
 }
 
-// A date's classes, from React Aria's render state. StyleX cannot target
-// `[data-selected]` on the element it is styling, so the state comes from
-// what React Aria hands the className.
+// A date's classes, from React Aria's render state and the calendar's.
+// StyleX cannot target `[data-selected]` on the element it is styling, so the
+// state comes from what React Aria hands the className.
 //
 // The order matters. `selected` is applied after `today`, so a selected today
 // takes the fill rather than the outline — a circle already says where you
-// are, and two rings would say it twice. The hover and pressed layers come
-// next, over whichever ground the date has, a press over a hover.
+// are, and two rings would say it twice — and `invalid` after `selected`,
+// which it repaints. The hover and pressed layers come next, over whichever
+// ground the date has, a press over a hover. A read-only calendar takes no
+// hover layer, and React Aria reports no press there to draw one for.
 // `unavailable` and `disabled` come last, and StyleX replaces a property
-// whole, so they take the layers with them.
-function cellClassName(state: {
-  isDisabled: boolean
-  isHovered: boolean
-  isPressed: boolean
-  isSelected: boolean
-  isToday: boolean
-  isUnavailable: boolean
-}) {
+// whole, so they take the layers with them; the date a disabled calendar
+// holds then puts its disabled circle back.
+function cellClassName(
+  state: CalendarCellRenderProps,
+  calendar: CalendarStates,
+) {
   return (
     stylex.props(
       calendarStyles.cell,
       focus.ring,
       state.isToday && calendarStyles.cellToday,
       state.isSelected && calendarStyles.cellSelected,
-      state.isHovered &&
-        (state.isSelected
-          ? dateLayers.selectedHovered
-          : dateLayers.plainHovered),
-      state.isPressed &&
-        (state.isSelected
-          ? dateLayers.selectedPressed
-          : dateLayers.plainPressed),
+      state.isSelected && state.isInvalid && calendarStyles.cellInvalid,
+      calendar.isReadOnly && calendarStyles.cellReadOnly,
+      !calendar.isReadOnly && state.isHovered && hoveredLayer(state),
+      state.isPressed && pressedLayer(state),
       state.isUnavailable && calendarStyles.cellUnavailable,
       state.isDisabled && calendarStyles.cellDisabled,
+      calendar.isHeldWhileDisabled &&
+        !state.isOutsideMonth &&
+        calendarStyles.cellSelectedDisabled,
     ).className ?? ''
   )
 }
 
+// The calendar's part of a date's classes, bound once per date. Built by a
+// call rather than written inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after.
+function cellClassNameIn(calendar: CalendarStates) {
+  return (state: CalendarCellRenderProps) => cellClassName(state, calendar)
+}
+
+/**
+ * One date. React Aria's cell, with what its classes need from the calendar
+ * read from React Aria's calendar state: whether it is read-only, and the
+ * date it holds, which React Aria hides from the cell itself once the
+ * calendar is disabled.
+ *
+ * Held means what React Aria would have called selected with the calendar
+ * enabled: the value, inside the bounds, and in its own month's grid rather
+ * than a neighbour's, which the classes check.
+ */
+function DateCell({ date }: { date: CalendarDate }): ReactElement {
+  const calendar = useContext(CalendarStateContext)
+  const isHeldWhileDisabled =
+    calendar !== null &&
+    calendar.isDisabled &&
+    !calendar.isInvalid(date) &&
+    holds(calendar.value, date)
+
+  return (
+    <RACCalendarCell
+      className={cellClassNameIn({
+        isHeldWhileDisabled,
+        isReadOnly: calendar?.isReadOnly ?? false,
+      })}
+      date={date}
+    />
+  )
+}
+
 function gridCell(date: CalendarDate): ReactElement {
-  return <RACCalendarCell className={cellClassName} date={date} />
+  return <DateCell date={date} />
+}
+
+// Whether a calendar's value includes a date: one date, or several where the
+// calendar takes more than one.
+function holds(
+  value: CalendarDate | null | readonly (CalendarDate | null)[],
+  date: CalendarDate,
+) {
+  const held = value !== null && 'length' in value ? value : [value]
+  return held.some((entry) => entry !== null && isSameDay(entry, date))
+}
+
+function hoveredLayer(state: CalendarCellRenderProps) {
+  if (!state.isSelected) {
+    return dateLayers.plainHovered
+  }
+  return state.isInvalid
+    ? dateLayers.invalidHovered
+    : dateLayers.selectedHovered
+}
+
+function pressedLayer(state: CalendarCellRenderProps) {
+  if (!state.isSelected) {
+    return dateLayers.plainPressed
+  }
+  return state.isInvalid
+    ? dateLayers.invalidPressed
+    : dateLayers.selectedPressed
 }
 
 export type { CalendarProps }
