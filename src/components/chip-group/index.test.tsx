@@ -288,6 +288,39 @@ describe('chip group', () => {
     })
   })
 
+  // React Aria reads a chip's text off its children only when they are a
+  // string, and a label beside a number is an array by the time JSX hands it
+  // over. Without text the row is named by everything in it, close target
+  // included, and React Aria warns in the console.
+  describe('names', () => {
+    it('names a chip whose label mixes text and a number', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const onRemove = vi.fn<(keys: unknown) => void>()
+      try {
+        const view = render(
+          <ChipGroup label="Label" onRemove={onRemove}>
+            <ChipGroup.Chip id="first">First item {1}</ChipGroup.Chip>
+          </ChipGroup>,
+        )
+        expect(view.getByRole('row', { name: 'First item 1' })).not.toBeNull()
+        expect(warn.mock.calls).toEqual([])
+      } finally {
+        warn.mockRestore()
+      }
+    })
+
+    it('takes textValue over a label that holds an element', () => {
+      const view = render(
+        <ChipGroup label="Label">
+          <ChipGroup.Chip id="first" textValue="Named">
+            <strong>First</strong> item
+          </ChipGroup.Chip>
+        </ChipGroup>,
+      )
+      expect(view.getByRole('row', { name: 'Named' })).not.toBeNull()
+    })
+  })
+
   describe('selection', () => {
     it('selects one chip at a time', () => {
       const view = setup({ selectionMode: 'single' })
