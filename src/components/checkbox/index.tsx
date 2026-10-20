@@ -113,9 +113,14 @@ const styles = stylex.create({
   control: {
     color: colors.onSurface,
   },
+  // The box is a flex container with 14dp of content inside its 2dp border,
+  // so the glyph holds its own 18dp rather than shrinking to fit that: it
+  // runs over the border, which a marked box fills like the rest, and lies
+  // over the whole box. Shrunk, both marks came out a fifth smaller.
   glyph: {
     blockSize: '18px',
     display: 'block',
+    flexShrink: 0,
     inlineSize: '18px',
   },
   // The description and error sit under the text, in the second column.

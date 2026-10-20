@@ -279,6 +279,24 @@ describe('checkbox', () => {
       expect(box.borderTopLeftRadius).toBe('2px')
       expect(box.borderTopWidth).toBe('2px')
     })
+
+    // The spec's 18dp icon, the size of the box itself, so a mark lies over
+    // the whole fill rather than inside the border. The box's content is
+    // 14dp, which is what the glyph shrank to.
+    it.each([
+      { mark: 'check', props: { isSelected: true } },
+      { mark: 'dash', props: { isIndeterminate: true } },
+    ])('draws the $mark at 18 over the whole box', ({ props }) => {
+      const { input } = setup(props)
+      const box = boxOf(input)
+      const glyph = box.querySelector('svg')
+      if (glyph === null) {
+        throw new Error('expected the box to draw a glyph')
+      }
+      expect(glyph.getBoundingClientRect().toJSON()).toEqual(
+        box.getBoundingClientRect().toJSON(),
+      )
+    })
   })
 })
 
