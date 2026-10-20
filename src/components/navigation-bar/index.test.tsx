@@ -110,6 +110,29 @@ function labelOf(link: HTMLElement) {
   return label
 }
 
+/**
+ * A bar on `selectedRoute` whose first destination takes `isCurrent`, which
+ * is left out when undefined.
+ */
+function Marked({
+  isCurrent,
+  selectedRoute,
+}: {
+  isCurrent?: boolean
+  selectedRoute: string
+}) {
+  return (
+    <NavigationBar aria-label="Label" selectedRoute={selectedRoute}>
+      <NavigationBar.Item href="#first" icon={ICON} isCurrent={isCurrent}>
+        First item
+      </NavigationBar.Item>
+      <NavigationBar.Item href="#second" icon={ICON}>
+        Second item
+      </NavigationBar.Item>
+    </NavigationBar>
+  )
+}
+
 /** A count badge's mark: the badge's own span, hidden from the tree. */
 function markOf(link: HTMLElement) {
   const mark = link.querySelector('span[aria-hidden="true"]')
@@ -218,6 +241,40 @@ describe('navigation bar', () => {
     // router rather than reloading the page. The click stands in for Enter
     // too: on a native link React Aria leaves that key to the browser, whose
     // activation is this same click.
+    // On a route nested under a destination, which no `href` matches whole,
+    // the destination marks itself: the attribute and the pill together.
+    // The window is a wide one, where the pill is the whole destination.
+    it('marks a destination current by hand on a nested route', async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      const view = render(<Marked isCurrent selectedRoute="#first/child" />)
+      const first = view.getByRole('link', { name: 'First item' })
+      const second = view.getByRole('link', { name: 'Second item' })
+
+      expect(first).toHaveAttribute('aria-current', 'page')
+      expect(getComputedStyle(first).backgroundColor).toBe(
+        probe(probeStyles.secondaryContainer).background,
+      )
+      expect(second).not.toHaveAttribute('aria-current')
+      expect(getComputedStyle(second).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it('leaves a destination marked not current off, whatever the match', async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      const view = render(<Marked isCurrent={false} selectedRoute="#first" />)
+      const first = view.getByRole('link', { name: 'First item' })
+
+      expect(first).not.toHaveAttribute('aria-current')
+      expect(getComputedStyle(first).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it('matches the route exactly when no destination says otherwise', () => {
+      const view = render(<Marked selectedRoute="#first/child" />)
+
+      for (const link of view.getAllByRole('link')) {
+        expect(link).not.toHaveAttribute('aria-current')
+      }
+    })
+
     // Cut short across with an ellipsis, and never down, so a line taller
     // than label medium's shows whole.
     it('clips a label across and never down', () => {

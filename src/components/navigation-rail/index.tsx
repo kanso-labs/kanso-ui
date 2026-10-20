@@ -130,9 +130,10 @@ type NavigationRailProps = RenderComponentProps<'nav'> & {
    */
   isExpanded?: boolean
   /**
-   * The route of the current destination, matched against each
+   * The route of the current destination, matched exactly against each
    * destination's `href`. The match carries `aria-current="page"` and the
-   * active indicator.
+   * active indicator. For a route nested under a destination, which no
+   * `href` matches whole, mark that destination with its own `isCurrent`.
    */
   selectedRoute?: string
 }

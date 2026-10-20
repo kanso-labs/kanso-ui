@@ -100,6 +100,22 @@ const THREE = (
   </>
 )
 
+// A route nested under the second destination, which no `href` matches
+// whole, so that destination marks itself current with `isCurrent`.
+const NESTED = (
+  <>
+    <NavigationBar.Item href="#first" icon={CIRCLE}>
+      First item
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#second" icon={SQUARE} isCurrent>
+      Second item
+    </NavigationBar.Item>
+    <NavigationBar.Item href="#third" icon={TRIANGLE}>
+      Third item
+    </NavigationBar.Item>
+  </>
+)
+
 // Short enough for the 69dp each of five destinations has at a 375dp
 // window, where "Second item" would be cut short.
 const FIVE = (
@@ -259,6 +275,16 @@ const HomeIndicatorPadding: Story = {
   },
 }
 
+// The bar on `#second/detail`, a page nested under the second destination,
+// which marks itself current by hand. Matched alone, the route would leave
+// no destination current.
+const NestedRoute: Story = {
+  args: {
+    children: NESTED,
+    selectedRoute: '#second/detail',
+  },
+}
+
 // Five labels the horizontal form has no room for at 640px, so the bar keeps
 // the vertical form there and turns horizontal once the window is wide
 // enough to show every label whole. Chromatic is told the width through its
@@ -283,6 +309,7 @@ export {
   FiveDestinations,
   HomeIndicatorPadding,
   LongLabels,
+  NestedRoute,
   WithBadges,
   WithLargeCounts,
 }

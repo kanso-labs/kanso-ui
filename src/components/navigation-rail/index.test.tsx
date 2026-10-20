@@ -94,6 +94,29 @@ function iconIn(element: HTMLElement) {
   return icon.getBoundingClientRect()
 }
 
+/**
+ * A rail on `selectedRoute` whose first destination takes `isCurrent`, which
+ * is left out when undefined.
+ */
+function Marked({
+  isCurrent,
+  selectedRoute,
+}: {
+  isCurrent?: boolean
+  selectedRoute: string
+}) {
+  return (
+    <NavigationRail aria-label="Label" selectedRoute={selectedRoute}>
+      <NavigationRail.Item href="#first" icon={ICON} isCurrent={isCurrent}>
+        First item
+      </NavigationRail.Item>
+      <NavigationRail.Item href="#second" icon={ICON}>
+        Second item
+      </NavigationRail.Item>
+    </NavigationRail>
+  )
+}
+
 // The indicator a destination draws its icon in, and the label after it.
 function partsOf(link: HTMLElement) {
   const indicator = link.firstElementChild
@@ -157,6 +180,42 @@ describe('navigation rail', () => {
       expect(
         view.getByRole('link', { name: 'First item' }),
       ).not.toHaveAttribute('aria-current')
+    })
+
+    // On a route nested under a destination, which no `href` matches whole,
+    // the destination marks itself: the attribute and the indicator
+    // together.
+    it('marks a destination current by hand on a nested route', () => {
+      const view = render(<Marked isCurrent selectedRoute="#first/child" />)
+      const first = view.getByRole('link', { name: 'First item' })
+      const second = view.getByRole('link', { name: 'Second item' })
+
+      expect(first).toHaveAttribute('aria-current', 'page')
+      expect(getComputedStyle(partsOf(first).indicator).backgroundColor).toBe(
+        probe(probeStyles.secondaryContainer).background,
+      )
+      expect(second).not.toHaveAttribute('aria-current')
+      expect(getComputedStyle(partsOf(second).indicator).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)',
+      )
+    })
+
+    it('leaves a destination marked not current off, whatever the match', () => {
+      const view = render(<Marked isCurrent={false} selectedRoute="#first" />)
+      const first = view.getByRole('link', { name: 'First item' })
+
+      expect(first).not.toHaveAttribute('aria-current')
+      expect(getComputedStyle(partsOf(first).indicator).backgroundColor).toBe(
+        'rgba(0, 0, 0, 0)',
+      )
+    })
+
+    it('matches the route exactly when no destination says otherwise', () => {
+      const view = render(<Marked selectedRoute="#first/child" />)
+
+      for (const link of view.getAllByRole('link')) {
+        expect(link).not.toHaveAttribute('aria-current')
+      }
     })
 
     // A destination is React Aria's Link, so a press goes through the app's
