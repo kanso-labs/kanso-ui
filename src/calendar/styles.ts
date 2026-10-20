@@ -32,7 +32,9 @@ import {
 // `HighlightText` on that backplate is a blank box. With it off nothing is
 // forced on those cells, so they name a system colour for everything they
 // draw — the fill, the date, today's outline and the focus ring. A day ruled
-// out or disabled names none, so it hands itself back to the mode.
+// out or disabled names none, so it hands itself back to the mode, apart from
+// the date a disabled calendar holds, which takes `GrayText` as its fill in
+// the same way; see `cellSelectedDisabled`.
 
 // One row of the grid. The weekday row and every week of dates are the same
 // 48dp, the page's date container and Compose's own row, so `headerCell`, the
@@ -109,8 +111,13 @@ const calendarStyles = stylex.create({
   // the one shown. The page's own 38% on the content role, which is the same
   // fade every disabled control here takes. A date ruled out one at a time is
   // `cellUnavailable` instead, for the reason recorded there.
+  //
+  // The border takes the same fade, which is today's outline in a disabled
+  // calendar: left to `cellToday` it stayed at full primary around a date
+  // faded to 38%.
   cellDisabled: {
     backgroundColor: 'transparent',
+    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
     cursor: 'not-allowed',
     // Back to the mode's own colours — see the header.
@@ -152,6 +159,27 @@ const calendarStyles = stylex.create({
     marginInline: 0,
     outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
   },
+  // The date an invalid calendar holds, in the error container roles rather
+  // than the primary ones, so the circle says the choice was refused as well
+  // as where it is. Applied over `cellSelected`, which it repaints whole:
+  // the border too, so today's outline still disappears into the fill.
+  // Under forced colours it keeps the `Highlight` pair every chosen date
+  // takes, since a system palette has no error colour to tell it apart by;
+  // the calendar's `error` message is what says so there.
+  cellInvalid: {
+    backgroundColor: {
+      default: colors.errorContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    borderColor: {
+      default: colors.errorContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
+    color: {
+      default: colors.onErrorContainer,
+      [FORCED_COLORS]: 'HighlightText',
+    },
+  },
   // The last day, rounded on the side the band ends at.
   cellRangeEnd: {
     borderEndEndRadius: radii.circle,
@@ -162,6 +190,12 @@ const calendarStyles = stylex.create({
   cellRangeStart: {
     borderEndStartRadius: radii.circle,
     borderStartStartRadius: radii.circle,
+  },
+  // A date in a read-only calendar, which a press does not change. The
+  // pointer the base cell takes says the opposite, so it goes back to the
+  // arrow; the state layers go with it, left off by the cell's classes.
+  cellReadOnly: {
+    cursor: 'default',
   },
   // The date the calendar holds. A filled circle in the primary role, with
   // the on-primary state layer over it while hovered or pressed, which is
@@ -176,6 +210,29 @@ const calendarStyles = stylex.create({
     // Named rather than forced, as the band's are — see the header.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
     outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
+  },
+  // The date a disabled calendar holds. React Aria stops marking a disabled
+  // date as selected, so without this the calendar lost its value the moment
+  // it was disabled and drew it as one more faded date. The disabled filled
+  // container every control here takes instead: on surface at 12% under the
+  // 38% content fade, applied over `cellDisabled`. The border is the fill's,
+  // so today's outline disappears into it as it does into the selected
+  // circle.
+  //
+  // Under forced colours, `GrayText` with `Canvas` over it — the mode's
+  // disabled colour as a fill, which is a chosen date that cannot be changed.
+  cellSelectedDisabled: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
+    borderColor: { default: 'transparent', [FORCED_COLORS]: 'GrayText' },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+      [FORCED_COLORS]: 'Canvas',
+    },
+    // Named rather than forced, as a selected date's are — see the header.
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   // Today, when it is not the date held: the page's 1dp outline in the
   // primary role, with the label to match.
@@ -270,6 +327,11 @@ const calendarStyles = stylex.create({
     fontWeight: typography.bodyLargeWeight,
     letterSpacing: typography.bodyLargeTracking,
     lineHeight: typography.bodyLargeLineHeight,
+  },
+  // The weekday row of a disabled calendar, at the 38% its dates, chevrons
+  // and menu buttons fade to.
+  headerCellDisabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
   },
   // The month's menu button between the chevrons that step it, for a
   // calendar with `showMonthYearMenus`.
@@ -462,11 +524,12 @@ const calendarStyles = stylex.create({
 })
 
 // A date's hover and pressed layers, one pair per ground it sits on: nothing,
-// the range band, and the selected circle. From React Aria's render state rather than `:hover` and `:active`, for Button's
-// reasons — see its header: a hover layer stayed on after a tap, and no
-// pressed layer showed for a press made from the keyboard.
+// the range band, the selected circle, and the invalid one. From React Aria's
+// render state rather than `:hover` and `:active`, for Button's reasons — see
+// its header: a hover layer stayed on after a tap, and no pressed layer
+// showed for a press made from the keyboard.
 // Each layer is written whole for its ground because StyleX replaces a
-// property whole, and the band and the circle keep their forced-colours
+// property whole, and the band and the circles keep their forced-colours
 // `Highlight` under the layer.
 const dateLayers = stylex.create({
   inRangeHovered: {
@@ -478,6 +541,18 @@ const dateLayers = stylex.create({
   inRangePressed: {
     backgroundColor: {
       default: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  invalidHovered: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.errorContainer})`,
+      [FORCED_COLORS]: 'Highlight',
+    },
+  },
+  invalidPressed: {
+    backgroundColor: {
+      default: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.errorContainer})`,
       [FORCED_COLORS]: 'Highlight',
     },
   },

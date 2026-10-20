@@ -88,8 +88,21 @@ function CalendarFrame({
   )
 }
 
+/**
+ * The weekday row, faded with the rest of a calendar that is disabled. The
+ * state comes from React Aria's context rather than a prop, so the two
+ * calendars draw it the same way without either passing anything down.
+ */
 function CalendarGridHeader(): ReactElement {
-  return <RACCalendarGridHeader>{calendarHeaderCell}</RACCalendarGridHeader>
+  const single = useContext(CalendarStateContext)
+  const range = useContext(RangeCalendarStateContext)
+  const isDisabled = (single ?? range)?.isDisabled ?? false
+
+  return (
+    <RACCalendarGridHeader>
+      {isDisabled ? disabledHeaderCell : calendarHeaderCell}
+    </RACCalendarGridHeader>
+  )
 }
 
 /**
@@ -124,11 +137,7 @@ function CalendarHeader(): ReactElement {
 
 /** The weekday row, in the type the page gives both it and the dates. */
 function calendarHeaderCell(day: string): ReactElement {
-  return (
-    <RACCalendarHeaderCell {...stylex.props(calendarStyles.headerCell)}>
-      {day}
-    </RACCalendarHeaderCell>
-  )
+  return headerCell(day, false)
 }
 
 /**
@@ -313,6 +322,24 @@ function chevronClassNameWhile(isListOpen: boolean) {
     isHovered: boolean
     isPressed: boolean
   }) => chevronClassName(state, isListOpen)
+}
+
+// A weekday in a disabled calendar, at the fade its dates take.
+function disabledHeaderCell(day: string): ReactElement {
+  return headerCell(day, true)
+}
+
+function headerCell(day: string, isDisabled: boolean): ReactElement {
+  return (
+    <RACCalendarHeaderCell
+      {...stylex.props(
+        calendarStyles.headerCell,
+        isDisabled && calendarStyles.headerCellDisabled,
+      )}
+    >
+      {day}
+    </RACCalendarHeaderCell>
+  )
 }
 
 /**

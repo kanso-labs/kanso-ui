@@ -66,6 +66,34 @@ const Bounded: Story = {
   },
 }
 
+// Disabled, holding a date. Every date, the weekday row and the chevrons fade
+// to the page's 38%, and the date held stays a circle, in the disabled
+// filled container, rather than turning into one more faded date.
+const Disabled: Story = {
+  args: {
+    isDisabled: true,
+  },
+}
+
+// Read-only, holding a date. The dates stay at full strength, since the
+// calendar still reports its value, but a press does not change it, so they
+// draw neither the pointer nor a state layer. The chevrons still move the
+// month.
+const ReadOnly: Story = {
+  args: {
+    isReadOnly: true,
+  },
+}
+
+// Invalid, with the reason under the months. The date held turns to the
+// error container colours, and React Aria points its description at the
+// message.
+const Invalid: Story = {
+  args: {
+    error: 'Choose another date.',
+  },
+}
+
 // Two months side by side, which is what a range is usually picked from.
 const TwoMonths: Story = {
   args: {
@@ -133,8 +161,11 @@ export {
   Bounded,
   Compact,
   Default,
+  Disabled,
+  Invalid,
   MonthAndYearMenus,
   MonthList,
+  ReadOnly,
   Today,
   TwoMonths,
   TwoMonthsWithMenus,
