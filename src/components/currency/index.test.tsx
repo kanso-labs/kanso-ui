@@ -7,14 +7,31 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Currency from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
+import List from '../list'
 
 const MINUS_SIGN = 0x2212
 const HYPHEN_MINUS = '-'
+
+// The selected row an amount in the inherit tone sits in, hoisted so neither
+// the keys nor the slot is a new value on every render, which is what
+// react-perf's array and JSX rules are after.
+const SELECTED = ['first']
+const INHERITED = (
+  <Currency
+    data-testid="currency"
+    locale="en-US"
+    tone="inherit"
+    value={-12.5}
+  />
+)
 
 // Compared against elements styled straight from the tokens rather than hex
 // literals, so the assertions pin which role a tone reaches for without also
 // pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  // A colour that is none of the three tones, for the surroundings an
+  // amount in the inherit tone takes its colour from.
+  around: { color: colors.tertiary },
   negative: { color: colors.negative },
   neutral: { color: colors.onSurface },
   positive: { color: colors.positive },
@@ -46,8 +63,10 @@ function countConstructions() {
 function formatted(
   value: number,
   options: { currency: string; locale: string; sign?: 'always' | 'auto' },
+  extra: Intl.NumberFormatOptions = {},
 ) {
   return new Intl.NumberFormat(options.locale, {
+    ...extra,
     currency: options.currency,
     signDisplay: options.sign ?? 'auto',
     style: 'currency',
@@ -131,6 +150,111 @@ describe('currency', () => {
     })
   })
 
+  // The locale's own symbol by default, which tells one dollar from another
+  // where the locale has to, and the other forms on request.
+  describe('how the currency is written', () => {
+    it('writes the locale’s own symbol by default', () => {
+      const { currency } = setup({ currency: 'CAD', value: 12.5 })
+      expect(currency.textContent).toBe('CA$12.50')
+    })
+
+    it('writes the bare sign when asked for the narrow symbol', () => {
+      const { currency } = setup({
+        currency: 'CAD',
+        currencyDisplay: 'narrowSymbol',
+        value: 12.5,
+      })
+      expect(currency.textContent).toBe('$12.50')
+    })
+
+    it.each(['code', 'name'] as const)(
+      'writes the currency as its %s when asked',
+      (currencyDisplay) => {
+        const { currency } = setup({
+          currency: 'CAD',
+          currencyDisplay,
+          value: 12.5,
+        })
+        expect(currency.textContent).toBe(
+          formatted(
+            12.5,
+            { currency: 'CAD', locale: 'en-US' },
+            { currencyDisplay },
+          ),
+        )
+        expect(currency.textContent).not.toBe('CA$12.50')
+      },
+    )
+  })
+
+  // A figure too long for its container shortens to a few digits and a
+  // scale.
+  describe('compact notation', () => {
+    it('shortens a large amount to a few digits and a scale', () => {
+      const { currency } = setup({
+        notation: 'compact',
+        value: 12_345_678_901.23,
+      })
+      expect(currency.textContent).toBe('$12B')
+    })
+
+    it('keeps the true minus sign', () => {
+      const { currency } = setup({
+        notation: 'compact',
+        value: -12_345_678_901.23,
+      })
+      expect(currency.textContent).toBe(
+        `${String.fromCodePoint(MINUS_SIGN)}$12B`,
+      )
+    })
+
+    it('rounds to a fraction-digit count in place of its own', () => {
+      const { currency } = setup({
+        maximumFractionDigits: 1,
+        notation: 'compact',
+        value: 12_345_678_901.23,
+      })
+      expect(currency.textContent).toBe('$12.3B')
+    })
+
+    it('writes the scale in the locale’s own words', () => {
+      const { currency } = setup({
+        currency: 'EUR',
+        locale: 'de-DE',
+        notation: 'compact',
+        value: 12_345_678_901.23,
+      })
+      expect(currency.textContent).toBe(
+        formatted(
+          12_345_678_901.23,
+          { currency: 'EUR', locale: 'de-DE' },
+          { notation: 'compact' },
+        ),
+      )
+    })
+  })
+
+  describe('fraction digits', () => {
+    it('rounds to fewer places than the currency has', () => {
+      const { currency } = setup({ maximumFractionDigits: 0, value: 1234.56 })
+      expect(currency.textContent).toBe('$1,235')
+    })
+
+    it('pads to more places than the currency has', () => {
+      const { currency } = setup({ minimumFractionDigits: 3, value: 1234.5 })
+      expect(currency.textContent).toBe('$1,234.500')
+    })
+
+    // Rounded away to nothing, an amount is a zero like any other: no sign,
+    // and the neutral role.
+    it.each([0.4, -0.4])('reads %s rounded to no places as zero', (value) => {
+      const expected = toneColors()
+      const { currency } = setup({ maximumFractionDigits: 0, value })
+      expect(currency.textContent).toBe('$0')
+      expect(getComputedStyle(currency).color).toBe(expected.neutral)
+    })
+  })
+
   // An amount on its own must not take the page down with it, and the
   // formatter throws for a malformed locale or a code that is not one. Each
   // of these threw during render before.
@@ -177,6 +301,34 @@ describe('currency', () => {
       expect(
         textOf(<Currency currency={currency} locale="en-US" value={1234.5} />),
       ).toBe(expected)
+    })
+
+    // A count the runtime rejects is dropped for the currency's own, which
+    // both counts then are.
+    it.each([
+      [
+        'a maximum under the minimum',
+        { maximumFractionDigits: 1, minimumFractionDigits: 3 },
+      ],
+      ['a negative count', { maximumFractionDigits: -1 }],
+      ['a count that is not a number', { minimumFractionDigits: Number.NaN }],
+    ])('drops %s for the currency’s own', (_case, digits) => {
+      expect(
+        textOf(<Currency locale="en-US" value={1234.5} {...digits} />),
+      ).toBe('$1,234.50')
+    })
+
+    it('keeps a count it accepts for a code that is not one', () => {
+      expect(
+        textOf(
+          <Currency
+            currency="US"
+            locale="en-US"
+            maximumFractionDigits={0}
+            value={1234.5}
+          />,
+        ),
+      ).toBe('1,235 US')
     })
   })
 
@@ -244,6 +396,44 @@ describe('currency', () => {
       const { currency } = setup({ tone: 'neutral', value: -12.5 })
       expect(getComputedStyle(currency).color).toBe(expected.neutral)
     })
+
+    // Over a container the positive and negative pair is not guaranteed, so
+    // `inherit` sets no colour and the amount reads in what is around it.
+    it('takes the colour around it in the inherit tone', () => {
+      const expected = toneColors()
+      const view = render(
+        <div data-testid="around" {...stylex.props(probeStyles.around)}>
+          <Currency
+            data-testid="currency"
+            locale="en-US"
+            tone="inherit"
+            value={-12.5}
+          />
+        </div>,
+      )
+      const around = getComputedStyle(view.getByTestId('around')).color
+
+      expect(Object.values(expected)).not.toContain(around)
+      expect(getComputedStyle(view.getByTestId('currency')).color).toBe(around)
+    })
+
+    it("reads in a selected row's own colour in the inherit tone", () => {
+      const view = render(
+        <List
+          aria-label="Label"
+          defaultSelectedKeys={SELECTED}
+          selectionMode="single"
+        >
+          <List.Item id="first" trailing={INHERITED}>
+            First item
+          </List.Item>
+        </List>,
+      )
+      const row = getComputedStyle(view.getByRole('row')).color
+
+      expect(row).not.toBe(toneColors().negative)
+      expect(getComputedStyle(view.getByTestId('currency')).color).toBe(row)
+    })
   })
 
   // The text and the tone both come from the amount as printed, so a value
@@ -271,6 +461,7 @@ describe('currency', () => {
     // `always` signs every amount it prints except a zero, which is neither
     // a credit nor a debt.
     it.each([
+      [0, '$0.00'],
       [-0.004, '$0.00'],
       [0.004, '$0.00'],
       [-12.5, `${String.fromCodePoint(MINUS_SIGN)}$12.50`],
@@ -357,6 +548,72 @@ describe('currency', () => {
       )
 
       expect(construct).toHaveBeenCalledTimes(4)
+    })
+
+    // The display, the notation and each digit count are parts of the key
+    // as well, so each of these builds its own.
+    it('builds a formatter per display, notation and digit setting', () => {
+      const construct = countConstructions()
+
+      render(
+        <>
+          <Currency currency="MXN" locale="es-MX" value={1} />
+          <Currency
+            currency="MXN"
+            currencyDisplay="code"
+            locale="es-MX"
+            value={1}
+          />
+          <Currency
+            currency="MXN"
+            locale="es-MX"
+            notation="compact"
+            value={1}
+          />
+          <Currency
+            currency="MXN"
+            locale="es-MX"
+            maximumFractionDigits={1}
+            value={1}
+          />
+          <Currency
+            currency="MXN"
+            locale="es-MX"
+            minimumFractionDigits={3}
+            value={1}
+          />
+        </>,
+      )
+
+      expect(construct).toHaveBeenCalledTimes(5)
+    })
+
+    it('keeps formatting correctly when a digit count changes in place', () => {
+      const { currency, rerender } = setup({
+        currency: 'DKK',
+        locale: 'en-US',
+        value: 1284.32,
+      })
+      expect(currency.textContent).toBe(
+        formatted(1284.32, { currency: 'DKK', locale: 'en-US' }),
+      )
+
+      rerender(
+        <Currency
+          currency="DKK"
+          data-testid="currency"
+          locale="en-US"
+          maximumFractionDigits={0}
+          value={1284.32}
+        />,
+      )
+      expect(currency.textContent).toBe(
+        formatted(
+          1284.32,
+          { currency: 'DKK', locale: 'en-US' },
+          { maximumFractionDigits: 0 },
+        ),
+      )
     })
 
     it('keeps formatting correctly when the locale changes in place', () => {

@@ -601,9 +601,19 @@ export type CopyFieldProps = {
 export function Currency(input: CurrencyProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
 
 // @public (undocumented)
+export type CurrencyDisplay = 'code' | 'name' | 'narrowSymbol' | 'symbol';
+
+// @public (undocumented)
+export type CurrencyNotation = 'compact' | 'standard';
+
+// @public (undocumented)
 export type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
     currency?: string;
+    currencyDisplay?: CurrencyDisplay;
     locale?: string;
+    maximumFractionDigits?: number;
+    minimumFractionDigits?: number;
+    notation?: CurrencyNotation;
     sign?: CurrencySignDisplay;
     tone?: CurrencyTone;
     value: number;
@@ -613,7 +623,7 @@ export type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
 export type CurrencySignDisplay = 'always' | 'auto' | 'never';
 
 // @public (undocumented)
-export type CurrencyTone = 'auto' | 'negative' | 'neutral' | 'positive';
+export type CurrencyTone = 'auto' | 'inherit' | 'negative' | 'neutral' | 'positive';
 
 // @public
 export function DateField<T extends DateValue>(input: DateFieldProps<T> & RefAttributes<HTMLDivElement>): JSX;
