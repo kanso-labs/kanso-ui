@@ -736,6 +736,49 @@ describe('a state told by a fill alone', () => {
     },
   )
 
+  // Disabled, the corner is all that tells a chosen toggle from an unchosen
+  // one, and the mode paints over the container it shows on, so a chosen
+  // outlined or standard toggle draws a rule for it.
+  it.each(['outlined', 'standard'] as const)(
+    'draws the edge of a disabled chosen %s toggle in GrayText',
+    (variant) => {
+      const rules = forcedColorRules(
+        buttonIn(
+          <IconButton
+            aria-label="Label"
+            defaultSelected
+            isDisabled
+            variant={variant}
+          >
+            {ICON}
+          </IconButton>,
+        ),
+      )
+
+      expect(rules.get('border-top-color')).toBe('graytext')
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+    },
+  )
+
+  // An unchosen one stays as its variant draws it, so the two differ.
+  it('draws a disabled unchosen standard toggle no edge', () => {
+    expect(
+      forcedColorRules(
+        buttonIn(
+          <IconButton
+            aria-label="Label"
+            defaultSelected={false}
+            isDisabled
+            variant="standard"
+          >
+            {ICON}
+          </IconButton>,
+        ),
+      ).get('border-top-width'),
+    ).toBeUndefined()
+  })
+
   // A toggle says it is chosen through its fill, or a standard one through
   // its icon's colour alone, and the mode repaints both, so a chosen toggle
   // looked the same as an unchosen one.
