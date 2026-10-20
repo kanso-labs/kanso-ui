@@ -85,7 +85,8 @@ describe('checkbox group in a form', () => {
       ?.getBoundingClientRect()
     const after = view.getByText('After the group').getBoundingClientRect()
 
-    expect([tops[1] - tops[0], tops[2] - tops[1]]).toEqual([40, 40])
+    // The 48dp pitch a group's targets meet on, and no line between items.
+    expect([tops[1] - tops[0], tops[2] - tops[1]]).toEqual([48, 48])
     // The group's own line, 4dp above a 16dp line of type, after its last
     // item.
     expect(after.top - (last?.bottom ?? 0)).toBeGreaterThanOrEqual(20)

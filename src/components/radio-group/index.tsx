@@ -86,12 +86,9 @@ const styles = stylex.create({
   dotDisabled: {
     backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'GrayText' },
   },
-  // The group's buttons: one under another, or along a line when the group
-  // is horizontal.
-  items: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
+  // The group's buttons along a line, for a horizontal group. One under
+  // another is the shared `stack`, whose row gap this keeps for the lines a
+  // long group wraps onto.
   itemsHorizontal: {
     columnGap: spacing.lg,
     flexDirection: 'row',
@@ -268,7 +265,10 @@ function groupContent(
         {label}
       </FieldLabel>
       <div
-        {...stylex.props(styles.items, horizontal && styles.itemsHorizontal)}
+        {...stylex.props(
+          controlStyles.stack,
+          horizontal && styles.itemsHorizontal,
+        )}
       >
         {children}
       </div>

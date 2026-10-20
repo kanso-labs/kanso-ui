@@ -51,9 +51,16 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // their header comments while drawing only the first. The target is what the
 // pages ask a press to reach, so it is drawn: `disc` carries a transparent
 // `::before` that reaches the 4dp either side, taking the press because a
-// pseudo-element is part of the element it belongs to. Nothing moves, since
-// that box is out of flow — the alternative, a 48dp disc, would have grown
-// every form in every consuming app by 8dp a row.
+// pseudo-element is part of the element it belongs to. A lone control moves
+// nothing, since that box is out of flow — the alternative, a 48dp disc,
+// would have grown every form in every consuming app by 8dp a row.
+//
+// A group's rows are the exception, and `stack` is how. Rows on the 40dp
+// pitch of their layers put each target 8dp into the next row's, and the
+// later row is painted over the earlier, so a press on the bottom of one
+// row's visible layer went to the row below it. The pages ask that a target
+// not overlap its neighbour, so a group spaces its rows by the 8dp the two
+// sizes differ by, and the targets meet edge to edge on a 48dp pitch.
 //
 // Switch composes neither of these. Its track is its own 52 by 40, so it
 // carries the same `::before` in its own file, over the one axis that is
@@ -74,6 +81,9 @@ const TARGET_SIZE = '48px'
 
 /** How far the target reaches past the layer on each side: 4dp. */
 const TARGET_REACH = `calc((${LAYER_SIZE} - ${TARGET_SIZE}) / 2)`
+
+/** The room two targets need between their layers to meet without overlap. */
+const TARGET_GAP = `calc(${TARGET_SIZE} - ${LAYER_SIZE})`
 
 const controlStyles = stylex.create({
   // The cursors the control itself takes. The label has its own pair, since
@@ -115,10 +125,14 @@ const controlStyles = stylex.create({
   // a German compound held the column at its own width and widened the page.
   // The field shrinks below its content for the same reason, as a flex item
   // in a horizontal group.
+  //
+  // No gap between the columns: the label and the messages carry the 8dp as
+  // padding instead. A gap belongs to the grid rather than to either cell, so
+  // the 4dp of it the target does not reach took no press at all, between a
+  // control and the label that names it.
   field: {
     alignItems: 'start',
     boxSizing: 'border-box',
-    columnGap: spacing.sm,
     display: 'grid',
     gridTemplateColumns: 'auto minmax(0, 1fr)',
     minInlineSize: 0,
@@ -153,6 +167,9 @@ const controlStyles = stylex.create({
     minInlineSize: 0,
     overflowWrap: 'anywhere',
     paddingBlock: `calc((${LAYER_SIZE} - ${typography.bodyLargeLineHeight}) / 2)`,
+    // The space between the control and the text, held by the label so a
+    // press there toggles the control — see `field`.
+    paddingInlineStart: spacing.sm,
   },
   // `GrayText` under forced colours, which greys the native input but not
   // the label beside it: without it a disabled label was drawn as an enabled
@@ -174,6 +191,15 @@ const controlStyles = stylex.create({
     gridColumnStart: 2,
     minInlineSize: 0,
     overflowWrap: 'anywhere',
+    paddingInlineStart: spacing.sm,
+  },
+  // A group's options, one under another on the 48dp pitch of their targets
+  // rather than the 40dp of their layers — see `TARGET_GAP`. A group laid
+  // along a line keeps the same gap between the lines it wraps onto.
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: TARGET_GAP,
   },
 })
 
