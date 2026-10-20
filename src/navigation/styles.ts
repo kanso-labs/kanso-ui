@@ -79,9 +79,17 @@ const navigationItemStyles = stylex.create({
   // The label never wraps: a destination's name is a word or two, and one
   // broken over two lines pushed its neighbours apart. One cut short shows
   // its full text on hover instead — see `NavigationLabel` in ./index.tsx.
+  //
+  // It is clipped across and never down. `hidden` clipped both ways, and
+  // also let a flex column squeeze the label below its own line: under a
+  // reader's wider text spacing the bottom of every label was cut off. A
+  // `clip` across leaves the line its height and the ellipsis where it was,
+  // and the label's width is still measurable, which the bar and the
+  // tooltip both read.
   label: {
     color: colors.onSurfaceVariant,
-    overflow: 'hidden',
+    overflowX: 'clip',
+    overflowY: 'visible',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
@@ -107,6 +115,11 @@ const navigationItemStyles = stylex.create({
 // The pages' least touch target, which a horizontal bar destination's 40dp
 // pill falls short of.
 const TARGET_SIZE = '48px'
+
+// The navigation bar page's 64dp row, and the 40dp pill a horizontal
+// destination draws inside it.
+const BAR_ROW = '64px'
+const PILL = '40px'
 
 // The navigation bar's destination: vertical below the medium breakpoint and
 // horizontal at it and above, so every value that differs is a pair.
@@ -196,11 +209,20 @@ const barItemStyles = stylex.create({
   // Each vertical destination shares the bar's width with the others; a
   // horizontal one is as wide as its pill, the group centred in the bar.
   //
+  // Each draws the bar's 64dp row itself rather than filling the bar: a
+  // vertical destination is at least the row, and taller where its label's
+  // line is, under a reader's wider text spacing; a horizontal one is the
+  // pill with half of what the row has over it above and below. The bar is
+  // then as tall as its destinations and whatever padding the call site
+  // gives it. Sized as a share of the bar instead, a destination was what
+  // that padding left of 64dp: 34dp under the bar for a phone's home
+  // indicator brought it to 30, with its indicator pushed out of the top.
+  //
   // The horizontal pill is the page's 40dp, and the press reaches past it to
   // the pages' 48dp target through a box drawn above and below it: a box
   // taking the press because a pseudo-element is part of the element it
   // belongs to, and moving nothing because it is out of flow. The vertical
-  // destination is the bar's full height already, so it draws none.
+  // destination is the row's full height already, so it draws none.
   item: {
     '::after': {
       content: { default: null, [media.medium]: '""' },
@@ -208,13 +230,18 @@ const barItemStyles = stylex.create({
       insetInline: 0,
       position: 'absolute',
     },
-    blockSize: { default: '100%', [media.medium]: '40px' },
+    blockSize: { default: null, [media.medium]: PILL },
     borderRadius: radii.pill,
     flexBasis: { default: 0, [media.medium]: 'auto' },
     flexDirection: { default: 'column', [media.medium]: 'row' },
     flexGrow: { default: 1, [media.medium]: 0 },
     gap: spacing.xs,
     justifyContent: 'center',
+    marginBlock: {
+      default: 0,
+      [media.medium]: `calc((${BAR_ROW} - ${PILL}) / 2)`,
+    },
+    minBlockSize: { default: BAR_ROW, [media.medium]: 0 },
     minInlineSize: 0,
     paddingBlock: { default: '6px', [media.medium]: 0 },
     paddingInline: { default: 0, [media.medium]: spacing.lg },

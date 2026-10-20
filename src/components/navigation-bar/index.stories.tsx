@@ -248,6 +248,17 @@ const WithLargeCounts: Story = {
   },
 }
 
+// 34px of padding under the bar, the inset an iPhone's home indicator asks
+// for, which the bar adds to its height rather than taking out of the
+// destinations. An app passes `env(safe-area-inset-bottom)` instead, which a
+// desktop browser reads as nothing, so the story gives the number.
+const HomeIndicatorPadding: Story = {
+  ...COMPACT,
+  args: {
+    style: { paddingBlockEnd: '34px' },
+  },
+}
+
 // Five labels the horizontal form has no room for at 640px, so the bar keeps
 // the vertical form there and turns horizontal once the window is wide
 // enough to show every label whole. Chromatic is told the width through its
@@ -270,6 +281,7 @@ export {
   Compact,
   Default,
   FiveDestinations,
+  HomeIndicatorPadding,
   LongLabels,
   WithBadges,
   WithLargeCounts,

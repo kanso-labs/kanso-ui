@@ -18,8 +18,8 @@ import { textOf } from '../collection/text'
 // string and the element's text is not this hook's to guess.
 
 /**
- * The `title` and `onPointerEnter` for a label span that clips to one line:
- * spread both on the span that carries `overflow: hidden`.
+ * The `title` and `onPointerEnter` for a label span that clips to one line,
+ * through `overflow: hidden` or `clip`: spread both on that span.
  */
 function useClippedTitle(label: ReactNode) {
   const [title, setTitle] = useState<string>()

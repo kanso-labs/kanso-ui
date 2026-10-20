@@ -131,6 +131,24 @@ function probe(style: stylex.StyleXStyles) {
   return read
 }
 
+// WCAG 1.4.12's text spacing, set as a reader's own stylesheet sets it: over
+// every element, past the page's rules. Removed again by the call it returns.
+function spaceText() {
+  const sheet = document.createElement('style')
+  sheet.textContent =
+    '* { letter-spacing: 0.12em !important; line-height: 1.5 !important; word-spacing: 0.16em !important; }'
+  document.head.append(sheet)
+  return () => {
+    sheet.remove()
+  }
+}
+
+// The inset an iPhone's home indicator asks for under a bar at the bottom of
+// the screen, which a call site passes as `env(safe-area-inset-bottom)`.
+// Hoisted for the reason ICON is.
+const HOME_INDICATOR = 34
+const PADDED = { paddingBlockEnd: `${HOME_INDICATOR}px` }
+
 // Five labels long enough that their horizontal destinations need more than
 // a medium window's first few hundred pixels, as five translated labels do.
 const LONG_LABELS = [
@@ -200,6 +218,21 @@ describe('navigation bar', () => {
     // router rather than reloading the page. The click stands in for Enter
     // too: on a native link React Aria leaves that key to the browser, whose
     // activation is this same click.
+    // Cut short across with an ellipsis, and never down, so a line taller
+    // than label medium's shows whole.
+    it('clips a label across and never down', () => {
+      const view = render(<Bar />)
+      const label = getComputedStyle(
+        labelOf(view.getByRole('link', { name: 'First item' })),
+      )
+
+      expect([label.overflowX, label.overflowY, label.textOverflow]).toEqual([
+        'clip',
+        'visible',
+        'ellipsis',
+      ])
+    })
+
     it("routes through the app's RouterProvider", () => {
       const navigate = vi.fn<(path: string) => void>()
       const view = render(
@@ -256,6 +289,49 @@ describe('navigation bar', () => {
       expect(getComputedStyle(bar).backgroundColor).toBe(
         probe(probeStyles.surfaceContainer).background,
       )
+    })
+
+    // The padding adds to the 64dp row rather than coming out of it, which
+    // left each destination 30dp with its indicator pushed out of the top.
+    it('grows by the padding under it, each destination keeping 64dp', () => {
+      const view = render(<Bar style={PADDED} />)
+      const bar = view.getByRole('navigation').getBoundingClientRect()
+
+      expect(bar.height).toBe(64 + HOME_INDICATOR)
+      for (const link of view.getAllByRole('link')) {
+        const destination = link.getBoundingClientRect()
+        const indicator = indicatorOf(link).getBoundingClientRect()
+
+        expect(destination.height).toBe(64)
+        expect(destination.top).toBe(bar.top)
+        expect(indicator.top).toBeGreaterThanOrEqual(bar.top)
+        expect(labelOf(link).getBoundingClientRect().bottom).toBeLessThan(
+          bar.bottom - HOME_INDICATOR,
+        )
+      }
+    })
+
+    it('grows with its labels under wider text spacing, cutting none off', () => {
+      const restore = spaceText()
+      try {
+        const view = render(<Bar />)
+        const bar = view.getByRole('navigation').getBoundingClientRect()
+
+        expect(bar.height).toBeGreaterThan(64)
+        for (const link of view.getAllByRole('link')) {
+          const label = labelOf(link)
+
+          expect(label.scrollHeight).toBeLessThanOrEqual(label.clientHeight)
+          expect(label.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+            bar.bottom,
+          )
+          expect(indicatorOf(link).getBoundingClientRect().top).toBe(
+            link.getBoundingClientRect().top + 6,
+          )
+        }
+      } finally {
+        restore()
+      }
     })
 
     it('shares the width equally between the destinations', () => {
@@ -370,6 +446,29 @@ describe('navigation bar', () => {
       )
       expect(label.left - indicator.right).toBe(4)
       expect(indicator.left - current.getBoundingClientRect().left).toBe(16)
+    })
+
+    it("is the page's 64dp bar, with the pill centred in it", () => {
+      const view = render(<Bar />)
+      const bar = view.getByRole('navigation').getBoundingClientRect()
+      const pill = view.getAllByRole('link')[0].getBoundingClientRect()
+
+      expect(bar.height).toBe(64)
+      expect(pill.top - bar.top).toBe(12)
+    })
+
+    // The pill stays centred in the 64dp row, with the padding under it.
+    it('grows by the padding under it, the pill keeping its place', () => {
+      const view = render(<Bar style={PADDED} />)
+      const bar = view.getByRole('navigation').getBoundingClientRect()
+
+      expect(bar.height).toBe(64 + HOME_INDICATOR)
+      for (const link of view.getAllByRole('link')) {
+        const pill = link.getBoundingClientRect()
+
+        expect(pill.height).toBe(40)
+        expect(pill.top - bar.top).toBe(12)
+      }
     })
 
     it('lays the focus layer and the ring on the pill for a keyboard', () => {
