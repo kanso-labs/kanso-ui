@@ -621,11 +621,53 @@ describe('list item', () => {
       expect(isPressed(view.container)).toBe(true)
     })
 
-    // A presenting row has no ripple to merge with, so the hook hands the six
-    // back untouched — which is the only thing putting them on the <div>,
-    // since they are no longer in the rest it spreads.
-    it('keeps the handlers on a row that only presents', () => {
+    // A row that only presents takes no press handlers, since it is a <div>
+    // nothing but a pointer can operate.
+    it('refuses press handlers on a row that only presents', () => {
       const onClick = vi.fn<() => void>()
+      const rows = [
+        // @ts-expect-error -- a row that only presents takes no onClick
+        <ListItem key="click" onClick={onClick} />,
+        // @ts-expect-error -- nor onPointerDown
+        <ListItem key="down" onPointerDown={onClick} />,
+        // @ts-expect-error -- nor onPointerUp
+        <ListItem key="up" onPointerUp={onClick} />,
+        // @ts-expect-error -- nor onPointerLeave
+        <ListItem key="leave" onPointerLeave={onClick} />,
+        // @ts-expect-error -- nor onPointerCancel
+        <ListItem key="cancel" onPointerCancel={onClick} />,
+        // @ts-expect-error -- nor onContextMenu
+        <ListItem key="menu" onContextMenu={onClick} />,
+        // @ts-expect-error -- nor onClick when it says so outright
+        <ListItem interactive={false} key="explicit" onClick={onClick} />,
+      ]
+
+      expect(rows).toHaveLength(7)
+    })
+
+    // A flag the call site only knows at run time still compiles, as long as
+    // no press handler rides on it.
+    it('takes a computed interactive flag without handlers', () => {
+      const flags: boolean[] = [true, false]
+      const view = render(
+        <>
+          {flags.map((flag) => (
+            <ListItem interactive={flag} key={String(flag)}>
+              headline
+            </ListItem>
+          ))}
+        </>,
+      )
+
+      expect(view.getAllByRole('button')).toHaveLength(1)
+    })
+
+    // The type is the guard, and the runtime is unchanged: a presenting row
+    // has no ripple to merge with, so the hook hands the six back untouched,
+    // and a JavaScript caller that still passes one keeps it.
+    it('keeps a handler a JavaScript caller hands a row that only presents', () => {
+      const onClick = vi.fn<() => void>()
+      // @ts-expect-error -- what a JavaScript caller can still pass
       const view = render(<ListItem onClick={onClick}>headline</ListItem>)
 
       fireEvent.click(rowIn(view.container))
