@@ -6,6 +6,7 @@ import { page } from 'vitest/browser'
 import type { SnackbarOptions } from '.'
 
 import Snackbar from '.'
+import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Dialog from '../dialog'
@@ -42,7 +43,22 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+/**
+ * Whether the strip holding `content` is fading out: it lets presses through
+ * only then, which reads the state without timing the animation.
+ */
+function isFading(content: Element) {
+  const strip = content.closest('[role="alertdialog"]')
+  if (strip === null) {
+    throw new Error('expected the content to sit in a strip')
+  }
+  return getComputedStyle(strip).pointerEvents === 'none'
+}
+
 const UNDO = { label: 'Undo', onPress: () => {} }
+
+// How long a closed strip stays to fade out, as `EXIT_MS` in the component.
+const EXIT_MS = 150
 
 // A word longer than a phone-width strip holds, which a file name or a German
 // compound easily is.
@@ -56,6 +72,18 @@ function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
   const queue = new Snackbar.Queue()
   const view = render(<Snackbar queue={queue} {...props} />)
   return { queue, view }
+}
+
+/** A strip on screen, with the key that closes it. */
+function shownWith(options: SnackbarOptions = {}) {
+  const onClose = vi.fn<() => void>()
+  const { queue, view } = setup()
+  let key = ''
+  act(() => {
+    key = queue.add('First item', { ...options, onClose })
+  })
+  const strip = view.getByRole('alertdialog')
+  return { key, onClose, queue, strip, view }
 }
 
 /** The element carrying the alertdialog role: the snackbar's container. */
@@ -315,7 +343,7 @@ describe('snackbar', () => {
         expect(view.getByText('Third item')).not.toBeNull()
 
         act(() => {
-          vi.advanceTimersByTime(5000)
+          vi.advanceTimersByTime(5000 + EXIT_MS)
         })
 
         expect(document.querySelectorAll('[role="alertdialog"]')).toHaveLength(
@@ -329,7 +357,8 @@ describe('snackbar', () => {
 
   describe('timing', () => {
     // A message alone is shown for five seconds; one carrying an action stays
-    // until it is taken or closed — see the durations in the component.
+    // until it is taken or closed — see the durations in the component. It
+    // then fades, and is gone once the fade has run.
     it('leaves on its own after five seconds', () => {
       vi.useFakeTimers()
       try {
@@ -342,10 +371,15 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(4900)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
           vi.advanceTimersByTime(200)
+        })
+        expect(isFading(view.getByText('First item'))).toBe(true)
+
+        act(() => {
+          vi.advanceTimersByTime(EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -366,10 +400,11 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(60_000)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
           queue.close(key)
+          vi.advanceTimersByTime(EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -391,10 +426,10 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(5000)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
-          vi.advanceTimersByTime(5100)
+          vi.advanceTimersByTime(5100 + EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -418,10 +453,10 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(3900)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
-          vi.advanceTimersByTime(200)
+          vi.advanceTimersByTime(200 + EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -442,7 +477,7 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(60_000)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
       } finally {
         vi.useRealTimers()
       }
@@ -459,10 +494,10 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(3900)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
-          vi.advanceTimersByTime(200)
+          vi.advanceTimersByTime(200 + EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -482,10 +517,11 @@ describe('snackbar', () => {
         act(() => {
           vi.advanceTimersByTime(60_000)
         })
-        expect(view.queryByText('First item')).not.toBeNull()
+        expect(isFading(view.getByText('First item'))).toBe(false)
 
         act(() => {
           queue.close(key)
+          vi.advanceTimersByTime(EXIT_MS)
         })
         expect(view.queryByText('First item')).toBeNull()
       } finally {
@@ -509,6 +545,149 @@ describe('snackbar', () => {
       await waitFor(() => {
         expect(onClose).toHaveBeenCalledTimes(1)
       })
+    })
+  })
+
+  // React Aria drops a toast the moment it closes, so the queue keeps a
+  // closed strip on screen for as long as its fade runs — see
+  // `FadingToastQueue` in the component.
+  describe('leaving', () => {
+    it('fades out before it leaves', () => {
+      vi.useFakeTimers()
+      try {
+        const { key, queue, strip, view } = shownWith()
+        const arriving = getComputedStyle(strip).animationName
+
+        act(() => {
+          queue.close(key)
+        })
+        expect(view.getByRole('alertdialog')).toBe(strip)
+        const style = getComputedStyle(strip)
+        expect(style.animationName).not.toBe(arriving)
+        expect(style.animationName).not.toBe('none')
+        expect(style.animationDuration).toBe(`${EXIT_MS / 1000}s`)
+        expect(style.animationFillMode).toBe('forwards')
+        expect(style.pointerEvents).toBe('none')
+
+        act(() => {
+          vi.advanceTimersByTime(EXIT_MS - 10)
+        })
+        expect(view.queryByRole('alertdialog')).toBe(strip)
+
+        act(() => {
+          vi.advanceTimersByTime(10)
+        })
+        expect(view.queryByRole('alertdialog')).toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    // The fade is motion like the rise, so it is answered the same way: the
+    // strip is gone at once rather than fading.
+    it('stops fading for a reader who asked for less motion', () => {
+      vi.useFakeTimers()
+      try {
+        const { key, queue, strip } = shownWith()
+        act(() => {
+          queue.close(key)
+        })
+
+        const { reduced, resting } = reducedMotionOf(
+          strip,
+          'animation-duration',
+        )
+        expect(resting).toBeDefined()
+        expect(resting).not.toBe('0s')
+        expect(reduced).toBe('0s')
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    // Its close button is React Aria's, which closes the toast on the queue
+    // underneath rather than through `close`.
+    it('fades out from its close button', () => {
+      vi.useFakeTimers()
+      try {
+        const { strip, view } = shownWith({ showCloseButton: true })
+
+        fireEvent.click(view.getByRole('button', { name: 'Close' }))
+        expect(isFading(strip)).toBe(true)
+
+        act(() => {
+          vi.advanceTimersByTime(EXIT_MS)
+        })
+        expect(view.queryByRole('alertdialog')).toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    // A call site committing a change unless Undo was pressed hears of the
+    // close when it happens, not once the strip has finished drawing it.
+    it('runs onClose as it starts to fade, and once', () => {
+      vi.useFakeTimers()
+      try {
+        const { key, onClose, queue } = shownWith()
+
+        act(() => {
+          queue.close(key)
+        })
+        expect(onClose).toHaveBeenCalledTimes(1)
+
+        act(() => {
+          queue.close(key)
+          queue.clear()
+          vi.advanceTimersByTime(EXIT_MS)
+        })
+        expect(onClose).toHaveBeenCalledTimes(1)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('runs its action once, however often it is pressed', () => {
+      vi.useFakeTimers()
+      try {
+        const onPress = vi.fn<() => void>()
+        const { view } = shownWith({ action: { label: 'Undo', onPress } })
+        const undo = view.getByRole('button', { name: 'Undo' })
+
+        fireEvent.click(undo)
+        fireEvent.click(undo)
+        expect(onPress).toHaveBeenCalledTimes(1)
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    // The page shows one at a time, so a newer message takes the place of
+    // one fading out at once, rather than waiting behind it.
+    it('gives way at once to a newer message', () => {
+      vi.useFakeTimers()
+      try {
+        const { key, onClose, queue, view } = shownWith()
+        act(() => {
+          queue.close(key)
+        })
+
+        act(() => {
+          queue.add('Second item')
+        })
+        expect(view.queryByText('First item')).toBeNull()
+        expect(view.getByText('Second item')).not.toBeNull()
+        expect(onClose).toHaveBeenCalledTimes(1)
+
+        // The older one runs out its fade unseen, and does not come back.
+        act(() => {
+          vi.advanceTimersByTime(EXIT_MS)
+        })
+        expect(view.queryByText('First item')).toBeNull()
+        expect(isFading(view.getByText('Second item'))).toBe(false)
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 

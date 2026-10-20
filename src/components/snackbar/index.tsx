@@ -8,6 +8,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useSyncExternalStore } from 'react'
 import {
   Button as RACButton,
   UNSTABLE_Toast as RACToast,
@@ -105,16 +106,29 @@ const MESSAGE_MS = 5000
 const MINIMUM_MS = 4000
 const UNTIL_CLOSED = 0
 
+// How long a closing snackbar takes to fade, and so how long it stays in the
+// document once something has closed it: `durationShort2`, the token the fade
+// below runs for. A theme that lengthens that token has its fade cut short
+// here, since the queue cannot read a duration out of the stylesheet.
+const EXIT_MS = 150
+
 // Below the page's 600dp breakpoint the snackbar runs the width of the
 // screen; above it, it takes between 320 and 576.
 const WIDE = '@media (min-width: 600px)'
 
-// The page's own is a fade. It rises a little as it arrives too, which is
-// what the page draws and what says the message came from the edge of the
-// screen rather than appearing over it.
+// The page's own is a fade, in and out. It rises a little as it arrives too,
+// which is what the page draws and what says the message came from the edge
+// of the screen rather than appearing over it. It leaves by the fade alone,
+// and quicker than it came, on the curve for something going away: once it is
+// closed there is nothing left on it to read.
 const rise = stylex.keyframes({
   from: { opacity: 0, transform: 'translateY(100%)' },
   to: { opacity: 1, transform: 'translateY(0)' },
+})
+
+const fadeOut = stylex.keyframes({
+  from: { opacity: 1 },
+  to: { opacity: 0 },
 })
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
@@ -350,6 +364,20 @@ const styles = stylex.create({
     paddingInline: spacing.sm,
     pointerEvents: 'auto',
   },
+  // A strip on its way out — see `FadingToastQueue`. Reduced motion zeroes
+  // the duration as it does the rise's, so the strip is gone at once. It lets
+  // a press through to whatever is beneath it meanwhile, since nothing on it
+  // answers one any more.
+  toastFading: {
+    animationDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: motion.durationShort2,
+    },
+    animationFillMode: 'forwards',
+    animationName: fadeOut,
+    animationTimingFunction: motion.easingEmphasizedAccelerate,
+    pointerEvents: 'none',
+  },
 })
 
 type SnackbarAction = {
@@ -375,7 +403,7 @@ type SnackbarOptions = {
   /**
    * Run when the snackbar closes, however it was closed: by its timer, its
    * action or close button, `close`, `clear`, or a newer message added in its
-   * place.
+   * place. It runs as the snackbar starts to fade out, not once it has gone.
    */
   onClose?: () => void
   /**
@@ -440,6 +468,59 @@ type SnackbarToastItem =
   ToastRegionRenderProps<SnackbarMessage>['visibleToasts'][number]
 
 /**
+ * React Aria's queue, made to keep a closing snackbar on screen while it
+ * fades. React Aria drops a toast from its list the moment it closes, and the
+ * region unmounts with its last toast, so a closing strip has no state of its
+ * own to be drawn in. Every close reaches `close` here — React Aria's timer and
+ * its close button call it on the queue they were handed, as `SnackbarQueue`
+ * does — so this one override covers all of them: the strip is marked as
+ * fading, and React Aria closes it once the fade has run.
+ */
+class FadingToastQueue extends RACToastQueue<SnackbarMessage> {
+  // The strips fading out.
+  readonly #fading = new Set<string>()
+
+  readonly #listeners = new Set<() => void>()
+
+  // Run as a strip starts to close — see `SnackbarQueue`.
+  readonly #onClosing: (key: string) => void
+
+  constructor(onClosing: (key: string) => void) {
+    // One at a time, which is what the page shows. React Aria shows the
+    // newest, so a message added while another is up or fading takes its
+    // place at once, and the older one runs out its fade unseen.
+    super({ maxVisibleToasts: 1 })
+    this.#onClosing = onClosing
+  }
+
+  /** Starts a toast fading, and closes it once the fade has run. */
+  override close(key: string) {
+    this.#onClosing(key)
+    this.#fading.add(key)
+    setTimeout(() => {
+      this.#fading.delete(key)
+      super.close(key)
+    }, EXIT_MS)
+    for (const listener of this.#listeners) {
+      listener()
+    }
+  }
+
+  /** Whether a toast is fading out. */
+  isFading(key: string) {
+    return this.#fading.has(key)
+  }
+
+  /** Calls `listener` whenever a toast starts to fade. */
+  subscribeToFading(listener: () => void) {
+    this.#listeners.add(listener)
+    return () => {
+      this.#listeners.delete(listener)
+    }
+  }
+}
+
+/**
  * The queue a snackbar is shown from. Make one where the app can reach it —
  * a module of its own is the usual place — mount `Snackbar` once with it,
  * and call `add` from anywhere.
@@ -459,16 +540,20 @@ class SnackbarQueue {
    */
   readonly rac: RACToastQueue<SnackbarMessage>
 
-  // The keys of the snackbars not yet closed, which `add` and `clear` close.
-  // Kept here because React Aria keeps its own list private, and its own
-  // `clear` empties that list without running a single `onClose`.
-  readonly #open = new Set<string>()
+  // The snackbars not yet closed, each with its `onClose`, which `add` and
+  // `clear` close. Kept here because React Aria keeps its own list private,
+  // and its own `clear` empties that list without running a single `onClose`.
+  readonly #open = new Map<string, (() => void) | undefined>()
+
+  // `rac` as the class it is, which `rac` itself is not declared as so that
+  // the subclass stays out of the package's API.
+  readonly #toasts: FadingToastQueue
 
   constructor() {
-    // One at a time, which is what the page shows. `add` closes whatever is
-    // up before it adds, so nothing is ever left waiting for this to hold
-    // back; it says the same thing to React Aria in its own terms.
-    this.rac = new RACToastQueue<SnackbarMessage>({ maxVisibleToasts: 1 })
+    this.#toasts = new FadingToastQueue((key) => {
+      this.#closing(key)
+    })
+    this.rac = this.#toasts
   }
 
   /**
@@ -479,36 +564,40 @@ class SnackbarQueue {
   add(message: ReactNode, options: SnackbarOptions = {}) {
     const { action, onClose, showCloseButton = false, timeout } = options
     this.clear()
-    const key = this.rac.add(
+    const key = this.#toasts.add(
       { action, message, showCloseButton },
       {
-        // However it closes — its timer runs inside React Aria's queue,
-        // past this one — it leaves the open set on the way out.
-        onClose: () => {
-          this.#open.delete(key)
-          onClose?.()
-        },
         timeout: readableTimeout(
           timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
         ),
       },
     )
-    this.#open.add(key)
+    this.#open.set(key, onClose)
     return key
   }
 
   /** Closes the snackbar on screen, running its `onClose`. */
   clear() {
     // Each close runs that message's `onClose`, which deletes its own key
-    // from the set — the entry being visited, which a Set allows.
-    for (const key of this.#open) {
-      this.rac.close(key)
+    // from the map — the entry being visited, which a Map allows.
+    for (const key of this.#open.keys()) {
+      this.#toasts.close(key)
     }
   }
 
   /** Closes one snackbar, by the key `add` returned. */
   close(key: string) {
-    this.rac.close(key)
+    this.#toasts.close(key)
+  }
+
+  // A snackbar starting to close, however it was closed — its timer runs
+  // inside React Aria's queue, past this one — leaves the open map and runs
+  // its `onClose` on the way out.
+  #closing(key: string) {
+    const onClose = this.#open.get(key)
+    if (this.#open.delete(key)) {
+      onClose?.()
+    }
   }
 }
 
@@ -634,6 +723,7 @@ function snackbarContent(queue: SnackbarQueue, closeLabel: string | undefined) {
     <SnackbarToast
       close={closeToast(queue, toast.key)}
       closeLabel={closeLabel}
+      queue={queue}
       toast={toast}
     />
   )
@@ -647,11 +737,13 @@ function SnackbarControls({
   action,
   close,
   closeLabel,
+  fading,
   showCloseButton,
 }: {
   action: SnackbarAction | undefined
   close: () => void
   closeLabel: string | undefined
+  fading: boolean
   showCloseButton: boolean
 }) {
   if (action === undefined && !showCloseButton) {
@@ -661,8 +753,10 @@ function SnackbarControls({
   return (
     <div {...stylex.props(styles.controls)}>
       {action === undefined ? null : (
+        // Nothing on a fading strip answers a press: its action has already
+        // run, and an Undo pressed twice would undo twice.
         <SnackbarButton
-          onPress={actionPress(action, close)}
+          onPress={fading ? undefined : actionPress(action, close)}
           style={styles.action}
         >
           {action.label}
@@ -685,16 +779,22 @@ function SnackbarControls({
 function SnackbarToast({
   close,
   closeLabel,
+  queue,
   toast,
 }: {
   close: () => void
   closeLabel: string | undefined
+  queue: SnackbarQueue
   toast: SnackbarToastItem
 }) {
   const { action, message, showCloseButton } = toast.content
+  const fading = useFading(queue, toast.key)
 
   return (
-    <RACToast toast={toast} {...stylex.props(styles.toast)}>
+    <RACToast
+      toast={toast}
+      {...stylex.props(styles.toast, fading && styles.toastFading)}
+    >
       <RACToastContent {...stylex.props(styles.message)}>
         <Text slot="title">{message}</Text>
       </RACToastContent>
@@ -702,9 +802,22 @@ function SnackbarToast({
         action={action}
         close={close}
         closeLabel={closeLabel}
+        fading={fading}
         showCloseButton={showCloseButton}
       />
     </RACToast>
+  )
+}
+
+/**
+ * Whether a snackbar is fading out of its queue. `rac` is always the queue
+ * that fades, but is declared as React Aria's, so it is narrowed back here.
+ */
+function useFading(queue: SnackbarQueue, key: string) {
+  const toasts = queue.rac instanceof FadingToastQueue ? queue.rac : undefined
+  return useSyncExternalStore(
+    (listener) => toasts?.subscribeToFading(listener) ?? (() => {}),
+    () => toasts?.isFading(key) ?? false,
   )
 }
 
