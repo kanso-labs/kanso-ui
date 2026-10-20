@@ -15,8 +15,11 @@ import * as stylex from '@stylexjs/stylex'
 import {
   createContext,
   useContext,
+  useId,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react'
 import {
@@ -364,6 +367,15 @@ const basic = stylex.create({
 // the full-screen presentation.
 const BasicContext = createContext(false)
 
+// Where an alert dialog's body hands Content its id, so the dialog can name
+// the body as its description: the message an alert dialog interrupts with
+// is what a screen reader should read out with the title. Null in a dialog
+// of any other role, whose body may hold a form or a long document rather
+// than one message.
+const DescriptionContext = createContext<
+  ((id: string | undefined) => void) | null
+>(null)
+
 type DialogProps = Omit<DialogTriggerProps, 'children'> & {
   children?: ReactNode
 }
@@ -398,6 +410,21 @@ function DialogBody({
   ...props
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const isBasic = useContext(BasicContext)
+  const describe = useContext(DescriptionContext)
+  const generated = useId()
+  // An alert dialog's body describes the dialog, so it carries an id for the
+  // dialog to point at: the call site's own, or one of its own. In a layout
+  // effect, so the dialog carries its description from its first paint.
+  const id = props.id ?? (describe === null ? undefined : generated)
+  useLayoutEffect(() => {
+    if (describe === null || id === undefined) {
+      return undefined
+    }
+    describe(id)
+    return () => {
+      describe(undefined)
+    }
+  }, [describe, id])
   const ref = useRef<HTMLDivElement>(null)
   // A body its content runs past is a tab stop named by the title, so a
   // keyboard can scroll it, when nothing inside it takes focus; a call
@@ -417,6 +444,7 @@ function DialogBody({
   return (
     <div
       {...scrollStop}
+      id={id}
       {...props}
       ref={merged}
       {...mergeStyles(
@@ -436,7 +464,9 @@ function DialogBody({
  * something that has to be answered before the page carries on — a screen
  * reader announces it rather than waiting to be asked. It also keeps the
  * dialog the basic one below the medium breakpoint, centred and sized to its
- * content, where a dialog of the default role fills the window.
+ * content, where a dialog of the default role fills the window. Its
+ * `Dialog.Body` is its description, so the message is read out with the
+ * title; an `aria-describedby` of the call site's own names another.
  *
  * A press on the scrim closes the dialog unless `isDismissable` says
  * otherwise, which is the same default `Sheet` takes and the reverse of
@@ -469,39 +499,50 @@ function DialogContent({
   ...props
 }: DialogContentProps & RefAttributes<HTMLDivElement>) {
   const isBasic = props.role === 'alertdialog'
+  // The id of the body, which an alert dialog is described by unless the
+  // call site names a description of its own.
+  const [body, setBody] = useState<string>()
 
   return (
     <BasicContext value={isBasic}>
-      <OverlayScope>
-        <ModalOverlay
-          defaultOpen={defaultOpen}
-          isDismissable={isDismissable}
-          isKeyboardDismissDisabled={isKeyboardDismissDisabled}
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
-          // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
-          UNSTABLE_portalContainer={container}
-          {...stylex.props(
-            overlay.scrim,
-            styles.centre,
-            isBasic && basic.centre,
-          )}
-        >
-          <Modal
-            // The panel, where the call site's class and style land, rather
-            // than the dialog inside it, which takes the rest of the props.
-            ref={ref}
-            {...mergeStatefulStyles(
-              stylex.props(styles.container, isBasic && basic.container),
-              { className, style },
+      <DescriptionContext value={isBasic ? setBody : null}>
+        <OverlayScope>
+          <ModalOverlay
+            defaultOpen={defaultOpen}
+            isDismissable={isDismissable}
+            isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+            UNSTABLE_portalContainer={container}
+            {...stylex.props(
+              overlay.scrim,
+              styles.centre,
+              isBasic && basic.centre,
             )}
           >
-            <RACDialog {...props} {...stylex.props(overlay.modalDialog)}>
-              {children}
-            </RACDialog>
-          </Modal>
-        </ModalOverlay>
-      </OverlayScope>
+            <Modal
+              // The panel, where the call site's class and style land, rather
+              // than the dialog inside it, which takes the rest of the props.
+              ref={ref}
+              {...mergeStatefulStyles(
+                stylex.props(styles.container, isBasic && basic.container),
+                { className, style },
+              )}
+            >
+              <RACDialog
+                {...props}
+                aria-describedby={
+                  props['aria-describedby'] ?? (isBasic ? body : undefined)
+                }
+                {...stylex.props(overlay.modalDialog)}
+              >
+                {children}
+              </RACDialog>
+            </Modal>
+          </ModalOverlay>
+        </OverlayScope>
+      </DescriptionContext>
     </BasicContext>
   )
 }
