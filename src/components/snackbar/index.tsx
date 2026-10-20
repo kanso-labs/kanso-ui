@@ -88,6 +88,11 @@ import {
 // A message alone leaves after five seconds. The pages allow four to ten, and
 // React Aria's toast docs set five as the least a reader should be given.
 //
+// A call site's own `timeout` is held to the pages' four. A shorter one is
+// lengthened to that, since a message gone in a second cannot be read, and the
+// web gives a reader no setting to slow it down with — the same reason the
+// paragraph below gives. `0` is left alone: it is no timer at all.
+//
 // A message with an action stays until the action is taken or something
 // closes it, as the pages ask of every actionable snackbar. No timer can know
 // how long a reader needs to act: a screen reader user hears the message
@@ -97,6 +102,7 @@ import {
 // them from each user's accessibility settings, and the web has no such
 // setting to read.
 const MESSAGE_MS = 5000
+const MINIMUM_MS = 4000
 const UNTIL_CLOSED = 0
 
 // Below the page's 600dp breakpoint the snackbar runs the width of the
@@ -390,6 +396,9 @@ type SnackbarOptions = {
    * action than any timer allows. The timer is paused while the region is
    * hovered or focused, so a message never expires while it is being read.
    *
+   * A timer shorter than four seconds, the least Material Design allows, is
+   * lengthened to four, since a message gone sooner cannot be read.
+   *
    * `0` is the page's indefinite length: the snackbar stays until something
    * closes it. Give one of those an action or `showCloseButton`, or there is no
    * way to be rid of it.
@@ -479,7 +488,9 @@ class SnackbarQueue {
           this.#open.delete(key)
           onClose?.()
         },
-        timeout: timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
+        timeout: readableTimeout(
+          timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
+        ),
       },
     )
     this.#open.add(key)
@@ -532,6 +543,13 @@ function controlClassName(style: stylex.StyleXStyles) {
       state.isFocusVisible && styles.controlFocused,
       state.isPressed && styles.controlPressed,
     ).className ?? ''
+}
+
+// A timer the reader has time to read by — see the durations at the top of
+// this file. Only a timer is held to the minimum: React Aria runs none for `0`
+// or below, which keep the message until something closes it.
+function readableTimeout(timeout: number) {
+  return timeout > UNTIL_CLOSED ? Math.max(timeout, MINIMUM_MS) : timeout
 }
 
 /**
