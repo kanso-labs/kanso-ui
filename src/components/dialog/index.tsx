@@ -414,7 +414,7 @@ function DialogBody({
   const generated = useId()
   // An alert dialog's body describes the dialog, so it carries an id for the
   // dialog to point at: the call site's own, or one of its own. In a layout
-  // effect, so the description is there before the dialog takes focus.
+  // effect, so the dialog carries its description from its first paint.
   const id = props.id ?? (describe === null ? undefined : generated)
   useLayoutEffect(() => {
     if (describe === null || id === undefined) {
