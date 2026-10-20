@@ -101,6 +101,22 @@ const DESTINATIONS = (
   </>
 )
 
+// A route nested under the second destination, which no `href` matches
+// whole, so that destination marks itself current with `isCurrent`.
+const NESTED = (
+  <>
+    <NavigationRail.Item href="#first" icon={CIRCLE}>
+      First item
+    </NavigationRail.Item>
+    <NavigationRail.Item href="#second" icon={SQUARE} isCurrent>
+      Second item
+    </NavigationRail.Item>
+    <NavigationRail.Item href="#third" icon={TRIANGLE}>
+      Third item
+    </NavigationRail.Item>
+  </>
+)
+
 // A label far past the collapsed rail's 88dp, between two that fit.
 const LONG_LABEL = 'A label long enough to be cut short'
 
@@ -224,6 +240,16 @@ const LongLabel: Story = {
   },
 }
 
+// The rail on `#second/detail`, a page nested under the second destination,
+// which marks itself current by hand. Matched alone, the route would leave
+// no destination current.
+const NestedRoute: Story = {
+  args: {
+    children: NESTED,
+    selectedRoute: '#second/detail',
+  },
+}
+
 // More destinations than the rail has room for: they scroll in their own
 // block under the header, each keeping the page's 56dp, rather than
 // squashing or running past the rail. The header's menu button sits at the
@@ -236,6 +262,13 @@ const ManyDestinations: Story = {
   },
 }
 
-export { Default, Expanded, LongLabel, ManyDestinations, WithHeader }
+export {
+  Default,
+  Expanded,
+  LongLabel,
+  ManyDestinations,
+  NestedRoute,
+  WithHeader,
+}
 
 export default meta

@@ -1422,6 +1422,7 @@ type NavigationItemProps = {
     className?: LinkProps_2['className'];
     href: string;
     icon: ReactNode;
+    isCurrent?: boolean;
     style?: LinkProps_2['style'];
 } & Omit<LinkProps_2, 'children' | 'className' | 'href' | 'style'>;
 export { NavigationItemProps as NavigationBarItemProps }

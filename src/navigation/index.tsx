@@ -32,7 +32,11 @@ import {
 // something — so it is React Aria's `Link`, which routes through a
 // `RouterProvider` when an app has one. The current one is the one whose
 // `href` is the bar's or the rail's `selectedRoute`, the same matching
-// NavigationTree does, and it carries `aria-current="page"`.
+// NavigationTree does, and it carries `aria-current="page"`. A destination's
+// own `isCurrent` overrides that match, which is how an app on a route
+// nested under a destination marks the destination it is under: the match
+// is exact, and a top-level destination's `href` is rarely the whole route.
+// The attribute, the indicator and the label all read the one answer.
 
 const FORMS = {
   bar: barItemStyles,
@@ -72,6 +76,14 @@ type NavigationItemProps = {
   href: string
   /** The destination's icon, at the pages' 24dp. */
   icon: ReactNode
+  /**
+   * Whether this is the current destination, in place of matching its
+   * `href` against the bar's or the rail's `selectedRoute`. Pass it for a
+   * route nested under the destination, `/first/42` under `/first`, which
+   * the exact match leaves without a current destination; `false` turns
+   * the match off. Left out, the match decides.
+   */
+  isCurrent?: boolean
   /** A function may compute the style from the destination's render state. */
   style?: RACLinkProps['style']
 } & Omit<RACLinkProps, 'children' | 'className' | 'href' | 'style'>
@@ -166,10 +178,12 @@ function NavigationItem({
   children,
   href,
   icon,
+  isCurrent: isCurrentProp,
   ...props
 }: NavigationItemProps & RefAttributes<HTMLAnchorElement>) {
   const { form, selectedRoute } = useContext(NavigationContext)
-  const isCurrent = selectedRoute !== undefined && href === selectedRoute
+  const isCurrent =
+    isCurrentProp ?? (selectedRoute !== undefined && href === selectedRoute)
 
   return (
     <RACLink
