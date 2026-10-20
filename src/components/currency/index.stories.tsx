@@ -9,6 +9,7 @@ import {
   spacing,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import List from '../list'
 import Text from '../text'
 
 // Every story pins an explicit locale. Without one the component formats for
@@ -25,6 +26,14 @@ const LEDGER = [
   ['Fourth item', -9.99],
 ] as const satisfies [string, number][]
 
+// The second row is the selected one, and the amounts take every sign.
+// Hoisted so neither the keys nor the slots are new values on every render,
+// which is what react-perf's array and JSX rules are after.
+const SELECTED = ['second']
+const FIRST_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={1250} />
+const SECOND_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={-480} />
+const THIRD_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={0} />
+
 const styles = stylex.create({
   card: {
     backgroundColor: colors.surfaceContainer,
@@ -38,6 +47,15 @@ const styles = stylex.create({
   // Currency sets no size of its own, so this is how a hero figure is made.
   hero: {
     fontSize: typography.displaySmallSize,
+  },
+  // A list fills what it is given, so the sample needs a width and something
+  // to sit on, as List's own stories give it.
+  list: {
+    backgroundColor: colors.surfaceContainerLow,
+    borderRadius: radii.md,
+    boxSizing: 'border-box',
+    inlineSize: '360px',
+    overflow: 'hidden',
   },
   row: {
     alignItems: 'center',
@@ -121,6 +139,49 @@ const Hero: Story = {
   ),
 }
 
-export { Currencies, Hero, InALedger, Signs, Tones }
+// A hero figure too long for a narrow container: an amount has no break
+// opportunity, so in full it overflows rather than wrapping. Compact notation
+// shortens it to a few digits and a scale, rounded to two significant digits
+// unless a fraction-digit count says otherwise.
+const Compact: Story = {
+  render: (args) => (
+    <div {...stylex.props(styles.hero, styles.stack)}>
+      <Currency {...args} notation="compact" value={12_345_678_901.23} />
+      <Currency
+        {...args}
+        maximumFractionDigits={1}
+        notation="compact"
+        value={-12_345_678.9}
+      />
+    </div>
+  ),
+}
+
+// Over a selected row's container the positive and negative roles are one
+// colour family on top of another, so the amounts take the inherit tone and
+// read in the row's own colour, with the sign saying which way each goes.
+const InASelectedRow: Story = {
+  render: () => (
+    <div {...stylex.props(styles.list)}>
+      <List
+        aria-label="Label"
+        defaultSelectedKeys={SELECTED}
+        selectionMode="single"
+      >
+        <List.Item id="first" trailing={FIRST_AMOUNT}>
+          First item
+        </List.Item>
+        <List.Item id="second" trailing={SECOND_AMOUNT}>
+          Second item
+        </List.Item>
+        <List.Item id="third" trailing={THIRD_AMOUNT}>
+          Third item
+        </List.Item>
+      </List>
+    </div>
+  ),
+}
+
+export { Compact, Currencies, Hero, InALedger, InASelectedRow, Signs, Tones }
 
 export default meta

@@ -83,6 +83,8 @@ export { default as Container } from './container'
 export type { CopyFieldProps } from './copy-field'
 export { default as CopyField } from './copy-field'
 export type {
+  CurrencyDisplay,
+  CurrencyNotation,
   CurrencyProps,
   CurrencySignDisplay,
   CurrencyTone,

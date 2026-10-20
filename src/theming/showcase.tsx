@@ -1659,7 +1659,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The one row here that is not the shared one — a run of cells rather than a headline with slots — but its hover, pressed and selected layers are written from the same tokens, so a selected table row and a selected list row cannot come apart under a scheme. Its value column is a plain sequence rather than a Currency: an amount's own colour role over a selected row's container is one colour family on top of another, and the pair is not guaranteed to be readable — it fails AA outright on Terminal and on Poster. Its first column takes a resize handle, which is the divider's own rule rather than a treatment of its own."
+            description="The one row here that is not the shared one — a run of cells rather than a headline with slots — but its hover, pressed and selected layers are written from the same tokens, so a selected table row and a selected list row cannot come apart under a scheme. Its value column is a Currency in the inherit tone: an amount's own colour role over a selected row's container is one colour family on top of another, and fails AA outright on Terminal and on Poster, so each amount takes its row's colour and leaves the sign to say which way it goes. Its first column takes a resize handle, which is the divider's own rule rather than a treatment of its own."
             title="Table"
           >
             <Card padding="none" variant="outlined">
@@ -1676,12 +1676,12 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
                   <Table.Column id="colValue">Value</Table.Column>
                 </Table.Header>
                 <Table.Body>
-                  {ROWS.map(({ name: person }, index) => (
+                  {ROWS.map(({ amount, name: person }) => (
                     <Table.Row id={person} key={person}>
                       <Table.Cell selection />
                       <Table.Cell>{person}</Table.Cell>
                       <Table.Cell>
-                        {String(index + 1).padStart(2, '0')}
+                        <Currency tone="inherit" value={amount} />
                       </Table.Cell>
                     </Table.Row>
                   ))}

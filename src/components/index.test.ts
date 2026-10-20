@@ -41,6 +41,8 @@ import type {
   ComboBoxSelectionMode,
   ContainerProps,
   CopyFieldProps,
+  CurrencyDisplay,
+  CurrencyNotation,
   CurrencyProps,
   CurrencySignDisplay,
   CurrencyTone,
@@ -1127,6 +1129,16 @@ describe('components barrel', () => {
   it('re-exports the ComboBoxSelectionMode type', () => {
     const value: ComboBoxSelectionMode = 'single'
     expect(value).toBe('single')
+  })
+
+  it('re-exports the CurrencyDisplay type', () => {
+    const value: CurrencyDisplay = 'narrowSymbol'
+    expect(value).toBe('narrowSymbol')
+  })
+
+  it('re-exports the CurrencyNotation type', () => {
+    const value: CurrencyNotation = 'compact'
+    expect(value).toBe('compact')
   })
 
   it('re-exports the CurrencySignDisplay type', () => {
