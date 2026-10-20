@@ -5,7 +5,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useContext } from 'react'
+import { useContext, useId } from 'react'
 import { Link as RACLink } from 'react-aria-components'
 
 import type { NavigationForm } from './context'
@@ -37,6 +37,16 @@ import {
 // nested under a destination marks the destination it is under: the match
 // is exact, and a top-level destination's `href` is rarely the whole route.
 // The attribute, the indicator and the label all read the one answer.
+//
+// A badge is hidden from assistive technology — see the Badge component for
+// why — so what it says reaches the link's name through `badgeLabel`: the
+// link is named by its label and that text together, through
+// `aria-labelledby`, rather than by an `aria-label` the call site would keep
+// in step with both the label and the count, in every language. The text
+// sits in a hidden span beside the badge, which a name can still be read
+// from, so the label's own text and the width the bar measures it at are
+// untouched. An `aria-label` or `aria-labelledby` the call site passes still
+// names the link instead.
 
 const FORMS = {
   bar: barItemStyles,
@@ -57,14 +67,24 @@ const RINGS = {
   expanded: { indicator: null, item: focus.ringVisible },
 }
 
+// The ids a destination naming its badge gives its label and the badge's
+// words, which its link is labelled by.
+type Naming = { badgeId: string; badgeLabel: string; labelId: string }
+
 type NavigationItemProps = {
   /**
    * A badge on the icon: `true` for the badges page's small dot, a number
    * for the large badge holding it. The badge is hidden from assistive
-   * technology, so say what it says in the destination's `aria-label` too —
-   * "First item, 3 new".
+   * technology, so say what it says in `badgeLabel`.
    */
   badge?: boolean | number
+  /**
+   * What the badge says, in words and in the reader's language — "3 new",
+   * or "new" for the dot. It follows the label in the destination's
+   * accessible name, "First item 3 new", and is read only while the badge is
+   * drawn.
+   */
+  badgeLabel?: string
   /** The destination's name, drawn as its label. */
   children: ReactNode
   /** A function may compute the class from the destination's render state. */
@@ -119,6 +139,7 @@ function itemContent(
   badge: boolean | number | undefined,
   icon: ReactNode,
   label: ReactNode,
+  naming: Naming | undefined,
 ) {
   const styles = FORMS[form]
   const glyph =
@@ -154,8 +175,14 @@ function itemContent(
         )}
       >
         <span {...stylex.props(navigationItemStyles.icon)}>{glyph}</span>
+        {naming && (
+          <span hidden id={naming.badgeId}>
+            {naming.badgeLabel}
+          </span>
+        )}
       </span>
       <NavigationLabel
+        id={naming?.labelId}
         styling={stylex.props(
           navigationItemStyles.label,
           styles.label,
@@ -175,6 +202,7 @@ function itemContent(
  */
 function NavigationItem({
   badge,
+  badgeLabel,
   children,
   href,
   icon,
@@ -184,15 +212,28 @@ function NavigationItem({
   const { form, selectedRoute } = useContext(NavigationContext)
   const isCurrent =
     isCurrentProp ?? (selectedRoute !== undefined && href === selectedRoute)
+  const labelId = useId()
+  const badgeId = useId()
+  // Only while the badge is drawn, and only where the call site names the
+  // link no other way.
+  const naming =
+    badge !== undefined &&
+    badge !== false &&
+    badgeLabel !== undefined &&
+    props['aria-label'] === undefined &&
+    props['aria-labelledby'] === undefined
+      ? { badgeId, badgeLabel, labelId }
+      : undefined
 
   return (
     <RACLink
       aria-current={isCurrent ? 'page' : undefined}
+      aria-labelledby={naming && `${naming.labelId} ${naming.badgeId}`}
       href={href}
       {...props}
       {...mergeStatefulStyles(itemClasses(form, isCurrent), props)}
     >
-      {itemContent(form, isCurrent, badge, icon, children)}
+      {itemContent(form, isCurrent, badge, icon, children, naming)}
     </RACLink>
   )
 }
@@ -203,15 +244,17 @@ function NavigationItem({
 // render function.
 function NavigationLabel({
   children,
+  id,
   styling,
 }: {
   children: ReactNode
+  id: string | undefined
   styling: ReturnType<typeof stylex.props>
 }) {
   const clipped = useClippedTitle(children)
 
   return (
-    <span {...clipped} {...styling}>
+    <span {...clipped} id={id} {...styling}>
       {children}
     </span>
   )

@@ -275,6 +275,66 @@ describe('navigation bar', () => {
       }
     })
 
+    // The badge is hidden from assistive technology, so its words follow the
+    // label in the link's name, which starts with the label as it is drawn.
+    it("names a destination by its label and its badge's words", () => {
+      const view = render(
+        <NavigationBar aria-label="Label">
+          <NavigationBar.Item
+            badge={3}
+            badgeLabel="3 new"
+            href="#first"
+            icon={ICON}
+          >
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+
+      expect(
+        view.getByRole('link', { name: 'First item 3 new' }),
+      ).toBeInTheDocument()
+    })
+
+    it('names a destination by its label alone while no badge is drawn', () => {
+      const view = render(
+        <NavigationBar aria-label="Label">
+          <NavigationBar.Item
+            badge={false}
+            badgeLabel="3 new"
+            href="#first"
+            icon={ICON}
+          >
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+
+      expect(
+        view.getByRole('link', { name: 'First item' }),
+      ).not.toHaveAttribute('aria-labelledby')
+    })
+
+    it("takes the call site's aria-label over the badge's words", () => {
+      const view = render(
+        <NavigationBar aria-label="Label">
+          <NavigationBar.Item
+            aria-label="First item, three new"
+            badge={3}
+            badgeLabel="3 new"
+            href="#first"
+            icon={ICON}
+          >
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+
+      expect(
+        view.getByRole('link', { name: 'First item, three new' }),
+      ).not.toHaveAttribute('aria-labelledby')
+    })
+
     // Cut short across with an ellipsis, and never down, so a line taller
     // than label medium's shows whole.
     it('clips a label across and never down', () => {

@@ -218,6 +218,22 @@ describe('navigation rail', () => {
       }
     })
 
+    // The badge is hidden from assistive technology, so its words follow the
+    // label in the link's name.
+    it("names a destination by its label and its badge's words", () => {
+      const view = render(
+        <NavigationRail aria-label="Label">
+          <NavigationRail.Item badge badgeLabel="new" href="#first" icon={ICON}>
+            First item
+          </NavigationRail.Item>
+        </NavigationRail>,
+      )
+
+      expect(
+        view.getByRole('link', { name: 'First item new' }),
+      ).toBeInTheDocument()
+    })
+
     // A destination is React Aria's Link, so a press goes through the app's
     // router rather than reloading the page — see the bar's test for why a
     // click stands in for Enter.
