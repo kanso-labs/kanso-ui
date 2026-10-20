@@ -74,6 +74,18 @@ function setup(props: Partial<Parameters<typeof Snackbar>[0]> = {}) {
   return { queue, view }
 }
 
+/** A strip on screen, with the key that closes it. */
+function shownWith(options: SnackbarOptions = {}) {
+  const onClose = vi.fn<() => void>()
+  const { queue, view } = setup()
+  let key = ''
+  act(() => {
+    key = queue.add('First item', { ...options, onClose })
+  })
+  const strip = view.getByRole('alertdialog')
+  return { key, onClose, queue, strip, view }
+}
+
 /** The element carrying the alertdialog role: the snackbar's container. */
 function snackbarIn(view: ReturnType<typeof render>) {
   return view.getByRole('alertdialog')
@@ -540,18 +552,6 @@ describe('snackbar', () => {
   // closed strip on screen for as long as its fade runs — see
   // `FadingToastQueue` in the component.
   describe('leaving', () => {
-    /** A strip on screen, with the key that closes it. */
-    function shownWith(options: SnackbarOptions = {}) {
-      const onClose = vi.fn<() => void>()
-      const { queue, view } = setup()
-      let key = ''
-      act(() => {
-        key = queue.add('First item', { ...options, onClose })
-      })
-      const strip = view.getByRole('alertdialog')
-      return { key, onClose, queue, strip, view }
-    }
-
     it('fades out before it leaves', () => {
       vi.useFakeTimers()
       try {
