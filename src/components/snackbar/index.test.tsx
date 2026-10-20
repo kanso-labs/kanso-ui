@@ -402,6 +402,97 @@ describe('snackbar', () => {
       }
     })
 
+    // Material Design allows four seconds at the least, and a call site asking
+    // for less is given that rather than a message nobody can read.
+    it.each<[string, SnackbarOptions]>([
+      ['alone', {}],
+      ['with an action', { action: UNDO }],
+    ])('holds a shorter timeout to four seconds, %s', (_, options) => {
+      vi.useFakeTimers()
+      try {
+        const { queue, view } = setup()
+        act(() => {
+          queue.add('First item', { ...options, timeout: 1000 })
+        })
+
+        act(() => {
+          vi.advanceTimersByTime(3900)
+        })
+        expect(view.queryByText('First item')).not.toBeNull()
+
+        act(() => {
+          vi.advanceTimersByTime(200)
+        })
+        expect(view.queryByText('First item')).toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    // React Aria runs no timer for a value below zero, as for zero itself, so
+    // there is no timer to hold and the message stays.
+    it('leaves a timeout below zero untimed', () => {
+      vi.useFakeTimers()
+      try {
+        const { queue, view } = setup()
+        act(() => {
+          queue.add('First item', { showCloseButton: true, timeout: -1 })
+        })
+
+        act(() => {
+          vi.advanceTimersByTime(60_000)
+        })
+        expect(view.queryByText('First item')).not.toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('keeps a timeout of four seconds as it is', () => {
+      vi.useFakeTimers()
+      try {
+        const { queue, view } = setup()
+        act(() => {
+          queue.add('First item', { timeout: 4000 })
+        })
+
+        act(() => {
+          vi.advanceTimersByTime(3900)
+        })
+        expect(view.queryByText('First item')).not.toBeNull()
+
+        act(() => {
+          vi.advanceTimersByTime(200)
+        })
+        expect(view.queryByText('First item')).toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('keeps a message with a timeout of 0 until it is closed', () => {
+      vi.useFakeTimers()
+      try {
+        const { queue, view } = setup()
+        let key = ''
+        act(() => {
+          key = queue.add('First item', { timeout: 0 })
+        })
+
+        act(() => {
+          vi.advanceTimersByTime(60_000)
+        })
+        expect(view.queryByText('First item')).not.toBeNull()
+
+        act(() => {
+          queue.close(key)
+        })
+        expect(view.queryByText('First item')).toBeNull()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
     it('calls onClose however the message went away', async () => {
       const onClose = vi.fn<() => void>()
       const { queue, view } = setup()

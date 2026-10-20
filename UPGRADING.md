@@ -352,3 +352,11 @@ invisible on a light page. A scope with no `scheme`, and the `themeScope` class,
 still paint nothing. Your own stylesheet still wins over the paint, since the
 library's rules sit in a cascade layer; a `colorScheme` class on `<html>` now
 gives the page its background and text colour unless you set them.
+
+### A snackbar's timer runs at least four seconds (after 0.43.7)
+
+`SnackbarQueue.add` lengthens a `timeout` between 0 and 4000 to 4000, the least
+Material Design allows, since a message gone sooner cannot be read. `0` still
+keeps the snackbar until something closes it, and a longer `timeout` is
+unchanged. A test that waits for a short-lived snackbar to go now waits four
+seconds, or closes it.
