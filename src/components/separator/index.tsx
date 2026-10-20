@@ -32,11 +32,17 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // margin of its own; both are zeroed here so it is the same 1px box a <div>
 // would be.
 //
-// Vertical has no length of its own. `alignSelf: stretch` takes it from the
-// flex or grid parent, since a divider between two rows should match
+// Vertical takes its length from the flex or grid parent through
+// `alignSelf: stretch`, since a divider between two columns should match
 // whatever they turn out to be rather than being told a height at the call
-// site. In a plain block parent there is nothing to stretch to and it will
-// have no height — that is the documented cost of the prop.
+// site. Anywhere else there is nothing to stretch to, so it falls back to
+// `1em`, one line of the text around it, and sits in that line as an inline
+// block rather than breaking it: between two words in a paragraph it is a
+// short upright bar, rather than a 1px box with no height that draws
+// nothing. The divider page gives no length for a vertical rule standing on
+// its own, so the `1em` is this library's choice. Inside a flex or grid
+// parent the inline display is blockified and the floor sits below any
+// length the parent stretches it to, so neither changes the rule there.
 //
 // The divider page gives three forms and this draws all three: full width,
 // inset by 16dp at the leading end, and middle-inset by 16dp at both. The
@@ -91,7 +97,10 @@ const styles = stylex.create({
     borderInlineStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
     borderInlineStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
     borderInlineStartWidth: { default: null, [FORCED_COLORS]: '1px' },
+    display: 'inline-block',
     inlineSize: '1px',
+    minBlockSize: '1em',
+    verticalAlign: 'middle',
   },
 })
 
@@ -114,7 +123,11 @@ const horizontalInsets = stylex.create({
 })
 
 // A vertical rule takes its length from the parent through `alignSelf`, so
-// the margin shortens it from the end it is on rather than moving it.
+// the margin shortens it from the end it is on rather than moving it. The
+// `1em` floor is the rule's own length and the margins sit outside it: a
+// stretched rule is shortened down to the floor and no further, and one with
+// no parent to stretch to keeps its `1em` and takes the inset as space above
+// and below, since there is no length of the parent's for it to hold off.
 const verticalInsets = stylex.create({
   both: { marginBlockEnd: spacing.lg, marginBlockStart: spacing.lg },
   none: {},
@@ -145,9 +158,10 @@ type SeparatorProps = {
   inset?: SeparatorInset
   /**
    * Which way the rule runs. A vertical separator takes its length from a
-   * flex or grid parent and has none of its own. Defaults to whatever the
-   * container asks for — a `Toolbar` asks for the rule across its own
-   * direction — and to horizontal outside one.
+   * flex or grid parent, and is one line of the text around it, `1em`, in
+   * any other. Defaults to whatever the container asks for — a `Toolbar`
+   * asks for the rule across its own direction — and to horizontal outside
+   * one.
    */
   orientation?: 'horizontal' | 'vertical'
 } & Omit<RACSeparatorProps, 'orientation'>

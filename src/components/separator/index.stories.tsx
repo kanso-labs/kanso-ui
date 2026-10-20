@@ -36,8 +36,9 @@ const styles = stylex.create({
   },
   // The frame Default renders in, and it has to be a flex box with a height
   // of its own: a vertical separator takes its length from a flex or grid
-  // parent via alignSelf: stretch and has none otherwise, so in a plain block
-  // this story would go blank the moment the orientation control was flipped.
+  // parent via alignSelf: stretch and is one line of text otherwise, so in a
+  // plain block this story would shrink to a stub the moment the orientation
+  // control was flipped.
   // `alignItems: center` puts a horizontal rule down the middle rather than
   // against the top edge; the vertical one overrides it with its own stretch.
   //
@@ -57,6 +58,14 @@ const styles = stylex.create({
   },
   row: {
     paddingBlock: spacing.md,
+  },
+  // A plain block, neither flex nor grid, so a vertical rule in it has
+  // nothing to stretch to.
+  textBlock: {
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: radii.lg,
+    inlineSize: 'fit-content',
+    padding: spacing.lg,
   },
 })
 
@@ -119,9 +128,9 @@ const Decorative: Story = {
   render: BetweenRows.render,
 }
 
-// Its own story because a vertical rule has no length of its own: it takes the
-// height of the row it sits in, so it is worth seeing beside content of a real
-// height.
+// Its own story because a vertical rule in a flex row has no length of its
+// own: it takes the height of the row it sits in, so it is worth seeing beside
+// content of a real height.
 const BetweenInlineItems: Story = {
   render: () => (
     <div {...stylex.props(styles.demoRow)}>
@@ -134,11 +143,25 @@ const BetweenInlineItems: Story = {
   ),
 }
 
+// A vertical rule in a parent that is neither flex nor grid, where there is
+// nothing to stretch to: it is one line of the text around it, and sits in
+// that line between the words rather than breaking it.
+const InRunningText: Story = {
+  render: () => (
+    <div {...stylex.props(styles.textBlock)}>
+      <Text variant="bodyMedium">First item</Text>{' '}
+      <Separator orientation="vertical" />{' '}
+      <Text variant="bodyMedium">Second item</Text>
+    </div>
+  ),
+}
+
 export {
   BetweenInlineItems,
   BetweenRows,
   Decorative,
   Default,
+  InRunningText,
   Inset,
   MiddleInset,
 }

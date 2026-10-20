@@ -1531,7 +1531,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A rule is the same colour as a border, so it draws from the outline-variant role rather than one of its own. Full width, inset at the leading end, and inset at both."
+            description="A rule is the same colour as a border, so it draws from the outline-variant role rather than one of its own. Full width, inset at the leading end, and inset at both; and upright in a line of text, where it is one line tall."
             title="Separator"
           >
             <Card padding="none" variant="outlined">
@@ -1543,6 +1543,11 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
               <Separator inset="both" />
               <ListItem>Fourth item</ListItem>
             </Card>
+            <div>
+              <Text variant="bodyMedium">First item</Text>{' '}
+              <Separator orientation="vertical" />{' '}
+              <Text variant="bodyMedium">Second item</Text>
+            </div>
           </Section>
 
           <Section
