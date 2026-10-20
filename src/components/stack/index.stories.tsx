@@ -8,8 +8,7 @@ import Button from '../button'
 import Card from '../card'
 import Text from '../text'
 
-// oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari's VoiceOver drops the role once the markers are cleared
-const LIST = <ul role="list" />
+const LIST = <ul />
 
 const styles = stylex.create({
   // A block with no width of its own, so what the alignment stories show is
@@ -44,8 +43,8 @@ type Story = StoryObj<typeof meta>
 const Default: Story = {}
 
 // A stack rendered as a list, which is what `render` is most often for. It
-// lines up on its gap with no UA margin, padding or markers, and carries
-// `role="list"` for Safari, as the doc comment asks.
+// lines up on its gap with no UA margin, padding or markers, and gives itself
+// `role="list"` for Safari, as the doc comment says.
 const List: Story = {
   render: (args) => (
     <Stack {...args} render={LIST}>

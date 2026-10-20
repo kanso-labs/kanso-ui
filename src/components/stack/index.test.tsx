@@ -12,8 +12,9 @@ import { spacingPx } from '../../tokens/values'
 const OUTER = { inlineSize: '400px' }
 
 const NAV = <nav aria-label="Stack" />
-// oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari's VoiceOver drops the role once the markers are cleared, which the doc comment tells a call site to write
-const LIST = <ul role="list" />
+const LIST = <ul />
+const ORDERED_LIST = <ol />
+const UNLISTED = <ul role="none" />
 
 function Items() {
   return (
@@ -204,5 +205,57 @@ describe('element', () => {
     expect(
       [...stack.children].map((item) => getComputedStyle(item).listStyleType),
     ).toStrictEqual(['none', 'none'])
+  })
+})
+
+// Safari's VoiceOver stops announcing a list whose markers are gone, and the
+// stack clears them, so the implicit role a <ul> carries is not enough: the
+// attribute is what these read.
+describe('list role', () => {
+  it.each([
+    ['<ul>', LIST],
+    ['<ol>', ORDERED_LIST],
+  ])('gives a %s its list role back', (_, element) => {
+    const { stack } = renderStack(
+      <Stack render={element}>
+        <li>First item</li>
+        <li>Second item</li>
+      </Stack>,
+    )
+
+    expect(stack.getAttribute('role')).toBe('list')
+  })
+
+  it('keeps a role written on the element', () => {
+    const { stack } = renderStack(
+      <Stack render={UNLISTED}>
+        <li>First item</li>
+      </Stack>,
+    )
+
+    expect(stack.getAttribute('role')).toBe('none')
+  })
+
+  it('keeps a role written on the stack', () => {
+    const { stack } = renderStack(
+      <Stack render={LIST} role="none">
+        <li>First item</li>
+      </Stack>,
+    )
+
+    expect(stack.getAttribute('role')).toBe('none')
+  })
+
+  it.each([
+    ['the default <div>', undefined],
+    ['a <nav>', NAV],
+  ])('gives %s no role', (_, element) => {
+    const { stack } = renderStack(
+      <Stack render={element}>
+        <Items />
+      </Stack>,
+    )
+
+    expect(stack.hasAttribute('role')).toBe(false)
   })
 })
