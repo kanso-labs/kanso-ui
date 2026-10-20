@@ -381,6 +381,17 @@ describe('segmented button', () => {
       expect(view.getByRole('radio', { name: 'First item' })).not.toBeNull()
     })
 
+    // React Aria joins a toggle to its group's selection by its id alone, so
+    // a segment without one keeps a pressed state of its own and is announced
+    // as a button. The type is what stops one being written; `tsc -b` fails
+    // here once the directive has nothing to expect.
+    it('requires an id on every segment', () => {
+      // @ts-expect-error -- a segment without an id is not part of the set
+      const unkeyed = <SegmentedButton.Segment>Label</SegmentedButton.Segment>
+
+      expect(unkeyed).toBeDefined()
+    })
+
     it('reports a disabled segment as one', () => {
       const view = setup(
         {},

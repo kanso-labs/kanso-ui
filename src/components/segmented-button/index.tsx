@@ -707,7 +707,7 @@ type SegmentedButtonProps = LabelledByAttribute &
 
 type SegmentedButtonSegmentProps = Omit<
   RACToggleButtonProps,
-  'children' | 'className' | 'style'
+  'children' | 'className' | 'id' | 'style'
 > & {
   /** The segment's label. */
   children?: ReactNode
@@ -728,6 +728,13 @@ type SegmentedButtonSegmentProps = Omit<
    * while chosen; name the segment with `aria-label` then.
    */
   icon?: ReactNode
+  /**
+   * The key selection is reported by. Required, because React Aria joins a
+   * toggle to its group's selection by this key alone: a segment without one
+   * keeps a pressed state of its own, so a set where one is chosen could hold
+   * two, and it is announced as a pressed button rather than a radio.
+   */
+  id: Key
   /** A function may compute the style from the segment's render state. */
   style?: RACToggleButtonProps['style']
 }
@@ -981,9 +988,7 @@ function SegmentedButtonSegment({
       // The key the radio group's arrow keys choose this segment by; see
       // `radioKeys`. React Aria keeps a segment's key off its element.
       data-key={
-        selectionMode === 'single' && props.id !== undefined
-          ? JSON.stringify(props.id)
-          : undefined
+        selectionMode === 'single' ? JSON.stringify(props.id) : undefined
       }
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
