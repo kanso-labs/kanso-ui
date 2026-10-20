@@ -25,6 +25,7 @@ const probeStyles = stylex.create({
   },
   markedFill: { backgroundColor: colors.primary },
   restingRule: { borderColor: colors.onSurfaceVariant },
+  restingText: { color: colors.onSurfaceVariant },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -217,6 +218,25 @@ describe('checkbox', () => {
       expect(hasClasses(view.getByText('Label'), CLASSES.disabledLabel)).toBe(
         true,
       )
+    })
+
+    // Material Design fades all of a disabled control's content, so the
+    // description fades with the label it explains.
+    it('fades the description with the label while disabled', () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.restingText)}>Resting</span>
+          <Checkbox description="Supporting line" isDisabled>
+            Label
+          </Checkbox>
+          <Checkbox description="Enabled line">Enabled</Checkbox>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      expect(colourOf('Label')).not.toBe(colourOf('Resting'))
+      expect(colourOf('Supporting line')).toBe(colourOf('Label'))
+      expect(colourOf('Enabled line')).toBe(colourOf('Resting'))
     })
 
     // React derives `onPointerEnter` from the bubbling `pointerover`, which

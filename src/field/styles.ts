@@ -17,6 +17,15 @@ import {
 // window size classes.
 const FORCED_COLORS = '@media (forced-colors: active)'
 
+// The colour of a disabled control's text: its label and the description
+// under it, from one definition so the two cannot drift apart. `GrayText`
+// under forced colours, which leaves a group's legend and a description
+// alone: they are text beside a control, not a control the mode would grey.
+const DISABLED_TEXT = {
+  default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  [FORCED_COLORS]: 'GrayText',
+}
+
 // What the box is tall enough for, rather than the 56dp the text fields page
 // draws it at. The page's number is the sum of these under the default
 // tokens, and stating it instead made the box right only there: a theme with
@@ -553,13 +562,8 @@ const fieldChromeStyles = stylex.create({
       'color, font-size, inset-block-start, letter-spacing, line-height',
     transitionTimingFunction: motion.easingStandard,
   },
-  // `GrayText` under forced colours, which leaves a group's label alone: a
-  // radio group's legend is a label, not a control the mode would grey.
   labelDisabled: {
-    color: {
-      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      [FORCED_COLORS]: 'GrayText',
-    },
+    color: DISABLED_TEXT,
   },
   labelError: {
     color: colors.error,
@@ -577,6 +581,11 @@ const fieldChromeStyles = stylex.create({
     lineHeight: typography.bodySmallLineHeight,
     marginBlock: 0,
     overflowWrap: 'anywhere',
+  },
+  // The description under a disabled control or group, faded with the label
+  // it explains. An error is drawn in `messageError` and keeps it.
+  messageDisabled: {
+    color: DISABLED_TEXT,
   },
   messageError: {
     color: colors.error,

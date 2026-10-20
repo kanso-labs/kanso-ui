@@ -676,6 +676,43 @@ describe('field chrome', () => {
       )
     })
 
+    // What a selection control passes for a disabled option or group: the
+    // description takes the disabled label's colour, and an error keeps its
+    // own.
+    it('fades the description while disabled and leaves an error alone', () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.disabledText)}>Disabled</span>
+          <span {...stylex.props(probeStyles.errorText)}>Error</span>
+          <span {...stylex.props(probeStyles.mutedLabel)}>Resting</span>
+          <TextField validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+            <FieldBox label="First">
+              <FieldInput />
+            </FieldBox>
+            <FieldMessage description="Faded line" isDisabled />
+          </TextField>
+          <TextField isInvalid validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+            <FieldBox label="Second">
+              <FieldInput />
+            </FieldBox>
+            <FieldMessage error="Enter a value." isDisabled />
+          </TextField>
+          <TextField validationBehavior={FIELD_VALIDATION_BEHAVIOR}>
+            <FieldBox label="Third">
+              <FieldInput />
+            </FieldBox>
+            <FieldMessage description="Plain line" />
+          </TextField>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      expect(colourOf('Disabled')).not.toBe(colourOf('Resting'))
+      expect(colourOf('Faded line')).toBe(colourOf('Disabled'))
+      expect(colourOf('Enter a value.')).toBe(colourOf('Error'))
+      expect(colourOf('Plain line')).toBe(colourOf('Resting'))
+    })
+
     it('renders nothing while the field is valid and has no description', () => {
       const view = setup()
       expect(view.container.querySelectorAll('[slot]')).toHaveLength(0)
