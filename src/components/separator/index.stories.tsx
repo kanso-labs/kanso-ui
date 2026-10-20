@@ -110,6 +110,15 @@ const BetweenRows: Story = {
   ),
 }
 
+// The rows of BetweenRows with decorative rules, which draw exactly as those
+// do. What changes is not drawn: a reader moving down the rows hears no
+// "separator" between them, which suits rows that each carry their own
+// structure — a heading, a control.
+const Decorative: Story = {
+  args: { decorative: true },
+  render: BetweenRows.render,
+}
+
 // Its own story because a vertical rule has no length of its own: it takes the
 // height of the row it sits in, so it is worth seeing beside content of a real
 // height.
@@ -125,6 +134,13 @@ const BetweenInlineItems: Story = {
   ),
 }
 
-export { BetweenInlineItems, BetweenRows, Default, Inset, MiddleInset }
+export {
+  BetweenInlineItems,
+  BetweenRows,
+  Decorative,
+  Default,
+  Inset,
+  MiddleInset,
+}
 
 export default meta
