@@ -71,6 +71,19 @@ function alert(props: {
   )
 }
 
+/** An alert dialog holding a body, or with none when `body` is false. */
+function alertWithBody(body: boolean) {
+  return (
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content role="alertdialog">
+        <Dialog.Title>Headline</Dialog.Title>
+        {body ? <Dialog.Body>Supporting line</Dialog.Body> : null}
+      </Dialog.Content>
+    </Dialog>
+  )
+}
+
 /** The named computed properties of `element`, as one object. */
 function computedOf(element: HTMLElement, properties: string[]) {
   const style = getComputedStyle(element)
@@ -406,6 +419,82 @@ describe('dialog', () => {
       )
       expect(view.getByRole('alertdialog')).not.toBeNull()
       expect(view.queryByRole('dialog')).toBeNull()
+    })
+
+    // An alert dialog's body is the message it interrupts with, so the
+    // dialog is described by it, and a screen reader reads it with the title.
+    describe('the description', () => {
+      it('describes an alert dialog by its body', () => {
+        const view = setup({}, { role: 'alertdialog' })
+        const dialog = view.getByRole('alertdialog')
+        const body = view.getByText('Supporting line')
+
+        expect(body.id).not.toBe('')
+        expect(dialog.getAttribute('aria-describedby')).toBe(body.id)
+        expect(dialog).toHaveAccessibleDescription('Supporting line')
+      })
+
+      it("points at the body's own id", () => {
+        const view = render(
+          <Dialog defaultOpen>
+            <Button>Open</Button>
+            <Dialog.Content role="alertdialog">
+              <Dialog.Title>Headline</Dialog.Title>
+              <Dialog.Body id="message">Supporting line</Dialog.Body>
+            </Dialog.Content>
+          </Dialog>,
+        )
+
+        expect(
+          view.getByRole('alertdialog').getAttribute('aria-describedby'),
+        ).toBe('message')
+      })
+
+      it("keeps a call site's own description", () => {
+        const view = render(
+          <Dialog defaultOpen>
+            <Button>Open</Button>
+            <Dialog.Content aria-describedby="label" role="alertdialog">
+              <Dialog.Title>Headline</Dialog.Title>
+              <p id="label">Label</p>
+              <Dialog.Body>Supporting line</Dialog.Body>
+            </Dialog.Content>
+          </Dialog>,
+        )
+        const dialog = view.getByRole('alertdialog')
+
+        expect(dialog.getAttribute('aria-describedby')).toBe('label')
+        expect(dialog).toHaveAccessibleDescription('Label')
+      })
+
+      // A default-role dialog may hold a form or a long document, which is
+      // not one message to read out, so neither it nor its body says so.
+      it('leaves a dialog of the default role undescribed', () => {
+        const view = setup()
+
+        expect(view.getByRole('dialog').hasAttribute('aria-describedby')).toBe(
+          false,
+        )
+        expect(view.getByText('Supporting line').hasAttribute('id')).toBe(false)
+      })
+
+      it('leaves an alert dialog with no body undescribed', () => {
+        const view = alert({})
+
+        expect(
+          view.getByRole('alertdialog').hasAttribute('aria-describedby'),
+        ).toBe(false)
+      })
+
+      it('drops the description when the body goes', () => {
+        const view = render(alertWithBody(true))
+        const dialog = view.getByRole('alertdialog')
+        expect(dialog.hasAttribute('aria-describedby')).toBe(true)
+
+        view.rerender(alertWithBody(false))
+
+        expect(dialog.hasAttribute('aria-describedby')).toBe(false)
+      })
     })
   })
 
