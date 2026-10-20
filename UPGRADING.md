@@ -242,6 +242,7 @@ the earlier type stops compiling.
 | 0.34.2       | `MenuSubmenuProps['children']` is a `[trigger, content]` tuple, where it was any array of elements              | Type a stored value as the tuple. Children written inline in JSX are unaffected.          |
 | 0.36.0       | `NavigationTreeHeaderProps` and `TreeHeaderProps` are no longer exported; both described parts that are private | Drop the imports.                                                                         |
 | After 0.40.9 | AppBar's `headingLevel` takes `1` to `6`, where it took any number                                              | Pass one of the six, narrowing a `number` held in a variable first.                       |
+| After 0.43.7 | `SegmentedButton.Segment` requires an `id`, where it could be left out                                          | Give each segment an `id`. One without it was never part of the set's selection.          |
 
 ## Removed custom properties
 

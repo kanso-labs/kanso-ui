@@ -1712,11 +1712,12 @@ export type SegmentedButtonProps = LabelledByAttribute & Omit<ToggleButtonGroupP
 export function SegmentedButtonSegment(input: RefAttributes<HTMLButtonElement> & SegmentedButtonSegmentProps): JSX;
 
 // @public (undocumented)
-export type SegmentedButtonSegmentProps = Omit<ToggleButtonProps, 'children' | 'className' | 'style'> & {
+export type SegmentedButtonSegmentProps = Omit<ToggleButtonProps, 'children' | 'className' | 'id' | 'style'> & {
     children?: ReactNode;
     className?: ToggleButtonProps['className'];
     disableRipple?: boolean;
     icon?: ReactNode;
+    id: Key;
     style?: ToggleButtonProps['style'];
 };
 
