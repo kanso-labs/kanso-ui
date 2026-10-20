@@ -603,7 +603,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </div>
 
           <Section
-            description="The bar above is this component: a leading and a trailing icon button either side of the headline, on the surface role a scheme sets for the top of a page. It is drawn there rather than here because its headline is the page's only first-level heading."
+            description="The bar above is this component, at its medium size: a leading and a trailing icon button at either end of its top row and the headline under them, on the surface role a scheme sets for the top of a page. It is drawn there rather than here because its headline is the page's only first-level heading."
             title="AppBar"
           />
 
