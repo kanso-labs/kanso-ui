@@ -17,6 +17,11 @@ type ListItemProps = {
   /**
    * Renders a `<button>` that ripples and tints on hover, for a row that is
    * itself pressable. Leave it off for a row that only presents.
+   *
+   * Only an interactive row takes `onClick`, `onContextMenu` and the pointer
+   * handlers. A row that only presents is a `<div>` that cannot be focused or
+   * operated from the keyboard, so a handler on it would answer a mouse and
+   * nothing else.
    * @default false
    */
   interactive?: boolean
@@ -42,7 +47,25 @@ type ListItemProps = {
   supporting?: ReactNode
   /** Content after the headline, such as an amount or a control. */
   trailing?: ReactNode
-} & HTMLAttributes<HTMLElement>
+} & HTMLAttributes<HTMLElement> &
+  // The handlers a press delivers, which a row that only presents refuses:
+  // with no role, no `tabIndex` and no key handler, it would run them for a
+  // pointer alone. `never` rather than leaving them out, since an omitted key
+  // is still accepted from the `HTMLAttributes` beside it.
+  (
+    | {
+        interactive: true
+      }
+    | {
+        interactive?: false
+        onClick?: never
+        onContextMenu?: never
+        onPointerCancel?: never
+        onPointerDown?: never
+        onPointerLeave?: never
+        onPointerUp?: never
+      }
+  )
 
 /**
  * A static row: the row every list draws, on its own, as the lists spec page

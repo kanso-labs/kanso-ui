@@ -1223,7 +1223,17 @@ export type ListItemProps = {
     overline?: ReactNode;
     supporting?: ReactNode;
     trailing?: ReactNode;
-} & HTMLAttributes<HTMLElement>;
+} & HTMLAttributes<HTMLElement> & ({
+    interactive: true;
+} | {
+    interactive?: false;
+    onClick?: never;
+    onContextMenu?: never;
+    onPointerCancel?: never;
+    onPointerDown?: never;
+    onPointerLeave?: never;
+    onPointerUp?: never;
+});
 
 export { ListLayout }
 
