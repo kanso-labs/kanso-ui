@@ -46,6 +46,13 @@ import {
 // on-surface-variant label, text on primary, elevated on surface container
 // low with a primary label.
 //
+// **The outlined rule is faint on purpose.** Outline variant sits at about
+// 1.6:1 against the surface in the light theme and 2:1 in the dark, under the
+// 3:1 WCAG asks of a boundary that identifies a control. The rule is not that
+// boundary: the label identifies the button, in on-surface-variant at about
+// 9:1, and the rule only shows how far the button reaches. IconButton's
+// outlined variant draws its rule in the same role for the same reason.
+//
 // **Elevated is the one variant whose shadow is part of its identity.** The
 // page rests it at elevation 1 rather than flat, raises it on hover and
 // returns it to 1 while pressed — where filled and tonal rest flat and lift

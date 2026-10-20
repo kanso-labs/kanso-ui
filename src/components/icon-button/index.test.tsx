@@ -19,6 +19,14 @@ import {
 // literals, so the assertions pin which role each variant reaches for without
 // also pinning what that role currently resolves to.
 const probeStyles = stylex.create({
+  // A disabled container, opaque over the surface as filled and tonal draw
+  // theirs, and the same faint layer over nothing.
+  disabledContainer: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+  },
+  disabledTint: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
   // The hover and pressed tints, each the variant's icon colour over its
   // container, written as the component writes them so they hash to the same
   // atomic classes. Outlined and standard share theirs, since both draw the
@@ -465,7 +473,9 @@ describe('icon button', () => {
     })
 
     // The page's outlined icon button: transparent with a rule around it and
-    // the muted icon, where filled and tonal carry a container.
+    // the muted icon, where filled and tonal carry a container. The rule is
+    // the spec's outline variant, under 3:1 against the surface on purpose —
+    // the header says why.
     it('draws the outlined variant as a rule with no container', () => {
       const reference = render(
         <div
@@ -807,6 +817,67 @@ describe('icon button', () => {
 
         const { button } = setup({ isSelected: false })
         expect(getComputedStyle(button).color).toBe(muted)
+      })
+    })
+
+    // Disabled, every variant takes one grey, so the corner is what tells a
+    // chosen toggle from an unchosen one, and it needs something drawn round
+    // it to show on.
+    describe('disabled', () => {
+      it('gives a chosen outlined toggle the disabled container, where an unchosen one keeps its rule', () => {
+        const expected = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.disabledContainer)}
+          />,
+        ).background
+        expect(expected).not.toBe('rgba(0, 0, 0, 0)')
+
+        const selected = setup({
+          isDisabled: true,
+          isSelected: true,
+          variant: 'outlined',
+        })
+        const chosen = getComputedStyle(selected.button)
+        expect(chosen.backgroundColor).toBe(expected)
+        // The rule stays traded for the container, as it is when enabled.
+        expect(chosen.borderTopWidth).toBe('0px')
+        selected.unmount()
+
+        const { button } = setup({
+          isDisabled: true,
+          isSelected: false,
+          variant: 'outlined',
+        })
+        const unchosen = getComputedStyle(button)
+        expect(unchosen.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+        expect(unchosen.borderTopWidth).toBe('1px')
+      })
+
+      it('gives a chosen standard toggle a faint container over nothing, where an unchosen one has none', () => {
+        const expected = probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(probeStyles.disabledTint)}
+          />,
+        ).background
+        expect(expected).not.toBe('rgba(0, 0, 0, 0)')
+
+        const selected = setup({ isDisabled: true, isSelected: true })
+        const chosen = getComputedStyle(selected.button)
+        const read = {
+          background: chosen.backgroundColor,
+          color: chosen.color,
+        }
+        expect(read.background).toBe(expected)
+        selected.unmount()
+
+        const { button } = setup({ isDisabled: true, isSelected: false })
+        const unchosen = getComputedStyle(button)
+        expect(unchosen.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+        // The icon is the same grey either way, so the container is the
+        // difference the eye has.
+        expect(unchosen.color).toBe(read.color)
       })
     })
 

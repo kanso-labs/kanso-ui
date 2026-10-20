@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import IconButton from '.'
+import { spacing } from '../../tokens/design.tokens.stylex'
 
 const styles = stylex.create({
   // Sized in `em` so it follows the button's own type size, which is what
@@ -11,7 +12,19 @@ const styles = stylex.create({
     blockSize: '1em',
     inlineSize: '1em',
   },
+  // One variant's pair, unchosen beside chosen.
+  pair: {
+    display: 'flex',
+    gap: spacing.sm,
+  },
+  row: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
 })
+
+const VARIANTS = ['filled', 'tonal', 'outlined', 'standard'] as const
 
 // A plain glyph rather than an icon set, so the stories stay a demonstration
 // of the button alone.
@@ -96,10 +109,48 @@ const TogglePending: Story = {
   },
 }
 
+// Each variant disabled, unchosen beside chosen. The corner is what tells
+// the two apart, so each chosen one keeps a container for it to show on: a
+// standard toggle's is a departure from the page, drawn so the pair differ.
+const ToggleDisabled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      {VARIANTS.map((variant) => (
+        <div key={variant} {...stylex.props(styles.pair)}>
+          <IconButton
+            aria-label="Star"
+            defaultSelected={false}
+            isDisabled
+            variant={variant}
+          >
+            <StarIcon />
+          </IconButton>
+          <IconButton
+            aria-label="Star"
+            defaultSelected
+            isDisabled
+            variant={variant}
+          >
+            <StarIcon />
+          </IconButton>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
 const Outlined: Story = {
   args: { variant: 'outlined' },
 }
 
-export { Default, Outlined, Pending, Toggle, TogglePending, ToggleSelected }
+export {
+  Default,
+  Outlined,
+  Pending,
+  Toggle,
+  ToggleDisabled,
+  TogglePending,
+  ToggleSelected,
+}
 
 export default meta

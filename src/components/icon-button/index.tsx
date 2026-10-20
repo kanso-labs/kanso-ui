@@ -43,6 +43,13 @@ import {
 // into a helper: @stylexjs/babel-plugin only statically recognizes
 // expressions written directly as property values.
 //
+// **The outlined rule is faint on purpose.** Outline variant sits at about
+// 1.6:1 against the surface in the light theme and 2:1 in the dark, under the
+// 3:1 WCAG asks of a boundary that identifies a control. The rule is not that
+// boundary: the icon identifies the button, in on-surface-variant at about
+// 9:1, and the rule only shows how far the button reaches. Button's outlined
+// variant draws its rule in the same role for the same reason.
+//
 // Disabled is a style of its own per variant rather than a `:disabled`
 // branch inside each property, for the reason Button's comment gives: given
 // `href` this renders as a link, which React Aria turns into a <span> while
@@ -108,6 +115,22 @@ import {
 // icon in `HighlightText`. A disabled button's icon and edge are `GrayText`,
 // for the reason Button's comment gives: the browser greys a disabled
 // `<button>` there, but not the `<span>` a disabled link is.
+//
+// **A disabled toggle keeps an edge for its corner to show on.** Disabled,
+// every variant takes one grey, so the corner it rests at is what tells a
+// chosen toggle from an unchosen one, and a corner shows only where
+// something is drawn round it. Filled and tonal keep their disabled
+// container, and an unchosen outlined toggle its disabled rule. A chosen
+// outlined toggle trades its rule for a container, which the disabled style
+// cleared, so it takes on-surface at the disabled-container opacity, where
+// Material Design's own tokens give that state a faint on-surface container
+// too. A chosen standard
+// toggle takes the same faint container over nothing. That departs from the
+// page, which draws a standard toggle with no container in any state, and
+// it is the one way the two states of a disabled standard toggle differ at
+// all. Under forced colours, which paint both containers over, the chosen
+// outlined toggle keeps its `GrayText` rule and the chosen standard one
+// draws one, in place of the rule its variant otherwise goes without.
 //
 // What every button does past its own styles — the ripple, the link and
 // toggle forms, the pending ring, a parent's disabled state — is
@@ -258,6 +281,12 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'HighlightText',
     },
   },
+  // A chosen outlined toggle, disabled: the disabled container in place of
+  // the inverse surface pair. Its rule under forced colours is the disabled
+  // outlined one's `GrayText` — see the header.
+  outlinedToggleSelectedDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+  },
   // The progress cursor while pending, as Button's; see there.
   pending: {
     cursor: 'progress',
@@ -290,6 +319,15 @@ const styles = stylex.create({
     },
     borderWidth: 0,
     color: { default: colors.primary, [FORCED_COLORS]: 'HighlightText' },
+  },
+  // A chosen standard toggle, disabled: a faint container over nothing, which
+  // the page does not draw, and a `GrayText` rule under forced colours — see
+  // the header.
+  standardToggleSelectedDisabled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    borderColor: { default: null, [FORCED_COLORS]: 'GrayText' },
+    borderStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderWidth: { default: 0, [FORCED_COLORS]: '1px' },
   },
   tonal: {
     backgroundColor: colors.secondaryContainer,
@@ -560,6 +598,16 @@ const disabledStyles = {
   tonal: styles.tonalDisabled,
 }
 
+// What a chosen toggle adds once disabled, over its variant's disabled style,
+// so its corner keeps an edge to show on — see the header. Filled and tonal
+// add nothing, since their disabled container already is one.
+const selectedDisabledStyles = {
+  filled: null,
+  outlined: styles.outlinedToggleSelectedDisabled,
+  standard: styles.standardToggleSelectedDisabled,
+  tonal: null,
+}
+
 type IconButtonProps = {
   /**
    * What the button does, in words. Required rather than optional: an icon
@@ -761,7 +809,8 @@ function iconButtonClasses(
 // A toggle's styles, from React Aria's render state. The chosen shape is
 // applied after the disabled styles so it survives them: which of the two
 // states a disabled toggle is in should still be readable, and the disabled
-// style otherwise forces the circle back.
+// style otherwise forces the circle back. A chosen toggle's disabled edge
+// comes after them for the same reason.
 function toggleStyleProps(
   size: IconButtonSize,
   variant: IconButtonVariant,
@@ -793,6 +842,9 @@ function toggleStyleProps(
       state.isDisabled && styles.disabled,
       state.isDisabled && roundShapes[size],
       state.isDisabled && disabledStyles[variant],
+      state.isDisabled &&
+        state.isSelected === true &&
+        selectedDisabledStyles[variant],
       state.isSelected === true && selectedShapes[size],
       groupStyles(group, size, state),
     )
