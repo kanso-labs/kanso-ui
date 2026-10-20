@@ -1962,7 +1962,8 @@ export type SwitchProps = {
     children?: ReactNode;
     description?: string;
     error?: string;
-    icon?: boolean;
+    icon?: ReactNode;
+    unselectedIcon?: ReactNode;
 } & AccessibleName & Omit<SwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>;
 
 // @public
