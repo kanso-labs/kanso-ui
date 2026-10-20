@@ -138,13 +138,15 @@ const PopoverContext = createContext<{ modal: boolean; size: PopoverSize }>({
 // React Aria points a dialog's `aria-describedby` at its description slot
 // only for an alert dialog, on the grounds that an ordinary dialog's content
 // is read anyway. A popover's description names what the panel is for, so it
-// is pointed at here: the content hands the description an id, and the
-// description reports that it is mounted, since an `aria-describedby` with
+// is pointed at here: each description reports the id it renders while it is
+// mounted, and the dialog follows those ids, since an `aria-describedby` with
 // nothing at the other end is an invalid reference rather than a harmless one.
-const DescriptionContext = createContext<{
-  id: string
-  register: () => () => void
-}>({ id: '', register: () => () => {} })
+// The id is the one the element carries, a call site's own included, and each
+// description has one of its own, so a second description adds its id rather
+// than sharing the first's, and unmounting either leaves the other.
+const DescriptionContext = createContext<(id: string) => () => void>(
+  () => () => {},
+)
 
 // The same for the title, which the non-modal panel names itself by — see
 // PanelDialog. React Aria's own Dialog finds its title by looking for it;
@@ -450,18 +452,20 @@ function PopoverContent({
     ref: panel,
   })
 
-  const descriptionId = useId()
-  const [described, setDescribed] = useState(false)
-  const register = useCallback(() => {
-    setDescribed(true)
+  // The ids of the descriptions mounted in the panel, one entry per
+  // description, in the order they mounted.
+  const [descriptions, setDescriptions] = useState<readonly string[]>([])
+  const registerDescription = useCallback((id: string) => {
+    setDescriptions((ids) => [...ids, id])
     return () => {
-      setDescribed(false)
+      setDescriptions((ids) => {
+        const at = ids.indexOf(id)
+        return at === -1 ? ids : [...ids.slice(0, at), ...ids.slice(at + 1)]
+      })
     }
   }, [])
-  const description = useMemo(
-    () => ({ id: descriptionId, register }),
-    [descriptionId, register],
-  )
+  const describedBy =
+    descriptions.length > 0 ? [...new Set(descriptions)].join(' ') : undefined
 
   return (
     <OverlayScope>
@@ -492,21 +496,21 @@ function PopoverContent({
       >
         {modal ? (
           <Dialog
-            aria-describedby={described ? descriptionId : undefined}
+            aria-describedby={describedBy}
             {...props}
             {...stylex.props(overlay.popupDialog, focus.ring)}
           >
-            <DescriptionContext value={description}>
+            <DescriptionContext value={registerDescription}>
               {children}
             </DescriptionContext>
           </Dialog>
         ) : (
           <PanelDialog
-            aria-describedby={described ? descriptionId : undefined}
+            aria-describedby={describedBy}
             onPressWithin={markPressWithin}
             {...props}
           >
-            <DescriptionContext value={description}>
+            <DescriptionContext value={registerDescription}>
               {children}
             </DescriptionContext>
           </PanelDialog>
@@ -523,15 +527,17 @@ function PopoverContent({
 function PopoverDescription(
   props: PopoverDescriptionProps & RefAttributes<HTMLElement>,
 ) {
-  const { id, register } = useContext(DescriptionContext)
+  const register = useContext(DescriptionContext)
+  const generated = useId()
+  const id = props.id ?? generated
 
-  useEffect(() => register(), [register])
+  useEffect(() => register(id), [id, register])
 
   return (
     <Text
-      id={id}
       slot="description"
       {...props}
+      id={id}
       {...mergeStyles(stylex.props(styles.description), props)}
     />
   )
