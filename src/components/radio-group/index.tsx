@@ -5,6 +5,7 @@ import type {
   RadioGroupProps as RACRadioGroupProps,
   RadioButtonRenderProps,
   RadioFieldProps,
+  RadioFieldRenderProps,
   RadioGroupRenderProps,
 } from 'react-aria-components'
 
@@ -272,7 +273,26 @@ function groupContent(
       >
         {children}
       </div>
-      <FieldMessage description={description} error={error} inset={false} />
+      <FieldMessage
+        description={description}
+        error={error}
+        inset={false}
+        isDisabled={state.isDisabled}
+      />
+    </>
+  )
+}
+
+// The option's button and its description, from the option's render state:
+// the description fades with the option whether the option is disabled by
+// itself or by its group, as its label does.
+function optionContent(button: ReactNode, description: string | undefined) {
+  return ({ isDisabled }: RadioFieldRenderProps) => (
+    <>
+      {button}
+      <ControlDescription isDisabled={isDisabled}>
+        {description}
+      </ControlDescription>
     </>
   )
 }
@@ -298,10 +318,12 @@ function Radio({
       {...props}
       {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
-      <RadioButton {...stylex.props(styles.button)}>
-        {buttonContent(children, ripple)}
-      </RadioButton>
-      <ControlDescription>{description}</ControlDescription>
+      {optionContent(
+        <RadioButton {...stylex.props(styles.button)}>
+          {buttonContent(children, ripple)}
+        </RadioButton>,
+        description,
+      )}
     </RadioField>
   )
 }

@@ -240,6 +240,12 @@ interface FieldMessageProps {
    * @default true
    */
   inset?: boolean
+  /**
+   * Whether the field is disabled, which fades the description to the
+   * colour its disabled label takes. An error keeps its own colour.
+   * @default false
+   */
+  isDisabled?: boolean
   /** The limit the count is shown against. */
   maxLength?: number | undefined
   /**
@@ -987,6 +993,7 @@ function FieldMessage({
   error,
   errorId,
   inset = true,
+  isDisabled = false,
   maxLength,
   reserve = true,
 }: FieldMessageProps) {
@@ -1055,7 +1062,13 @@ function FieldMessage({
     hint === undefined ? (
       hidden
     ) : (
-      <Text slot="description" {...stylex.props(fieldChromeStyles.message)}>
+      <Text
+        slot="description"
+        {...stylex.props(
+          fieldChromeStyles.message,
+          isDisabled && fieldChromeStyles.messageDisabled,
+        )}
+      >
         {hint}
         {limit === undefined ? null : (
           // The space is load-bearing: a description is read as the text

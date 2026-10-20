@@ -12,6 +12,7 @@ import Form from '../form'
 const probeStyles = stylex.create({
   errorRule: { borderColor: colors.error },
   errorText: { color: colors.error },
+  restingText: { color: colors.onSurfaceVariant },
 })
 
 function classesOf(props: { className?: string | undefined }) {
@@ -166,6 +167,44 @@ describe('checkbox group', () => {
       const { first, second } = setup({ error: 'Choose at least one.' })
       expect(hasClasses(boxOf(first), CLASSES.errorRule)).toBe(true)
       expect(hasClasses(boxOf(second), CLASSES.errorRule)).toBe(true)
+    })
+
+    // Material Design fades all of a disabled control's content, so the
+    // group's description and each checkbox's fade with the labels they
+    // explain, the checkbox's from the group's own disabled state.
+    it('fades every description with its label while the group is disabled', () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.restingText)}>Resting</span>
+          <CheckboxGroup description="Group hint" isDisabled label="Label">
+            <Checkbox description="Item hint" value="first">
+              First item
+            </Checkbox>
+          </CheckboxGroup>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      expect(colourOf('Label')).not.toBe(colourOf('Resting'))
+      expect(colourOf('Group hint')).toBe(colourOf('Label'))
+      expect(colourOf('Item hint')).toBe(colourOf('First item'))
+    })
+
+    it('keeps the descriptions in their own colour while enabled', () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.restingText)}>Resting</span>
+          <CheckboxGroup description="Group hint" label="Label">
+            <Checkbox description="Item hint" value="first">
+              First item
+            </Checkbox>
+          </CheckboxGroup>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      expect(colourOf('Group hint')).toBe(colourOf('Resting'))
+      expect(colourOf('Item hint')).toBe(colourOf('Resting'))
     })
   })
 })

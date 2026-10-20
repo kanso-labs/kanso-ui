@@ -237,6 +237,50 @@ describe('radio group', () => {
       ).toBe(true)
     })
 
+    // Material Design fades all of a disabled control's content, so the
+    // line under the group and the one under each option fade with the
+    // label they explain rather than reading darker than it.
+    it('fades every description with its label while the group is disabled', () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.restingTone)}>Resting</span>
+          <RadioGroup description="Group hint" isDisabled label="Label">
+            <Radio description="Option hint" value="first">
+              First item
+            </Radio>
+          </RadioGroup>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      expect(colourOf('Label')).not.toBe(colourOf('Resting'))
+      expect(colourOf('Group hint')).toBe(colourOf('Label'))
+      expect(colourOf('Option hint')).toBe(colourOf('First item'))
+    })
+
+    it("fades a disabled option's description alone in an enabled group", () => {
+      const view = render(
+        <>
+          <span {...stylex.props(probeStyles.restingTone)}>Resting</span>
+          <RadioGroup description="Group hint" label="Label">
+            <Radio description="First hint" isDisabled value="first">
+              First item
+            </Radio>
+            <Radio description="Second hint" value="second">
+              Second item
+            </Radio>
+          </RadioGroup>
+        </>,
+      )
+      const colourOf = (text: string) =>
+        getComputedStyle(view.getByText(text)).color
+      const resting = colourOf('Resting')
+      expect(colourOf('First item')).not.toBe(resting)
+      expect(colourOf('First hint')).toBe(colourOf('First item'))
+      expect(colourOf('Second hint')).toBe(resting)
+      expect(colourOf('Group hint')).toBe(resting)
+    })
+
     // React derives `onPointerEnter` from the bubbling `pointerover`, which
     // is what React Aria's hover tracking listens for.
     it('lays the on surface state layer over an unselected control while hovered', () => {

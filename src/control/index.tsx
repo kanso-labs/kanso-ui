@@ -10,6 +10,12 @@ import { controlStyles } from './styles'
 type ControlDescriptionProps = {
   /** The hint. Nothing renders when there is none. */
   children: string | undefined
+  /**
+   * Whether the option is disabled, by itself or by its group, which fades
+   * the hint with the option's label.
+   * @default false
+   */
+  isDisabled?: boolean
 }
 
 type ControlLabelProps = {
@@ -47,7 +53,10 @@ type ControlLabelState = {
  * drew an empty line under every option inside a `Form`. The group's own line
  * is where its error goes, and an option has only its hint to say.
  */
-function ControlDescription({ children }: ControlDescriptionProps) {
+function ControlDescription({
+  children,
+  isDisabled = false,
+}: ControlDescriptionProps) {
   if (children === undefined) {
     return null
   }
@@ -60,7 +69,13 @@ function ControlDescription({ children }: ControlDescriptionProps) {
           fieldChromeStyles.messageLine,
         )}
       >
-        <Text slot="description" {...stylex.props(fieldChromeStyles.message)}>
+        <Text
+          slot="description"
+          {...stylex.props(
+            fieldChromeStyles.message,
+            isDisabled && fieldChromeStyles.messageDisabled,
+          )}
+        >
           {children}
         </Text>
       </div>

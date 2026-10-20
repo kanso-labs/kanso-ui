@@ -94,7 +94,12 @@ function groupContent(
         {label}
       </FieldLabel>
       <div {...stylex.props(controlStyles.stack)}>{children}</div>
-      <FieldMessage description={description} error={error} inset={false} />
+      <FieldMessage
+        description={description}
+        error={error}
+        inset={false}
+        isDisabled={state.isDisabled}
+      />
     </>
   )
 }

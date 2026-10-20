@@ -58,6 +58,26 @@ const Default: Story = {
   ),
 }
 
+// Disabled as a whole: the label, every option and every description fade
+// together.
+const Disabled: Story = {
+  args: {
+    description: 'Supporting line',
+    isDisabled: true,
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <RadioGroup {...args}>
+        <Radio description="Supporting line" value="first">
+          First item
+        </Radio>
+        <Radio value="second">Second item</Radio>
+        <Radio value="third">Third item</Radio>
+      </RadioGroup>
+    </div>
+  ),
+}
+
 const Horizontal: Story = {
   args: {
     orientation: 'horizontal',
@@ -167,6 +187,7 @@ const LongLabel: Story = {
 
 export {
   Default,
+  Disabled,
   Horizontal,
   LongLabel,
   WithDescriptions,

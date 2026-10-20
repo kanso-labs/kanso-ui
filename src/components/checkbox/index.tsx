@@ -3,6 +3,7 @@
 import type { ReactNode, RefAttributes } from 'react'
 import type {
   CheckboxButtonRenderProps,
+  CheckboxFieldRenderProps,
   CheckboxFieldProps as RACCheckboxFieldProps,
 } from 'react-aria-components'
 
@@ -305,18 +306,40 @@ function Checkbox({
       {...props}
       {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
-      <CheckboxButton {...stylex.props(styles.button)}>
-        {buttonContent(children, ripple, inGroup)}
-      </CheckboxButton>
+      {fieldContent(
+        <CheckboxButton {...stylex.props(styles.button)}>
+          {buttonContent(children, ripple, inGroup)}
+        </CheckboxButton>,
+        description,
+        error,
+        reachable,
+      )}
+    </CheckboxField>
+  )
+}
+
+// The button and the line under it, from the field's render state: the
+// description fades with a disabled checkbox, by itself or by its group, as
+// its label does. Built by a call for the same reason as `buttonContent`.
+function fieldContent(
+  button: ReactNode,
+  description: string | undefined,
+  error: string | undefined,
+  reserve: boolean,
+) {
+  return ({ isDisabled }: CheckboxFieldRenderProps) => (
+    <>
+      {button}
       <div {...stylex.props(controlStyles.messages)}>
         <FieldMessage
           description={description}
           error={error}
           inset={false}
-          reserve={reachable}
+          isDisabled={isDisabled}
+          reserve={reserve}
         />
       </div>
-    </CheckboxField>
+    </>
   )
 }
 

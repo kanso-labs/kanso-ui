@@ -52,6 +52,22 @@ const Default: Story = {
   ),
 }
 
+// Disabled as a whole: the label, every item and the description fade
+// together.
+const Disabled: Story = {
+  args: {
+    description: 'Supporting line',
+    isDisabled: true,
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <CheckboxGroup {...args}>
+        <Items />
+      </CheckboxGroup>
+    </div>
+  ),
+}
+
 const WithError: Story = {
   args: {
     defaultValue: NONE,
@@ -82,6 +98,6 @@ const InAForm: Story = {
   ),
 }
 
-export { Default, InAForm, WithError }
+export { Default, Disabled, InAForm, WithError }
 
 export default meta

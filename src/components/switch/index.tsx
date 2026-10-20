@@ -14,6 +14,7 @@ import type {
 import type {
   SwitchFieldProps as RACSwitchFieldProps,
   SwitchButtonRenderProps,
+  SwitchFieldRenderProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
@@ -448,6 +449,29 @@ function buttonContent(
   }
 }
 
+// The button and the line under it, from the field's render state: the
+// description fades with a disabled switch, as its label does. Built by a
+// call for the same reason as `buttonContent`.
+function fieldContent(
+  button: ReactNode,
+  description: string | undefined,
+  error: string | undefined,
+) {
+  return ({ isDisabled }: SwitchFieldRenderProps) => (
+    <>
+      {button}
+      <div {...stylex.props(controlStyles.messages)}>
+        <FieldMessage
+          description={description}
+          error={error}
+          inset={false}
+          isDisabled={isDisabled}
+        />
+      </div>
+    </>
+  )
+}
+
 /**
  * A switch that turns a setting on or off, with its label and optionally a
  * description or an error under it. Its state is React Aria's: pass
@@ -477,12 +501,13 @@ function Switch({
       {...props}
       {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
-      <SwitchButton {...stylex.props(styles.button)}>
-        {buttonContent(children, icon, ripple, drag)}
-      </SwitchButton>
-      <div {...stylex.props(controlStyles.messages)}>
-        <FieldMessage description={description} error={error} inset={false} />
-      </div>
+      {fieldContent(
+        <SwitchButton {...stylex.props(styles.button)}>
+          {buttonContent(children, icon, ripple, drag)}
+        </SwitchButton>,
+        description,
+        error,
+      )}
     </SwitchField>
   )
 }
