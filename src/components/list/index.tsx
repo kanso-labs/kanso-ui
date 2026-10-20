@@ -105,6 +105,16 @@ type ListProps<T extends object = object> = {
   /** A function may compute the class from the list's render state. */
   className?: RACGridListProps<T>['className']
   /**
+   * How a press selects. `toggle` draws a checkbox on every row, and a press
+   * adds that row to the selection or takes it out. `replace` draws none, a
+   * press makes that row the selection, and the arrow keys carry the
+   * selection with the focus; where rows also take an action, a click
+   * selects and a double click acts. Left out, a `single` list replaces and
+   * any other toggles, since a single choice drawn as checkboxes unticks one
+   * box whenever another is ticked.
+   */
+  selectionBehavior?: RACGridListProps<T>['selectionBehavior']
+  /**
    * What each row's selection checkbox is called, for a screen reader. The
    * row's own text is what names the row; this names the box inside it.
    * Left out, React Aria names it in the reader's locale — "Select" in
@@ -113,7 +123,7 @@ type ListProps<T extends object = object> = {
   selectLabel?: string
   /** A function may compute the style from the list's render state. */
   style?: RACGridListProps<T>['style']
-} & Omit<RACGridListProps<T>, 'className' | 'style'>
+} & Omit<RACGridListProps<T>, 'className' | 'selectionBehavior' | 'style'>
 
 // `Row` rather than `Item`, though the component is `List.Item`, because
 // `ListItemProps` is the standalone `ListItem` component's and both are
@@ -247,6 +257,10 @@ function leadingFor(
  * `defaultSelectedKeys` to let it keep its own. A list that only responds to
  * a press takes `onAction` on the row instead.
  *
+ * A `multiple` list draws a checkbox on every row. A `single` one draws none
+ * and marks the chosen row alone, since a checkbox promises a choice that
+ * leaves the others standing; `selectionBehavior` overrides either.
+ *
  * ListItem is the static row — one row, presenting, on its own. This is the
  * collection that draws the same row and adds selection, keyboard navigation
  * between rows, sections and a load-more sentinel.
@@ -259,6 +273,7 @@ function leadingFor(
  * the element a layout positions.
  */
 function List<T extends object>({
+  selectionBehavior,
   selectLabel,
   ...props
 }: ListProps<T> & RefAttributes<HTMLDivElement>) {
@@ -275,6 +290,13 @@ function List<T extends object>({
         <RACGridList
           {...props}
           {...mergeStatefulStyles(containerClasses, props)}
+          // React Aria's own default is `toggle` in every mode. Read with `??`
+          // rather than placed before the spread, so a wrapper forwarding an
+          // unset prop still gets the default.
+          selectionBehavior={
+            selectionBehavior ??
+            (props.selectionMode === 'single' ? 'replace' : 'toggle')
+          }
         />
       </RowsActContext>
     </SelectLabelContext>

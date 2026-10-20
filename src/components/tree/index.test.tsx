@@ -45,6 +45,7 @@ function Basic(props: {
   loadMoreLabel?: string
   onExpandedChange?: (keys: Set<unknown>) => void
   onSelectionChange?: (keys: Selection) => void
+  selectionBehavior?: 'replace' | 'toggle'
   selectionMode?: 'multiple' | 'none' | 'single'
   selectLabel?: string
 }) {
@@ -54,6 +55,7 @@ function Basic(props: {
       defaultExpandedKeys={props.expanded === false ? [] : ['first']}
       onExpandedChange={props.onExpandedChange}
       onSelectionChange={props.onSelectionChange}
+      selectionBehavior={props.selectionBehavior}
       selectionMode={props.selectionMode}
       selectLabel={props.selectLabel}
     >
@@ -265,6 +267,33 @@ describe('tree', () => {
       const view = render(<Basic />)
 
       expect(view.queryByRole('checkbox')).toBeNull()
+    })
+
+    // `Basic` forwards its `selectionBehavior` whether set or not, so this is
+    // also the tree handed an unset behaviour by a wrapper.
+    it('draws none when the tree selects one row', () => {
+      const view = render(<Basic selectionMode="single" />)
+
+      expect(view.queryByRole('checkbox')).toBeNull()
+    })
+
+    it('draws one on every row of a single tree told to toggle', () => {
+      const view = render(
+        <Basic selectionBehavior="toggle" selectionMode="single" />,
+      )
+
+      expect(view.getAllByRole('checkbox')).toHaveLength(3)
+    })
+
+    it('replaces the choice when it selects one row', () => {
+      const view = render(<Basic selectionMode="single" />)
+      const [first, , second] = view.getAllByRole('row')
+
+      fireEvent.click(first)
+      fireEvent.click(second)
+
+      expect(first.getAttribute('aria-selected')).toBe('false')
+      expect(second.getAttribute('aria-selected')).toBe('true')
     })
 
     it('reports the row keys it was left holding', () => {

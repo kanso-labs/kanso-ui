@@ -265,6 +265,31 @@ describe('list', () => {
       expect(view.queryAllByRole('checkbox')).toHaveLength(0)
     })
 
+    // React Aria's own default is `toggle` in every mode, which would draw a
+    // box on every row of a list that keeps one choice.
+    it('draws none when the list selects one row', () => {
+      const view = setup({ selectionMode: 'single' })
+      expect(view.queryAllByRole('checkbox')).toHaveLength(0)
+    })
+
+    // A wrapper forwarding its own unset prop passes `undefined` rather than
+    // leaving the prop out, and still gets the default.
+    it('draws none when a single list is handed an unset behaviour', () => {
+      const view = setup({
+        selectionBehavior: undefined,
+        selectionMode: 'single',
+      })
+      expect(view.queryAllByRole('checkbox')).toHaveLength(0)
+    })
+
+    it('draws one on every row of a single list told to toggle', () => {
+      const view = setup({
+        selectionBehavior: 'toggle',
+        selectionMode: 'single',
+      })
+      expect(view.getAllByRole('checkbox')).toHaveLength(3)
+    })
+
     // React Aria points the box's `aria-labelledby` at itself and at the row,
     // so the name is the given label followed by the row's own text — which
     // is what makes three identically labelled boxes tell each other apart.
@@ -299,6 +324,17 @@ describe('list', () => {
       expect(second.getAttribute('aria-selected')).toBe('true')
     })
 
+    it('replaces the choice when it selects one row', () => {
+      const view = setup({ selectionMode: 'single' })
+      const [first, second] = view.getAllByRole('row')
+
+      fireEvent.click(first)
+      fireEvent.click(second)
+
+      expect(first.getAttribute('aria-selected')).toBe('false')
+      expect(second.getAttribute('aria-selected')).toBe('true')
+    })
+
     it('keeps its own selection from defaultSelectedKeys', () => {
       const view = setup({ defaultSelectedKeys: SECOND })
       const [, second] = view.getAllByRole('row')
@@ -319,6 +355,26 @@ describe('list', () => {
   })
 
   describe('keyboard', () => {
+    // Replacing is what a single list does by default, and a replacing list
+    // carries its selection with the focus.
+    it('moves the choice with the arrow keys when it selects one row', () => {
+      const view = setup({
+        defaultSelectedKeys: FIRST,
+        selectionMode: 'single',
+      })
+      const list = view.getByRole('grid', { name: 'Label' })
+      const [first, second] = view.getAllByRole('row')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(list, { key: 'ArrowDown' })
+      fireEvent.keyUp(list, { key: 'ArrowDown' })
+
+      expect(first.getAttribute('aria-selected')).toBe('false')
+      expect(second.getAttribute('aria-selected')).toBe('true')
+    })
+
     it('moves through the rows with the arrow keys', () => {
       const view = setup({ selectionMode: 'none' })
       const list = view.getByRole('grid', { name: 'Label' })
