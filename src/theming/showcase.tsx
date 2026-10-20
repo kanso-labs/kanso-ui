@@ -1296,8 +1296,8 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
                 First item
               </NavigationBar.Item>
               <NavigationBar.Item
-                aria-label="Second item, 3 new"
                 badge={3}
+                badgeLabel="3 new"
                 href="#second"
                 icon={<MoreIcon />}
               >

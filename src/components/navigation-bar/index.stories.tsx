@@ -144,19 +144,14 @@ const BADGED = (
       First item
     </NavigationBar.Item>
     <NavigationBar.Item
-      aria-label="Second item, 3 new"
       badge={3}
+      badgeLabel="3 new"
       href="#second"
       icon={SQUARE}
     >
       Second item
     </NavigationBar.Item>
-    <NavigationBar.Item
-      aria-label="Third item, new"
-      badge
-      href="#third"
-      icon={TRIANGLE}
-    >
+    <NavigationBar.Item badge badgeLabel="new" href="#third" icon={TRIANGLE}>
       Third item
     </NavigationBar.Item>
   </>
@@ -165,16 +160,16 @@ const BADGED = (
 const LARGE_COUNTS = (
   <>
     <NavigationBar.Item
-      aria-label="First item, 99 new"
       badge={99}
+      badgeLabel="99 new"
       href="#first"
       icon={CIRCLE}
     >
       First item
     </NavigationBar.Item>
     <NavigationBar.Item
-      aria-label="Second item, more than 999 new"
       badge={1000}
+      badgeLabel="more than 999 new"
       href="#second"
       icon={SQUARE}
     >
@@ -248,7 +243,9 @@ const FiveDestinations: Story = {
   },
 }
 
-// Badges on two destinations' icons, in a compact window.
+// Badges on two destinations' icons, in a compact window. Each says what it
+// says in `badgeLabel`, which follows the label in the destination's name:
+// "Second item 3 new".
 const WithBadges: Story = {
   ...COMPACT,
   args: {

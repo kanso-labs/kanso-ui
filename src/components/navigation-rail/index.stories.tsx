@@ -88,8 +88,8 @@ const DESTINATIONS = (
       First item
     </NavigationRail.Item>
     <NavigationRail.Item
-      aria-label="Second item, 3 new"
       badge={3}
+      badgeLabel="3 new"
       href="#second"
       icon={SQUARE}
     >

@@ -1418,6 +1418,7 @@ export type NavigationBarProps = RenderComponentProps<'nav'> & {
 // @public (undocumented)
 type NavigationItemProps = {
     badge?: boolean | number;
+    badgeLabel?: string;
     children: ReactNode;
     className?: LinkProps_2['className'];
     href: string;
