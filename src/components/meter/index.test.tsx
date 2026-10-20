@@ -261,26 +261,30 @@ describe('meter', () => {
     // stop indicator as a 4dp dot at the end.
     it('draws the page line thickness, gap and stop', () => {
       const { meter } = setup()
-      const { row, stop } = partsOf(meter)
-      const style = getComputedStyle(row)
+      const { active, row, stop, track } = partsOf(meter)
+      const [activeBox, trackBox, stopBox] = [active, track, stop].map((part) =>
+        part.getBoundingClientRect(),
+      )
 
-      expect(style.blockSize).toBe('4px')
-      expect(style.columnGap).toBe('4px')
-      expect(stop.getBoundingClientRect().width).toBe(4)
+      expect(getComputedStyle(row).blockSize).toBe('4px')
+      expect(trackBox.left - activeBox.right).toBeCloseTo(4, 1)
+      expect(stopBox.left - trackBox.right).toBeCloseTo(4, 1)
+      expect(stopBox.width).toBe(4)
     })
 
     // The active indicator and the track share the line: whatever the value
-    // does not take, the track does. What they share is the row less the two
-    // 4dp gaps and the 4dp stop, which are there at every value.
+    // does not take, the track does. The active indicator's share is of the
+    // row less the 4dp stop and the 4dp before it, which are there at every
+    // value, and the track starts 4dp after it.
     it('gives the track what the active indicator leaves', () => {
       const { meter } = setup({ value: 25 })
       const { active, row, track } = partsOf(meter)
-      const room = row.getBoundingClientRect().width - 4 * 3
+      const width = row.getBoundingClientRect().width
       const activeWidth = active.getBoundingClientRect().width
 
-      expect(activeWidth).toBeCloseTo(room * 0.25, 0)
+      expect(activeWidth).toBeCloseTo((width - 8) * 0.25, 0)
       expect(track.getBoundingClientRect().width).toBeCloseTo(
-        room - activeWidth,
+        width - 8 - 4 - activeWidth,
         0,
       )
     })

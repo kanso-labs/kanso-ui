@@ -24,6 +24,9 @@ const probeStyles = stylex.create({
   // The colour of something an indicator can sit inside, such as a filled
   // button's label.
   ink: { color: colors.onPrimary },
+  // A row of a known width, for the gaps a share of it decides: 400 left
+  // once the stop and the gap before it are taken.
+  measured: { inlineSize: '408px' },
   track: { backgroundColor: colors.secondaryContainer },
   trackArc: { stroke: colors.secondaryContainer },
   // Wider than the wave reaches, for the line that draws flat beyond it.
@@ -183,20 +186,24 @@ describe('progress indicator', () => {
     // 4dp stop indicator.
     it("is 4 thick with the page's 4 between its parts", () => {
       const { bar } = setup()
-      const { row, stop } = linearPartsOf(bar)
+      const { active, row, stop, track } = linearPartsOf(bar)
+      const [activeBox, trackBox, stopBox] = [active, track, stop].map((part) =>
+        part.getBoundingClientRect(),
+      )
 
       expect(row.getBoundingClientRect().height).toBe(4)
-      expect(getComputedStyle(row).columnGap).toBe('4px')
-      expect(stop.getBoundingClientRect().width).toBe(4)
-      expect(stop.getBoundingClientRect().height).toBe(4)
+      expect(trackBox.left - activeBox.right).toBeCloseTo(4, 1)
+      expect(stopBox.left - trackBox.right).toBeCloseTo(4, 1)
+      expect(stopBox.width).toBe(4)
+      expect(stopBox.height).toBe(4)
     })
 
-    // The share is of the row less the two gaps and the stop indicator,
-    // which the line draws at every value.
+    // The share is of the row less the stop indicator and the gap before
+    // it, which the line draws at every value.
     it("gives the active indicator the value's share of the row", () => {
       const { bar } = setup({ value: 25 })
       const { active, row } = linearPartsOf(bar)
-      const room = row.getBoundingClientRect().width - 4 - 8
+      const room = row.getBoundingClientRect().width - 4 - 4
 
       expect(active.getBoundingClientRect().width).toBeCloseTo(room * 0.25, 0)
     })
@@ -224,11 +231,57 @@ describe('progress indicator', () => {
       const empty = setup({ value: 0 })
       const { active, row, track } = linearPartsOf(empty.bar)
       expect(active.getBoundingClientRect().width).toBe(0)
-      // The row's width, less the stop indicator and the two gaps.
+      // The row's width, less the stop indicator and the gap before it.
       expect(track.getBoundingClientRect().width).toBeCloseTo(
-        row.getBoundingClientRect().width - 4 - 8,
+        row.getBoundingClientRect().width - 4 - 4,
         0,
       )
+    })
+
+    // No gap is kept beside a part with no width. An empty line is the
+    // whole track from the row's start, and a full one is the active
+    // indicator alone, the page's 4dp short of the stop.
+    it('starts the track at the start of the row at 0', () => {
+      const { bar } = setup({ value: 0 })
+      const { row, track } = linearPartsOf(bar)
+
+      expect(track.getBoundingClientRect().left).toBeCloseTo(
+        row.getBoundingClientRect().left,
+        1,
+      )
+    })
+
+    it('ends a full active indicator 4 before the stop', () => {
+      const { bar } = setup({ value: 100 })
+      const { active, stop } = linearPartsOf(bar)
+
+      expect(
+        stop.getBoundingClientRect().left -
+          active.getBoundingClientRect().right,
+      ).toBeCloseTo(4, 1)
+    })
+
+    // Between the two, the gap grows from nothing over the first 4dp of the
+    // range and closes again over the last, never wider than the part
+    // either side of it.
+    it.each([
+      [0.5, 2],
+      [50, 4],
+      [99.5, 2],
+    ])('keeps a gap at %f on a row 408 wide of %f', (value, gap) => {
+      const view = render(
+        <div {...stylex.props(probeStyles.measured)}>
+          <ProgressIndicator label="Label" value={value} />
+        </div>,
+      )
+      const { active, track } = linearPartsOf(
+        view.getByRole('progressbar', { name: 'Label' }),
+      )
+
+      expect(
+        track.getBoundingClientRect().left -
+          active.getBoundingClientRect().right,
+      ).toBeCloseTo(gap, 1)
     })
   })
 
@@ -346,22 +399,81 @@ describe('progress indicator', () => {
     })
 
     // The arcs are cut from one circle: the active one runs from the top for
-    // the value's share, and the track picks up 4 past it.
-    it("cuts the arcs to the value, with the page's gap between them", () => {
-      const { bar } = setup({ value: 50, variant: 'circular' })
+    // the value's share, and the track picks up past it. Both end in round
+    // caps, half the 4 stroke past each dash, so the dashes stand 8 apart to
+    // leave the page's 4 between what is drawn — at either end of the
+    // active arc.
+    it.each([
+      [25, 'flat'],
+      [50, 'flat'],
+      [25, 'wavy'],
+      [50, 'wavy'],
+    ] as const)(
+      "cuts the arcs at %i, with the page's gap between their caps, %s",
+      (value, shape) => {
+        const { bar } = setup({ shape, value, variant: 'circular' })
+        const { active, svg, track } = arcsOf(bar)
+        // The wavy ring's circle is pulled in for the wave's crests.
+        const circumference = 2 * Math.PI * (shape === 'wavy' ? 20.4 : 18)
+        const share = (circumference * value) / 100
+        const [trackDash] = patternOf(
+          track.getAttribute('stroke-dasharray') ?? '',
+        )
+        const trackOffset = Number.parseFloat(
+          track.getAttribute('stroke-dashoffset') ?? '',
+        )
+
+        expect(
+          Number.parseFloat(active.getAttribute('stroke-dasharray') ?? ''),
+        ).toBeCloseTo(share, 1)
+        expect(active.getAttribute('stroke-linecap')).toBe('round')
+        expect(track.getAttribute('stroke-linecap')).toBe('round')
+        // From the active dash's end to the track's start.
+        expect(-trackOffset - share).toBeCloseTo(8, 1)
+        // From the track's end back round to the active dash's start.
+        expect(circumference + trackOffset - trackDash).toBeCloseTo(8, 1)
+        // The wave is cut and capped as the flat arc it is drawn over.
+        for (const wave of svg.querySelectorAll('path')) {
+          expect(wave.getAttribute('stroke-dasharray')).toBe(
+            active.getAttribute('stroke-dasharray'),
+          )
+          expect(wave.getAttribute('stroke-linecap')).toBe('round')
+        }
+        expect(svg.querySelectorAll('path')).toHaveLength(
+          shape === 'wavy' ? 1 : 0,
+        )
+      },
+    )
+
+    // Empty, the ring is the whole track. A dash of no length still draws
+    // its round caps, as a dot, so the active arc takes flat ones and draws
+    // nothing, and the track closes the circle rather than stopping either
+    // side of where the dot was.
+    it('draws an empty ring as the whole track', () => {
+      const { bar } = setup({ value: 0, variant: 'circular' })
       const { active, track } = arcsOf(bar)
       const circumference = 2 * Math.PI * 18
-      const half = circumference / 2
 
+      expect(active.getAttribute('stroke-linecap')).toBe('butt')
       expect(
-        Number.parseFloat(active.getAttribute('stroke-dasharray') ?? ''),
-      ).toBeCloseTo(half, 1)
-      expect(
-        Number.parseFloat(track.getAttribute('stroke-dasharray') ?? ''),
-      ).toBeCloseTo(circumference - half - 8, 1)
+        patternOf(track.getAttribute('stroke-dasharray') ?? '')[0],
+      ).toBeCloseTo(circumference, 1)
       expect(
         Number.parseFloat(track.getAttribute('stroke-dashoffset') ?? ''),
-      ).toBeCloseTo(-(half + 4), 1)
+      ).toBeCloseTo(0, 1)
+    })
+
+    // Full, the track has nothing left to draw, and takes flat caps so it
+    // does not leave a dot in the track's colour at the top of the ring.
+    it('draws a full ring as the active arc alone', () => {
+      const { bar } = setup({ value: 100, variant: 'circular' })
+      const { active, track } = arcsOf(bar)
+
+      expect(active.getAttribute('stroke-linecap')).toBe('round')
+      expect(
+        patternOf(track.getAttribute('stroke-dasharray') ?? '')[0],
+      ).toBeCloseTo(0, 1)
+      expect(track.getAttribute('stroke-linecap')).toBe('butt')
     })
 
     // Indeterminate, the ring is one arc that grows and shrinks while its
