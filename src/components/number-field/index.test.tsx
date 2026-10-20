@@ -127,6 +127,55 @@ describe('number field', () => {
     })
   })
 
+  // A value typed rather than stepped leaves the steppers out, and the
+  // keyboard is then the only way to step it.
+  describe('without steppers', () => {
+    it.each(['filled', 'outlined'] as const)(
+      'draws no stepper in the %s box, where the default draws both',
+      (variant) => {
+        const none = render(
+          <NumberField label="Label" steppers="none" variant={variant} />,
+        )
+        expect(none.queryAllByRole('button')).toHaveLength(0)
+        none.unmount()
+
+        const stepped = render(<NumberField label="Label" variant={variant} />)
+        expect(stepped.getAllByRole('button')).toHaveLength(2)
+      },
+    )
+
+    it('still steps the value from the keyboard', () => {
+      const view = render(
+        <NumberField defaultValue={5} label="Label" steppers="none" />,
+      )
+      const input = view.getByRole('textbox', { name: 'Label' })
+      act(() => {
+        input.focus()
+      })
+
+      fireEvent.keyDown(input, { key: 'ArrowUp' })
+      expect(input).toHaveProperty('value', '6')
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      expect(input).toHaveProperty('value', '4')
+    })
+
+    // With nothing at the end, the input runs to the box's own 16 of end
+    // padding, as a text field's does.
+    it.each(['filled', 'outlined'] as const)(
+      "runs the input to the %s box's end padding",
+      (variant) => {
+        const view = render(
+          <NumberField label="Label" steppers="none" variant={variant} />,
+        )
+        const box = view.getByRole('group').getBoundingClientRect()
+        const input = view.getByRole('textbox').getBoundingClientRect()
+
+        expect(box.right - input.right).toBe(16)
+      },
+    )
+  })
+
   describe('value', () => {
     it('steps the value from the steppers', () => {
       const { decrement, increment, input } = setup({
@@ -402,10 +451,33 @@ describe('number field', () => {
       },
     )
 
+    // With no steppers there is nothing to stop short of, so a long label is
+    // cut short where the value ends, at the box's end padding.
+    it.each(['filled', 'outlined'] as const)(
+      'runs a long label to the end of the value without steppers in the %s box',
+      (variant) => {
+        const view = render(
+          <div {...stylex.props(frameStyles.narrow)}>
+            <NumberField label={LONG_LABEL} steppers="none" variant={variant} />
+          </div>,
+        )
+        const label = view.container.querySelector('label')
+        if (label === null) {
+          throw new Error('expected the field to draw its label')
+        }
+        const input = view.getByRole('textbox').getBoundingClientRect()
+
+        expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+        expect(
+          Math.abs(label.getBoundingClientRect().right - input.right),
+        ).toBeLessThanOrEqual(4)
+      },
+    )
+
     // Floated in the outlined box, the label sits in a notch cut in the
     // outline, which has to end where the label does: a notch running on
     // past a cut-short label leaves a gap in the outline over the steppers.
-    it.each(['vertical', 'horizontal'] as const)(
+    it.each(['vertical', 'horizontal', 'none'] as const)(
       'ends the outlined notch with a long label beside %s steppers',
       (steppers) => {
         const view = render(

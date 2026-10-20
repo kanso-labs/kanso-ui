@@ -62,6 +62,11 @@ import IconButton from '../icon-button'
 // gets the target from there — with the gap that keeps those two targets off
 // each other, which is the room the column has none of.
 //
+// A value that is typed rather than stepped — an amount, a year, an
+// identifier — can leave the steppers out with `steppers="none"`. The box is
+// then a text field's, the input running to the box's own end padding, and
+// the arrow keys and Page Up and Page Down still step the value.
+//
 // React Aria's `NumberField` is the root and the box is its `Group`, which
 // is what names the box and the two steppers as one control; the steppers
 // are its increment and decrement buttons through context, disabled at the
@@ -95,6 +100,14 @@ const STEPPER_REACH = `calc((${typography.bodyLargeLineHeight} - ${sizing.contro
 
 const STACKED_INSET = `calc(32px - ${spacing.lg} + ${spacing.sm})`
 const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${spacing.sm} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
+
+// Each layout's inset, keyed by the prop. With no steppers there is nothing
+// for the label to stop short of, so the box's own default holds.
+const END_INSETS = {
+  horizontal: INLINE_INSET,
+  none: undefined,
+  vertical: STACKED_INSET,
+} as const
 
 const styles = stylex.create({
   // The input and the steppers on one line, the input taking the room. The
@@ -278,10 +291,11 @@ type NumberFieldProps = {
   /**
    * How the two steppers sit at the end of the box: stacked, the plus over
    * the minus, flush with the box's edge, or side by side as extra-small
-   * icon buttons.
+   * icon buttons. `'none'` draws neither, for a value that is typed rather
+   * than stepped; the keyboard still steps it.
    * @default 'vertical'
    */
-  steppers?: 'horizontal' | 'vertical'
+  steppers?: 'horizontal' | 'none' | 'vertical'
   /**
    * The filled box, or the outlined one: no fill, an outline that thickens
    * and takes the primary role while focused, and the label cutting it once
@@ -337,58 +351,62 @@ function NumberField({
       {...mergeStatefulStyles(stylex.props(fieldStyles.root), props)}
     >
       <FieldBox
-        endInset={inline ? INLINE_INSET : STACKED_INSET}
+        endInset={END_INSETS[steppers]}
         floatingLabel={floatingLabel}
         isRequired={props.isRequired}
         label={label}
         variant={variant}
       >
-        <div {...stylex.props(styles.row, inline && styles.rowInline)}>
+        {steppers === 'none' ? (
           <FieldInput numeric={numeric} ref={inputRef} />
-          <div
-            {...stylex.props(
-              styles.steppers,
-              inline && styles.steppersInline,
-              !inline && variant === 'outlined' && styles.steppersOutlined,
-            )}
-          >
-            {inline ? (
-              <>
-                <IconButton
-                  aria-label={decrementLabel}
-                  size="xs"
-                  slot="decrement"
-                >
-                  <MinusGlyph {...stylex.props(styles.stepperGlyphInline)} />
-                </IconButton>
-                <IconButton
-                  aria-label={incrementLabel}
-                  size="xs"
-                  slot="increment"
-                >
-                  <PlusGlyph {...stylex.props(styles.stepperGlyphInline)} />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <StackedStepper
-                  label={incrementLabel}
-                  outlined={variant === 'outlined'}
-                  slot="increment"
-                >
-                  <PlusGlyph {...stylex.props(styles.stepperGlyph)} />
-                </StackedStepper>
-                <StackedStepper
-                  label={decrementLabel}
-                  outlined={variant === 'outlined'}
-                  slot="decrement"
-                >
-                  <MinusGlyph {...stylex.props(styles.stepperGlyph)} />
-                </StackedStepper>
-              </>
-            )}
+        ) : (
+          <div {...stylex.props(styles.row, inline && styles.rowInline)}>
+            <FieldInput numeric={numeric} ref={inputRef} />
+            <div
+              {...stylex.props(
+                styles.steppers,
+                inline && styles.steppersInline,
+                !inline && variant === 'outlined' && styles.steppersOutlined,
+              )}
+            >
+              {inline ? (
+                <>
+                  <IconButton
+                    aria-label={decrementLabel}
+                    size="xs"
+                    slot="decrement"
+                  >
+                    <MinusGlyph {...stylex.props(styles.stepperGlyphInline)} />
+                  </IconButton>
+                  <IconButton
+                    aria-label={incrementLabel}
+                    size="xs"
+                    slot="increment"
+                  >
+                    <PlusGlyph {...stylex.props(styles.stepperGlyphInline)} />
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <StackedStepper
+                    label={incrementLabel}
+                    outlined={variant === 'outlined'}
+                    slot="increment"
+                  >
+                    <PlusGlyph {...stylex.props(styles.stepperGlyph)} />
+                  </StackedStepper>
+                  <StackedStepper
+                    label={decrementLabel}
+                    outlined={variant === 'outlined'}
+                    slot="decrement"
+                  >
+                    <MinusGlyph {...stylex.props(styles.stepperGlyph)} />
+                  </StackedStepper>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </FieldBox>
       <FieldMessage description={description} error={error} />
     </RACNumberField>

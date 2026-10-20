@@ -33,6 +33,8 @@ type Story = StoryObj<typeof meta>
 
 const Default: Story = {}
 
+// The steppers move an amount by `step`, which is 1 unless the call site
+// says otherwise: a whole euro here.
 const Currency: Story = {
   args: {
     formatOptions: EURO,
@@ -42,6 +44,14 @@ const Currency: Story = {
 const HorizontalSteppers: Story = {
   args: {
     steppers: 'horizontal',
+  },
+}
+
+// A value typed rather than stepped, with no steppers drawn: the box is a
+// text field's, and the arrow keys still step the value.
+const NoSteppers: Story = {
+  args: {
+    steppers: 'none',
   },
 }
 
@@ -105,6 +115,7 @@ export {
   Disabled,
   HorizontalSteppers,
   LongLabel,
+  NoSteppers,
   Outlined,
   OutlinedHorizontalSteppers,
   WithDescription,

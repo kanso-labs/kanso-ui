@@ -1503,7 +1503,7 @@ export type NumberFieldProps = {
     isWheelDisabled?: boolean;
     label: string;
     numeric?: boolean;
-    steppers?: 'horizontal' | 'vertical';
+    steppers?: 'horizontal' | 'none' | 'vertical';
     variant?: FieldVariant;
 } & Omit<NumberFieldProps_2, 'children' | 'isInvalid' | 'isWheelDisabled' | 'validationBehavior'>;
 
