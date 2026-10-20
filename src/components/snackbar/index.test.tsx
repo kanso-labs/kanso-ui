@@ -679,7 +679,7 @@ describe('snackbar', () => {
         expect(view.getByText('Second item')).not.toBeNull()
         expect(onClose).toHaveBeenCalledTimes(1)
 
-        // The fade it cut short ends without bringing it back.
+        // The older one runs out its fade unseen, and does not come back.
         act(() => {
           vi.advanceTimersByTime(EXIT_MS)
         })

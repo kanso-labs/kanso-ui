@@ -477,35 +477,30 @@ type SnackbarToastItem =
  * fading, and React Aria closes it once the fade has run.
  */
 class FadingToastQueue extends RACToastQueue<SnackbarMessage> {
-  // The strips fading out, each with the timer that closes it.
-  readonly #fading = new Map<string, ReturnType<typeof setTimeout>>()
+  // The strips fading out.
+  readonly #fading = new Set<string>()
 
   readonly #listeners = new Set<() => void>()
 
-  // Run as a strip starts to close, faded or not — see `SnackbarQueue`.
+  // Run as a strip starts to close — see `SnackbarQueue`.
   readonly #onClosing: (key: string) => void
 
   constructor(onClosing: (key: string) => void) {
-    // One at a time, which is what the page shows. `SnackbarQueue.add` takes
-    // whatever is up off the screen before it adds, so nothing is ever left
-    // waiting for this to hold back; it says the same thing to React Aria in
-    // its own terms.
+    // One at a time, which is what the page shows. React Aria shows the
+    // newest, so a message added while another is up or fading takes its
+    // place at once, and the older one runs out its fade unseen.
     super({ maxVisibleToasts: 1 })
     this.#onClosing = onClosing
   }
 
   /** Starts a toast fading, and closes it once the fade has run. */
   override close(key: string) {
-    if (this.#fading.has(key)) {
-      return
-    }
     this.#onClosing(key)
-    this.#fading.set(
-      key,
-      setTimeout(() => {
-        this.remove(key)
-      }, EXIT_MS),
-    )
+    this.#fading.add(key)
+    setTimeout(() => {
+      this.#fading.delete(key)
+      super.close(key)
+    }, EXIT_MS)
     for (const listener of this.#listeners) {
       listener()
     }
@@ -514,18 +509,6 @@ class FadingToastQueue extends RACToastQueue<SnackbarMessage> {
   /** Whether a toast is fading out. */
   isFading(key: string) {
     return this.#fading.has(key)
-  }
-
-  /** Takes a toast off the screen at once, cutting short any fade. */
-  remove(key: string) {
-    const timer = this.#fading.get(key)
-    if (timer === undefined) {
-      this.#onClosing(key)
-    } else {
-      clearTimeout(timer)
-      this.#fading.delete(key)
-    }
-    super.close(key)
   }
 
   /** Calls `listener` whenever a toast starts to fade. */
@@ -580,11 +563,7 @@ class SnackbarQueue {
    */
   add(message: ReactNode, options: SnackbarOptions = {}) {
     const { action, onClose, showCloseButton = false, timeout } = options
-    // The message on screen gives way at once rather than fading: the page
-    // shows one at a time, and the newer message's rise is the change.
-    for (const key of this.#open.keys()) {
-      this.#toasts.remove(key)
-    }
+    this.clear()
     const key = this.#toasts.add(
       { action, message, showCloseButton },
       {
