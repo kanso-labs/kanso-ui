@@ -73,6 +73,13 @@ import {
 // keydown that presses a button with Space or Enter, so `:active` never
 // matched a keyboard press, which `isPressed` reports like any other.
 //
+// A press is one layer, as the page draws it: the ripple at the pressed
+// opacity, over the container at rest. The hover layer and its lift come off
+// while the button is pressed, so neither stacks under the ripple, and the
+// `pressed` table is the layer a button draws in the ripple's place when
+// `disableRipple` turns it off. A keyboard press, which the ripple answers
+// only once the key is released, keeps the focus layer it already had.
+//
 // Disabled is a style of its own per variant rather than a `:disabled`
 // branch inside each property: a button given `href` renders as a link,
 // which React Aria turns into a <span> while disabled, and neither matches
@@ -274,7 +281,9 @@ const styles = stylex.create({
   // scale, and the scale should not grow to fit one component. `md` is the
   // page's S, which it calls the default. `xs` pads 12 a side, the
   // `md.comp.button.xsmall` token set's leading and trailing space, which
-  // Compose's extra-small button pads by too.
+  // Compose's extra-small button pads by too, and puts 4 between its icon and
+  // its label, Compose's extra-small icon spacing, where the larger sizes'
+  // 8 would leave the icon adrift of a label set so close to the edges.
   //
   // The height is a floor rather than a fixed size, so a label too long for
   // its row — a translation at a phone's width, say — wraps and grows the
@@ -415,6 +424,7 @@ const styles = stylex.create({
       insetInline: `min(0px, calc((100% - ${TARGET_SIZE}) / 2))`,
       position: 'absolute',
     },
+    gap: spacing.xs,
     minBlockSize: sizing.controlXs,
     paddingBlock: spacing.xs,
     paddingInline: spacing.md,
@@ -636,10 +646,12 @@ const focused = stylex.create({
   },
 })
 
+// The pressed layer of a button whose ripple is off, drawn in the ripple's
+// place — see the header. Its shadow is the variant's resting one, which the
+// hover's lift no longer covers while the button is pressed.
 const pressed = stylex.create({
   elevated: {
     backgroundColor: `color-mix(in srgb, ${colors.primary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerLow})`,
-    boxShadow: shadows.elevation1,
   },
   elevatedToggleSelected: {
     backgroundColor: {
@@ -649,7 +661,6 @@ const pressed = stylex.create({
   },
   filled: {
     backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
-    boxShadow: 'none',
   },
   filledToggle: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainer})`,
@@ -674,7 +685,6 @@ const pressed = stylex.create({
   },
   tonal: {
     backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
-    boxShadow: 'none',
   },
   tonalToggleSelected: {
     backgroundColor: {
@@ -719,8 +729,9 @@ type ButtonProps = ButtonDOMProps &
     /** A function may compute the class from the button's render state. */
     className?: ClassNameOrFunction<ButtonState>
     /**
-     * Disables the press ripple. The hover/pressed background state layer is
-     * unaffected.
+     * Disables the press ripple. A press then draws its layer as a background
+     * instead, at the same pressed opacity, so the button reads the same
+     * either way. The hover and focus layers are unaffected.
      * @default false
      */
     disableRipple?: boolean
@@ -820,6 +831,7 @@ function Button({
   const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
   const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
   const selection = useSelection({ defaultSelected, isSelected, onChange })
+  const ripples = props.disableRipple !== true
 
   // The icon goes in with the label, inside what ButtonBase hides while the
   // button is pending, so the ring takes the place of both.
@@ -844,8 +856,8 @@ function Button({
         {...press}
         classes={
           variant === 'text'
-            ? buttonClasses(shape, size, variant, group)
-            : toggleClasses(shape, size, variant, group)
+            ? buttonClasses(shape, size, variant, group, ripples)
+            : toggleClasses(shape, size, variant, group, ripples)
         }
         isPending={isPending}
       >
@@ -871,8 +883,8 @@ function Button({
       {...press}
       classes={
         isToggle
-          ? toggleClasses(shape, size, variant, group)
-          : buttonClasses(shape, size, variant, group)
+          ? toggleClasses(shape, size, variant, group, ripples)
+          : buttonClasses(shape, size, variant, group, ripples)
       }
       href={href}
       isPending={isPending}
@@ -890,8 +902,9 @@ function Button({
 }
 
 // The button's own classes, from React Aria's render state — see the header
-// for why that and not the pseudo-classes. Built by a call rather than
-// written inline at the prop, which is what react-perf's
+// for why that and not the pseudo-classes, and for why a press drops the
+// hover layer and draws its own only where the ripple does not. Built by a
+// call rather than written inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after; the React Compiler memoises the result on
 // its inputs.
 function buttonClasses(
@@ -899,6 +912,7 @@ function buttonClasses(
   size: ButtonSize,
   variant: ButtonVariant,
   group: ButtonGroupItem | null,
+  ripples: boolean,
 ) {
   return (state: ButtonClassesState) =>
     stylex.props(
@@ -908,9 +922,9 @@ function buttonClasses(
       styles[size],
       shape === 'square' ? squareShapes[size] : roundShapes[size],
       variant === 'outlined' && outlinedSizes[size],
-      state.isHovered && hovered[variant],
+      state.isHovered && !state.isPressed && hovered[variant],
       state.isFocusVisible && focused[variant],
-      state.isPressed && pressed[variant],
+      state.isPressed && !ripples && pressed[variant],
       state.isPressed && pressedShapes[size],
       groupStyles(group, size, variant, state),
       state.isPending === true && styles.pending,
@@ -951,6 +965,7 @@ function toggleClasses(
   size: ButtonSize,
   variant: ToggleVariant,
   group: ButtonGroupItem | null,
+  ripples: boolean,
 ) {
   return (state: ButtonClassesState) => {
     const isSelected = state.isSelected === true
@@ -966,12 +981,12 @@ function toggleClasses(
       isSelected &&
         (shape === 'square' ? roundShapes[size] : squareShapes[size]),
       variant === 'outlined' && outlinedSizes[size],
-      state.isHovered && hovered[variant],
-      state.isHovered && hovered[container],
+      state.isHovered && !state.isPressed && hovered[variant],
+      state.isHovered && !state.isPressed && hovered[container],
       state.isFocusVisible && focused[variant],
       state.isFocusVisible && focused[container],
-      state.isPressed && pressed[variant],
-      state.isPressed && pressed[container],
+      state.isPressed && !ripples && pressed[variant],
+      state.isPressed && !ripples && pressed[container],
       state.isPressed && pressedShapes[size],
       groupStyles(group, size, variant, state),
       state.isPending === true && styles.pending,

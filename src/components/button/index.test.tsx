@@ -19,6 +19,7 @@ import {
   colors,
   radii,
   shadows,
+  stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
@@ -92,6 +93,15 @@ const toggleProbeStyles = stylex.create({
     backgroundColor: colors.surfaceContainer,
     color: colors.onSurfaceVariant,
   },
+})
+
+// A press at the pressed opacity: the ripple's, and the background a filled
+// button draws in its place with the ripple off, on primary over primary.
+const pressProbeStyles = stylex.create({
+  filled: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.pressed} * 100%), ${colors.primary})`,
+  },
+  ripple: { opacity: stateLayerOpacity.pressed },
 })
 
 // The corners the page's size token sets name, by the shape scale's steps.
@@ -243,6 +253,29 @@ function resolved(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return values
+}
+
+// The opacity a probe style resolves to, with the probe torn down again.
+function resolvedOpacity(style: stylex.StyleXStyles) {
+  const view = render(<div data-testid="probe" {...stylex.props(style)} />)
+  const opacity = getComputedStyle(view.getByTestId('probe')).opacity
+  view.unmount()
+  return opacity
+}
+
+// A state's colours and shadow move through a transition, and a computed
+// value read while one is running is part way along it. Finishing every
+// animation on the element first reads where the state lands.
+function settled(element: Element) {
+  for (const animation of element.getAnimations()) {
+    animation.finish()
+  }
+  const computed = getComputedStyle(element)
+  return {
+    background: computed.backgroundColor,
+    opacity: computed.opacity,
+    shadow: computed.boxShadow,
+  }
 }
 
 // The props a test hands `setup`. Button's props are a union of the plain,
@@ -972,6 +1005,109 @@ describe('press behaviour', () => {
   })
 })
 
+// What a hovered button shows once pressed, beside what it showed at rest.
+function pressFromHover(button: HTMLElement) {
+  const rest = settled(button)
+  firePointer(button, 'pointerover')
+  const hover = settled(button)
+  firePointer(button, 'pointerdown', { buttons: 1 })
+  return { hover, pressed: settled(button), rest }
+}
+
+function rippleIn(container: HTMLElement) {
+  const ripple = container.querySelector('span[aria-hidden="true"] > span')
+  if (ripple === null) {
+    throw new Error('expected the button to render its ripple')
+  }
+  return ripple
+}
+
+// A press is one layer: the ripple at the pressed opacity over the container
+// at rest, or with the ripple off a background at that opacity in its place.
+// Never the two together, and never over the hover layer, which a mouse press
+// always starts from.
+describe('the pressed layer', () => {
+  const VARIANTS = ['elevated', 'filled', 'outlined', 'text', 'tonal'] as const
+  const TOGGLES = ['elevated', 'filled', 'outlined', 'tonal'] as const
+
+  let restoreAnimate: () => void
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    restoreAnimate = installFakeAnimate()
+  })
+
+  afterEach(() => {
+    restoreAnimate()
+    vi.useRealTimers()
+  })
+
+  it.each(VARIANTS)(
+    'draws the %s variant’s press as the ripple alone, over the container at rest',
+    (variant) => {
+      const { button, container, isPressed } = setup({ variant })
+      const { hover, pressed, rest } = pressFromHover(button)
+
+      expect(hover.background).not.toBe(rest.background)
+      expect(isPressed()).toBe(true)
+      expect(settled(rippleIn(container)).opacity).toBe(
+        resolvedOpacity(pressProbeStyles.ripple),
+      )
+      expect(pressed.background).toBe(rest.background)
+      expect(pressed.shadow).toBe(rest.shadow)
+    },
+  )
+
+  it.each(TOGGLES)(
+    'draws a selected %s toggle’s press as the ripple alone',
+    (variant) => {
+      const { button, isPressed } = setup({ defaultSelected: true, variant })
+      const { hover, pressed, rest } = pressFromHover(button)
+
+      expect(hover.background).not.toBe(rest.background)
+      expect(isPressed()).toBe(true)
+      expect(pressed.background).toBe(rest.background)
+      expect(pressed.shadow).toBe(rest.shadow)
+    },
+  )
+
+  it.each(VARIANTS)(
+    'draws the %s variant’s press with the ripple off as a layer in place of the hover',
+    (variant) => {
+      const { button, rippleSurface } = setup({ disableRipple: true, variant })
+      const { hover, pressed, rest } = pressFromHover(button)
+
+      expect(rippleSurface()).toBeNull()
+      expect(pressed.background).not.toBe(rest.background)
+      expect(pressed.background).not.toBe(hover.background)
+      expect(pressed.shadow).toBe(rest.shadow)
+    },
+  )
+
+  it.each(TOGGLES)(
+    'draws a selected %s toggle’s press with the ripple off as a layer of its own',
+    (variant) => {
+      const { button } = setup({
+        defaultSelected: true,
+        disableRipple: true,
+        variant,
+      })
+      const { hover, pressed, rest } = pressFromHover(button)
+
+      expect(pressed.background).not.toBe(rest.background)
+      expect(pressed.background).not.toBe(hover.background)
+    },
+  )
+
+  it('lays that layer at the pressed opacity', () => {
+    const expected = resolved(pressProbeStyles.filled).background
+    const { button } = setup({ disableRipple: true })
+    firePointer(button, 'pointerdown', { buttons: 1 })
+
+    expect(settled(button).background).toBe(expected)
+  })
+})
+
 // The suite above stubs the Web Animations API and the clock, so it proves the
 // state machine but not that the two work together for real. That one press
 // against both, unmocked, lives in the Pressed story — a story runs in this
@@ -1672,7 +1808,7 @@ describe('shape', () => {
 // The page's icon size and the gap before the label, per button size.
 describe('an icon', () => {
   const SIZES = [
-    ['xs', 20, 8],
+    ['xs', 20, 4],
     ['md', 20, 8],
     ['lg', 24, 8],
     ['xl', 32, 12],
