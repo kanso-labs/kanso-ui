@@ -77,7 +77,8 @@ const navigationItemStyles = stylex.create({
     cursor: 'default',
   },
   // The label never wraps: a destination's name is a word or two, and one
-  // broken over two lines pushed its neighbours apart.
+  // broken over two lines pushed its neighbours apart. One cut short shows
+  // its full text on hover instead — see `NavigationLabel` in ./index.tsx.
   label: {
     color: colors.onSurfaceVariant,
     overflow: 'hidden',

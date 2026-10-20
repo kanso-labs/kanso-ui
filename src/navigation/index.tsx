@@ -12,6 +12,7 @@ import type { NavigationForm } from './context'
 
 import { BadgeMarkContext } from '../badge'
 import Badge from '../components/badge'
+import { useClippedTitle } from '../hooks/useClippedTitle'
 import { focus } from '../styles/focus'
 import { mergeStatefulStyles } from '../styles/merge'
 import { NavigationContext } from './context'
@@ -142,8 +143,8 @@ function itemContent(
       >
         <span {...stylex.props(navigationItemStyles.icon)}>{glyph}</span>
       </span>
-      <span
-        {...stylex.props(
+      <NavigationLabel
+        styling={stylex.props(
           navigationItemStyles.label,
           styles.label,
           isCurrent && styles.labelCurrent,
@@ -151,7 +152,7 @@ function itemContent(
         )}
       >
         {label}
-      </span>
+      </NavigationLabel>
     </>
   )
 }
@@ -179,6 +180,26 @@ function NavigationItem({
     >
       {itemContent(form, isCurrent, badge, icon, children)}
     </RACLink>
+  )
+}
+
+// The label, kept to one line, which shows its full text in the browser's
+// tooltip on hover once it is cut short — see `useClippedTitle`. A component
+// because the title is state, and `itemContent` runs inside React Aria's
+// render function.
+function NavigationLabel({
+  children,
+  styling,
+}: {
+  children: ReactNode
+  styling: ReturnType<typeof stylex.props>
+}) {
+  const clipped = useClippedTitle(children)
+
+  return (
+    <span {...clipped} {...styling}>
+      {children}
+    </span>
   )
 }
 

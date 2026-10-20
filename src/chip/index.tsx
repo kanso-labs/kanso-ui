@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 
 import { CheckGlyph } from '../glyphs'
 import { focus } from '../styles/focus'
+import { ChipLabel } from './label'
 import { chipLayers, chipStyles } from './styles'
 
 /**
@@ -67,11 +68,12 @@ function chipGlyph(
 /**
  * The label a chip draws, in a span of its own so it can be cut short with an
  * ellipsis rather than wrapped out of the pill; see the header of `./styles`.
- * Shared for the reason `chipGlyph` is, by all three components that draw the
- * pill.
+ * A label cut short shows its full text in the browser's tooltip on hover —
+ * see `useClippedTitle`. Shared for the reason `chipGlyph` is, by all three
+ * components that draw the pill.
  */
 function chipLabel(children: ReactNode): ReactNode {
-  return <span {...stylex.props(chipStyles.label)}>{children}</span>
+  return <ChipLabel>{children}</ChipLabel>
 }
 
 // The three containers a chip can be on, with the layers and the disabled

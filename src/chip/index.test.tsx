@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { TokenFieldValue } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
@@ -101,6 +101,39 @@ describe('chip', () => {
       }
 
       expect(fitOf(token, label, view.getByTestId('room'))).toEqual(FITS)
+    })
+
+    // Cut short, the rest of the label is out of sight, so the label hands
+    // the browser its full text as a title, read when the pointer arrives.
+    // React derives onPointerEnter from the bubbling pointerover.
+    it.each([
+      ['a chip', <Chip key="chip">{LONG_LABEL}</Chip>],
+      [
+        "a group's chip",
+        <ChipGroup key="group" label="Label">
+          <ChipGroup.Chip id="long">{LONG_LABEL}</ChipGroup.Chip>
+        </ChipGroup>,
+      ],
+      [
+        'a token',
+        <TokenField defaultValue={LONG_TOKEN} key="token" label="Label" />,
+      ],
+    ])('shows its full text on hover in %s', (_name, pill) => {
+      const view = render(<div {...stylex.props(probeStyles.room)}>{pill}</div>)
+      const label = view.getByText(LONG_LABEL)
+
+      fireEvent.pointerOver(label)
+
+      expect(label).toHaveAttribute('title', LONG_LABEL)
+    })
+
+    it('shows nothing on hover once the label fits', () => {
+      const view = render(<Chip>Label</Chip>)
+      const label = view.getByText('Label')
+
+      fireEvent.pointerOver(label)
+
+      expect(label).not.toHaveAttribute('title')
     })
   })
 

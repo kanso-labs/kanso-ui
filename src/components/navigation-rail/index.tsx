@@ -25,6 +25,12 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // with the first destination 40dp under it. The destinations are
 // `src/navigation`'s, shared with NavigationBar, which holds their values.
 //
+// A collapsed destination's label stays on one line in the 88dp under its
+// indicator, about thirteen characters of label medium. A longer one is cut
+// short with an ellipsis and shows its full text in the browser's tooltip on
+// hover — see `src/navigation`. The expanded rail's labels sit beside their
+// icons, with the rest of the rail's 360dp at most.
+//
 // The rail is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 
