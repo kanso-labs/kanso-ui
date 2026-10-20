@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { act, render, waitFor } from '@testing-library/react'
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { describe, expect, it, vi } from 'vitest'
 
 import { colorScheme } from './color-scheme'
 import Button from './components/button'
@@ -11,7 +12,7 @@ import Popover from './components/popover'
 import Sheet from './components/sheet'
 import Snackbar from './components/snackbar'
 import Tooltip from './components/tooltip'
-import { type KuiTheme, ThemeScope } from './theme-scope'
+import { type KuiTheme, ThemeScope, type ThemeScopeProps } from './theme-scope'
 import { colors } from './tokens/design.tokens.stylex'
 
 // The scheme's primary in design.tokens.json, light and dark — the runner's
@@ -60,12 +61,44 @@ const MARGIN = { marginTop: '3px' }
 
 const SECTION = <section aria-label="Scope" />
 
+const LIST = <ul />
+
+const PARAGRAPH = <p />
+
+/**
+ * What React logs to the console while `work` runs, read before the spy is
+ * restored, since restoring it clears what it recorded.
+ */
+function errorsDuring(work: () => void) {
+  const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    work()
+    return spy.mock.calls.map((call) => call.map(String).join(' '))
+  } finally {
+    spy.mockRestore()
+  }
+}
+
 const probeStyles = stylex.create({
   primary: { color: colors.primary },
 })
 
 function colourOf(element: HTMLElement) {
   return getComputedStyle(element).color
+}
+
+/** A scope holding a popover that is open from its first render. */
+function openScope(props: Pick<ThemeScopeProps, 'ref' | 'render'>) {
+  return (
+    <ThemeScope data-testid="scope" {...props}>
+      <Popover defaultOpen>
+        <Button>Open</Button>
+        <Popover.Content>
+          <Popover.Title>Headline</Popover.Title>
+        </Popover.Content>
+      </Popover>
+    </ThemeScope>
+  )
 }
 
 function Probe({ id = 'probe' }: { id?: string }) {
@@ -117,6 +150,86 @@ describe('theme scope', () => {
       }
 
       expect(getComputedStyle(container).display).toBe('contents')
+    })
+  })
+
+  // The container is added to the scope's element rather than rendered as a
+  // child of it, so an element that cannot hold a `<div>` draws no nesting
+  // error and no hydration warning, and the server's markup holds none.
+  describe('portal container', () => {
+    it('is in neither the markup nor the warnings of a list scope', () => {
+      const scope = (
+        <ThemeScope data-testid="scope" render={LIST}>
+          <li>First item</li>
+          <li>Second item</li>
+        </ThemeScope>
+      )
+
+      expect(renderToStaticMarkup(scope)).not.toContain('<div')
+
+      const errors = errorsDuring(() => {
+        render(scope)
+      })
+      expect(errors).toEqual([])
+    })
+
+    it('is in neither the markup nor the warnings of a paragraph scope', () => {
+      const scope = (
+        <ThemeScope data-testid="scope" render={PARAGRAPH}>
+          Supporting line
+        </ThemeScope>
+      )
+
+      expect(renderToStaticMarkup(scope)).not.toContain('<div')
+
+      const errors = errorsDuring(() => {
+        render(scope)
+      })
+      expect(errors).toEqual([])
+    })
+
+    it('still takes the overlays opened inside the scope', () => {
+      const view = render(
+        <ThemeScope data-testid="scope" render={PARAGRAPH} style={OVERRIDE}>
+          <Popover defaultOpen>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+              <Probe />
+            </Popover.Content>
+          </Popover>
+        </ThemeScope>,
+      )
+      const container = view.getByTestId('scope').lastElementChild
+
+      expect(container?.tagName).toBe('DIV')
+      expect(container?.contains(view.getByRole('dialog'))).toBe(true)
+      expect(colourOf(view.getByTestId('probe'))).toBe(OVERRIDDEN)
+    })
+
+    // A ref of a new identity attaches again, as an inline callback does on
+    // every render of the call site. A new container each time would move
+    // the open popover into it, remounting it.
+    it('keeps one container, and the overlays in it, as the ref changes', () => {
+      const view = render(openScope({ ref: () => {} }))
+      const dialog = view.getByRole('dialog')
+
+      view.rerender(openScope({ ref: () => {} }))
+
+      expect(view.getByRole('dialog')).toBe(dialog)
+      expect(
+        view.getByTestId('scope').querySelectorAll(':scope > div'),
+      ).toHaveLength(1)
+    })
+
+    it('moves the overlays into a new element when render changes it', () => {
+      const view = render(openScope({}))
+
+      view.rerender(openScope({ render: SECTION }))
+
+      const section = view.getByTestId('scope')
+      expect(section.tagName).toBe('SECTION')
+      expect(section.contains(view.getByRole('dialog'))).toBe(true)
     })
   })
 
