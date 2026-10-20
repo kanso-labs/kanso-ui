@@ -670,6 +670,21 @@ describe('navigation bar', () => {
       expect(getComputedStyle(indicatorOf(current)).outlineStyle).toBe('none')
     })
 
+    // The library's own 8dp between two pills — see NavigationBar.
+    it('sets the pills 8dp apart', async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      const view = render(<Bar />)
+      const pills = view
+        .getAllByRole('link')
+        .map((link) => link.getBoundingClientRect())
+
+      const gaps = pills
+        .slice(1)
+        .map((pill, index) => Math.round(pill.left - pills[index].right))
+
+      expect(gaps).toStrictEqual([8, 8])
+    })
+
     it('centres the destinations, as wide as their pills', () => {
       const view = render(<Bar />)
       const bar = view.getByRole('navigation').getBoundingClientRect()
