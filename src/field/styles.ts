@@ -507,6 +507,18 @@ const fieldChromeStyles = stylex.create({
     marginBlockStart: `calc(-1 * ${spacing.lg})`,
   },
   input: {
+    // A search input is the one type the browser decorates on its own: a
+    // cancel button at the end of the line and, in Safari, room for a
+    // decoration at its start. The chrome draws its icons in its own slots,
+    // and the browser's button sat outside them, in its own blue, beside a
+    // trailing icon — so neither is drawn, as SearchField's input draws
+    // neither.
+    '::-webkit-search-cancel-button': {
+      display: 'none',
+    },
+    '::-webkit-search-decoration': {
+      display: 'none',
+    },
     '::placeholder': {
       color: colors.onSurfaceVariant,
     },
