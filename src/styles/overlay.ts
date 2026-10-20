@@ -190,14 +190,21 @@ const origins = {
 /** Where along that side it lines up with the anchor. */
 type OverlayAlign = 'center' | 'end' | 'start'
 
-/** Which side of the anchor a surface opens on. */
-type OverlaySide = 'bottom' | 'left' | 'right' | 'top'
+/**
+ * Which side of the anchor a surface opens on. `start` and `end` are the
+ * inline sides by the writing direction, the right and the left in a
+ * right-to-left layout; `left` and `right` stay where they are in either.
+ */
+type OverlaySide = 'bottom' | 'end' | 'left' | 'right' | 'start' | 'top'
 
 /**
  * React Aria's placement, from the side and the alignment a call site names.
  * Its own vocabulary pairs a side with `top`/`bottom` on the inline sides and
  * `start`/`end` on the block ones; a call site should not have to know which
- * of the two it is asking for, so this maps one onto the other.
+ * of the two it is asking for, so this maps one onto the other. The inline
+ * sides take in `start` and `end`, which React Aria turns into the left or
+ * the right by the locale's direction as it places the surface, so what it
+ * reports, and what `popupOrigin` reads, is always a physical side.
  *
  * Shared by every anchored overlay rather than kept in one, since which side
  * a surface opens on is the same question for a popover, a menu and a

@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -13,6 +14,16 @@ import Dialog from '../dialog'
 // Asserting on class membership pins which role each part reaches for without
 // depending on the browser having applied a rule these tests are the first
 // thing to use — see chip/index.test.tsx for the flake behind this.
+// A frame holding the trigger in the middle of the page, so either inline
+// side has room for the panel.
+const frameStyles = stylex.create({
+  centred: {
+    display: 'flex',
+    justifyContent: 'center',
+    paddingBlock: 160,
+  },
+})
+
 const probeStyles = stylex.create({
   body: { fontSize: typography.bodyMediumSize },
   corner: { borderRadius: radii.md },
@@ -806,6 +817,46 @@ describe('popover', () => {
         ).toBe('right')
       })
     })
+
+    // `end` is the inline end of the trigger by the locale's direction:
+    // its right in English and its left in Arabic, where React Aria reports
+    // the physical side it resolved to.
+    it.each([
+      ['en-US', 'right'],
+      ['ar-EG', 'left'],
+    ] as const)(
+      'opens at the inline end under %s, to the %s of the trigger',
+      async (locale, placement) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <div {...stylex.props(frameStyles.centred)}>
+              <Popover defaultOpen>
+                <Button>Open</Button>
+                <Popover.Content side="end">
+                  <Popover.Title>Headline</Popover.Title>
+                </Popover.Content>
+              </Popover>
+            </div>
+          </I18nProvider>,
+        )
+        const trigger = view.getByRole('button', { name: 'Open' })
+
+        await waitFor(() => {
+          const panel = panelOf(view.getByRole('dialog'))
+          const surface = panel.getBoundingClientRect()
+          const anchor = trigger.getBoundingClientRect()
+
+          // From the trigger's facing edge to the panel's, outwards.
+          const gap =
+            placement === 'right'
+              ? surface.left - anchor.right
+              : anchor.left - surface.right
+
+          expect(panel.getAttribute('data-placement')).toBe(placement)
+          expect(Math.round(gap)).toBe(DEFAULT_SIDE_OFFSET)
+        })
+      },
+    )
 
     // The gap is this component's decision rather than an inherited one, so
     // it is pinned here whatever React Aria's own default happens to be.

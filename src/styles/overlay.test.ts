@@ -52,9 +52,10 @@ describe('overlay', () => {
   // a surface needs only its side. Above or below the anchor it aligns along
   // the inline axis, which React Aria spells `start` and `end` as the library
   // does; beside it, it aligns along the block axis, which React Aria spells
-  // `top` and `bottom`, so `start` is the top and `end` the bottom. Every
-  // anchored overlay positions through this, so a flipped branch would
-  // misplace all of them at once.
+  // `top` and `bottom`, so `start` is the top and `end` the bottom. The
+  // sides that follow the writing direction are beside it too, and keep
+  // React Aria's names for them. Every anchored overlay positions through
+  // this, so a flipped branch would misplace all of them at once.
   describe('placementOf', () => {
     it.each([
       ['bottom', 'start', 'bottom start'],
@@ -69,6 +70,12 @@ describe('overlay', () => {
       ['right', 'start', 'right top'],
       ['right', 'center', 'right'],
       ['right', 'end', 'right bottom'],
+      ['start', 'start', 'start top'],
+      ['start', 'center', 'start'],
+      ['start', 'end', 'start bottom'],
+      ['end', 'start', 'end top'],
+      ['end', 'center', 'end'],
+      ['end', 'end', 'end bottom'],
     ] as const)(
       'places a surface on the %s side, aligned %s, as %s',
       (side, align, expected) => {
