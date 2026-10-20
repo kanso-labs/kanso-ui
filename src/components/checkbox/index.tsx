@@ -339,6 +339,7 @@ function fieldContent(
         <FieldMessage
           description={description}
           error={error}
+          indent
           inset={false}
           isDisabled={isDisabled}
           reserve={reserve}

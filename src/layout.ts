@@ -34,7 +34,10 @@
 const collectionSizes = {
   /** The thickness of the line a drag draws between two rows. */
   dropIndicator: 2,
-  /** A `List`, `ListBox` or `Tree` row with a headline alone. */
+  /**
+   * A `List`, `ListBox` or `Tree` row with a headline alone, with or without
+   * the checkbox a selecting list draws beside it.
+   */
   listRow: 56,
   /** A `List`, `ListBox` or `Tree` row with a headline and a supporting line. */
   listRowTwoLine: 72,

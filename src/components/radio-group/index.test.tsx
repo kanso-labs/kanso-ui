@@ -351,6 +351,23 @@ describe('radio group', () => {
         '10px',
       )
     })
+
+    // The 8dp a label is held off the control by is the description line's
+    // own, as it is under a checkbox and a switch, so the two start together.
+    it("starts an option's description where its label does", () => {
+      const view = setup()
+      const label = view.getByText('Second item')
+      const start =
+        label.getBoundingClientRect().left +
+        Number.parseFloat(getComputedStyle(label).paddingInlineStart)
+
+      expect(
+        view.getByText('Supporting line').getBoundingClientRect().left,
+      ).toBe(start)
+      expect(start - controlOf(view.second).getBoundingClientRect().right).toBe(
+        8,
+      )
+    })
   })
 
   // An option's description is the option's alone. It once went through the

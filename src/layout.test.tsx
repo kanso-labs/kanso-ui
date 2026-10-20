@@ -38,6 +38,23 @@ describe('collection sizes', () => {
     )
   })
 
+  // The selection checkbox is a 40dp leading element, which the row's 8dp
+  // above and below hold to the same height as a row without one. While the
+  // row padded 12dp, a list that selects drew its rows 64dp apart, so a
+  // virtualizer handed `listRow` laid them out on the wrong pitch.
+  it('matches a List row that selects with a checkbox', () => {
+    const view = render(
+      <List aria-label="Label" selectionMode="multiple">
+        <List.Item id="first">First item</List.Item>
+      </List>,
+    )
+
+    expect(view.getAllByRole('checkbox')).toHaveLength(1)
+    expect(view.getAllByRole('row')[0].offsetHeight).toBe(
+      collectionSizes.listRow,
+    )
+  })
+
   it('matches a List row with a supporting line', () => {
     const view = render(
       <List aria-label="Label">

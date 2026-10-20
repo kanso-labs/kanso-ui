@@ -300,6 +300,41 @@ describe('list', () => {
       ).not.toBeNull()
     })
 
+    // The box is the 40dp an avatar is, so the page's 8dp above and below
+    // puts a selecting row on the one-line height a row that does not select
+    // takes. At the 12dp every row once took, selecting moved the whole list.
+    it('keeps a row at the height of one that does not select', () => {
+      const selecting = setup()
+      const [row] = selecting.getAllByRole('row')
+      const height = row.offsetHeight
+      selecting.unmount()
+      const plain = setup({ selectionMode: 'none' })
+
+      expect(height).toBe(56)
+      expect(plain.getAllByRole('row')[0].offsetHeight).toBe(height)
+    })
+
+    // The box takes the width of its 40dp control and no more, and the
+    // headline follows it by the row's own gap, as it would an avatar.
+    it('draws as wide as its control, a gap before the headline', () => {
+      const view = setup()
+      const [row] = view.getAllByRole('row')
+      const box = row.querySelector('[slot="selection"]')
+      if (!(box instanceof HTMLElement)) {
+        throw new Error('expected the row to draw its selection checkbox')
+      }
+      const rowBox = row.getBoundingClientRect()
+      const boxRect = box.getBoundingClientRect()
+      const headline = view.getByText('First item').getBoundingClientRect()
+
+      expect(boxRect.width).toBe(40)
+      expect(boxRect.left - rowBox.left).toBe(16)
+      expect(headline.left - boxRect.right).toBe(
+        Number.parseFloat(getComputedStyle(row).columnGap),
+      )
+      expect(headline.left - rowBox.left).toBe(72)
+    })
+
     it('selects the row it belongs to', () => {
       const view = setup()
       const [first] = view.getAllByRole('checkbox')
@@ -425,8 +460,8 @@ describe('list', () => {
       expect(hasClasses(header, CLASSES.header)).toBe(true)
     })
 
-    // The lists page's row: a 56dp floor with 16 either side, which the
-    // shared row module gives every collection item here.
+    // The lists page's row: a 56dp floor with 16 either side and 8 above and
+    // below, which the shared row module gives every collection item here.
     it('draws the page row height and inset', () => {
       const view = setup()
       const [first] = view.getAllByRole('row')
@@ -435,6 +470,8 @@ describe('list', () => {
       expect(style.minBlockSize).toBe('56px')
       expect(style.paddingLeft).toBe('16px')
       expect(style.paddingRight).toBe('16px')
+      expect(style.paddingTop).toBe('8px')
+      expect(style.paddingBottom).toBe('8px')
     })
   })
 

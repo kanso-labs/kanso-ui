@@ -700,6 +700,13 @@ const fieldChromeStyles = stylex.create({
   messageError: {
     color: colors.error,
   },
+  // Set 8dp in from the column it sits in, as a checkbox's or a switch's
+  // label is from the control beside it. On the line rather than around it,
+  // so a line with nothing to say, out of the flow and holding its live
+  // region alone, leaves the control no wider than it draws.
+  messageIndent: {
+    marginInlineStart: spacing.sm,
+  },
   // Indented to the box's own inline padding, so the message starts where
   // the value above it does rather than at the box's edge. A field whose
   // label is not in a box — a checkbox, a group — leaves it out.

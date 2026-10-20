@@ -186,12 +186,18 @@ const controlStyles = stylex.create({
   },
   // The second column of the grid, so a message lines up under the label
   // rather than under the control.
+  //
+  // The 8dp the label is held off the control by is the message line's own
+  // here, `messageIndent` in src/field/styles.ts, rather than a padding on
+  // this column. The line is out of the flow while it has nothing to say,
+  // and a padding is not: a checkbox with no label of its own, as a list
+  // row's selection checkbox is, drew 8dp of empty column after its 40dp
+  // control and pushed the row's text that much further from it.
   messages: {
     boxSizing: 'border-box',
     gridColumnStart: 2,
     minInlineSize: 0,
     overflowWrap: 'anywhere',
-    paddingInlineStart: spacing.sm,
   },
   // A group's options, one under another on the 48dp pitch of their targets
   // rather than the 40dp of their layers — see `TARGET_GAP`. A group laid

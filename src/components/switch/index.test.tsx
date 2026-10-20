@@ -48,6 +48,12 @@ const probeStyles = stylex.create({
   trackOn: { backgroundColor: colors.primary },
 })
 
+// A box that takes its content's width, as the slot of a list row does, since
+// a field on its own is a block as wide as whatever holds it.
+const fitStyles = stylex.create({
+  content: { display: 'inline-flex' },
+})
+
 function classesOf(props: { className?: string | undefined }) {
   const classes = (props.className ?? '').split(' ').filter(Boolean)
   // An empty list would make every `every` below vacuously true, so it is a
@@ -905,6 +911,40 @@ describe('switch', () => {
       expect(trackStyle.height).toBe('32px')
       expect(trackStyle.borderTopWidth).toBe('2px')
       expect(getComputedStyle(layer).width).toBe('40px')
+    })
+
+    // A switch a row names has nothing in the label's column but its
+    // message line, which is out of the flow until there is something to
+    // say — see Checkbox's case of the same name.
+    it('is as wide as its track with no label of its own', () => {
+      const view = render(
+        <div {...stylex.props(fitStyles.content)}>
+          <Switch aria-label="Label" />
+        </div>,
+      )
+      const field = view.container.firstElementChild?.firstElementChild
+      if (!(field instanceof HTMLElement)) {
+        throw new Error('expected the switch to render a field')
+      }
+      const { track } = partsOf(view.getByRole('switch', { name: 'Label' }))
+
+      expect(field.getBoundingClientRect().width).toBe(52)
+      expect(field.getBoundingClientRect().right).toBe(
+        track.getBoundingClientRect().right,
+      )
+    })
+
+    it('starts its description where its label does', () => {
+      const { getByText, input } = setup({ description: 'Supporting line' })
+      const label = getByText('Label')
+      const start =
+        label.getBoundingClientRect().left +
+        Number.parseFloat(getComputedStyle(label).paddingInlineStart)
+
+      expect(getByText('Supporting line').getBoundingClientRect().left).toBe(
+        start,
+      )
+      expect(start - controlOf(input).getBoundingClientRect().right).toBe(8)
     })
   })
 })
