@@ -159,6 +159,13 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
 // of the props taken from React Aria to make room for the affix.
 type FieldInputProps = Omit<InputProps, 'prefix'> & {
   /**
+   * Runs the value left to right whatever the page's direction, still at the
+   * start of the line, for a number the user types: under a right-to-left
+   * page a leading minus otherwise lands after the digits.
+   * @default false
+   */
+  leftToRight?: boolean
+  /**
    * Renders the value in the mono face with tabular figures, for amounts and
    * other numbers meant to be compared down a column.
    * @default false
@@ -625,6 +632,7 @@ function FieldBox({
  * it was in no name and no description, and a reader heard the label alone.
  */
 function FieldInput({
+  leftToRight = false,
   numeric = false,
   placeholder,
   prefix,
@@ -663,6 +671,7 @@ function FieldInput({
             box.label === 'floating' &&
               fieldChromeStyles.inputUnderFloatingLabel,
             numeric && fieldChromeStyles.numeric,
+            leftToRight && fieldChromeStyles.leftToRight,
             state.isDisabled && fieldChromeStyles.inputDisabled,
           ),
         props,

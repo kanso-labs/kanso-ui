@@ -310,6 +310,18 @@ describe('number field', () => {
       expect(hasClasses(input, CLASSES.mono)).toBe(false)
     })
 
+    // A text field runs a numeric value left to right; this one's value is
+    // formatted for the locale, which orders it in the page's direction.
+    it('keeps the direction of a right-to-left page', () => {
+      const view = render(
+        <div dir="rtl">
+          <NumberField defaultValue={-1} label="Label" />
+        </div>,
+      )
+      const input = view.getByRole('textbox', { name: 'Label' })
+      expect(getComputedStyle(input).direction).toBe('rtl')
+    })
+
     // Stacked, the pair is flush with the box's top, end and bottom, each
     // half of its 56.
     it('stacks the steppers flush with the box, the plus over the minus, by default', () => {

@@ -515,6 +515,47 @@ describe('text field', () => {
       const { input } = setup()
       expect(hasClasses(input, CLASSES.mono)).toBe(false)
     })
+
+    it('asks a phone for the decimal keypad when numeric', () => {
+      expect(setup({ numeric: true }).input.getAttribute('inputmode')).toBe(
+        'decimal',
+      )
+    })
+
+    it('asks for no keypad by default', () => {
+      expect(setup().input.getAttribute('inputmode')).toBeNull()
+    })
+
+    // An integer field asks for the numeric keypad, and one taking negative
+    // amounts for a keypad with a minus key.
+    it('lets an inputMode given to the field replace the decimal keypad', () => {
+      const { input } = setup({ inputMode: 'numeric', numeric: true })
+      expect(input.getAttribute('inputmode')).toBe('numeric')
+    })
+
+    // Left to right, a leading minus stays before the digits; aligned right,
+    // the value still sits at the right-to-left line's start, as the plain
+    // field's does.
+    it('runs the value left to right at the line start under a right-to-left page', () => {
+      const view = render(
+        <div dir="rtl">
+          <TextField defaultValue="-01234.56" label="First label" numeric />
+          <TextField defaultValue="Value" label="Second label" />
+        </div>,
+      )
+      const first = getComputedStyle(view.getByLabelText('First label'))
+      const second = getComputedStyle(view.getByLabelText('Second label'))
+      expect(first.direction).toBe('ltr')
+      expect(first.textAlign).toBe('right')
+      expect(second.direction).toBe('rtl')
+      expect(second.textAlign).toBe('start')
+    })
+
+    it('keeps a numeric value at the start of a left-to-right line', () => {
+      const style = getComputedStyle(setup({ numeric: true }).input)
+      expect(style.direction).toBe('ltr')
+      expect(style.textAlign).toBe('start')
+    })
   })
 
   describe('value', () => {

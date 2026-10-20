@@ -79,6 +79,18 @@ const Numeric: Story = {
   },
 }
 
+// A negative value under a right-to-left locale. The value runs left to
+// right, so the minus stays before the digits, and still sits at the line's
+// start, its right edge. Pinned to Arabic through `globals`, which the locale
+// toolbar cannot override.
+const NumericRightToLeft: Story = {
+  args: {
+    defaultValue: '-01234.56',
+    numeric: true,
+  },
+  globals: { locale: 'ar-EG' },
+}
+
 const Outlined: Story = {
   args: {
     variant: 'outlined',
@@ -150,6 +162,7 @@ export {
   FixedLabel,
   LongLabels,
   Numeric,
+  NumericRightToLeft,
   Outlined,
   OutlinedEmpty,
   WithCharacterCount,
