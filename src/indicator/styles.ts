@@ -193,9 +193,16 @@ export const indicatorStyles = stylex.create({
   },
   // The value: whole, on one line, and at the end of the line whether or not
   // a label is beside it — a lone child of a spaced-between line otherwise
-  // sat at its start.
+  // sat at its start. A flex line of its own, so a meter's status glyph sits
+  // before the figure with the chips page's 8dp between an icon and its
+  // label. Its items sit on their baseline, which is what keeps the figure
+  // on the label's: an item that opts out, as the glyph does, leaves the
+  // line's baseline to the text.
   value: {
+    alignItems: 'baseline',
+    display: 'flex',
     flexShrink: 0,
+    gap: spacing.sm,
     marginInlineStart: 'auto',
     whiteSpace: 'nowrap',
   },

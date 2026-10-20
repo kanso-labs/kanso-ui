@@ -11,9 +11,11 @@ import { Meter as RACMeter } from 'react-aria-components'
 
 import type { IndicatorTone } from '../../indicator/styles'
 
+import { CheckCircleGlyph, ErrorGlyph } from '../../glyphs'
 import { IndicatorLabels, IndicatorLine } from '../../indicator'
 import { indicatorStyles } from '../../indicator/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
+import { colors } from '../../tokens/design.tokens.stylex'
 
 // A meter is the progress indicators page's line, drawn for a measurement
 // rather than for a task: the same three parts at the same 4dp, the same
@@ -38,6 +40,19 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // call site's to decide: nothing here reads the number and picks one, since
 // where the line falls between good and bad is the measurement's own
 // business.
+//
+// Colour alone does not carry it. The two roles are drawn from the same
+// tone of their palettes, as error is, so their bars are equally light —
+// 1.00:1 in the light theme — and a reader who cannot tell red from green
+// sees two bars of one colour, while forced colours paint both in
+// `Highlight`. So each draws a glyph before the value as well: an
+// exclamation mark in a filled circle for `negative` and a check in one for
+// `positive`, at the chips page's 18dp beside label-large text, in the
+// tone's own colour. The circles are one outline with a different mark
+// inside, which is what tells them apart in grey and under a forced palette.
+// No Material Design page draws a meter, so the glyph is this library's;
+// it is hidden from a screen reader, which hears the label and the value
+// instead, and the tone's JSDoc says to state the status there.
 //
 // The value is shown by default, where a progress indicator hides it. A
 // meter is the number — a bar with no figure beside it says only "some" —
@@ -65,11 +80,32 @@ type MeterProps = Omit<RACMeterProps, 'children' | 'className' | 'style'> & {
    * ranking; `negative` and `positive` say the value is bad or good, and
    * recolour the active indicator and the stop indicator, leaving the track
    * in its secondary container so a column of meters still shares one
-   * track.
+   * track. Each also draws a glyph before the value, an exclamation mark
+   * for `negative` and a check for `positive`, so the tone reads without
+   * its colour. A screen reader hears neither, so say the status in `label`
+   * or `valueLabel` as well.
    * @default 'primary'
    */
   tone?: MeterTone
 }
+
+const styles = stylex.create({
+  // The glyph before the value, centred on the line rather than set on the
+  // baseline the figure sits on, which an svg has none of.
+  status: {
+    alignSelf: 'center',
+    blockSize: '18px',
+    boxSizing: 'border-box',
+    flexShrink: 0,
+    inlineSize: '18px',
+  },
+  statusNegative: {
+    color: colors.negative,
+  },
+  statusPositive: {
+    color: colors.positive,
+  },
+})
 
 // The three of the shared line's four tones a meter draws. The fourth,
 // `inherit`, is for an indicator inside something that carries its own
@@ -115,11 +151,29 @@ function meterContent(label: ReactNode, showValue: boolean, tone: MeterTone) {
     <>
       <IndicatorLabels
         label={label}
+        status={statusOf(tone)}
         value={showValue ? state.valueText : undefined}
       />
       <IndicatorLine percentage={state.percentage} tone={tone} />
     </>
   )
+}
+
+// The glyph a tone draws before the value — see the comment at the top.
+function statusOf(tone: MeterTone) {
+  if (tone === 'negative') {
+    return (
+      <ErrorGlyph {...stylex.props(styles.status, styles.statusNegative)} />
+    )
+  }
+  if (tone === 'positive') {
+    return (
+      <CheckCircleGlyph
+        {...stylex.props(styles.status, styles.statusPositive)}
+      />
+    )
+  }
+  return undefined
 }
 
 export type { MeterProps, MeterTone }

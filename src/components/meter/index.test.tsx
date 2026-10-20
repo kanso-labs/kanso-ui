@@ -13,7 +13,9 @@ import { colors } from '../../tokens/design.tokens.stylex'
 const probeStyles = stylex.create({
   active: { backgroundColor: colors.primary },
   negative: { backgroundColor: colors.negative },
+  negativeText: { color: colors.negative },
   positive: { backgroundColor: colors.positive },
+  positiveText: { color: colors.positive },
   track: { backgroundColor: colors.secondaryContainer },
 })
 
@@ -30,12 +32,22 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   active: classesOf(stylex.props(probeStyles.active)),
   negative: classesOf(stylex.props(probeStyles.negative)),
+  negativeText: classesOf(stylex.props(probeStyles.negativeText)),
   positive: classesOf(stylex.props(probeStyles.positive)),
+  positiveText: classesOf(stylex.props(probeStyles.positiveText)),
   track: classesOf(stylex.props(probeStyles.track)),
 }
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** The height of the label row a meter in `tone` draws. */
+function labelRowHeightUnder(tone: 'negative' | 'primary') {
+  const { meter } = setup({ tone })
+  const height = meter.firstElementChild?.getBoundingClientRect().height
+  document.body.replaceChildren()
+  return height
 }
 
 /** The three parts of the line, in the order the page draws them. */
@@ -58,6 +70,16 @@ function partsOf(meter: HTMLElement) {
 function setup(props: Partial<Parameters<typeof Meter>[0]> = {}) {
   const view = render(<Meter label="Label" value={40} {...props} />)
   return { ...view, meter: view.getByRole('meter', { name: 'Label' }) }
+}
+
+/** The path a glyph draws, which is its shape. */
+function shapeOf(glyph: Element | null) {
+  return glyph?.querySelector('path')?.getAttribute('d') ?? null
+}
+
+/** The glyph a tone draws before the value, or null without one. */
+function statusOf(meter: HTMLElement) {
+  return meter.querySelector('svg')
 }
 
 describe('meter', () => {
@@ -146,6 +168,91 @@ describe('meter', () => {
     it('draws a positive tone in the positive role', () => {
       const { meter } = setup({ tone: 'positive' })
       expect(hasClasses(partsOf(meter).active, CLASSES.positive)).toBe(true)
+    })
+  })
+
+  // The two roles are equally light, so a reader who cannot tell their hues
+  // apart, or a forced palette that paints both bars in Highlight, sees one
+  // bar either way. The glyph is what says which.
+  describe('the tone without its colour', () => {
+    it('draws no glyph for the primary tone', () => {
+      const { meter } = setup()
+      expect(statusOf(meter)).toBeNull()
+    })
+
+    it('draws a different glyph for each of the two ranked tones', () => {
+      const negative = shapeOf(statusOf(setup({ tone: 'negative' }).meter))
+      document.body.replaceChildren()
+      const positive = shapeOf(statusOf(setup({ tone: 'positive' }).meter))
+
+      expect(negative).not.toBeNull()
+      expect(positive).not.toBeNull()
+      expect(negative).not.toBe(positive)
+    })
+
+    it.each([
+      ['negative', CLASSES.negativeText],
+      ['positive', CLASSES.positiveText],
+    ] as const)('draws the %s glyph in its own role', (tone, classes) => {
+      const glyph = statusOf(setup({ tone }).meter)
+      if (glyph === null) {
+        throw new Error('expected the tone to draw a glyph')
+      }
+      expect(hasClasses(glyph, classes)).toBe(true)
+    })
+
+    // A screen reader hears the label and the value; the glyph would only
+    // repeat the tone as an unnamed image.
+    it('hides the glyph from the accessibility tree', () => {
+      const glyph = statusOf(setup({ tone: 'negative' }).meter)
+      expect(glyph?.getAttribute('aria-hidden')).toBe('true')
+    })
+
+    it('puts the glyph just before the value, at the end of the line', () => {
+      const view = setup({ tone: 'negative', value: 94 })
+      const glyph = statusOf(view.meter)
+      const figure = [...view.getByText('94%').childNodes].find(
+        (node) => node.nodeType === Node.TEXT_NODE,
+      )
+      const labels = view.meter.firstElementChild
+      if (glyph === null || figure === undefined || labels === null) {
+        throw new Error('expected the label row, the glyph and the figure')
+      }
+      const text = document.createRange()
+      text.selectNode(figure)
+
+      expect(glyph.getBoundingClientRect().right).toBeLessThanOrEqual(
+        text.getBoundingClientRect().left,
+      )
+      expect(text.getBoundingClientRect().right).toBeCloseTo(
+        labels.getBoundingClientRect().right,
+        0,
+      )
+    })
+
+    // The glyph is centred on the line rather than set on its baseline, so
+    // the label row keeps the height it has without one.
+    it('keeps the label row the height it is without a glyph', () => {
+      expect(labelRowHeightUnder('negative')).toBe(
+        labelRowHeightUnder('primary'),
+      )
+    })
+
+    // With neither a label nor a value to stand beside, the glyph still
+    // draws, at the end of a row of its own: it is the only cue the tone
+    // has that is not a colour.
+    it('draws the glyph without a label or a value', () => {
+      const view = render(
+        <Meter
+          aria-label="Storage"
+          showValue={false}
+          tone="positive"
+          value={40}
+        />,
+      )
+      const meter = view.getByRole('meter', { name: 'Storage' })
+      expect(meter.children).toHaveLength(2)
+      expect(statusOf(meter)).not.toBeNull()
     })
   })
 
