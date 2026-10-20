@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import type { NavigationItemProps } from '../../navigation'
 import type { RenderComponentProps } from '../../render/useRender'
 
-import { NavigationItem } from '../../navigation'
+import { NavigationItem, NavigationList } from '../../navigation'
 import { NavigationContext } from '../../navigation/context'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
@@ -46,10 +46,10 @@ const styles = stylex.create({
     gap: spacing.xs,
     inlineSize: '96px',
   },
-  // The destinations, in a block of their own between the header and the
+  // The destinations, in a list of their own between the header and the
   // rail's foot. A rail shorter than its destinations scrolls them here,
   // rather than painting them past its surface and off the window, and the
-  // header stays where it is above them.
+  // header stays where it is above them, outside the list.
   destinations: {
     alignItems: 'center',
     alignSelf: 'stretch',
@@ -65,9 +65,6 @@ const styles = stylex.create({
     overflowY: 'auto',
     paddingBlock: RING_REACH,
     paddingInline: RING_REACH,
-  },
-  destinationsCollapsed: {
-    gap: spacing.xs,
   },
   // The page's 20dp either side of the pills, which falls between two steps
   // of the spacing scale and so is written out.
@@ -195,14 +192,9 @@ function NavigationRail({
               {header}
             </div>
           )}
-          <div
-            {...stylex.props(
-              styles.destinations,
-              !isExpanded && styles.destinationsCollapsed,
-            )}
-          >
+          <NavigationList layout={styles.destinations}>
             {children}
-          </div>
+          </NavigationList>
         </>
       ),
     },

@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render, within } from '@testing-library/react'
+import { createRef } from 'react'
 import { RouterProvider } from 'react-aria-components'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
@@ -214,6 +215,57 @@ describe('navigation bar', () => {
 
       expect(bar.tagName).toBe('NAV')
       expect(view.getAllByRole('link')).toHaveLength(3)
+    })
+
+    // A list of items is what has a screen reader say how many destinations
+    // there are and which one it is on. The role is written out, since
+    // Safari's VoiceOver stops announcing a list once its markers are gone.
+    it('holds its destinations in one list, a link to each item', () => {
+      const view = render(<Bar />)
+      const lists = within(view.getByRole('navigation')).getAllByRole('list')
+
+      expect(lists).toHaveLength(1)
+      expect(lists[0]).toHaveAttribute('role', 'list')
+      const items = within(lists[0]).getAllByRole('listitem')
+      expect(items).toHaveLength(3)
+      for (const item of items) {
+        expect(within(item).getAllByRole('link')).toHaveLength(1)
+      }
+    })
+
+    it('draws its list without the margin, padding and markers a list has', () => {
+      const view = render(<Bar />)
+      const list = getComputedStyle(view.getByRole('list'))
+
+      expect(list.marginBlockStart).toBe('0px')
+      expect(list.marginBlockEnd).toBe('0px')
+      expect(list.paddingInlineStart).toBe('0px')
+      expect(list.listStyleType).toBe('none')
+      for (const item of view.getAllByRole('listitem')) {
+        expect(getComputedStyle(item).display).not.toBe('list-item')
+      }
+    })
+
+    it('keeps the class, the ref and aria-current on the link', () => {
+      const ref = createRef<HTMLAnchorElement>()
+      const view = render(
+        <NavigationBar aria-label="Label" selectedRoute="#first">
+          <NavigationBar.Item
+            className="call-site"
+            href="#first"
+            icon={ICON}
+            ref={ref}
+          >
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+      const link = view.getByRole('link', { name: 'First item' })
+
+      expect(ref.current).toBe(link)
+      expect(link).toHaveClass('call-site')
+      expect(link).toHaveAttribute('aria-current', 'page')
+      expect(view.getByRole('listitem')).not.toHaveClass('call-site')
     })
 
     it('marks the destination selectedRoute names as the current page', () => {
@@ -618,6 +670,21 @@ describe('navigation bar', () => {
       expect(getComputedStyle(indicatorOf(current)).outlineStyle).toBe('none')
     })
 
+    // The library's own 8dp between two pills — see NavigationBar.
+    it('sets the pills 8dp apart', async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      const view = render(<Bar />)
+      const pills = view
+        .getAllByRole('link')
+        .map((link) => link.getBoundingClientRect())
+
+      const gaps = pills
+        .slice(1)
+        .map((pill, index) => Math.round(pill.left - pills[index].right))
+
+      expect(gaps).toStrictEqual([8, 8])
+    })
+
     it('centres the destinations, as wide as their pills', () => {
       const view = render(<Bar />)
       const bar = view.getByRole('navigation').getBoundingClientRect()
@@ -679,9 +746,7 @@ describe('navigation bar', () => {
       for (const link of view.getAllByRole('link')) {
         expect(getComputedStyle(link).flexDirection).toBe('column')
       }
-      expect(getComputedStyle(view.getByRole('navigation')).columnGap).toBe(
-        '0px',
-      )
+      expect(getComputedStyle(view.getByRole('list')).columnGap).toBe('0px')
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
 

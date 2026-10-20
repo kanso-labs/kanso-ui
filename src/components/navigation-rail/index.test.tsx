@@ -1,7 +1,7 @@
 import type { RenderResult } from '@testing-library/react'
 
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render, within } from '@testing-library/react'
 import { RouterProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -58,13 +58,9 @@ const TEN = Array.from({ length: 10 }, (_, index) => (
   </NavigationRail.Item>
 ))
 
-/** The block the rail scrolls its destinations in: what holds the links. */
+/** The block the rail scrolls its destinations in: their list. */
 function destinationsOf(view: RenderResult) {
-  const block = view.getAllByRole('link')[0].parentElement
-  if (block === null) {
-    throw new Error('expected the destinations to sit in a block')
-  }
-  return block
+  return view.getByRole('list')
 }
 
 // Focus as a keyboard brings it, which is what React Aria reports as
@@ -169,6 +165,32 @@ describe('navigation rail', () => {
       )
       expect(view.getAllByRole('link')).toHaveLength(3)
     })
+
+    // A list of items is what has a screen reader say how many destinations
+    // there are and which one it is on. The header is not one of them.
+    it.each([
+      { isExpanded: false, name: 'collapsed' },
+      { isExpanded: true, name: 'expanded' },
+    ])(
+      'holds its destinations in one list, the header outside it, $name',
+      ({ isExpanded }) => {
+        const view = render(<Rail header={HEADER} isExpanded={isExpanded} />)
+        const rail = view.getByRole('navigation')
+        const lists = within(rail).getAllByRole('list')
+
+        expect(lists).toHaveLength(1)
+        expect(lists[0]).toHaveAttribute('role', 'list')
+        const items = within(lists[0]).getAllByRole('listitem')
+        expect(items).toHaveLength(3)
+        for (const item of items) {
+          expect(within(item).getAllByRole('link')).toHaveLength(1)
+        }
+        const header = view.getByRole('button', { name: 'Menu' })
+        expect(rail).toContainElement(header)
+        expect(lists[0]).not.toContainElement(header)
+        expect(getComputedStyle(lists[0]).listStyleType).toBe('none')
+      },
+    )
 
     it('marks the destination selectedRoute names as the current page', () => {
       const view = render(<Rail />)
