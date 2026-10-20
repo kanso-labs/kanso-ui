@@ -360,3 +360,12 @@ Material Design allows, since a message gone sooner cannot be read. `0` still
 keeps the snackbar until something closes it, and a longer `timeout` is
 unchanged. A test that waits for a short-lived snackbar to go now waits four
 seconds, or closes it.
+
+### A closed snackbar fades out (after 0.43.7)
+
+A snackbar closed by its timer, its action, its close button, `close` or
+`clear` now stays in the document for 150ms while it fades, where it was removed
+at once. Its `onClose` still runs at the moment it is closed. A test that
+expects the snackbar gone straight after closing it waits for it, or advances
+fake timers by 150ms. A newer message added with `add` still replaces the one on
+screen at once.
