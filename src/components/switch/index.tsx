@@ -50,6 +50,16 @@ import {
 // content opacity, or surface when on. The state layer is on surface off and
 // primary on.
 //
+// The page gives no error state, so an invalid switch takes the checkbox's
+// error colours rather than showing its problem in the message alone. The
+// track's rule is error, and so is the handle while the switch is off; on,
+// the track keeps its primary fill and the handle its on primary, so the
+// switch still reads as on inside an error rule. The state layer is error
+// either way, as the checkbox's is, and a disabled switch keeps its disabled
+// colours. Under forced colours the error colour goes with every other, and
+// the switch keeps the mapping below, so there the message says what is
+// wrong.
+//
 // React Aria's `SwitchField` is the root, a div holding the description and
 // error slots; its `SwitchButton` is the label around a visually hidden
 // input, and everything drawn is that label's children, chosen from the
@@ -150,6 +160,11 @@ const styles = stylex.create({
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
       [FORCED_COLORS]: 'GrayText',
     },
+  },
+  // The error state's three — see the comment at the top of this file. Each
+  // repeats the forced-colours value of the style it replaces.
+  handleError: {
+    backgroundColor: { default: colors.error, [FORCED_COLORS]: 'ButtonText' },
   },
   handleOn: {
     backgroundColor: {
@@ -262,6 +277,9 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'GrayText',
     },
   },
+  trackError: {
+    borderColor: { default: colors.error, [FORCED_COLORS]: 'ButtonText' },
+  },
   trackOn: {
     backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     borderColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
@@ -273,11 +291,18 @@ const styles = stylex.create({
     },
     borderColor: { default: 'transparent', [FORCED_COLORS]: 'GrayText' },
   },
+  trackOnError: {
+    borderColor: { default: colors.error, [FORCED_COLORS]: 'Highlight' },
+  },
 })
 
 // The state layer over the handle: on surface while the switch is off and
-// primary while it is on, at the hover or the pressed opacity.
+// primary while it is on, at the hover or the pressed opacity, and error
+// either way while it is invalid.
 const hoverLayers = stylex.create({
+  error: {
+    backgroundColor: `color-mix(in srgb, ${colors.error} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
   off: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
@@ -288,6 +313,9 @@ const hoverLayers = stylex.create({
 
 // A keyboard's focus draws the hover layer's colour at the focus opacity.
 const focusLayers = stylex.create({
+  error: {
+    backgroundColor: `color-mix(in srgb, ${colors.error} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   off: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
   },
@@ -297,6 +325,9 @@ const focusLayers = stylex.create({
 })
 
 const pressedLayers = stylex.create({
+  error: {
+    backgroundColor: `color-mix(in srgb, ${colors.error} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
   off: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
@@ -343,8 +374,8 @@ type SwitchProps = {
   description?: string
   /**
    * The problem with the current value, in words. Its presence is what puts
-   * the switch in its error state — the message and `aria-invalid` follow
-   * from it.
+   * the switch in its error state — the error colours on the track and the
+   * handle, the message and `aria-invalid` follow from it.
    *
    * Outside a `Form` the message line arrives with the message, so the
    * field grows when this does and moves what is under it. A `Form` holds
@@ -375,6 +406,7 @@ function buttonContent(
   return (state: SwitchButtonRenderProps) => {
     const interactive = !state.isDisabled && !state.isReadOnly
     const on = state.isSelected
+    const tone = state.isInvalid ? 'error' : on ? 'on' : 'off'
     const dragging = interactive && drag.offset !== null
     const active =
       interactive &&
@@ -393,6 +425,7 @@ function buttonContent(
             {...stylex.props(
               styles.track,
               on && styles.trackOn,
+              state.isInvalid && (on ? styles.trackOnError : styles.trackError),
               state.isDisabled &&
                 (on ? styles.trackOnDisabled : styles.trackDisabled),
               state.isFocusVisible && focus.ringVisible,
@@ -412,15 +445,9 @@ function buttonContent(
                 {...(interactive ? ripple.handlers : {})}
                 {...stylex.props(
                   styles.layer,
-                  interactive &&
-                    state.isHovered &&
-                    hoverLayers[on ? 'on' : 'off'],
-                  interactive &&
-                    state.isFocusVisible &&
-                    focusLayers[on ? 'on' : 'off'],
-                  interactive &&
-                    state.isPressed &&
-                    pressedLayers[on ? 'on' : 'off'],
+                  interactive && state.isHovered && hoverLayers[tone],
+                  interactive && state.isFocusVisible && focusLayers[tone],
+                  interactive && state.isPressed && pressedLayers[tone],
                 )}
               >
                 {interactive ? ripple.surface : null}
@@ -430,6 +457,7 @@ function buttonContent(
                   styles.handle,
                   on && styles.handleOn,
                   active && (on ? styles.handleOnActive : styles.handleActive),
+                  !on && state.isInvalid && styles.handleError,
                   (dragging || (interactive && state.isPressed)) &&
                     styles.handlePressed,
                   state.isDisabled &&

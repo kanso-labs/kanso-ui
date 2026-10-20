@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Switch from '.'
+import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -17,12 +18,21 @@ const probeStyles = stylex.create({
   disabledTrack: {
     borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
+  errorHoverLayer: {
+    backgroundColor: `color-mix(in srgb, ${colors.error} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  // Drawn as text, so a computed colour can be read off it and set beside the
+  // track's rule.
+  errorText: { color: colors.error },
+  handleError: { backgroundColor: colors.error },
   handleOff: { backgroundColor: colors.outline },
   handleOn: { backgroundColor: colors.onPrimary },
   hoverLayer: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
+  outlineText: { color: colors.outline },
   restingText: { color: colors.onSurfaceVariant },
+  trackError: { borderColor: colors.error },
   trackOff: { backgroundColor: colors.surfaceContainerHighest },
   trackOn: { backgroundColor: colors.primary },
 })
@@ -40,9 +50,12 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   disabledLabel: classesOf(stylex.props(probeStyles.disabledLabel)),
   disabledTrack: classesOf(stylex.props(probeStyles.disabledTrack)),
+  errorHoverLayer: classesOf(stylex.props(probeStyles.errorHoverLayer)),
+  handleError: classesOf(stylex.props(probeStyles.handleError)),
   handleOff: classesOf(stylex.props(probeStyles.handleOff)),
   handleOn: classesOf(stylex.props(probeStyles.handleOn)),
   hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
+  trackError: classesOf(stylex.props(probeStyles.trackError)),
   trackOff: classesOf(stylex.props(probeStyles.trackOff)),
   trackOn: classesOf(stylex.props(probeStyles.trackOn)),
 }
@@ -79,6 +92,14 @@ function dragBy(seat: HTMLElement, distance: number) {
   }
 }
 
+/** What `property` comes to on `element` under forced colours. */
+function forcedValue(element: Element, property: string) {
+  return valueIn(
+    rulesReaching(element, { holding: 'forced-colors: active' }),
+    property,
+  )
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -100,6 +121,22 @@ function partsOf(input: HTMLElement) {
     )
   }
   return { handle, layer, seat, track }
+}
+
+/** The computed colours of the error and outline roles, as text. */
+function roleColours() {
+  const view = render(
+    <>
+      <span {...stylex.props(probeStyles.errorText)}>Error</span>
+      <span {...stylex.props(probeStyles.outlineText)}>Outline</span>
+    </>,
+  )
+  const colours = {
+    error: getComputedStyle(view.getByText('Error')).color,
+    outline: getComputedStyle(view.getByText('Outline')).color,
+  }
+  view.unmount()
+  return colours
 }
 
 /** Finishes the seat's travel, so a computed inset is where it came to rest. */
@@ -294,6 +331,78 @@ describe('switch', () => {
         fireEvent.pointerOut(layer, { pointerType: 'mouse' })
       })
       expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+    })
+  })
+
+  // The switch page has no error state, so these pin the checkbox's, which the
+  // component takes instead — see the comment at the top of index.tsx.
+  describe('error state', () => {
+    it('draws the rule and the handle of an invalid switch in error while off', () => {
+      const { error, outline } = roleColours()
+      const valid = setup()
+      expect(getComputedStyle(partsOf(valid.input).track).borderTopColor).toBe(
+        outline,
+      )
+      valid.unmount()
+
+      const { input } = setup({ error: 'Supporting line' })
+      const { handle, track } = partsOf(input)
+      expect(getComputedStyle(track).borderTopColor).toBe(error)
+      expect(hasClasses(track, CLASSES.trackError)).toBe(true)
+      expect(hasClasses(track, CLASSES.trackOff)).toBe(true)
+      expect(hasClasses(handle, CLASSES.handleError)).toBe(true)
+    })
+
+    it('keeps the primary track and handle of an invalid switch inside an error rule while on', () => {
+      const { error } = roleColours()
+      const { input } = setup({
+        defaultSelected: true,
+        error: 'Supporting line',
+      })
+      const { handle, track } = partsOf(input)
+      expect(getComputedStyle(track).borderTopColor).toBe(error)
+      expect(hasClasses(track, CLASSES.trackOn)).toBe(true)
+      expect(hasClasses(handle, CLASSES.handleOn)).toBe(true)
+      expect(hasClasses(handle, CLASSES.handleError)).toBe(false)
+    })
+
+    // The checkbox keeps its error colours while hovered too, rather than
+    // giving them up to the hover role.
+    it('keeps the error handle and lays an error state layer while hovered', () => {
+      const { input } = setup({ error: 'Supporting line' })
+      const { handle, layer } = partsOf(input)
+      act(() => {
+        fireEvent.pointerOver(layer, { pointerType: 'mouse' })
+      })
+      expect(hasClasses(layer, CLASSES.errorHoverLayer)).toBe(true)
+      expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+      expect(hasClasses(handle, CLASSES.handleError)).toBe(true)
+    })
+
+    it('keeps its disabled colours while disabled', () => {
+      const { input } = setup({ error: 'Supporting line', isDisabled: true })
+      const { handle, track } = partsOf(input)
+      expect(hasClasses(track, CLASSES.disabledTrack)).toBe(true)
+      expect(hasClasses(track, CLASSES.trackError)).toBe(false)
+      expect(hasClasses(handle, CLASSES.handleError)).toBe(false)
+    })
+
+    // The mode drops the error colour with every other, so an invalid switch
+    // has to keep the system colours a valid one names, or its rule and
+    // handle would take whatever the mode made of the error role.
+    it('keeps the system colours under forced colours', () => {
+      const off = setup({ error: 'Supporting line' })
+      const offParts = partsOf(off.input)
+      expect(forcedValue(offParts.track, 'border-top-color')).toBe('buttontext')
+      expect(forcedValue(offParts.handle, 'background-color')).toBe(
+        'buttontext',
+      )
+      off.unmount()
+
+      const on = setup({ defaultSelected: true, error: 'Supporting line' })
+      expect(forcedValue(partsOf(on.input).track, 'border-top-color')).toBe(
+        'highlight',
+      )
     })
   })
 
