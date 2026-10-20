@@ -26,6 +26,17 @@ const SIZES = ['sm', 'md', 'lg'] as const
 // the flexible bars' two rows.
 const STRIP = 64
 
+// The target an icon button in the strip is pressed on, centred in it.
+const TARGET = 48
+
+// Material Design's type roles for the flexible bars, in font size and line
+// height, and the small bar's, which a collapsed bar takes.
+const ROLES = {
+  lg: { headline: ['36px', '44px'], subtitle: ['16px', '24px'] },
+  md: { headline: ['28px', '36px'], subtitle: ['14px', '20px'] },
+  sm: { headline: ['22px', '28px'], subtitle: ['12px', '16px'] },
+} as const
+
 // How far above its bottom edge each flexible bar sets its text's last
 // baseline, as Material Design measures it.
 const BASELINE_FROM_END = { lg: 28, md: 24 } as const
@@ -108,14 +119,20 @@ function baselineOf(element: HTMLElement) {
   return baseline
 }
 
-/** Expects two places to agree to within half a pixel. */
-function expectNear(
-  actual: ReturnType<typeof placeIn>,
-  expected: ReturnType<typeof placeIn>,
+/**
+ * Expects a line to be drawn where another was, at its size: the same place
+ * to within half a pixel, and the same type size once its scale is applied.
+ * The size rather than the box's height, since the browser rounds a font's
+ * ascent and descent to whole pixels at each size, so a box scaled from one
+ * size to another can be a pixel off with every glyph where it was.
+ */
+function expectSameLine(
+  actual: ReturnType<typeof glyphsIn>,
+  expected: ReturnType<typeof glyphsIn>,
 ) {
-  expect(actual.height).toBeCloseTo(expected.height, 0)
   expect(actual.left).toBeCloseTo(expected.left, 0)
   expect(actual.top).toBeCloseTo(expected.top, 0)
+  expect(actual.size).toBeCloseTo(expected.size, 1)
 }
 
 /** The box of the glyph at `index` among those the sample drew. */
@@ -125,6 +142,32 @@ function glyphAt(container: HTMLElement, index: number) {
     throw new Error(`expected a glyph at ${index}`)
   }
   return glyph.getBoundingClientRect()
+}
+
+/**
+ * Where the glyphs of an element's first line are drawn, from the bar's own
+ * corner, and how large: the box of the text itself rather than of its line,
+ * which is what the reader sees move, and the type size times the scale the
+ * element is drawn at.
+ */
+function glyphsIn(bar: HTMLElement, element: Element) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  const first = range.getClientRects().item(0)
+  if (first === null) {
+    throw new Error('expected the element to draw a line of text')
+  }
+  const frame = bar.getBoundingClientRect()
+  const style = getComputedStyle(element)
+  return {
+    height: first.height,
+    left: first.left - frame.left,
+    right: first.right - frame.left,
+    size:
+      Number.parseFloat(style.fontSize) *
+      new DOMMatrixReadOnly(style.transform).a,
+    top: first.top - frame.top,
+  }
 }
 
 /** The resolved minimum height, which is what the size tokens come down to. */
@@ -294,8 +337,10 @@ describe('size', () => {
         const { top } = placeIn(bar, button)
         expect(top + button.getBoundingClientRect().height / 2).toBe(STRIP / 2)
       }
+      // The line's leading may run up into the strip, as Material Design's
+      // heights need it to, but no further than the bottom of the targets.
       const heading = placeIn(bar, view.getByRole('heading', { level: 1 }))
-      expect(heading.top).toBeGreaterThanOrEqual(STRIP)
+      expect(heading.top).toBeGreaterThanOrEqual((STRIP + TARGET) / 2)
       expect(heading.left).toBe(16)
       expect(offsetsOf(view).glyph).toBe(16)
     },
@@ -366,21 +411,24 @@ describe('size', () => {
 })
 
 describe('headline', () => {
-  // Material Design's own tokens alias the type scale rather than carrying
-  // sizes, so each size has to reach a different role. Compared against each
-  // other rather than against a figure, which pins the ordering without
-  // pinning the scale.
-  it('gives each size a larger headline than the one below', () => {
-    const sizes = SIZES.map((size) => {
-      const view = render(<AppBar headline="Headline" size={size} />)
-      const heading = view.getByRole('heading', { level: 1 })
-      const fontSize = Number.parseFloat(getComputedStyle(heading).fontSize)
-      view.unmount()
-      return fontSize
-    })
+  // Material Design's own tokens alias the type scale, and the flexible bars
+  // take a step up from its other medium and large bars: headlineMedium and
+  // displaySmall rather than headlineSmall and headlineMedium. The subtitle
+  // has a role per size too, rather than one at every size.
+  it.each(SIZES)('sets the %s bar in its type roles', (size) => {
+    const view = render(
+      <AppBar headline="Headline" size={size} subtitle="Supporting line" />,
+    )
+    const lines = {
+      headline: getComputedStyle(view.getByRole('heading', { level: 1 })),
+      subtitle: getComputedStyle(view.getByText('Supporting line')),
+    }
 
-    expect(sizes[1]).toBeGreaterThan(sizes[0])
-    expect(sizes[2]).toBeGreaterThan(sizes[1])
+    for (const line of ['headline', 'subtitle'] as const) {
+      expect([lines[line].fontSize, lines[line].lineHeight]).toEqual(
+        ROLES[size][line],
+      )
+    }
   })
 
   // The bar is the page's header, so its headline is the page's heading.
@@ -667,22 +715,30 @@ describe('collapsed', () => {
     ).toBe(smallSize)
   })
 
-  // There is no second line in a 64px bar, so the subtitle goes with the
-  // height rather than being squeezed alongside the headline.
-  it('drops the subtitle', () => {
-    const view = render(
-      <AppBar
-        collapsed
-        headline="Headline"
-        size="lg"
-        subtitle="Supporting line"
-      />,
-    )
+  // Material Design keeps the subtitle in the collapsed bar, in the small
+  // bar's own role, and the two lines fit its 64px as they fit the small bar.
+  it.each(['md', 'lg'] as const)(
+    'keeps the %s bar’s subtitle when collapsed',
+    (size) => {
+      const view = render(
+        <AppBar
+          collapsed
+          headline="Headline"
+          size={size}
+          subtitle="Supporting line"
+        />,
+      )
+      const bar = barIn(view.container)
+      const subtitle = getComputedStyle(view.getByText('Supporting line'))
 
-    expect(view.queryByText('Supporting line')).toBeNull()
-  })
+      expect([subtitle.fontSize, subtitle.lineHeight]).toEqual(
+        ROLES.sm.subtitle,
+      )
+      expect(bar.getBoundingClientRect().height).toBe(STRIP)
+    },
+  )
 
-  it('brings the subtitle back on expanding', () => {
+  it('gives the subtitle its own role back on expanding', () => {
     const view = render(
       <AppBar
         collapsed
@@ -696,8 +752,9 @@ describe('collapsed', () => {
     )
     const bar = barIn(view.container)
     settle(bar)
+    const subtitle = getComputedStyle(view.getByText('Supporting line'))
 
-    expect(view.getByText('Supporting line')).not.toBeNull()
+    expect([subtitle.fontSize, subtitle.lineHeight]).toEqual(ROLES.lg.subtitle)
     expect(minHeightOf(bar)).toBe(HEIGHTS.lg.withSubtitle)
   })
 
@@ -744,13 +801,13 @@ describe('collapsed', () => {
     },
   )
 
-  // A change of layout rather than of a value, so the headline is moved and
-  // scaled by a transform that starts from where and how large it was drawn
-  // and ends at none, and the bar's height is animated from the one it had.
-  // Both ways: the second row is laid out at the height the bar is heading
-  // for, so an expanding bar, squeezed to the strip at first, has its
-  // headline where it will end.
-  it('moves the headline between the second row and the strip', () => {
+  // A change of layout rather than of a value, so each line is moved and
+  // scaled by a transform that starts from where and how large its glyphs
+  // were drawn and ends at none, and the bar's height is animated from the
+  // one it had. Both ways: the second row is laid out at the height the bar
+  // is heading for, so an expanding bar, squeezed to the strip at first, has
+  // its text where it will end.
+  it('moves both lines between the second row and the strip', () => {
     const props = {
       headline: 'Headline',
       leading: ICON_LEADING,
@@ -759,29 +816,39 @@ describe('collapsed', () => {
     } as const
     const view = render(<AppBar {...props} />)
     const bar = barIn(view.container)
-    const headline = () => placeIn(bar, view.getByRole('heading', { level: 1 }))
-    const expanded = headline()
+    const lines = () => [
+      glyphsIn(bar, view.getByRole('heading', { level: 1 })),
+      glyphsIn(bar, view.getByText('Supporting line')),
+    ]
+    const expanded = lines()
 
     view.rerender(<AppBar {...props} collapsed />)
     expect(motionIn(bar).length).toBeGreaterThan(0)
     seek(bar, 0)
-    expectNear(headline(), expanded)
+    lines().forEach((line, index) => {
+      expectSameLine(line, expanded[index])
+    })
     expect(bar.getBoundingClientRect().height).toBe(HEIGHTS.lg.withSubtitle)
 
     settle(bar)
-    const collapsed = headline()
-    expect(collapsed.left).toBe(56)
-    expect(collapsed.top + collapsed.height).toBeLessThan(STRIP)
-    expect(collapsed.height).toBeLessThan(expanded.height)
+    const collapsed = lines()
+    expect(placeIn(bar, view.getByRole('heading', { level: 1 })).left).toBe(56)
+    collapsed.forEach((line, index) => {
+      expect(line.left).toBe(collapsed[0].left)
+      expect(line.top + line.height).toBeLessThan(STRIP)
+      expect(line.height).toBeLessThan(expanded[index].height)
+    })
     expect(bar.getBoundingClientRect().height).toBe(STRIP)
 
     view.rerender(<AppBar {...props} />)
     seek(bar, 0)
-    expectNear(headline(), collapsed)
+    lines().forEach((line, index) => {
+      expectSameLine(line, collapsed[index])
+    })
     expect(bar.getBoundingClientRect().height).toBe(STRIP)
 
     settle(bar)
-    expect(headline()).toEqual(expanded)
+    expect(lines()).toEqual(expanded)
   })
 
   // The measurement holds still the edge the text hangs from, which is the
@@ -792,13 +859,14 @@ describe('collapsed', () => {
     {
       align: 'start',
       dir: 'rtl',
-      edge: (box: DOMRect) => box.right,
+      edge: (box: { left: number; right: number }) => box.right,
       name: 'the right edge of a right-to-left',
     },
     {
       align: 'center',
       dir: 'ltr',
-      edge: (box: DOMRect) => (box.left + box.right) / 2,
+      edge: (box: { left: number; right: number }) =>
+        (box.left + box.right) / 2,
       name: 'the middle of a centred',
     },
   ] as const)(
@@ -818,11 +886,8 @@ describe('collapsed', () => {
       )
       const bar = barInWrapper(view.container)
       const headline = () => {
-        const frame = bar.getBoundingClientRect()
-        const box = view
-          .getByRole('heading', { level: 1 })
-          .getBoundingClientRect()
-        return { edge: edge(box) - frame.left, top: box.top - frame.top }
+        const glyphs = glyphsIn(bar, view.getByRole('heading', { level: 1 }))
+        return { edge: edge(glyphs), top: glyphs.top }
       }
       const expanded = headline()
 
@@ -840,22 +905,6 @@ describe('collapsed', () => {
     },
   )
 
-  // The subtitle arrives with the second row, so it fades in rather than
-  // showing through the strip as the bar opens.
-  it('fades the subtitle in as the bar expands', () => {
-    const props = {
-      headline: 'Headline',
-      size: 'lg',
-      subtitle: 'Supporting line',
-    } as const
-    const view = render(<AppBar {...props} collapsed />)
-    view.rerender(<AppBar {...props} />)
-    const subtitle = view.getByText('Supporting line')
-    seek(barIn(view.container), 0)
-
-    expect(getComputedStyle(subtitle).opacity).toBe('0')
-  })
-
   // Turned round half-way, it starts back from where it has got to rather
   // than from the end it was heading for.
   it('turns round from where it has got to', () => {
@@ -867,18 +916,23 @@ describe('collapsed', () => {
     } as const
     const view = render(<AppBar {...props} />)
     const bar = barIn(view.container)
-    const headline = () => placeIn(bar, view.getByRole('heading', { level: 1 }))
+    const lines = () => [
+      glyphsIn(bar, view.getByRole('heading', { level: 1 })),
+      glyphsIn(bar, view.getByText('Supporting line')),
+    ]
 
     view.rerender(<AppBar {...props} collapsed />)
     seek(bar, 125)
-    const halfway = headline()
+    const halfway = lines()
     const height = bar.getBoundingClientRect().height
     expect(height).toBeLessThan(HEIGHTS.lg.withSubtitle)
     expect(height).toBeGreaterThan(STRIP)
 
     view.rerender(<AppBar {...props} />)
     seek(bar, 0)
-    expectNear(headline(), halfway)
+    lines().forEach((line, index) => {
+      expectSameLine(line, halfway[index])
+    })
     expect(bar.getBoundingClientRect().height).toBeCloseTo(height, 0)
   })
 

@@ -25,7 +25,8 @@ import Text from '../text'
 //
 // `md` and `lg` are Material Design's medium and large *flexible* bars, the
 // newer of the two sets the spec gives and the one it recommends, which is why
-// those two steps are theirs.
+// those two steps are theirs: their heights, their two rows, and their type
+// roles, which HEADLINE_VARIANT and SUBTITLE_VARIANT name.
 //
 // Material Design also merged the old center-aligned variant into small as a
 // configuration rather than a variant, which is why alignment is a prop here
@@ -205,9 +206,10 @@ const styles = stylex.create({
 //
 // Material Design places that text by its last baseline, 28px above the large
 // bar's bottom edge and 24px above the medium one's, and that is the reading
-// that makes the heights above come out: the same figures as padding under the
-// line box would make a plain large bar 64 + 36 + 28 = 128px rather than
-// 120px. CSS gives a box no margin below its baseline, so the strut does it.
+// that makes the heights above come out, together with the reach textStyles
+// gives the text: the same figures as padding under the line box would make a
+// plain large bar 64 + 44 + 28 = 136px rather than 120px. CSS gives a box no
+// margin below its baseline, so the strut does it.
 // An empty box in the same grid area, aligned on its last baseline with the
 // text, has its baseline at its own bottom edge and the margin under that, so
 // the pair is held that far off the row's end. Literals rather than tokens,
@@ -241,11 +243,23 @@ const twoRows = stylex.create({
 // One entry per size, and each names a type role rather than a figure.
 // Material Design's own tokens are `md.comp.app-bar.<size>.title.font`,
 // aliases onto the type scale rather than sizes of their own, so this maps to
-// the scale the same way and lets Text apply it.
+// the scale the same way and lets Text apply it. The roles are the flexible
+// bars': headlineMedium on medium and displaySmall on large, which is a step
+// up from what the spec's other medium and large bars take, and the small
+// bar's titleLarge.
 const HEADLINE_VARIANT = {
-  lg: 'headlineMedium',
-  md: 'headlineSmall',
+  lg: 'displaySmall',
+  md: 'headlineMedium',
   sm: 'titleLarge',
+} as const
+
+// The subtitle's role, by the same tokens' `subtitle.font`. Material Design
+// gives each size its own rather than one role at every size, and a collapsed
+// bar takes the small bar's, as it takes its headline's.
+const SUBTITLE_VARIANT = {
+  lg: 'titleMedium',
+  md: 'labelLarge',
+  sm: 'labelMedium',
 } as const
 
 // The headline is the page's title in Material Design's model, so it is the
@@ -316,12 +330,25 @@ const rowStyles = stylex.create({
 // it puts back what the row's padding held off an edge for a slot's glyph, and
 // the headline starts on the inset again. A function style for the reason the
 // row's padding is one.
+//
+// It also reaches up into the strip, by the band under the slots' targets,
+// and Material Design's heights depend on that. A large bar's 36/44 headline
+// with its baseline 28px above a 120px bar's edge has the top of its line box
+// inside the strip, and so does the medium bar's 28/36 one: measured, the two
+// bars came out 126px and 115px tall without it. What reaches in is the line's
+// leading and the room above its capitals rather than any glyph, and it stops
+// where the targets do, so nothing a reader can press is under it. A function
+// style because the strip's height is the hook's constant — see rowStyles.
 const textStyles = stylex.create({
   inset: (start: string, end: string) => ({
     paddingInlineEnd: end,
     paddingInlineStart: start,
   }),
+  reach: (marginBlockStart: string) => ({ marginBlockStart }),
 })
+
+// How far the strip runs on below the slots' targets, which are centred in it.
+const UNDER_TARGETS = `calc((${COLLAPSED_HEIGHT} - ${ICON_BUTTON_TARGET}) / 2)`
 
 type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /**
@@ -342,9 +369,9 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * and is the way to set them unless the app needs a rule of its own.
    *
    * Ignored on `sm`, which is already the height this collapses to. The
-   * subtitle goes with the height, since there is no room for a second line
-   * in the small bar, and the headline moves up into the row the slots sit
-   * in, which they never leave: they stay where they are while the bar
+   * headline and the subtitle move up into the row the slots sit in and take
+   * the small bar's type roles, which fit both lines in its 64px, and the
+   * slots never leave that row: they stay where they are while the bar
    * shrinks under them.
    *
    * Collapsing hands the page back the height the bar gives up, and a bar
@@ -435,17 +462,23 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   trailing?: ReactNode
 }
 
-// The headline among the text block's children, and the subtitle beside it.
-// The block holds nothing else, and each is drawn as one kind of element.
-const HEADLINE = ':scope > :is(h1, h2, h3, h4, h5, h6)'
-const SUBTITLE = ':scope > p'
+// The text block's two lines: the headline, and the subtitle beside it. The
+// block holds nothing else, and each is drawn as one kind of element.
+const LINES = [':scope > :is(h1, h2, h3, h4, h5, h6)', ':scope > p'] as const
 
 /**
  * What collapsing moves, and so what its animation runs between: the bar's
- * height, where the text block's content starts within the bar, and the
- * headline's type size.
+ * height, and each of the text's lines, in the order LINES gives them, with
+ * `null` for a line the bar does not draw.
  */
-type Geometry = { height: number; size: number; x: number; y: number }
+type Geometry = { height: number; lines: (Line | null)[] }
+
+/**
+ * Where one of the text's lines is drawn: the point its glyphs hang from,
+ * measured from the bar's own corner, and its type size. The point is the
+ * top of the line's first glyphs, on the edge the text hangs from.
+ */
+type Line = { size: number; x: number; y: number }
 
 /**
  * Material Design's app bar: the container at the top of a page carrying its
@@ -526,6 +559,7 @@ function AppBar({
                   glyphRoom(contentInset, hasLeading),
                   glyphRoom(contentInset, hasTrailing),
                 ),
+              below && textStyles.reach(`calc(-1 * ${UNDER_TARGETS})`),
               align === 'center' && styles.textCenter,
             )}
             ref={textRef}
@@ -540,8 +574,14 @@ function AppBar({
                 {headline}
               </Text>
             )}
-            {!hasContent(subtitle) || collapse ? null : (
-              <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
+            {!hasContent(subtitle) ? null : (
+              <Text
+                render={PARAGRAPH}
+                tone="muted"
+                variant={
+                  collapse ? SUBTITLE_VARIANT.sm : SUBTITLE_VARIANT[size]
+                }
+              >
                 {subtitle}
               </Text>
             )}
@@ -569,22 +609,30 @@ function AppBar({
 
 /**
  * Where an animation still under way has the bar and the text drawn: the
- * height it holds the bar at, the layout it was heading for moved by the
- * transform the block has reached, and the size the headline's scale has
- * reached.
+ * height it holds the bar at, and each line where its transform has taken it
+ * and at the size its scale has reached. A line scales about the point it
+ * hangs from, so the transform's translation is how far that point has moved.
  */
 function drawnAt(
   bar: HTMLElement,
   text: HTMLElement,
   settled: Geometry,
 ): Geometry {
-  const moved = matrixOf(text)
-  const headline = text.querySelector(HEADLINE)
   return {
     height: bar.getBoundingClientRect().height,
-    size: settled.size * (headline === null ? 1 : matrixOf(headline).a),
-    x: settled.x + moved.e,
-    y: settled.y + moved.f,
+    lines: LINES.map((selector, index) => {
+      const line = settled.lines[index]
+      const element = text.querySelector(selector)
+      if (line === null || element === null) {
+        return null
+      }
+      const moved = matrixOf(element)
+      return {
+        size: line.size * moved.a,
+        x: line.x + moved.e,
+        y: line.y + moved.f,
+      }
+    }),
   }
 }
 
@@ -595,11 +643,10 @@ function edgePadding(contentInset: string, hasSlot: boolean) {
 }
 
 /**
- * Where the text block's content starts, measured from the bar's own corner,
- * and the headline's type size. The content is the block's first child,
- * since the block's padding differs between the two rows. Its inline edge is
- * the one the text hangs from: the middle when it is centred, and the start
- * edge otherwise, which is the right edge in a right-to-left page.
+ * Where the bar and each of the text's lines are drawn. A line's point is on
+ * the edge its text hangs from: the middle when it is centred, and the start
+ * edge otherwise, which is the right edge in a right-to-left page. Each line
+ * is as wide as the text block, so that edge is its box's.
  */
 function geometryOf(
   bar: HTMLElement,
@@ -607,22 +654,26 @@ function geometryOf(
   align: 'center' | 'start',
 ): Geometry {
   const frame = bar.getBoundingClientRect()
-  const content = (text.firstElementChild ?? text).getBoundingClientRect()
-  const headline = text.querySelector(HEADLINE)
-  const edge =
-    align === 'center'
-      ? (content.left + content.right) / 2
-      : isRightToLeft(text)
-        ? content.right
-        : content.left
   return {
     height: frame.height,
-    size:
-      headline === null
-        ? 0
-        : Number.parseFloat(getComputedStyle(headline).fontSize),
-    x: edge - frame.left,
-    y: content.top - frame.top,
+    lines: LINES.map((selector) => {
+      const element = text.querySelector(selector)
+      if (element === null) {
+        return null
+      }
+      const box = element.getBoundingClientRect()
+      const edge =
+        align === 'center'
+          ? (box.left + box.right) / 2
+          : isRightToLeft(element)
+            ? box.right
+            : box.left
+      return {
+        size: Number.parseFloat(getComputedStyle(element).fontSize),
+        x: edge - frame.left,
+        y: glyphTopOf(element) - frame.top,
+      }
+    }),
   }
 }
 
@@ -635,6 +686,21 @@ function glyphRoom(contentInset: string, hasSlot: boolean) {
   return hasSlot ? `min(${withUnit(contentInset)}, ${GLYPH_INSET})` : '0px'
 }
 
+/**
+ * Where an element's first glyphs start, which is below its box's top by
+ * half its line's leading. The leading is a share of the line height, and
+ * the two roles a line moves between do not keep line height and type size
+ * in one ratio, so a line scaled by its type size from its box's corner
+ * starts its glyphs off where they were drawn: about a pixel, for a large
+ * bar's headline.
+ */
+function glyphTopOf(element: Element) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  const first = range.getClientRects().item(0)
+  return first === null ? element.getBoundingClientRect().top : first.top
+}
+
 /** Whether the text runs right to left, which decides the edge it hangs from. */
 function isRightToLeft(element: Element) {
   return getComputedStyle(element).direction === 'rtl'
@@ -645,12 +711,15 @@ function matrixOf(element: Element) {
   return new DOMMatrixReadOnly(getComputedStyle(element).transform)
 }
 
-/** The corner the headline scales about: the one its text hangs from. */
-function originOf(text: HTMLElement, align: 'center' | 'start') {
-  if (align === 'center') {
-    return 'top'
-  }
-  return isRightToLeft(text) ? 'right top' : 'left top'
+/**
+ * The point a line scales about, in its own box: the top of its glyphs, on
+ * the edge its text hangs from.
+ */
+function originOf(element: Element, align: 'center' | 'start') {
+  const edge =
+    align === 'center' ? 'center' : isRightToLeft(element) ? 'right' : 'left'
+  const glyphs = glyphTopOf(element) - element.getBoundingClientRect().top
+  return `${edge} ${glyphs}px`
 }
 
 /**
@@ -663,27 +732,28 @@ function prefersReducedMotion() {
 
 /**
  * Animates a flexible bar between its two states, and returns the ref for the
- * text block it moves.
+ * text block whose lines it moves.
  *
  * Collapsing changes the bar's layout rather than a value — the text leaves
- * the second row for the strip, the headline takes the small bar's type role,
+ * the second row for the strip, both lines take the small bar's type roles,
  * and the bar's height drops from a minimum to whatever its content takes —
  * so there is nothing for a CSS transition to interpolate. This plays it the
  * other way round: the change has already been laid out when the effect runs,
- * so the bar is animated from the height it had to the one it has, the text
- * block from where it was to where it is, by a transform that starts at the
- * difference and ends at none, and the headline from its old size, by a scale
- * about the corner the text hangs from. A scale rather than a transition of
- * the type itself, which would lay the text out again on every frame and move
- * it away from the place it was measured at. The slots need nothing: they are
- * in the strip in both states.
+ * so the bar is animated from the height it had to the one it has, and each
+ * line from where and how large it was drawn to where and how large it is,
+ * by a transform that starts at the difference and ends at none. A line
+ * scales about the point its glyphs hang from, which is what lands its first
+ * frame on the glyphs it replaces — see glyphTopOf. A scale rather than a
+ * transition of the type itself, which would lay the text out again on every
+ * frame and move it away from the place it was measured at. Each line moves
+ * on its own rather than with the block, since the subtitle starts under the
+ * headline's line, whose height changes with its role. The slots need
+ * nothing: they are in the strip in both states.
  *
  * The bar's height is animated through `min-block-size` as well as its
  * height, since the minimum would otherwise hold an expanding bar at its new
  * height from the first frame, and it is clipped while it moves, since an
- * expanding bar's second row is laid out at full height from the start. The
- * subtitle comes in with the second row, so it fades in rather than showing
- * through the strip as the bar opens.
+ * expanding bar's second row is laid out at full height from the start.
  *
  * Where the text was is measured after every commit that leaves the state
  * alone, so it is current when the state does change. A change that lands
@@ -746,32 +816,27 @@ function useCollapseMotion(collapse: boolean, align: 'center' | 'start') {
         },
         timing,
       ),
-      text.animate(
-        {
-          transform: [
-            `translate(${from.x - to.x}px, ${from.y - to.y}px)`,
-            'none',
-          ],
-        },
-        timing,
-      ),
     ]
-    const headline = text.querySelector(HEADLINE)
-    if (headline !== null && from.size > 0 && to.size > 0) {
-      const origin = originOf(text, align)
+    for (const [index, selector] of LINES.entries()) {
+      const element = text.querySelector(selector)
+      const was = from.lines[index]
+      const is = to.lines[index]
+      if (element === null || was == null || is == null || is.size === 0) {
+        continue
+      }
+      const origin = originOf(element, align)
       animations.current.push(
-        headline.animate(
+        element.animate(
           {
-            transform: [`scale(${from.size / to.size})`, 'none'],
+            transform: [
+              `translate(${was.x - is.x}px, ${was.y - is.y}px) scale(${was.size / is.size})`,
+              'none',
+            ],
             transformOrigin: [origin, origin],
           },
           timing,
         ),
       )
-    }
-    const subtitle = collapse ? null : text.querySelector(SUBTITLE)
-    if (subtitle !== null) {
-      animations.current.push(subtitle.animate({ opacity: [0, 1] }, timing))
     }
   })
 
