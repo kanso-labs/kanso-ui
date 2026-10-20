@@ -35,6 +35,8 @@ const probeStyles = stylex.create({
   elevatedBackground: { backgroundColor: colors.surfaceContainerLow },
   elevation1: { boxShadow: shadows.elevation1 },
   elevation2: { boxShadow: shadows.elevation2 },
+  // The slot of an unselected chip with no icon, folded to nothing.
+  folded: { inlineSize: 0, opacity: 0 },
   grounded: { boxShadow: 'none' },
   icon: { color: colors.primary },
   padding: { paddingInline: spacing.lg },
@@ -65,6 +67,7 @@ const CLASSES = {
   elevatedBackground: classesOf(stylex.props(probeStyles.elevatedBackground)),
   elevation1: classesOf(stylex.props(probeStyles.elevation1)),
   elevation2: classesOf(stylex.props(probeStyles.elevation2)),
+  folded: classesOf(stylex.props(probeStyles.folded)),
   grounded: classesOf(stylex.props(probeStyles.grounded)),
   icon: classesOf(stylex.props(probeStyles.icon)),
   padding: classesOf(stylex.props(probeStyles.padding)),
@@ -81,8 +84,17 @@ const CLASSES = {
 // The check, or null where the chip draws none. It is the only SVG a chip
 // renders, and it is `aria-hidden` — a chip announces its state through
 // `aria-pressed`, so a role query would not find it and should not.
+//
+// An unselected chip with no icon keeps the check in a slot folded to no
+// width and no opacity, ready to open, and a check there is drawn nowhere,
+// so it counts as none. Read off the folded slot's classes rather than its
+// width, which a chip just pressed is still easing between.
 function checkIn(chip: HTMLElement) {
-  return chip.querySelector('svg')
+  const check = chip.querySelector('svg')
+  const slot = check?.parentElement
+  return slot === null || slot === undefined || hasClasses(slot, CLASSES.folded)
+    ? null
+    : check
 }
 
 function hasClasses(element: HTMLElement, classes: string[]) {

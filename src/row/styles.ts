@@ -129,6 +129,17 @@ const rowStyles = stylex.create({
     marginInline: spacing.md,
     minBlockSize: sizing.rowSm,
   },
+  // The box a drawer row puts its press ripple in, carrying the pill the
+  // ripple would otherwise not reach. The ripple clips itself to its host's
+  // corner by inheriting it, and React Aria puts a cell between the row and
+  // its content, so what it inherited was the cell's square corner and a
+  // press painted past the pill's ends. `contents`, so it lays nothing out:
+  // the ripple still fills the row, which is the box it is placed against.
+  drawerSurface: {
+    borderRadius: radii.pill,
+    boxSizing: 'border-box',
+    display: 'contents',
+  },
   // A row a drop would land on rather than beside it — into a tree's branch,
   // or onto an item that takes drops. The lists page draws no such state, so
   // this is the drop indicator's own 2dp primary line, drawn as an outline

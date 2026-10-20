@@ -73,6 +73,22 @@ import {
 // across. A chip given an icon does not widen, since the check takes the
 // icon's place in the same slot.
 //
+// **The widening is animated rather than taken in one frame.** A chip with
+// no icon keeps its slot mounted while unselected, folded to nothing, and
+// selecting it opens the slot over the chip's own short duration while the
+// check fades in, so the chips after it in a wrapped row glide rather than
+// jump 18dp. Reduced motion takes the change at once, as it does the
+// colours. A chip that can never be selected, an assist or suggestion chip
+// or one in a group that does not select, has no slot to open.
+//
+// **The press ripple takes the chip's corner from here** wherever the chip
+// is a ChipGroup's. The ripple clips itself to its host's corner by
+// inheriting it, and React Aria puts a cell between a group's chip and its
+// content, so what the ripple would inherit is the cell's square corner.
+// `surfaceCorners` restates the chip's own corner on a box the ripple sits
+// in, less the 1px border every chip keeps, since the ripple fills the
+// inside of that border.
+//
 // Apart from any component so a chip in a group and a chip on its own cannot
 // drift; see `src/row` for the same arrangement around a list's row.
 
@@ -171,9 +187,33 @@ const chipStyles = stylex.create({
     // the other end the same way, for the same line of the same table.
     marginInlineStart: `calc(-1 * ${spacing.sm})`,
   },
+  // A folded slot, on an unselected chip with no icon: no width, and the
+  // chip's gap after it taken back, so the chip measures what it would with
+  // no slot at all. The check stays inside, faded out, so deselecting fades
+  // it rather than dropping it before the slot has closed.
+  glyphFolded: {
+    inlineSize: 0,
+    marginInlineEnd: `calc(-1 * ${spacing.sm})`,
+    marginInlineStart: 0,
+    opacity: 0,
+  },
+  // The slot of a chip with no icon, which opens and folds as the chip is
+  // selected. It clips, so the check is uncovered from its middle out rather
+  // than drawn past a slot still opening. See the header.
+  glyphOpening: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
+    overflow: 'hidden',
+    transitionDuration: motion.durationShort2,
+    transitionProperty:
+      'inline-size, margin-inline-start, margin-inline-end, opacity',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  // The check's own 18dp rather than the slot's width, so a slot that is
+  // opening clips the check rather than squeezing it.
   glyphSvg: {
-    blockSize: '100%',
-    inlineSize: '100%',
+    blockSize: '18px',
+    flexShrink: 0,
+    inlineSize: '18px',
   },
   // An unselected chip's own icon, in the primary role the page gives a
   // filter chip's leading icon at rest, hovered, focused and pressed alike.
@@ -249,6 +289,14 @@ const chipStyles = stylex.create({
     backgroundColor: colors.secondaryContainer,
     borderColor: 'transparent',
     color: colors.onSecondaryContainer,
+  },
+  // The box a group's chip puts its press ripple in, carrying the corner the
+  // ripple inherits. `contents`, so it lays nothing out: the ripple still
+  // fills the chip, which is the box it is placed against. See the header.
+  surfaceCorners: {
+    borderRadius: `max(0px, calc(${radii.sm} - 1px))`,
+    boxSizing: 'border-box',
+    display: 'contents',
   },
   // The press target around the chip: a transparent box past its edges,
   // taking the press because a pseudo-element is part of the element it
