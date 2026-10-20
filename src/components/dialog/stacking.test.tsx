@@ -166,11 +166,14 @@ describe('a dialog hosting other overlays', () => {
     await view.findByRole('menu')
     settle()
     pressEscape()
+    // React Aria hands focus back a frame after the layer unmounts, so focus
+    // is waited for with the layer's removal rather than read straight
+    // after it: under a full run's load that frame can come late.
     await waitFor(() => {
       expect(view.queryByRole('menu')).toBeNull()
+      expect(document.activeElement).toBe(menuTrigger)
     })
     expect(view.getByRole('dialog', { name: 'Headline' })).not.toBeNull()
-    expect(document.activeElement).toBe(menuTrigger)
 
     // Pressed on the label, which the field draws over the press target's
     // middle, so the press reaches the select only if the target is on top.
@@ -182,16 +185,16 @@ describe('a dialog hosting other overlays', () => {
     pressEscape()
     await waitFor(() => {
       expect(view.queryByRole('listbox')).toBeNull()
+      expect(document.activeElement).toBe(selectTrigger)
     })
     expect(view.getByRole('dialog', { name: 'Headline' })).not.toBeNull()
-    expect(document.activeElement).toBe(selectTrigger)
 
     settle()
     pressEscape()
     await waitFor(() => {
       expect(view.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(opener)
     })
-    expect(document.activeElement).toBe(opener)
   })
 
   // Wide enough for the basic dialog, centred with the scrim around it, so
