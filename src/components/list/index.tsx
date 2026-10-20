@@ -191,8 +191,9 @@ function itemContent(
       <RowContent
         isDisabled={state.isDisabled}
         isSelected={state.isSelected}
-        leading={leadingFor(state, leading, selectLabel)}
+        leading={leading}
         overline={overline}
+        selection={selectionFor(state, selectLabel)}
         supporting={supporting}
         trailing={trailing}
       >
@@ -213,40 +214,6 @@ function landsOnControl(event: PointerEvent<HTMLDivElement>) {
       : null
   return (
     event.currentTarget.contains(control) && control !== event.currentTarget
-  )
-}
-
-// StyleX cannot target `[data-selected]` on the element it is styling, so a
-// row's state comes from the render state React Aria hands its className.
-// The order matters: `disabled` is applied last so its ground and colour
-// win over the selected container's. The state layers come from the render
-// state as well — see `focusVisible` in src/row/styles.ts — and React Aria
-// reports none of them on a disabled row, so nothing has to outrank them.
-//
-// A supporting line moves the row from the page's one-line container height
-// to its two-line one, which is a floor rather than something the row's own
-// box arrives at — see `twoLine` in `src/row/styles.ts`. Taken as an
-// argument rather than read from the render state, since React Aria reports
-// what a row is doing and not what it holds; the row is built by a call for
-// the same reason `itemContent` is.
-/**
- * The selection checkbox, then whatever the row was given. Its return type is
- * written out rather than inferred: `ReactNode` is a union that includes a
- * promise, and a function inferred as returning one has to be `async`.
- */
-function leadingFor(
-  state: GridListItemRenderProps,
-  leading: ReactNode,
-  selectLabel: string | undefined,
-): ReactNode {
-  if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
-    return leading
-  }
-  return (
-    <>
-      <Checkbox aria-label={selectLabel} slot="selection" />
-      {leading}
-    </>
   )
 }
 
@@ -410,6 +377,33 @@ function ListSection<T extends object = object>({
       {children}
     </RACGridListSection>
   )
+}
+
+// StyleX cannot target `[data-selected]` on the element it is styling, so a
+// row's state comes from the render state React Aria hands its className.
+// The order matters: `disabled` is applied last so its ground and colour
+// win over the selected container's. The state layers come from the render
+// state as well — see `focusVisible` in src/row/styles.ts — and React Aria
+// reports none of them on a disabled row, so nothing has to outrank them.
+//
+// A supporting line moves the row from the page's one-line container height
+// to its two-line one, which is a floor rather than something the row's own
+// box arrives at — see `twoLine` in `src/row/styles.ts`. Taken as an
+// argument rather than read from the render state, since React Aria reports
+// what a row is doing and not what it holds; the row is built by a call for
+// the same reason `itemContent` is.
+/**
+ * The selection checkbox, while the list toggles. The row draws it ahead of
+ * whatever `leading` holds.
+ */
+function selectionFor(
+  state: GridListItemRenderProps,
+  selectLabel: string | undefined,
+) {
+  if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
+    return null
+  }
+  return <Checkbox aria-label={selectLabel} slot="selection" />
 }
 
 // The row's press: the ripple's, unless it lands on a control inside the

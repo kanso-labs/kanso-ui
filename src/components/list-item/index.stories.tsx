@@ -88,11 +88,20 @@ const Default: Story = {
 }
 
 // Interactive, since a disabled row is most often an action that is not
-// available yet. A row that only presents is drawn the same way.
+// available yet. A row that only presents is drawn the same way. Both slots
+// are filled because what sits in them carries colours of its own, an
+// avatar's container and a tone of its own, and the row fades them as a whole
+// with its text.
 const Disabled: Story = {
   args: {
     interactive: true,
     isDisabled: true,
+    leading: <Avatar name="Ada Lovelace" size="md" />,
+    trailing: (
+      <Text tone="muted" variant="labelSmall">
+        01
+      </Text>
+    ),
   },
   decorators: [Constrained],
 }
