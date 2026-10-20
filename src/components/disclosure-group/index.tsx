@@ -91,13 +91,16 @@ function DisclosureGroup({
   )
 }
 
-// The sections with a rule between each pair, and none at the ends.
+// The sections with a rule between each pair, and none at the ends. The
+// rules are decorative: each section opens on a heading holding its button,
+// which already tells a reader where it starts, so a "separator" announced
+// between every pair would only repeat it.
 function dividedChildren(children: ReactNode) {
   const sections = flatten(children)
 
   return sections.map((section, index) => (
     <Fragment key={keyOf(section, index)}>
-      {index === 0 ? null : <Separator />}
+      {index === 0 ? null : <Separator decorative />}
       {section}
     </Fragment>
   ))

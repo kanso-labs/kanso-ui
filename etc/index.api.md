@@ -1745,10 +1745,11 @@ export function Separator(input: RefAttributes<HTMLElement> & SeparatorProps): J
 export type SeparatorInset = 'both' | 'none' | 'start';
 
 // @public (undocumented)
-export type SeparatorProps = Omit<SeparatorProps_2, 'orientation'> & {
+export type SeparatorProps = {
+    decorative?: boolean;
     inset?: SeparatorInset;
     orientation?: 'horizontal' | 'vertical';
-};
+} & Omit<SeparatorProps_2, 'orientation'>;
 
 export { SharedElement }
 

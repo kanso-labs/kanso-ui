@@ -1,7 +1,12 @@
+import type { ReactElement } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
+import { createElement } from 'react'
 import { SeparatorContext } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
+
+import type { SeparatorProps } from '.'
 
 import Separator from '.'
 import { colors } from '../../tokens/design.tokens.stylex'
@@ -27,6 +32,21 @@ const HARNESS_HEIGHT = '48px'
 // Hoisted rather than written at the prop, which is what react-perf's
 // no-new-object-as-prop is after.
 const FROM_CONTEXT = { id: 'from-context' }
+// What React Aria's own Menu hands a separator inside it, and nothing.
+const ELEMENT_FROM_CONTEXT = { elementType: 'div' }
+const NO_CONTEXT = {}
+
+// A call site's own render function, which marks what it renders.
+const renderMarked: NonNullable<SeparatorProps['render']> = (props) =>
+  createElement('hr', { ...props, 'data-rendered': '' })
+
+// A rule a reader is not to reach: rendered, missing from the accessibility
+// tree, and found by its test id instead.
+function renderHidden(element: ReactElement) {
+  const view = render(element)
+  expect(view.queryByRole('separator')).toBeNull()
+  return view.getByTestId('rule')
+}
 
 function setup(props: Parameters<typeof Separator>[0] = {}) {
   const view = render(
@@ -212,6 +232,68 @@ describe('separator', () => {
       const { separator } = setup({ elementType: 'div' })
       expect(separator.tagName).toBe('DIV')
       expect(separator.getAttribute('role')).toBe('separator')
+    })
+  })
+
+  // React Aria passes on neither `aria-hidden` nor `role` from a separator's
+  // props, so `decorative` is the one way to keep a rule from a reader.
+  describe('decorative', () => {
+    it('keeps a horizontal rule out of the accessibility tree', () => {
+      const rule = renderHidden(<Separator data-testid="rule" decorative />)
+
+      expect(rule.tagName).toBe('HR')
+      expect(rule.getAttribute('aria-hidden')).toBe('true')
+      expect(rule.hasAttribute('role')).toBe(false)
+      expect(rule.hasAttribute('aria-orientation')).toBe(false)
+    })
+
+    it('drops the role and orientation of a vertical rule', () => {
+      const rule = renderHidden(
+        <Separator data-testid="rule" decorative orientation="vertical" />,
+      )
+
+      expect(rule.tagName).toBe('DIV')
+      expect(rule.getAttribute('aria-hidden')).toBe('true')
+      expect(rule.hasAttribute('role')).toBe(false)
+      expect(rule.hasAttribute('aria-orientation')).toBe(false)
+    })
+
+    it('draws the same rule as the separator it replaces', () => {
+      const rule = renderHidden(<Separator data-testid="rule" decorative />)
+      const { separator } = setup()
+
+      expect(rule.className).toBe(separator.className)
+    })
+
+    // React Aria holds its render function to the element it would have
+    // rendered, so the rewrite renders that one, whoever asked for it.
+    it.each([
+      ['the call site', { elementType: 'div' }, NO_CONTEXT],
+      ['a container', {}, ELEMENT_FROM_CONTEXT],
+    ] as const)('renders the element %s asks for', (_from, props, context) => {
+      const rule = renderHidden(
+        <SeparatorContext value={context}>
+          <Separator data-testid="rule" decorative {...props} />
+        </SeparatorContext>,
+      )
+
+      expect(rule.tagName).toBe('DIV')
+      expect(rule.getAttribute('aria-hidden')).toBe('true')
+    })
+
+    it("hands the hidden element to the call site's own render function", () => {
+      const rule = renderHidden(
+        <Separator data-testid="rule" decorative render={renderMarked} />,
+      )
+
+      expect(rule.hasAttribute('data-rendered')).toBe(true)
+      expect(rule.getAttribute('aria-hidden')).toBe('true')
+      expect(rule.hasAttribute('role')).toBe(false)
+    })
+
+    it('leaves a separator the default', () => {
+      const { separator } = setup()
+      expect(separator.hasAttribute('aria-hidden')).toBe(false)
     })
   })
 

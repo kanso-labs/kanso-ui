@@ -35,7 +35,9 @@ function setup(
     view
       .getAllByRole('button')
       .map((button) => button.getAttribute('aria-expanded'))
-  const rules = () => view.queryAllByRole('separator')
+  // The rules are hidden from assistive technology, so they are found among
+  // everything that renders rather than among what a reader reaches.
+  const rules = () => view.queryAllByRole('separator', { hidden: true })
 
   return { ...view, expanded, rules }
 }
@@ -153,6 +155,17 @@ describe('disclosure group', () => {
 
       expect(view.getAllByRole('button')).toHaveLength(2)
       expect(view.rules()).toHaveLength(1)
+    })
+
+    // Each section opens on a heading, which is what tells a reader where it
+    // starts; a "separator" between every pair would only say it again.
+    it('keeps the rules from assistive technology', () => {
+      const view = setup()
+
+      expect(view.queryAllByRole('separator')).toHaveLength(0)
+      for (const rule of view.rules()) {
+        expect(rule.getAttribute('aria-hidden')).toBe('true')
+      }
     })
 
     it('runs the rule across the stack', () => {

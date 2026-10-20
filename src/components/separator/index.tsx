@@ -4,6 +4,7 @@ import type { RefAttributes } from 'react'
 import type { SeparatorProps as RACSeparatorProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { createElement } from 'react'
 import {
   Separator as RACSeparator,
   SeparatorContext,
@@ -124,7 +125,16 @@ const insets = { horizontal: horizontalInsets, vertical: verticalInsets }
 
 type SeparatorInset = 'both' | 'none' | 'start'
 
-type SeparatorProps = Omit<RACSeparatorProps, 'orientation'> & {
+type SeparatorProps = {
+  /**
+   * Takes the rule out of the accessibility tree, for a divider that only
+   * draws a line between things that already say where each starts — the
+   * sections of a `DisclosureGroup`, or rows that are each a control. A
+   * reader then hears nothing between them rather than "separator" at every
+   * one. The rule draws the same either way.
+   * @default false
+   */
+  decorative?: boolean
   /**
    * How far the rule is held off the edges it runs between. `start` holds it
    * 16dp off the leading end, which is the page's inset divider; `both`
@@ -140,13 +150,37 @@ type SeparatorProps = Omit<RACSeparatorProps, 'orientation'> & {
    * direction — and to horizontal outside one.
    */
   orientation?: 'horizontal' | 'vertical'
+} & Omit<RACSeparatorProps, 'orientation'>
+
+// A rule taken out of the accessibility tree. React Aria passes on neither
+// `aria-hidden` nor `role` from a separator's props, and sets the separator
+// role itself, so the element is rewritten in its render function, after
+// both: hidden, with the role and orientation it would be announced by
+// dropped. A render function from the call site still gets the last word.
+function decorativeRenderer(
+  element: string,
+  render: RACSeparatorProps['render'],
+): NonNullable<RACSeparatorProps['render']> {
+  return (domProps, renderProps) => {
+    const hidden = {
+      ...domProps,
+      'aria-hidden': true,
+      'aria-orientation': undefined,
+      role: undefined,
+    }
+    return render === undefined
+      ? createElement(element, hidden)
+      : render(hidden, renderProps)
+  }
 }
 
 /**
  * A 1px rule between items. The orientation drives the accessibility tree as
  * well as which side the rule is drawn on: horizontal renders an `<hr>`,
  * whose role and orientation are implicit, and vertical a `<div>` given the
- * separator role and `aria-orientation="vertical"`.
+ * separator role and `aria-orientation="vertical"`. `decorative` takes the
+ * rule out of that tree altogether, for one that only draws a line between
+ * items that already carry their own structure.
  *
  * `inset` holds the rule off the ends it runs between — `start` off the
  * leading one, `both` off each — which is what a rule between list rows
@@ -159,16 +193,25 @@ type SeparatorProps = Omit<RACSeparatorProps, 'orientation'> & {
  * different element, and `render` is React Aria's function form.
  */
 function Separator({
+  decorative = false,
   inset = 'none',
   orientation,
+  render,
   ...props
 }: RefAttributes<HTMLElement> & SeparatorProps) {
   const context = useSlottedContext(SeparatorContext, props.slot)
   const resolved = orientation ?? context?.orientation ?? 'horizontal'
+  // The element React Aria renders, which its render function is held to:
+  // an <hr> unless the call site or a container asks for another, and a
+  // <div> in place of a vertical <hr>.
+  const requested = props.elementType ?? context?.elementType ?? 'hr'
+  const element =
+    requested === 'hr' && resolved === 'vertical' ? 'div' : requested
 
   return (
     <RACSeparator
       orientation={resolved}
+      render={decorative ? decorativeRenderer(element, render) : render}
       {...props}
       {...mergeStyles(
         stylex.props(styles.base, styles[resolved], insets[resolved][inset]),
