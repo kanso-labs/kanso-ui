@@ -243,6 +243,79 @@ describe('calendar', () => {
       )
     })
 
+    // The letters are for the eye alone. React Aria hides the row from
+    // assistive technology, since every date's name opens with its weekday
+    // in full, so a reader hears "Tuesday" once where the row says "T".
+    it('keeps its weekday letters from assistive technology', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+
+      expect(view.queryAllByRole('columnheader')).toHaveLength(0)
+      expect(view.getAllByRole('columnheader', { hidden: true })).toHaveLength(
+        7,
+      )
+    })
+
+    it('names the weekday in full on every date', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const weekdays = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ]
+
+      // The week of the 6th, which runs from Sunday to Saturday.
+      for (const [index, weekday] of weekdays.entries()) {
+        expect(
+          view.getByRole('button', {
+            name: new RegExp(`^${weekday}, September ${index + 6}, 2026`),
+          }),
+        ).toBeInTheDocument()
+      }
+    })
+
+    // The month drawn between the chevrons is hidden from assistive
+    // technology too. The heading a reader reaches is React Aria's own, out
+    // of sight, naming the calendar's label with the month, so a calendar
+    // adds one heading to the page's outline rather than two.
+    it('gives assistive technology one heading, naming the label and the month', () => {
+      const view = render(
+        <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,
+      )
+      const drawn = monthHeadings(view)
+
+      expect(view.getAllByRole('heading')).toHaveLength(1)
+      expect(view.getByRole('heading')).toHaveAccessibleName(
+        'Label, September 2026',
+      )
+      expect(drawn).toHaveLength(1)
+      expect(drawn[0]?.closest('[aria-hidden="true"]')).toBeInstanceOf(
+        HTMLElement,
+      )
+    })
+
+    it('keeps to that one heading with the month and year menus', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          showMonthYearMenus
+        />,
+      )
+
+      expect(view.getAllByRole('heading')).toHaveLength(1)
+      expect(view.getByRole('heading')).toHaveAccessibleName(
+        'Label, September 2026',
+      )
+    })
+
     it('sits on the page own container', () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} />,

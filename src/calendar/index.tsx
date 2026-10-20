@@ -92,6 +92,10 @@ function CalendarFrame({
  * The weekday row, faded with the rest of a calendar that is disabled. The
  * state comes from React Aria's context rather than a prop, so the two
  * calendars draw it the same way without either passing anything down.
+ *
+ * The narrow letters are for the eye alone. React Aria hides the row from
+ * assistive technology, since every date's name opens with its weekday in
+ * full, so a letter that two days share is never read out.
  */
 function CalendarGridHeader(): ReactElement {
   const single = useContext(CalendarStateContext)
@@ -115,6 +119,11 @@ function CalendarGridHeader(): ReactElement {
  * A plain element rather than a `<header>`: a header is a banner landmark,
  * landmarks may not nest, and React Aria puts a calendar in
  * `role="application"` — axe fails the page on it.
+ *
+ * React Aria hides the heading between the chevrons from assistive
+ * technology. The one a reader reaches is React Aria's own, out of sight,
+ * naming the calendar's label with the month, so a calendar adds one heading
+ * to the page's outline rather than two.
  */
 function CalendarHeader(): ReactElement {
   return (
