@@ -129,6 +129,79 @@ describe('copyField', () => {
     })
   })
 
+  // The box's padding is what stands between the button and the rule around
+  // it. It once left the focus ring lying on the rule above and below, and
+  // stacked on the button's own padding at the trailing end, so the label
+  // ended twice as far from that end as the value started from the other.
+  describe('the room around the button', () => {
+    // On each side the button meets the rule: above, below, and the
+    // trailing end, the right here.
+    it('keeps the focus ring off the rule', () => {
+      const { button, field } = setup()
+      act(() => {
+        button.focus()
+      })
+      const ring = getComputedStyle(button)
+      const offset = Number.parseFloat(ring.outlineOffset)
+      const reach = Number.parseFloat(ring.outlineWidth) + offset
+      const box = button.getBoundingClientRect()
+      const rule = getComputedStyle(field)
+      const outer = field.getBoundingClientRect()
+      const clear = {
+        above:
+          box.top -
+          reach -
+          (outer.top + Number.parseFloat(rule.borderTopWidth)),
+        after:
+          outer.right -
+          Number.parseFloat(rule.borderRightWidth) -
+          (box.right + reach),
+        below:
+          outer.bottom -
+          Number.parseFloat(rule.borderBottomWidth) -
+          (box.bottom + reach),
+      }
+
+      expect(ring.outlineStyle).toBe('solid')
+      // As far from the rule as the ring stands off the button, at least.
+      expect(Math.min(...Object.values(clear))).toBeGreaterThanOrEqual(offset)
+    })
+
+    // The label is the wider of the two the button holds, which is where its
+    // text can reach. It ends no nearer the edge than the value starts, and
+    // nearer than the value's inset and the button's own padding together,
+    // which is where the two paddings added up put it.
+    it.each(['ltr', 'rtl'] as const)(
+      'ends the label near where the value starts, %s',
+      (dir) => {
+        const view = render(
+          <div dir={dir}>
+            <CopyField data-testid="field" value={VALUE} />
+          </div>,
+        )
+        const field = view.getByTestId('field').getBoundingClientRect()
+        const code = codeIn(view).getBoundingClientRect()
+        const button = view.getByRole('button')
+        const labels = [...button.querySelectorAll('span[id]')].map((label) =>
+          label.getBoundingClientRect(),
+        )
+        const padding = Number.parseFloat(
+          getComputedStyle(button).paddingInlineEnd,
+        )
+        const start =
+          dir === 'ltr' ? code.left - field.left : field.right - code.right
+        const end =
+          dir === 'ltr'
+            ? field.right - Math.max(...labels.map((label) => label.right))
+            : Math.min(...labels.map((label) => label.left)) - field.left
+
+        expect(labels).toHaveLength(2)
+        expect(end).toBeGreaterThanOrEqual(start)
+        expect(end).toBeLessThan(start + padding)
+      },
+    )
+  })
+
   // Code takes the colour of the text around it, and the field paints a
   // surface of its own, so the value takes the role that surface pairs with
   // rather than whatever the page around the field sets.

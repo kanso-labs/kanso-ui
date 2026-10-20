@@ -24,9 +24,16 @@ const COPIED_RESET_MS = 2000
 // No Material Design page draws a read-only value with a copy control. It
 // follows the outlined text field: the 1dp rule in the outline role, the
 // surface behind it, and the control at its trailing end. The value is
-// body-small beside a 32dp text button, so the box is shorter than the
-// field's 56, which suits a value that is read rather than edited, and its
-// corner is the shape scale's small step for the same reason.
+// body-small beside a 32dp text button with 8dp above and below it, so the
+// box is 50dp against the field's 56, which suits a value that is read
+// rather than edited, and its corner is the shape scale's small step for the
+// same reason.
+//
+// The 8dp is what holds the button's focus ring, which reaches 4dp out from
+// it, clear of the rule, and the trailing end gives the button the same 8dp
+// rather than the 12dp the value starts in by. The button brings 12dp of its
+// own around its label, so the label ends 20dp in where the two paddings
+// added up to 24.
 const styles = stylex.create({
   // Clipped to a 1px box rather than `display: none`, which would take it out
   // of the accessibility tree along with the announcement.
@@ -73,8 +80,9 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     display: 'flex',
     gap: spacing.sm,
-    paddingBlock: spacing.xs,
-    paddingInline: spacing.md,
+    paddingBlock: spacing.sm,
+    paddingInlineEnd: spacing.sm,
+    paddingInlineStart: spacing.md,
   },
   // The box the value sits in, in the row beside the button. `minInlineSize:
   // 0` is the load-bearing rule: left at `auto`, a long unbroken value sets
