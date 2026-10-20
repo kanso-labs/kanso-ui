@@ -38,6 +38,15 @@ type TextFieldProps = Omit<
    */
   characterLimitLabel?: string
   /**
+   * What a screen reader is told once the length reaches `maxLength`, where
+   * `characterCount` draws the count: the count is hidden from the tree, so
+   * this is how a reader learns the field has stopped taking characters. It
+   * is said once as the limit is reached, and again only after the length
+   * has dropped below it. Left out, it is the sentence for it in the
+   * I18nProvider's locale — "Character limit reached" in English.
+   */
+  characterLimitReachedLabel?: string
+  /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
    */
@@ -130,6 +139,7 @@ type TextFieldProps = Omit<
 function TextField({
   characterCount = false,
   characterLimitLabel,
+  characterLimitReachedLabel,
   description,
   error,
   floatingLabel = true,
@@ -176,6 +186,7 @@ function TextField({
       <FieldMessage
         characterCount={characterCount}
         characterLimitLabel={characterLimitLabel}
+        characterLimitReachedLabel={characterLimitReachedLabel}
         description={description}
         error={error}
         maxLength={props.maxLength}

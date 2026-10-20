@@ -4,12 +4,13 @@ import type {
 } from '@internationalized/string'
 
 // The words the library writes itself and React Aria has no message for: the
-// pending ring's name, a collection's loading-more row and its empty row, CopyField's button and
-// its announcement, a field's character limit, a search view's back button,
-// what a carousel calls itself, its slides and its two buttons, and the time
-// picker's two headlines and two actions. Everything else a control
-// says comes from React Aria's own tables, so these are the strings this table
-// has to carry.
+// pending ring's name, a collection's loading-more row and its empty row,
+// CopyField's button and its announcement, a field's character limit and the
+// announcement that it has been reached, a search view's back button, what a
+// carousel calls itself, its slides and its two buttons, and the time
+// picker's two headlines and two actions. Everything else a control says
+// comes from React Aria's own tables, so these are the strings this table has
+// to carry.
 //
 // One entry per locale React Aria ships, so a locale it localises reads here
 // too. React Aria's dictionary falls back from a regional locale to its
@@ -26,6 +27,7 @@ type LibraryMessage =
   | 'cancel'
   | 'carousel'
   | 'characterLimit'
+  | 'characterLimitReached'
   | 'confirm'
   | 'copied'
   | 'copy'
@@ -72,6 +74,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       two: () => 'حتى حرفين',
       zero: (n) => `حتى ${n} حرف`,
     }),
+    characterLimitReached: 'تم بلوغ الحد الأقصى للأحرف',
     confirm: 'موافق',
     copied: 'تم النسخ',
     copy: 'نسخ',
@@ -94,6 +97,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `До ${n} знак`,
       other: (n) => `До ${n} знака`,
     }),
+    characterLimitReached: 'Достигнат е лимитът на знаците',
     confirm: 'OK',
     copied: 'Копирано',
     copy: 'Копиране',
@@ -118,6 +122,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Nejvýše ${n} znak`,
       other: (n) => `Nejvýše ${n} znaků`,
     }),
+    characterLimitReached: 'Dosažen limit znaků',
     confirm: 'OK',
     copied: 'Zkopírováno',
     copy: 'Kopírovat',
@@ -137,6 +142,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'Annuller',
     carousel: 'karrusel',
     characterLimit: plural({ other: (n) => `Op til ${n} tegn` }),
+    characterLimitReached: 'Grænsen for tegn er nået',
     confirm: 'OK',
     copied: 'Kopieret',
     copy: 'Kopiér',
@@ -156,6 +162,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'Abbrechen',
     carousel: 'Karussell',
     characterLimit: plural({ other: (n) => `Bis zu ${n} Zeichen` }),
+    characterLimitReached: 'Zeichenlimit erreicht',
     confirm: 'OK',
     copied: 'Kopiert',
     copy: 'Kopieren',
@@ -178,6 +185,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Έως ${n} χαρακτήρας`,
       other: (n) => `Έως ${n} χαρακτήρες`,
     }),
+    characterLimitReached: 'Συμπληρώθηκε το όριο χαρακτήρων',
     confirm: 'OK',
     copied: 'Αντιγράφηκε',
     copy: 'Αντιγραφή',
@@ -200,6 +208,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Up to ${n} character`,
       other: (n) => `Up to ${n} characters`,
     }),
+    characterLimitReached: 'Character limit reached',
     confirm: 'OK',
     copied: 'Copied',
     copy: 'Copy',
@@ -222,6 +231,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Hasta ${n} carácter`,
       other: (n) => `Hasta ${n} caracteres`,
     }),
+    characterLimitReached: 'Límite de caracteres alcanzado',
     confirm: 'Aceptar',
     copied: 'Copiado',
     copy: 'Copiar',
@@ -244,6 +254,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Kuni ${n} märk`,
       other: (n) => `Kuni ${n} märki`,
     }),
+    characterLimitReached: 'Märkide piirang on täis',
     confirm: 'OK',
     copied: 'Kopeeritud',
     copy: 'Kopeeri',
@@ -266,6 +277,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Enintään ${n} merkki`,
       other: (n) => `Enintään ${n} merkkiä`,
     }),
+    characterLimitReached: 'Merkkiraja saavutettu',
     confirm: 'OK',
     copied: 'Kopioitu',
     copy: 'Kopioi',
@@ -288,6 +300,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Jusqu’à ${n} caractère`,
       other: (n) => `Jusqu’à ${n} caractères`,
     }),
+    characterLimitReached: 'Limite de caractères atteinte',
     confirm: 'OK',
     copied: 'Copié',
     copy: 'Copier',
@@ -311,6 +324,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       other: (n) => `עד ${n} תווים`,
       two: () => 'עד שני תווים',
     }),
+    characterLimitReached: 'הגעת למגבלת התווים',
     confirm: 'אישור',
     copied: 'הועתק',
     copy: 'העתק',
@@ -334,6 +348,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Najviše ${n} znak`,
       other: (n) => `Najviše ${n} znakova`,
     }),
+    characterLimitReached: 'Dosegnuto je ograničenje znakova',
     confirm: 'U redu',
     copied: 'Kopirano',
     copy: 'Kopiraj',
@@ -353,6 +368,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'Mégse',
     carousel: 'körhinta',
     characterLimit: plural({ other: (n) => `Legfeljebb ${n} karakter` }),
+    characterLimitReached: 'Elérte a karakterkorlátot',
     confirm: 'OK',
     copied: 'Másolva',
     copy: 'Másolás',
@@ -375,6 +391,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Fino a ${n} carattere`,
       other: (n) => `Fino a ${n} caratteri`,
     }),
+    characterLimitReached: 'Limite di caratteri raggiunto',
     confirm: 'OK',
     copied: 'Copiato',
     copy: 'Copia',
@@ -394,6 +411,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'キャンセル',
     carousel: 'カルーセル',
     characterLimit: plural({ other: (n) => `最大 ${n} 文字` }),
+    characterLimitReached: '文字数の上限に達しました',
     confirm: 'OK',
     copied: 'コピーしました',
     copy: 'コピー',
@@ -413,6 +431,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: '취소',
     carousel: '캐러셀',
     characterLimit: plural({ other: (n) => `최대 ${n}자` }),
+    characterLimitReached: '글자 수 제한에 도달했습니다',
     confirm: '확인',
     copied: '복사됨',
     copy: '복사',
@@ -437,6 +456,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Ne daugiau kaip ${n} simbolis`,
       other: (n) => `Ne daugiau kaip ${n} simbolių`,
     }),
+    characterLimitReached: 'Pasiektas simbolių limitas',
     confirm: 'Gerai',
     copied: 'Nukopijuota',
     copy: 'Kopijuoti',
@@ -460,6 +480,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       other: (n) => `Līdz ${n} rakstzīmēm`,
       zero: (n) => `Līdz ${n} rakstzīmēm`,
     }),
+    characterLimitReached: 'Sasniegts rakstzīmju ierobežojums',
     confirm: 'Labi',
     copied: 'Nokopēts',
     copy: 'Kopēt',
@@ -479,6 +500,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'Avbryt',
     carousel: 'karusell',
     characterLimit: plural({ other: (n) => `Opptil ${n} tegn` }),
+    characterLimitReached: 'Tegngrensen er nådd',
     confirm: 'OK',
     copied: 'Kopiert',
     copy: 'Kopier',
@@ -501,6 +523,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Maximaal ${n} teken`,
       other: (n) => `Maximaal ${n} tekens`,
     }),
+    characterLimitReached: 'Tekenlimiet bereikt',
     confirm: 'OK',
     copied: 'Gekopieerd',
     copy: 'Kopiëren',
@@ -525,6 +548,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Maksymalnie ${n} znak`,
       other: (n) => `Maksymalnie ${n} znaku`,
     }),
+    characterLimitReached: 'Osiągnięto limit znaków',
     confirm: 'OK',
     copied: 'Skopiowano',
     copy: 'Kopiuj',
@@ -547,6 +571,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Até ${n} caractere`,
       other: (n) => `Até ${n} caracteres`,
     }),
+    characterLimitReached: 'Limite de caracteres atingido',
     confirm: 'OK',
     copied: 'Copiado',
     copy: 'Copiar',
@@ -569,6 +594,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Até ${n} carácter`,
       other: (n) => `Até ${n} caracteres`,
     }),
+    characterLimitReached: 'Limite de caracteres atingido',
     confirm: 'OK',
     copied: 'Copiado',
     copy: 'Copiar',
@@ -592,6 +618,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Maximum ${n} caracter`,
       other: (n) => `Maximum ${n} de caractere`,
     }),
+    characterLimitReached: 'Limita de caractere a fost atinsă',
     confirm: 'OK',
     copied: 'Copiat',
     copy: 'Copiați',
@@ -616,6 +643,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Не более ${n} символа`,
       other: (n) => `Не более ${n} символа`,
     }),
+    characterLimitReached: 'Достигнут лимит символов',
     confirm: 'ОК',
     copied: 'Скопировано',
     copy: 'Копировать',
@@ -640,6 +668,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Najviac ${n} znak`,
       other: (n) => `Najviac ${n} znakov`,
     }),
+    characterLimitReached: 'Dosiahnutý limit znakov',
     confirm: 'OK',
     copied: 'Skopírované',
     copy: 'Kopírovať',
@@ -664,6 +693,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       other: (n) => `Največ ${n} znakov`,
       two: (n) => `Največ ${n} znaka`,
     }),
+    characterLimitReached: 'Doseženo je največje število znakov',
     confirm: 'V redu',
     copied: 'Kopirano',
     copy: 'Kopiraj',
@@ -687,6 +717,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Najviše ${n} znak`,
       other: (n) => `Najviše ${n} znakova`,
     }),
+    characterLimitReached: 'Dostignuto je ograničenje znakova',
     confirm: 'U redu',
     copied: 'Kopirano',
     copy: 'Kopiraj',
@@ -706,6 +737,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'Avbryt',
     carousel: 'karusell',
     characterLimit: plural({ other: (n) => `Högst ${n} tecken` }),
+    characterLimitReached: 'Teckengränsen är nådd',
     confirm: 'OK',
     copied: 'Kopierat',
     copy: 'Kopiera',
@@ -725,6 +757,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: 'İptal',
     carousel: 'karusel',
     characterLimit: plural({ other: (n) => `En fazla ${n} karakter` }),
+    characterLimitReached: 'Karakter sınırına ulaşıldı',
     confirm: 'Tamam',
     copied: 'Kopyalandı',
     copy: 'Kopyala',
@@ -749,6 +782,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
       one: (n) => `Не більше ${n} символу`,
       other: (n) => `Не більше ${n} символу`,
     }),
+    characterLimitReached: 'Досягнуто ліміту символів',
     confirm: 'Гаразд',
     copied: 'Скопійовано',
     copy: 'Копіювати',
@@ -768,6 +802,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: '取消',
     carousel: '轮播',
     characterLimit: plural({ other: (n) => `最多 ${n} 个字符` }),
+    characterLimitReached: '已达到字符数上限',
     confirm: '确定',
     copied: '已复制',
     copy: '复制',
@@ -787,6 +822,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     cancel: '取消',
     carousel: '輪播',
     characterLimit: plural({ other: (n) => `最多 ${n} 個字元` }),
+    characterLimitReached: '已達到字元數上限',
     confirm: '確定',
     copied: '已複製',
     copy: '複製',

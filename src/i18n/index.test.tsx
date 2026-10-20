@@ -108,6 +108,7 @@ describe("the library's own words", () => {
           'back',
           'cancel',
           'carousel',
+          'characterLimitReached',
           'confirm',
           'copied',
           'copy',
@@ -232,6 +233,20 @@ describe("the library's own words", () => {
 
       const one = inFrench(<TextField label="Label" maxLength={1} />)
       expect(one.getByText('Jusqu’à 1 caractère')).not.toBeNull()
+    })
+
+    it('announces that the character limit is reached', () => {
+      const view = inFrench(
+        <TextField
+          characterCount
+          defaultValue="abcde"
+          label="Label"
+          maxLength={5}
+        />,
+      )
+      expect(view.getByRole('status').textContent).toBe(
+        'Limite de caractères atteinte',
+      )
     })
 
     it("still takes the call site's own words over the table's", () => {

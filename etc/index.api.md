@@ -2148,6 +2148,7 @@ export type TextAreaProps = Omit<TextFieldProps_2, 'children' | 'isInvalid' | 'v
     autosize?: boolean;
     characterCount?: boolean;
     characterLimitLabel?: string;
+    characterLimitReachedLabel?: string;
     description?: string;
     error?: string;
     floatingLabel?: boolean;
@@ -2166,6 +2167,7 @@ export function TextField(input: RefAttributes<HTMLDivElement> & TextFieldProps)
 export type TextFieldProps = Omit<TextFieldProps_2, 'children' | 'isInvalid' | 'prefix' | 'validationBehavior'> & {
     characterCount?: boolean;
     characterLimitLabel?: string;
+    characterLimitReachedLabel?: string;
     description?: string;
     error?: string;
     floatingLabel?: boolean;

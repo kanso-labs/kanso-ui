@@ -229,6 +229,14 @@ interface FieldMessageProps {
    */
   characterLimitLabel?: string | undefined
   /**
+   * What a screen reader is told once the length reaches `maxLength`, where
+   * the count is drawn. It is said as the limit starts refusing keystrokes,
+   * and again only once the length has dropped below the limit and reached
+   * it anew. Left out, it is the sentence for it in the I18nProvider's
+   * locale — "Character limit reached" in English.
+   */
+  characterLimitReachedLabel?: string | undefined
+  /**
    * A hint shown under the field. Replaced by `error` when there is one, so
    * the two never stack.
    */
@@ -998,6 +1006,7 @@ function FieldLabel({
 function FieldMessage({
   characterCount = false,
   characterLimitLabel,
+  characterLimitReachedLabel,
   description,
   error,
   errorId,
@@ -1056,6 +1065,20 @@ function FieldMessage({
   const length = String(value).length
 
   const hint = invalid ? undefined : description
+
+  // The moment the limit starts discarding keystrokes, which neither the
+  // hidden count nor the limit said on focus can tell a reader: typing past
+  // it echoes nothing and adds nothing. Said only beside a drawn count, since
+  // it is the spoken half of that count reaching its limit.
+  //
+  // The region is in the document from the start, empty, because one mounted
+  // with its text already in it is not read out. It fills as the length
+  // reaches the limit and empties as it drops below, so a reader hears it
+  // once each time the limit is reached rather than on every refused key.
+  const reached =
+    characterCount && maxLength !== undefined && length >= maxLength
+      ? (characterLimitReachedLabel ?? messages.characterLimitReached)
+      : null
 
   // One slotted description, never two. React Aria hands every element in
   // its description slot the same generated id, so a second one puts a
@@ -1168,7 +1191,8 @@ function FieldMessage({
         // one piece of supporting text that changes on every keystroke, and
         // a screen reader reading it back at that rate is worse than not
         // hearing it — the limit said once on focus is what a reader needs,
-        // and this is the same fact drawn for whoever is looking.
+        // and this is the same fact drawn for whoever is looking. Reaching
+        // the limit is said on its own, by the region after this one.
         <span
           aria-hidden="true"
           {...stylex.props(
@@ -1179,6 +1203,10 @@ function FieldMessage({
         >
           {countIn(locale, length, maxLength)}
         </span>
+      ) : null}
+      {characterCount && maxLength !== undefined ? (
+        // `<output>` carries an implicit role of status, as CopyField's does.
+        <VisuallyHidden elementType="output">{reached}</VisuallyHidden>
       ) : null}
     </div>
   )

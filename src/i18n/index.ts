@@ -10,10 +10,9 @@ import { MESSAGES } from './messages'
 // I18nProvider sets — the same locale every other name a control announces is
 // written in. Each one stands behind a prop that names it otherwise:
 // `pendingLabel`, a LoadMore's `label`, `copyLabel`, `copiedLabel` and
-// `selectedLabel`,
-// `characterLimitLabel`, the time picker's `cancelLabel`, `confirmLabel`,
-// `selectTimeLabel` and `enterTimeLabel`, and a collection's
-// `renderEmptyState` for its empty row.
+// `selectedLabel`, `characterLimitLabel` and `characterLimitReachedLabel`,
+// the time picker's `cancelLabel`, `confirmLabel`, `selectTimeLabel` and
+// `enterTimeLabel`, and a collection's `renderEmptyState` for its empty row.
 
 type LibraryMessages = {
   /** What a search view's back button is called. */
@@ -24,6 +23,8 @@ type LibraryMessages = {
   carousel: string
   /** The limit on a field's length, in words, for a count of characters. */
   characterLimit: (count: number) => string
+  /** What a field announces once its length reaches its limit. */
+  characterLimitReached: string
   /** The time picker's action that closes it and keeps the time picked. */
   confirm: string
   copied: string
@@ -76,6 +77,7 @@ function messagesFor(locale: string): LibraryMessages {
         count: numbers.format(count),
         rule: rules.select(count),
       }),
+    characterLimitReached: formatter.format('characterLimitReached'),
     confirm: formatter.format('confirm'),
     copied: formatter.format('copied'),
     copy: formatter.format('copy'),
