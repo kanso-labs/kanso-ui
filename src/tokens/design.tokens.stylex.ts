@@ -505,6 +505,19 @@ const breakpoints = stylex.defineConsts({
 
 export { breakpoints }
 
+const container = stylex.defineConsts({
+  belowExpanded: '@container (width < 840px)',
+  belowExtraLarge: '@container (width < 1600px)',
+  belowLarge: '@container (width < 1200px)',
+  belowMedium: '@container (width < 600px)',
+  expanded: '@container (width >= 840px)',
+  extraLarge: '@container (width >= 1600px)',
+  large: '@container (width >= 1200px)',
+  medium: '@container (width >= 600px)',
+})
+
+export { container }
+
 const media = stylex.defineConsts({
   belowExpanded: '@media (width < 840px)',
   belowExtraLarge: '@media (width < 1600px)',

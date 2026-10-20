@@ -330,18 +330,18 @@ a handful of `[vite] Internal server error: Invalid empty selector` lines
 printed in the same second, each with a stack that ends in the plugin's
 stylesheet middleware. The error is lightningcss rejecting the stylesheet the
 StyleX plugin assembles for `/virtual:stylex.css`, which is built from whatever
-modules the plugin has transformed so far. The `media` queries the pane layouts
-and Sheet key their styles on are `defineConsts`, and those compile into each
-consumer as a `var(--hash)` placeholder that is only substituted once the tokens
-module's own rules have been collected. That module is the largest file the
-plugin handles, so on a cold start it lands last, and an answer assembled in
-between holds `var(--x){.x.x{display:block}}` — an empty selector as far as the
-parser is concerned. The plugin answers 500, Vite broadcasts its overlay to
-every open iframe, and axe finds it in each of them. The window is a couple of
-hundred milliseconds long and closes for good once the tokens are in, since the
-plugin's store is shared by both projects and keeps a module's rules for the
-life of the process — which is why it lands on runs whose first files import
-those components. Before the workaround,
+modules the plugin has transformed so far. The `media` and `container` queries
+the pane layouts and Sheet key their styles on are `defineConsts`, and those
+compile into each consumer as a `var(--hash)` placeholder that is only
+substituted once the tokens module's own rules have been collected. That module
+is the largest file the plugin handles, so on a cold start it lands last, and an
+answer assembled in between holds `var(--x){.x.x{display:block}}` — an empty
+selector as far as the parser is concerned. The plugin answers 500, Vite
+broadcasts its overlay to every open iframe, and axe finds it in each of them.
+The window is a couple of hundred milliseconds long and closes for good once the
+tokens are in, since the plugin's store is shared by both projects and keeps a
+module's rules for the life of the process — which is why it lands on runs whose
+first files import those components. Before the workaround,
 `npx vitest run src/components/supporting-pane src/components/list-detail src/components/styling.test.tsx`
 failed seven runs in ten; each story file alone passed, and `npm test` never
 failed, since the files it runs first have the tokens transformed long before it

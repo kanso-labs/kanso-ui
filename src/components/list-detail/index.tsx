@@ -8,7 +8,7 @@ import type { RenderComponentProps } from '../../render/useRender'
 
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
-import { media, spacing } from '../../tokens/design.tokens.stylex'
+import { container, spacing } from '../../tokens/design.tokens.stylex'
 
 // Material Design's recommended snap widths for a fixed pane. The list is the
 // fixed one here — Material Design points a fixed pane at "lists with light
@@ -29,10 +29,50 @@ const LIST_PANE_EXTRA_LARGE = '412px'
 // the spec shows one pane at a time, with selecting an item swapping to the
 // detail and back returning to the list — app navigation rather than layout,
 // which is why `showing` is controlled rather than held here.
+//
+// **The breakpoints are the layout's own width, not the window's.** The root
+// is a query container, and both panes ask it through `container` rather than
+// `media`: a list-detail beside a navigation drawer, or inside a sheet, has
+// less room than the window, and laying two panes out by the window's width
+// squeezed the detail to a sliver. The thresholds are still Material Design's
+// window size classes, compared against the room the layout is given.
+//
+// That is also why the root is a flex row rather than a grid. A container
+// query reaches the container's descendants and never the container itself,
+// so the root cannot change its own tracks by its width; the panes size
+// themselves instead.
 const styles = stylex.create({
+  // The fixed pane, at Material Design's snap widths from expanded up, and
+  // the whole row below that, where it is the only pane on screen.
+  //
+  // The rules overlap — a 1700px layout matches `expanded` as well as
+  // `extraLarge` — so which one wins comes down to the order they are emitted
+  // in rather than to anything visible here. StyleX settles it, sorting
+  // min-width queries ascending however they are written, and the
+  // perfectionist lint rule reorders this object independently of that.
+  // Neither is worth reading the source to confirm, which is why
+  // index.test.tsx measures the panes at every breakpoint.
+  fixed: {
+    flexBasis: {
+      [container.expanded]: LIST_PANE,
+      [container.extraLarge]: LIST_PANE_EXTRA_LARGE,
+      default: 0,
+    },
+    flexGrow: { [container.expanded]: 0, default: 1 },
+    flexShrink: { [container.expanded]: 0, default: 1 },
+  },
+  // The flexible pane, which absorbs whatever the fixed one leaves. A zero
+  // basis with a zero minimum rather than an automatic one: a flex item's
+  // automatic minimum is its content, so one long unbroken string in the
+  // detail pane would widen it past its share and push the layout sideways.
+  flexible: {
+    flexBasis: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+  },
   // Removed rather than visually hidden: `display: none` takes the pane out
   // of the accessibility tree along with the layout, which is what stops a
-  // screen reader walking into a pane the window has no room to show.
+  // screen reader walking into a pane there is no room to show.
   //
   // It takes focus with it. The pane stays in the document, but a focused
   // element inside one that has just been hidden is blurred, and focus is on
@@ -40,32 +80,20 @@ const styles = stylex.create({
   // of the page. Moving it belongs to whoever flipped `showing`; see the
   // prop.
   hiddenUntilExpanded: {
-    display: { default: 'none', [media.expanded]: 'block' },
+    display: { [container.expanded]: 'block', default: 'none' },
   },
   pane: {
     boxSizing: 'border-box',
     minInlineSize: 0,
   },
-  // minmax(0, 1fr) rather than a bare 1fr: a bare fr track takes an automatic
-  // minimum of its content, so one long unbroken string in the detail pane
-  // widens the track past its share and pushes the layout sideways.
-  //
-  // The rules overlap — a 1700px window matches `expanded` as well as
-  // `extraLarge` — so which one wins comes down to the
-  // order they are emitted in rather than to anything visible here. StyleX
-  // settles it, sorting min-width queries ascending however they are written,
-  // and the perfectionist lint rule reorders this object independently of
-  // that. Neither is worth reading the source to confirm, which is why
-  // index.test.tsx measures the resolved columns at every breakpoint.
+  // `inline-size` containment, so the root's width comes from its parent and
+  // never from the panes: a container sized by what it holds could not then
+  // size what it holds by itself.
   root: {
     boxSizing: 'border-box',
-    display: 'grid',
+    containerType: 'inline-size',
+    display: 'flex',
     gap: spacing.xl,
-    gridTemplateColumns: {
-      default: 'minmax(0, 1fr)',
-      [media.expanded]: `${LIST_PANE} minmax(0, 1fr)`,
-      [media.extraLarge]: `${LIST_PANE_EXTRA_LARGE} minmax(0, 1fr)`,
-    },
   },
 })
 
@@ -81,8 +109,9 @@ type ListDetailProps = {
    */
   list?: ReactNode
   /**
-   * Which pane to show while only one fits, below the expanded breakpoint.
-   * Both are shown from expanded up, where this is ignored.
+   * Which pane to show while only one fits, while the layout is narrower than
+   * the expanded breakpoint. Both are shown once it is that wide, where this
+   * is ignored. The width is the layout's own rather than the window's.
    *
    * Controlled, with no uncontrolled fallback: the layout cannot know that an
    * item was selected or that the reader went back, so holding that state
@@ -105,6 +134,13 @@ type ListDetailProps = {
  * Material Design's list-detail layout: a fixed list pane beside a flexible
  * detail pane, collapsing to one pane at a time below the expanded breakpoint.
  *
+ * The breakpoints are compared against the layout's own width, not the
+ * window's, so a list-detail beside a navigation drawer or inside a sheet
+ * shows one pane until it has the room for two. It takes that width from
+ * its parent and none from its panes, so in a parent that shrinks to fit
+ * what it holds — an inline-flex row, a float, a flex item with no basis —
+ * give it a width of its own.
+ *
  * Layout only — neither pane paints a surface of its own, so what goes inside
  * them is composed at the call site. `render` swaps the container's element,
  * for a layout that should be a `<main>` rather than a `<div>`.
@@ -113,7 +149,7 @@ type ListDetailProps = {
  * Material Design asks of co-planar panes: focus order has to match the
  * arrangement on screen.
  *
- * Below the expanded breakpoint the pane that is not showing is hidden
+ * While only one pane fits, the pane that is not showing is hidden
  * outright, so focus inside it is dropped when `showing` changes. The call
  * site that changed it is what puts focus in the pane it revealed — see the
  * prop.
@@ -134,6 +170,7 @@ function ListDetail({
           <div
             {...stylex.props(
               styles.pane,
+              styles.fixed,
               showing === 'detail' && styles.hiddenUntilExpanded,
             )}
           >
@@ -142,6 +179,7 @@ function ListDetail({
           <div
             {...stylex.props(
               styles.pane,
+              styles.flexible,
               showing === 'list' && styles.hiddenUntilExpanded,
             )}
           >
