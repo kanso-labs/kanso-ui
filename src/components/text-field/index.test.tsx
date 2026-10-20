@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import TextField from '.'
+import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -555,6 +556,26 @@ describe('text field', () => {
       const style = getComputedStyle(setup({ numeric: true }).input)
       expect(style.direction).toBe('ltr')
       expect(style.textAlign).toBe('start')
+    })
+  })
+
+  // The chrome draws its icons in its own slots, and the browser's clear
+  // button sat outside them, beside the trailing one. Read from the compiled
+  // stylesheet, since Chromium's `getComputedStyle` reports a WebKit search
+  // part's own default whatever an author rule says: SearchField's, hidden
+  // the same way, reads as `block`.
+  describe('search type', () => {
+    it('draws neither of the decorations a browser gives a search input', () => {
+      const { input } = setup({ type: 'search' })
+      expect(input.getAttribute('type')).toBe('search')
+      const rules = rulesReaching(input)
+      const displayOf = (part: string) =>
+        valueIn(
+          rules.filter((rule) => rule.pseudoElement === part),
+          'display',
+        )
+      expect(displayOf('-webkit-search-cancel-button')).toBe('none')
+      expect(displayOf('-webkit-search-decoration')).toBe('none')
     })
   })
 

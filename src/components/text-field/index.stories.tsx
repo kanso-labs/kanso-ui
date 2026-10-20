@@ -111,6 +111,16 @@ const WithIcons: Story = {
   },
 }
 
+// A search input, which the browser would otherwise decorate with a clear
+// button of its own, beside the trailing icon.
+const Search: Story = {
+  args: {
+    leadingIcon: LEADING_ICON,
+    trailingIcon: TRAILING_ICON,
+    type: 'search',
+  },
+}
+
 const WithPrefixAndSuffix: Story = {
   args: {
     prefix: 'Prefix',
@@ -165,6 +175,7 @@ export {
   NumericRightToLeft,
   Outlined,
   OutlinedEmpty,
+  Search,
   WithCharacterCount,
   WithDescription,
   WithError,
