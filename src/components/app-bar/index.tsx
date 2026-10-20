@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { createElement } from 'react'
+import { createElement, useLayoutEffect, useRef } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -18,6 +18,7 @@ import {
   sizing,
   spacing,
 } from '../../tokens/design.tokens.stylex'
+import { motionDurationMs, motionEasing } from '../../tokens/values'
 import Text from '../text'
 
 // Material Design's app bar, in the three sizes the spec recommends.
@@ -35,6 +36,14 @@ import Text from '../text'
 // support and text wrapping, so a headline long enough to wrap has to be able
 // to make its bar taller. Fixing the height would truncate exactly the case
 // the variant was redesigned for.
+//
+// The small bar is one row: the leading slot, the text and the trailing slot
+// side by side in a 64px strip. The flexible bars are two, as Material Design
+// lays them out. The first is that same strip holding the slots alone, and the
+// second runs the text under it across the whole measure, so a long headline
+// wraps against the bar's width rather than against what the slots leave.
+// Collapsing moves the text up into the strip, which is the small bar exactly,
+// and the slots never move: they are in the strip in both states.
 
 // The geometry Material Design lays a bar's icon buttons out on. Its tokens
 // give a 4dp leading and trailing space between the bar's edge and the first
@@ -78,14 +87,12 @@ const COLLAPSED_HEIGHT = HEIGHTS.sm.plain
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 const styles = stylex.create({
-  // Collapsing swaps the headline's type role, which is a change of class
-  // rather than of value — but the properties underneath still transition,
-  // so the type resizes with the bar instead of snapping when it arrives.
-  headline: {
-    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
-    transitionDuration: motion.durationMedium1,
-    transitionProperty: 'font-size, letter-spacing, line-height',
-    transitionTimingFunction: motion.easingEmphasized,
+  // The slot that comes before the text, with the space between the two on
+  // its own side. A margin rather than a gap on the grid, which would open
+  // beside an empty column as well and push the headline off its inset.
+  leading: {
+    gridArea: 'leading',
+    marginInlineEnd: spacing.xs,
   },
   // Held at the top of the scroll container as the content scrolls beneath
   // it, and painted over that content — see `bar` in
@@ -99,7 +106,9 @@ const styles = stylex.create({
   },
   root: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
-    alignItems: 'center',
+    // Stretched rather than centred, so the row is as tall as the bar and
+    // its strip is at the bar's top edge.
+    alignItems: 'stretch',
     backgroundColor: colors.surface,
     boxSizing: 'border-box',
     display: 'flex',
@@ -108,19 +117,27 @@ const styles = stylex.create({
     // page beneath.
     justifyContent: 'center',
     // `scrolled` moves the fill and `collapsed` moves the height, and both
-    // answer the same scroll, so the two have to move together. One duration
-    // and one curve across both is what keeps them from looking like separate
-    // events — a fill that has finished settling while the bar is still
-    // shrinking reads as two things happening rather than one.
+    // answer the same scroll, so the two have to move together. The height
+    // is animated by useCollapseMotion below, on the same duration and curve,
+    // which is what keeps the two from looking like separate events — a fill
+    // that has finished settling while the bar is still shrinking reads as
+    // two things happening rather than one.
     transitionDuration: motion.durationMedium1,
-    transitionProperty: 'background-color, min-block-size',
+    transitionProperty: 'background-color',
     transitionTimingFunction: motion.easingEmphasized,
   },
+  // The strip every bar has, and the whole of the small one: three columns,
+  // the slots at their own widths and the text taking what they leave. The
+  // track is the strip's height at least and stays at the top of the bar,
+  // rather than stretching with it, so a bar still shrinking from a flexible
+  // height already has its slots where they will end. The strip's height is
+  // set beside the measure, in rowStyles, and `twoRows` adds the second row.
   row: {
-    alignItems: 'center',
+    alignContent: 'start',
     boxSizing: 'border-box',
-    display: 'flex',
-    gap: spacing.xs,
+    display: 'grid',
+    gridTemplateAreas: '"leading text trailing"',
+    gridTemplateColumns: 'auto minmax(0, 1fr) auto',
     inlineSize: '100%',
     marginInline: 'auto',
   },
@@ -141,9 +158,9 @@ const styles = stylex.create({
   // ICON_BUTTON_TARGET.
   slot: {
     alignItems: 'center',
+    alignSelf: 'center',
     boxSizing: 'border-box',
     display: 'flex',
-    flexShrink: 0,
     gap: `calc(${ICON_BUTTON_TARGET} - ${sizing.controlSm})`,
     paddingInline: `calc((${ICON_BUTTON_TARGET} - ${sizing.controlSm}) / 2)`,
   },
@@ -154,18 +171,70 @@ const styles = stylex.create({
   // in the page's language where it has one, and broken anywhere where it
   // does not.
   text: {
+    alignSelf: 'center',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 1,
+    gridArea: 'text',
     hyphens: 'auto',
-    justifyContent: 'center',
     minInlineSize: 0,
     overflowWrap: 'anywhere',
     paddingBlock: spacing.sm,
   },
+  // In the second row the text sits on its baseline rather than in the
+  // middle — see `twoRows` — and needs no padding of its own above or below:
+  // the strip is above it, and the baseline's distance from the bar's edge
+  // is below.
+  textBelow: {
+    alignSelf: 'last baseline',
+    paddingBlock: 0,
+  },
   textCenter: {
     textAlign: 'center',
+  },
+  // The slot that comes after the text, mirroring `leading`.
+  trailing: {
+    gridArea: 'trailing',
+    marginInlineStart: spacing.xs,
+  },
+})
+
+// The flexible bars' two rows: the strip with the slots at either end, and the
+// text under it across all three columns. The second row takes whatever height
+// the bar has beyond the strip, and the text sits at its bottom.
+//
+// Material Design places that text by its last baseline, 28px above the large
+// bar's bottom edge and 24px above the medium one's, and that is the reading
+// that makes the heights above come out: the same figures as padding under the
+// line box would make a plain large bar 64 + 36 + 28 = 128px rather than
+// 120px. CSS gives a box no margin below its baseline, so the strut does it.
+// An empty box in the same grid area, aligned on its last baseline with the
+// text, has its baseline at its own bottom edge and the margin under that, so
+// the pair is held that far off the row's end. Literals rather than tokens,
+// like HEIGHTS: they are measurements the spec gives this component, not steps
+// of the spacing scale, which has no 28.
+const twoRows = stylex.create({
+  lg: {
+    '::after': {
+      alignSelf: 'last baseline',
+      blockSize: 0,
+      boxSizing: 'border-box',
+      content: '""',
+      gridArea: 'text',
+      marginBlockEnd: '28px',
+    },
+    gridTemplateAreas: '"leading . trailing" "text text text"',
+  },
+  md: {
+    '::after': {
+      alignSelf: 'last baseline',
+      blockSize: 0,
+      boxSizing: 'border-box',
+      content: '""',
+      gridArea: 'text',
+      marginBlockEnd: '24px',
+    },
+    gridTemplateAreas: '"leading . trailing" "text text text"',
   },
 })
 
@@ -211,6 +280,14 @@ const PARAGRAPH = <p />
 // props at once, so it is a function style rather than one key per
 // combination. StyleX writes it to a custom property inline, the same
 // mechanism Feed uses for its cell minimum.
+//
+// The row takes it too, and that is for the collapse's motion. The bar's
+// height is animated, and a row that only stretched to it would be laid out
+// at every height the bar passed through: the second row is the room the bar
+// has beyond the strip, so its text would ride up and down with the bar
+// rather than holding the place the animation moves it to. With the minimum
+// of its own, the row is laid out once, at the height the bar is heading for,
+// and the bar clips it until it gets there.
 const heightStyles = stylex.create({
   root: (minBlockSize: string) => ({ minBlockSize }),
 })
@@ -222,9 +299,25 @@ const heightStyles = stylex.create({
 // headline itself starts there. Clamped at zero, since an inset smaller than
 // a glyph's own room would otherwise ask for a negative padding, which CSS
 // throws away whole.
+//
+// The tracks are a function style for a different reason: the strip is the
+// small bar's height, which is the hook's constant, and the compiler cannot
+// read a constant out of another module — see FORCED_COLORS.
 const rowStyles = stylex.create({
   root: (start: string, end: string, maxInlineSize: string) => ({
     maxInlineSize,
+    paddingInlineEnd: end,
+    paddingInlineStart: start,
+  }),
+  tracks: (gridTemplateRows: string) => ({ gridTemplateRows }),
+})
+
+// The text in the second row runs under the slots as well as between them, so
+// it puts back what the row's padding held off an edge for a slot's glyph, and
+// the headline starts on the inset again. A function style for the reason the
+// row's padding is one.
+const textStyles = stylex.create({
+  inset: (start: string, end: string) => ({
     paddingInlineEnd: end,
     paddingInlineStart: start,
   }),
@@ -250,7 +343,9 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    *
    * Ignored on `sm`, which is already the height this collapses to. The
    * subtitle goes with the height, since there is no room for a second line
-   * in the small bar.
+   * in the small bar, and the headline moves up into the row the slots sit
+   * in, which they never leave: they stay where they are while the bar
+   * shrinks under them.
    *
    * Collapsing hands the page back the height the bar gives up, and a bar
    * whose state is read off the scroll offset can then undo itself in two
@@ -328,8 +423,9 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   scrolled?: boolean
   /**
    * Height and headline size, as steps of the library's size scale. `sm` is
-   * Material Design's small bar, a fixed 64px; `md` and `lg` are its medium
-   * and large flexible bars, which hug their text.
+   * Material Design's small bar, a fixed 64px row; `md` and `lg` are its
+   * medium and large flexible bars, which put the text in a row of its own
+   * under the slots and hug it.
    * @default 'sm'
    */
   size?: 'lg' | 'md' | 'sm'
@@ -339,13 +435,26 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   trailing?: ReactNode
 }
 
+// The headline among the text block's children, and the subtitle beside it.
+// The block holds nothing else, and each is drawn as one kind of element.
+const HEADLINE = ':scope > :is(h1, h2, h3, h4, h5, h6)'
+const SUBTITLE = ':scope > p'
+
+/**
+ * What collapsing moves, and so what its animation runs between: the bar's
+ * height, where the text block's content starts within the bar, and the
+ * headline's type size.
+ */
+type Geometry = { height: number; size: number; x: number; y: number }
+
 /**
  * Material Design's app bar: the container at the top of a page carrying its
  * title, one or two actions, and the way back out.
  *
  * Three sizes. `sm` is a fixed 64px bar for a page whose title is a label;
  * `md` and `lg` are the flexible bars, which give the headline a larger
- * type role and grow to fit a subtitle or a headline that wraps.
+ * type role in a row of its own under the slots, and grow to fit a subtitle
+ * or a headline that wraps.
  *
  * It paints its own surface, unlike the layout components, because separating
  * itself from the content beneath is the job — which is also why `scrolled`
@@ -372,12 +481,16 @@ function AppBar({
   // a no-op rather than an error. A bar whose size is chosen at the call site
   // from a breakpoint would otherwise have to guard the prop as well.
   const collapse = collapsed && size !== 'sm'
+  // The flexible bars at their full height are the only state with a second
+  // row. Collapsed, they are the small bar.
+  const below = size !== 'sm' && !collapse
   const expandedHeight = hasContent(subtitle)
     ? HEIGHTS[size].withSubtitle
     : HEIGHTS[size].plain
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
   const hasLeading = hasContent(leading)
   const hasTrailing = hasContent(trailing)
+  const textRef = useCollapseMotion(collapse, align)
 
   return useRender({
     defaultTagName: 'header',
@@ -392,20 +505,33 @@ function AppBar({
               edgePadding(contentInset, hasTrailing),
               contentMaxInlineSize,
             ),
+            rowStyles.tracks(
+              below
+                ? `minmax(${COLLAPSED_HEIGHT}, auto) 1fr`
+                : `minmax(${COLLAPSED_HEIGHT}, auto)`,
+            ),
+            heightStyles.root(height),
+            below && twoRows[size],
           )}
         >
           {!hasLeading ? null : (
-            <div {...stylex.props(styles.slot)}>{leading}</div>
+            <div {...stylex.props(styles.slot, styles.leading)}>{leading}</div>
           )}
           <div
             {...stylex.props(
               styles.text,
+              below && styles.textBelow,
+              below &&
+                textStyles.inset(
+                  glyphRoom(contentInset, hasLeading),
+                  glyphRoom(contentInset, hasTrailing),
+                ),
               align === 'center' && styles.textCenter,
             )}
+            ref={textRef}
           >
             {!hasContent(headline) ? null : (
               <Text
-                {...stylex.props(styles.headline)}
                 render={heading(headingLevel)}
                 variant={
                   collapse ? HEADLINE_VARIANT.sm : HEADLINE_VARIANT[size]
@@ -421,7 +547,9 @@ function AppBar({
             )}
           </div>
           {!hasTrailing ? null : (
-            <div {...stylex.props(styles.slot)}>{trailing}</div>
+            <div {...stylex.props(styles.slot, styles.trailing)}>
+              {trailing}
+            </div>
           )}
         </div>
       ),
@@ -440,15 +568,223 @@ function AppBar({
 }
 
 /**
- * The row's padding on one edge, for the inset the call site gave.
- *
- * A bare `0` is the one length CSS accepts without a unit, and the one it
- * rejects inside `max()`, where it reads as a number, so it is given its
- * unit before the arithmetic sees it.
+ * Where an animation still under way has the bar and the text drawn: the
+ * height it holds the bar at, the layout it was heading for moved by the
+ * transform the block has reached, and the size the headline's scale has
+ * reached.
  */
+function drawnAt(
+  bar: HTMLElement,
+  text: HTMLElement,
+  settled: Geometry,
+): Geometry {
+  const moved = matrixOf(text)
+  const headline = text.querySelector(HEADLINE)
+  return {
+    height: bar.getBoundingClientRect().height,
+    size: settled.size * (headline === null ? 1 : matrixOf(headline).a),
+    x: settled.x + moved.e,
+    y: settled.y + moved.f,
+  }
+}
+
+/** The row's padding on one edge, for the inset the call site gave. */
 function edgePadding(contentInset: string, hasSlot: boolean) {
-  const inset = contentInset.trim() === '0' ? '0px' : contentInset
+  const inset = withUnit(contentInset)
   return hasSlot ? `max(0px, ${inset} - ${GLYPH_INSET})` : inset
+}
+
+/**
+ * Where the text block's content starts, measured from the bar's own corner,
+ * and the headline's type size. The content is the block's first child,
+ * since the block's padding differs between the two rows. Its inline edge is
+ * the one the text hangs from: the middle when it is centred, and the start
+ * edge otherwise, which is the right edge in a right-to-left page.
+ */
+function geometryOf(
+  bar: HTMLElement,
+  text: HTMLElement,
+  align: 'center' | 'start',
+): Geometry {
+  const frame = bar.getBoundingClientRect()
+  const content = (text.firstElementChild ?? text).getBoundingClientRect()
+  const headline = text.querySelector(HEADLINE)
+  const edge =
+    align === 'center'
+      ? (content.left + content.right) / 2
+      : isRightToLeft(text)
+        ? content.right
+        : content.left
+  return {
+    height: frame.height,
+    size:
+      headline === null
+        ? 0
+        : Number.parseFloat(getComputedStyle(headline).fontSize),
+    x: edge - frame.left,
+    y: content.top - frame.top,
+  }
+}
+
+/**
+ * What the row's padding held back on one edge for a slot's glyph, which the
+ * text in the second row puts back: the inset less `edgePadding`, so the
+ * smaller of the inset and GLYPH_INSET.
+ */
+function glyphRoom(contentInset: string, hasSlot: boolean) {
+  return hasSlot ? `min(${withUnit(contentInset)}, ${GLYPH_INSET})` : '0px'
+}
+
+/** Whether the text runs right to left, which decides the edge it hangs from. */
+function isRightToLeft(element: Element) {
+  return getComputedStyle(element).direction === 'rtl'
+}
+
+/** The transform an element is drawn with, `none` reading as no change. */
+function matrixOf(element: Element) {
+  return new DOMMatrixReadOnly(getComputedStyle(element).transform)
+}
+
+/** The corner the headline scales about: the one its text hangs from. */
+function originOf(text: HTMLElement, align: 'center' | 'start') {
+  if (align === 'center') {
+    return 'top'
+  }
+  return isRightToLeft(text) ? 'right top' : 'left top'
+}
+
+/**
+ * Read when the bar changes state rather than once at mount, so a reader who
+ * changes the setting is answered by the next collapse.
+ */
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+/**
+ * Animates a flexible bar between its two states, and returns the ref for the
+ * text block it moves.
+ *
+ * Collapsing changes the bar's layout rather than a value — the text leaves
+ * the second row for the strip, the headline takes the small bar's type role,
+ * and the bar's height drops from a minimum to whatever its content takes —
+ * so there is nothing for a CSS transition to interpolate. This plays it the
+ * other way round: the change has already been laid out when the effect runs,
+ * so the bar is animated from the height it had to the one it has, the text
+ * block from where it was to where it is, by a transform that starts at the
+ * difference and ends at none, and the headline from its old size, by a scale
+ * about the corner the text hangs from. A scale rather than a transition of
+ * the type itself, which would lay the text out again on every frame and move
+ * it away from the place it was measured at. The slots need nothing: they are
+ * in the strip in both states.
+ *
+ * The bar's height is animated through `min-block-size` as well as its
+ * height, since the minimum would otherwise hold an expanding bar at its new
+ * height from the first frame, and it is clipped while it moves, since an
+ * expanding bar's second row is laid out at full height from the start. The
+ * subtitle comes in with the second row, so it fades in rather than showing
+ * through the strip as the bar opens.
+ *
+ * Where the text was is measured after every commit that leaves the state
+ * alone, so it is current when the state does change. A change that lands
+ * while the last one is still moving starts from where the bar and the text
+ * are drawn at that moment, read off the running animations, so reversing
+ * mid-way turns round rather than jumping to the end first.
+ *
+ * Its timing is the root's `background-color` transition's, the `medium1`
+ * duration and the emphasized curve, so the fill and the height move as one.
+ * Those come from tokens/values rather than the theme, since `animate()`
+ * throws on a var(), and the motion is skipped under reduced motion, as the
+ * root's transition is.
+ */
+function useCollapseMotion(collapse: boolean, align: 'center' | 'start') {
+  const textRef = useRef<HTMLDivElement>(null)
+  const settled = useRef<Geometry | null>(null)
+  const collapsedBefore = useRef(collapse)
+  const animations = useRef<Animation[]>([])
+
+  useLayoutEffect(() => {
+    const text = textRef.current
+    const bar = text?.parentElement?.parentElement
+    if (text == null || bar == null) {
+      return
+    }
+    const moving = animations.current.some(
+      (animation) => animation.playState === 'running',
+    )
+    if (collapsedBefore.current === collapse) {
+      if (!moving) {
+        settled.current = geometryOf(bar, text, align)
+      }
+      return
+    }
+    collapsedBefore.current = collapse
+
+    const last = settled.current
+    const from = moving && last !== null ? drawnAt(bar, text, last) : last
+    for (const animation of animations.current) {
+      animation.cancel()
+    }
+    animations.current = []
+    const to = geometryOf(bar, text, align)
+    settled.current = to
+    if (from === null || prefersReducedMotion()) {
+      return
+    }
+
+    const timing = {
+      duration: motionDurationMs.medium1,
+      easing: motionEasing.emphasized,
+    }
+    const heights = [`${from.height}px`, `${to.height}px`]
+    animations.current = [
+      bar.animate(
+        {
+          blockSize: heights,
+          clipPath: ['inset(0)', 'inset(0)'],
+          minBlockSize: heights,
+        },
+        timing,
+      ),
+      text.animate(
+        {
+          transform: [
+            `translate(${from.x - to.x}px, ${from.y - to.y}px)`,
+            'none',
+          ],
+        },
+        timing,
+      ),
+    ]
+    const headline = text.querySelector(HEADLINE)
+    if (headline !== null && from.size > 0 && to.size > 0) {
+      const origin = originOf(text, align)
+      animations.current.push(
+        headline.animate(
+          {
+            transform: [`scale(${from.size / to.size})`, 'none'],
+            transformOrigin: [origin, origin],
+          },
+          timing,
+        ),
+      )
+    }
+    const subtitle = collapse ? null : text.querySelector(SUBTITLE)
+    if (subtitle !== null) {
+      animations.current.push(subtitle.animate({ opacity: [0, 1] }, timing))
+    }
+  })
+
+  return textRef
+}
+
+/**
+ * The inset as a length CSS arithmetic accepts. A bare `0` is the one length
+ * CSS takes without a unit, and the one it rejects inside `max()` and `min()`,
+ * where it reads as a number.
+ */
+function withUnit(contentInset: string) {
+  return contentInset.trim() === '0' ? '0px' : contentInset
 }
 
 export type { AppBarProps }

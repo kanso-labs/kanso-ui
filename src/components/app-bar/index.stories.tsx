@@ -22,7 +22,7 @@ const PAGE_GUTTER = spacing.xl
 
 const PARAGRAPH = <p />
 
-// Two glyphs drawn inline: IconButton takes whatever the call site hands it.
+// Glyphs drawn inline: IconButton takes whatever the call site hands it.
 // At the 24dp the app bar's tokens give an icon, which is the size the bar's
 // layout centres in each button's target.
 const BackIcon = () => (
@@ -38,6 +38,38 @@ const BackIcon = () => (
     width="24"
   >
     <path d="M19 12H5M12 19l-7-7 7-7" />
+  </svg>
+)
+
+const EditIcon = () => (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" />
+  </svg>
+)
+
+const SearchIcon = () => (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <circle cx="11" cy="11" r="6" />
+    <path d="M20 20l-4.5-4.5" />
   </svg>
 )
 
@@ -68,6 +100,22 @@ const TRAILING = (
   <IconButton aria-label="More">
     <MoreIcon />
   </IconButton>
+)
+
+// As many actions as a bar usually carries, which is what used to leave a
+// flexible bar's headline a third of a narrow window.
+const ACTIONS = (
+  <>
+    <IconButton aria-label="Edit">
+      <EditIcon />
+    </IconButton>
+    <IconButton aria-label="Search">
+      <SearchIcon />
+    </IconButton>
+    <IconButton aria-label="More">
+      <MoreIcon />
+    </IconButton>
+  </>
 )
 
 const styles = stylex.create({
@@ -257,8 +305,10 @@ const ShortPage: Story = {
 // Its own story because the heights are minimums rather than fixed: in a window
 // too narrow for the headline the bar grows to a second line instead of cutting
 // it off, which Material Design gives the flexible bars as multi-line support.
-// A word wider than the room breaks too, hyphenated in the language the page
-// is in, rather than running under the trailing slot.
+// The flexible bars wrap it against their whole width, in the row under the
+// slots, so a bar carrying three actions gives its headline as much room as
+// one carrying none. A word wider than the room breaks too, hyphenated in the
+// language the page is in, rather than running under the trailing slot.
 const LongHeadline: Story = {
   render: () => (
     <div {...stylex.props(styles.narrow, styles.stack)}>
@@ -268,8 +318,18 @@ const LongHeadline: Story = {
         leading={LEADING}
         size="lg"
       />
-      {/* A section, so this second bar is a header of its own content
-          rather than a second banner landmark on the page. */}
+      {/* A section, so this bar and the next are each a header of their
+          own content rather than more banner landmarks on the page. */}
+      <section>
+        <Sample
+          headline="A headline long enough to need more than one line"
+          label="lg, with three actions"
+          leading={LEADING}
+          size="lg"
+          subtitle="Supporting line"
+          trailing={ACTIONS}
+        />
+      </section>
       <section lang="de">
         <Sample
           headline={LONG_WORD}

@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, render } from '@testing-library/react'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import type { AppBarProps } from '.'
 
@@ -22,11 +22,23 @@ const HEIGHTS = {
 
 const SIZES = ['sm', 'md', 'lg'] as const
 
+// The strip the slots sit in, which is the small bar's height and the first of
+// the flexible bars' two rows.
+const STRIP = 64
+
+// How far above its bottom edge each flexible bar sets its text's last
+// baseline, as Material Design measures it.
+const BASELINE_FROM_END = { lg: 28, md: 24 } as const
+
 // A scheme that widens the spacing scale's `lg` step, which the default inset
 // is drawn from.
 const wideSpacing = stylex.createTheme(spacing, { lg: '20px' })
 
 const NARROW = { inlineSize: '280px' }
+
+// A phone's width, where a back button and three actions leave a headline
+// beside them a third of the bar.
+const PHONE = { inlineSize: '360px' }
 
 // Wider than any measure under test, so what is being read is the row's own
 // limit rather than the room it was given.
@@ -58,6 +70,14 @@ const ICON_TRAILING = (
 )
 const TRAILING = <button type="button">More</button>
 
+const THREE_ACTIONS = (
+  <>
+    <IconButton aria-label="Edit">{GLYPH}</IconButton>
+    <IconButton aria-label="Search">{GLYPH}</IconButton>
+    <IconButton aria-label="More">{GLYPH}</IconButton>
+  </>
+)
+
 function barIn(container: HTMLElement) {
   const bar = container.firstElementChild
   if (!(bar instanceof HTMLElement)) {
@@ -75,6 +95,29 @@ function barInWrapper(container: HTMLElement) {
   return barIn(wrapper)
 }
 
+/**
+ * Where an element's last line sits: the bottom of an empty inline-block
+ * appended to it, which is that line's baseline.
+ */
+function baselineOf(element: HTMLElement) {
+  const probe = document.createElement('span')
+  probe.style.display = 'inline-block'
+  element.append(probe)
+  const baseline = probe.getBoundingClientRect().bottom
+  probe.remove()
+  return baseline
+}
+
+/** Expects two places to agree to within half a pixel. */
+function expectNear(
+  actual: ReturnType<typeof placeIn>,
+  expected: ReturnType<typeof placeIn>,
+) {
+  expect(actual.height).toBeCloseTo(expected.height, 0)
+  expect(actual.left).toBeCloseTo(expected.left, 0)
+  expect(actual.top).toBeCloseTo(expected.top, 0)
+}
+
 /** The box of the glyph at `index` among those the sample drew. */
 function glyphAt(container: HTMLElement, index: number) {
   const glyph = container.querySelectorAll('[data-glyph]').item(index)
@@ -87,6 +130,11 @@ function glyphAt(container: HTMLElement, index: number) {
 /** The resolved minimum height, which is what the size tokens come down to. */
 function minHeightOf(bar: HTMLElement) {
   return Number.parseFloat(getComputedStyle(bar).minBlockSize)
+}
+
+/** Every animation the bar and its contents are running. */
+function motionIn(bar: HTMLElement) {
+  return bar.getAnimations({ subtree: true })
 }
 
 /**
@@ -105,6 +153,17 @@ function offsetsOf(view: ReturnType<typeof render>) {
   }
 }
 
+/** Where `element` is drawn, from the bar's own corner, and how tall. */
+function placeIn(bar: HTMLElement, element: Element) {
+  const frame = bar.getBoundingClientRect()
+  const box = element.getBoundingClientRect()
+  return {
+    height: box.height,
+    left: box.left - frame.left,
+    top: box.top - frame.top,
+  }
+}
+
 /** The measured row the bar's contents sit in. */
 function rowOf(bar: HTMLElement) {
   const row = bar.firstElementChild
@@ -112,6 +171,20 @@ function rowOf(bar: HTMLElement) {
     throw new Error('expected the app bar to render a content row')
   }
   return row
+}
+
+/** Moves every animation in the bar to `ms` in, leaving it running. */
+function seek(bar: HTMLElement, ms: number) {
+  for (const animation of motionIn(bar)) {
+    animation.currentTime = ms
+  }
+}
+
+/** Plays every animation under way in the bar out to its end. */
+function settle(bar: HTMLElement) {
+  for (const animation of motionIn(bar)) {
+    animation.finish()
+  }
 }
 
 /** The text block, narrowed so a structural change fails here rather than later. */
@@ -198,6 +271,85 @@ describe('size', () => {
 
     expect(minHeightOf(bar)).toBe(HEIGHTS.lg.plain)
     expect(bar.getBoundingClientRect().height).toBeGreaterThan(HEIGHTS.lg.plain)
+  })
+
+  // Material Design's flexible bars are two rows: the small bar's strip with
+  // the slots at either end, and the text under it, starting on the inset
+  // the leading glyph sits on rather than after the glyph's target.
+  it.each(['md', 'lg'] as const)(
+    'lays the %s bar out as a strip of slots with the text under it',
+    (size) => {
+      const view = render(
+        <AppBar
+          headline="Headline"
+          leading={ICON_LEADING}
+          size={size}
+          trailing={ICON_TRAILING}
+        />,
+      )
+      const bar = barIn(view.container)
+
+      for (const name of ['Back', 'Edit', 'More']) {
+        const button = view.getByRole('button', { name })
+        const { top } = placeIn(bar, button)
+        expect(top + button.getBoundingClientRect().height / 2).toBe(STRIP / 2)
+      }
+      const heading = placeIn(bar, view.getByRole('heading', { level: 1 }))
+      expect(heading.top).toBeGreaterThanOrEqual(STRIP)
+      expect(heading.left).toBe(16)
+      expect(offsetsOf(view).glyph).toBe(16)
+    },
+  )
+
+  // Measured to the baseline, as Material Design measures it, rather than to
+  // the bottom of the line box — which is what keeps the bars at their
+  // heights. The same figures as padding would make a plain large bar 128px.
+  it.each(['md', 'lg'] as const)(
+    'sets the %s bar’s last baseline its distance above the bottom edge',
+    (size) => {
+      for (const subtitle of [undefined, 'Supporting line']) {
+        const view = render(
+          <AppBar headline="Headline" size={size} subtitle={subtitle} />,
+        )
+        const bar = barIn(view.container)
+        const last =
+          subtitle === undefined
+            ? view.getByRole('heading', { level: 1 })
+            : view.getByText(subtitle)
+        const frame = bar.getBoundingClientRect()
+
+        expect(frame.bottom - baselineOf(last)).toBe(BASELINE_FROM_END[size])
+        expect(frame.height).toBe(
+          subtitle === undefined
+            ? HEIGHTS[size].plain
+            : HEIGHTS[size].withSubtitle,
+        )
+        view.unmount()
+      }
+    },
+  )
+
+  // Under the slots rather than between them, so a long headline wraps
+  // against the bar's width. Beside a back button and three actions at a
+  // phone's width it had a third of that, and four lines.
+  it('gives a long headline the width of the bar, not what the slots leave', () => {
+    const view = render(
+      <div style={PHONE}>
+        <AppBar
+          headline="A headline long enough to need more than one line"
+          leading={ICON_LEADING}
+          size="lg"
+          subtitle="Supporting line"
+          trailing={THREE_ACTIONS}
+        />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
+    const heading = view.getByRole('heading', { level: 1 })
+
+    expect(heading.getBoundingClientRect().width).toBe(
+      bar.getBoundingClientRect().width - 2 * 16,
+    )
   })
 
   it('defaults to small', () => {
@@ -542,9 +694,11 @@ describe('collapsed', () => {
     view.rerender(
       <AppBar headline="Headline" size="lg" subtitle="Supporting line" />,
     )
+    const bar = barIn(view.container)
+    settle(bar)
 
     expect(view.getByText('Supporting line')).not.toBeNull()
-    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.lg.withSubtitle)
+    expect(minHeightOf(bar)).toBe(HEIGHTS.lg.withSubtitle)
   })
 
   // `sm` is already the height the flexible bars collapse to, so a call
@@ -556,6 +710,197 @@ describe('collapsed', () => {
 
     expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
     expect(view.getByText('Supporting line')).not.toBeNull()
+  })
+
+  // Collapsing moves the text up into the strip the slots never leave, so
+  // they stay where they are through the whole change, both ways: at its
+  // start, half-way, and once it has settled.
+  it.each(['md', 'lg'] as const)(
+    'keeps the %s bar’s slots where they are as it collapses and expands',
+    (size) => {
+      const props = {
+        headline: 'Headline',
+        leading: ICON_LEADING,
+        size,
+        subtitle: 'Supporting line',
+        trailing: ICON_TRAILING,
+      }
+      const view = render(<AppBar {...props} />)
+      const bar = barIn(view.container)
+      const slots = () =>
+        ['Back', 'Edit', 'More'].map(
+          (name) => placeIn(bar, view.getByRole('button', { name })).top,
+        )
+      const resting = slots()
+
+      for (const collapsed of [true, false]) {
+        view.rerender(<AppBar {...props} collapsed={collapsed} />)
+        expect(slots()).toEqual(resting)
+        seek(bar, 125)
+        expect(slots()).toEqual(resting)
+        settle(bar)
+        expect(slots()).toEqual(resting)
+      }
+    },
+  )
+
+  // A change of layout rather than of a value, so the headline is moved and
+  // scaled by a transform that starts from where and how large it was drawn
+  // and ends at none, and the bar's height is animated from the one it had.
+  // Both ways: the second row is laid out at the height the bar is heading
+  // for, so an expanding bar, squeezed to the strip at first, has its
+  // headline where it will end.
+  it('moves the headline between the second row and the strip', () => {
+    const props = {
+      headline: 'Headline',
+      leading: ICON_LEADING,
+      size: 'lg',
+      subtitle: 'Supporting line',
+    } as const
+    const view = render(<AppBar {...props} />)
+    const bar = barIn(view.container)
+    const headline = () => placeIn(bar, view.getByRole('heading', { level: 1 }))
+    const expanded = headline()
+
+    view.rerender(<AppBar {...props} collapsed />)
+    expect(motionIn(bar).length).toBeGreaterThan(0)
+    seek(bar, 0)
+    expectNear(headline(), expanded)
+    expect(bar.getBoundingClientRect().height).toBe(HEIGHTS.lg.withSubtitle)
+
+    settle(bar)
+    const collapsed = headline()
+    expect(collapsed.left).toBe(56)
+    expect(collapsed.top + collapsed.height).toBeLessThan(STRIP)
+    expect(collapsed.height).toBeLessThan(expanded.height)
+    expect(bar.getBoundingClientRect().height).toBe(STRIP)
+
+    view.rerender(<AppBar {...props} />)
+    seek(bar, 0)
+    expectNear(headline(), collapsed)
+    expect(bar.getBoundingClientRect().height).toBe(STRIP)
+
+    settle(bar)
+    expect(headline()).toEqual(expanded)
+  })
+
+  // The measurement holds still the edge the text hangs from, which is the
+  // right edge in a right-to-left page and the middle in a centred bar: the
+  // headline's box is wider in the second row than between the slots, so
+  // its left edge says nothing about where the text is in either.
+  it.each([
+    {
+      align: 'start',
+      dir: 'rtl',
+      edge: (box: DOMRect) => box.right,
+      name: 'the right edge of a right-to-left',
+    },
+    {
+      align: 'center',
+      dir: 'ltr',
+      edge: (box: DOMRect) => (box.left + box.right) / 2,
+      name: 'the middle of a centred',
+    },
+  ] as const)(
+    'moves the headline from $name bar’s second row',
+    ({ align, dir, edge }) => {
+      const props = {
+        align,
+        headline: 'Headline',
+        leading: ICON_LEADING,
+        size: 'lg',
+        trailing: ICON_TRAILING,
+      } as const
+      const view = render(
+        <div dir={dir}>
+          <AppBar {...props} />
+        </div>,
+      )
+      const bar = barInWrapper(view.container)
+      const headline = () => {
+        const frame = bar.getBoundingClientRect()
+        const box = view
+          .getByRole('heading', { level: 1 })
+          .getBoundingClientRect()
+        return { edge: edge(box) - frame.left, top: box.top - frame.top }
+      }
+      const expanded = headline()
+
+      view.rerender(
+        <div dir={dir}>
+          <AppBar {...props} collapsed />
+        </div>,
+      )
+      seek(bar, 0)
+      expect(headline().edge).toBeCloseTo(expanded.edge, 0)
+      expect(headline().top).toBeCloseTo(expanded.top, 0)
+
+      settle(bar)
+      expect(headline().edge).not.toBeCloseTo(expanded.edge, 0)
+    },
+  )
+
+  // The subtitle arrives with the second row, so it fades in rather than
+  // showing through the strip as the bar opens.
+  it('fades the subtitle in as the bar expands', () => {
+    const props = {
+      headline: 'Headline',
+      size: 'lg',
+      subtitle: 'Supporting line',
+    } as const
+    const view = render(<AppBar {...props} collapsed />)
+    view.rerender(<AppBar {...props} />)
+    const subtitle = view.getByText('Supporting line')
+    seek(barIn(view.container), 0)
+
+    expect(getComputedStyle(subtitle).opacity).toBe('0')
+  })
+
+  // Turned round half-way, it starts back from where it has got to rather
+  // than from the end it was heading for.
+  it('turns round from where it has got to', () => {
+    const props = {
+      headline: 'Headline',
+      leading: ICON_LEADING,
+      size: 'lg',
+      subtitle: 'Supporting line',
+    } as const
+    const view = render(<AppBar {...props} />)
+    const bar = barIn(view.container)
+    const headline = () => placeIn(bar, view.getByRole('heading', { level: 1 }))
+
+    view.rerender(<AppBar {...props} collapsed />)
+    seek(bar, 125)
+    const halfway = headline()
+    const height = bar.getBoundingClientRect().height
+    expect(height).toBeLessThan(HEIGHTS.lg.withSubtitle)
+    expect(height).toBeGreaterThan(STRIP)
+
+    view.rerender(<AppBar {...props} />)
+    seek(bar, 0)
+    expectNear(headline(), halfway)
+    expect(bar.getBoundingClientRect().height).toBeCloseTo(height, 0)
+  })
+
+  // Read when the state changes, as useRipple reads it at a press. The
+  // stylesheet's own reduced-motion rules are pinned in
+  // src/styles/reduced-motion.test.tsx; this is the half they cannot reach.
+  it('moves nothing under reduced motion', () => {
+    const matchMedia = window.matchMedia.bind(window)
+    const spy = vi
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query) =>
+        matchMedia(query.includes('prefers-reduced-motion') ? 'all' : query),
+      )
+    try {
+      const props = { headline: 'Headline', size: 'lg' } as const
+      const view = render(<AppBar {...props} />)
+      view.rerender(<AppBar {...props} collapsed />)
+
+      expect(motionIn(barIn(view.container))).toHaveLength(0)
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it('stays expanded by default', () => {
