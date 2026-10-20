@@ -82,6 +82,15 @@ const UNSTRETCHED = [
   ],
 ] as const
 
+// Parents a vertical rule has nothing to stretch to in: a plain block, where
+// it sits in a line of text, and a flex column, which stretches across it.
+const TEXT_BLOCK = { fontSize: '16px' }
+const FLEX_COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  fontSize: '16px',
+} as const
+
 const INSET_WIDTHS = [
   ['start', FRAME_WIDTH - 16],
   ['both', FRAME_WIDTH - 32],
@@ -232,6 +241,42 @@ describe('separator', () => {
       const { separator } = setup({ elementType: 'div' })
       expect(separator.tagName).toBe('DIV')
       expect(separator.getAttribute('role')).toBe('separator')
+    })
+  })
+
+  // A vertical rule with no flex or grid parent to stretch to falls back to
+  // one line of the text around it, rather than a 1px box with no height.
+  describe('a vertical rule with nothing to stretch to', () => {
+    it('stands one line tall between the words of a block', () => {
+      const view = render(
+        <div style={TEXT_BLOCK}>
+          <span data-testid="before">First item</span>{' '}
+          <Separator data-testid="rule" orientation="vertical" />{' '}
+          <span data-testid="after">Second item</span>
+        </div>,
+      )
+      const element = view.getByTestId('rule')
+      const rule = element.getBoundingClientRect()
+      const before = view.getByTestId('before').getBoundingClientRect()
+      const after = view.getByTestId('after').getBoundingClientRect()
+
+      expect(rule.height).toBe(16)
+      // In the line, between the words, rather than on a line of its own.
+      expect(rule.left).toBeGreaterThan(before.right)
+      expect(after.left).toBeGreaterThan(rule.right)
+      expect(after.top).toBe(before.top)
+      // Centred on the line's lowercase letters, as an inline glyph is,
+      // rather than standing on the baseline and rising above the words.
+      expect(getComputedStyle(element).verticalAlign).toBe('middle')
+    })
+
+    it('stands one line tall in a flex column', () => {
+      const view = render(
+        <div style={FLEX_COLUMN}>
+          <Separator data-testid="rule" orientation="vertical" />
+        </div>,
+      )
+      expect(view.getByTestId('rule').getBoundingClientRect().height).toBe(16)
     })
   })
 
