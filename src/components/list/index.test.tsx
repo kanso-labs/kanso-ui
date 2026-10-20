@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import List from '.'
+import { useDragAndDrop } from '../../drag/hooks'
 import {
   advance,
   firePointer,
@@ -49,6 +52,7 @@ const CLASSES = {
 const SECOND = ['second']
 const LEADING = <span>Leading</span>
 const TRAILING = <span>Trailing</span>
+const BUTTON = <button type="button">Label</button>
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
@@ -56,6 +60,62 @@ function hasClasses(element: Element, classes: string[]) {
 
 // Hoisted, which is what react-perf's no-new-function-as-prop is after.
 const NOOP = () => {}
+
+// The row's own ripple, apart from any a control inside it draws: the last
+// thing in its cell, after the row's content.
+function ownSurface(row: Element) {
+  const surface = row.querySelector('[role="gridcell"]')?.lastElementChild
+  if (surface === null || surface === undefined) {
+    throw new Error('expected the row to draw a ripple surface')
+  }
+  return surface
+}
+
+// The controls a row's trailing slot may hold, each pressed where a pointer
+// lands on it: a checkbox through the text of the label around it. React
+// Aria's own controls stop a press from reaching the row, so plain elements
+// stand in here for what a call site brings of its own.
+const NESTED = [
+  {
+    control: (
+      <button onClick={NOOP} type="button">
+        Label
+      </button>
+    ),
+    name: 'a button',
+    target: (view: ReturnType<typeof render>) =>
+      view.getByRole('button', { name: 'Label' }),
+  },
+  {
+    control: <a href="#label">Label</a>,
+    name: 'a link',
+    target: (view: ReturnType<typeof render>) =>
+      view.getByRole('link', { name: 'Label' }),
+  },
+  {
+    control: (
+      <label>
+        <input type="checkbox" />
+        <span>Label</span>
+      </label>
+    ),
+    name: 'the label of a checkbox',
+    target: (view: ReturnType<typeof render>) => view.getByText('Label'),
+  },
+]
+
+// A list whose rows drag, which needs the hook React Aria builds the drag
+// state from, and so a component to call it in.
+function DraggableList({ children }: { children: ReactNode }) {
+  const { dragAndDropHooks } = useDragAndDrop({
+    getItems: (keys) => [...keys].map((key) => ({ 'text/plain': String(key) })),
+  })
+  return (
+    <List aria-label="Label" dragAndDropHooks={dragAndDropHooks}>
+      {children}
+    </List>
+  )
+}
 
 /**
  * The classes a shared row style compiles to, and so what a row drawing it
@@ -341,7 +401,7 @@ describe('list', () => {
 
     it('ripples from a press on a row, and lets go once the press ends', async () => {
       const view = render(
-        <List aria-label="Label">
+        <List aria-label="Label" onAction={NOOP}>
           <List.Item id="first">First item</List.Item>
         </List>,
       )
@@ -354,6 +414,125 @@ describe('list', () => {
       await advance(MINIMUM_PRESS_MS)
       expect(isPressed(row)).toBe(false)
     })
+
+    // A row a press does nothing to takes no hover layer and no pointer, and
+    // a ripple would say the press did something.
+    it('draws no ripple on a row a press does nothing to', () => {
+      const view = render(
+        <List aria-label="Label">
+          <List.Item id="first">First item</List.Item>
+        </List>,
+      )
+      const row = view.getByRole('row')
+
+      expect(hasRipple(row)).toBe(false)
+      firePointer(row, 'pointerdown', { buttons: 1 })
+      expect(isPressed(row)).toBe(false)
+    })
+
+    it.each([
+      {
+        element: (
+          <List aria-label="Label" onAction={NOOP}>
+            <List.Item id="first">First item</List.Item>
+          </List>
+        ),
+        name: 'the list acts on',
+      },
+      {
+        element: (
+          <List aria-label="Label" selectionMode="single">
+            <List.Item id="first">First item</List.Item>
+          </List>
+        ),
+        name: 'the list selects',
+      },
+      {
+        element: (
+          <List aria-label="Label">
+            <List.Item id="first" onAction={NOOP}>
+              First item
+            </List.Item>
+          </List>
+        ),
+        name: 'acts on its own',
+      },
+      {
+        element: (
+          <List aria-label="Label">
+            <List.Item href="#first" id="first">
+              First item
+            </List.Item>
+          </List>
+        ),
+        name: 'links',
+      },
+      {
+        element: (
+          <DraggableList>
+            <List.Item id="first">First item</List.Item>
+          </DraggableList>
+        ),
+        name: 'drags',
+      },
+    ])('ripples a row that $name', ({ element }) => {
+      const row = render(element).getByRole('row')
+
+      firePointer(row, 'pointerdown', { buttons: 1 })
+      expect(isPressed(row)).toBe(true)
+    })
+
+    // A press on the headline is still a press on the row.
+    it('ripples from a press on the text inside a row', () => {
+      const view = render(
+        <List aria-label="Label" onAction={NOOP}>
+          <List.Item id="first">First item</List.Item>
+        </List>,
+      )
+
+      firePointer(view.getByText('First item'), 'pointerdown', { buttons: 1 })
+      expect(isPressed(view.getByRole('row'))).toBe(true)
+    })
+
+    // The control answers the press itself; a ripple across the whole row
+    // said the row had been pressed.
+    it('leaves a press on a control inside the row to the control', () => {
+      const onClick = vi.fn<() => void>()
+      const onPointerDown = vi.fn<() => void>()
+      const view = render(
+        <List aria-label="Label" onAction={NOOP}>
+          <List.Item id="first" onPointerDown={onPointerDown} trailing={BUTTON}>
+            First item
+          </List.Item>
+        </List>,
+      )
+      const button = view.getByRole('button', { name: 'Label' })
+      button.addEventListener('click', onClick)
+
+      firePointer(button, 'pointerdown', { buttons: 1 })
+      expect(isPressed(view.getByRole('row'))).toBe(false)
+      // The call site's own handler on the row still hears it.
+      expect(onPointerDown).toHaveBeenCalledOnce()
+
+      fireEvent.click(button)
+      expect(onClick).toHaveBeenCalledOnce()
+    })
+
+    it.each(NESTED)(
+      'draws no row ripple for a press on $name inside it',
+      ({ control, target }) => {
+        const view = render(
+          <List aria-label="Label" onAction={NOOP}>
+            <List.Item id="first" trailing={control}>
+              First item
+            </List.Item>
+          </List>,
+        )
+
+        firePointer(target(view), 'pointerdown', { buttons: 1 })
+        expect(isPressed(ownSurface(view.getByRole('row')))).toBe(false)
+      },
+    )
 
     it('draws no ripple on a disabled row', () => {
       const view = render(

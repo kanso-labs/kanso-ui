@@ -1,6 +1,11 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type {
+  PointerEvent,
+  PointerEventHandler,
+  ReactNode,
+  RefAttributes,
+} from 'react'
 import type {
   GridListItemRenderProps,
   GridListItemProps as RACGridListItemProps,
@@ -69,6 +74,22 @@ import Checkbox from '../checkbox'
 // is how the two drift. Undefined unless the list is given one, which
 // leaves the name React Aria gives in the reader's locale.
 const SelectLabelContext = createContext<string | undefined>(undefined)
+
+// Whether the list makes every row act on a press: it selects, it has an
+// `onAction` of its own, or its rows drag. A row given an `onAction` or an
+// `href` acts whatever this says. A context for the reason SelectLabelContext
+// is one: it is the list's to decide, and a row reads it rather than taking
+// it again as a prop.
+const RowsActContext = createContext(false)
+
+// What a press inside a row leaves to the element it lands on: a control of
+// the row's own content, which answers the press itself. A label is in the
+// list because a native checkbox or radio is pressed through the label
+// around it. React Aria's own controls, this library's Switch and Checkbox
+// among them, stop the pointerdown of a press they take, so the row never
+// hears one.
+const NESTED_CONTROL =
+  'a[href], button, input, label, select, textarea, [role="button"], [role="checkbox"], [role="link"], [role="switch"]'
 
 type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   /**
@@ -172,6 +193,19 @@ function itemContent(
   )
 }
 
+// Whether a press on the row began on a control inside it rather than on the
+// row itself. `contains` answers false for no control at all, and true for
+// the row itself, which the second half rules out.
+function landsOnControl(event: PointerEvent<HTMLDivElement>) {
+  const control =
+    event.target instanceof Element
+      ? event.target.closest(NESTED_CONTROL)
+      : null
+  return (
+    event.currentTarget.contains(control) && control !== event.currentTarget
+  )
+}
+
 // StyleX cannot target `[data-selected]` on the element it is styling, so a
 // row's state comes from the render state React Aria hands its className.
 // The order matters: `disabled` is applied last so its ground and colour
@@ -228,12 +262,21 @@ function List<T extends object>({
   selectLabel,
   ...props
 }: ListProps<T> & RefAttributes<HTMLDivElement>) {
+  // React Aria's own reading of a draggable collection: hooks that can build
+  // the drag state.
+  const rowsAct =
+    (props.selectionMode ?? 'none') !== 'none' ||
+    props.onAction !== undefined ||
+    props.dragAndDropHooks?.useDraggableCollectionState !== undefined
+
   return (
     <SelectLabelContext value={selectLabel}>
-      <RACGridList
-        {...props}
-        {...mergeStatefulStyles(containerClasses, props)}
-      />
+      <RowsActContext value={rowsAct}>
+        <RACGridList
+          {...props}
+          {...mergeStatefulStyles(containerClasses, props)}
+        />
+      </RowsActContext>
     </SelectLabelContext>
   )
 }
@@ -280,16 +323,22 @@ function ListRow<T extends object = object>({
   ...props
 }: ListRowProps<T> & RefAttributes<HTMLDivElement>) {
   const selectLabel = useContext(SelectLabelContext)
+  const acts =
+    useContext(RowsActContext) ||
+    props.onAction !== undefined ||
+    props.href !== undefined
   // The press ripple ListItem draws, so a row looks the same pressed in a
-  // list as on its own. The call site's pointer handlers are handed to the
-  // hook to merge, for the reason ListItem gives. React Aria keeps a row's
-  // clicks for its own press handling, so the press ends on the release.
+  // list as on its own, and only on a row a press acts on, as ListItem draws
+  // it only on an interactive one: a row that does nothing on a press should
+  // not look as though it did. The call site's pointer handlers are handed to
+  // the hook to merge, for the reason ListItem gives, apart from the press
+  // itself, which `startsRipple` hands on. React Aria keeps a row's clicks
+  // for its own press handling, so the press ends on the release.
   const ripple = useRipple<HTMLDivElement>(
-    true,
+    acts,
     {
       onContextMenu,
       onPointerCancel,
-      onPointerDown,
       onPointerLeave,
       onPointerUp,
     },
@@ -300,6 +349,7 @@ function ListRow<T extends object = object>({
     <RACGridListItem
       textValue={textValue ?? textOf(children)}
       {...ripple.handlers}
+      onPointerDown={startsRipple(ripple.handlers.onPointerDown, onPointerDown)}
       {...props}
       {...mergeStatefulStyles(rowItemStyles(supporting, overline), props)}
     >
@@ -338,6 +388,23 @@ function ListSection<T extends object = object>({
       {children}
     </RACGridListSection>
   )
+}
+
+// The row's press: the ripple's, unless it lands on a control inside the
+// row, which answers it itself — a trailing button pressed spread the row's
+// ripple across the whole row. The call site's own handler runs either way,
+// after the ripple's, as the hook orders the two. Built by a call rather than
+// written at the prop, for the reason `itemContent` gives.
+function startsRipple(
+  ripple: PointerEventHandler<HTMLDivElement> | undefined,
+  own: PointerEventHandler<HTMLDivElement> | undefined,
+) {
+  return (event: PointerEvent<HTMLDivElement>) => {
+    if (!landsOnControl(event)) {
+      ripple?.(event)
+    }
+    own?.(event)
+  }
 }
 
 List.Item = ListRow
