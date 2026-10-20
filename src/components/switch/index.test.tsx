@@ -1,8 +1,11 @@
+import type { ReactElement } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Switch from '.'
+import { CheckGlyph, CloseGlyph } from '../../glyphs'
 import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
@@ -30,6 +33,14 @@ const probeStyles = stylex.create({
   hoverLayer: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
+  iconOff: { color: colors.surfaceContainerHighest },
+  iconOffDisabled: {
+    color: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  iconOn: { color: colors.onPrimaryContainer },
+  // Larger than the label's text, so an icon sized by the handle is told
+  // apart from one inheriting the size around it.
+  largeText: { fontSize: '40px' },
   outlineText: { color: colors.outline },
   restingText: { color: colors.onSurfaceVariant },
   trackError: { borderColor: colors.error },
@@ -55,6 +66,9 @@ const CLASSES = {
   handleOff: classesOf(stylex.props(probeStyles.handleOff)),
   handleOn: classesOf(stylex.props(probeStyles.handleOn)),
   hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
+  iconOff: classesOf(stylex.props(probeStyles.iconOff)),
+  iconOffDisabled: classesOf(stylex.props(probeStyles.iconOffDisabled)),
+  iconOn: classesOf(stylex.props(probeStyles.iconOn)),
   trackError: classesOf(stylex.props(probeStyles.trackError)),
   trackOff: classesOf(stylex.props(probeStyles.trackOff)),
   trackOn: classesOf(stylex.props(probeStyles.trackOn)),
@@ -100,8 +114,35 @@ function forcedValue(element: Element, property: string) {
   )
 }
 
+/** The path a glyph draws, to tell the check from the cross. */
+function glyphPath(glyph: ReactElement) {
+  const view = render(glyph)
+  const path = view.container.querySelector('path')?.getAttribute('d')
+  view.unmount()
+  if (path === undefined || path === null) {
+    throw new Error('expected the glyph to draw a path')
+  }
+  return path
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** A `1em` icon in `currentColor`, as the README asks of every icon. */
+function Icon({ name }: { name: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      data-testid={name}
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <circle cx="12" cy="12" r="8" />
+    </svg>
+  )
 }
 
 /** The track, the seat the handle travels in, the state layer and the handle. */
@@ -122,6 +163,11 @@ function partsOf(input: HTMLElement) {
   }
   return { handle, layer, seat, track }
 }
+
+// Hoisted so each is one stable element, which is what react-perf's
+// no-jsx-as-prop is after.
+const OFF_ICON = <Icon name="off-icon" />
+const ON_ICON = <Icon name="on-icon" />
 
 /** The computed colours of the error and outline roles, as text. */
 function roleColours() {
@@ -331,6 +377,127 @@ describe('switch', () => {
         fireEvent.pointerOut(layer, { pointerType: 'mouse' })
       })
       expect(hasClasses(layer, CLASSES.hoverLayer)).toBe(false)
+    })
+  })
+
+  // The page draws the icon on the selected handle alone or in both states;
+  // `icon` is the first and `unselectedIcon` adds the second.
+  describe('handle icon', () => {
+    it('draws a node given as icon in the handle while on, and nothing off', () => {
+      const off = setup({ icon: ON_ICON })
+      expect(partsOf(off.input).handle.childElementCount).toBe(0)
+      off.unmount()
+
+      const view = setup({
+        defaultSelected: true,
+        icon: ON_ICON,
+      })
+      const { handle } = partsOf(view.input)
+      expect(handle.contains(view.getByTestId('on-icon'))).toBe(true)
+      expect(handle.querySelectorAll('svg')).toHaveLength(1)
+    })
+
+    it('draws the check for icon set to true', () => {
+      const { input } = setup({ defaultSelected: true, icon: true })
+      expect(
+        partsOf(input).handle.querySelector('path')?.getAttribute('d'),
+      ).toBe(glyphPath(<CheckGlyph />))
+    })
+
+    it('draws the cross off and the check on, given both as true', () => {
+      const { input } = setup({ icon: true, unselectedIcon: true })
+      const { handle } = partsOf(input)
+      expect(handle.querySelector('path')?.getAttribute('d')).toBe(
+        glyphPath(<CloseGlyph />),
+      )
+
+      fireEvent.click(input)
+      expect(handle.querySelector('path')?.getAttribute('d')).toBe(
+        glyphPath(<CheckGlyph />),
+      )
+    })
+
+    it('draws a node given as unselectedIcon while off, and nothing on', () => {
+      const view = setup({ unselectedIcon: OFF_ICON })
+      const { handle } = partsOf(view.input)
+      expect(handle.contains(view.getByTestId('off-icon'))).toBe(true)
+
+      fireEvent.click(view.input)
+      expect(handle.childElementCount).toBe(0)
+    })
+
+    it('grows an off handle to 24 only while it holds an icon', () => {
+      const plain = setup({ icon: true })
+      expect(sized(partsOf(plain.input).handle)).toBe('16px')
+      plain.unmount()
+
+      const { input } = setup({ unselectedIcon: true })
+      const { handle, seat } = partsOf(input)
+      expect(sized(handle)).toBe('24px')
+
+      // Pressed, it still grows to the page's 28.
+      dragBy(seat, 8)
+      expect(sized(handle)).toBe('28px')
+    })
+
+    // A node takes its size and colour from the handle, through `1em` and
+    // `currentColor`, which is what makes any icon set fit — whatever the
+    // size of the text the switch sits in.
+    it('sizes a node at 16 and colours it in the icon colour of each state', () => {
+      const probes = render(
+        <>
+          <span {...stylex.props(probeStyles.iconOff)}>Off</span>
+          <span {...stylex.props(probeStyles.iconOn)}>On</span>
+        </>,
+      )
+      const offColour = getComputedStyle(probes.getByText('Off')).color
+      const onColour = getComputedStyle(probes.getByText('On')).color
+      probes.unmount()
+      expect(offColour).not.toBe(onColour)
+
+      const view = render(
+        <div {...stylex.props(probeStyles.largeText)}>
+          <Switch icon={ON_ICON} unselectedIcon={OFF_ICON}>
+            Label
+          </Switch>
+        </div>,
+      )
+      const input = view.getByRole('switch', { name: 'Label' })
+      const { handle } = partsOf(input)
+      const offIcon = view.getByTestId('off-icon')
+      expect(getComputedStyle(offIcon).width).toBe('16px')
+      expect(getComputedStyle(offIcon).color).toBe(offColour)
+      expect(hasClasses(handle, CLASSES.iconOff)).toBe(true)
+
+      fireEvent.click(input)
+      const onIcon = view.getByTestId('on-icon')
+      expect(getComputedStyle(onIcon).width).toBe('16px')
+      expect(getComputedStyle(onIcon).color).toBe(onColour)
+      expect(hasClasses(handle, CLASSES.iconOn)).toBe(true)
+    })
+
+    it('fades the off icon while disabled', () => {
+      const { input } = setup({ isDisabled: true, unselectedIcon: true })
+      const { handle } = partsOf(input)
+      expect(hasClasses(handle, CLASSES.iconOffDisabled)).toBe(true)
+      expect(hasClasses(handle, CLASSES.iconOff)).toBe(false)
+    })
+
+    // Each icon names the system colour paired with its handle's, so it
+    // shows against the handle whatever the mode's palette.
+    it('names the colour paired with the handle under forced colours', () => {
+      const off = setup({ unselectedIcon: true })
+      expect(forcedValue(partsOf(off.input).handle, 'color')).toBe('buttonface')
+      off.unmount()
+
+      const on = setup({ defaultSelected: true, icon: true })
+      expect(forcedValue(partsOf(on.input).handle, 'color')).toBe('highlight')
+      on.unmount()
+
+      const disabled = setup({ isDisabled: true, unselectedIcon: true })
+      expect(forcedValue(partsOf(disabled.input).handle, 'color')).toBe(
+        'canvas',
+      )
     })
   })
 

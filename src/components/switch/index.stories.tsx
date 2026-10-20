@@ -11,6 +11,27 @@ const styles = stylex.create({
   },
 })
 
+// A plain shape rather than an icon set, so the stories show the switch
+// alone. Drawn `1em` square in `currentColor`, as the README asks of every
+// icon, so it takes the size and colour the handle sets.
+function StarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
+    </svg>
+  )
+}
+
+// Hoisted so it is one stable element per render, which is what react-perf's
+// no-jsx-as-prop is after.
+const STAR = <StarIcon />
+
 const meta = {
   args: {
     children: 'Label',
@@ -33,6 +54,23 @@ const WithIcon: Story = {
   args: {
     defaultSelected: true,
     icon: true,
+  },
+}
+
+// The page's form with an icon in both states: the check on and the cross
+// off, with the off handle grown to the on handle's size to hold it.
+const WithIcons: Story = {
+  args: {
+    icon: true,
+    unselectedIcon: true,
+  },
+}
+
+// A node in place of the check, drawn at the handle's 16dp in its icon colour.
+const WithCustomIcon: Story = {
+  args: {
+    defaultSelected: true,
+    icon: STAR,
   },
 }
 
@@ -103,9 +141,11 @@ export {
   LongLabel,
   On,
   OnWithError,
+  WithCustomIcon,
   WithDescription,
   WithError,
   WithIcon,
+  WithIcons,
 }
 
 export default meta

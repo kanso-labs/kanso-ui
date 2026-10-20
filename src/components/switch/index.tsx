@@ -27,7 +27,7 @@ import { ControlLabel } from '../../control'
 import { controlStyles } from '../../control/styles'
 import { FieldMessage } from '../../field'
 import { invalidFrom, useFieldValidationBehavior } from '../../field/root'
-import { CheckGlyph } from '../../glyphs'
+import { CheckGlyph, CloseGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -49,6 +49,15 @@ import {
 // disabled container opacity and the handle on surface at the disabled
 // content opacity, or surface when on. The state layer is on surface off and
 // primary on.
+//
+// The page draws the icon in two forms: on the selected handle alone, which
+// is `icon`, and in both states, which adds `unselectedIcon`. An off handle
+// holding an icon is 24dp, as an on one is, and the icon in it is surface
+// container highest, faded to the disabled content opacity while disabled.
+// Either prop takes `true` for the page's own glyph, the check on and the
+// cross off, or a node to draw in its place. The handle sets the 16dp as a
+// font size and the colour as `color`, so a `1em` icon in `currentColor`
+// takes both, as the README asks of every icon.
 //
 // The page gives no error state, so an invalid switch takes the checkbox's
 // error colours rather than showing its problem in the message alone. The
@@ -130,7 +139,10 @@ const styles = stylex.create({
     display: 'block',
     inlineSize: '16px',
   },
-  // The handle itself, centred in its travelling box and sized by state.
+  // The handle itself, centred in its travelling box and sized by state. Its
+  // `color` and `fontSize` are the icon's, off here and on in `handleOn`.
+  // Under forced colours an off icon is `ButtonFace`, the colour paired with
+  // the handle's `ButtonText`.
   handle: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     alignItems: 'center',
@@ -139,10 +151,11 @@ const styles = stylex.create({
     borderRadius: radii.circle,
     boxSizing: 'border-box',
     color: {
-      default: colors.onPrimaryContainer,
-      [FORCED_COLORS]: 'Highlight',
+      default: colors.surfaceContainerHighest,
+      [FORCED_COLORS]: 'ButtonFace',
     },
     display: 'flex',
+    fontSize: '16px',
     inlineSize: '16px',
     justifyContent: 'center',
     transitionDuration: motion.durationShort2,
@@ -155,10 +168,16 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'ButtonText',
     },
   },
+  // Under forced colours a disabled off icon is `Canvas`, the colour paired
+  // with the handle's `GrayText`.
   handleDisabled: {
     backgroundColor: {
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
       [FORCED_COLORS]: 'GrayText',
+    },
+    color: {
+      default: `color-mix(in srgb, ${colors.surfaceContainerHighest} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+      [FORCED_COLORS]: 'Canvas',
     },
   },
   // The error state's three — see the comment at the top of this file. Each
@@ -172,6 +191,10 @@ const styles = stylex.create({
       [FORCED_COLORS]: 'HighlightText',
     },
     blockSize: '24px',
+    color: {
+      default: colors.onPrimaryContainer,
+      [FORCED_COLORS]: 'Highlight',
+    },
     inlineSize: '24px',
   },
   handleOnActive: {
@@ -190,6 +213,11 @@ const styles = stylex.create({
   handlePressed: {
     blockSize: '28px',
     inlineSize: '28px',
+  },
+  // An off handle with an icon in it, the size the on handle is.
+  handleWithIcon: {
+    blockSize: '24px',
+    inlineSize: '24px',
   },
   // The 40dp state layer, centred on the handle: the ripple's host, and
   // where hover and press are painted.
@@ -383,11 +411,21 @@ type SwitchProps = {
    */
   error?: string
   /**
-   * Draws the check in the handle while the switch is on, the page's
-   * "icon on selected switch" form.
+   * The icon in the handle while the switch is on: `true` for the check, the
+   * page's "icon on selected switch" form, or a node to draw in its place.
+   * The handle draws it at 16px in its icon colour, so give a node `1em`
+   * square in `currentColor`.
    * @default false
    */
-  icon?: boolean
+  icon?: ReactNode
+  /**
+   * The icon in the handle while the switch is off: `true` for the cross, or a
+   * node to draw in its place. Given with `icon`, it is the page's form with
+   * an icon in both states, and the off handle grows to the on handle's 24dp
+   * to hold it.
+   * @default false
+   */
+  unselectedIcon?: ReactNode
 } & AccessibleName &
   Omit<RACSwitchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
@@ -399,7 +437,7 @@ type SwitchProps = {
 // cannot, since a press that changes nothing should not look like one.
 function buttonContent(
   children: ReactNode,
-  icon: boolean,
+  icons: { off: ReactNode; on: ReactNode },
   ripple: Ripple,
   drag: Drag,
 ) {
@@ -411,6 +449,7 @@ function buttonContent(
     const active =
       interactive &&
       (state.isHovered || state.isPressed || state.isFocusVisible)
+    const iconShown = on ? icons.on : icons.off
 
     return (
       <>
@@ -458,15 +497,14 @@ function buttonContent(
                   on && styles.handleOn,
                   active && (on ? styles.handleOnActive : styles.handleActive),
                   !on && state.isInvalid && styles.handleError,
+                  !on && drawsIcon(icons.off) && styles.handleWithIcon,
                   (dragging || (interactive && state.isPressed)) &&
                     styles.handlePressed,
                   state.isDisabled &&
                     (on ? styles.handleOnDisabled : styles.handleDisabled),
                 )}
               >
-                {icon && on ? (
-                  <CheckGlyph {...stylex.props(styles.glyph)} />
-                ) : null}
+                {iconShown}
               </span>
             </span>
           </span>
@@ -475,6 +513,12 @@ function buttonContent(
       </>
     )
   }
+}
+
+// Whether a handle icon prop draws anything: `false`, `null` and `undefined`
+// leave the handle empty, and so at its own size.
+function drawsIcon(icon: ReactNode) {
+  return icon !== false && icon !== null && icon !== undefined
 }
 
 // The button and the line under it, from the field's render state: the
@@ -515,6 +559,7 @@ function Switch({
   description,
   error,
   icon = false,
+  unselectedIcon = false,
   ...props
 }: RefAttributes<HTMLDivElement> & SwitchProps) {
   const ripple = useRipple<HTMLSpanElement>()
@@ -531,7 +576,25 @@ function Switch({
     >
       {fieldContent(
         <SwitchButton {...stylex.props(styles.button)}>
-          {buttonContent(children, icon, ripple, drag)}
+          {buttonContent(
+            children,
+            {
+              off:
+                unselectedIcon === true ? (
+                  <CloseGlyph {...stylex.props(styles.glyph)} />
+                ) : (
+                  unselectedIcon
+                ),
+              on:
+                icon === true ? (
+                  <CheckGlyph {...stylex.props(styles.glyph)} />
+                ) : (
+                  icon
+                ),
+            },
+            ripple,
+            drag,
+          )}
         </SwitchButton>,
         description,
         error,
