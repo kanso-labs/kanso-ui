@@ -228,16 +228,29 @@ const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
   <p key={index}>Supporting line</p>
 ))
 
-/** A sheet whose body runs past its panel, read once it has arrived. */
-function longSheet() {
+/**
+ * A sheet whose body runs past its panel, read once it has arrived. The body
+ * takes `label` as its own name, and holds a field ahead of its lines with
+ * `field`.
+ */
+function longSheet({
+  field = false,
+  label,
+}: { field?: boolean; label?: string } = {}) {
   const view = render(
     <Sheet defaultOpen>
       <Button>Open</Button>
       <Sheet.Content>
         <Sheet.Header>
           <Sheet.Title>Headline</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>
         </Sheet.Header>
-        <Sheet.Body data-testid="body">{LONG_BODY}</Sheet.Body>
+        <Sheet.Body aria-label={label} data-testid="body">
+          {field ? <input aria-label="Field" /> : null}
+          {LONG_BODY}
+        </Sheet.Body>
         <Sheet.Footer>
           <Button slot="close">Cancel</Button>
         </Sheet.Footer>
@@ -254,6 +267,8 @@ function longSheet() {
   return {
     body: view.getByTestId('body'),
     cancel: view.getByRole('button', { name: 'Cancel' }),
+    close: view.getByRole('button', { name: 'Close' }),
+    view,
   }
 }
 
@@ -584,6 +599,66 @@ describe('sheet', () => {
       expect(view.getByText('Supporting line').hasAttribute('tabindex')).toBe(
         false,
       )
+    })
+
+    // While it is a tab stop it is a region named by the title, so a screen
+    // reader landing on it says what it is rather than announcing a group.
+    it('names a body that scrolls by the title', async () => {
+      await page.viewport(375, 812)
+      const { body, view } = longSheet()
+
+      expect(view.getByRole('region', { name: 'Headline' })).toBe(body)
+    })
+
+    it("keeps a call site's own label on a body that scrolls", async () => {
+      await page.viewport(375, 812)
+      const { body, view } = longSheet({ label: 'Label' })
+
+      expect(view.getByRole('region', { name: 'Label' })).toBe(body)
+    })
+
+    // A field inside is how a keyboard reaches the body and scrolls it, so
+    // Tab goes from the close button straight to the field, with no stop on
+    // the body between them.
+    it('makes no stop of a body holding a field', async () => {
+      await page.viewport(375, 812)
+      const { body, close, view } = longSheet({ field: true })
+
+      expect(body.hasAttribute('tabindex')).toBe(false)
+      expect(body.hasAttribute('role')).toBe(false)
+      act(() => {
+        close.focus()
+      })
+      fireEvent.keyDown(close, { key: 'Tab' })
+      expect(document.activeElement).toBe(
+        view.getByRole('textbox', { name: 'Field' }),
+      )
+    })
+
+    // A string with nowhere to break wraps, so the body has nothing to scroll
+    // sideways and needs no stop for it.
+    it('wraps a string with nowhere to break', async () => {
+      await page.viewport(375, 812)
+      const view = render(
+        <Sheet defaultOpen>
+          <Button>Open</Button>
+          <Sheet.Content>
+            <Sheet.Header>
+              <Sheet.Title>Headline</Sheet.Title>
+            </Sheet.Header>
+            <Sheet.Body data-testid="body">
+              <p>{LONG_WORD.repeat(3)}</p>
+            </Sheet.Body>
+            <Sheet.Footer>
+              <Button slot="close">Confirm</Button>
+            </Sheet.Footer>
+          </Sheet.Content>
+        </Sheet>,
+      )
+      const body = view.getByTestId('body')
+
+      expect(body.scrollWidth).toBe(body.clientWidth)
+      expect(body.hasAttribute('tabindex')).toBe(false)
     })
   })
 

@@ -64,7 +64,8 @@ const overlay = stylex.create({
   fromRight: { transformOrigin: 'right center' },
   fromTop: { transformOrigin: 'top center' },
   // The ring on a modal panel's body while it is a tab stop, which it is only
-  // while its content runs past it — see useScrollable. Drawn inside the body
+  // while its content runs past it and nothing inside it takes focus — see
+  // useScrollStop. Drawn inside the body
   // rather than around it, since the body runs to the panel's edges and the
   // panel clips whatever passes them.
   modalBodyRing: {

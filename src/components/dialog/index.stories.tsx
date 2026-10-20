@@ -214,6 +214,52 @@ const ThreeActions: Story = {
   ),
 }
 
-export { AlertDialog, AlertDialogCompact, Default, LongBody, ThreeActions }
+// An address with nowhere to break, which is the string a body most often
+// has to hold whole. It wraps inside the body rather than running past its
+// edge, so on a phone the body has nothing to scroll sideways.
+const ADDRESS =
+  'https://example.com/firstitem/seconditem/thirditem/supportingline?query=0123456789'
+
+const LongAddress: Story = {
+  globals: AlertDialogCompact.globals,
+  parameters: AlertDialogCompact.parameters,
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open alert</Button>
+      <Dialog.Content
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        role="alertdialog"
+      >
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text names an address.
+          </Text>
+          {ADDRESS}
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
+export {
+  AlertDialog,
+  AlertDialogCompact,
+  Default,
+  LongAddress,
+  LongBody,
+  ThreeActions,
+}
 
 export default meta

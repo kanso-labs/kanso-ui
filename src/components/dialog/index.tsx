@@ -22,13 +22,15 @@ import {
 import {
   DialogTrigger,
   Heading,
+  HeadingContext,
   Modal,
   ModalOverlay,
   Dialog as RACDialog,
+  useSlottedContext,
 } from 'react-aria-components'
 
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
-import { useScrollable } from '../../hooks/useScrollable'
+import { useScrollStop } from '../../hooks/useScrollStop'
 import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -115,6 +117,9 @@ const styles = stylex.create({
   // so the body takes 24dp of its own under it: the inset its sides already
   // have, which is the content padding the full-screen dialog keeps. Without
   // it the first line sat against the divider.
+  //
+  // A string with nowhere to break — a long address, a token — wraps rather
+  // than running past the body's width, which made the body scroll sideways.
   body: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
@@ -127,6 +132,7 @@ const styles = stylex.create({
     gap: spacing.lg,
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
+    overflowWrap: 'anywhere',
     overflowY: 'auto',
     paddingBlockEnd: { ':last-child': spacing.xl, default: 0 },
     paddingBlockStart: {
@@ -393,10 +399,14 @@ function DialogBody({
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const isBasic = useContext(BasicContext)
   const ref = useRef<HTMLDivElement>(null)
-  // A body its content runs past is a tab stop, so a keyboard can scroll it
-  // when nothing inside it takes focus; a call site's own tabIndex still
-  // wins. See useScrollable.
-  const scrollable = useScrollable(ref)
+  // A body its content runs past is a tab stop named by the title, so a
+  // keyboard can scroll it, when nothing inside it takes focus; a call
+  // site's own name, role and tabIndex still win. See useScrollStop.
+  const title = useSlottedContext(HeadingContext, 'title')
+  const scrollStop = useScrollStop(ref, {
+    label: props['aria-label'],
+    title: title?.id,
+  })
   // The body measures itself through its own ref, and the call site's lands
   // on the same element.
   const merged = useMemo(
@@ -406,8 +416,7 @@ function DialogBody({
 
   return (
     <div
-      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scroll container with nothing focusable inside is otherwise out of a keyboard's reach, which axe's scrollable-region-focusable reports
-      tabIndex={scrollable ? 0 : undefined}
+      {...scrollStop}
       {...props}
       ref={merged}
       {...mergeStyles(

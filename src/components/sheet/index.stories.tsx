@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import * as stylex from '@stylexjs/stylex'
 import { expect, waitFor } from 'storybook/test'
 
 import Sheet from '.'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
 import Text from '../text'
@@ -163,6 +165,57 @@ const LongBody: Story = {
   ),
 }
 
+// An address with nowhere to break, which is the string a body most often
+// has to hold whole. It wraps inside the body rather than running past its
+// edge, so the bottom sheet's body has nothing to scroll sideways.
+const ADDRESS =
+  'https://example.com/firstitem/seconditem/thirditem/supportingline?query=0123456789'
+
+const styles = stylex.create({
+  // A paragraph of the call site's own, set as body text but with no
+  // wrapping of its own, so what wraps the address is the body.
+  address: {
+    color: colors.onSurfaceVariant,
+    fontFamily: typography.bodyMediumFont,
+    fontSize: typography.bodyMediumSize,
+    fontWeight: typography.bodyMediumWeight,
+    letterSpacing: typography.bodyMediumTracking,
+    lineHeight: typography.bodyMediumLineHeight,
+    margin: 0,
+  },
+})
+
+const LongAddress: Story = {
+  globals: BottomSheet.globals,
+  parameters: BottomSheet.parameters,
+  render: (args) => (
+    <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
+      <Sheet.Content>
+        <Sheet.Handle />
+        <Sheet.Header>
+          <Sheet.Title>Headline</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseIcon />
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting line names an address.
+          </Text>
+          <p {...stylex.props(styles.address)}>{ADDRESS}</p>
+        </Sheet.Body>
+        <Sheet.Footer>
+          <Button>Confirm</Button>
+          <Button slot="close" variant="outlined">
+            Cancel
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>
+  ),
+}
+
 // A headline of one word longer than a phone-width header holds, which a
 // German compound easily is, and two actions too long to share a row. The
 // headline breaks inside the word and the close button keeps its place; the
@@ -251,6 +304,7 @@ const OpensAndCloses: Story = {
 export {
   BottomSheet,
   Default,
+  LongAddress,
   LongBody,
   LongHeadlineAndActions,
   OpensAndCloses,
