@@ -49,6 +49,16 @@ const WithError: Story = {
   },
 }
 
+// On, the track keeps its primary fill inside the error rule, so the switch
+// still reads as on.
+const OnWithError: Story = {
+  args: {
+    defaultSelected: true,
+    description: 'Supporting line',
+    error: 'Turn this off.',
+  },
+}
+
 // The description fades with the label it explains.
 //
 // `color-contrast` is off for this story alone, as it is for DropZone's
@@ -92,6 +102,7 @@ export {
   Disabled,
   LongLabel,
   On,
+  OnWithError,
   WithDescription,
   WithError,
   WithIcon,
