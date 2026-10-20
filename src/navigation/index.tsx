@@ -1,5 +1,6 @@
 import type { ReactNode, RefAttributes } from 'react'
 import type {
+  FocusableElement,
   LinkRenderProps,
   LinkProps as RACLinkProps,
 } from 'react-aria-components'
@@ -13,6 +14,7 @@ import type { NavigationForm } from './context'
 import { BadgeMarkContext } from '../badge'
 import Badge from '../components/badge'
 import { useClippedTitle } from '../hooks/useClippedTitle'
+import { useRipple } from '../hooks/useRipple'
 import { focus } from '../styles/focus'
 import { mergeStatefulStyles } from '../styles/merge'
 import { NavigationContext } from './context'
@@ -129,6 +131,7 @@ function itemClasses(form: NavigationForm, isCurrent: boolean) {
   return (state: LinkRenderProps) =>
     stylex.props(
       navigationItemStyles.link,
+      navigationItemStyles.fade,
       styles.item,
       isCurrent && styles.itemCurrent,
       state.isHovered &&
@@ -143,9 +146,11 @@ function itemClasses(form: NavigationForm, isCurrent: boolean) {
 }
 
 // What a destination draws, from React Aria's render state: the indicator
-// holding the icon, and the label beside or under it. Built by a call rather
-// than written inline at the prop, which is what react-perf's
-// no-new-function-as-prop is after.
+// holding the icon and the press ripple, and the label beside or under it.
+// Built by a call rather than written inline at the prop, which is what
+// react-perf's no-new-function-as-prop is after.
+//
+// The ripple comes first, so a count badge drawn after it stays over it.
 function itemContent(
   form: NavigationForm,
   isCurrent: boolean,
@@ -153,6 +158,7 @@ function itemContent(
   icon: ReactNode,
   label: ReactNode,
   naming: Naming | undefined,
+  ripple: ReactNode,
 ) {
   const styles = FORMS[form]
   const glyph =
@@ -169,6 +175,7 @@ function itemContent(
       <span
         {...stylex.props(
           navigationItemStyles.pill,
+          navigationItemStyles.fade,
           styles.indicator,
           isCurrent && styles.indicatorCurrent,
           state.isHovered &&
@@ -187,6 +194,7 @@ function itemContent(
           state.isDisabled && navigationItemStyles.itemDisabled,
         )}
       >
+        {ripple}
         <span {...stylex.props(navigationItemStyles.icon)}>{glyph}</span>
         {naming && (
           <span hidden id={naming.badgeId}>
@@ -198,6 +206,7 @@ function itemContent(
         id={naming?.labelId}
         styling={stylex.props(
           navigationItemStyles.label,
+          navigationItemStyles.fade,
           styles.label,
           isCurrent && styles.labelCurrent,
           state.isDisabled && navigationItemStyles.itemDisabled,
@@ -220,9 +229,24 @@ function NavigationItem({
   href,
   icon,
   isCurrent: isCurrentProp,
+  onClick,
+  onContextMenu,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
   ...props
 }: NavigationItemProps & RefAttributes<HTMLAnchorElement>) {
   const { form, selectedRoute } = useContext(NavigationContext)
+  // The call site's handlers run after the ripple's own.
+  const ripple = useRipple<FocusableElement>(props.isDisabled !== true, {
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
   const isCurrent =
     isCurrentProp ?? (selectedRoute !== undefined && href === selectedRoute)
   const labelId = useId()
@@ -244,10 +268,19 @@ function NavigationItem({
         aria-current={isCurrent ? 'page' : undefined}
         aria-labelledby={naming && `${naming.labelId} ${naming.badgeId}`}
         href={href}
+        {...ripple.handlers}
         {...props}
         {...mergeStatefulStyles(itemClasses(form, isCurrent), props)}
       >
-        {itemContent(form, isCurrent, badge, icon, children, naming)}
+        {itemContent(
+          form,
+          isCurrent,
+          badge,
+          icon,
+          children,
+          naming,
+          ripple.surface,
+        )}
       </RACLink>
     </li>
   )

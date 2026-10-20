@@ -31,6 +31,29 @@ function ClickHost() {
   )
 }
 
+// Smaller than its host and away from the host's middle, as a navigation
+// destination's indicator sits inside the destination.
+const PART_STYLE = {
+  height: '24px',
+  left: '60px',
+  position: 'absolute',
+  top: '8px',
+  width: '32px',
+} as const
+
+/** A host drawing its ripple in a part of itself, `part`. */
+function PartHost({ hidden = false }: { hidden?: boolean }) {
+  const ripple = useRipple<HTMLDivElement>()
+
+  return (
+    <div data-testid="host" style={HOST_STYLE} {...ripple.handlers}>
+      <span data-testid="part" hidden={hidden} style={PART_STYLE}>
+        {ripple.surface}
+      </span>
+    </div>
+  )
+}
+
 /** Presses `button` with a mouse, which is what starts the growth. */
 function press(button: Element) {
   const rect = button.getBoundingClientRect()
@@ -50,7 +73,8 @@ function press(button: Element) {
 }
 
 /**
- * Stands in for `element.animate`, recording the options every call is given.
+ * Stands in for `element.animate`, recording the options every call is given
+ * and the transforms it moves between.
  *
  * The growth animation is the one piece of motion in the library that no
  * `@media (prefers-reduced-motion: reduce)` branch can reach, since it is a
@@ -62,11 +86,13 @@ function recordAnimations() {
   // native implementation is restored exactly as it was found.
   const native = Object.getOwnPropertyDescriptor(Element.prototype, 'animate')!
   const durations: number[] = []
+  const transforms: string[][] = []
 
   Object.defineProperty(Element.prototype, 'animate', {
     configurable: true,
-    value(_keyframes: unknown, options: { duration: number }) {
+    value(keyframes: { transform: string[] }, options: { duration: number }) {
       durations.push(options.duration)
+      transforms.push(keyframes.transform)
       return { cancel() {}, currentTime: 0 }
     },
     writable: true,
@@ -77,6 +103,7 @@ function recordAnimations() {
     restore() {
       Object.defineProperty(Element.prototype, 'animate', native)
     },
+    transforms,
   }
 }
 
@@ -168,6 +195,46 @@ describe("the ripple's growth, which is driven rather than declared", () => {
 
       expect(animate.durations).toHaveLength(1)
       expect(motionDurationMs.long1).toBeGreaterThan(0)
+    } finally {
+      animate.restore()
+    }
+  })
+})
+
+// The surface is what the ripple is placed in, so it is what the press is
+// measured against: a fifth of the part's longest side to start, growing
+// from the pointer to the part's middle.
+describe('a ripple drawn in a part of its host', () => {
+  it('starts at the pointer and ends in the middle of the part', () => {
+    const animate = recordAnimations()
+
+    try {
+      const view = render(<PartHost />)
+      // The middle of the part, 16px and 12px into it.
+      press(view.getByTestId('part'))
+
+      // A fifth of 32 is 6, which sits 13px and 9px in to be centred.
+      const [start, end] = animate.transforms[0]
+      expect(start).toBe('translate(13px, 9px) scale(1)')
+      expect(end).toMatch(/^translate\(13px, 9px\) scale\(\d/)
+    } finally {
+      animate.restore()
+    }
+  })
+
+  // Forced colours draws no ripple, and a surface with no box would give it
+  // no size to grow from and an infinite scale.
+  it('measures the host while the surface has no box', () => {
+    const animate = recordAnimations()
+
+    try {
+      const view = render(<PartHost hidden />)
+      press(view.getByTestId('host'))
+
+      // A fifth of the host's 100 is 20, centred at 40px and 10px.
+      const [start, end] = animate.transforms[0]
+      expect(start).toBe('translate(40px, 10px) scale(1)')
+      expect(end).toMatch(/^translate\(40px, 10px\) scale\(\d+(\.\d+)?\)$/)
     } finally {
       animate.restore()
     }
