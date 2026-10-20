@@ -302,16 +302,29 @@ const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
   <p key={index}>Supporting line</p>
 ))
 
-/** A dialog whose body runs past its container, read once it has arrived. */
-function longDialog() {
+/**
+ * A dialog whose body runs past its container, read once it has arrived. The
+ * body takes `label` as its own name, and holds a field ahead of its lines
+ * with `field`.
+ */
+function longDialog({
+  field = false,
+  label,
+}: { field?: boolean; label?: string } = {}) {
   const view = render(
     <Dialog defaultOpen>
       <Button>Open</Button>
       <Dialog.Content>
         <Dialog.Header>
           <Dialog.Title>Headline</Dialog.Title>
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>
         </Dialog.Header>
-        <Dialog.Body data-testid="body">{LONG_BODY}</Dialog.Body>
+        <Dialog.Body aria-label={label} data-testid="body">
+          {field ? <input aria-label="Field" /> : null}
+          {LONG_BODY}
+        </Dialog.Body>
         <Dialog.Footer>
           <Button slot="close">Cancel</Button>
         </Dialog.Footer>
@@ -322,6 +335,8 @@ function longDialog() {
   return {
     body: view.getByTestId('body'),
     cancel: view.getByRole('button', { name: 'Cancel' }),
+    close: view.getByRole('button', { name: 'Close' }),
+    view,
   }
 }
 
@@ -701,6 +716,67 @@ describe('dialog', () => {
       expect(view.getByText('Supporting line').hasAttribute('tabindex')).toBe(
         false,
       )
+    })
+
+    // While it is a tab stop it is a region named by the title, so a screen
+    // reader landing on it says what it is rather than announcing a group.
+    it('names a body that scrolls by the title', async () => {
+      await page.viewport(1024, 768)
+      const { body, view } = longDialog()
+
+      expect(view.getByRole('region', { name: 'Headline' })).toBe(body)
+    })
+
+    it("keeps a call site's own label on a body that scrolls", async () => {
+      await page.viewport(1024, 768)
+      const { body, view } = longDialog({ label: 'Label' })
+
+      expect(view.getByRole('region', { name: 'Label' })).toBe(body)
+    })
+
+    // A field inside is how a keyboard reaches the body and scrolls it, so
+    // Tab goes from the close button straight to the field, with no stop on
+    // the body between them.
+    it('makes no stop of a body holding a field', async () => {
+      await page.viewport(1024, 768)
+      const { body, close, view } = longDialog({ field: true })
+
+      expect(body.hasAttribute('tabindex')).toBe(false)
+      expect(body.hasAttribute('role')).toBe(false)
+      act(() => {
+        close.focus()
+      })
+      fireEvent.keyDown(close, { key: 'Tab' })
+      expect(document.activeElement).toBe(
+        view.getByRole('textbox', { name: 'Field' }),
+      )
+    })
+
+    // A string with nowhere to break wraps, so the body has nothing to scroll
+    // sideways and needs no stop for it.
+    it('wraps a string with nowhere to break', async () => {
+      await page.viewport(360, 700)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content role="alertdialog">
+            <Dialog.Header>
+              <Dialog.Title>Headline</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body data-testid="body">
+              <p>{LONG_WORD}</p>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button slot="close">Confirm</Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      containerOf(view.getByRole('alertdialog'))
+      const body = view.getByTestId('body')
+
+      expect(body.scrollWidth).toBe(body.clientWidth)
+      expect(body.hasAttribute('tabindex')).toBe(false)
     })
   })
 

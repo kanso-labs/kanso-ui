@@ -17,12 +17,14 @@ import {
   Dialog,
   DialogTrigger,
   Heading,
+  HeadingContext,
   Modal,
   ModalOverlay,
+  useSlottedContext,
 } from 'react-aria-components'
 
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
-import { useScrollable } from '../../hooks/useScrollable'
+import { useScrollStop } from '../../hooks/useScrollStop'
 import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
@@ -98,6 +100,10 @@ const styles = stylex.create({
     // column rather than one scrolling box.
     flexGrow: 1,
     gap: spacing.lg,
+    // A string with nowhere to break — a long address, a token — wraps
+    // rather than running past the body's width, which made the body scroll
+    // sideways.
+    overflowWrap: 'anywhere',
     overflowY: 'auto',
     paddingBlock: spacing.lg,
     paddingInline: spacing.xl,
@@ -336,10 +342,14 @@ function SheetBody({
   ...props
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const ref = useRef<HTMLDivElement>(null)
-  // A body its content runs past is a tab stop, so a keyboard can scroll it
-  // when nothing inside it takes focus; a call site's own tabIndex still
-  // wins. See useScrollable.
-  const scrollable = useScrollable(ref)
+  // A body its content runs past is a tab stop named by the title, so a
+  // keyboard can scroll it, when nothing inside it takes focus; a call
+  // site's own name, role and tabIndex still win. See useScrollStop.
+  const title = useSlottedContext(HeadingContext, 'title')
+  const scrollStop = useScrollStop(ref, {
+    label: props['aria-label'],
+    title: title?.id,
+  })
   // The body measures itself through its own ref, and the call site's lands
   // on the same element.
   const merged = useMemo(
@@ -349,8 +359,7 @@ function SheetBody({
 
   return (
     <div
-      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scroll container with nothing focusable inside is otherwise out of a keyboard's reach, which axe's scrollable-region-focusable reports
-      tabIndex={scrollable ? 0 : undefined}
+      {...scrollStop}
       {...props}
       ref={merged}
       {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
