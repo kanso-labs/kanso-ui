@@ -311,6 +311,22 @@ describe('navigation bar', () => {
       }
     })
 
+    // The row is the destination's own minimum, not the sum of its parts: a
+    // scheme setting label medium on a shorter line leaves it 64dp still.
+    it('keeps each destination 64dp under a shorter label line', () => {
+      const root = document.documentElement.style
+      root.setProperty('--kui-typography-label-medium-line-height', '12px')
+      try {
+        const view = render(<Bar />)
+
+        for (const link of view.getAllByRole('link')) {
+          expect(link.getBoundingClientRect().height).toBe(64)
+        }
+      } finally {
+        root.removeProperty('--kui-typography-label-medium-line-height')
+      }
+    })
+
     it('grows with its labels under wider text spacing, cutting none off', () => {
       const restore = spaceText()
       try {
