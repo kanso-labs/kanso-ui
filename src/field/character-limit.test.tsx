@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
@@ -182,6 +182,96 @@ describe('a field with a character limit', () => {
       const view = render(renderField({ characterCount: true }))
 
       expect(describedBy(view.getByRole('textbox'))).not.toContain('Up to')
+    },
+  )
+
+  // Typing past the limit is refused without a sound, and the count that
+  // shows it is hidden from the tree, so reaching the limit is announced on
+  // its own: once as the length reaches it, and again only after the length
+  // has dropped below it. Each change is a value a keystroke or a deletion
+  // would leave; the browser's own refusal of the keystroke past the limit
+  // is `maxLength`'s, not the field's.
+  it.each(FIELDS)(
+    'announces reaching the limit on $name',
+    ({ render: renderField }) => {
+      const view = render(
+        renderField({ characterCount: true, defaultValue: '', maxLength: 5 }),
+      )
+      const control = view.getByRole('textbox')
+      const status = view.getByRole('status')
+
+      expect(status.textContent).toBe('')
+
+      fireEvent.change(control, { target: { value: 'abcd' } })
+      expect(status.textContent).toBe('')
+
+      fireEvent.change(control, { target: { value: 'abcde' } })
+      expect(status.textContent).toBe('Character limit reached')
+      expect(view.getAllByText('Character limit reached')).toHaveLength(1)
+
+      fireEvent.change(control, { target: { value: 'abcd' } })
+      expect(status.textContent).toBe('')
+
+      fireEvent.change(control, { target: { value: 'abcde' } })
+      expect(status.textContent).toBe('Character limit reached')
+    },
+  )
+
+  // With and without a hint, since the limit rides in a different element
+  // in each.
+  it.each(FIELDS)(
+    'keeps the announcement out of the count and the description on $name',
+    ({ render: renderField }) => {
+      for (const description of [undefined, 'Supporting line']) {
+        const view = render(
+          renderField({
+            characterCount: true,
+            defaultValue: 'abcde',
+            description,
+            maxLength: 5,
+          }),
+        )
+
+        expect(view.getByText('5/5').getAttribute('aria-hidden')).toBe('true')
+        expect(describedBy(view.getByRole('textbox'))).not.toContain(
+          'Character limit reached',
+        )
+        view.unmount()
+      }
+    },
+  )
+
+  it.each(FIELDS)(
+    'lets a call site say the limit is reached on $name',
+    ({ render: renderField }) => {
+      const view = render(
+        renderField({
+          characterCount: true,
+          characterLimitReachedLabel: 'Limite atteinte',
+          defaultValue: 'abcde',
+          maxLength: 5,
+        }),
+      )
+
+      expect(view.getByRole('status').textContent).toBe('Limite atteinte')
+    },
+  )
+
+  // The announcement is the spoken half of the count reaching its limit, so
+  // there is none without a count drawn, and none without a limit to reach.
+  it.each(FIELDS)(
+    'announces nothing on $name without both a count and a limit',
+    ({ render: renderField }) => {
+      const limitOnly = render(
+        renderField({ defaultValue: 'abcde', maxLength: 5 }),
+      )
+      expect(limitOnly.queryByRole('status')).toBeNull()
+      limitOnly.unmount()
+
+      const countOnly = render(
+        renderField({ characterCount: true, defaultValue: 'abcde' }),
+      )
+      expect(countOnly.queryByRole('status')).toBeNull()
     },
   )
 
