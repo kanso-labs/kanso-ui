@@ -226,6 +226,73 @@ describe('popover', () => {
       )
     })
 
+    // The dialog follows the id the description renders, so a call site's
+    // own id is the one it points at, in either kind of panel.
+    it.each([
+      ['non-modal', false],
+      ['modal', true],
+    ] as const)(
+      'points a %s dialog at a description given its own id',
+      (_, modal) => {
+        const view = render(
+          <Popover defaultOpen modal={modal}>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+              <Popover.Description id="own-description">
+                Supporting line
+              </Popover.Description>
+            </Popover.Content>
+          </Popover>,
+        )
+
+        expect(view.getByRole('dialog').getAttribute('aria-describedby')).toBe(
+          'own-description',
+        )
+        expect(document.getElementById('own-description')).toBe(
+          view.getByText('Supporting line'),
+        )
+      },
+    )
+
+    // Each description has an id of its own and adds it, so the dialog is
+    // described by both, and unmounting one takes away only its own.
+    it.each([
+      ['non-modal', false],
+      ['modal', true],
+    ] as const)(
+      'keeps a %s dialog described by the description that remains',
+      (_, modal) => {
+        const panel = (descriptions: readonly string[]) => (
+          <Popover defaultOpen modal={modal}>
+            <Button>Open</Button>
+            <Popover.Content>
+              <Popover.Title>Headline</Popover.Title>
+              {descriptions.map((text) => (
+                <Popover.Description key={text}>{text}</Popover.Description>
+              ))}
+            </Popover.Content>
+          </Popover>
+        )
+        const view = render(panel(['First item', 'Second item']))
+        const first = view.getByText('First item')
+        const second = view.getByText('Second item')
+        const describedBy = () =>
+          view.getByRole('dialog').getAttribute('aria-describedby')
+
+        expect(first.id).not.toBe('')
+        expect(second.id).not.toBe(first.id)
+        expect(describedBy()).toBe(`${first.id} ${second.id}`)
+
+        view.rerender(panel(['Second item']))
+        expect(describedBy()).toBe(second.id)
+        expect(document.getElementById(second.id)).toBe(second)
+
+        view.rerender(panel([]))
+        expect(describedBy()).toBeNull()
+      },
+    )
+
     it('renders nothing until it is open', () => {
       const view = render(
         <Popover>
