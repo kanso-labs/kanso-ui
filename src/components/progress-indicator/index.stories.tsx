@@ -3,9 +3,23 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import ProgressIndicator from '.'
-import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  radii,
+  spacing,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 const styles = stylex.create({
+  // Running text, for a ring sized to it.
+  line: {
+    color: colors.onSurface,
+    fontFamily: typography.bodyLargeFont,
+    fontSize: typography.bodyLargeSize,
+    letterSpacing: typography.bodyLargeTracking,
+    lineHeight: typography.bodyLargeLineHeight,
+    margin: 0,
+  },
   rings: {
     alignItems: 'center',
     display: 'flex',
@@ -72,6 +86,29 @@ const CircularIndeterminate: Story = {
   },
 }
 
+// Rings in a line of text, at the text's own size: each is as wide as its
+// ring and sits in the line like a word, with nothing laying it out.
+const InText: Story = {
+  render: () => (
+    <div {...stylex.props(styles.line)}>
+      First item{' '}
+      <ProgressIndicator
+        aria-label="First item"
+        diameter="1em"
+        value={40}
+        variant="circular"
+      />{' '}
+      Second item{' '}
+      <ProgressIndicator
+        aria-label="Second item"
+        diameter="1em"
+        isIndeterminate
+        variant="circular"
+      />
+    </div>
+  ),
+}
+
 const Wavy: Story = {
   args: {
     shape: 'wavy',
@@ -123,6 +160,7 @@ export {
   Default,
   Indeterminate,
   InheritedTone,
+  InText,
   Wavy,
   WavyCircular,
   WithBuffer,

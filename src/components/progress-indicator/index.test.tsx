@@ -48,6 +48,11 @@ const CLASSES = {
 }
 
 /** The two arcs of a circular indicator: the track, then the active one. */
+// Running text at the size the page's body copy is set in.
+const lineStyles = stylex.create({
+  text: { fontSize: '16px', lineHeight: '24px' },
+})
+
 function arcsOf(bar: HTMLElement) {
   const svg = bar.querySelector('svg')
   const [track, active] = [...(svg?.children ?? [])]
@@ -247,6 +252,90 @@ describe('progress indicator', () => {
 
       expect(svg.getBoundingClientRect().width).toBe(24)
       expect(svg.getBoundingClientRect().height).toBe(24)
+    })
+
+    // The root is the ring's size rather than the room it is given, and
+    // sits in a line like a word, with nothing around it laying it out.
+    it('is as wide as its ring in a plain block', () => {
+      const view = render(
+        <div>
+          <ProgressIndicator
+            aria-label="Label"
+            diameter="24px"
+            value={40}
+            variant="circular"
+          />
+        </div>,
+      )
+
+      expect(view.getByRole('progressbar').getBoundingClientRect().width).toBe(
+        24,
+      )
+    })
+
+    it('sits beside a second ring in a plain block', () => {
+      const view = render(
+        <div>
+          <ProgressIndicator
+            aria-label="First item"
+            diameter="24px"
+            value={40}
+            variant="circular"
+          />
+          <ProgressIndicator
+            aria-label="Second item"
+            diameter="24px"
+            isIndeterminate
+            variant="circular"
+          />
+        </div>,
+      )
+      const [first, second] = view
+        .getAllByRole('progressbar')
+        .map((bar) => bar.getBoundingClientRect())
+
+      expect(second.top).toBe(first.top)
+      expect(second.left).toBeGreaterThanOrEqual(first.right)
+    })
+
+    // Its middle on the text's, as an inline icon's is, rather than its
+    // bottom on the baseline, which lifts it above the words beside it.
+    it('centres a ring on the line of text it sits in', () => {
+      const view = render(
+        <div {...stylex.props(lineStyles.text)}>
+          <span>First item</span>{' '}
+          <ProgressIndicator
+            aria-label="Label"
+            diameter="2em"
+            value={40}
+            variant="circular"
+          />
+        </div>,
+      )
+      const text = view.getByText('First item').getBoundingClientRect()
+      const ring = view.getByRole('progressbar').getBoundingClientRect()
+
+      expect(ring.left).toBeGreaterThan(text.right)
+      expect(
+        Math.abs((ring.top + ring.bottom) / 2 - (text.top + text.bottom) / 2),
+      ).toBeLessThanOrEqual(3)
+    })
+
+    // The label row spans the indicator, so the value ends it, as it ends
+    // a line's, even where the ring is wider than the label and the value.
+    it('ends the label row with the value above a wider ring', () => {
+      const { bar } = setup({
+        diameter: '120px',
+        showValue: true,
+        variant: 'circular',
+      })
+      const value = bar.querySelector('span:last-child')
+
+      expect(bar.getBoundingClientRect().width).toBe(120)
+      expect(value?.textContent).toBe('40%')
+      expect(value?.getBoundingClientRect().right).toBe(
+        bar.getBoundingClientRect().right,
+      )
     })
 
     it('takes the diameter as a CSS length', () => {

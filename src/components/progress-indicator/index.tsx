@@ -560,10 +560,18 @@ const styles = stylex.create({
   ringWave: {
     display: { default: null, [REDUCED_MOTION]: 'none' },
   },
-  // A circular indicator is its own size rather than the room it is given.
+  // A circular indicator is its own size rather than the room it is given:
+  // as wide as the wider of its ring and its label row, and set in a line
+  // like a word, so two rings in a block sit side by side and a ring sized
+  // in `em` sits in the text it is sized to, its middle on the text's as an
+  // inline icon's is. The label row spans that width, so a value ends it as
+  // it ends a line's; the ring has a size of its own and stays at the start.
+  // In a flex or grid parent, where every ring here is drawn, it is laid out
+  // as an item and the inline half changes nothing.
   rootCircular: {
-    alignItems: 'flex-start',
+    display: 'inline-flex',
     inlineSize: 'auto',
+    verticalAlign: 'middle',
   },
   secondaryBar: {
     '@media (prefers-reduced-motion: reduce)': {
@@ -685,8 +693,10 @@ type ProgressIndicatorProps = {
    */
   shape?: ProgressIndicatorShape
   /**
-   * Whether the value is shown beside the label. Ignored while the indicator
-   * is indeterminate, which has no value to show.
+   * Whether the value is shown at the end of the label's row. Ignored while
+   * the indicator is indeterminate, which has no value to show. On a ring
+   * the row sits above it, and the indicator is as wide as the wider of the
+   * two.
    * @default false
    */
   showValue?: boolean
