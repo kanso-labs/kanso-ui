@@ -22,6 +22,7 @@ import {
   crampedBarItemStyles,
   expandedItemStyles,
   navigationItemStyles,
+  navigationListStyles,
 } from './styles'
 
 // The destination NavigationBar and NavigationRail both render, and the
@@ -47,10 +48,22 @@ import {
 // from, so the label's own text and the width the bar measures it at are
 // untouched. An `aria-label` or `aria-labelledby` the call site passes still
 // names the link instead.
+//
+// The destinations are a list, each in an item of its own, which is what has
+// a screen reader say how many there are and which one it is on, as the
+// WAI-ARIA navigation examples do. The bar and the rail draw the list, and
+// each destination draws its item: the item takes the destination's place in
+// the row or the column, and the link fills it, so the class, the ref and
+// `aria-current` stay on the link.
 
 const FORMS = {
   bar: barItemStyles,
-  barCramped: { ...collapsedItemStyles, item: crampedBarItemStyles.item },
+  barCramped: {
+    ...collapsedItemStyles,
+    item: crampedBarItemStyles.item,
+    list: crampedBarItemStyles.list,
+    listItem: crampedBarItemStyles.listItem,
+  },
   collapsed: collapsedItemStyles,
   expanded: expandedItemStyles,
 }
@@ -226,15 +239,17 @@ function NavigationItem({
       : undefined
 
   return (
-    <RACLink
-      aria-current={isCurrent ? 'page' : undefined}
-      aria-labelledby={naming && `${naming.labelId} ${naming.badgeId}`}
-      href={href}
-      {...props}
-      {...mergeStatefulStyles(itemClasses(form, isCurrent), props)}
-    >
-      {itemContent(form, isCurrent, badge, icon, children, naming)}
-    </RACLink>
+    <li {...stylex.props(navigationListStyles.item, FORMS[form].listItem)}>
+      <RACLink
+        aria-current={isCurrent ? 'page' : undefined}
+        aria-labelledby={naming && `${naming.labelId} ${naming.badgeId}`}
+        href={href}
+        {...props}
+        {...mergeStatefulStyles(itemClasses(form, isCurrent), props)}
+      >
+        {itemContent(form, isCurrent, badge, icon, children, naming)}
+      </RACLink>
+    </li>
   )
 }
 
@@ -260,6 +275,31 @@ function NavigationLabel({
   )
 }
 
+/**
+ * The list a bar or a rail holds its destinations in, laid out as `layout`
+ * says, the bar's row or the rail's column, with the space between them its
+ * form's.
+ */
+function NavigationList({
+  children,
+  layout,
+}: {
+  children: ReactNode
+  layout: stylex.StyleXStyles
+}) {
+  const { form } = useContext(NavigationContext)
+
+  return (
+    <ul
+      // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari's VoiceOver drops the role once the markers are cleared
+      role="list"
+      {...stylex.props(navigationListStyles.list, layout, FORMS[form].list)}
+    >
+      {children}
+    </ul>
+  )
+}
+
 export type { NavigationItemProps }
 
-export { NavigationItem }
+export { NavigationItem, NavigationList }

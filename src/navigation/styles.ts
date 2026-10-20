@@ -112,6 +112,25 @@ const navigationItemStyles = stylex.create({
   },
 })
 
+// The list a bar or a rail holds its destinations in, and the item each
+// destination sits in — see `NavigationList` in ./index.tsx. The list clears
+// the margin, padding and markers a `<ul>` comes with, and each form gives
+// the space between its destinations as its `list`. The item takes the
+// destination's place in the bar's row or the rail's column, which each form
+// gives as its `listItem`, and the link fills it.
+const navigationListStyles = stylex.create({
+  item: {
+    boxSizing: 'border-box',
+    display: 'flex',
+  },
+  list: {
+    boxSizing: 'border-box',
+    listStyleType: 'none',
+    margin: 0,
+    padding: 0,
+  },
+})
+
 // The pages' least touch target, which a horizontal bar destination's 40dp
 // pill falls short of.
 const TARGET_SIZE = '48px'
@@ -316,6 +335,19 @@ const barItemStyles = stylex.create({
       [media.medium]: colors.onSecondaryContainer,
     },
   },
+  // Vertical destinations meet, and horizontal ones are 8dp apart — see
+  // NavigationBar.
+  list: {
+    gap: { default: 0, [media.medium]: spacing.sm },
+  },
+  // A vertical destination's equal share of the bar, and a horizontal one's
+  // pill. Either may shrink below what it holds, which is what cuts a label
+  // short for the bar to measure — see NavigationBar.
+  listItem: {
+    flexBasis: { default: 0, [media.medium]: 'auto' },
+    flexGrow: { default: 1, [media.medium]: 0 },
+    minInlineSize: 0,
+  },
 })
 
 // The collapsed rail's destination: always vertical, the pitch from one to
@@ -393,6 +425,15 @@ const collapsedItemStyles = stylex.create({
   labelCurrent: {
     color: colors.secondary,
   },
+  list: {
+    gap: spacing.xs,
+  },
+  // The rail's width, and its height kept in a rail too short for every
+  // destination.
+  listItem: {
+    flexShrink: 0,
+    inlineSize: '100%',
+  },
 })
 
 // The expanded rail's destination: always horizontal, a 56dp pill as wide as
@@ -468,6 +509,15 @@ const expandedItemStyles = stylex.create({
   labelCurrent: {
     color: colors.onSecondaryContainer,
   },
+  // The pills meet, as the page draws them.
+  list: {},
+  // As wide as the pill, from the leading edge, and its height kept in a
+  // rail too short for every destination.
+  listItem: {
+    alignSelf: 'flex-start',
+    flexShrink: 0,
+    maxInlineSize: '100%',
+  },
 })
 
 // The bar's destination when the bar is too narrow for its horizontal form
@@ -487,6 +537,14 @@ const crampedBarItemStyles = stylex.create({
     paddingBlock: '6px',
     paddingInline: 0,
   },
+  list: {
+    gap: 0,
+  },
+  listItem: {
+    flexBasis: 0,
+    flexGrow: 1,
+    minInlineSize: 0,
+  },
 })
 
 export {
@@ -495,4 +553,5 @@ export {
   crampedBarItemStyles,
   expandedItemStyles,
   navigationItemStyles,
+  navigationListStyles,
 }

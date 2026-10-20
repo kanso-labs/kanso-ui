@@ -8,12 +8,12 @@ import { useLayoutEffect, useMemo, useState } from 'react'
 import type { NavigationItemProps } from '../../navigation'
 import type { RenderComponentProps } from '../../render/useRender'
 
-import { NavigationItem } from '../../navigation'
+import { NavigationItem, NavigationList } from '../../navigation'
 import { NavigationContext } from '../../navigation/context'
 import { mergeRefs } from '../../render/ref'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
-import { colors, media, spacing } from '../../tokens/design.tokens.stylex'
+import { colors } from '../../tokens/design.tokens.stylex'
 
 // The navigation bar page's flexible bar: three to five destinations across
 // the bottom of a compact window, on the surface container, 64dp tall. Below
@@ -57,15 +57,16 @@ const styles = stylex.create({
     backgroundColor: colors.surfaceContainer,
     boxSizing: 'border-box',
     display: 'flex',
-    gap: { default: 0, [media.medium]: spacing.sm },
     inlineSize: '100%',
-    justifyContent: 'center',
     minBlockSize: '64px',
   },
-  // The vertical form's spacing, at a width that would otherwise draw the
-  // horizontal one.
-  barCramped: {
-    gap: 0,
+  // The row the destinations are a list in, across the whole bar.
+  destinations: {
+    alignItems: 'center',
+    display: 'flex',
+    flexGrow: 1,
+    justifyContent: 'center',
+    minInlineSize: 0,
   },
 })
 
@@ -115,6 +116,7 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
  * ```
  */
 function NavigationBar({
+  children,
   render,
   selectedRoute,
   ...props
@@ -141,9 +143,9 @@ function NavigationBar({
     defaultTagName: 'nav',
     props: {
       ...props,
-      ...mergeStyles(
-        stylex.props(styles.bar, isCramped && styles.barCramped),
-        props,
+      ...mergeStyles(stylex.props(styles.bar), props),
+      children: (
+        <NavigationList layout={styles.destinations}>{children}</NavigationList>
       ),
       ref: merged,
     },
@@ -171,11 +173,11 @@ function NavigationBarItem(
 /**
  * How much wider the bar would have to be for none of its labels to be cut
  * short: what each one lacks of its own width, summed. A label is the last
- * part of its destination.
+ * part of its destination's link, in its item of the bar's list.
  */
 function shortfallOf(bar: HTMLElement) {
   let total = 0
-  for (const destination of bar.children) {
+  for (const destination of bar.querySelectorAll(':scope > ul > li > a')) {
     const label = destination.lastElementChild
     if (label instanceof HTMLElement) {
       total += Math.max(0, label.scrollWidth - label.clientWidth)
