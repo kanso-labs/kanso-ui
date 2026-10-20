@@ -100,11 +100,11 @@ const styles = stylex.create({
   },
 })
 
-type ChipGroupChipProps = Omit<
-  RACTagProps,
-  'children' | 'className' | 'style'
-> & {
-  /** The chip's label. */
+type ChipGroupChipProps = {
+  /**
+   * The chip's label. Text, numbers, or a mix of the two — `Label {3}` —
+   * also name the chip; a label holding an element needs `textValue`.
+   */
   children?: ReactNode
   /** A function may compute the class from the chip's render state. */
   className?: RACTagProps['className']
@@ -116,7 +116,15 @@ type ChipGroupChipProps = Omit<
   icon?: ReactNode
   /** A function may compute the style from the chip's render state. */
   style?: RACTagProps['style']
-}
+  /**
+   * The chip's name as text, which is what a screen reader announces for
+   * its row. Read from the label when that is text or numbers, so it is
+   * needed only when the label holds an element — emphasis, a count in a
+   * badge — and React Aria warns in the console when such a chip has none.
+   * Given, it wins over the text read from the label.
+   */
+  textValue?: string
+} & Omit<RACTagProps, 'children' | 'className' | 'style' | 'textValue'>
 
 type ChipGroupProps<T extends object = object> = {
   /**

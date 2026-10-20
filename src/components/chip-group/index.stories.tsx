@@ -52,6 +52,30 @@ const ICON_CHIPS = (
   </>
 )
 
+// Labels built from text and a number, which JSX hands a chip as an array.
+const NUMBERED_CHIPS = (
+  <>
+    <ChipGroup.Chip id="first">First item {1}</ChipGroup.Chip>
+    <ChipGroup.Chip id="second">Second item {2}</ChipGroup.Chip>
+    <ChipGroup.Chip id="third">Third item {3}</ChipGroup.Chip>
+  </>
+)
+
+// Labels holding an element, which name nothing on their own.
+const RICH_CHIPS = (
+  <>
+    <ChipGroup.Chip id="first" textValue="First item">
+      <strong>First</strong> item
+    </ChipGroup.Chip>
+    <ChipGroup.Chip id="second" textValue="Second item">
+      <strong>Second</strong> item
+    </ChipGroup.Chip>
+    <ChipGroup.Chip id="third" textValue="Third item">
+      <strong>Third</strong> item
+    </ChipGroup.Chip>
+  </>
+)
+
 const styles = stylex.create({
   // Leaves the open panel somewhere to go below its trigger, so the snapshot
   // frames both — see popover/index.stories.tsx.
@@ -214,6 +238,20 @@ const WithIcons: Story = {
   render: Default.render,
 }
 
+// A label built from text and a number names its chip by itself: each row
+// is read as `First item 1` and so on, with no `textValue`.
+const NumberedLabels: Story = {
+  args: { children: NUMBERED_CHIPS, selectionMode: 'multiple' },
+  render: Default.render,
+}
+
+// A label holding an element names nothing by itself, so each chip says what
+// it is worth through `textValue`, which is what its row is read as.
+const RichLabels: Story = {
+  args: { children: RICH_CHIPS, selectionMode: 'multiple' },
+  render: Default.render,
+}
+
 // Its own story because it takes a narrow row as well as a long label: a chip
 // is never wider than its row, so a label with no room ends in an ellipsis
 // rather than wrapping, and the check and close target stay inside the pill.
@@ -287,8 +325,10 @@ export {
   Invalid,
   LongLabel,
   MultipleSelection,
+  NumberedLabels,
   RemovableChips,
   Removing,
+  RichLabels,
   SingleSelection,
   WithDescription,
   WithIcons,

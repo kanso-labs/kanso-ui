@@ -407,12 +407,13 @@ export namespace ChipGroup {
 export function ChipGroupChip(input: ChipGroupChipProps & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
-export type ChipGroupChipProps = Omit<TagProps_2, 'children' | 'className' | 'style'> & {
+export type ChipGroupChipProps = {
     children?: ReactNode;
     className?: TagProps_2['className'];
     icon?: ReactNode;
     style?: TagProps_2['style'];
-};
+    textValue?: string;
+} & Omit<TagProps_2, 'children' | 'className' | 'style' | 'textValue'>;
 
 // @public (undocumented)
 export type ChipGroupProps<T extends object = object> = {
