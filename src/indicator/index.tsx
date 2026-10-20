@@ -23,17 +23,20 @@ const ACTIVE_TONES = {
 /**
  * The label and, optionally, the value, on a line above the indicator.
  * React Aria's `Label` reads the surrounding context, so the same element
- * names a progress bar and a meter alike. Renders nothing when there is
- * neither to show.
+ * names a progress bar and a meter alike. `status` is drawn just before the
+ * value, at the end of the line, which is where a meter puts the glyph that
+ * says its tone. Renders nothing when there is none of the three to show.
  */
 export function IndicatorLabels({
   label,
+  status,
   value,
 }: {
   label: ReactNode
+  status?: ReactNode
   value: ReactNode
 }) {
-  if (!hasContent(label) && !hasContent(value)) {
+  if (!hasContent(label) && !hasContent(status) && !hasContent(value)) {
     return null
   }
 
@@ -46,8 +49,9 @@ export function IndicatorLabels({
           {label}
         </Label>
       )}
-      {!hasContent(value) ? null : (
+      {!hasContent(status) && !hasContent(value) ? null : (
         <span {...stylex.props(indicatorStyles.label, indicatorStyles.value)}>
+          {status}
           {value}
         </span>
       )}

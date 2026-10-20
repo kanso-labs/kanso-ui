@@ -15,13 +15,13 @@ import { glyphStyles } from './styles'
 //
 // The paths are the check, the horizontal rule, the plus, the search, the
 // close, the right and down chevrons, the two sort arrows, the back arrow,
-// the drop-down arrow, the calendar, the schedule clock, the keyboard and the
-// person from
+// the drop-down arrow, the calendar, the schedule clock, the keyboard, the
+// person, and the filled error and check circles from
 // Material Symbols on their 24-unit grid, which is what the checkbox page
 // draws at 18dp, the icon buttons page at 20 and the search, menus, date
 // picker and time picker pages at 24 — the date picker's menu
-// buttons draw their arrow at 18, and a split button's menu button its
-// chevron at between 22 and 50.
+// buttons draw their arrow at 18, a split button's menu button its
+// chevron at between 22 and 50, and a meter its two circles at 18.
 
 type GlyphProps = Omit<SVGProps<SVGSVGElement>, 'children' | 'viewBox'>
 
@@ -76,6 +76,17 @@ function CalendarGlyph(props: GlyphProps) {
   )
 }
 
+// What a meter in the positive tone draws beside its value: a check in a
+// filled circle, the same outline as the negative tone's error so the two
+// differ by the mark inside rather than by their colour alone.
+function CheckCircleGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+    </Glyph>
+  )
+}
+
 function CheckGlyph(props: GlyphProps) {
   return (
     <Glyph {...props}>
@@ -90,6 +101,16 @@ function ClockGlyph(props: GlyphProps) {
   return (
     <Glyph {...props}>
       <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+    </Glyph>
+  )
+}
+
+// What a meter in the negative tone draws beside its value: an exclamation
+// mark in a filled circle — see `CheckCircleGlyph`.
+function ErrorGlyph(props: GlyphProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
     </Glyph>
   )
 }
@@ -196,11 +217,13 @@ export {
   ArrowDropDownGlyph,
   ArrowUpwardGlyph,
   CalendarGlyph,
+  CheckCircleGlyph,
   CheckGlyph,
   ChevronDownGlyph,
   ChevronEndGlyph,
   ClockGlyph,
   CloseGlyph,
+  ErrorGlyph,
   IndeterminateGlyph,
   KeyboardGlyph,
   MinusGlyph,
