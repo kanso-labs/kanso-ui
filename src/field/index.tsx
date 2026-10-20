@@ -263,6 +263,13 @@ interface FieldMessageProps {
    */
   errorId?: string | undefined
   /**
+   * Whether the line starts 8dp in, as the label of the control above it
+   * does. For a checkbox's or a switch's line, which sits in the label's
+   * column rather than under a box.
+   * @default false
+   */
+  indent?: boolean
+  /**
    * Whether the line is indented to a box's inline padding, so it starts
    * where a value above it does. Off for a field with no box to line up with.
    * @default true
@@ -1051,6 +1058,7 @@ function FieldMessage({
   description,
   error,
   errorId,
+  indent = false,
   inset = true,
   isDisabled = false,
   maxLength,
@@ -1192,6 +1200,7 @@ function FieldMessage({
       {...stylex.props(
         fieldChromeStyles.message,
         fieldChromeStyles.messageLine,
+        indent && fieldChromeStyles.messageIndent,
         inset && fieldChromeStyles.messageInset,
         collapsed && fieldChromeStyles.messageLineCollapsed,
       )}

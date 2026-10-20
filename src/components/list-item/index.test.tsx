@@ -20,6 +20,7 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
+import Avatar from '../avatar'
 
 // The query the row's hover waits on, spelled as src/row/styles.ts spells it.
 const HOVER_CAPABLE = '@media (hover: hover)'
@@ -93,6 +94,14 @@ function textRight(element: Element) {
   const range = document.createRange()
   range.selectNodeContents(element)
   return range.getBoundingClientRect().right
+}
+
+/** How far below the top edge of the row in `container` an element starts. */
+function topInRow(container: HTMLElement, element: Element) {
+  return (
+    element.getBoundingClientRect().top -
+    rowIn(container).getBoundingClientRect().top
+  )
 }
 
 // The floor the hook holds a short press open to, taken from the token it
@@ -380,7 +389,7 @@ describe('list item', () => {
     })
 
     // Measured rather than read off `min-height`, since the container height
-    // is the point: the row's own box comes to 66 with an overline and 70
+    // is the point: the row's own box comes to 58 with an overline and 62
     // with a supporting line, so only a rendered height proves the floor is
     // what decides a two-line row. Three lines add up to the page's 88 on
     // their own, and are here so a change to the padding or the gap that
@@ -403,6 +412,54 @@ describe('list item', () => {
       expect(rowIn(withOverline.container).offsetHeight).toBe(72)
       expect(rowIn(withSupporting.container).offsetHeight).toBe(72)
       expect(rowIn(threeLine.container).offsetHeight).toBe(88)
+    })
+
+    // The page pads a one-line and a two-line row 8dp above and below, which
+    // is what holds a 40dp avatar to the one-line height and a 56dp one to
+    // the two-line height. At 12dp the two came to 64 and 80. The small
+    // avatar sits inside the floor either way.
+    it.each([
+      ['sm', 56],
+      ['md', 56],
+      ['lg', 72],
+    ] as const)('holds a row with a %s avatar to %ipx', (size, height) => {
+      const view = render(
+        <ListItem leading={<Avatar name="Ada Lovelace" size={size} />}>
+          Headline
+        </ListItem>,
+      )
+
+      expect(rowIn(view.container).offsetHeight).toBe(height)
+    })
+
+    // The floor hides the padding of a three-line row, since 8dp above and
+    // below come to 80 and the floor lifts it to 88, so the 12dp the page
+    // gives it is read off where its first line starts. A two-line row
+    // centres its lines in its floor, and its padding is read the same way
+    // off a leading element taller than the lines.
+    it('pads a three-line row 12 above its first line, and the others 8', () => {
+      const threeLine = render(
+        <ListItem overline="Overline" supporting="Supporting line">
+          Headline
+        </ListItem>,
+      )
+      const twoLine = render(
+        <ListItem
+          leading={<Avatar name="Ada Lovelace" size="lg" />}
+          supporting="Supporting line"
+        >
+          Headline
+        </ListItem>,
+      )
+      expect(
+        topInRow(threeLine.container, threeLine.getByText('Overline')),
+      ).toBe(12)
+      expect(
+        topInRow(
+          twoLine.container,
+          twoLine.getByRole('img', { name: 'Ada Lovelace' }),
+        ),
+      ).toBe(8)
     })
 
     it('holds its slots at the top while interactive too', () => {

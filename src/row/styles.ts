@@ -30,6 +30,13 @@ import {
 // `menu` and `drawer` carry only what the three pages disagree on, and a
 // consumer applies one of them beside `base`.
 //
+// The block padding is the lists page's 8dp, which is what puts a row's
+// 40dp leading element — an avatar, a selection checkbox — on the 56dp
+// one-line height, and a 56dp one on 72. The page pads a three-line row 12dp
+// instead, which `threeLine` carries. A menu item and a drawer row hold one
+// line of text inside a taller floor, so their padding shows only on a label
+// that wraps.
+//
 // Laid out with flex rather than the grid the design draws. The design's
 // three columns are `auto 1fr auto`, which is what flex does natively — and
 // unlike a fixed three-column grid it stays correct when a row has no leading
@@ -76,7 +83,7 @@ const rowStyles = stylex.create({
     display: 'flex',
     gap: spacing.lg,
     inlineSize: '100%',
-    paddingBlock: spacing.md,
+    paddingBlock: spacing.sm,
     paddingInline: spacing.lg,
     position: 'relative',
     textAlign: 'start',
@@ -383,14 +390,15 @@ const rowStyles = stylex.create({
       [FORCED_COLORS]: 'HighlightText',
     },
   },
-  // The lists page's three-line container height, with the leading and
-  // trailing slots held at the top rather than centred. Three lines of text
-  // beside a centred avatar reads as though the avatar has drifted, which is
-  // why the page moves it — the row's `alignItems` is what does both slots
-  // at once.
+  // The lists page's three-line container height and the 12dp it pads that
+  // row with, with the leading and trailing slots held at the top rather
+  // than centred. Three lines of text beside a centred avatar reads as
+  // though the avatar has drifted, which is why the page moves it — the
+  // row's `alignItems` is what does both slots at once.
   threeLine: {
     alignItems: 'flex-start',
     minBlockSize: sizing.rowLg,
+    paddingBlock: spacing.md,
   },
   // The lists page's two-line container height, for a row drawing two of its
   // three lines: a headline with a supporting line, or with an overline.
@@ -398,15 +406,16 @@ const rowStyles = stylex.create({
   // Stated as a floor, which is what the other two heights are as well. The
   // page names 56, 72 and 88 as container heights rather than deriving them,
   // and only the three-line one happens to equal what the row's own box adds
-  // up to — 16 + 24 + 20 of line height, two `main` gaps and the block
-  // padding come to exactly 88. The same arithmetic leaves a headline and a
-  // supporting line at 70, and a headline under an overline at 66, so the
-  // page's middle height is the one a row reaches only by being told it.
+  // up to — 16 + 24 + 20 of line height, two `main` gaps and that row's 12dp
+  // of block padding come to exactly 88. The same arithmetic at the 8dp the
+  // page pads a two-line row with leaves a headline and a supporting line at
+  // 62, and a headline under an overline at 58, so the page's middle height
+  // is the one a row reaches only by being told it.
   //
-  // No padding or gap closes that on its own: holding 88 while lifting 70 to
-  // 72 needs the gap at 0 and the block padding at 14, and 14 is not on the
-  // spacing scale. The floor keeps the page's number where the page puts it,
-  // next to the other two, and leaves the row centring its lines inside it.
+  // No padding closes that on its own: lifting 62 to 72 needs 13dp above and
+  // below, which is neither the page's padding nor a step of the spacing
+  // scale. The floor keeps the page's number where the page puts it, next to
+  // the other two, and leaves the row centring its lines inside it.
   twoLine: {
     minBlockSize: sizing.rowMd,
   },

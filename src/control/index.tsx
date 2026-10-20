@@ -67,6 +67,7 @@ function ControlDescription({
         {...stylex.props(
           fieldChromeStyles.message,
           fieldChromeStyles.messageLine,
+          fieldChromeStyles.messageIndent,
         )}
       >
         <Text
