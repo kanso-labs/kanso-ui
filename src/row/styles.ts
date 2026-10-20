@@ -1,5 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 
+import type { RowVariant } from '.'
+
 import {
   colors,
   radii,
@@ -410,4 +412,35 @@ const rowStyles = stylex.create({
   },
 })
 
-export { rowStyles }
+/**
+ * The tone a row's muted text takes over its own muted style: the supporting
+ * line and the overline, and a menu item's shortcut. Nothing while the row is
+ * drawn on the surface, where the muted style's on surface variant holds;
+ * the selected container's own on-colour while selected; and the row's own
+ * colour while disabled. Disabled is asked first, since a disabled row's own
+ * colour is already the faded one and so wins over the selected container's
+ * content role. One function for every caller, so a shortcut and the
+ * supporting line beside it cannot come to disagree.
+ */
+function supportingTone(
+  variant: RowVariant,
+  { isDisabled, isSelected }: { isDisabled: boolean; isSelected: boolean },
+) {
+  if (isDisabled) {
+    return rowStyles.supportingInherit
+  }
+  if (!isSelected) {
+    return null
+  }
+  // Each variant's container is a different colour family, and the muted
+  // role is not guaranteed to be readable over any of them.
+  if (variant === 'drawer') {
+    return rowStyles.supportingSelectedDrawer
+  }
+  if (variant === 'menu') {
+    return rowStyles.supportingSelectedMenu
+  }
+  return rowStyles.supportingSelectedList
+}
+
+export { rowStyles, supportingTone }

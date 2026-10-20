@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import * as stylex from '@stylexjs/stylex'
 
 import { hasContent } from '../render/content'
-import { rowStyles } from './styles'
+import { rowStyles, supportingTone } from './styles'
 
 interface RowContentProps {
   /** The row's headline — the one thing it is mostly about. */
@@ -78,11 +78,7 @@ function RowContent({
   // what they do not share is the container a selected row brings, which is
   // why the tone below still asks which variant this is.
   const label = variant === 'drawer' || variant === 'menu'
-  // Disabled first: a disabled row's own colour is already the faded one, so
-  // it wins over the selected container's content role.
-  const supportingTone = isDisabled
-    ? rowStyles.supportingInherit
-    : isSelected && selectedSupportingTone(variant)
+  const tone = supportingTone(variant, { isDisabled, isSelected })
   return (
     <>
       {!hasContent(leading) ? null : (
@@ -90,9 +86,7 @@ function RowContent({
       )}
       <span {...stylex.props(rowStyles.main)}>
         {!hasContent(overline) ? null : (
-          <span {...stylex.props(rowStyles.overline, supportingTone)}>
-            {overline}
-          </span>
+          <span {...stylex.props(rowStyles.overline, tone)}>{overline}</span>
         )}
         <span
           {...stylex.props(
@@ -103,7 +97,7 @@ function RowContent({
           {children}
         </span>
         {!hasContent(supporting) ? null : (
-          <span {...stylex.props(rowStyles.supporting, supportingTone)}>
+          <span {...stylex.props(rowStyles.supporting, tone)}>
             {supporting}
           </span>
         )}
@@ -113,19 +107,6 @@ function RowContent({
       )}
     </>
   )
-}
-
-// Which on-colour a supporting line takes over a selected row's own
-// container. Each variant's container is a different colour family, and the
-// muted role is not guaranteed to be readable over any of them.
-function selectedSupportingTone(variant: RowVariant) {
-  if (variant === 'drawer') {
-    return rowStyles.supportingSelectedDrawer
-  }
-  if (variant === 'menu') {
-    return rowStyles.supportingSelectedMenu
-  }
-  return rowStyles.supportingSelectedList
 }
 
 export type { RowContentProps, RowVariant }

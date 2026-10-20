@@ -44,8 +44,9 @@ import {
 import { textOf } from '../../collection/text'
 import { CheckGlyph, ChevronEndGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
+import { KeycapToneContext } from '../../keycap/context'
 import { RowContent } from '../../row'
-import { rowStyles } from '../../row/styles'
+import { rowStyles, supportingTone } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import {
@@ -89,6 +90,9 @@ import Separator from '../separator'
 // reader reads the label alone and announces the keystroke separately. Left
 // as plain content, the item's name is its whole text and the shortcut is
 // read as part of what the item does. The keycap itself is the library's.
+// The shortcut's colour follows the item's state as the supporting line's
+// does, through the same `supportingTone`, and a selected or disabled item
+// hands a keycap inside it the `inherit` tone, so the keycap follows too.
 //
 // **A submenu's arrow is drawn from render state, not from a prop.** React
 // Aria reports `hasSubmenu` on the item inside a `SubmenuTrigger`, so an item
@@ -186,14 +190,12 @@ const styles = stylex.create({
     marginBlock: spacing.sm,
   },
   // The shortcut, in the muted role so the label stays the thing being read.
+  // That role holds only on the surface: over a selected item's container it
+  // takes the container's own on-colour, and on a disabled item it fades
+  // with the label, `GrayText` with it under forced colours — the rules the
+  // row's supporting line follows, through the same `supportingTone`.
   shortcut: {
     color: colors.onSurfaceVariant,
-  },
-  // A disabled item's shortcut fades with its label, and is `GrayText` with
-  // it under forced colours, rather than staying at full strength beside a
-  // label that has faded — the rule the row's supporting line follows.
-  shortcutDisabled: {
-    color: 'inherit',
   },
 })
 
@@ -268,7 +270,9 @@ type MenuItemProps<T extends object = object> = {
   /**
    * The keystroke that runs the item, drawn as a keycap at the end. Goes
    * through React Aria's keyboard slot, so a screen reader announces it
-   * apart from the label rather than reading the two as one name.
+   * apart from the label rather than reading the two as one name. It takes
+   * the item's colour while the item is selected or disabled, and so does a
+   * `Keycap` inside it, its rule included.
    */
   shortcut?: ReactNode
   /** A function may compute the style from the item's render state. */
@@ -671,12 +675,13 @@ function trailingOf(
       {trailing}
       {shortcut === undefined ? null : (
         <Keyboard
-          {...stylex.props(
-            styles.shortcut,
-            state.isDisabled && styles.shortcutDisabled,
-          )}
+          {...stylex.props(styles.shortcut, supportingTone('menu', state))}
         >
-          {shortcut}
+          <KeycapToneContext
+            value={state.isDisabled || state.isSelected ? 'inherit' : 'neutral'}
+          >
+            {shortcut}
+          </KeycapToneContext>
         </Keyboard>
       )}
       {check}

@@ -12,6 +12,9 @@ const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
 const CUT = <Keycap>⌘X</Keycap>
 const COPY = <Keycap>⌘C</Keycap>
+const KEY_1 = <Keycap>⌘1</Keycap>
+const KEY_2 = <Keycap>⌘2</Keycap>
+const KEY_3 = <Keycap>⌘3</Keycap>
 
 const meta = {
   component: Menu,
@@ -130,6 +133,29 @@ const MultipleSelection: Story = {
   ),
 }
 
+// A shortcut follows its item. On the chosen item it takes the selected
+// container's on-colour, the keycap's rule included, and on a disabled item
+// it fades with the label rather than staying the darkest thing on the row.
+const Shortcuts: Story = {
+  parameters: { docs: { story: { height: '360px', inline: false } } },
+  render: (args) => (
+    <Menu {...args} defaultOpen>
+      <Button variant="outlined">Label</Button>
+      <Menu.Content defaultSelectedKeys={SECOND} selectionMode="single">
+        <Menu.Item id="first" shortcut={KEY_1}>
+          First item
+        </Menu.Item>
+        <Menu.Item id="second" shortcut={KEY_2}>
+          Second item
+        </Menu.Item>
+        <Menu.Item id="third" isDisabled shortcut={KEY_3}>
+          Third item
+        </Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+}
+
 // An item given an `href` renders as an anchor and follows it when chosen,
 // drawn exactly as the items beside it are: a menu's items are all followed
 // the same way, so none of them is set apart as a link.
@@ -149,6 +175,14 @@ const WithLink: Story = {
   ),
 }
 
-export { Default, Loading, MultipleSelection, Sections, Submenu, WithLink }
+export {
+  Default,
+  Loading,
+  MultipleSelection,
+  Sections,
+  Shortcuts,
+  Submenu,
+  WithLink,
+}
 
 export default meta

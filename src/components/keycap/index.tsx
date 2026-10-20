@@ -1,9 +1,11 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
+import { KeycapToneContext } from '../../keycap/context'
 import { useRender } from '../../render/useRender'
 import { mergeStyles } from '../../styles/merge'
 import {
@@ -32,6 +34,12 @@ import {
 // in the outline role around a label. Its size is the text's, as above, and
 // its corner is the extra-small step of the shape scale rather than the
 // chip's small one, since a box the height of a line has no room for 8dp.
+//
+// Inside a selected or disabled menu item's shortcut it draws in the
+// shortcut's colour instead, its rule included, through a context the item
+// provides — see `KeycapToneContext`. Its own on surface would otherwise
+// stay dark on a row that has faded, and its own colours do not belong on
+// the selected container, which brings an on-colour of its own.
 const styles = stylex.create({
   base: {
     backgroundColor: 'transparent',
@@ -53,6 +61,10 @@ const styles = stylex.create({
     // across two lines stops reading as one key.
     whiteSpace: 'nowrap',
   },
+  inherit: {
+    borderColor: 'currentColor',
+    color: 'inherit',
+  },
 })
 
 type KeycapProps = RenderComponentProps<'kbd'>
@@ -61,13 +73,20 @@ type KeycapProps = RenderComponentProps<'kbd'>
  * A single key on a keyboard, as named in an instruction — `Enter`, `Esc`,
  * `Ctrl`. It renders a `<kbd>` and takes its scale from the text around it. A
  * chord is several of these, combined at the call site.
+ *
+ * In a menu item's `shortcut` it follows the item: while the item is selected
+ * or disabled, its text and its rule take the item's colour.
  */
 function Keycap({ render, ...props }: KeycapProps) {
+  const tone = useContext(KeycapToneContext)
   return useRender({
     defaultTagName: 'kbd',
     props: {
       ...props,
-      ...mergeStyles(stylex.props(styles.base), props),
+      ...mergeStyles(
+        stylex.props(styles.base, tone === 'inherit' && styles.inherit),
+        props,
+      ),
     },
     render,
   })
