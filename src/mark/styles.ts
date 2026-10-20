@@ -28,18 +28,25 @@ import { colors, radii, typography } from '../tokens/design.tokens.stylex'
 // initials are always a role's own foreground and can't end up unreadable on
 // a tint they were never paired with.
 //
-// Sizes carry their own type size but not their own weight or family: the
-// label face at medium weight holds across all three, so a large mark is
-// bigger initials rather than differently-styled ones.
+// `md` is the leading avatar of Material Design's lists page: 40dp, with its
+// initials in the role the list tokens give that avatar's label,
+// `ItemLeadingAvatarLabelFont`, which is title medium — 16 on 24, with 0.15 of
+// tracking. 40dp is also Button's and IconButton's own `md` height, so a mark
+// and a control line up in a row.
 //
-// The three are the library's own rather than a spec page's — no Material
-// Design page gives a measurement for one in text; the lists page draws its
-// leading elements in a diagram and tabulates only their padding. So they are
-// stated against the scale the library already has. `md` is 40dp, which is
-// Button's and IconButton's own `md` height, so a mark and a control line up
-// in a row. `lg` is 56dp. `sm` is 36dp, between the 32dp a chip and an `xs`
-// control take and that 40dp default, for a row that wants a person smaller
-// than the button beside them.
+// The other two sizes are the library's own, since the lists page gives only
+// the 40dp case. `lg` is 56dp. `sm` is 36dp, between the 32dp a chip and an
+// `xs` control take and that 40dp default, for a row that wants a person
+// smaller than the button beside them. Each sets its initials in the role
+// whose size is the same two fifths of its diameter as title medium is of
+// 40dp: label large's 14 in 36dp, and title large's 22 in 56dp. They take that
+// role's size, line height and tracking, and keep title medium's family and
+// weight, so a large mark is bigger initials rather than differently styled
+// ones — title large is set in the brand face at regular weight, which would
+// draw the same person's initials in another face at one size.
+//
+// Every size sets its line height and tracking as well as its size, so
+// nothing about the initials is inherited from what the mark sits in.
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -59,8 +66,8 @@ const markStyles = stylex.create({
     boxSizing: 'border-box',
     display: 'inline-flex',
     flexShrink: 0,
-    fontFamily: typography.labelLargeFont,
-    fontWeight: typography.weightMedium,
+    fontFamily: typography.titleMediumFont,
+    fontWeight: typography.titleMediumWeight,
     justifyContent: 'center',
     // Clips the image to the shape, so one of any aspect ratio can be handed
     // over without the call site having to crop it first.
@@ -106,13 +113,17 @@ const markStyles = stylex.create({
   },
   lg: {
     blockSize: '56px',
-    fontSize: typography.bodyLargeSize,
+    fontSize: typography.titleLargeSize,
     inlineSize: '56px',
+    letterSpacing: typography.titleLargeTracking,
+    lineHeight: typography.titleLargeLineHeight,
   },
   md: {
     blockSize: '40px',
-    fontSize: typography.labelLargeSize,
+    fontSize: typography.titleMediumSize,
     inlineSize: '40px',
+    letterSpacing: typography.titleMediumTracking,
+    lineHeight: typography.titleMediumLineHeight,
   },
   negative: {
     backgroundColor: colors.negativeContainer,
@@ -140,8 +151,10 @@ const markStyles = stylex.create({
   },
   sm: {
     blockSize: '36px',
-    fontSize: typography.labelMediumSize,
+    fontSize: typography.labelLargeSize,
     inlineSize: '36px',
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
   },
   square: {
     borderRadius: radii.sm,
