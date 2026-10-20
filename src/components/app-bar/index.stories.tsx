@@ -270,6 +270,18 @@ const Large: Story = {
   },
 }
 
+// The state a flexible bar collapses into, held still: the small bar's height,
+// with the headline and the subtitle both kept, in the small bar's type roles.
+// Collapsing reaches it only once its page is scrolled, which no snapshot of
+// that story is.
+const Collapsed: Story = {
+  args: {
+    collapsed: true,
+    size: 'lg',
+    subtitle: 'Supporting line',
+  },
+}
+
 // The one story that has to be driven rather than described: both props are
 // controlled, so what a reader needs to see is the wiring, not the states.
 const Collapsing: Story = {
@@ -401,6 +413,14 @@ const PageAlignment: Story = {
   ),
 }
 
-export { Collapsing, Default, Large, LongHeadline, PageAlignment, ShortPage }
+export {
+  Collapsed,
+  Collapsing,
+  Default,
+  Large,
+  LongHeadline,
+  PageAlignment,
+  ShortPage,
+}
 
 export default meta
