@@ -1,6 +1,7 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
+import { isValidElement } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -60,6 +61,10 @@ const justifications = stylex.create({
 // spaced from its neighbours by the UA rather than by whatever holds it.
 // Breadcrumbs clears the same three on the list it renders, and Text clears
 // the margin for the same reason.
+//
+// Clearing the markers costs a list its role in Safari, whose VoiceOver stops
+// announcing a list once its markers are gone, so a stack rendered as a <ul>
+// or an <ol> gives the role back itself — see `listRole`.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
@@ -134,6 +139,17 @@ type StackProps = {
   wrap?: boolean
 } & RenderComponentProps<'div'>
 
+// The role a list rendered through an element form of `render` is given
+// back, since the stack cleared the markers that carried it. Put under the
+// call site's props, and under the element's own as `useRender` merges them,
+// so a `role` written on either wins.
+function listRole(render: StackProps['render']) {
+  return isValidElement(render) &&
+    (render.type === 'ul' || render.type === 'ol')
+    ? 'list'
+    : undefined
+}
+
 /**
  * A row or a column of children with one gap between them, taken from the
  * spacing scale.
@@ -145,9 +161,12 @@ type StackProps = {
  *
  * `render` swaps the element, for a stack that should be a `<ul>`, a `<nav>`,
  * or a `<section>` rather than a `<div>`. A list comes without its UA margin,
- * padding and markers, and wants `role="list"` on the `<ul>`: Safari's
- * VoiceOver stops announcing a list once its markers are gone, and the role
- * puts it back.
+ * padding and markers, and with `role="list"`: Safari's VoiceOver stops
+ * announcing a list once its markers are gone, and the role puts it back. A
+ * `role` the call site writes, on the stack or on the element, is kept
+ * instead. A `render` function returns an element the stack cannot see
+ * before it renders, so a list returned from one wants the role written on
+ * it.
  */
 function Stack({
   align,
@@ -161,6 +180,7 @@ function Stack({
   return useRender({
     defaultTagName: 'div',
     props: {
+      role: listRole(render),
       ...props,
       ...mergeStyles(
         stylex.props(
