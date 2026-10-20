@@ -1,6 +1,7 @@
 'use client'
 
 import * as stylex from '@stylexjs/stylex'
+import { isRTL } from 'react-aria'
 import { useLocale } from 'react-aria-components'
 
 import type { RenderComponentProps } from '../../render/useRender'
@@ -20,12 +21,30 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // and medium weight from the type tokens, tabular figures, and the on surface
 // role for the neutral tone. Positive and negative are the library's own
 // roles, the pair Tag draws from as well.
+//
+// The amount is isolated from the text around it, so its characters are
+// ordered by its own direction, the one the element's `dir` names, rather
+// than by the paragraph's. Without that a minus sign or a currency code at
+// the edge of an amount is ordered with its neighbours: an American amount on
+// a right-to-left page draws its minus on the far side of the digits, and an
+// Arabic amount on a left-to-right page puts its code at the wrong end. A
+// browser's own stylesheet isolates an element carrying `dir` too; the rule
+// here keeps the amount isolated where a page's styles override that one.
+//
+// `dir` also turns `start` around, which an amount laid out as a block — a
+// flex item stretched across a column — would otherwise align to: an Arabic
+// amount in a left-to-right column would sit at its right edge.
+// `match-parent` reads `start` against the direction around the amount, so it
+// lines up with its neighbours, and inherits any alignment the container set.
+// Chromium knows it only as `-webkit-match-parent`, which is the fallback.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
     fontFamily: typography.fontFamilyMono,
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.weightMedium,
+    textAlign: stylex.firstThatWorks('match-parent', '-webkit-match-parent'),
+    unicodeBidi: 'isolate',
   },
 })
 
@@ -67,6 +86,10 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * for a page that states its currency some other way. `code` writes the
    * ISO code and `name` the currency's name in the locale's words, `US
    * dollars`.
+   *
+   * A right-to-left locale draws a symbol made of letters and a sign with
+   * its sign first, so Arabic's `US$` reads `$US`. `code` writes `USD`,
+   * which has no sign to turn around.
    * @default 'symbol'
    */
   currencyDisplay?: CurrencyDisplay
@@ -74,6 +97,11 @@ type CurrencyProps = Omit<RenderComponentProps<'span'>, 'children'> & {
    * BCP 47 locale to format for. Defaults to React Aria's `I18nProvider`, as
    * the date and number fields do, so an amount reads in the locale the app
    * set — and to the browser's language where there is no provider.
+   *
+   * The element carries the locale it was formatted in as its `lang`, and
+   * that locale's writing direction as its `dir`, so a screen reader can
+   * read it by the locale's own number rules and its characters fall in the
+   * locale's own order. A `lang` or `dir` the call site passes wins.
    */
   locale?: string
   /**
@@ -154,6 +182,10 @@ type CurrencyTone = 'auto' | 'inherit' | 'negative' | 'neutral' | 'positive'
  * Over a container of its own, such as a selected row, give it
  * `tone="inherit"` so it reads in the container's own on-colour.
  *
+ * It carries the `lang` and `dir` of the locale it was formatted in, and is
+ * isolated from the text around it, so an amount in a locale other than the
+ * page's reads in its own order.
+ *
  * The call site's `className` and `style` land on the element holding the
  * amount.
  */
@@ -194,6 +226,9 @@ function Currency({
     props: {
       ...props,
       children: amount.text,
+      // The call site's own win, for a page that states them some other way.
+      dir: props.dir ?? amount.direction,
+      lang: props.lang ?? amount.locale,
       ...mergeStyles(
         stylex.props(
           styles.base,
@@ -231,22 +266,30 @@ function Currency({
 const formatters = new Map<string, ResolvedFormat>()
 
 /**
- * A formatter, and the currency code written beside its number when it is
- * the decimal fallback for a code the runtime rejected.
+ * A formatter, the locale it formats in and that locale's direction, and the
+ * currency code written beside its number when it is the decimal fallback for
+ * a code the runtime rejected.
  */
-type ResolvedFormat = { code: null | string; formatter: Intl.NumberFormat }
+type ResolvedFormat = {
+  code: null | string
+  direction: 'ltr' | 'rtl'
+  formatter: Intl.NumberFormat
+  locale: string
+}
 
 // formatToParts rather than a replace over the formatted string, so only the
 // sign is substituted. A blind replace would also hit a hyphen inside a
 // locale's currency name or grouping, and locales that wrap negatives in
 // parentheses have no minus to swap at all — both of which this leaves alone.
 function formatCurrency(value: number, options: FormatOptions) {
-  const { code, formatter } = formatterFor(options)
+  const { code, direction, formatter, locale } = formatterFor(options)
   const parts = formatter.formatToParts(value)
   const amount = parts
     .map((part) => (part.type === 'minusSign' ? MINUS_SIGN : part.value))
     .join('')
   return {
+    direction,
+    locale,
     // Whether every digit shown is a zero, which is what the tone reads
     // rather than the raw value: the two never saw the same number before.
     shownAsZero: parts.every(
@@ -328,7 +371,15 @@ function formatterFor(options: FormatOptions) {
     return cached
   }
 
+  // The locale the amount is written in, which is the one its `lang` and
+  // `dir` name. React Aria's `isRTL` is what the provider's own direction
+  // comes from, so an amount in the provider's locale and the page around it
+  // agree.
   const usable = [locale, fallbackLocale].find(isLocale) ?? 'en-US'
+  const written = {
+    direction: isRTL(usable) ? 'rtl' : 'ltr',
+    locale: usable,
+  } as const
   const signDisplay = SIGN_DISPLAY[sign]
   const digits = { maximumFractionDigits, minimumFractionDigits }
   const asCurrency = {
@@ -360,7 +411,7 @@ function formatterFor(options: FormatOptions) {
   for (const [code, attempt] of attempts) {
     const formatter = formatterOrNull(usable, attempt)
     if (formatter !== null) {
-      const resolved = { code, formatter }
+      const resolved = { code, formatter, ...written }
       formatters.set(key, resolved)
       return resolved
     }
@@ -368,6 +419,7 @@ function formatterFor(options: FormatOptions) {
   const resolved = {
     code: currency,
     formatter: new Intl.NumberFormat(usable, { ...TWO_PLACES, signDisplay }),
+    ...written,
   }
   formatters.set(key, resolved)
   return resolved

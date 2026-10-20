@@ -6,6 +6,7 @@ import { I18nProvider } from 'react-aria-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Currency from '.'
+import { rulesReaching } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 import List from '../list'
 
@@ -38,6 +39,9 @@ const probeStyles = stylex.create({
 })
 
 const harnessStyles = stylex.create({
+  // A column whose items stretch across it, which makes an amount a block of
+  // its own and so lets its direction decide where its text sits.
+  column: { display: 'flex', flexDirection: 'column', inlineSize: '400px' },
   larger: { fontSize: '37px' },
 })
 
@@ -71,6 +75,19 @@ function formatted(
     signDisplay: options.sign ?? 'auto',
     style: 'currency',
   }).format(value)
+}
+
+// Where the browser draws one character of an element's text, which is what
+// its bidi ordering decides and what no attribute can show.
+function leftOf(element: HTMLElement, index: number) {
+  const text = element.firstChild
+  if (text === null) {
+    throw new Error('The element holds no text')
+  }
+  const range = document.createRange()
+  range.setStart(text, index)
+  range.setEnd(text, index + 1)
+  return range.getBoundingClientRect().left
 }
 
 // Every case pins a locale. Left to the runtime these would assert against
@@ -147,6 +164,125 @@ describe('currency', () => {
         value: 1284,
       })
       expect(currency.textContent).toBe('￥1,284')
+    })
+  })
+
+  // The element names the locale it was written in, so a screen reader can
+  // read it by that locale's rules, and its direction, so its characters fall
+  // in that locale's order whatever the page's direction is.
+  describe('language and direction', () => {
+    it.each([
+      ['de-DE', 'ltr'],
+      ['ar-EG', 'rtl'],
+      ['he-IL', 'rtl'],
+      ['ja-JP', 'ltr'],
+    ])('names %s and its direction', (locale, direction) => {
+      const { currency } = setup({ locale, value: -128.4 })
+      expect(currency.getAttribute('lang')).toBe(locale)
+      expect(currency.getAttribute('dir')).toBe(direction)
+    })
+
+    it("names the I18nProvider's locale when given none", () => {
+      const view = render(
+        <I18nProvider locale="ar-EG">
+          <Currency data-testid="currency" value={-128.4} />
+        </I18nProvider>,
+      )
+      const currency = view.getByTestId('currency')
+      expect(currency.getAttribute('lang')).toBe('ar-EG')
+      expect(currency.getAttribute('dir')).toBe('rtl')
+    })
+
+    // What it names is the locale the amount was actually written in, which
+    // for a locale the runtime rejects is the provider's.
+    it.each([
+      ['an empty locale', ''],
+      ['a malformed locale', 'xx_YY'],
+    ])("names the provider's locale for %s", (_case, locale) => {
+      const view = render(
+        <I18nProvider locale="he-IL">
+          <Currency data-testid="currency" locale={locale} value={-128.4} />
+        </I18nProvider>,
+      )
+      const currency = view.getByTestId('currency')
+      expect(currency.getAttribute('lang')).toBe('he-IL')
+      expect(currency.getAttribute('dir')).toBe('rtl')
+    })
+
+    it('lets the call site name its own', () => {
+      const { currency } = setup({
+        dir: 'auto',
+        lang: 'en-GB',
+        locale: 'ar-EG',
+      })
+      expect(currency.getAttribute('lang')).toBe('en-GB')
+      expect(currency.getAttribute('dir')).toBe('auto')
+    })
+
+    // A browser's own stylesheet isolates any element carrying `dir`, so the
+    // computed value alone would pass with the component's rule gone. The
+    // rule is what keeps it isolated where that stylesheet is overridden.
+    it('is isolated from the text around it', () => {
+      const { currency } = setup({ value: -128.4 })
+      expect(getComputedStyle(currency).unicodeBidi).toBe('isolate')
+      expect(
+        rulesReaching(currency).map((rule) =>
+          rule.style.getPropertyValue('unicode-bidi'),
+        ),
+      ).toContain('isolate')
+    })
+
+    // The two orderings that go wrong without it, read off where the browser
+    // draws each character rather than off the attributes.
+    it('keeps an amount’s minus ahead of its digits on a right-to-left page', () => {
+      const view = render(
+        <div dir="rtl">
+          <Currency data-testid="currency" locale="en-US" value={-128.4} />
+        </div>,
+      )
+      const currency = view.getByTestId('currency')
+      // −$128.40: the minus is the first character and the last digit the
+      // last, so drawn left to right the minus comes first.
+      expect(leftOf(currency, 0)).toBeLessThan(
+        leftOf(currency, currency.textContent.length - 1),
+      )
+    })
+
+    // Its own direction orders its characters but does not move it: in a
+    // column it starts where its neighbours do.
+    it.each([
+      ['an Arabic amount in a left-to-right column', 'ltr', 'en-US', 'ar-EG'],
+      ['an American amount in a right-to-left column', 'rtl', 'ar-EG', 'en-US'],
+    ])('lines up %s with the column', (_case, dir, own, other) => {
+      const view = render(
+        <div dir={dir} {...stylex.props(harnessStyles.column)}>
+          <Currency data-testid="first" locale={own} value={42.5} />
+          <Currency data-testid="other" locale={other} value={42.5} />
+        </div>,
+      )
+      const edge = (id: string) => {
+        const element = view.getByTestId(id)
+        const range = document.createRange()
+        range.selectNodeContents(element)
+        const text = range.getBoundingClientRect()
+        return dir === 'ltr' ? text.left : text.right
+      }
+      expect(edge('other')).toBeCloseTo(edge('first'), 0)
+    })
+
+    it('draws an Arabic amount right to left on a left-to-right page', () => {
+      const view = render(
+        <div dir="ltr">
+          <Currency data-testid="currency" locale="ar-EG" value={-128.4} />
+        </div>,
+      )
+      const currency = view.getByTestId('currency')
+      const text = currency.textContent
+      // The code comes after the digits in the text, so drawn right to left
+      // it lands to their left.
+      expect(leftOf(currency, text.lastIndexOf('$'))).toBeLessThan(
+        leftOf(currency, text.indexOf('١')),
+      )
     })
   })
 

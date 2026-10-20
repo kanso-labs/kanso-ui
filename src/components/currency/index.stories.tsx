@@ -103,12 +103,16 @@ const Signs: Story = {
   ),
 }
 
+// Each currency in a locale of its own. The Egyptian pound is written right
+// to left, as Arabic is, whatever the page's direction: the amount carries its
+// locale's `lang` and `dir`.
 const Currencies: Story = {
   render: (args) => (
     <div {...stylex.props(styles.stack)}>
       <Currency {...args} currency="USD" />
       <Currency {...args} currency="EUR" locale="de-DE" />
       <Currency {...args} currency="JPY" locale="ja-JP" />
+      <Currency {...args} currency="EGP" locale="ar-EG" />
     </div>
   ),
 }
