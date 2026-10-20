@@ -50,6 +50,7 @@ import {
 } from '../../field/root'
 import { ClockGlyph, KeyboardGlyph } from '../../glyphs'
 import { useMessages } from '../../i18n'
+import { InsideModalContext } from '../../overlay/modal'
 import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -819,6 +820,7 @@ function TimePicker<T extends TimeValue>({
 }: RefAttributes<HTMLDivElement> & TimePickerProps<T>) {
   const validationBehavior = useFieldValidationBehavior()
   const messages = useMessages()
+  const overModal = useContext(InsideModalContext)
   const [ownOpen, setOwnOpen] = useState(defaultOpen)
   const open = isOpen ?? ownOpen
 
@@ -875,7 +877,11 @@ function TimePicker<T extends TimeValue>({
         onOpenChange={changeOpen}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.scrim, styles.centre)}
+        {...stylex.props(
+          overlay.scrim,
+          overModal && overlay.scrimOverModal,
+          styles.centre,
+        )}
       >
         <Modal {...stylex.props(styles.container)}>
           <TimePickerDialog

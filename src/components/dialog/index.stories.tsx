@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
-import { expect, waitFor } from 'storybook/test'
+import { expect, waitFor, within } from 'storybook/test'
 
 import Dialog from '.'
 import { CloseGlyph } from '../../glyphs'
@@ -214,6 +214,69 @@ const ThreeActions: Story = {
   ),
 }
 
+// A dialog opened from inside another's body. The page is dimmed once, by
+// the first dialog's scrim: the second draws its scrim with no fill, so the
+// first dialog stays at full strength around it rather than dimmed again.
+// The second is opened by a press rather than `defaultOpen`, as a reader
+// opens it: two dialogs opening on the same render are portalled in the
+// order their trees finish, which puts the second beneath the first.
+const Nested: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
+  play: async ({ canvasElement, userEvent }) => {
+    // Both dialogs are portalled to the end of the body, outside the canvas.
+    const page = within(canvasElement.ownerDocument.body)
+    await userEvent.click(
+      await page.findByRole('button', { name: 'Open second dialog' }),
+    )
+    // It fades in, and an element at the start of that is not yet visible.
+    await waitFor(async () => {
+      await expect(page.getByRole('alertdialog')).toBeVisible()
+    })
+  },
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open dialog</Button>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what the dialog is asking, in as many lines
+            as it needs.
+          </Text>
+          <Dialog>
+            <Button variant="outlined">Open second dialog</Button>
+            <Dialog.Content role="alertdialog">
+              <Dialog.Header>
+                <Dialog.Title>Second headline</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <Text tone="muted" variant="bodyMedium">
+                  Supporting line
+                </Text>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button slot="close" variant="text">
+                  Cancel
+                </Button>
+                <Button slot="close" variant="text">
+                  Confirm
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Close
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
 // An address with nowhere to break, which is the string a body most often
 // has to hold whole. It wraps inside the body rather than running past its
 // edge, so on a phone the body has nothing to scroll sideways.
@@ -259,6 +322,7 @@ export {
   Default,
   LongAddress,
   LongBody,
+  Nested,
   ThreeActions,
 }
 

@@ -172,6 +172,15 @@ const overlay = stylex.create({
     // is the scrim's child — see src/styles/layers.stylex.ts.
     zIndex: layers.modal,
   },
+  // The scrim of a modal opened over another, which the page is already
+  // dimmed behind: no fill of its own, so the page stays at one scrim and the
+  // modal beneath is dimmed by it alone, and no fade, since the ground does
+  // not change as it opens. The panel's own entry is what says it arrived.
+  // See src/overlay/modal.ts.
+  scrimOverModal: {
+    animationName: 'none',
+    backgroundColor: 'transparent',
+  },
 })
 
 // Which side the surface opened on, and the origin its entry grows from.
