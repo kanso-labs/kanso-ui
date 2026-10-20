@@ -149,10 +149,11 @@ const WithSlots: Story = {
   render: Default.render,
 }
 
+// No `selectionBehavior`: a single list replaces by default, so it draws no
+// checkboxes and marks the chosen row alone.
 const SingleSelection: Story = {
   args: {
     defaultSelectedKeys: SECOND,
-    selectionBehavior: 'replace',
     selectionMode: 'single',
   },
   render: Default.render,

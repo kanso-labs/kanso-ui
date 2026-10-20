@@ -1238,9 +1238,10 @@ export type ListLoadMoreProps = Omit<GridListLoadMoreItemProps, 'children'> & {
 // @public (undocumented)
 export type ListProps<T extends object = object> = {
     className?: GridListProps<T>['className'];
+    selectionBehavior?: GridListProps<T>['selectionBehavior'];
     selectLabel?: string;
     style?: GridListProps<T>['style'];
-} & Omit<GridListProps<T>, 'className' | 'style'>;
+} & Omit<GridListProps<T>, 'className' | 'selectionBehavior' | 'style'>;
 
 // @public
 export function ListRow<T extends object = object>(input: ListRowProps<T> & RefAttributes<HTMLDivElement>): JSX;
@@ -2321,9 +2322,10 @@ export type TreeLoadMoreProps = Omit<TreeLoadMoreItemProps, 'children'> & {
 // @public (undocumented)
 export type TreeProps<T extends object = object> = {
     className?: TreeProps_2<T>['className'];
+    selectionBehavior?: TreeProps_2<T>['selectionBehavior'];
     selectLabel?: string;
     style?: TreeProps_2<T>['style'];
-} & Omit<TreeProps_2<T>, 'className' | 'style'>;
+} & Omit<TreeProps_2<T>, 'className' | 'selectionBehavior' | 'style'>;
 
 // @public
 export function TreeSection<T extends object = object>(input: TreeSectionProps<T>): JSX;
