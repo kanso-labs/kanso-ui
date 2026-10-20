@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.44.1](https://github.com/kanso-labs/kanso-ui/compare/v0.44.0...v0.44.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* **app-bar:** lay the medium and large bars out in two rows ([#1762](https://github.com/kanso-labs/kanso-ui/issues/1762)) ([8b9b536](https://github.com/kanso-labs/kanso-ui/commit/8b9b5367613c04daa777738afeebfc0889586ef0))
+* **app-bar:** use the flexible type roles and keep the subtitle when collapsed ([#1764](https://github.com/kanso-labs/kanso-ui/issues/1764)) ([5a60b81](https://github.com/kanso-labs/kanso-ui/commit/5a60b815dc6b917a05380cf60b0f6077cb553071))
+* **checkbox:** draw the check and dash at the 18dp of the spec ([#1765](https://github.com/kanso-labs/kanso-ui/issues/1765)) ([cc657a0](https://github.com/kanso-labs/kanso-ui/commit/cc657a0913544808122db1c653cc5db7a8c43b6e))
+* **field:** match the hover, disabled, caret and notch values of the spec ([#1766](https://github.com/kanso-labs/kanso-ui/issues/1766)) ([248a01a](https://github.com/kanso-labs/kanso-ui/commit/248a01ab4969fe03eb0e1b15271176f7f7cb4cb4))
+* **overlay:** give a modal opened over another its own scrim again ([#1760](https://github.com/kanso-labs/kanso-ui/issues/1760)) ([14a6d1d](https://github.com/kanso-labs/kanso-ui/commit/14a6d1d73227a289eed32833a43a2c90e4dd681a))
+* **row:** hold rows to the heights and padding of the spec, with and without selection ([#1767](https://github.com/kanso-labs/kanso-ui/issues/1767)) ([bbf82a0](https://github.com/kanso-labs/kanso-ui/commit/bbf82a0f8be3bbe253ca00e01a17320bd80da6db))
+
 ## [0.44.0](https://github.com/kanso-labs/kanso-ui/compare/v0.43.7...v0.44.0) (2026-10-20)
 
 
