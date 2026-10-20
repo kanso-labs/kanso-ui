@@ -620,7 +620,9 @@ type PopoverContentProps = Omit<
   container?: Element
   /**
    * Which side of the trigger the panel opens on. It flips to the opposite
-   * side when there is no room.
+   * side when there is no room. `start` and `end` follow the writing
+   * direction, so `end` is the right in English and the left in Arabic;
+   * `left` and `right` stay put in either.
    * @default 'bottom'
    */
   side?: PopoverSide

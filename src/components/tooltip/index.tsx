@@ -105,7 +105,9 @@ type TooltipProps = {
   label: ReactNode
   /**
    * Which side of the element the tooltip opens on. It flips to the opposite
-   * side on its own when there is no room.
+   * side on its own when there is no room. `start` and `end` follow the
+   * writing direction, so `end` is the right in English and the left in
+   * Arabic; `left` and `right` stay put in either.
    * @default 'top'
    */
   side?: TooltipSide

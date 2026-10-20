@@ -117,13 +117,14 @@ function ThemeScopePage() {
         >
           <Panel title="Scope" />
           {/* In a row of its own, so the trigger keeps its own width rather
-              than stretching across the panel's column, and opening to its
-              right, so the panel lands over the scope rather than across
-              its edge. */}
+              than stretching across the panel's column, and opening at its
+              inline end, so the panel lands over the scope rather than
+              across its edge in either direction: the scope sits at the
+              end of the row, and a right-to-left locale moves both. */}
           <Stack direction="row">
             <Popover defaultOpen>
               <Button variant="tonal">Open</Button>
-              <Popover.Content side="right">
+              <Popover.Content side="end">
                 <Popover.Title>Headline</Popover.Title>
                 <Popover.Description>Supporting line</Popover.Description>
               </Popover.Content>

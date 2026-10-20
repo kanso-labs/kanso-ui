@@ -248,7 +248,9 @@ type MenuContentProps<T extends object = object> = {
    * Which side of the trigger the menu opens on. Left out, a menu opens below
    * its trigger and a submenu at the inline end of the item that opens it,
    * where the item's chevron points — the places React Aria gives each.
-   * Given `align` alone, the side is `bottom`.
+   * Given `align` alone, the side is `bottom`. `start` and `end` follow the
+   * writing direction, as a submenu does; `left` and `right` stay put in
+   * either.
    */
   side?: MenuSide
   /**
