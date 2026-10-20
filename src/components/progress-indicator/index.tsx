@@ -57,7 +57,10 @@ import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 // which is Angular's answer and the better one: an indicator that freezes
 // stops saying the work is going on, and a frozen arc caught at its short
 // end reads as broken. The multipliers are Angular's — two for the line,
-// and a quarter more for the ring.
+// and a quarter more for the ring. The buffer's dots are the exception and
+// stop: they are drawn on a determinate line, whose value is what says the
+// work is going on, so their movement tells a reader nothing and is only
+// movement.
 //
 // The wavy shape draws the active indicator as a wave and leaves the track
 // and the stop flat, as the page does. Its numbers are Material's own, from
@@ -121,7 +124,7 @@ const RING_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const INDETERMINATE_MS = 2000
 const BUFFER_MS = 250
 
-// What `prefers-reduced-motion` slows each shape by.
+// What `prefers-reduced-motion` slows each indeterminate shape by.
 const LINE_SLOWDOWN = 2
 const RING_SLOWDOWN = 1.25
 
@@ -425,19 +428,17 @@ const styles = stylex.create({
     inlineSize: size,
   }),
   // The scrolling dots beyond the buffer: the track's colour, at half the
-  // thickness, one pitch of five apart.
+  // thickness, one pitch of five apart. Under reduced motion they hold
+  // still as a pattern, which says "not loaded yet" just as well.
   //
   // Under forced colours the buffer draws nothing, the dots and the solid
   // part before them alike, since both are the track's own colour and the
   // mode draws the track as its edge alone. What the line keeps there is the
   // value, in `Highlight`, which is the one thing a reader has to have.
   dots: {
-    '@media (prefers-reduced-motion: reduce)': {
-      animationDuration: `${BUFFER_MS * LINE_SLOWDOWN}ms`,
-    },
     animationDuration: `${BUFFER_MS}ms`,
     animationIterationCount: 'infinite',
-    animationName: buffering,
+    animationName: { default: buffering, [REDUCED_MOTION]: 'none' },
     animationTimingFunction: 'linear',
     backgroundImage: `radial-gradient(circle at ${THICKNESS / 2}px 50%, ${colors.secondaryContainer} ${THICKNESS / 2}px, transparent ${THICKNESS / 2}px)`,
     backgroundRepeat: 'repeat-x',

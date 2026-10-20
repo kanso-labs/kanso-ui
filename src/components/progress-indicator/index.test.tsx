@@ -617,6 +617,28 @@ describe('progress indicator', () => {
       expect(getComputedStyle(dots).backgroundImage).toContain(inherited)
     })
 
+    // At rest the dots scroll a pitch every 250ms. Under reduced motion they
+    // hold still rather than slowing, as the indeterminate shapes do, since
+    // on a determinate line it is the value that says work is going on.
+    it('stops the dots under reduced motion', () => {
+      const { bar } = setup({ buffer: 70, value: 20 })
+      const [, dots] = [...linearPartsOf(bar).track.children]
+      if (!(dots instanceof HTMLElement)) {
+        throw new Error('expected the track to hold the dots')
+      }
+
+      const resting = getComputedStyle(dots)
+      expect(resting.animationDuration).toBe('0.25s')
+      expect(resting.animationIterationCount).toBe('infinite')
+      const name = reducedMotionOf(dots, 'animation-name')
+      expect(name.resting).toBe(resting.animationName)
+      expect(name.resting).not.toBe('none')
+      expect(name.reduced).toBe('none')
+      expect(
+        reducedMotionOf(dots, 'animation-duration').reduced,
+      ).toBeUndefined()
+    })
+
     it('leaves the track solid without one', () => {
       const { bar } = setup()
       const { track } = linearPartsOf(bar)
