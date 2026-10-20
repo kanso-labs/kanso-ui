@@ -12,7 +12,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useContext, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import {
   Dialog,
   DialogTrigger,
@@ -26,7 +26,6 @@ import {
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollStop } from '../../hooks/useScrollStop'
 import { OverlayScope } from '../../overlay'
-import { InsideModalContext } from '../../overlay/modal'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
@@ -400,8 +399,6 @@ function SheetContent({
   style,
   ...props
 }: RefAttributes<HTMLDivElement> & SheetContentProps) {
-  const overModal = useContext(InsideModalContext)
-
   return (
     <OverlayScope>
       <ModalOverlay
@@ -412,7 +409,7 @@ function SheetContent({
         onOpenChange={onOpenChange}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
-        {...stylex.props(overlay.scrim, overModal && overlay.scrimOverModal)}
+        {...stylex.props(overlay.scrim)}
       >
         <Modal
           // The panel, where the call site's class and style land, rather than
@@ -423,11 +420,9 @@ function SheetContent({
             style,
           })}
         >
-          <InsideModalContext value>
-            <Dialog {...props} {...stylex.props(overlay.modalDialog)}>
-              {children}
-            </Dialog>
-          </InsideModalContext>
+          <Dialog {...props} {...stylex.props(overlay.modalDialog)}>
+            {children}
+          </Dialog>
         </Modal>
       </ModalOverlay>
     </OverlayScope>
