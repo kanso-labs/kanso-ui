@@ -42,6 +42,12 @@ import { colors, media, spacing } from '../../tokens/design.tokens.stylex'
 // window and 66dp at 360dp, about ten characters of label medium, so five
 // destinations' names have to be short.
 //
+// The 64dp is the destinations' row rather than the bar's height, and the
+// bar grows past it: by padding the call site gives it, such as the inset a
+// phone's home indicator asks for, and with its labels under a reader's
+// wider text spacing. The bar adds no inset of its own, since only the call
+// site knows whether the bar sits at the screen's edge.
+//
 // The bar is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 
@@ -49,12 +55,12 @@ const styles = stylex.create({
   bar: {
     alignItems: 'center',
     backgroundColor: colors.surfaceContainer,
-    blockSize: '64px',
     boxSizing: 'border-box',
     display: 'flex',
     gap: { default: 0, [media.medium]: spacing.sm },
     inlineSize: '100%',
     justifyContent: 'center',
+    minBlockSize: '64px',
   },
   // The vertical form's spacing, at a width that would otherwise draw the
   // horizontal one.
@@ -96,7 +102,16 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
  * </NavigationBar>
  * ```
  *
- * The call site's `className` and `style` land on the `<nav>`.
+ * The call site's `className` and `style` land on the `<nav>`. A bar kept at
+ * the bottom edge of a phone's screen clears its home indicator with padding,
+ * which adds to the bar's height rather than squeezing the destinations:
+ *
+ * ```tsx
+ * <NavigationBar
+ *   aria-label="Label"
+ *   style={{ paddingBlockEnd: 'env(safe-area-inset-bottom)' }}
+ * >
+ * ```
  */
 function NavigationBar({
   render,
