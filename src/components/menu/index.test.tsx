@@ -15,7 +15,14 @@ import {
   isPressed,
 } from '../../hooks/useRipple.testing'
 import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
-import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import { demoThemes } from '../../theming/themes'
+import {
+  colorDefaultsDarkTheme,
+  colorDefaultsLightTheme,
+  colors,
+  stateLayerOpacity,
+  tokenScope,
+} from '../../tokens/design.tokens.stylex'
 import Autocomplete from '../autocomplete'
 import Button from '../button'
 import Keycap from '../keycap'
@@ -50,9 +57,50 @@ const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  muted: { color: colors.onSurfaceVariant },
+  onSurface: { color: colors.onSurface },
+  outline: { color: colors.outline },
   selected: { color: colors.onTertiaryContainer },
   surface: { backgroundColor: colors.surfaceContainerLow },
 })
+
+/** The colour an element given `style` computes to. */
+function colorOf(style: stylex.StyleXStyles) {
+  const probe = document.createElement('span')
+  probe.className = stylex.props(style).className ?? ''
+  document.body.append(probe)
+  const { color } = getComputedStyle(probe)
+  probe.remove()
+  return color
+}
+
+/** WCAG's contrast ratio between two `rgb()` colours. */
+function contrastOf(one: string, two: string) {
+  const a = luminanceOf(one)
+  const b = luminanceOf(two)
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
+
+/** WCAG's relative luminance of an `rgb()` colour. */
+function luminanceOf(colour: string) {
+  const [r, g, b] = (colour.match(/\d+/g) ?? []).map((part) => {
+    const channel = Number(part) / 255
+    return channel <= 0.039_28
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+// Every scheme a selected item is drawn in: the library's own two, pinned as
+// the Storybook toolbar pins them, and each demo scheme.
+const SCHEMES: [string, stylex.CompiledStyles[]][] = [
+  ['light', [...tokenScope, colorDefaultsLightTheme]],
+  ['dark', [...tokenScope, colorDefaultsDarkTheme]],
+  ...Object.entries(demoThemes).map(
+    ([name, { theme }]): [string, stylex.CompiledStyles[]] => [name, theme],
+  ),
+]
 
 function classesOf(props: { className?: string | undefined }) {
   const classes = (props.className ?? '').split(' ').filter(Boolean)
@@ -598,6 +646,129 @@ describe('menu', () => {
         view.getByRole('menuitem', { name: 'First item' }).querySelector('kbd'),
       ).toBeNull()
     })
+
+    // On the surface the shortcut is in the muted role, and a keycap in it
+    // keeps the keycap's own colours.
+    it('draws an item at rest in the muted role, with its keycap as it is', () => {
+      const view = setup(
+        {},
+        <>
+          <Menu.Item id="first" shortcut="⌘C">
+            First item
+          </Menu.Item>
+          <Menu.Item id="second" shortcut={SHORTCUT}>
+            Second item
+          </Menu.Item>
+        </>,
+      )
+      const keycap = getComputedStyle(view.getByText('⌘X'))
+
+      expect(getComputedStyle(view.getByText('⌘C')).color).toBe(
+        colorOf(probeStyles.muted),
+      )
+      expect(keycap.color).toBe(colorOf(probeStyles.onSurface))
+      expect(keycap.borderTopColor).toBe(colorOf(probeStyles.outline))
+    })
+
+    // The muted role is a second colour family over the selected
+    // container, and fails AA on some schemes; the container's own
+    // on-colour is the one drawn for it.
+    it('draws a selected item in the on-colour, its keycap included', () => {
+      const view = setup(
+        { defaultSelectedKeys: ['first', 'second'], selectionMode: 'multiple' },
+        <>
+          <Menu.Item id="first" shortcut="⌘C">
+            First item
+          </Menu.Item>
+          <Menu.Item id="second" shortcut={SHORTCUT}>
+            Second item
+          </Menu.Item>
+        </>,
+      )
+      const [first, second] = view.getAllByRole('menuitemcheckbox')
+      const keycap = getComputedStyle(view.getByText('⌘X'))
+      const onColor = colorOf(probeStyles.selected)
+
+      expect(getComputedStyle(first).color).toBe(onColor)
+      expect(getComputedStyle(second).color).toBe(onColor)
+      expect(getComputedStyle(view.getByText('⌘C')).color).toBe(onColor)
+      expect(keycap.color).toBe(onColor)
+      expect(keycap.borderTopColor).toBe(onColor)
+    })
+
+    // A shortcut at full strength beside a faded label is the one thing on
+    // a disabled row that stands out, and a keycap was the darkest and only
+    // boxed thing there.
+    it('fades a disabled item with its label, its keycap included', () => {
+      const view = setup(
+        {},
+        <>
+          <Menu.Item id="first" isDisabled shortcut="⌘C">
+            First item
+          </Menu.Item>
+          <Menu.Item id="second" isDisabled shortcut={SHORTCUT}>
+            Second item
+          </Menu.Item>
+        </>,
+      )
+      const keycap = getComputedStyle(view.getByText('⌘X'))
+      const faded = colorOf(probeStyles.disabled)
+
+      expect(
+        getComputedStyle(view.getByRole('menuitem', { name: 'First item' }))
+          .color,
+      ).toBe(faded)
+      expect(getComputedStyle(view.getByText('⌘C')).color).toBe(faded)
+      expect(keycap.color).toBe(faded)
+      expect(keycap.borderTopColor).toBe(faded)
+      expect(keycap.color).not.toBe(colorOf(probeStyles.onSurface))
+    })
+
+    // Disabled wins, as it does for the row's ground and its label.
+    it('fades a disabled item that is selected rather than taking the on-colour', () => {
+      const view = setup(
+        { defaultSelectedKeys: FIRST, selectionMode: 'single' },
+        <Menu.Item id="first" isDisabled shortcut={SHORTCUT}>
+          First item
+        </Menu.Item>,
+      )
+      const keycap = getComputedStyle(view.getByText('⌘X'))
+
+      expect(view.getByRole('menuitemradio').getAttribute('aria-checked')).toBe(
+        'true',
+      )
+      expect(keycap.color).toBe(colorOf(probeStyles.disabled))
+      expect(keycap.borderTopColor).toBe(colorOf(probeStyles.disabled))
+    })
+
+    // Measured before the fix: Neon at 4.33 and Marquee at 3.97, both
+    // below AA, in the muted role over the selected container.
+    it.each(SCHEMES)(
+      'keeps a selected shortcut at AA or better under %s',
+      (_name, theme) => {
+        const classes = (stylex.props(theme).className ?? '')
+          .split(' ')
+          .filter(Boolean)
+        document.body.classList.add(...classes)
+        try {
+          const view = setup(
+            { defaultSelectedKeys: FIRST, selectionMode: 'single' },
+            <Menu.Item id="first" shortcut="⌘C">
+              First item
+            </Menu.Item>,
+          )
+          const item = getComputedStyle(view.getByRole('menuitemradio'))
+          const shortcut = getComputedStyle(view.getByText('⌘C'))
+
+          expect(
+            contrastOf(shortcut.color, item.backgroundColor),
+          ).toBeGreaterThanOrEqual(4.5)
+          view.unmount()
+        } finally {
+          document.body.classList.remove(...classes)
+        }
+      },
+    )
   })
 
   // A root menu takes the side and the offset React Aria gives a menu
