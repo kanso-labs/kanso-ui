@@ -656,6 +656,39 @@ describe('dialog', () => {
       expect(hasClasses(scrim, CLASSES.scrim)).toBe(true)
     })
 
+    // Each dims what is behind it, so the first dialog is set back behind the
+    // second as the page is behind the first — see `scrim` in
+    // src/styles/overlay.ts. The second is opened by a press, since two
+    // dialogs opening on the same render would portal it beneath the first.
+    it('lays a scrim of its own behind a dialog opened over another', async () => {
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content>
+            <Dialog.Title>Headline</Dialog.Title>
+            <Dialog.Body>
+              <Dialog>
+                <Button>Open second dialog</Button>
+                <Dialog.Content role="alertdialog">
+                  <Dialog.Title>Second headline</Dialog.Title>
+                </Dialog.Content>
+              </Dialog>
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      fireEvent.click(view.getByRole('button', { name: 'Open second dialog' }))
+      const second = await view.findByRole('alertdialog')
+      const first = view.getByRole('dialog', { hidden: true })
+      const scrims = [first, second].map((dialog) =>
+        scrimOf(containerOf(dialog)),
+      )
+      expect(scrims[0]).not.toBe(scrims[1])
+      for (const scrim of scrims) {
+        expect(hasClasses(scrim, CLASSES.scrim)).toBe(true)
+      }
+    })
+
     it('sets the supporting text in the on surface variant role', () => {
       const view = setup()
       expect(hasClasses(view.getByText('Supporting line'), CLASSES.body)).toBe(

@@ -35,7 +35,6 @@ import {
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollStop } from '../../hooks/useScrollStop'
 import { OverlayScope } from '../../overlay'
-import { InsideModalContext } from '../../overlay/modal'
 import { mergeRefs } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
@@ -503,7 +502,6 @@ function DialogContent({
   // The id of the body, which an alert dialog is described by unless the
   // call site names a description of its own.
   const [body, setBody] = useState<string>()
-  const overModal = useContext(InsideModalContext)
 
   return (
     <BasicContext value={isBasic}>
@@ -519,7 +517,6 @@ function DialogContent({
             UNSTABLE_portalContainer={container}
             {...stylex.props(
               overlay.scrim,
-              overModal && overlay.scrimOverModal,
               styles.centre,
               isBasic && basic.centre,
             )}
@@ -533,17 +530,15 @@ function DialogContent({
                 { className, style },
               )}
             >
-              <InsideModalContext value>
-                <RACDialog
-                  {...props}
-                  aria-describedby={
-                    props['aria-describedby'] ?? (isBasic ? body : undefined)
-                  }
-                  {...stylex.props(overlay.modalDialog)}
-                >
-                  {children}
-                </RACDialog>
-              </InsideModalContext>
+              <RACDialog
+                {...props}
+                aria-describedby={
+                  props['aria-describedby'] ?? (isBasic ? body : undefined)
+                }
+                {...stylex.props(overlay.modalDialog)}
+              >
+                {children}
+              </RACDialog>
             </Modal>
           </ModalOverlay>
         </OverlayScope>

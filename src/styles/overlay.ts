@@ -155,6 +155,12 @@ const overlay = stylex.create({
   },
   // Material Design's scrim is the scrim role at 32%, not a colour of its own.
   //
+  // Every modal draws one, a modal opened over another included, and that is
+  // deliberate: each dims what is behind it, so the modal beneath is set back
+  // behind the one above it as the page is behind the first, and the page
+  // behind both is dimmed twice over. `Nested` in
+  // src/components/dialog/index.stories.tsx shows it.
+  //
   // The one animation here that keeps its duration under reduced motion, and
   // deliberately: a cross-fade moves nothing, and `popup` above is already
   // leaning on this one still playing — with every panel arriving instantly,
@@ -171,15 +177,6 @@ const overlay = stylex.create({
     // Above the page's own layered content, and the panel with it, since it
     // is the scrim's child — see src/styles/layers.stylex.ts.
     zIndex: layers.modal,
-  },
-  // The scrim of a modal opened over another, which the page is already
-  // dimmed behind: no fill of its own, so the page stays at one scrim and the
-  // modal beneath is dimmed by it alone, and no fade, since the ground does
-  // not change as it opens. The panel's own entry is what says it arrived.
-  // See src/overlay/modal.ts.
-  scrimOverModal: {
-    animationName: 'none',
-    backgroundColor: 'transparent',
   },
 })
 

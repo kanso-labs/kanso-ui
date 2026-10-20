@@ -214,12 +214,12 @@ const ThreeActions: Story = {
   ),
 }
 
-// A dialog opened from inside another's body. The page is dimmed once, by
-// the first dialog's scrim: the second draws its scrim with no fill, so the
-// first dialog stays at full strength around it rather than dimmed again.
-// The second is opened by a press rather than `defaultOpen`, as a reader
-// opens it: two dialogs opening on the same render are portalled in the
-// order their trees finish, which puts the second beneath the first.
+// A dialog opened from inside another's body. Each draws a scrim of its own,
+// so the first dialog is dimmed behind the second as the page is behind the
+// first, and the page behind both is dimmed twice over. The second is opened
+// by a press rather than `defaultOpen`, as a reader opens it: two dialogs
+// opening on the same render are portalled in the order their trees finish,
+// which puts the second beneath the first.
 const Nested: Story = {
   parameters: { docs: { story: { height: '600px', inline: false } } },
   play: async ({ canvasElement, userEvent }) => {
