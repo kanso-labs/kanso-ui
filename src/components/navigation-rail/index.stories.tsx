@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useMemo, useState } from 'react'
+import { expect } from 'storybook/test'
 
 import NavigationRail from '.'
 import IconButton from '../icon-button'
@@ -93,6 +94,23 @@ const DESTINATIONS = (
       icon={SQUARE}
     >
       Second item
+    </NavigationRail.Item>
+    <NavigationRail.Item href="#third" icon={TRIANGLE}>
+      Third item
+    </NavigationRail.Item>
+  </>
+)
+
+// A label far past the collapsed rail's 88dp, between two that fit.
+const LONG_LABEL = 'A label long enough to be cut short'
+
+const LONG_LABEL_DESTINATIONS = (
+  <>
+    <NavigationRail.Item href="#first" icon={CIRCLE}>
+      First item
+    </NavigationRail.Item>
+    <NavigationRail.Item href="#second" icon={SQUARE}>
+      {LONG_LABEL}
     </NavigationRail.Item>
     <NavigationRail.Item href="#third" icon={TRIANGLE}>
       Third item
@@ -192,6 +210,20 @@ const WithHeader: Story = {
   render: () => <Expandable />,
 }
 
+// A label with no room in the collapsed column stays on one line and ends in
+// an ellipsis, and shows its full text in the browser's tooltip on hover.
+// Its `play` hovers it, so the title is on the label in the snapshot too.
+const LongLabel: Story = {
+  args: {
+    children: LONG_LABEL_DESTINATIONS,
+  },
+  play: async ({ canvas, userEvent }) => {
+    const label = canvas.getByText(LONG_LABEL)
+    await userEvent.hover(label)
+    await expect(label).toHaveAttribute('title', LONG_LABEL)
+  },
+}
+
 // More destinations than the rail has room for: they scroll in their own
 // block under the header, each keeping the page's 56dp, rather than
 // squashing or running past the rail. The header's menu button sits at the
@@ -204,6 +236,6 @@ const ManyDestinations: Story = {
   },
 }
 
-export { Default, Expanded, ManyDestinations, WithHeader }
+export { Default, Expanded, LongLabel, ManyDestinations, WithHeader }
 
 export default meta

@@ -35,6 +35,13 @@ import { colors, media, spacing } from '../../tokens/design.tokens.stylex'
 // what its horizontal labels lack, and keeps the vertical form until it is
 // that much wider — see `useCramped`.
 //
+// A vertical destination's label stays on one line and is cut short with an
+// ellipsis where the destination's share of the bar ends, and a label cut
+// short shows its full text in the browser's tooltip on hover — see
+// `src/navigation`. Five destinations give each label 69dp at a 375dp
+// window and 66dp at 360dp, about ten characters of label medium, so five
+// destinations' names have to be short.
+//
 // The bar is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 

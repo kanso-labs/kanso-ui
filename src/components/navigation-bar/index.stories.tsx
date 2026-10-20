@@ -100,22 +100,24 @@ const THREE = (
   </>
 )
 
+// Short enough for the 69dp each of five destinations has at a 375dp
+// window, where "Second item" would be cut short.
 const FIVE = (
   <>
     <NavigationBar.Item href="#first" icon={CIRCLE}>
-      First item
+      Item 1
     </NavigationBar.Item>
     <NavigationBar.Item href="#second" icon={SQUARE}>
-      Second item
+      Item 2
     </NavigationBar.Item>
     <NavigationBar.Item href="#third" icon={TRIANGLE}>
-      Third item
+      Item 3
     </NavigationBar.Item>
     <NavigationBar.Item href="#fourth" icon={STAR}>
-      Fourth item
+      Item 4
     </NavigationBar.Item>
     <NavigationBar.Item href="#fifth" icon={DIAMOND}>
-      Fifth item
+      Item 5
     </NavigationBar.Item>
   </>
 )

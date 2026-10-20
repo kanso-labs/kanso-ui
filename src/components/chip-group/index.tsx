@@ -254,6 +254,10 @@ function actingChipPropsFor(state: TagRenderProps) {
  * Give the group `onRemove` and each chip draws a close target. The arrow
  * keys move between chips, so a set of many is one tab stop rather than many.
  *
+ * A chip is never wider than its row, so a label with no room ends in an
+ * ellipsis rather than wrapping, and shows its full text in the browser's
+ * tooltip on hover.
+ *
  * Escape on a chip keeps the selection and reaches whatever is around the
  * group, so a group in a Sheet, Dialog or Popover closes it. Pass
  * `escapeKeyBehavior="clearSelection"` for React Aria's own default, which

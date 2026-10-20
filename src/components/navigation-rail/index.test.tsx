@@ -43,6 +43,8 @@ function Icon() {
 // react-perf's no-jsx-as-prop is after.
 const ICON = <Icon />
 const HEADER = <button type="button">Menu</button>
+// Wider than a collapsed rail's 96dp column at label medium.
+const LONG_LABEL = 'A label long enough to be cut short'
 const MENU_BUTTON = (
   <IconButton aria-label="Menu">
     <Icon />
@@ -236,6 +238,32 @@ describe('navigation rail', () => {
 
       expect(header.top - rail.top).toBe(44)
       expect(first.top - header.bottom).toBe(40)
+    })
+
+    // The label stays on one line and is cut short where the column ends,
+    // so the label hands the browser its full text as a title on hover.
+    // React derives onPointerEnter from the bubbling pointerover.
+    it('shows a cut-short label whole on hover, and a label that fits not at all', () => {
+      const view = render(
+        <NavigationRail aria-label="Label">
+          <NavigationRail.Item href="#first" icon={ICON}>
+            {LONG_LABEL}
+          </NavigationRail.Item>
+          <NavigationRail.Item href="#second" icon={ICON}>
+            Second item
+          </NavigationRail.Item>
+        </NavigationRail>,
+      )
+      const [long, short] = view
+        .getAllByRole('link')
+        .map((link) => partsOf(link).label)
+
+      fireEvent.pointerOver(long)
+      fireEvent.pointerOver(short)
+
+      expect(long.scrollWidth).toBeGreaterThan(long.clientWidth)
+      expect(long).toHaveAttribute('title', LONG_LABEL)
+      expect(short).not.toHaveAttribute('title')
     })
   })
 
