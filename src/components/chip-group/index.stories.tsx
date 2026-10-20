@@ -6,6 +6,9 @@ import { useCallback, useState } from 'react'
 import { expect, waitFor } from 'storybook/test'
 
 import ChipGroup from '.'
+import { spacing } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Popover from '../popover'
 import Text from '../text'
 
 const SECOND = ['second']
@@ -50,6 +53,13 @@ const ICON_CHIPS = (
 )
 
 const styles = stylex.create({
+  // Leaves the open panel somewhere to go below its trigger, so the snapshot
+  // frames both — see popover/index.stories.tsx.
+  frame: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: spacing.xxxl,
+  },
   // Narrower than the long label on one line.
   narrow: {
     maxInlineSize: '280px',
@@ -150,6 +160,36 @@ const Removing: Story = {
   render: Default.render,
 }
 
+// The page's input chips: removable, with nothing to choose. Only the close
+// target answers a press, so the chips draw the arrow cursor, no layer and
+// no ripple, and the close target keeps the pointer.
+const InputChips: Story = {
+  args: { onRemove: noop },
+  render: Default.render,
+}
+
+// A filter set in a Popover, which is where a group usually sits. Escape on a
+// chip keeps the chosen filters and closes the popover on the first press;
+// `escapeKeyBehavior="clearSelection"` would empty them first instead. Open
+// on load, since a closed popover renders nothing for Chromatic to compare.
+const InAPopover: Story = {
+  args: {
+    defaultSelectedKeys: FIRST_AND_THIRD,
+    selectionMode: 'multiple',
+  },
+  parameters: { docs: { story: { height: '360px', inline: false } } },
+  render: (args) => (
+    <div {...stylex.props(styles.frame)}>
+      <Popover defaultOpen>
+        <Button variant="outlined">Open</Button>
+        <Popover.Content>
+          <ChipGroup {...args} />
+        </Popover.Content>
+      </Popover>
+    </div>
+  ),
+}
+
 const WithDescription: Story = {
   args: { description: 'Supporting line' },
   render: Default.render,
@@ -242,6 +282,8 @@ export {
   Default,
   Disabled,
   EmptyState,
+  InAPopover,
+  InputChips,
   Invalid,
   LongLabel,
   MultipleSelection,

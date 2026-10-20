@@ -419,9 +419,10 @@ export type ChipGroupProps<T extends object = object> = {
     children?: ((item: T) => ReactElement) | ReactNode;
     description?: string;
     error?: string;
+    escapeKeyBehavior?: 'clearSelection' | 'none';
     label: string;
     removeLabel?: string;
-} & Omit<TagGroupProps, 'children'> & Pick<TagListProps<T>, 'items' | 'renderEmptyState'>;
+} & Omit<TagGroupProps, 'children' | 'escapeKeyBehavior'> & Pick<TagListProps<T>, 'items' | 'renderEmptyState'>;
 
 // @public (undocumented)
 export type ChipProps = ChipActionProps | ChipFilterProps;

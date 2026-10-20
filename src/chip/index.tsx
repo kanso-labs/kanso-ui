@@ -115,7 +115,8 @@ type ChipKind = 'assist' | 'filter' | 'suggestion'
  *
  * `elevated` raises the chip off the page on a container of its own, and
  * `kind` names which of the page's chips it is, which decides the label's
- * role.
+ * role. `inert` marks a chip a press does nothing to, which draws the arrow
+ * rather than the pointer.
  */
 function chipPropsFor(
   state: {
@@ -127,14 +128,16 @@ function chipPropsFor(
   },
   {
     elevated = false,
+    inert = false,
     kind = 'filter',
-  }: { elevated?: boolean; kind?: ChipKind } = {},
+  }: { elevated?: boolean; inert?: boolean; kind?: ChipKind } = {},
 ) {
   const roles = CONTAINERS[containerOf(state.isSelected, elevated)]
   const raised = elevated && !state.isDisabled
 
   return stylex.props(
     chipStyles.base,
+    inert && chipStyles.inert,
     chipStyles.target,
     focus.ring,
     state.isSelected ? chipStyles.selected : chipStyles.unselected,
@@ -153,10 +156,12 @@ function chipPropsFor(
 /**
  * The close target's class, from its button's own render state, so its
  * hover and pressed layers follow React Aria's report rather than `:hover`
- * and `:active` — see `chipLayers`. A function, which React Aria's
- * `className` takes alongside a string.
+ * and `:active` — see `chipLayers` — and a disabled chip's close target
+ * takes the chip's cursor. A function, which React Aria's `className` takes
+ * alongside a string.
  */
 function chipRemoveClassName(state: {
+  isDisabled: boolean
   isHovered: boolean
   isPressed: boolean
 }) {
@@ -165,6 +170,7 @@ function chipRemoveClassName(state: {
       chipStyles.remove,
       state.isHovered && chipLayers.removeHovered,
       state.isPressed && chipLayers.removePressed,
+      state.isDisabled && chipStyles.removeDisabled,
     ).className ?? ''
   )
 }

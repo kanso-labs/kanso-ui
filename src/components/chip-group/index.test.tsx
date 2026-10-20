@@ -9,6 +9,8 @@ import ChipGroup from '.'
 import { surfaceOf } from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Popover from '../popover'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -115,8 +117,31 @@ function chipFor(item: (typeof ITEMS)[number]) {
   return <ChipGroup.Chip id={item.id}>{item.name}</ChipGroup.Chip>
 }
 
+// The cursor a pointer over the element shows.
+function cursorOf(element: Element) {
+  return getComputedStyle(element).cursor
+}
+
 function emptyState() {
   return 'Empty state'
+}
+
+// Escapes that reach the document, which is what an overlay around the
+// group would hear.
+function listenAtDocument() {
+  const heard = vi.fn<(event: KeyboardEvent) => void>()
+  const listener = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      heard(event)
+    }
+  }
+  document.addEventListener('keydown', listener)
+  return {
+    heard,
+    stop: () => {
+      document.removeEventListener('keydown', listener)
+    },
+  }
 }
 
 // A group whose chips are removed from state, as a call site's are: one chip
@@ -142,6 +167,15 @@ function OneRemovable({ empty }: { empty?: boolean }) {
   )
 }
 
+// Escape pressed on a focused chip, as a keyboard sends it.
+function pressEscape(chip: HTMLElement) {
+  act(() => {
+    chip.focus()
+  })
+  fireEvent.keyDown(chip, { key: 'Escape' })
+  fireEvent.keyUp(chip, { key: 'Escape' })
+}
+
 function setupWithIcons(
   props: Partial<Parameters<typeof ChipGroup<object>>[0]> = {},
 ) {
@@ -156,6 +190,8 @@ function setupWithIcons(
     </ChipGroup>,
   )
 }
+
+const FIRST = ['first']
 
 describe('the last chip removed', () => {
   // React Aria moves focus onto the list once it is empty, and the list drew
@@ -380,6 +416,142 @@ describe('chip group', () => {
       fireEvent.keyUp(first, { key: 'ArrowRight' })
 
       expect(document.activeElement).toBe(second)
+    })
+  })
+
+  // React Aria's collections clear the selection on Escape and stop the key,
+  // which in a Sheet, Dialog or Popover wiped the reader's chips and took a
+  // second press to close. A group lets it through unless told otherwise.
+  describe('escape', () => {
+    it('keeps the selection and lets the key through', () => {
+      const view = setup({
+        defaultSelectedKeys: ['first', 'third'],
+        selectionMode: 'multiple',
+      })
+      const rows = view.getAllByRole('row')
+      const outside = listenAtDocument()
+
+      try {
+        pressEscape(rows[0])
+        expect(outside.heard).toHaveBeenCalledTimes(1)
+      } finally {
+        outside.stop()
+      }
+      expect(rows.map((row) => row.getAttribute('aria-selected'))).toEqual([
+        'true',
+        'false',
+        'true',
+      ])
+    })
+
+    it("clears the selection and stops the key under React Aria's behaviour", () => {
+      const view = setup({
+        defaultSelectedKeys: ['first', 'third'],
+        escapeKeyBehavior: 'clearSelection',
+        selectionMode: 'multiple',
+      })
+      const rows = view.getAllByRole('row')
+      const outside = listenAtDocument()
+
+      try {
+        pressEscape(rows[0])
+        expect(outside.heard).not.toHaveBeenCalled()
+        expect(rows.map((row) => row.getAttribute('aria-selected'))).toEqual([
+          'false',
+          'false',
+          'false',
+        ])
+
+        // With nothing left to clear, the next press goes through.
+        pressEscape(rows[0])
+        expect(outside.heard).toHaveBeenCalledTimes(1)
+      } finally {
+        outside.stop()
+      }
+    })
+
+    it('closes a Popover around it on the first press', async () => {
+      const onOpenChange = vi.fn<(isOpen: boolean) => void>()
+      const onSelectionChange = vi.fn<(keys: Selection) => void>()
+      const view = render(
+        <Popover defaultOpen onOpenChange={onOpenChange}>
+          <Button>Open</Button>
+          <Popover.Content>
+            <ChipGroup
+              defaultSelectedKeys={FIRST}
+              label="Label"
+              onSelectionChange={onSelectionChange}
+              selectionMode="multiple"
+            >
+              <ChipGroup.Chip id="first">First item</ChipGroup.Chip>
+              <ChipGroup.Chip id="second">Second item</ChipGroup.Chip>
+            </ChipGroup>
+          </Popover.Content>
+        </Popover>,
+      )
+
+      pressEscape(await view.findByRole('row', { name: 'First item' }))
+
+      expect(onOpenChange).toHaveBeenCalledWith(false)
+      expect(onSelectionChange).not.toHaveBeenCalled()
+    })
+  })
+
+  // A chip shows the pointer only where a press does something to it, and
+  // its close target keeps one wherever it can be pressed.
+  describe('cursor', () => {
+    it('draws the arrow on a chip only its close target acts on', () => {
+      const view = setup({ onRemove: vi.fn<(keys: Selection) => void>() })
+      const [first] = view.getAllByRole('row')
+
+      expect(cursorOf(first)).toBe('default')
+      expect(
+        cursorOf(view.getByRole('button', { name: 'Remove First item' })),
+      ).toBe('pointer')
+    })
+
+    it('keeps the pointer on a chip the group lets be selected', () => {
+      const view = setup({ selectionMode: 'multiple' })
+      const [first] = view.getAllByRole('row')
+
+      expect(cursorOf(first)).toBe('pointer')
+    })
+
+    // An action makes a chip pressable whatever the group selects, so React
+    // Aria reports a press on it and it ripples like a selectable one.
+    it.each([
+      ["the group's", { onAction: vi.fn<(key: Key) => void>() }, {}],
+      ['its own', {}, { onAction: vi.fn<() => void>() }],
+    ])(
+      'keeps the pointer and the ripple on a chip with %s action',
+      (_case, group, chip) => {
+        const view = render(
+          <ChipGroup label="Label" {...group}>
+            <ChipGroup.Chip id="first" {...chip}>
+              First item
+            </ChipGroup.Chip>
+          </ChipGroup>,
+        )
+        const row = view.getByRole('row')
+
+        expect(cursorOf(row)).toBe('pointer')
+        pressDown(row)
+        expect(ripplesIn(row)).toBe(true)
+      },
+    )
+
+    it("gives a disabled chip's close target the chip's not-allowed", () => {
+      const view = setup({
+        disabledKeys: SECOND,
+        onRemove: vi.fn<(keys: Selection) => void>(),
+        selectionMode: 'multiple',
+      })
+      const [, second] = view.getAllByRole('row')
+
+      expect(cursorOf(second)).toBe('not-allowed')
+      expect(
+        cursorOf(view.getByRole('button', { name: 'Remove Second item' })),
+      ).toBe('not-allowed')
     })
   })
 
