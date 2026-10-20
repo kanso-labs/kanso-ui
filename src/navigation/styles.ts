@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex'
 import {
   colors,
   media,
+  motion,
   radii,
   spacing,
   stateLayerOpacity,
@@ -35,6 +36,14 @@ import {
 // later wins, as the pages draw one layer at a time. A focused destination's
 // ring goes around the same pill; ./index.tsx says whose ring it is.
 //
+// A change from one of those states to another fades, over the pages' short
+// duration on the standard curve, rather than landing in one frame. A press
+// also draws the library's ripple over the pressed layer, clipped to the
+// pill: inside the indicator in a vertical destination, which positions it,
+// and across the whole destination in a horizontal one, whose indicator is
+// left unpositioned so the ripple fills the link and takes the indicator's
+// pill corner.
+//
 // Under forced colours the mode paints the secondary container over in its
 // background, which left the current destination looking like every other.
 // The pill takes a 2px border in `Highlight` there, which the mode keeps.
@@ -56,6 +65,19 @@ const PRESSED_OVER_CURRENT = `color-mix(in srgb, ${colors.onSecondaryContainer} 
 
 // What every destination draws whatever its form.
 const navigationItemStyles = stylex.create({
+  // The pill's ground and the colours of the icon and the label, faded from
+  // one state to the next, and at once for a reader who asked for less
+  // motion. On the link, the indicator and the label alike: the pill is the
+  // link or the indicator by form, and each of the three sets its own
+  // colour.
+  fade: {
+    transitionDuration: {
+      '@media (prefers-reduced-motion: reduce)': '0s',
+      default: motion.durationShort2,
+    },
+    transitionProperty: 'background-color, color',
+    transitionTimingFunction: motion.easingStandard,
+  },
   // An icon at the pages' 24dp. An icon drawn in `em` takes its size from
   // here.
   icon: {
@@ -157,6 +179,9 @@ const barItemStyles = stylex.create({
     marginInlineStart: { default: null, [media.medium]: '-12px' },
     position: { default: 'absolute', [media.medium]: 'relative' },
   },
+  // The pill below the medium breakpoint, which places the ripple. Above it
+  // the pill is the whole destination, and the ripple is placed against
+  // that.
   indicator: {
     alignItems: 'center',
     blockSize: { default: '32px', [media.medium]: 'auto' },
@@ -166,6 +191,7 @@ const barItemStyles = stylex.create({
     flexShrink: 0,
     inlineSize: { default: '56px', [media.medium]: 'auto' },
     justifyContent: 'center',
+    position: { default: 'relative', [media.medium]: 'static' },
   },
   indicatorCurrent: {
     backgroundColor: {
@@ -355,6 +381,7 @@ const barItemStyles = stylex.create({
 const collapsedItemStyles = stylex.create({
   // The label is under the icon, so the badge places its own mark.
   badgeMark: {},
+  // The pill, which places the ripple.
   indicator: {
     alignItems: 'center',
     blockSize: '32px',
@@ -364,6 +391,7 @@ const collapsedItemStyles = stylex.create({
     flexShrink: 0,
     inlineSize: '56px',
     justifyContent: 'center',
+    position: 'relative',
   },
   indicatorCurrent: {
     backgroundColor: colors.secondaryContainer,
@@ -448,6 +476,8 @@ const expandedItemStyles = stylex.create({
     marginInlineStart: '-12px',
     position: 'relative',
   },
+  // Just the icon's box. The pill is the whole destination, which places the
+  // ripple.
   indicator: {
     alignItems: 'center',
     display: 'flex',

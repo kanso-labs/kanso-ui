@@ -6,7 +6,18 @@ import { RouterProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import NavigationRail from '.'
-import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  advance,
+  firePointer,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+  surfaceOf,
+} from '../../hooks/useRipple.testing'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+} from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
@@ -127,6 +138,17 @@ function partsOf(link: HTMLElement) {
   return { indicator, label }
 }
 
+// Presses `link` with a mouse and lets it go, reporting whether its ripple
+// was drawn as pressed while it was held and whether it then ended.
+async function pressAndRelease(link: HTMLElement) {
+  firePointer(link, 'pointerdown', { buttons: 1 })
+  const held = isPressed(link)
+  firePointer(link, 'pointerup', { buttons: 0 })
+  fireEvent.click(link)
+  await advance(MINIMUM_PRESS_MS * 4)
+  return { ended: !isPressed(link), held }
+}
+
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -153,6 +175,16 @@ function Rail(props: Partial<Parameters<typeof NavigationRail>[0]>) {
       </NavigationRail.Item>
     </NavigationRail>
   )
+}
+
+// A destination's colours move through a transition, and a computed value
+// read while one is running is the value part way along it. Finishing every
+// animation on the element first reads the state it is heading for.
+function settled(element: HTMLElement) {
+  for (const animation of element.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(element)
 }
 
 describe('navigation rail', () => {
@@ -273,6 +305,36 @@ describe('navigation rail', () => {
     })
   })
 
+  describe('between states', () => {
+    // The rail's two forms share the bar's destination, and with it the
+    // short fade between states, which a reader asking for less motion is
+    // spared.
+    it.each([
+      ['collapsed', false],
+      ['expanded', true],
+    ] as const)(
+      'fades every part of a destination in the %s form, at once under reduced motion',
+      (_form, isExpanded) => {
+        const view = render(<Rail isExpanded={isExpanded} />)
+        const link = view.getByRole('link', { name: 'First item' })
+        const { indicator, label } = partsOf(link)
+
+        for (const part of [link, indicator, label]) {
+          expect(reducedMotionOf(part, 'transition-property').resting).toBe(
+            'background-color, color',
+          )
+          const { reduced, resting } = reducedMotionOf(
+            part,
+            'transition-duration',
+          )
+          expect(resting).toBeDefined()
+          expect(resting).not.toBe('0s')
+          expect(reduced).toBe('0s')
+        }
+      },
+    )
+  })
+
   describe('collapsed', () => {
     it("is the page's 96dp column on the surface", () => {
       const view = render(<Rail />)
@@ -308,11 +370,34 @@ describe('navigation rail', () => {
 
       focusByKeyboard(current)
 
-      expect(getComputedStyle(indicator).backgroundColor).toBe(
+      expect(settled(indicator).backgroundColor).toBe(
         probe(probeStyles.focusedOverCurrent).background,
       )
       expect(getComputedStyle(indicator).outlineStyle).toBe('solid')
       expect(getComputedStyle(current).outlineStyle).toBe('none')
+    })
+
+    // The pill is the indicator, so a press ripples in it rather than across
+    // the destination's whole width.
+    it('ripples in the indicator under a press', async () => {
+      vi.useFakeTimers()
+      const restore = installFakeAnimate()
+
+      try {
+        const view = render(<Rail />)
+        const link = view.getByRole('link', { name: 'First item' })
+        const { indicator } = partsOf(link)
+        const surface = surfaceOf(link)
+
+        expect(surface.parentElement).toBe(indicator)
+        expect(surface.getBoundingClientRect().toJSON()).toEqual(
+          indicator.getBoundingClientRect().toJSON(),
+        )
+        expect(await pressAndRelease(link)).toEqual({ ended: true, held: true })
+      } finally {
+        restore()
+        vi.useRealTimers()
+      }
     })
 
     it('draws 64dp destinations 4dp apart, starting 44dp down', () => {
@@ -433,13 +518,37 @@ describe('navigation rail', () => {
 
       focusByKeyboard(current)
 
-      expect(getComputedStyle(current).backgroundColor).toBe(
+      expect(settled(current).backgroundColor).toBe(
         probe(probeStyles.focusedOverCurrent).background,
       )
       expect(getComputedStyle(current).outlineStyle).toBe('solid')
       expect(getComputedStyle(partsOf(current).indicator).outlineStyle).toBe(
         'none',
       )
+    })
+
+    // The pill is the whole destination, so the ripple fills it and takes its
+    // corner, rather than staying in the icon's box.
+    it('ripples across the whole pill under a press', async () => {
+      vi.useFakeTimers()
+      const restore = installFakeAnimate()
+
+      try {
+        const view = render(<Rail isExpanded />)
+        const link = view.getByRole('link', { name: 'First item' })
+        const surface = surfaceOf(link)
+
+        expect(surface.getBoundingClientRect().toJSON()).toEqual(
+          link.getBoundingClientRect().toJSON(),
+        )
+        expect(getComputedStyle(surface).borderStartStartRadius).toBe(
+          getComputedStyle(link).borderStartStartRadius,
+        )
+        expect(await pressAndRelease(link)).toEqual({ ended: true, held: true })
+      } finally {
+        restore()
+        vi.useRealTimers()
+      }
     })
 
     it('sets the pills 20dp in from the leading edge', () => {
@@ -483,8 +592,13 @@ describe('navigation rail', () => {
         const link = view.getByRole('link', {
           name: `First item, ${count} new`,
         })
-        const mark = link.querySelector('span[aria-hidden="true"]')
-        if (mark === null) {
+        // The badge's own span, hidden from the tree, and not the ripple's
+        // surface, which is hidden too.
+        const surface = surfaceOf(link)
+        const mark = [
+          ...link.querySelectorAll('span[aria-hidden="true"]'),
+        ].find((span) => span !== surface)
+        if (mark === undefined) {
           throw new Error('expected the destination to draw a badge')
         }
 

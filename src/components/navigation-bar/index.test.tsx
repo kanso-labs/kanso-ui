@@ -6,12 +6,26 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 
 import NavigationBar from '.'
-import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+  surfaceOf,
+} from '../../hooks/useRipple.testing'
+import {
+  declarationsHeld,
+  reducedMotionOf,
+  transitionOf,
+} from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import { motionDurationMs, motionEasing } from '../../tokens/values'
 
 // The width every spec in this browser runs at unless it says otherwise —
 // see src/styles/picker.test.tsx — and a compact one under the 600px the bar
@@ -103,6 +117,14 @@ function indicatorOf(link: HTMLElement) {
   return indicator
 }
 
+// The three parts of a destination that set a colour of their own: the pill
+// in a horizontal destination, the indicator holding the icon, and the label.
+const PARTS = {
+  indicator: (link: HTMLElement) => indicatorOf(link),
+  label: (link: HTMLElement) => labelOf(link),
+  link: (link: HTMLElement) => link,
+}
+
 function labelOf(link: HTMLElement) {
   const label = link.lastElementChild
   if (!(label instanceof HTMLElement) || label === indicatorOf(link)) {
@@ -134,9 +156,15 @@ function Marked({
   )
 }
 
-/** A count badge's mark: the badge's own span, hidden from the tree. */
+/**
+ * A count badge's mark: the badge's own span, hidden from the tree, and not
+ * the ripple's surface, which is hidden too.
+ */
 function markOf(link: HTMLElement) {
-  const mark = link.querySelector('span[aria-hidden="true"]')
+  const surface = surfaceOf(link)
+  const mark = [...link.querySelectorAll('span[aria-hidden="true"]')].find(
+    (span) => span !== surface,
+  )
   if (!(mark instanceof HTMLElement)) {
     throw new Error('expected the destination to draw a badge')
   }
@@ -153,6 +181,16 @@ function probe(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return read
+}
+
+// A destination's colours move through a transition, and a computed value
+// read while one is running is the value part way along it. Finishing every
+// animation on the element first reads the state it is heading for.
+function settled(element: HTMLElement) {
+  for (const animation of element.getAnimations()) {
+    animation.finish()
+  }
+  return getComputedStyle(element)
 }
 
 // WCAG 1.4.12's text spacing, set as a reader's own stylesheet sets it: over
@@ -420,15 +458,87 @@ describe('navigation bar', () => {
     it('draws a badge on the icon, leaving the name to the destination', () => {
       const view = render(<Bar />)
       const link = view.getByRole('link', { name: 'Second item, 3 new' })
-      const mark = indicatorOf(link).querySelector(
-        '[aria-hidden="true"]:not(svg)',
-      )
-      if (mark === null) {
-        throw new Error('expected the destination to draw a badge')
-      }
+      const mark = markOf(link)
 
+      expect(indicatorOf(link).contains(mark)).toBe(true)
       // The count is the mark's generated content, not its text.
       expect(getComputedStyle(mark, '::before').content).toBe('"3"')
+    })
+  })
+
+  describe('between states', () => {
+    // The pages' state layers and the current destination's colours change
+    // over a short fade rather than in one frame.
+    it.each(Object.entries(PARTS))(
+      'fades the %s from one state to the next',
+      (_name, partOf) => {
+        const view = render(<Bar />)
+        const part = partOf(view.getByRole('link', { name: 'First item' }))
+
+        expect(transitionOf(part)).toEqual({
+          durations: [`${motionDurationMs.short2 / 1000}s`],
+          easings: [motionEasing.standard],
+          properties: ['background-color', 'color'],
+        })
+      },
+    )
+
+    it.each(Object.entries(PARTS))(
+      'changes the %s at once for a reader who asked for less motion',
+      (_name, partOf) => {
+        const view = render(<Bar />)
+        const part = partOf(view.getByRole('link', { name: 'First item' }))
+        const { reduced, resting } = reducedMotionOf(
+          part,
+          'transition-duration',
+        )
+
+        // It fades to begin with, so the zero is the query's doing.
+        expect(resting).toBeDefined()
+        expect(resting).not.toBe('0s')
+        expect(reduced).toBe('0s')
+      },
+    )
+
+    // The ripple takes the press's handlers, so the call site's own go
+    // through it rather than beside it.
+    it("hands a press to the call site's own handlers", () => {
+      const onClick = vi.fn<() => void>()
+      const onPointerDown = vi.fn<() => void>()
+      const view = render(
+        <NavigationBar aria-label="Label">
+          <NavigationBar.Item
+            href="#first"
+            icon={ICON}
+            onClick={onClick}
+            onPointerDown={onPointerDown}
+          >
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+      const link = view.getByRole('link', { name: 'First item' })
+
+      firePointer(link, 'pointerdown', { buttons: 1 })
+      firePointer(link, 'pointerup', { buttons: 0 })
+      fireEvent.click(link)
+
+      expect(onPointerDown).toHaveBeenCalledTimes(1)
+      expect(onClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('draws no ripple on a disabled destination', () => {
+      const view = render(
+        <NavigationBar aria-label="Label">
+          <NavigationBar.Item href="#first" icon={ICON} isDisabled>
+            First item
+          </NavigationBar.Item>
+        </NavigationBar>,
+      )
+
+      expect(hasRipple(view.getByRole('link', { name: 'First item' }))).toBe(
+        false,
+      )
     })
   })
 
@@ -448,6 +558,36 @@ describe('navigation bar', () => {
       const link = view.getByRole('link', { name: 'Second item, 99 new' })
 
       expect(getComputedStyle(markOf(link)).position).toBe('absolute')
+    })
+
+    // The pill is the indicator here, so a press ripples in it rather than
+    // across the destination's whole share of the bar.
+    it('ripples in the indicator under a press', async () => {
+      vi.useFakeTimers()
+      const restore = installFakeAnimate()
+
+      try {
+        const view = render(<Bar />)
+        const link = view.getByRole('link', { name: 'First item' })
+        const indicator = indicatorOf(link)
+        const surface = surfaceOf(link)
+
+        expect(surface.parentElement).toBe(indicator)
+        expect(surface.getBoundingClientRect().toJSON()).toEqual(
+          indicator.getBoundingClientRect().toJSON(),
+        )
+
+        firePointer(link, 'pointerdown', { buttons: 1 })
+        expect(isPressed(link)).toBe(true)
+        firePointer(link, 'pointerup', { buttons: 0 })
+        fireEvent.click(link)
+        await advance(MINIMUM_PRESS_MS * 4)
+
+        expect(isPressed(link)).toBe(false)
+      } finally {
+        restore()
+        vi.useRealTimers()
+      }
     })
 
     it("is the page's 64dp bar on the surface container", () => {
@@ -574,7 +714,7 @@ describe('navigation bar', () => {
 
       fireEvent.pointerOver(current, { pointerType: 'mouse' })
 
-      expect(getComputedStyle(indicatorOf(current)).backgroundColor).toBe(
+      expect(settled(indicatorOf(current)).backgroundColor).toBe(
         probe(probeStyles.hoveredOverCurrent).background,
       )
     })
@@ -584,7 +724,7 @@ describe('navigation bar', () => {
       const current = view.getByRole('link', { name: 'Second item, 3 new' })
 
       focusByKeyboard(current)
-      const indicator = getComputedStyle(indicatorOf(current))
+      const indicator = settled(indicatorOf(current))
 
       expect(indicator.backgroundColor).toBe(
         probe(probeStyles.focusedOverCurrent).background,
@@ -661,13 +801,44 @@ describe('navigation bar', () => {
       const current = view.getByRole('link', { name: 'Second item, 3 new' })
 
       focusByKeyboard(current)
-      const pill = getComputedStyle(current)
+      const pill = settled(current)
 
       expect(pill.backgroundColor).toBe(
         probe(probeStyles.focusedOverCurrent).background,
       )
       expect(pill.outlineStyle).toBe('solid')
       expect(getComputedStyle(indicatorOf(current)).outlineStyle).toBe('none')
+    })
+
+    // The pill is the whole destination here, so the ripple fills it and
+    // takes its corner, rather than staying in the icon's box.
+    it('ripples across the whole pill under a press', async () => {
+      vi.useFakeTimers()
+      const restore = installFakeAnimate()
+
+      try {
+        const view = render(<Bar />)
+        const link = view.getByRole('link', { name: 'First item' })
+        const surface = surfaceOf(link)
+
+        expect(surface.getBoundingClientRect().toJSON()).toEqual(
+          link.getBoundingClientRect().toJSON(),
+        )
+        expect(getComputedStyle(surface).borderStartStartRadius).toBe(
+          getComputedStyle(link).borderStartStartRadius,
+        )
+
+        firePointer(link, 'pointerdown', { buttons: 1 })
+        expect(isPressed(link)).toBe(true)
+        firePointer(link, 'pointerup', { buttons: 0 })
+        fireEvent.click(link)
+        await advance(MINIMUM_PRESS_MS * 4)
+
+        expect(isPressed(link)).toBe(false)
+      } finally {
+        restore()
+        vi.useRealTimers()
+      }
     })
 
     // The library's own 8dp between two pills — see NavigationBar.
@@ -787,6 +958,17 @@ describe('navigation bar', () => {
 
       expect(rules.get('border-top-color')).toBe('highlight')
       expect(rules.get('border-top-width')).toBe('2px')
+    })
+
+    // That ring is what marks the current destination there, and a ripple
+    // painted in a system colour over the pill would only cover it.
+    it('draws no ripple', () => {
+      const view = render(<Bar />)
+      const current = view.getByRole('link', { name: 'Second item, 3 new' })
+
+      expect(
+        declarationsHeld(surfaceOf(current), FORCED_COLORS).get('display'),
+      ).toBe('none')
     })
   })
 })

@@ -102,7 +102,10 @@ function prefersReducedMotion() {
  * `surface`, the node to render as a child. The host element must
  * establish a positioning context (`position: relative` or similar) so
  * `surface`, which fills it via `inset: 0`, clips to its bounds and
- * inherits its shape.
+ * inherits its shape. A host can render `surface` in a positioned part of
+ * itself instead, and the ripple then grows in that part alone, from where
+ * the pointer is over it: a navigation destination draws it in its
+ * indicator.
  *
  * Pass `enabled: false` to opt out — no ripple listeners are attached and
  * no surface is rendered, leaving `externalHandlers` and a component's own
@@ -219,9 +222,19 @@ function useRipple<HostElement extends Element = Element>(
       growAnimation.current?.cancel()
 
       // Read once and share: the two helpers below both only need the
-      // target's rect, and a second `getBoundingClientRect()` call back to
-      // back with the first would be a redundant layout read.
-      const rect = target.getBoundingClientRect()
+      // rect, and a second `getBoundingClientRect()` call back to back with
+      // the first would be a redundant layout read.
+      //
+      // The surface's rect rather than the host's, since the ripple is placed
+      // inside the surface. The two are one box wherever the surface fills
+      // the host, which is every host but one drawing the surface in a part
+      // of itself. Under forced colours the surface is not drawn and has no
+      // box, so the host's stands in for a ripple nobody sees.
+      const surface = ripple.parentElement?.getBoundingClientRect()
+      const rect =
+        surface && (surface.width > 0 || surface.height > 0)
+          ? surface
+          : target.getBoundingClientRect()
       const size = determineRippleSize(rect)
       const { endPoint, startPoint } = getTranslationCoordinates(
         rect,
