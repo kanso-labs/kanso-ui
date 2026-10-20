@@ -587,6 +587,13 @@ describe('field chrome', () => {
       expect(hasClasses(input, CLASSES.mono)).toBe(true)
     })
 
+    // Every field's control shares this style, so a placeholder too wide for
+    // one ends in an ellipsis in all of them rather than mid-glyph.
+    it('ends text wider than the control in an ellipsis', () => {
+      const { input } = setup()
+      expect(getComputedStyle(input).textOverflow).toBe('ellipsis')
+    })
+
     it('takes the disabled colour from its own render state', () => {
       const { input } = setup({ isDisabled: true })
       expect(input).toHaveProperty('disabled', true)

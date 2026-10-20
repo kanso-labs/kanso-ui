@@ -28,6 +28,14 @@ interface ReachingRule {
    * than the element itself, which `pseudo` alone does not say.
    */
   pseudoElement: string
+  /**
+   * Every selector in the rule's list that reaches the element, whole —
+   * `.abc.abc:active:has(button:active)`. `pseudo` and `pseudoElement` read
+   * the first of them, and only its first pseudo-class, so two selectors
+   * that differ only after that, and a second selector sharing the rule,
+   * are told apart here alone.
+   */
+  selectors: string[]
   /** The rule's own declarations. */
   style: CSSStyleDeclaration
 }
@@ -151,16 +159,25 @@ function rulesReaching(
         continue
       }
 
-      for (const selectorText of rule.selectorText.split(',')) {
-        const [selector, pseudo = ''] = selectorText.trim().split(':', 2)
-        const className = selector.split('.').find(Boolean)
+      const selectors = rule.selectorText
+        .split(',')
+        .map((selectorText) => selectorText.trim())
+        .filter((selectorText) => {
+          const [selector] = selectorText.split(':', 1)
+          const className = selector.split('.').find(Boolean)
+          return (
+            className !== undefined && element.classList.contains(className)
+          )
+        })
 
-        if (className !== undefined && element.classList.contains(className)) {
-          const pseudoElement = /::([\w-]+)/u.exec(selectorText)?.[1] ?? ''
-          found.push({ held, pseudo, pseudoElement, style: rule.style })
-          break
-        }
+      if (selectors.length === 0) {
+        continue
       }
+
+      const [first] = selectors
+      const [, pseudo = ''] = first.split(':', 2)
+      const pseudoElement = /::([\w-]+)/u.exec(first)?.[1] ?? ''
+      found.push({ held, pseudo, pseudoElement, selectors, style: rule.style })
     }
   }
 }

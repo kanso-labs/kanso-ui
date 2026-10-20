@@ -53,6 +53,20 @@ const WithError: Story = {
   ),
 }
 
+// Supporting text wider than the input ends in an ellipsis rather than being
+// cut off mid-letter, which a translated placeholder runs into first.
+const LongPlaceholder: Story = {
+  args: {
+    placeholder:
+      'Supporting text long enough to run well past the end of the bar it sits in',
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <SearchField {...args} />
+    </div>
+  ),
+}
+
 const Disabled: Story = {
   args: {
     defaultValue: 'Typed keyword',
@@ -65,6 +79,6 @@ const Disabled: Story = {
   ),
 }
 
-export { Default, Disabled, WithError, WithValue }
+export { Default, Disabled, LongPlaceholder, WithError, WithValue }
 
 export default meta

@@ -525,6 +525,12 @@ const fieldChromeStyles = stylex.create({
     // one focus.
     outlineStyle: 'none',
     padding: 0,
+    // A placeholder wider than the control ends in an ellipsis rather than
+    // mid-glyph, which is where a translated one lands first. An input's
+    // value does the same once focus leaves it, and scrolls to the caret
+    // while it has focus; the other elements this style reaches either wrap
+    // or are flex containers, which the property does not reach.
+    textOverflow: 'ellipsis',
   },
   inputDisabled: {
     '::placeholder': {
