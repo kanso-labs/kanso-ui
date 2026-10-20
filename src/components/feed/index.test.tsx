@@ -20,10 +20,9 @@ function columnsOf(feed: HTMLElement) {
     .map(Number.parseFloat)
 }
 
-// A width on the wrapper rather than on the viewport, which is the whole
-// distinction this layout draws against ListDetail and SupportingPane: it
-// answers to the room it is given, so a test can give it that room directly
-// and never touch `page.viewport()`.
+// A width on the wrapper rather than on the viewport: this layout answers to
+// the room it is given, so a test can give it that room directly and never
+// touch `page.viewport()`.
 function renderAtWidth(
   width: string,
   itemCount: number,

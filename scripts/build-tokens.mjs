@@ -735,14 +735,22 @@ function breakpointEntries(allTokens) {
 // the *next* class up". compact appears in neither: `width >= 0px` is always
 // true and `width < 0px` never is, so its two queries would be a no-op and a
 // dead rule. It is the base every style starts from, not a query.
-/** @param {TransformedToken[]} allTokens @returns {Entry[]} */
-function mediaEntries(allTokens) {
+//
+// `container` asks the same of the nearest ancestor that sets
+// `containerType: 'inline-size'` instead of the window, for a layout that
+// answers to the room it is given rather than to the screen around it.
+/**
+ * @param {TransformedToken[]} allTokens
+ * @param {'@container' | '@media'} atRule
+ * @returns {Entry[]}
+ */
+function queryEntries(allTokens, atRule) {
   /** @type {Entry[]} */
   const entries = []
   for (const key of BREAKPOINTS.slice(1)) {
     const width = breakpointAt(allTokens, key)
-    entries.push([key, `'@media (width >= ${width})'`])
-    entries.push([`below${pascalCase(key)}`, `'@media (width < ${width})'`])
+    entries.push([key, `'${atRule} (width >= ${width})'`])
+    entries.push([`below${pascalCase(key)}`, `'${atRule} (width < ${width})'`])
   }
   return entries
 }
@@ -820,7 +828,9 @@ ${scopeBlocks()}
 
 ${defineConstsBlock('breakpoints', breakpointEntries(allTokens))}
 
-${defineConstsBlock('media', mediaEntries(allTokens))}
+${defineConstsBlock('container', queryEntries(allTokens, '@container'))}
+
+${defineConstsBlock('media', queryEntries(allTokens, '@media'))}
 `
 }
 

@@ -16,7 +16,13 @@ const HEADING_2 = <h2 />
 const ITEMS = ['First item', 'Second item', 'Third item']
 
 const styles = stylex.create({
-  // A dashed outline on each pane, so the tracks are legible in a snapshot.
+  // Narrower than the expanded breakpoint on any window, for the story that
+  // shows the layout following its own width.
+  narrow: {
+    inlineSize: '520px',
+    maxInlineSize: '100%',
+  },
+  // A dashed outline on each pane, so the panes are legible in a snapshot.
   // The component paints nothing itself — these are the story's, not its.
   paneOutline: {
     borderColor: colors.outlineVariant,
@@ -73,9 +79,9 @@ const meta = {
     list: <ListPane />,
   },
   component: ListDetail,
-  // Chromatic captures both stories at the narrow arrangements too, because a
-  // media query answers to the window rather than to a container and one
-  // width can only ever show one of them. These merge with the project's light
+  // Chromatic captures the stories at the narrow arrangements too. The layout
+  // answers to its own width, and a story gives it the window's, so one width
+  // can only ever show one arrangement. These merge with the project's light
   // and dark rather than replacing them, so the wide arrangement is still
   // covered by the default snapshot — see .storybook/modes.ts.
   parameters: {
@@ -96,6 +102,23 @@ const ShowingDetail: Story = {
   },
 }
 
-export { Default, ShowingDetail }
+// The breakpoints are the layout's own width rather than the window's, so in
+// a block narrower than the expanded breakpoint it shows one pane however wide
+// the window is — as it would beside a navigation drawer or inside a sheet.
+// One pane on every window, so the narrow window modes would only repeat it.
+const NarrowContainer: Story = {
+  parameters: {
+    chromatic: {
+      modes: { compact: { disable: true }, medium: { disable: true } },
+    },
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <ListDetail {...args} />
+    </div>
+  ),
+}
+
+export { Default, NarrowContainer, ShowingDetail }
 
 export default meta
