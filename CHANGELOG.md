@@ -1,5 +1,72 @@
 # Changelog
 
+## [0.44.0](https://github.com/kanso-labs/kanso-ui/compare/v0.43.7...v0.44.0) (2026-10-20)
+
+
+### Features
+
+* **currency:** add tone inherit and expose sign, display, notation and fraction-digit options ([#1717](https://github.com/kanso-labs/kanso-ui/issues/1717)) ([e3cd0fe](https://github.com/kanso-labs/kanso-ui/commit/e3cd0fe76494c4723cb2f3cb1e21601bd6ed405b))
+* **navigation:** add a badge label that joins the accessible name ([#1730](https://github.com/kanso-labs/kanso-ui/issues/1730)) ([4cad9de](https://github.com/kanso-labs/kanso-ui/commit/4cad9de075558ae5a60d698c7145715272aa6e53))
+* **navigation:** let a destination be marked current by hand ([#1729](https://github.com/kanso-labs/kanso-ui/issues/1729)) ([87cb913](https://github.com/kanso-labs/kanso-ui/commit/87cb91371fe4def20d14b2fd0309dc06283026ca))
+* **number-field:** add a steppers value that hides them ([#1734](https://github.com/kanso-labs/kanso-ui/issues/1734)) ([3ca6521](https://github.com/kanso-labs/kanso-ui/commit/3ca65212327febafd8b7b579145b2753e5cd1106))
+* **popover:** add start and end sides that follow the writing direction ([#1736](https://github.com/kanso-labs/kanso-ui/issues/1736)) ([53953f8](https://github.com/kanso-labs/kanso-ui/commit/53953f806152107a7d8d1e68567aa8e4eec7f9a0))
+* **separator:** let a separator be marked decorative ([#1742](https://github.com/kanso-labs/kanso-ui/issues/1742)) ([d9b35c4](https://github.com/kanso-labs/kanso-ui/commit/d9b35c4d7e02d55d91feb54a5cc009ec2bc9de59))
+* **switch:** accept a node for the handle icon ([#1749](https://github.com/kanso-labs/kanso-ui/issues/1749)) ([d01d223](https://github.com/kanso-labs/kanso-ui/commit/d01d2239f1b981ff893e1dd592fc490d679c8613))
+
+
+### Bug Fixes
+
+* **calendar:** draw the disabled, read-only and invalid states ([#1709](https://github.com/kanso-labs/kanso-ui/issues/1709)) ([4831a06](https://github.com/kanso-labs/kanso-ui/commit/4831a06ba413933f9a37cf681dbccaf13a10ccd8))
+* **chip-group:** let Escape reach the surrounding overlay and stop inert chips looking pressable ([#1713](https://github.com/kanso-labs/kanso-ui/issues/1713)) ([dab09e4](https://github.com/kanso-labs/kanso-ui/commit/dab09e4bc8b07cd4a471206bf8c2e915eb97b40e))
+* **chip-group:** name chips whose children are not a plain string ([#1714](https://github.com/kanso-labs/kanso-ui/issues/1714)) ([6f1a66f](https://github.com/kanso-labs/kanso-ui/commit/6f1a66f1e9c1245efb9f79886c59044562f61987))
+* **chip,chip-group:** animate the width change of selection and round the press ripple ([#1712](https://github.com/kanso-labs/kanso-ui/issues/1712)) ([dd9a34d](https://github.com/kanso-labs/kanso-ui/commit/dd9a34d64aee5c91687015a213c65410f755fae6))
+* **control:** stop stacked checkbox and radio targets overlapping and close the gap to the label ([#1711](https://github.com/kanso-labs/kanso-ui/issues/1711)) ([274ee3a](https://github.com/kanso-labs/kanso-ui/commit/274ee3a3946b0f77a698d4caf97dccce9c38f0a9))
+* **copy-field:** space the Copy button and its focus ring from the field edge ([#1716](https://github.com/kanso-labs/kanso-ui/issues/1716)) ([6a632f6](https://github.com/kanso-labs/kanso-ui/commit/6a632f647d69e9a55e22a71b30f0d70ab7804b3a))
+* **currency:** set lang and dir on an amount formatted for another locale ([#1718](https://github.com/kanso-labs/kanso-ui/issues/1718)) ([5c221d4](https://github.com/kanso-labs/kanso-ui/commit/5c221d4bf36ccd3dce9140f4ff31730bd6889a40))
+* **dialog:** describe an alert dialog by its body ([#1720](https://github.com/kanso-labs/kanso-ui/issues/1720)) ([0605170](https://github.com/kanso-labs/kanso-ui/commit/0605170895998dfa156fae41e6badf8e27139e6b))
+* **field:** announce when the character limit is reached ([#1755](https://github.com/kanso-labs/kanso-ui/issues/1755)) ([5fa9ba6](https://github.com/kanso-labs/kanso-ui/commit/5fa9ba6d032e26151f1c9129fa0be30159d217a7))
+* **icon-button:** keep the outlined and toggle boundaries visible at rest and when disabled ([#1721](https://github.com/kanso-labs/kanso-ui/issues/1721)) ([1ad4f5a](https://github.com/kanso-labs/kanso-ui/commit/1ad4f5aa2f83a5fefea8efef0dd95ab65434aab1))
+* **list-detail:** lay the panes out by their container rather than the window ([#1724](https://github.com/kanso-labs/kanso-ui/issues/1724)) ([951745f](https://github.com/kanso-labs/kanso-ui/commit/951745f471f04026243c462a466e411c9e561788))
+* **list-item:** accept click handlers only on interactive rows ([#1725](https://github.com/kanso-labs/kanso-ui/issues/1725)) ([cf62dd5](https://github.com/kanso-labs/kanso-ui/commit/cf62dd508b6a2ec1c347448bd43a7f05d2e5564d))
+* **list:** default single selection to replace so its checkboxes act as checkboxes ([#1723](https://github.com/kanso-labs/kanso-ui/issues/1723)) ([f27614b](https://github.com/kanso-labs/kanso-ui/commit/f27614b37675465638d3ba663f57d39497e61c29))
+* **list:** ripple only rows that act and not under a nested control ([#1722](https://github.com/kanso-labs/kanso-ui/issues/1722)) ([1b79025](https://github.com/kanso-labs/kanso-ui/commit/1b790252b40ae913f377fcfe331e1e812127031a))
+* **menu:** colour the shortcut for selected and disabled items ([#1726](https://github.com/kanso-labs/kanso-ui/issues/1726)) ([ee7d536](https://github.com/kanso-labs/kanso-ui/commit/ee7d536ea02dea294f2d181effab4e7f9941f3b9))
+* **meter:** tell the negative and positive tones apart by more than hue ([#1727](https://github.com/kanso-labs/kanso-ui/issues/1727)) ([fa4988b](https://github.com/kanso-labs/kanso-ui/commit/fa4988b167fca7d1ee73b3e430ebdc3550d0741e))
+* **navigation-bar:** let the bar grow for safe-area padding and wider text spacing ([#1728](https://github.com/kanso-labs/kanso-ui/issues/1728)) ([77b4c56](https://github.com/kanso-labs/kanso-ui/commit/77b4c56e104b227041455fb5b90940602a9b45c0))
+* **navigation,chip:** expose the full text of a truncated label ([#1715](https://github.com/kanso-labs/kanso-ui/issues/1715)) ([e4bcaf0](https://github.com/kanso-labs/kanso-ui/commit/e4bcaf0f31c70447e20a771876c76216b47b0b93))
+* **navigation:** give destinations list semantics ([#1731](https://github.com/kanso-labs/kanso-ui/issues/1731)) ([34cea23](https://github.com/kanso-labs/kanso-ui/commit/34cea2327e819f53b30e9dfae44d2e23a3dd7e96))
+* **navigation:** transition the indicator and ripple on press ([#1732](https://github.com/kanso-labs/kanso-ui/issues/1732)) ([faff110](https://github.com/kanso-labs/kanso-ui/commit/faff110f746c2920fbde5306f2785ec8d4cc30c6))
+* **overlay:** draw one scrim for a modal opened over another ([#1758](https://github.com/kanso-labs/kanso-ui/issues/1758)) ([962dc35](https://github.com/kanso-labs/kanso-ui/commit/962dc35dd18706e7959e090495ad5b2869b68cc9))
+* **overlay:** make a scrollable dialog or sheet body a named region that is tabbable only when needed ([#1719](https://github.com/kanso-labs/kanso-ui/issues/1719)) ([de55d7c](https://github.com/kanso-labs/kanso-ui/commit/de55d7c4423567c451023600cb3c5c9f422ec8d1))
+* **popover:** point aria-describedby at the description that renders ([#1735](https://github.com/kanso-labs/kanso-ui/issues/1735)) ([af125f0](https://github.com/kanso-labs/kanso-ui/commit/af125f05f37f82d2b0028996927eb40413d0537f))
+* **progress-indicator:** size the ring root to the ring ([#1737](https://github.com/kanso-labs/kanso-ui/issues/1737)) ([533f61a](https://github.com/kanso-labs/kanso-ui/commit/533f61a688b5a9412dbcba8d34f7c4fd2f95f47c))
+* **progress-indicator:** stop the buffer dots under reduced motion ([#1738](https://github.com/kanso-labs/kanso-ui/issues/1738)) ([ec90001](https://github.com/kanso-labs/kanso-ui/commit/ec90001163bd342939fb1e899d54bfb44181ff6e))
+* **radio-group:** fade descriptions with their disabled option or group ([#1739](https://github.com/kanso-labs/kanso-ui/issues/1739)) ([7a9d557](https://github.com/kanso-labs/kanso-ui/commit/7a9d557aeba1e00c2a13a31614ce3b5f32cdaf08))
+* **search-field:** ellipsise a long placeholder, offer a Search key and keep the clear button off the bar layer ([#1740](https://github.com/kanso-labs/kanso-ui/issues/1740)) ([bbc89b5](https://github.com/kanso-labs/kanso-ui/commit/bbc89b5a2e22ed250d530434f10baf15470b0cfc))
+* **segmented-button:** require an id on every segment ([#1741](https://github.com/kanso-labs/kanso-ui/issues/1741)) ([800e66e](https://github.com/kanso-labs/kanso-ui/commit/800e66e394dff78217958eff043f28e3c6329f12))
+* **separator:** show a vertical separator outside a flex or grid parent ([#1743](https://github.com/kanso-labs/kanso-ui/issues/1743)) ([177ece4](https://github.com/kanso-labs/kanso-ui/commit/177ece415f7cf956f98afec3f07889aa633fe445))
+* **snackbar:** fade a snackbar out as it leaves ([#1745](https://github.com/kanso-labs/kanso-ui/issues/1745)) ([8160400](https://github.com/kanso-labs/kanso-ui/commit/81604001d89dfdaf4e2f3d250c60d993fc67f1c2))
+* **snackbar:** hold timeouts to the readable minimum ([#1744](https://github.com/kanso-labs/kanso-ui/issues/1744)) ([22a13a0](https://github.com/kanso-labs/kanso-ui/commit/22a13a015686f087855205d01dcb4a526fbb5964))
+* **stack:** add role list when it renders a list element ([#1746](https://github.com/kanso-labs/kanso-ui/issues/1746)) ([74ca1b5](https://github.com/kanso-labs/kanso-ui/commit/74ca1b567455361752fa9cd090451706a2df4b70))
+* **switch:** draw the error state on the control ([#1747](https://github.com/kanso-labs/kanso-ui/issues/1747)) ([1714974](https://github.com/kanso-labs/kanso-ui/commit/1714974479817a324c314694bce391ee332ee793))
+* **text-field:** give numeric fields a decimal keyboard and a left-to-right sign under RTL ([#1753](https://github.com/kanso-labs/kanso-ui/issues/1753)) ([fb3c35b](https://github.com/kanso-labs/kanso-ui/commit/fb3c35beca8f163c3e72388dd0ff4b2f24d87ff6))
+* **text-field:** hide the native clear button of a search input ([#1754](https://github.com/kanso-labs/kanso-ui/issues/1754)) ([46a29f0](https://github.com/kanso-labs/kanso-ui/commit/46a29f037341d11d8961c2e3fd58718891854015))
+* **theme-scope:** keep the portal container valid inside any rendered element ([#1756](https://github.com/kanso-labs/kanso-ui/issues/1756)) ([2abd32e](https://github.com/kanso-labs/kanso-ui/commit/2abd32e3845d138fc3fd0e56f8874e76324690ea))
+
+
+### Dependencies
+
+* lift Vitest to v5 ([#1748](https://github.com/kanso-labs/kanso-ui/issues/1748)) ([6f4f54c](https://github.com/kanso-labs/kanso-ui/commit/6f4f54c80551b5d3fd8402137c5549e5e8c1cc8f))
+* update commitlint to v21.2.4 ([#1703](https://github.com/kanso-labs/kanso-ui/issues/1703)) ([765e572](https://github.com/kanso-labs/kanso-ui/commit/765e5722f15efa410eaab7feb7ca092e57c1c656))
+* update dependency @chromatic-com/storybook to v5.6.0 ([#1752](https://github.com/kanso-labs/kanso-ui/issues/1752)) ([8af4ed8](https://github.com/kanso-labs/kanso-ui/commit/8af4ed8a9ee174506e18a3e747325414d5432183))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.35 ([#1704](https://github.com/kanso-labs/kanso-ui/issues/1704)) ([72e3c4b](https://github.com/kanso-labs/kanso-ui/commit/72e3c4b3b2d6ab7a6b4b171ae83f7a7ce90f5c0e))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.36 ([#1750](https://github.com/kanso-labs/kanso-ui/issues/1750)) ([84d028c](https://github.com/kanso-labs/kanso-ui/commit/84d028c78edf34b913cc380f88e7d24df63f038b))
+* update dependency eslint-plugin-perfectionist to v5.13.0 ([#1733](https://github.com/kanso-labs/kanso-ui/issues/1733)) ([06ffdec](https://github.com/kanso-labs/kanso-ui/commit/06ffdecfc5831f69606a765ccf91bad167d74760))
+* update dependency oxfmt to v0.74.0 ([#1705](https://github.com/kanso-labs/kanso-ui/issues/1705)) ([cc007a6](https://github.com/kanso-labs/kanso-ui/commit/cc007a687a651f2e4b19a6fbc4a34a5220f0acbd))
+* update dependency typescript-eslint to v8.72.0 ([#1706](https://github.com/kanso-labs/kanso-ui/issues/1706)) ([56252c1](https://github.com/kanso-labs/kanso-ui/commit/56252c137324c4a269db8ac42b87ad285a2e3fdd))
+* update oxlint to v1.89.0 ([#1707](https://github.com/kanso-labs/kanso-ui/issues/1707)) ([e39ec72](https://github.com/kanso-labs/kanso-ui/commit/e39ec729874b32f6ac4d6474b7b3605f27badbd0))
+* update storybook to v10.6.3 ([#1751](https://github.com/kanso-labs/kanso-ui/issues/1751)) ([6d91361](https://github.com/kanso-labs/kanso-ui/commit/6d913613d275d0d3254dd765325aab9217253ef4))
+
 ## [0.43.7](https://github.com/kanso-labs/kanso-ui/compare/v0.43.6...v0.43.7) (2026-10-17)
 
 
