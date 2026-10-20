@@ -270,6 +270,53 @@ const Large: Story = {
   },
 }
 
+// Its own story because centred text is centred on the bar rather than in the
+// room the slots leave, which the Default story's two equal slots cannot
+// show: the two only part when the sides differ. A leading slot alone, a back
+// button against three actions, and a headline too long for the middle,
+// which moves off it as far as the wider side needs rather than running
+// under a slot.
+const CenterAligned: Story = {
+  render: () => (
+    <div {...stylex.props(styles.stack)}>
+      <Sample
+        align="center"
+        headline="Headline"
+        label="sm, a leading slot alone"
+        leading={LEADING}
+      />
+      <section>
+        <Sample
+          align="center"
+          headline="Headline"
+          label="sm, a leading slot against three actions"
+          leading={LEADING}
+          trailing={ACTIONS}
+        />
+      </section>
+      <section {...stylex.props(styles.narrow)}>
+        <Sample
+          align="center"
+          headline="A headline long enough to need more than one line"
+          label="sm, in a narrow window, with three actions"
+          leading={LEADING}
+          trailing={ACTIONS}
+        />
+      </section>
+      <section>
+        <Sample
+          align="center"
+          headline="Headline"
+          label="lg, a leading slot alone"
+          leading={LEADING}
+          size="lg"
+          subtitle="Supporting line"
+        />
+      </section>
+    </div>
+  ),
+}
+
 // The state a flexible bar collapses into, held still: the small bar's height,
 // with the headline and the subtitle both kept, in the small bar's type roles.
 // Collapsing reaches it only once its page is scrolled, which no snapshot of
@@ -414,6 +461,7 @@ const PageAlignment: Story = {
 }
 
 export {
+  CenterAligned,
   Collapsed,
   Collapsing,
   Default,

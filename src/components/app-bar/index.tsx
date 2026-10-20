@@ -45,6 +45,19 @@ import Text from '../text'
 // wraps against the bar's width rather than against what the slots leave.
 // Collapsing moves the text up into the strip, which is the small bar exactly,
 // and the slots never move: they are in the strip in both states.
+//
+// Centred text is centred on the bar, not in the room the slots leave, which
+// is how Material Design places it: with a leading icon and no actions, the
+// room between the two is off the bar's middle by half the icon. So a centred
+// strip's side columns share what the text leaves equally, whatever is in
+// them, and the text moves off the middle only where a wide slot needs the
+// room — see `centredColumns`.
+//
+// The slots set the colours the page gives their icons: on surface for the
+// leading one and on surface variant for the trailing ones. The second is a
+// standard icon button's own colour, and the first is not, so the leading
+// slot also sets the property a standard icon button reads its colour from —
+// see `standard` in src/components/icon-button/index.tsx.
 
 // The geometry Material Design lays a bar's icon buttons out on. Its tokens
 // give a 4dp leading and trailing space between the bar's edge and the first
@@ -91,8 +104,13 @@ const styles = stylex.create({
   // The slot that comes before the text, with the space between the two on
   // its own side. A margin rather than a gap on the grid, which would open
   // beside an empty column as well and push the headline off its inset.
+  //
+  // Its colour and the icon button's are on surface — see the header.
   leading: {
+    '--icon-button-standard-color': colors.onSurface,
+    color: colors.onSurface,
     gridArea: 'leading',
+    justifySelf: 'start',
     marginInlineEnd: spacing.xs,
   },
   // Held at the top of the scroll container as the content scrolls beneath
@@ -128,17 +146,16 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easingEmphasized,
   },
   // The strip every bar has, and the whole of the small one: three columns,
-  // the slots at their own widths and the text taking what they leave. The
-  // track is the strip's height at least and stays at the top of the bar,
-  // rather than stretching with it, so a bar still shrinking from a flexible
-  // height already has its slots where they will end. The strip's height is
-  // set beside the measure, in rowStyles, and `twoRows` adds the second row.
+  // the slots either side of the text. The track is the strip's height at
+  // least and stays at the top of the bar, rather than stretching with it, so
+  // a bar still shrinking from a flexible height already has its slots where
+  // they will end. The strip's height and the columns are set beside the
+  // measure, in rowStyles, and `twoRows` adds the second row.
   row: {
     alignContent: 'start',
     boxSizing: 'border-box',
     display: 'grid',
     gridTemplateAreas: '"leading text trailing"',
-    gridTemplateColumns: 'auto minmax(0, 1fr) auto',
     inlineSize: '100%',
     marginInline: 'auto',
   },
@@ -193,9 +210,12 @@ const styles = stylex.create({
   textCenter: {
     textAlign: 'center',
   },
-  // The slot that comes after the text, mirroring `leading`.
+  // The slot that comes after the text, mirroring `leading`, in the colour a
+  // standard icon button already draws in.
   trailing: {
+    color: colors.onSurfaceVariant,
     gridArea: 'trailing',
+    justifySelf: 'end',
     marginInlineStart: spacing.xs,
   },
 })
@@ -314,17 +334,25 @@ const heightStyles = stylex.create({
 // a glyph's own room would otherwise ask for a negative padding, which CSS
 // throws away whole.
 //
-// The tracks are a function style for a different reason: the strip is the
+// The tracks are a function style for two other reasons: the strip is the
 // small bar's height, which is the hook's constant, and the compiler cannot
-// read a constant out of another module — see FORCED_COLORS.
+// read a constant out of another module — see FORCED_COLORS; and a centred
+// bar's columns depend on the inset — see `centredColumns`.
 const rowStyles = stylex.create({
   root: (start: string, end: string, maxInlineSize: string) => ({
     maxInlineSize,
     paddingInlineEnd: end,
     paddingInlineStart: start,
   }),
-  tracks: (gridTemplateRows: string) => ({ gridTemplateRows }),
+  tracks: (gridTemplateColumns: string, gridTemplateRows: string) => ({
+    gridTemplateColumns,
+    gridTemplateRows,
+  }),
 })
+
+// A bar's columns with its text at the start: the slots at their own widths
+// and the text taking what they leave.
+const START_COLUMNS = 'auto minmax(0, 1fr) auto'
 
 // The text in the second row runs under the slots as well as between them, so
 // it puts back what the row's padding held off an edge for a slot's glyph, and
@@ -353,7 +381,11 @@ const UNDER_TARGETS = `calc((${COLLAPSED_HEIGHT} - ${ICON_BUTTON_TARGET}) / 2)`
 type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   /**
    * Which of Material Design's alignments the text takes. `center` is the
-   * configuration that replaced the old center-aligned variant.
+   * configuration that replaced the old center-aligned variant, and centres
+   * the text on the bar rather than between the slots, so a bar with a
+   * leading icon and no actions still has its headline in the middle. The
+   * text moves off the middle only as far as a slot wider than the other
+   * needs, rather than running under it.
    * @default 'start'
    */
   align?: 'center' | 'start'
@@ -426,7 +458,11 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
   /** The page's title. Wraps rather than truncating, and grows the bar with it. */
   headline?: ReactNode
-  /** Usually a back or menu icon button. Sits before the text. */
+  /**
+   * Usually a back or menu icon button. Sits before the text, and a standard
+   * icon button here draws its icon in on surface, the colour the page gives
+   * a bar's leading icon, rather than its own on surface variant.
+   */
   leading?: ReactNode
   /**
    * Holds the bar at the top of its scroll container while the content
@@ -523,6 +559,12 @@ function AppBar({
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
   const hasLeading = hasContent(leading)
   const hasTrailing = hasContent(trailing)
+  // A centred bar pads both edges as one holding a slot would, so the row
+  // is the same either side of the middle — see `centredColumns`.
+  const centred = align === 'center'
+  const hasSlot = hasLeading || hasTrailing
+  const padsForStart = centred ? hasSlot : hasLeading
+  const padsForEnd = centred ? hasSlot : hasTrailing
   const textRef = useCollapseMotion(collapse, align)
 
   return useRender({
@@ -534,11 +576,14 @@ function AppBar({
           {...stylex.props(
             styles.row,
             rowStyles.root(
-              edgePadding(contentInset, hasLeading),
-              edgePadding(contentInset, hasTrailing),
+              edgePadding(contentInset, padsForStart),
+              edgePadding(contentInset, padsForEnd),
               contentMaxInlineSize,
             ),
             rowStyles.tracks(
+              centred
+                ? centredColumns(contentInset, hasLeading, hasTrailing)
+                : START_COLUMNS,
               below
                 ? `minmax(${COLLAPSED_HEIGHT}, auto) 1fr`
                 : `minmax(${COLLAPSED_HEIGHT}, auto)`,
@@ -556,8 +601,8 @@ function AppBar({
               below && styles.textBelow,
               below &&
                 textStyles.inset(
-                  glyphRoom(contentInset, hasLeading),
-                  glyphRoom(contentInset, hasTrailing),
+                  glyphRoom(contentInset, padsForStart),
+                  glyphRoom(contentInset, padsForEnd),
                 ),
               below && textStyles.reach(`calc(-1 * ${UNDER_TARGETS})`),
               align === 'center' && styles.textCenter,
@@ -605,6 +650,29 @@ function AppBar({
     },
     render,
   })
+}
+
+/**
+ * A centred bar's columns: the text in the middle at its own width, and a
+ * column either side sharing what it leaves equally, so the text is centred
+ * on the row. A side column is never narrower than its slot, which is what
+ * moves the text off the middle when a slot is wider than the other side's
+ * share, and never as far as overlapping it.
+ *
+ * The row pads both edges for a slot, so the two sides match, and an edge
+ * with no slot puts back what that padding held off for a glyph as its
+ * column's least width. A headline long enough to reach that edge stops on
+ * the inset, as it does at the start.
+ */
+function centredColumns(
+  contentInset: string,
+  hasLeading: boolean,
+  hasTrailing: boolean,
+) {
+  const room = glyphRoom(contentInset, hasLeading || hasTrailing)
+  const side = (hasSlot: boolean) =>
+    hasSlot ? 'minmax(auto, 1fr)' : `minmax(${room}, 1fr)`
+  return `${side(hasLeading)} auto ${side(hasTrailing)}`
 }
 
 /**
