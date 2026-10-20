@@ -26,6 +26,22 @@ const DISABLED_TEXT = {
   [FORCED_COLORS]: 'GrayText',
 }
 
+// The filled box's state layer while hovered: on surface at the hover
+// opacity, laid over the fill, as the text fields page draws it.
+const HOVERED_FILL = `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHighest})`
+
+// The filled box's disabled fill, on surface at 4%. Material Design gives the
+// filled field's disabled container a third of the 12% that
+// `stateLayerOpacity.disabledContainer` holds, and no token names it, so it
+// is written once here, beside the one style that draws it.
+const DISABLED_FILL_OPACITY = '4%'
+
+// The outline's two widths, resting and focused. The notch's inline padding
+// is measured from the border's inside edge, so each width comes off the
+// padding that puts the notch level with the label — see `outline`.
+const OUTLINE_WIDTH = '1px'
+const OUTLINE_FOCUSED_WIDTH = '2px'
+
 // What the box is tall enough for, rather than the 56dp the text fields page
 // draws it at. The page's number is the sum of these under the default
 // tokens, and stating it instead made the box right only there: a theme with
@@ -189,18 +205,21 @@ const fieldChromeStyles = stylex.create({
     // padding dead.
     position: 'relative',
     transitionDuration: motion.durationShort2,
-    transitionProperty: 'box-shadow',
+    transitionProperty: 'background-color, box-shadow',
     transitionTimingFunction: motion.easingStandard,
   },
+  // The page's disabled filled field: the fill at `DISABLED_FILL_OPACITY` and
+  // the underline at the disabled content opacity, the 38% the label and the
+  // value take, rather than the outlined field's 12%.
   boxDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} ${DISABLED_FILL_OPACITY}, ${colors.surface})`,
     // Forced colours has one keyword for disabled, and a box is where it has
     // to be said: the control inside is a real disabled input or button, so a
     // UA greys that itself, while the box is a `Group` — a div, which it has
     // no reason to treat as disabled at all. Without this the boundary a
     // disabled field draws is the one an editable field draws.
     borderBlockEndColor: { default: null, [FORCED_COLORS]: 'GrayText' },
-    boxShadow: `inset 0 -1px 0 0 color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    boxShadow: `inset 0 -1px 0 0 color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
     cursor: 'default',
   },
   // Error is the one state with nothing to add here. Forced colours takes the
@@ -222,8 +241,21 @@ const fieldChromeStyles = stylex.create({
   // the ring's style under forced colours since that is a `:focus-within`
   // branch too.
   boxErrorFocused: {
+    backgroundColor: colors.surfaceContainerHighest,
     boxShadow: `inset 0 -2px 0 0 ${colors.error}`,
     outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+  },
+  // The hovered underline with an error, in on error container, over the
+  // hovered fill — see `boxHovered`, which it replaces on an invalid box.
+  boxErrorHovered: {
+    backgroundColor: {
+      ':focus-within': colors.surfaceContainerHighest,
+      default: HOVERED_FILL,
+    },
+    boxShadow: {
+      ':focus-within': `inset 0 -2px 0 0 ${colors.error}`,
+      default: `inset 0 -1px 0 0 ${colors.onErrorContainer}`,
+    },
   },
   // The fixed label's type: label-medium, small at the top in every state.
   boxFixed: {
@@ -269,10 +301,35 @@ const fieldChromeStyles = stylex.create({
       default: `calc(${BOX_BLOCK_SIZE} - 2 * ${spacing.sm})`,
     },
   },
-  // The focused underline — see `boxErrorFocused`.
+  // The focused underline — see `boxErrorFocused` — over the resting fill,
+  // which a hovered box gives up its state layer for — see `boxHovered`.
   boxFocused: {
+    backgroundColor: colors.surfaceContainerHighest,
     boxShadow: `inset 0 -2px 0 0 ${colors.primary}`,
     outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+  },
+  // The hovered filled box, the counterpart of `boxOutlinedHovered`: the
+  // underline in on surface and the state layer over the fill. From the box's
+  // render state for the reason that style gives, and repeating the focused
+  // look, since StyleX replaces a property whole and focus wins over hover.
+  // `boxStyles` applies it after the error style, so an invalid box takes
+  // `boxErrorHovered` in its place.
+  //
+  // The state layer is drawn only while focus is elsewhere, a departure from
+  // the page, whose layer stays on a focused box. Over it, the primary a
+  // focused label takes comes to 4.3:1 under the default light tokens, and
+  // the error a focused invalid one takes to 4.3:1 as well, both short of the
+  // 4.5:1 AA asks of the label's 12px. Unfocused, the label is in on surface
+  // variant or on error container, which clear it at 6.2:1 and above.
+  boxHovered: {
+    backgroundColor: {
+      ':focus-within': colors.surfaceContainerHighest,
+      default: HOVERED_FILL,
+    },
+    boxShadow: {
+      ':focus-within': `inset 0 -2px 0 0 ${colors.primary}`,
+      default: `inset 0 -1px 0 0 ${colors.onSurface}`,
+    },
   },
   // Where the box puts its label: at the top of the column the control is
   // in. Kept apart from `label`, which is the colour alone, so a field that
@@ -491,6 +548,11 @@ const fieldChromeStyles = stylex.create({
   iconError: {
     color: colors.error,
   },
+  // And in on error container while an invalid box is hovered and not
+  // focused, as the label is.
+  iconErrorHovered: {
+    color: colors.onErrorContainer,
+  },
   // A multi-line box has 8dp below the control as well as above it, so the
   // slot reaches past both to the box's edges and stays centred in its height
   // as it grows — which is where Material's own text field keeps its icons
@@ -525,6 +587,10 @@ const fieldChromeStyles = stylex.create({
     backgroundColor: 'transparent',
     borderWidth: 0,
     boxSizing: 'border-box',
+    // The page's caret is primary, and the error once the control is invalid
+    // — see `inputInvalid` — where a browser left alone draws it in the
+    // text's colour.
+    caretColor: colors.primary,
     color: colors.onSurface,
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
@@ -549,6 +615,9 @@ const fieldChromeStyles = stylex.create({
       color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     },
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+  },
+  inputInvalid: {
+    caretColor: colors.error,
   },
   // Under a floating label the placeholder shows only while the control is
   // focused: unfocused and empty, the label sits where the placeholder would.
@@ -586,8 +655,17 @@ const fieldChromeStyles = stylex.create({
   labelError: {
     color: colors.error,
   },
+  // An invalid box hovered and not focused, filled or outlined.
+  labelErrorHovered: {
+    color: colors.onErrorContainer,
+  },
   labelFocused: {
     color: colors.primary,
+  },
+  // An outlined box hovered and not focused: the label darkens to on surface
+  // with the outline. A filled box's label keeps its colour on hover.
+  labelHovered: {
+    color: colors.onSurface,
   },
   // A typed number, left to right under a right-to-left page too: there the
   // bidi algorithm ran a leading minus into the line's direction, so
@@ -671,14 +749,20 @@ const fieldChromeStyles = stylex.create({
   },
   // The outline: a fieldset over the whole box, its border in the box's
   // colour. Its padding is where the notch starts — the page's 16dp to the
-  // label, less the 4dp the notch adds beside it — and its type is the
-  // label's floated type, so an open notch is exactly the label's width.
+  // label, less the 4dp the notch adds beside it and the border the padding
+  // sits inside — and its type is the label's floated type, so an open notch
+  // is exactly the label's width and starts where the label does. Left with
+  // the border in it, the notch sat a pixel past the label at rest and two
+  // focused.
+  //
+  // The padding moves with the border as focus thickens it, over the same
+  // transition, so the notch stays where it is while the border grows.
   outline: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     borderColor: 'currentColor',
     borderRadius: radii.xs,
     borderStyle: 'solid',
-    borderWidth: '1px',
+    borderWidth: OUTLINE_WIDTH,
     boxSizing: 'border-box',
     fontFamily: typography.bodySmallFont,
     fontSize: typography.bodySmallSize,
@@ -688,11 +772,12 @@ const fieldChromeStyles = stylex.create({
     margin: 0,
     minInlineSize: 0,
     paddingBlock: 0,
-    paddingInline: `calc(${spacing.lg} - ${spacing.xs})`,
+    paddingInline: `calc(${spacing.lg} - ${spacing.xs} - ${OUTLINE_WIDTH})`,
     pointerEvents: 'none',
     position: 'absolute',
     transitionDuration: motion.durationShort2,
-    transitionProperty: 'border-color, border-width',
+    transitionProperty:
+      'border-color, border-width, padding-inline-start, padding-inline-end',
     transitionTimingFunction: motion.easingStandard,
   },
   // Short of the control's own parts at the column's end, as the label is,
@@ -700,11 +785,15 @@ const fieldChromeStyles = stylex.create({
   // `endInset`.
   outlineEndInset: (paddingInlineEnd: string) => ({ paddingInlineEnd }),
   outlineFocused: {
-    borderWidth: '2px',
+    borderWidth: OUTLINE_FOCUSED_WIDTH,
+    paddingInline: `calc(${spacing.lg} - ${spacing.xs} - ${OUTLINE_FOCUSED_WIDTH})`,
   },
   // Past a leading icon: the page's 12dp, the icon and its 16dp.
   outlineLeading: {
-    paddingInlineStart: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs})`,
+    paddingInlineStart: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs} - ${OUTLINE_WIDTH})`,
+  },
+  outlineLeadingFocused: {
+    paddingInlineStart: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs} - ${OUTLINE_FOCUSED_WIDTH})`,
   },
   // The notch: the legend, holding the label's text out of sight and no
   // height of its own, so the border stays on the box's edge. The widest it
@@ -733,7 +822,10 @@ const fieldChromeStyles = stylex.create({
   // a picker's 40dp trigger in the slot leaves the notch open 16dp past the
   // ellipsis of a label cut short beside it.
   outlineTrailing: {
-    paddingInlineEnd: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs})`,
+    paddingInlineEnd: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs} - ${OUTLINE_WIDTH})`,
+  },
+  outlineTrailingFocused: {
+    paddingInlineEnd: `calc(${spacing.md} + 24px + ${spacing.lg} - ${spacing.xs} - ${OUTLINE_FOCUSED_WIDTH})`,
   },
   // Wrapped as the browser wraps a text area, so the two break their lines
   // at the same places.
@@ -830,4 +922,4 @@ const groupStyles = stylex.create({
   },
 })
 
-export { fieldChromeStyles, groupStyles }
+export { fieldChromeStyles, groupStyles, OUTLINE_FOCUSED_WIDTH, OUTLINE_WIDTH }

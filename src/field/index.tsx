@@ -41,7 +41,12 @@ import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import { spacing } from '../tokens/design.tokens.stylex'
 import { focusesControl } from './press'
 import { useInsideForm } from './root'
-import { fieldChromeStyles, groupStyles } from './styles'
+import {
+  fieldChromeStyles,
+  groupStyles,
+  OUTLINE_FOCUSED_WIDTH,
+  OUTLINE_WIDTH,
+} from './styles'
 
 // The chrome every field shares: the filled box with its label at the top, the
 // control inside it, and the line of supporting text under it. TextField drew
@@ -191,8 +196,16 @@ type FieldLabelProps = LabelProps & {
    */
   isRequired?: boolean
   /**
+   * Whether the label sits in an outlined box, whose label darkens to on
+   * surface while the box is hovered, as its outline does. A filled box's
+   * label keeps its colour on hover.
+   * @default false
+   */
+  outlined?: boolean
+  /**
    * The states the colour follows. Disabled wins over error, and error over
-   * focus, so a focused invalid field keeps its error colour.
+   * focus, so a focused invalid field keeps its error colour. Hover counts
+   * only while focus is elsewhere, as the box's own colours do.
    */
   state?: Partial<FieldLabelState>
   /**
@@ -206,7 +219,7 @@ type FieldLabelProps = LabelProps & {
 
 type FieldLabelState = Pick<
   GroupRenderProps,
-  'isDisabled' | 'isFocusWithin' | 'isInvalid'
+  'isDisabled' | 'isFocusWithin' | 'isHovered' | 'isInvalid'
 >
 
 type FieldLabelVariant = 'field' | 'group'
@@ -408,12 +421,20 @@ function BoxContent({
           aria-hidden="true"
           {...stylex.props(
             fieldChromeStyles.outline,
-            leading !== undefined && fieldChromeStyles.outlineLeading,
-            trailing !== undefined && fieldChromeStyles.outlineTrailing,
+            // Ahead of the icons' paddings, which name one side each where
+            // this names both.
             focused && fieldChromeStyles.outlineFocused,
+            leading !== undefined &&
+              (focused
+                ? fieldChromeStyles.outlineLeadingFocused
+                : fieldChromeStyles.outlineLeading),
+            trailing !== undefined &&
+              (focused
+                ? fieldChromeStyles.outlineTrailingFocused
+                : fieldChromeStyles.outlineTrailing),
             endInset !== '0px' &&
               fieldChromeStyles.outlineEndInset(
-                `calc(${spacing.lg} - ${spacing.xs} + ${endInset})`,
+                `calc(${spacing.lg} - ${spacing.xs} - ${focused ? OUTLINE_FOCUSED_WIDTH : OUTLINE_WIDTH} + ${endInset})`,
               ),
           )}
         >
@@ -457,6 +478,7 @@ function BoxContent({
       >
         <FieldLabel
           isRequired={isRequired}
+          outlined={outlined}
           state={withFocus(state, focused)}
           {...stylex.props(
             fieldChromeStyles.boxLabel,
@@ -481,7 +503,10 @@ function BoxContent({
             fieldChromeStyles.icon,
             multiline && fieldChromeStyles.iconMultiline,
             outlined && fieldChromeStyles.iconOutlined,
-            state.isInvalid && fieldChromeStyles.iconError,
+            state.isInvalid &&
+              (state.isHovered && !focused
+                ? fieldChromeStyles.iconErrorHovered
+                : fieldChromeStyles.iconError),
             state.isDisabled && fieldChromeStyles.iconDisabled,
           )}
         >
@@ -523,6 +548,11 @@ function boxStyles(
         (state.isInvalid
           ? fieldChromeStyles.boxOutlinedErrorHovered
           : fieldChromeStyles.boxOutlinedHovered),
+      !outlined &&
+        state.isHovered &&
+        (state.isInvalid
+          ? fieldChromeStyles.boxErrorHovered
+          : fieldChromeStyles.boxHovered),
       isFocused && focusedStyle(outlined, state.isInvalid),
       state.isDisabled &&
         (outlined
@@ -680,6 +710,7 @@ function FieldInput({
               fieldChromeStyles.inputUnderFloatingLabel,
             numeric && fieldChromeStyles.numeric,
             leftToRight && fieldChromeStyles.leftToRight,
+            state.isInvalid && fieldChromeStyles.inputInvalid,
             state.isDisabled && fieldChromeStyles.inputDisabled,
           ),
         props,
@@ -790,6 +821,7 @@ function FieldTextArea({
             fieldChromeStyles.textArea,
             autosize && fieldChromeStyles.textAreaAutosize,
             autosize && fieldChromeStyles.autosizeCell,
+            state.isInvalid && fieldChromeStyles.inputInvalid,
             state.isDisabled && fieldChromeStyles.inputDisabled,
           ),
         props,
@@ -965,11 +997,18 @@ const REQUIRED_MARK = <span aria-hidden="true">*</span>
 function FieldLabel({
   children,
   isRequired = false,
+  outlined = false,
   state = NO_STATE,
   variant = 'field',
   ...props
 }: FieldLabelProps) {
-  const { isDisabled = false, isFocusWithin = false, isInvalid = false } = state
+  const {
+    isDisabled = false,
+    isFocusWithin = false,
+    isHovered = false,
+    isInvalid = false,
+  } = state
+  const hovered = !isDisabled && !isFocusWithin && isHovered
 
   return (
     <Label
@@ -984,6 +1023,8 @@ function FieldLabel({
             !isInvalid &&
             isFocusWithin &&
             fieldChromeStyles.labelFocused,
+          hovered && isInvalid && fieldChromeStyles.labelErrorHovered,
+          hovered && !isInvalid && outlined && fieldChromeStyles.labelHovered,
         ),
         props,
       )}

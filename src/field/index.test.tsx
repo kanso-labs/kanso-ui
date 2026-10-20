@@ -1,5 +1,7 @@
+import type { StyleXStyles } from '@stylexjs/stylex'
+
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { Form, TextField } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
@@ -31,6 +33,8 @@ const probeStyles = stylex.create({
   focusedLabel: { color: colors.primary },
   mono: { fontFamily: typography.fontFamilyMono },
   mutedLabel: { color: colors.onSurfaceVariant },
+  onErrorContainerText: { color: colors.onErrorContainer },
+  onSurfaceText: { color: colors.onSurface },
   // Narrower than a long label on one line, which is where wrapping it and
   // cutting it short part ways.
   room: { inlineSize: '240px' },
@@ -52,6 +56,10 @@ const CLASSES = {
   focusedLabel: classesOf(stylex.props(probeStyles.focusedLabel)),
   mono: classesOf(stylex.props(probeStyles.mono)),
   mutedLabel: classesOf(stylex.props(probeStyles.mutedLabel)),
+  onErrorContainerText: classesOf(
+    stylex.props(probeStyles.onErrorContainerText),
+  ),
+  onSurfaceText: classesOf(stylex.props(probeStyles.onSurfaceText)),
   trigger: classesOf(stylex.props(fieldChromeStyles.trigger)),
   value: classesOf(stylex.props(fieldChromeStyles.value)),
 }
@@ -117,6 +125,49 @@ function settled(element: HTMLElement) {
 }
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
+
+// What the text fields page draws in each state, written in its own numbers
+// rather than through the module's names for them, so a value that drifts
+// from the page fails here even where the module still agrees with itself.
+// Read off a probe the browser resolves, which turns the tokens into the
+// colours the box is compared with.
+const specStyles = stylex.create({
+  disabledFill: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} 4%, ${colors.surface})`,
+  },
+  disabledOutline: {
+    color: `color-mix(in srgb, ${colors.onSurface} 12%, ${colors.surface})`,
+  },
+  disabledUnderline: {
+    boxShadow: `inset 0 -1px 0 0 color-mix(in srgb, ${colors.onSurface} 38%, transparent)`,
+  },
+  errorCaret: { caretColor: colors.error },
+  errorFocusedUnderline: { boxShadow: `inset 0 -2px 0 0 ${colors.error}` },
+  errorHoveredUnderline: {
+    boxShadow: `inset 0 -1px 0 0 ${colors.onErrorContainer}`,
+  },
+  focusedUnderline: { boxShadow: `inset 0 -2px 0 0 ${colors.primary}` },
+  hoveredFill: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} 8%, ${colors.surfaceContainerHighest})`,
+  },
+  hoveredUnderline: { boxShadow: `inset 0 -1px 0 0 ${colors.onSurface}` },
+  primaryCaret: { caretColor: colors.primary },
+  restingFill: { backgroundColor: colors.surfaceContainerHighest },
+  restingUnderline: { boxShadow: `inset 0 -1px 0 0 ${colors.outline}` },
+})
+
+/** `property` of a probe drawn in `style`, as the browser resolves it. */
+function resolved(
+  style: StyleXStyles,
+  property: 'backgroundColor' | 'boxShadow' | 'caretColor' | 'color',
+) {
+  const probe = document.createElement('div')
+  probe.className = stylex.props(style).className ?? ''
+  document.body.append(probe)
+  const value = getComputedStyle(probe)[property]
+  probe.remove()
+  return value
+}
 
 const LONG_LABEL =
   'A label long enough that it has nowhere left to go on one line'
@@ -214,6 +265,11 @@ function pressAt(x: number, y: number) {
 // The page's trailing icon: 24dp, the size the slot is laid out for.
 const TRAILING_ICON = <svg aria-hidden="true" height="24" width="24" />
 
+// The same, findable, for reading the slot it sits in.
+const TRAILING_PROBE = (
+  <svg aria-hidden="true" data-testid="trailing" height="24" width="24" />
+)
+
 /**
  * What a reader hears the control described by, in order: the text of each
  * element its `aria-describedby` names.
@@ -298,6 +354,52 @@ function setup(
     ...view,
     input: view.getByLabelText('Label'),
     label: view.getByText('Label'),
+  }
+}
+
+// A box in either variant, with an icon at either end, for its states.
+function stated(
+  props: {
+    error?: boolean
+    isDisabled?: boolean
+    isFocused?: boolean
+    leading?: boolean
+    variant?: 'filled' | 'outlined'
+  } = {},
+) {
+  const view = render(
+    <TextField
+      isDisabled={props.isDisabled}
+      isInvalid={props.error}
+      validationBehavior={FIELD_VALIDATION_BEHAVIOR}
+    >
+      <FieldBox
+        isFocused={props.isFocused}
+        label="Label"
+        leading={props.leading === true ? LEADING_ICON : undefined}
+        trailing={TRAILING_PROBE}
+        variant={props.variant}
+      >
+        <FieldInput />
+      </FieldBox>
+    </TextField>,
+  )
+  const box = boxOf(view.container)
+  const icon = view.getByTestId('trailing').parentElement
+  if (icon === null) {
+    throw new Error('expected the trailing icon to sit in its slot')
+  }
+  return {
+    box,
+    hover() {
+      act(() => {
+        fireEvent.pointerOver(box, { pointerType: 'mouse' })
+      })
+    },
+    icon,
+    input: controlIn(view.container),
+    label: view.getByText('Label', { selector: 'label' }),
+    legend: view.container.querySelector('legend'),
   }
 }
 
@@ -561,8 +663,7 @@ describe('field chrome', () => {
     // has to stop where the label does, or the outline stays open past the
     // ellipsis. Beside a trailing icon that is the icon's slot and its
     // spacing, which the outline takes out of the notch's room as it does at
-    // a leading icon. Within the pixel the outline's own border sets it in
-    // by, at either end.
+    // a leading icon.
     it('opens the outlined notch as wide as the cut-short label', () => {
       const view = renderLong({
         defaultValue: 'Value',
@@ -576,8 +677,33 @@ describe('field chrome', () => {
       const label = view.label.getBoundingClientRect()
       const notch = legend.getBoundingClientRect()
 
-      expect(Math.abs(notch.left - label.left)).toBeLessThanOrEqual(1)
-      expect(Math.abs(notch.right - label.right)).toBeLessThanOrEqual(1)
+      expect(notch.left).toBeCloseTo(label.left, 2)
+      expect(notch.right).toBeCloseTo(label.right, 2)
+    })
+
+    // Focused, the outline's border is two pixels rather than one, and the
+    // notch's room at the trailing icon gives up the second as it does at
+    // the start.
+    it('opens the focused notch as wide as the cut-short label', () => {
+      const view = renderLong({
+        defaultValue: 'Value',
+        trailing: true,
+        variant: 'outlined',
+      })
+      const legend = view.container.querySelector('legend')
+      const outline = legend?.parentElement
+      if (legend === null || !outline) {
+        throw new Error('expected the outline to hold its notch')
+      }
+      act(() => {
+        controlIn(view.container).focus()
+      })
+      settled(outline)
+      const label = view.label.getBoundingClientRect()
+      const notch = legend.getBoundingClientRect()
+
+      expect(notch.left).toBeCloseTo(label.left, 2)
+      expect(notch.right).toBeCloseTo(label.right, 2)
     })
   })
 
@@ -858,6 +984,165 @@ describe('field chrome', () => {
           line.getBoundingClientRect().left,
       ).toBe(0)
     })
+  })
+
+  // The hover, disabled and caret values of the text fields page, each read
+  // as the browser resolved it and compared with the page's own number. The
+  // box's colours move through a transition, so each is read settled.
+  describe('states', () => {
+    it('darkens the filled underline and lays the state layer on hover', () => {
+      const field = stated()
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.restingUnderline, 'boxShadow'),
+      )
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.restingFill, 'backgroundColor'),
+      )
+
+      field.hover()
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.hoveredUnderline, 'boxShadow'),
+      )
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.hoveredFill, 'backgroundColor'),
+      )
+      // The label keeps its colour on a filled box.
+      expect(hasClasses(field.label, CLASSES.mutedLabel)).toBe(true)
+    })
+
+    // The state layer gives way to focus too, which is the departure the
+    // module records: the focused label's primary is short of AA over it.
+    it('keeps the focused look whole over hover', () => {
+      const field = stated()
+      act(() => {
+        field.input.focus()
+      })
+      field.hover()
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.focusedUnderline, 'boxShadow'),
+      )
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.restingFill, 'backgroundColor'),
+      )
+    })
+
+    // A field whose focus is outside the box, in a popover it opened, says
+    // so through `isFocused`, which wins over hover the same way.
+    it('keeps the focused look whole over hover with focus outside the box', () => {
+      const field = stated({ isFocused: true })
+      field.hover()
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.focusedUnderline, 'boxShadow'),
+      )
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.restingFill, 'backgroundColor'),
+      )
+    })
+
+    it('turns an invalid box to on error container on hover', () => {
+      const field = stated({ error: true })
+      field.hover()
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.errorHoveredUnderline, 'boxShadow'),
+      )
+      expect(hasClasses(field.label, CLASSES.onErrorContainerText)).toBe(true)
+      expect(hasClasses(field.icon, CLASSES.onErrorContainerText)).toBe(true)
+
+      act(() => {
+        field.input.focus()
+      })
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.errorFocusedUnderline, 'boxShadow'),
+      )
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.restingFill, 'backgroundColor'),
+      )
+      expect(hasClasses(field.label, CLASSES.errorText)).toBe(true)
+      expect(hasClasses(field.icon, CLASSES.errorText)).toBe(true)
+    })
+
+    it('darkens the outlined label with its outline on hover', () => {
+      const field = stated({ variant: 'outlined' })
+      expect(hasClasses(field.label, CLASSES.mutedLabel)).toBe(true)
+
+      field.hover()
+      expect(hasClasses(field.label, CLASSES.onSurfaceText)).toBe(true)
+    })
+
+    it('turns an invalid outlined label to on error container on hover', () => {
+      const field = stated({ error: true, variant: 'outlined' })
+      field.hover()
+      expect(hasClasses(field.label, CLASSES.onErrorContainerText)).toBe(true)
+      expect(hasClasses(field.icon, CLASSES.onErrorContainerText)).toBe(true)
+    })
+
+    it('fills a disabled box at 4% and draws its underline at 38%', () => {
+      const field = stated({ isDisabled: true })
+      expect(settled(field.box).backgroundColor).toBe(
+        resolved(specStyles.disabledFill, 'backgroundColor'),
+      )
+      expect(settled(field.box).boxShadow).toBe(
+        resolved(specStyles.disabledUnderline, 'boxShadow'),
+      )
+    })
+
+    it('leaves the disabled outline at 12%', () => {
+      const field = stated({ isDisabled: true, variant: 'outlined' })
+      expect(settled(field.box).color).toBe(
+        resolved(specStyles.disabledOutline, 'color'),
+      )
+    })
+
+    it.each(['filled', 'outlined'] as const)(
+      'draws the %s caret in primary, and in the error when invalid',
+      (variant) => {
+        const valid = stated({ variant })
+        expect(getComputedStyle(valid.input).caretColor).toBe(
+          resolved(specStyles.primaryCaret, 'caretColor'),
+        )
+        cleanup()
+
+        const invalid = stated({ error: true, variant })
+        expect(getComputedStyle(invalid.input).caretColor).toBe(
+          resolved(specStyles.errorCaret, 'caretColor'),
+        )
+      },
+    )
+
+    // The notch's copy of the label is padded as the label is, so the two
+    // start together. The outline's border is inside the fieldset the notch
+    // is laid out in, a pixel at rest and two focused, which is what it
+    // is measured past.
+    it.each([
+      ['at rest', false, false],
+      ['at rest, past a leading icon', false, true],
+      ['focused', true, false],
+      ['focused, past a leading icon', true, true],
+    ] as const)(
+      'opens the notch where the label starts %s',
+      (_when, focused, leading) => {
+        const field = stated({ leading, variant: 'outlined' })
+        if (focused) {
+          act(() => {
+            field.input.focus()
+          })
+        }
+        if (field.legend === null) {
+          throw new Error('expected the outline to hold its notch')
+        }
+        const fieldset = field.legend.parentElement
+        if (fieldset === null) {
+          throw new Error('expected the notch to sit in the outline')
+        }
+        settled(fieldset)
+        settled(field.label)
+
+        expect(field.legend.getBoundingClientRect().left).toBeCloseTo(
+          field.label.getBoundingClientRect().left,
+          2,
+        )
+      },
+    )
   })
 
   // The box is as tall as what it holds rather than the 56dp the page draws

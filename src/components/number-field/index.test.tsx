@@ -504,18 +504,27 @@ describe('number field', () => {
         )
         const label = view.container.querySelector('label')
         const notch = view.container.querySelector('legend')
-        if (label === null || notch === null) {
+        const outline = notch?.parentElement
+        if (label === null || notch === null || !outline) {
           throw new Error('expected the outlined box to draw a notch')
         }
+        expect(notch.getBoundingClientRect().right).toBeCloseTo(
+          label.getBoundingClientRect().right,
+          2,
+        )
 
-        // Within the outline's 1px border, which the notch sits inside at
-        // either end, as it does beside a trailing icon.
-        expect(
-          Math.abs(
-            notch.getBoundingClientRect().right -
-              label.getBoundingClientRect().right,
-          ),
-        ).toBeLessThanOrEqual(1)
+        // Focused, the outline's border is two pixels rather than one, and
+        // the notch's room gives up the second as it does beside an icon.
+        act(() => {
+          view.getByRole('textbox').focus()
+        })
+        for (const animation of outline.getAnimations()) {
+          animation.finish()
+        }
+        expect(notch.getBoundingClientRect().right).toBeCloseTo(
+          label.getBoundingClientRect().right,
+          2,
+        )
       },
     )
 
