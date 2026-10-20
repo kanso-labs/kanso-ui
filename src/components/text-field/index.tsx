@@ -77,7 +77,12 @@ type TextFieldProps = Omit<
   leadingIcon?: ReactNode
   /**
    * Renders the value in the mono face with tabular figures, for amounts and
-   * other numbers meant to be compared down a column.
+   * other numbers meant to be compared down a column. The value runs left to
+   * right whatever the page's direction, so a minus sign stays before the
+   * digits under a right-to-left locale, and a phone shows the decimal
+   * keypad. That keypad has no minus key on iOS or Android, so a field taking
+   * negative amounts gives an `inputMode` of its own, which replaces it, or
+   * is a `NumberField`, which picks a keypad for each platform.
    * @default false
    */
   numeric?: boolean
@@ -143,6 +148,9 @@ function TextField({
 
   return (
     <RACTextField
+      // The decimal keypad for a numeric field, unless the call site names
+      // another below.
+      inputMode={numeric ? 'decimal' : undefined}
       isDisabled={isDisabled}
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}
@@ -158,6 +166,7 @@ function TextField({
         variant={variant}
       >
         <FieldInput
+          leftToRight={numeric}
           numeric={numeric}
           prefix={prefix}
           ref={inputRef}

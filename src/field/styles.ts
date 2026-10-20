@@ -577,6 +577,20 @@ const fieldChromeStyles = stylex.create({
   labelFocused: {
     color: colors.primary,
   },
+  // A typed number, left to right under a right-to-left page too: there the
+  // bidi algorithm ran a leading minus into the line's direction, so
+  // `-1234.56` was drawn as `1234.56-`. The value still sits at that line's
+  // start, its right edge, which `start` no longer names once the direction
+  // is left to right — hence `right` under `:dir(rtl)`, which reads the
+  // page's direction rather than this property.
+  //
+  // Only for a value the user types. A number field's is formatted for the
+  // locale, with the marks that order it in the locale's own direction, and
+  // left to right moved an Arabic amount's currency sign to its other side.
+  leftToRight: {
+    direction: 'ltr',
+    textAlign: { ':dir(rtl)': 'right', default: null },
+  },
   message: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
