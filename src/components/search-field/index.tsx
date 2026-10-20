@@ -8,8 +8,10 @@ import type {
 
 import * as stylex from '@stylexjs/stylex'
 import {
+  FieldInputContext,
   Label,
   SearchField as RACSearchField,
+  useSlottedContext,
   VisuallyHidden,
 } from 'react-aria-components'
 
@@ -83,14 +85,28 @@ const styles = stylex.create({
     // query: StyleX orders a rule by the sum of its conditions, so a hover
     // inside the query would otherwise come after a bare press and win while
     // both held.
+    //
+    // The clear button draws its own hovered and pressed layers, and `:hover`
+    // and `:active` hold on the bar whenever they hold on anything inside it,
+    // so under the button the bar goes back to its resting colour rather
+    // than stacking a second layer beneath the button's. Each `:has` rule is
+    // more specific than the state it undoes, so it wins over that state
+    // wherever the two are written.
     backgroundColor: {
       ':active': {
+        ':has(button:active)': colors.surfaceContainerHigh,
         default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
-        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
+        [HOVER_CAPABLE]: {
+          ':has(button:active)': colors.surfaceContainerHigh,
+          default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), ${colors.surfaceContainerHigh})`,
+        },
       },
       ':hover': {
         default: null,
-        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHigh})`,
+        [HOVER_CAPABLE]: {
+          ':has(button:hover)': colors.surfaceContainerHigh,
+          default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHigh})`,
+        },
       },
       default: colors.surfaceContainerHigh,
     },
@@ -147,7 +163,10 @@ const styles = stylex.create({
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
       [FORCED_COLORS]: 'GrayText',
     },
-    cursor: 'default',
+    // The cursor the disabled clear button inside it shows, as every
+    // disabled button here does, so a pointer crossing a disabled bar is
+    // told one thing from end to end. The input takes it from the bar.
+    cursor: 'not-allowed',
   },
   // The text fields page's error state, which the search page does not
   // name: the outline in the error role, 1dp at rest and 2dp once focused,
@@ -192,6 +211,9 @@ const styles = stylex.create({
       display: 'none',
     },
     appearance: 'none',
+    // The bar's, rather than the one a browser gives a disabled input, so a
+    // disabled bar shows one cursor over its whole length.
+    cursor: 'inherit',
     flexGrow: 1,
     minInlineSize: 0,
   },
@@ -209,6 +231,16 @@ type SearchFieldProps = {
    * the two never stack.
    */
   description?: string
+  /**
+   * The action an on-screen keyboard labels its Enter key with. A search
+   * field asks for Search, which iOS otherwise shows only for a search input
+   * inside a form with an action, so a field submitted through `onSubmit`
+   * alone gets it too. Inside an `Autocomplete` the field takes the Go key
+   * React Aria gives it there, for the option Enter picks.
+   *
+   * @default 'search'
+   */
+  enterKeyHint?: RACSearchFieldProps['enterKeyHint']
   /**
    * The problem with the current value, in words. Its presence is what puts
    * the field in its error state — the message and `aria-invalid` follow
@@ -298,6 +330,7 @@ function fieldContent(
 function SearchField({
   clearLabel,
   description,
+  enterKeyHint,
   error,
   inputRef,
   isDisabled = false,
@@ -306,9 +339,16 @@ function SearchField({
   ...props
 }: RefAttributes<HTMLDivElement> & SearchFieldProps) {
   const validationBehavior = useFieldValidationBehavior()
+  // An Autocomplete hands its input `go` through this context, and a prop
+  // written here would replace it, so the default steps aside for it; an
+  // undefined prop leaves the context's value standing.
+  const inherited = useSlottedContext(FieldInputContext)?.enterKeyHint
 
   return (
     <RACSearchField
+      enterKeyHint={
+        enterKeyHint ?? (inherited === undefined ? 'search' : undefined)
+      }
       isDisabled={isDisabled}
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}

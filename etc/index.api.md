@@ -1653,6 +1653,7 @@ export function SearchField(input: RefAttributes<HTMLDivElement> & SearchFieldPr
 export type SearchFieldProps = {
     clearLabel?: string;
     description?: string;
+    enterKeyHint?: SearchFieldProps_2['enterKeyHint'];
     error?: string;
     inputRef?: Ref<HTMLInputElement>;
     label: string;

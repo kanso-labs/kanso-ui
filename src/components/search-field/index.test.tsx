@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SearchField from '.'
+import { rulesReaching } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -79,6 +80,18 @@ describe('search field', () => {
       expect(input.tagName).toBe('INPUT')
       expect(input.getAttribute('type')).toBe('search')
       expect(input.getAttribute('placeholder')).toBe('Supporting text')
+    })
+
+    // iOS shows its Search key only for a search input inside a form with an
+    // action, and the field is meant to work with `onSubmit` alone.
+    it('asks an on-screen keyboard for a Search key', () => {
+      const { input } = setup()
+      expect(input.getAttribute('enterkeyhint')).toBe('search')
+    })
+
+    it('takes another Enter key from the call site', () => {
+      const { input } = setup({ enterKeyHint: 'go' })
+      expect(input.getAttribute('enterkeyhint')).toBe('go')
     })
 
     it('associates the description with the input', () => {
@@ -246,13 +259,25 @@ describe('search field', () => {
       expect(document.activeElement).not.toBe(input)
     })
 
-    it('shows a text cursor over the whole bar, and none while disabled', () => {
-      const enabled = setup()
-      expect(getComputedStyle(barOf(enabled.input)).cursor).toBe('text')
-      enabled.unmount()
+    it('shows a text cursor over the whole bar', () => {
+      const { input } = setup()
+      expect(getComputedStyle(barOf(input)).cursor).toBe('text')
+    })
 
-      const disabled = setup({ isDisabled: true })
-      expect(getComputedStyle(barOf(disabled.input)).cursor).toBe('default')
+    // The clear button is disabled with the field and shows the cursor every
+    // disabled button does, so the bar and the input show it too.
+    it('shows one disabled cursor over the bar, the input and the clear button', () => {
+      const view = setup({ defaultValue: 'typed', isDisabled: true })
+      const button = view.getByRole('button', { name: 'Clear search' })
+      expect({
+        bar: getComputedStyle(barOf(view.input)).cursor,
+        button: getComputedStyle(button).cursor,
+        input: getComputedStyle(view.input).cursor,
+      }).toEqual({
+        bar: 'not-allowed',
+        button: 'not-allowed',
+        input: 'not-allowed',
+      })
     })
   })
 
@@ -260,6 +285,64 @@ describe('search field', () => {
     it('draws the bar on surface container high', () => {
       const { input } = setup()
       expect(hasClasses(barOf(input), CLASSES.surface)).toBe(true)
+    })
+
+    // A translated placeholder is the one most likely to outrun the input,
+    // and it was cut off mid-glyph.
+    it('ends a placeholder wider than the input in an ellipsis', () => {
+      const { input } = setup({
+        placeholder:
+          'Supporting text long enough to run well past the end of the bar it sits in',
+      })
+      expect(getComputedStyle(input).textOverflow).toBe('ellipsis')
+    })
+
+    // The clear button draws its own hovered and pressed layers, and `:hover`
+    // and `:active` hold on the bar whenever they hold on the button. Neither
+    // state can be driven from here, since no event moves the browser's own
+    // pointer, so the rules are read: under the button, pressed or hovered,
+    // the bar takes its resting colour, both for a touch and inside the
+    // query a pointer that can hover matches.
+    it('draws no layer of its own under the clear button', () => {
+      const { input } = setup({ defaultValue: 'typed' })
+      const rules = rulesReaching(barOf(input), { holding: 'hover: hover' })
+      const backgroundOf = (rule: (typeof rules)[number]) =>
+        rule.style.getPropertyValue('background-color')
+      const resting = rules.find(
+        (rule) =>
+          !rule.held &&
+          backgroundOf(rule) !== '' &&
+          rule.selectors.every((selector) => !selector.includes(':')),
+      )
+      if (resting === undefined) {
+        throw new Error('expected the bar to carry a resting background')
+      }
+
+      // A set, since the sheet can hold a rule twice and a rule can carry
+      // more than one of these selectors.
+      const underButton = new Set<string>()
+      for (const rule of rules) {
+        for (const selector of rule.selectors) {
+          if (selector.includes(':has(button:')) {
+            const state = selector.includes(':has(button:active)')
+              ? 'pressed'
+              : 'hovered'
+            const colour =
+              backgroundOf(rule) === backgroundOf(resting) ? 'resting' : 'layer'
+            underButton.add(
+              `${rule.held ? 'hover-capable' : 'any'} ${state} ${colour}`,
+            )
+          }
+        }
+      }
+
+      expect(underButton).toEqual(
+        new Set([
+          'any pressed resting',
+          'hover-capable hovered resting',
+          'hover-capable pressed resting',
+        ]),
+      )
     })
 
     // The search page's bar: 56 tall with a full corner, the magnifier 28 in

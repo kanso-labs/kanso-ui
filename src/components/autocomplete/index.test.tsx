@@ -98,6 +98,14 @@ describe('autocomplete', () => {
       expect(input.getAttribute('aria-controls')).not.toBeNull()
       expect(input.getAttribute('aria-autocomplete')).toBe('list')
     })
+
+    // Enter picks the focused option here rather than searching, so React
+    // Aria asks the keyboard for Go, and the search field's own Search key
+    // steps aside for it.
+    it("labels the keyboard's Enter key Go", () => {
+      const { input } = setup()
+      expect(input.getAttribute('enterkeyhint')).toBe('go')
+    })
   })
 
   describe('filtering', () => {
