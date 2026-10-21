@@ -492,6 +492,13 @@ places instead of being written twice.
 - React derives `onPointerLeave` and `onPointerEnter` from the bubbling
   `pointerout` and `pointerover` events. Dispatching a raw `pointerleave` does
   nothing, because it does not bubble and React never listens for it.
+- **A story that replaces a global puts it back.** Stories share the preview's
+  frame, so a stand-in left behind is still there on the next story a reader
+  opens: CopyField's `Copied` once left every later Copy button writing to its
+  stub rather than to the clipboard. Install it in the story's `beforeEach` and
+  return what restores it, which Storybook runs as the story is left. A queue or
+  store kept at module scope is the same kind of thing, and Snackbar's
+  `OnDemand` empties its own the same way.
 
 ### Coverage
 

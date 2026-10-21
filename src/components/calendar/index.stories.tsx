@@ -45,11 +45,20 @@ const Default: Story = {}
 
 // Its own story because the outline today carries is the one state that
 // cannot be pinned to a fixed month — it moves with the day the page is read
-// on, which is the point of it.
+// on, which is the point of it. The calendar opens on today's month and moves
+// from it as any other does: `focusedValue` here, with nothing to hand a move
+// back, held it on that month whatever was pressed.
+//
+// Kept from Chromatic, since a snapshot of it would change every day and ask
+// for both modes to be accepted again. The outline itself is pinned by the
+// `today` cases in index.test.tsx.
 const Today: Story = {
   args: {
+    defaultFocusedValue: today(getLocalTimeZone()),
     defaultValue: undefined,
-    focusedValue: today(getLocalTimeZone()),
+  },
+  parameters: {
+    chromatic: { disableSnapshot: true },
   },
 }
 
