@@ -319,9 +319,6 @@ function PanelDialog({
   )
 }
 
-// React Aria names a placement by the side and, along it, the end the panel
-// is aligned to — `bottom start`, or `left top` on the sides where the axis
-// runs the other way.
 /**
  * A panel anchored to the control that opened it. Open state is React Aria's:
  * pass `isOpen` with `onOpenChange` to control it, or `defaultOpen` to let it

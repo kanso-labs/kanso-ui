@@ -96,8 +96,6 @@ function PanelContents() {
   )
 }
 
-// Open on load, since a closed popover renders nothing for Chromatic to
-// compare.
 // Open on load, for the same reason the others are: a hovered popover that
 // nothing is hovering renders nothing to compare.
 const HoverTrigger: Story = {
@@ -116,6 +114,8 @@ const HoverTrigger: Story = {
   ),
 }
 
+// Open on load, since a closed popover renders nothing for Chromatic to
+// compare.
 const Default: Story = {
   parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (

@@ -32,6 +32,9 @@ import { colors } from '../tokens/design.tokens.stylex'
 //   thumb, the colour swatch picker, and the shared colour styles.
 // - An `outlineStyle` keyed on a breakpoint, for a ring that moves from one
 //   element to another as the window widens: a navigation bar's destination.
+// - A shadow inside a box whose input holds focus, keyed on `:focus-within`,
+//   with an outline under forced colours alone: the field chrome's box and
+//   SearchField's bar.
 const focus = stylex.create({
   ring: {
     outlineColor: colors.primary,
