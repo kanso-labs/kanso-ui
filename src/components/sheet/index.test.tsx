@@ -70,6 +70,32 @@ async function arrived(dialog: HTMLElement) {
   return panel
 }
 
+/**
+ * Waits for a bottom sheet with snap points to come to rest at its first,
+ * 200 of the panel showing, and for React Aria's observer to have looked at
+ * it there, and returns the panel.
+ *
+ * The look matters to whatever moves the sheet next. React Aria's observer
+ * reads the first entry of each batch it is handed, so a move made before
+ * that look was delivered arrives in the same batch behind it, and the
+ * sheet rests fully open without `data-expanded`. Two frames are what the
+ * look takes to land, as for a swipe in "a swipe" above.
+ */
+async function collapsed(dialog: HTMLElement) {
+  const panel = panelOf(dialog)
+  await waitFor(
+    () => {
+      expect(layerOf(dialog).hasAttribute('data-entering')).toBe(false)
+      expect(showing(panel)).toBe(200)
+    },
+    { timeout: 3000 },
+  )
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve))
+  })
+  return panel
+}
+
 // Reads the four corners as the browser resolved them. Which two are rounded
 // is the whole difference between the two presentations, so this is what
 // proves the media query switched rather than that the declaration exists.
@@ -251,7 +277,7 @@ function setup(
               ×
             </IconButton>
           </Sheet.Header>
-          <Sheet.Body>{body}</Sheet.Body>
+          <Sheet.Body data-testid="body">{body}</Sheet.Body>
           <Sheet.Footer>
             <Button slot="close">Cancel</Button>
           </Sheet.Footer>
@@ -292,6 +318,11 @@ async function sheetHolding(title: string, actions: string[]) {
   return { panel, view }
 }
 
+/** How much of a bottom sheet's panel shows above the window's bottom edge. */
+function showing(panel: Element) {
+  return Math.round(window.innerHeight - panel.getBoundingClientRect().top)
+}
+
 /**
  * A sheet with no trigger: the content part on its own, holding the open
  * state `Sheet` would otherwise hold.
@@ -322,6 +353,13 @@ function within(inner: Element, outer: Element) {
 const LONG_BODY = Array.from({ length: 60 }, (_, index) => (
   <p key={index}>Supporting line</p>
 ))
+
+// Twelve, which a phone shows whole, in a panel tall enough that a snap
+// point of 200 shows only its top.
+const SOME_BODY = LONG_BODY.slice(0, 12)
+
+// A collapsed height of 200 and the whole panel.
+const SNAP_POINTS = [200, '100%']
 
 /**
  * A sheet whose body runs past its panel, read once it has arrived. The body
@@ -1049,6 +1087,207 @@ describe('sheet', () => {
     })
   })
 
+  // A bottom sheet given snap points rests at each of them: it opens at the
+  // first, shows all of itself at the last, and its handle is the control
+  // that moves it between them. At a phone's size, since the side sheet has
+  // one width and ignores them.
+  describe('snap points', () => {
+    beforeEach(async () => {
+      await resize(375, 812)
+    })
+
+    it('open a bottom sheet with its first showing', async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      const dialog = view.getByRole('dialog')
+      const panel = await collapsed(dialog)
+
+      expect(panel.getBoundingClientRect().height).toBeGreaterThan(400)
+      expect(layerOf(dialog).hasAttribute('data-expanded')).toBe(false)
+    })
+
+    it('rest it fully open, and expanded, at the last', async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      const dialog = view.getByRole('dialog')
+      await collapsed(dialog)
+      const scroller = scrollerOf(dialog)
+
+      scroller.scrollTop = scroller.scrollHeight
+
+      const panel = await observed(dialog)
+      expect(panel.getBoundingClientRect().bottom).toBe(window.innerHeight)
+    })
+
+    // Swiped down from the first, it goes the way a sheet without them does.
+    it('close it on a swipe down from the first', async () => {
+      const onOpenChange = vi.fn<(isOpen: boolean) => void>()
+      const view = setup(
+        { onOpenChange },
+        { snapPoints: SNAP_POINTS },
+        'en-US',
+        SOME_BODY,
+      )
+      const dialog = view.getByRole('dialog')
+      await collapsed(dialog)
+
+      scrollerOf(dialog).scrollTop = 0
+
+      await waitFor(
+        () => {
+          expect(view.queryByRole('dialog')).toBeNull()
+        },
+        { timeout: 3000 },
+      )
+      expect(onOpenChange.mock.calls).toEqual([[false]])
+    })
+
+    // Named, and saying whether the sheet is expanded, where without snap
+    // points it is decoration hidden from assistive technology.
+    it('make the handle a button, saying whether the sheet is expanded', async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      await collapsed(view.getByRole('dialog'))
+      const handle = view.getByRole('button', { name: 'Drag handle' })
+
+      expect(handle.getAttribute('aria-expanded')).toBe('false')
+      expect(view.getByTestId('handle').hasAttribute('aria-hidden')).toBe(false)
+      expect(view.getByTestId('handle').contains(handle)).toBe(true)
+    })
+
+    // The page's 48 target, centred over the bar, which stays where the
+    // decoration draws it: 22 below the top of a row still 48 tall.
+    it("give the handle the page's 48 target around the bar", async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      await collapsed(view.getByRole('dialog'))
+      const row = view.getByTestId('handle').getBoundingClientRect()
+      const handle = view.getByRole('button', { name: 'Drag handle' })
+      const target = handle.getBoundingClientRect()
+      const bar = handle.firstElementChild?.getBoundingClientRect()
+
+      expect([target.width, target.height]).toEqual([48, 48])
+      expect(row.height).toBe(48)
+      expect(bar?.top).toBe(row.top + 22)
+      expect([bar?.width, bar?.height]).toEqual([32, 4])
+      expect(Math.round(target.left + target.width / 2)).toBe(
+        Math.round(row.left + row.width / 2),
+      )
+    })
+
+    it('move the sheet to the next on a press of the handle, and from the last back to the first', async () => {
+      const onOpenChange = vi.fn<(isOpen: boolean) => void>()
+      const view = setup(
+        { onOpenChange },
+        { snapPoints: SNAP_POINTS },
+        'en-US',
+        SOME_BODY,
+      )
+      const dialog = view.getByRole('dialog')
+      await collapsed(dialog)
+      const handle = view.getByRole('button', { name: 'Drag handle' })
+
+      fireEvent.click(handle)
+      await observed(dialog)
+      expect(handle.getAttribute('aria-expanded')).toBe('true')
+
+      fireEvent.click(handle)
+      await collapsed(dialog)
+      await waitFor(() => {
+        expect(handle.getAttribute('aria-expanded')).toBe('false')
+      })
+      expect(onOpenChange).not.toHaveBeenCalled()
+    })
+
+    it('move it from the keyboard too', async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      const dialog = view.getByRole('dialog')
+      await collapsed(dialog)
+      const handle = view.getByRole('button', { name: 'Drag handle' })
+
+      act(() => {
+        handle.focus()
+      })
+      fireEvent.keyDown(handle, { key: 'Enter' })
+      fireEvent.keyUp(handle, { key: 'Enter' })
+
+      await observed(dialog)
+      expect(handle.getAttribute('aria-expanded')).toBe('true')
+    })
+
+    // Three, so the handle is seen to move on to the next rather than
+    // between the two ends.
+    it('move through each of three in turn', async () => {
+      const view = setup(
+        {},
+        { snapPoints: [200, '50%', '100%'] },
+        'en-US',
+        SOME_BODY,
+      )
+      const dialog = view.getByRole('dialog')
+      const panel = await collapsed(dialog)
+      const handle = view.getByRole('button', { name: 'Drag handle' })
+      const half = Math.round(panel.getBoundingClientRect().height / 2)
+
+      fireEvent.click(handle)
+      await waitFor(() => {
+        expect(Math.abs(showing(panel) - half)).toBeLessThanOrEqual(1)
+      })
+
+      fireEvent.click(handle)
+      await observed(dialog)
+
+      fireEvent.click(handle)
+      await collapsed(dialog)
+    })
+
+    // Short of the last, a swipe on the body moves the sheet, so the body is
+    // no scroll container until the sheet is expanded.
+    it('keep the body from scrolling until the sheet is expanded', async () => {
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', LONG_BODY)
+      const dialog = view.getByRole('dialog')
+      await collapsed(dialog)
+      const body = view.getByTestId('body')
+
+      expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+      body.scrollTop = 100
+      expect(body.scrollTop).toBe(0)
+
+      fireEvent.click(view.getByRole('button', { name: 'Drag handle' }))
+      await observed(dialog)
+
+      body.scrollTop = 100
+      expect(body.scrollTop).toBe(100)
+    })
+
+    it("name the handle in the locale's words, or the call site's", () => {
+      const french = setup({}, { snapPoints: SNAP_POINTS }, 'fr-FR')
+      expect(
+        french.getByRole('button', { name: 'Poignée de déplacement' }),
+      ).not.toBeNull()
+      french.unmount()
+
+      const own = render(
+        <Sheet defaultOpen>
+          <Button>Open</Button>
+          <Sheet.Content snapPoints={SNAP_POINTS}>
+            <Sheet.Handle aria-label="Label" />
+            <Sheet.Title>Headline</Sheet.Title>
+          </Sheet.Content>
+        </Sheet>,
+      )
+      expect(own.getByRole('button', { name: 'Label' })).not.toBeNull()
+    })
+
+    it('leave the side sheet as it is', async () => {
+      await resize(1024, 768)
+      const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+      await observed(view.getByRole('dialog'))
+
+      expect(document.querySelector('[data-sheet-detent]')).toBeNull()
+      expect(view.getByTestId('handle').getAttribute('aria-hidden')).toBe(
+        'true',
+      )
+      expect(view.queryByRole('button', { name: 'Drag handle' })).toBeNull()
+    })
+  })
+
   // The header and footer are sized for a one-line headline and a row of two
   // short actions. Each case here is content that runs past that on a phone,
   // which the panel's `overflow: hidden` used to clip or squeeze.
@@ -1255,6 +1494,30 @@ describe('sheet, moving', () => {
       expect(opacity).toBeLessThan(0.6)
     },
   )
+
+  // A sheet resting at its first snap point is as modal as one showing all
+  // of itself, so the scrim is whole there and lifts only below it: half
+  // lifted with the panel half way from there to closed.
+  it('keeps the scrim whole at the first snap point, and lifts it below', async () => {
+    await resize(375, 812)
+    const view = setup({}, { snapPoints: SNAP_POINTS }, 'en-US', SOME_BODY)
+    const dialog = view.getByRole('dialog')
+    const scrim = scrimOf(dialog)
+    await collapsed(dialog)
+
+    expect(Number(getComputedStyle(scrim).opacity)).toBeGreaterThan(0.95)
+
+    const scroller = scrollerOf(dialog)
+    scroller.style.scrollSnapType = 'none'
+    scroller.scrollTop -= 100
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve))
+    })
+
+    const opacity = Number(getComputedStyle(scrim).opacity)
+    expect(opacity).toBeGreaterThan(0.4)
+    expect(opacity).toBeLessThan(0.6)
+  })
 
   // Under reduced motion the panel arrives in place, and the scrim keeps its
   // own fade, at the scrim's duration, as the one cue that the sheet opened.
