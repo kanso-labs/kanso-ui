@@ -32,11 +32,19 @@ export { useDragAndDrop } from './drag/hooks'
 // look like the rest of the library without wiring either. Everything it
 // takes is React Aria's, and passing either renderer replaces the default.
 //
+// The types are the ones a call site spells out when it writes a handler, a
+// ref or a value apart from the JSX. `KeyboardEvent` is React Aria's, which is
+// React's with `continuePropagation()` added, and the README says which
+// components hand it to `onKeyDown` and which hand React's own.
+//
 // A curated list rather than `export *`, so the public surface stays the one
 // `src/index.test.ts` pins and a React Aria release adding an export does not
 // widen it unread.
 export type {
+  FocusableElement,
+  HoverEvent,
   Key,
+  KeyboardEvent,
   PressEvent,
   Selection,
   SortDescriptor,
