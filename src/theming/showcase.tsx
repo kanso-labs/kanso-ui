@@ -1420,7 +1420,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The text field's chrome around a value the field formats itself, in the tabular figures the type scale carries. The outlined box centres the value and the side-by-side steppers on one line, which a scheme's own line heights and padding move."
+            description="The text field's chrome around a value the field formats itself, in the tabular figures the type scale carries. The outlined box centres the value and the side-by-side steppers on one line, which a scheme's own line heights and padding move. A value at its bound disables the stepper that would pass it."
             title="NumberField"
           >
             <NumberField defaultValue={1234.5} label="Label" />
@@ -1429,6 +1429,12 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
               label="Label"
               steppers="horizontal"
               variant="outlined"
+            />
+            <NumberField
+              defaultValue={10}
+              label="Label"
+              maxValue={10}
+              steppers="horizontal"
             />
           </Section>
 
@@ -1506,14 +1512,23 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The ring takes the on-surface-variant role while empty and primary once chosen, the same pair the checkbox draws."
+            description="The ring takes the on-surface-variant role while empty and primary once chosen, the same pair the checkbox draws. A required group's label carries the asterisk, and a disabled option, or a disabled group with its choice, fades to the on-surface role every disabled control fades to."
             title="RadioGroup"
           >
-            <RadioGroup defaultValue="second" label="Label">
-              <Radio value="first">First item</Radio>
-              <Radio value="second">Second item</Radio>
-              <Radio value="third">Third item</Radio>
-            </RadioGroup>
+            <div {...stylex.props(styles.inline)}>
+              <RadioGroup defaultValue="second" isRequired label="Label">
+                <Radio value="first">First item</Radio>
+                <Radio value="second">Second item</Radio>
+                <Radio isDisabled value="third">
+                  Third item
+                </Radio>
+              </RadioGroup>
+              <RadioGroup defaultValue="second" isDisabled label="Label">
+                <Radio value="first">First item</Radio>
+                <Radio value="second">Second item</Radio>
+                <Radio value="third">Third item</Radio>
+              </RadioGroup>
+            </div>
           </Section>
 
           <Section
@@ -1714,12 +1729,15 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The track takes its container while off and primary once on, with the handle on the matching on-role."
+            description="The track takes its container while off and primary once on, with the handle on the matching on-role. Disabled, the track, the handle and the icon each fade on their own, so the switch still reads as on."
             title="Switch"
           >
             <div {...stylex.props(styles.row)}>
               <Switch>Label</Switch>
               <Switch defaultSelected icon>
+                Label
+              </Switch>
+              <Switch defaultSelected icon isDisabled>
                 Label
               </Switch>
             </div>

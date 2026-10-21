@@ -110,6 +110,13 @@ type TextFieldProps = Omit<
    * An icon at the end of the box, after the value: the page's 24dp trailing
    * icon, in the muted role and the error role while the field has an error.
    * An icon drawn in `em` takes that size from the slot.
+   *
+   * It may be a control rather than a picture, such as an `IconButton` that
+   * clears the field. A press on it is the button's own, where a press
+   * anywhere else in the box focuses the input. The button is 40px around
+   * its 24px icon, so an inline margin of -8px on each side puts the icon
+   * where a bare one sits. It draws its own colours, so it keeps the muted
+   * role while the field has an error.
    */
   trailingIcon?: ReactNode
   /**
@@ -135,7 +142,25 @@ type TextFieldProps = Omit<
  * The configurations of Material Design's text fields are props:
  * `leadingIcon` and `trailingIcon` at the box's ends, `prefix` and `suffix`
  * on the value's line, and `characterCount` opposite the supporting text,
- * counting against `maxLength`.
+ * counting against `maxLength`. A trailing icon that clears the field is an
+ * `IconButton` there, shown while the field holds something:
+ *
+ * ```tsx
+ * const [value, setValue] = useState('')
+ *
+ * <TextField
+ *   label="Label"
+ *   onChange={setValue}
+ *   trailingIcon={
+ *     value === '' ? undefined : (
+ *       <IconButton aria-label="Clear" onPress={() => setValue('')}>
+ *         <CloseIcon />
+ *       </IconButton>
+ *     )
+ *   }
+ *   value={value}
+ * />
+ * ```
  *
  * The box, label, input and message are drawn as every field in the library
  * draws them; this component is what React Aria's `TextField` puts around

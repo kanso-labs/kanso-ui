@@ -19,6 +19,7 @@ const styles = stylex.create({
 // Hoisted so each is one stable object per render rather than a fresh one,
 // which is what react-perf's no-new-object-as-prop is after.
 const EURO = { currency: 'EUR', style: 'currency' } as const
+const PERCENT = { style: 'percent' } as const
 
 const meta = {
   args: {
@@ -109,6 +110,40 @@ const Disabled: Story = {
   },
 }
 
+// The value can be read, selected and copied but not changed, so the
+// steppers are disabled while the box keeps its colours.
+const ReadOnly: Story = {
+  args: {
+    isReadOnly: true,
+  },
+}
+
+// The label carries the asterisk, and the input says it is required.
+const Required: Story = {
+  args: {
+    isRequired: true,
+  },
+}
+
+// A value at `maxValue`, so the increment stepper is disabled and the
+// decrement one is not.
+const WithRange: Story = {
+  args: {
+    defaultValue: 10,
+    maxValue: 10,
+    minValue: 0,
+  },
+}
+
+// A percentage: the value is a fraction, 0.25 reading as 25%, and with no
+// `step` of its own a stepper moves it by one percent.
+const Percent: Story = {
+  args: {
+    defaultValue: 0.25,
+    formatOptions: PERCENT,
+  },
+}
+
 export {
   Currency,
   Default,
@@ -118,8 +153,12 @@ export {
   NoSteppers,
   Outlined,
   OutlinedHorizontalSteppers,
+  Percent,
+  ReadOnly,
+  Required,
   WithDescription,
   WithError,
+  WithRange,
 }
 
 export default meta
