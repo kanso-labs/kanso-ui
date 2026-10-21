@@ -347,7 +347,7 @@ const PLAIN: Record<
       ).getByRole('button'),
   },
   'Card, filled': {
-    properties: ['background-color'],
+    properties: ['background-color', 'box-shadow'],
     target: () =>
       render(
         <Card interactive variant="filled">
@@ -356,7 +356,7 @@ const PLAIN: Record<
       ).getByRole('button'),
   },
   'Card, outlined': {
-    properties: ['background-color'],
+    properties: ['background-color', 'box-shadow'],
     target: () =>
       render(
         <Card interactive variant="outlined">

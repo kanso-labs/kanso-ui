@@ -19,6 +19,8 @@ import { colors } from '../tokens/design.tokens.stylex'
 //
 // - A different colour, because the surface underneath is not the default
 //   one: Snackbar's action and close, and Chip's remove.
+// - A different colour, because the spec gives the component its own focus
+//   indicator: Card, in secondary or on surface by variant.
 // - A negative offset, drawing the ring inside the element rather than
 //   around it: DropZone, NumberField, Table, a Tab and its panel, the shared
 //   row, and the body of a Dialog or a Sheet while it scrolls.

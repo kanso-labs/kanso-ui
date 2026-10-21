@@ -143,10 +143,9 @@ const styles = stylex.create({
   // would lay its contents out differently from a static one holding exactly
   // the same children.
   //
-  // It also eases the state layers and the elevated card's lift between
-  // states, over the motion tokens' short duration on the standard curve, as
-  // Button's do, and moves them at once for a reader who asks for reduced
-  // motion.
+  // It also eases the state layers and the card's lift between states, over
+  // the motion tokens' short duration on the standard curve, as Button's do,
+  // and moves them at once for a reader who asks for reduced motion.
   interactive: {
     cursor: 'pointer',
     font: 'inherit',
@@ -205,6 +204,10 @@ const HOVER_CAPABLE = '@media (hover: hover)'
 // `:active` is written twice, bare for a touch and again inside the query.
 // StyleX orders a rule by the sum of its conditions, so a hover inside the
 // query would otherwise come after a bare press and win while both held.
+//
+// Each variant also lifts one level on hover and comes back down on a press,
+// to the container elevations the cards page gives: the elevated card from
+// level 1 to 2, and the filled and outlined cards from level 0 to 1.
 const interactionStyles = stylex.create({
   elevated: {
     backgroundColor: {
@@ -239,6 +242,11 @@ const interactionStyles = stylex.create({
       },
       default: colors.surfaceContainerHighest,
     },
+    boxShadow: {
+      ':active': { default: 'none', [HOVER_CAPABLE]: 'none' },
+      ':hover': { default: null, [HOVER_CAPABLE]: shadows.elevation1 },
+      default: null,
+    },
   },
   outlined: {
     backgroundColor: {
@@ -252,7 +260,24 @@ const interactionStyles = stylex.create({
       },
       default: colors.surface,
     },
+    boxShadow: {
+      ':active': { default: 'none', [HOVER_CAPABLE]: 'none' },
+      ':hover': { default: null, [HOVER_CAPABLE]: shadows.elevation1 },
+      default: null,
+    },
   },
+})
+
+// The cards page's focus indicator, in secondary on the elevated and filled
+// cards and in on surface on the outlined one, where the shared ring takes
+// primary. Only the colour is the card's: the width, the offset and the
+// `:focus-visible` are the shared ring's, which this is applied over. Under
+// forced colours the mode repaints the outline in a system colour, as it does
+// every ring's.
+const focusColors = stylex.create({
+  elevated: { outlineColor: colors.secondary },
+  filled: { outlineColor: colors.secondary },
+  outlined: { outlineColor: colors.onSurface },
 })
 
 // Typed as the attributes a <div> accepts, because that is the surface every
@@ -376,6 +401,7 @@ function Card({
           interactive && styles.interactive,
           interactive && variant !== 'outlined' && styles.interactiveBoundary,
           interactive && !disabled && focus.ring,
+          interactive && !disabled && focusColors[variant],
           interactive && !disabled && interactionStyles[variant],
           disabled && styles.disabled,
           disabled && disabledStyles[variant],

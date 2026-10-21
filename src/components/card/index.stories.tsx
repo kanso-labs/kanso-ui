@@ -109,12 +109,24 @@ const Default: Story = {
 }
 
 // Its own story because it is a different element — a button rather than a
-// div — with focus and ripple behaviour a snapshot cannot show.
+// div — with focus and ripple behaviour a snapshot cannot show. One card per
+// variant, since each lifts and rings in its own way: a hover lifts each one
+// level, and Tab rings the elevated and filled cards in secondary and the
+// outlined one in on surface.
 const Interactive: Story = {
-  args: {
-    interactive: true,
-  },
-  decorators: [Wide],
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Card interactive variant="elevated">
+        {CONTENT}
+      </Card>
+      <Card interactive variant="filled">
+        {CONTENT}
+      </Card>
+      <Card interactive variant="outlined">
+        {CONTENT}
+      </Card>
+    </div>
+  ),
 }
 
 // A third element again, and the only place the anchor's own behaviour can be
