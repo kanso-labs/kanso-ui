@@ -1099,10 +1099,42 @@ describe('the pressed layer', () => {
     },
   )
 
-  it('lays that layer at the pressed opacity', () => {
+  // The ripple answers a key only once it is released, so while a key holds
+  // the button down the layer draws in its place, and gives way to the
+  // ripple when the key comes up.
+  it.each(VARIANTS)(
+    'draws the %s variant’s press from a key as a layer in place of the hover',
+    (variant) => {
+      const { button, isPressed } = setup({ variant })
+      const rest = settled(button)
+      firePointer(button, 'pointerover')
+      const hover = settled(button)
+      fireEvent.keyDown(button, { key: ' ' })
+      const pressed = settled(button)
+
+      expect(isPressed()).toBe(false)
+      expect(pressed.background).not.toBe(rest.background)
+      expect(pressed.background).not.toBe(hover.background)
+      expect(pressed.shadow).toBe(rest.shadow)
+
+      fireEvent.keyUp(button, { key: ' ' })
+
+      expect(settled(button).background).toBe(hover.background)
+      expect(isPressed()).toBe(true)
+    },
+  )
+
+  it.each([
+    ['with the ripple off', true],
+    ['from a key', false],
+  ] as const)('lays that layer at the pressed opacity %s', (_, off) => {
     const expected = resolved(pressProbeStyles.filled).background
-    const { button } = setup({ disableRipple: true })
-    firePointer(button, 'pointerdown', { buttons: 1 })
+    const { button } = setup({ disableRipple: off })
+    if (off) {
+      firePointer(button, 'pointerdown', { buttons: 1 })
+    } else {
+      fireEvent.keyDown(button, { key: ' ' })
+    }
 
     expect(settled(button).background).toBe(expected)
   })

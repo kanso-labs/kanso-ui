@@ -3,11 +3,12 @@
 import type { ReactNode, RefAttributes } from 'react'
 import type {
   ClassNameOrFunction,
+  PressEvent,
   StyleOrFunction,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { ToggleGroupStateContext } from 'react-aria-components'
 
 import type {
@@ -76,9 +77,10 @@ import {
 // A press is one layer, as the page draws it: the ripple at the pressed
 // opacity, over the container at rest. The hover layer and its lift come off
 // while the button is pressed, so neither stacks under the ripple, and the
-// `pressed` table is the layer a button draws in the ripple's place when
-// `disableRipple` turns it off. A keyboard press, which the ripple answers
-// only once the key is released, keeps the focus layer it already had.
+// `pressed` table is the layer a button draws in the ripple's place: when
+// `disableRipple` turns the ripple off, and while a key holds the button
+// down, since the ripple answers a key only once it is released. The layer
+// then gives way to the ripple, which plays its whole press from there.
 //
 // Disabled is a style of its own per variant rather than a `:disabled`
 // branch inside each property: a button given `href` renders as a link,
@@ -829,9 +831,28 @@ function Button({
   // A group that selects is React Aria's ToggleButtonGroup, whose buttons
   // have to be toggles to take part in its selection.
   const inSelectingGroup = useContext(ToggleGroupStateContext) !== null
-  const press = groupPressHandlers(group, props.onPressStart, props.onPressEnd)
+  const grouped = groupPressHandlers(
+    group,
+    props.onPressStart,
+    props.onPressEnd,
+  )
+  const onPressEnd = grouped.onPressEnd ?? props.onPressEnd
+  const onPressStart = grouped.onPressStart ?? props.onPressStart
   const selection = useSelection({ defaultSelected, isSelected, onChange })
-  const ripples = props.disableRipple !== true
+  // Whether a key holds the button down, which the ripple does not draw
+  // until the key is released, so the pressed layer draws in its place.
+  const [keyHeld, setKeyHeld] = useState(false)
+  const press = {
+    onPressEnd: (event: PressEvent) => {
+      setKeyHeld(false)
+      onPressEnd?.(event)
+    },
+    onPressStart: (event: PressEvent) => {
+      setKeyHeld(event.pointerType === 'keyboard')
+      onPressStart?.(event)
+    },
+  }
+  const ripples = props.disableRipple !== true && !keyHeld
 
   // The icon goes in with the label, inside what ButtonBase hides while the
   // button is pending, so the ring takes the place of both.
