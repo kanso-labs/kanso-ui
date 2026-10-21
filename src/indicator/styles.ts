@@ -15,10 +15,17 @@ import {
 //
 // The page's anatomy names three parts — the active indicator in primary,
 // the track in secondary container, and the stop indicator in primary at the
-// end — at 4dp thick with 4dp between them. The row is a flex line and the
-// two gaps are its `gap`. The active indicator takes the value's share of
-// what the two gaps and the stop leave, and the track takes the rest, so the
-// stop ends the row at every value.
+// end — at 4dp thick with 4dp between them. The row is a flex line. The
+// active indicator takes the value's share of the row less the stop and the
+// gap before it, and the track takes the rest, so the stop ends the row at
+// every value.
+//
+// The gap between the active indicator and the track is never wider than
+// either of them, which is Compose's rule: it grows from nothing at 0, so an
+// empty line is the whole track from the row's start, and it closes again
+// over the last 4dp, where the track has no room left, so a full line ends
+// 4dp before the stop. A gap kept beside a part with no width is a space
+// with nothing on one side of it.
 //
 // Under forced colours every part here is a background, which that mode
 // paints in a system colour, so the line drew nothing at all. The active
@@ -82,16 +89,20 @@ export const indicatorStyles = stylex.create({
     boxSizing: 'border-box',
     flexShrink: 0,
     transitionDuration: motion.durationMedium1,
-    transitionProperty: 'inline-size',
+    transitionProperty: 'inline-size, margin-inline-end',
     transitionTimingFunction: DETERMINATE_EASING,
   },
   // How far along the active indicator has come: the value's share of the
-  // row less the two gaps and the stop, which the line draws at every value.
-  // A share of the whole row would run the row 12dp long at the maximum,
-  // with the stop drawn past its end. A dynamic style, since StyleX compiles
-  // its classes ahead of time and the number is the value.
+  // row less the stop and the gap before it, which the line draws at every
+  // value. A share of the whole row would run the row 8dp long at the
+  // maximum, with the stop drawn past its end. The margin after it is the
+  // gap before the track: the page's 4dp, cut to what the active indicator
+  // has taken and to what it has left, so it is never wider than the part
+  // either side of it. A dynamic style, since StyleX compiles its classes
+  // ahead of time and the number is the value.
   activeAt: (percentage: number) => ({
-    inlineSize: `calc((100% - ${GAP * 2 + THICKNESS}px) * ${percentage / 100})`,
+    inlineSize: `calc((100% - ${GAP + THICKNESS}px) * ${percentage / 100})`,
+    marginInlineEnd: `min(${GAP}px, (100% - ${GAP + THICKNESS}px) * ${percentage / 100}, (100% - ${GAP + THICKNESS}px) * ${(100 - percentage) / 100})`,
   }),
   // Drawn on something that already carries a colour. The active indicator
   // takes the colour it inherits, and the track a quarter of it. The fill
@@ -135,13 +146,15 @@ export const indicatorStyles = stylex.create({
     minInlineSize: 0,
     overflowWrap: 'anywhere',
   },
-  // The three parts, with the page's 4dp between them.
+  // The three parts. The page's 4dp between them is a margin after the
+  // active indicator and another before the stop rather than the row's
+  // `gap`, since the first narrows at either end of the range — see
+  // `activeAt`.
   line: {
     alignItems: 'center',
     blockSize: `${THICKNESS}px`,
     boxSizing: 'border-box',
     display: 'flex',
-    gap: `${GAP}px`,
     inlineSize: '100%',
   },
   // What `negative` and `positive` draw the active indicator and the stop
@@ -161,7 +174,8 @@ export const indicatorStyles = stylex.create({
     inlineSize: '100%',
   },
   // The stop indicator: the page draws it at the end of the track, in the
-  // same primary as the active indicator.
+  // same primary as the active indicator, with the page's 4dp before it at
+  // every value.
   stop: {
     backgroundColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     blockSize: `${THICKNESS}px`,
@@ -169,6 +183,7 @@ export const indicatorStyles = stylex.create({
     boxSizing: 'border-box',
     flexShrink: 0,
     inlineSize: `${THICKNESS}px`,
+    marginInlineStart: `${GAP}px`,
   },
   // The track: whatever the active indicator and the gaps leave. Given
   // something to hold it becomes a row of its own; empty it is drawn solid.

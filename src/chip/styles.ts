@@ -26,11 +26,22 @@ import {
 // assist chip, on surface variant on a suggestion chip as on a filter one.
 //
 // **An elevated chip trades the outline for a container**, surface container
-// low at the page's elevation 1, raised to 2 under a hovering pointer. A
+// low at the page's elevation 1, raised to 2 under a hovering pointer and
+// back to 1 while pressed, since a mouse press does not end the hover. A
 // selected one keeps the secondary container and takes the shadow with it.
 // Its 1px border stays, transparent, as every chip's does: a forced-colours
 // mode paints a transparent border in its text colour and drops the shadow
 // and the fill, so the border is the boundary left there.
+//
+// **A flat chip lies on the page, apart from one state.** A selected filter
+// chip under a hovering pointer rises to elevation 1, and comes back down
+// while pressed, as the page's filter chip tokens give it; every other flat
+// state, and every state of an input chip, stays at 0.
+//
+// **A disabled chip is translucent**, its content at 38% and its container at
+// 12% of on surface over whatever is behind it, as the page gives them,
+// rather than mixed into the surface. Mixed into the surface, a disabled chip
+// on a coloured container drew an opaque pale patch with grey text on it.
 //
 // **A label with no room on one line is cut short, never wrapped.** The
 // container is a fixed 32dp, so a second line has nowhere to go but out of
@@ -72,6 +83,14 @@ import {
 // geometry answering a different question, and the two should not be read
 // across. A chip given an icon does not widen, since the check takes the
 // icon's place in the same slot.
+//
+// **A filter chip can carry an icon after its label as well**, the page's
+// trailing icon, which is what draws its dropdown filter chip: an arrow
+// saying the chip opens a menu. It takes the same 18dp slot at the other
+// end, and the chip's content role rather than the primary one the leading
+// icon takes — on surface variant, then on secondary container once
+// selected, then the disabled 38% — so it is drawn in the chip's own colour
+// rather than a role of its own. The check never displaces it.
 //
 // **The widening is animated rather than taken in one frame.** A chip with
 // no icon keeps its slot mounted while unselected, folded to nothing, and
@@ -131,24 +150,26 @@ const chipStyles = stylex.create({
     paddingBlock: 0,
     paddingInline: spacing.lg,
     transitionDuration: motion.durationShort2,
-    transitionProperty: 'background-color, border-color, color',
+    // The shadow too, for the elevated chip and a flat selected one under a
+    // hovering pointer; see the header.
+    transitionProperty: 'background-color, border-color, box-shadow, color',
     transitionTimingFunction: motion.easingStandard,
   },
-  // The content role at 38%, which every disabled chip takes whichever
-  // container it is on. `GrayText` under forced colours: a chip is an
-  // aria-disabled element rather than a native control, which the mode
-  // leaves in `CanvasText` like an enabled one.
+  // The content role at 38%, over whatever is behind it, which every
+  // disabled chip takes whichever container it is on. `GrayText` under
+  // forced colours: a chip is an aria-disabled element rather than a native
+  // control, which the mode leaves in `CanvasText` like an enabled one.
   disabled: {
     color: {
-      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
       [FORCED_COLORS]: 'GrayText',
     },
     cursor: 'not-allowed',
   },
   // The two containers a disabled chip can be on: the selected one flattens
-  // to the surface at 12%, the unselected one keeps its outline at the same.
+  // to on surface at 12%, the unselected one keeps its outline at the same.
   disabledSelected: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
   disabledUnselected: {
     backgroundColor: 'transparent',
@@ -162,9 +183,10 @@ const chipStyles = stylex.create({
     backgroundColor: colors.surfaceContainerLow,
     borderColor: 'transparent',
   },
-  // A disabled elevated chip comes down to the page, on the surface at 12%.
+  // A disabled elevated chip comes down to the page, its container on
+  // surface at 12% as a disabled selected one's is.
   elevatedDisabled: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), ${colors.surface})`,
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
     borderColor: 'transparent',
     boxShadow: 'none',
   },
@@ -241,11 +263,9 @@ const chipStyles = stylex.create({
     whiteSpace: 'nowrap',
   },
   // An elevated chip's shadow: the page's elevation 1 at rest, focused and
-  // pressed, and 2 under a hovering pointer. The transition takes the shadow
-  // as well as the colours `base` names.
+  // pressed, and 2 under a hovering pointer.
   raised: {
     boxShadow: shadows.elevation1,
-    transitionProperty: 'background-color, border-color, box-shadow, color',
   },
   raisedHovered: {
     boxShadow: shadows.elevation2,
@@ -302,6 +322,11 @@ const chipStyles = stylex.create({
     borderColor: 'transparent',
     color: colors.onSecondaryContainer,
   },
+  // A flat selected filter chip under a hovering pointer, lifted to the
+  // page's elevation 1; see the header.
+  selectedHovered: {
+    boxShadow: shadows.elevation1,
+  },
   // The box a group's chip puts its press ripple in, carrying the corner the
   // ripple inherits. `contents`, so it lays nothing out: the ripple still
   // fills the chip, which is the box it is placed against. See the header.
@@ -339,6 +364,13 @@ const chipStyles = stylex.create({
       position: 'absolute',
     },
     position: 'relative',
+  },
+  // The trailing icon's slot, over `glyph`: the chip's padding trimmed at its
+  // end rather than its start, to the page's 8 there. Its colour is the
+  // chip's own; see the header.
+  trailing: {
+    marginInlineEnd: `calc(-1 * ${spacing.sm})`,
+    marginInlineStart: 0,
   },
   unselected: {
     backgroundColor: 'transparent',

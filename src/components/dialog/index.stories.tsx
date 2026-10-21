@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useState } from 'react'
 import { expect, waitFor, within } from 'storybook/test'
 
 import Dialog from '.'
+import { docsFrameWidth } from '../../../.storybook/decorators'
 import { CloseGlyph } from '../../glyphs'
+import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
 import Text from '../text'
@@ -12,15 +15,83 @@ import Text from '../text'
 const PARAGRAPH = <p />
 
 const styles = stylex.create({
+  // The body under an icon, centred with the headline.
+  centredBody: {
+    textAlign: 'center',
+  },
+  // A header with an icon: the icon over the headline, both centred, 16dp
+  // apart, as the dialogs page draws it.
+  centredHeader: {
+    alignItems: 'center',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    justifyContent: 'center',
+    textAlign: 'center',
+  },
   // Sized in `em`, so the glyph takes the button's own icon size.
   glyph: {
     blockSize: '1em',
     inlineSize: '1em',
   },
+  // The icon above the headline, at the page's 24dp in the secondary role.
+  icon: {
+    blockSize: '24px',
+    color: colors.secondary,
+    display: 'block',
+    inlineSize: '24px',
+  },
 })
+
+// A dialog nothing on the page opens: the page holds whether it is open, so
+// a route, a menu item or a finished request can show it, and `Dialog` is
+// left out. The button beside it is the page's own and opens it by setting
+// that state. Open on load, as the other stories are, since a closed dialog
+// renders nothing for Chromatic to compare.
+function ControlledDialog() {
+  const [isOpen, setOpen] = useState(true)
+  const open = useCallback(() => {
+    setOpen(true)
+  }, [])
+
+  return (
+    <>
+      <Button onPress={open} variant="outlined">
+        Open dialog
+      </Button>
+      <Dialog.Content isOpen={isOpen} onOpenChange={setOpen}>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what the dialog is asking, in as many lines
+            as it needs.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </>
+  )
+}
 
 const meta = {
   component: Dialog,
+  // A tab of its own beside the root's in the Overview page's props table,
+  // for each part with props of its own: `Dialog` holds only the open state,
+  // and the dismissal settings and the portal are `Dialog.Content`'s. The
+  // header, body and footer take a `<div>`'s attributes and nothing else,
+  // which the table leaves out, so a tab of theirs would be empty.
+  subcomponents: {
+    'Dialog.Content': Dialog.Content,
+    'Dialog.Title': Dialog.Title,
+  },
   title: 'Components/Dialog',
 } satisfies Meta<typeof Dialog>
 
@@ -113,7 +184,13 @@ const AlertDialog: Story = {
     })
     // Escape reaches React Aria only from inside the dialog, so a press made
     // anywhere else would leave it open for a reason that proves nothing.
-    await expect(alertDialog()?.contains(document.activeElement)).toBe(true)
+    // React Aria moves focus in a frame after the dialog mounts, so this
+    // waits for it: read once, as the dialog appeared, it could find focus
+    // still on the page, as it did on the Overview page, which loads this
+    // story's frame beside four others.
+    await waitFor(async () => {
+      await expect(alertDialog()?.contains(document.activeElement)).toBe(true)
+    })
     // And a dialog that is closing stays on screen until the animations on
     // it end, which the entry one has not yet: without this, the check below
     // passed on a dialog that Escape had already closed.
@@ -158,6 +235,8 @@ const AlertDialog: Story = {
 // default role fills the window. An alert dialog stays the basic one there:
 // rounded, centred over the scrim, and only as tall as its question.
 const AlertDialogCompact: Story = {
+  // The Overview page's frame, narrowed to the same width.
+  decorators: [docsFrameWidth('375px')],
   // Sizes the frame in Storybook itself, as Sheet's BottomSheet does, so the
   // story shows the compact width without narrowing the window by hand.
   globals: { viewport: { isRotated: false, value: 'mobile1' } },
@@ -180,6 +259,7 @@ const AlertDialogCompact: Story = {
 // onto a second row at the trailing edge rather than running the first of
 // them past the container's start edge.
 const ThreeActions: Story = {
+  decorators: AlertDialogCompact.decorators,
   globals: AlertDialogCompact.globals,
   parameters: AlertDialogCompact.parameters,
   render: () => (
@@ -207,6 +287,102 @@ const ThreeActions: Story = {
           </Button>
           <Button slot="close" variant="text">
             Third action
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
+// The default dialog below the medium breakpoint, where it fills the window
+// as the page's full-screen dialog: square corners, the headline in a 56dp
+// bar with a divider under it, and the actions in a 56dp bar with a divider
+// over them.
+const FullScreen: Story = {
+  decorators: AlertDialogCompact.decorators,
+  globals: AlertDialogCompact.globals,
+  parameters: AlertDialogCompact.parameters,
+  render: Default.render,
+}
+
+// What the Overview page prints under Controlled. Storybook writes no snippet
+// for a story whose render takes no args, which would leave this one's panel
+// empty, and the state is inside ControlledDialog in any case, so the pattern
+// is written out by hand.
+const CONTROLLED_SOURCE = `const [isOpen, setOpen] = useState(false)
+
+<Button onPress={() => setOpen(true)} variant="outlined">
+  Open dialog
+</Button>
+<Dialog.Content isOpen={isOpen} onOpenChange={setOpen}>
+  <Dialog.Header>
+    <Dialog.Title>Headline</Dialog.Title>
+  </Dialog.Header>
+  <Dialog.Body>
+    <Text tone="muted" variant="bodyMedium">
+      Supporting text explains what the dialog is asking.
+    </Text>
+  </Dialog.Body>
+  <Dialog.Footer>
+    <Button slot="close" variant="text">
+      Cancel
+    </Button>
+    <Button slot="close" variant="text">
+      Confirm
+    </Button>
+  </Dialog.Footer>
+</Dialog.Content>`
+
+const Controlled: Story = {
+  parameters: {
+    docs: {
+      source: { code: CONTROLLED_SOURCE, language: 'tsx' },
+      story: { height: '600px', inline: false },
+    },
+  },
+  render: () => <ControlledDialog />,
+}
+
+// An icon above the headline, which the page centres the headline and the
+// body with. The icon and the centring are the call site's, given to
+// `Dialog.Header` and `Dialog.Body`. An alert dialog, so it stays the basic
+// dialog at every width, the one the page draws an icon in.
+const WithIcon: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open alert</Button>
+      <Dialog.Content
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        role="alertdialog"
+      >
+        <Dialog.Header {...stylex.props(styles.centredHeader)}>
+          <svg
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            {...stylex.props(styles.icon)}
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v6M12 7.5v.01" />
+          </svg>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body {...stylex.props(styles.centredBody)}>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what happens either way.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
           </Button>
         </Dialog.Footer>
       </Dialog.Content>
@@ -284,6 +460,7 @@ const ADDRESS =
   'https://example.com/firstitem/seconditem/thirditem/supportingline?query=0123456789'
 
 const LongAddress: Story = {
+  decorators: AlertDialogCompact.decorators,
   globals: AlertDialogCompact.globals,
   parameters: AlertDialogCompact.parameters,
   render: () => (
@@ -319,11 +496,14 @@ const LongAddress: Story = {
 export {
   AlertDialog,
   AlertDialogCompact,
+  Controlled,
   Default,
+  FullScreen,
   LongAddress,
   LongBody,
   Nested,
   ThreeActions,
+  WithIcon,
 }
 
 export default meta

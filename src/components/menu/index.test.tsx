@@ -14,6 +14,10 @@ import {
   installFakeAnimate,
   isPressed,
 } from '../../hooks/useRipple.testing'
+import {
+  disabledContentOpacity,
+  opacityWithin,
+} from '../../styles/opacity.testing'
 import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { demoThemes } from '../../theming/themes'
 import {
@@ -698,7 +702,10 @@ describe('menu', () => {
 
     // A shortcut at full strength beside a faded label is the one thing on
     // a disabled row that stands out, and a keycap was the darkest and only
-    // boxed thing there.
+    // boxed thing there. It fades with the slot it sits in, and once: drawn
+    // in on surface, the colour the label fades from, and taken to the
+    // label's 38% by the slot's opacity. Drawn in the label's faded colour
+    // as well, it would sit at 38% of 38%.
     it('fades a disabled item with its label, its keycap included', () => {
       const view = setup(
         {},
@@ -711,17 +718,21 @@ describe('menu', () => {
           </Menu.Item>
         </>,
       )
+      const first = view.getByRole('menuitem', { name: 'First item' })
+      const second = view.getByRole('menuitem', { name: 'Second item' })
       const keycap = getComputedStyle(view.getByText('⌘X'))
-      const faded = colorOf(probeStyles.disabled)
+      const onSurface = colorOf(probeStyles.onSurface)
 
-      expect(
-        getComputedStyle(view.getByRole('menuitem', { name: 'First item' }))
-          .color,
-      ).toBe(faded)
-      expect(getComputedStyle(view.getByText('⌘C')).color).toBe(faded)
-      expect(keycap.color).toBe(faded)
-      expect(keycap.borderTopColor).toBe(faded)
-      expect(keycap.color).not.toBe(colorOf(probeStyles.onSurface))
+      expect(getComputedStyle(first).color).toBe(colorOf(probeStyles.disabled))
+      expect(getComputedStyle(view.getByText('⌘C')).color).toBe(onSurface)
+      expect(keycap.color).toBe(onSurface)
+      expect(keycap.borderTopColor).toBe(onSurface)
+      expect(opacityWithin(first, view.getByText('⌘C'))).toBeCloseTo(
+        disabledContentOpacity(),
+      )
+      expect(opacityWithin(second, view.getByText('⌘X'))).toBeCloseTo(
+        disabledContentOpacity(),
+      )
     })
 
     // Disabled wins, as it does for the row's ground and its label.
@@ -732,13 +743,15 @@ describe('menu', () => {
           First item
         </Menu.Item>,
       )
+      const item = view.getByRole('menuitemradio')
       const keycap = getComputedStyle(view.getByText('⌘X'))
 
-      expect(view.getByRole('menuitemradio').getAttribute('aria-checked')).toBe(
-        'true',
+      expect(item.getAttribute('aria-checked')).toBe('true')
+      expect(keycap.color).toBe(colorOf(probeStyles.onSurface))
+      expect(keycap.borderTopColor).toBe(colorOf(probeStyles.onSurface))
+      expect(opacityWithin(item, view.getByText('⌘X'))).toBeCloseTo(
+        disabledContentOpacity(),
       )
-      expect(keycap.color).toBe(colorOf(probeStyles.disabled))
-      expect(keycap.borderTopColor).toBe(colorOf(probeStyles.disabled))
     })
 
     // Measured before the fix: Neon at 4.33 and Marquee at 3.97, both
@@ -963,6 +976,23 @@ describe('menu', () => {
           CLASSES.disabled,
         ),
       ).toBe(true)
+    })
+
+    // A leading icon drawn in the item's colour fades once with its slot, as
+    // the shortcut does, rather than taking the faded colour and the slot's
+    // opacity together.
+    it("fades a disabled item's leading icon once", () => {
+      const view = setup(
+        {},
+        <Menu.Item id="first" isDisabled leading={FIRST_ICON}>
+          First item
+        </Menu.Item>,
+      )
+      const item = view.getByRole('menuitem')
+      const icon = view.getByTestId('icon-1')
+
+      expect(getComputedStyle(icon).color).toBe(colorOf(probeStyles.onSurface))
+      expect(opacityWithin(item, icon)).toBeCloseTo(disabledContentOpacity())
     })
   })
 

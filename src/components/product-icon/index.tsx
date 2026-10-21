@@ -76,8 +76,15 @@ type ProductIconProps = Omit<RenderComponentProps<'span'>, 'children'> & {
  * The mark is letterboxed rather than cropped, so a logo of any aspect ratio
  * can be handed over as it was drawn.
  *
+ * ```tsx
+ * <ProductIcon name="Label" src={logo} size="lg" />
+ * ```
+ *
  * When the thing's name is already written next to the mark, mark it
- * `decorative`, so a screen reader reads the name once.
+ * `decorative`, so a screen reader reads the name once: the square is then
+ * `aria-hidden`, where it is otherwise an image named by `name`.
+ *
+ * The call site's `className`, `style` and `ref` land on the square.
  */
 function ProductIcon({
   size = 'md',

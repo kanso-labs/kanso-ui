@@ -13,7 +13,12 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ListItem from '.'
+import {
+  disabledContentOpacity,
+  opacityWithin,
+} from '../../styles/opacity.testing'
 import { rippleStyles } from '../../styles/ripple'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
@@ -21,6 +26,7 @@ import {
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
 import Avatar from '../avatar'
+import Text from '../text'
 
 // The query the row's hover waits on, spelled as src/row/styles.ts spells it.
 const HOVER_CAPABLE = '@media (hover: hover)'
@@ -31,17 +37,24 @@ const probeStyles = stylex.create({
   disabled: {
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   },
+  focusLayer: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+  },
   labelSmall: { fontSize: typography.labelSmallSize },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
-  // The interactive row's two tints and nothing else, written as the row
+  // The interactive row's three layers and nothing else, written as the row
   // module writes them so they hash to the same atomic classes: the hover
-  // inside the query for a pointer that can hover, and the press both bare
-  // and inside it.
+  // inside the query for a pointer that can hover, and the focus and the
+  // press both bare and inside it.
   tints: {
     backgroundColor: {
       ':active': {
         default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
         [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      },
+      ':focus-visible': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
       },
       ':hover': {
         default: null,
@@ -62,6 +75,13 @@ function classesOf(style: StyleXStyles) {
     throw new Error('expected the style to generate at least one class')
   }
   return classes
+}
+
+function probeBackground(element: ReactElement) {
+  const view = render(element)
+  const background = getComputedStyle(view.getByTestId('probe')).backgroundColor
+  view.unmount()
+  return background
 }
 
 function probeColor(element: ReactElement) {
@@ -512,6 +532,28 @@ describe('list item', () => {
         'rgba(0, 0, 0, 0)',
       )
     })
+
+    // The ring alone left a focused ListItem looking unlike a focused List
+    // row, which lays the focus layer under the same ring.
+    it('lays the focus layer under its ring for a keyboard', () => {
+      const expected = probeBackground(
+        <div data-testid="probe" {...stylex.props(probeStyles.focusLayer)} />,
+      )
+      expect(expected).not.toBe('rgba(0, 0, 0, 0)')
+
+      const view = render(<ListItem interactive>headline</ListItem>)
+      const button = view.getByRole('button')
+      fireEvent.keyDown(document.body, { key: 'Tab' })
+      act(() => {
+        button.focus()
+      })
+      const computed = getComputedStyle(button)
+
+      expect(button.matches(':focus-visible')).toBe(true)
+      expect(computed.backgroundColor).toBe(expected)
+      expect(computed.outlineStyle).toBe('solid')
+      expect(computed.outlineWidth).toBe('2px')
+    })
   })
 
   // The treatment the row module gives every disabled row, which each
@@ -547,6 +589,65 @@ describe('list item', () => {
       expect(getComputedStyle(view.getByText('Supporting line')).color).toBe(
         expected,
       )
+    })
+
+    // What sits in the slots carries colours of its own, an avatar's
+    // container and a tone of its own, which the faded colour above never
+    // reaches. So each slot fades as a whole, to the 38% the lists page fades
+    // a disabled row's icons to.
+    it('fades its leading and trailing content as a whole', () => {
+      const expected = disabledContentOpacity()
+      expect(expected).toBeLessThan(1)
+
+      const view = render(
+        <>
+          <ListItem
+            interactive
+            isDisabled
+            leading={<Avatar name="Ada Lovelace" />}
+            trailing={<Text tone="muted">01</Text>}
+          >
+            Disabled
+          </ListItem>
+          <ListItem
+            interactive
+            leading={<Avatar name="Ada Lovelace" />}
+            trailing={<Text tone="muted">01</Text>}
+          >
+            Enabled
+          </ListItem>
+        </>,
+      )
+      const [disabled, enabled] = view.getAllByRole('button')
+      const [disabledInitials, enabledInitials] = view.getAllByText('AL')
+      const [disabledValue, enabledValue] = view.getAllByText('01')
+
+      expect(opacityWithin(disabled, disabledInitials)).toBeCloseTo(expected)
+      expect(opacityWithin(disabled, disabledValue)).toBeCloseTo(expected)
+      expect(opacityWithin(enabled, enabledInitials)).toBe(1)
+      expect(opacityWithin(enabled, enabledValue)).toBe(1)
+    })
+
+    // The mode greys a disabled row's text rather than fading it, so a slot
+    // faded as well would sit at 38% of a system colour the reader chose.
+    it('greys its slots at full strength under forced colours', () => {
+      const view = render(
+        <ListItem
+          interactive
+          isDisabled
+          leading={<Avatar name="Ada Lovelace" />}
+        >
+          Headline
+        </ListItem>,
+      )
+      const slot = view.getByText('AL').closest('button > span')
+      if (slot === null) {
+        throw new Error('expected the avatar to sit in a slot of the row')
+      }
+      const held = declarationsHeld(slot, 'forced-colors: active')
+
+      expect(held.get('color')).toBe('graytext')
+      expect(held.get('opacity')).toBe('1')
     })
 
     it('marks a row that only presents as disabled', () => {
@@ -596,7 +697,7 @@ describe('list item', () => {
     // test file is a frame in one shared page, and a real pointer aimed at
     // this one passed alone and timed out under a full run. The enabled row
     // beside it is what proves these are the tint's classes to look for.
-    it('drops the hover and pressed tints and shows a not-allowed cursor', () => {
+    it('drops the hover, focus and pressed layers and shows a not-allowed cursor', () => {
       const tints = classesOf(probeStyles.tints)
       const view = render(
         <>

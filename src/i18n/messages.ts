@@ -5,12 +5,12 @@ import type {
 
 // The words the library writes itself and React Aria has no message for: the
 // pending ring's name, a collection's loading-more row and its empty row,
-// CopyField's button and its announcement, a field's character limit and the
-// announcement that it has been reached, a search view's back button, what a
-// carousel calls itself, its slides and its two buttons, and the time
-// picker's two headlines and two actions. Everything else a control says
-// comes from React Aria's own tables, so these are the strings this table has
-// to carry.
+// CopyField's button and its announcement, a bottom sheet's drag handle, a
+// field's character limit and the announcement that it has been reached, a
+// search view's back button, what a carousel calls itself, its slides and its
+// two buttons, and the time picker's two headlines and two actions.
+// Everything else a control says comes from React Aria's own tables, so these
+// are the strings this table has to carry.
 //
 // One entry per locale React Aria ships, so a locale it localises reads here
 // too. React Aria's dictionary falls back from a regional locale to its
@@ -32,6 +32,7 @@ type LibraryMessage =
   | 'copied'
   | 'copy'
   | 'copySelected'
+  | 'dragHandle'
   | 'enterTime'
   | 'loading'
   | 'loadingMore'
@@ -79,6 +80,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'تم النسخ',
     copy: 'نسخ',
     copySelected: 'محدد للنسخ',
+    dragHandle: 'مقبض السحب',
     enterTime: 'أدخل الوقت',
     loading: 'جارٍ التحميل',
     loadingMore: 'جارٍ تحميل المزيد',
@@ -102,6 +104,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Копирано',
     copy: 'Копиране',
     copySelected: 'Избрано за копиране',
+    dragHandle: 'Манипулатор за плъзгане',
     enterTime: 'Въведете час',
     loading: 'Зареждане',
     loadingMore: 'Зареждане на още',
@@ -127,6 +130,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Zkopírováno',
     copy: 'Kopírovat',
     copySelected: 'Vybráno ke zkopírování',
+    dragHandle: 'Úchyt pro přetažení',
     enterTime: 'Zadejte čas',
     loading: 'Načítání',
     loadingMore: 'Načítání dalších',
@@ -147,6 +151,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopieret',
     copy: 'Kopiér',
     copySelected: 'Markeret til kopiering',
+    dragHandle: 'Trækhåndtag',
     enterTime: 'Angiv tidspunkt',
     loading: 'Indlæser',
     loadingMore: 'Indlæser flere',
@@ -167,6 +172,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopiert',
     copy: 'Kopieren',
     copySelected: 'Zum Kopieren markiert',
+    dragHandle: 'Ziehpunkt',
     enterTime: 'Uhrzeit eingeben',
     loading: 'Wird geladen',
     loadingMore: 'Weitere werden geladen',
@@ -190,6 +196,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Αντιγράφηκε',
     copy: 'Αντιγραφή',
     copySelected: 'Επιλέχθηκε για αντιγραφή',
+    dragHandle: 'Λαβή μεταφοράς',
     enterTime: 'Εισαγωγή ώρας',
     loading: 'Φόρτωση',
     loadingMore: 'Φόρτωση περισσότερων',
@@ -213,6 +220,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copied',
     copy: 'Copy',
     copySelected: 'Selected to copy',
+    dragHandle: 'Drag handle',
     enterTime: 'Enter time',
     loading: 'Loading',
     loadingMore: 'Loading more',
@@ -236,6 +244,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copiado',
     copy: 'Copiar',
     copySelected: 'Seleccionado para copiar',
+    dragHandle: 'Controlador de arrastre',
     enterTime: 'Introducir hora',
     loading: 'Cargando',
     loadingMore: 'Cargando más',
@@ -259,6 +268,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopeeritud',
     copy: 'Kopeeri',
     copySelected: 'Kopeerimiseks valitud',
+    dragHandle: 'Lohistamispide',
     enterTime: 'Sisesta kellaaeg',
     loading: 'Laadimine',
     loadingMore: 'Laaditakse veel',
@@ -282,6 +292,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopioitu',
     copy: 'Kopioi',
     copySelected: 'Valittu kopioitavaksi',
+    dragHandle: 'Vetokahva',
     enterTime: 'Anna aika',
     loading: 'Ladataan',
     loadingMore: 'Ladataan lisää',
@@ -305,6 +316,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copié',
     copy: 'Copier',
     copySelected: 'Sélectionné pour la copie',
+    dragHandle: 'Poignée de déplacement',
     enterTime: 'Saisir l’heure',
     loading: 'Chargement',
     loadingMore: 'Chargement de la suite',
@@ -329,6 +341,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'הועתק',
     copy: 'העתק',
     copySelected: 'נבחר להעתקה',
+    dragHandle: 'ידית גרירה',
     enterTime: 'הזנת שעה',
     loading: 'טוען',
     loadingMore: 'טוען עוד',
@@ -353,6 +366,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopirano',
     copy: 'Kopiraj',
     copySelected: 'Odabrano za kopiranje',
+    dragHandle: 'Ručica za povlačenje',
     enterTime: 'Unesite vrijeme',
     loading: 'Učitavanje',
     loadingMore: 'Učitava se još',
@@ -373,6 +387,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Másolva',
     copy: 'Másolás',
     copySelected: 'Kijelölve másoláshoz',
+    dragHandle: 'Húzófogantyú',
     enterTime: 'Időpont megadása',
     loading: 'Betöltés',
     loadingMore: 'Továbbiak betöltése',
@@ -396,6 +411,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copiato',
     copy: 'Copia',
     copySelected: 'Selezionato per la copia',
+    dragHandle: 'Maniglia di trascinamento',
     enterTime: 'Inserisci l’ora',
     loading: 'Caricamento',
     loadingMore: 'Caricamento di altri elementi',
@@ -416,6 +432,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'コピーしました',
     copy: 'コピー',
     copySelected: 'コピー用に選択しました',
+    dragHandle: 'ドラッグハンドル',
     enterTime: '時刻を入力',
     loading: '読み込み中',
     loadingMore: 'さらに読み込み中',
@@ -436,6 +453,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: '복사됨',
     copy: '복사',
     copySelected: '복사할 수 있게 선택됨',
+    dragHandle: '드래그 핸들',
     enterTime: '시간 입력',
     loading: '로드 중',
     loadingMore: '더 로드하는 중',
@@ -461,6 +479,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Nukopijuota',
     copy: 'Kopijuoti',
     copySelected: 'Pažymėta kopijuoti',
+    dragHandle: 'Vilkimo rankenėlė',
     enterTime: 'Įveskite laiką',
     loading: 'Įkeliama',
     loadingMore: 'Įkeliama daugiau',
@@ -485,6 +504,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Nokopēts',
     copy: 'Kopēt',
     copySelected: 'Atlasīts kopēšanai',
+    dragHandle: 'Vilkšanas turis',
     enterTime: 'Ievadiet laiku',
     loading: 'Notiek ielāde',
     loadingMore: 'Notiek papildu ielāde',
@@ -505,6 +525,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopiert',
     copy: 'Kopier',
     copySelected: 'Merket for kopiering',
+    dragHandle: 'Drahåndtak',
     enterTime: 'Angi klokkeslett',
     loading: 'Laster inn',
     loadingMore: 'Laster inn flere',
@@ -528,6 +549,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Gekopieerd',
     copy: 'Kopiëren',
     copySelected: 'Geselecteerd om te kopiëren',
+    dragHandle: 'Sleepgreep',
     enterTime: 'Tijd invoeren',
     loading: 'Laden',
     loadingMore: 'Meer laden',
@@ -553,6 +575,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Skopiowano',
     copy: 'Kopiuj',
     copySelected: 'Zaznaczono do skopiowania',
+    dragHandle: 'Uchwyt przeciągania',
     enterTime: 'Wpisz godzinę',
     loading: 'Ładowanie',
     loadingMore: 'Ładowanie kolejnych',
@@ -576,6 +599,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copiado',
     copy: 'Copiar',
     copySelected: 'Selecionado para copiar',
+    dragHandle: 'Alça de arrastar',
     enterTime: 'Digite o horário',
     loading: 'Carregando',
     loadingMore: 'Carregando mais',
@@ -599,6 +623,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copiado',
     copy: 'Copiar',
     copySelected: 'Selecionado para copiar',
+    dragHandle: 'Pega para arrastar',
     enterTime: 'Introduzir a hora',
     loading: 'A carregar',
     loadingMore: 'A carregar mais',
@@ -623,6 +648,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Copiat',
     copy: 'Copiați',
     copySelected: 'Selectat pentru copiere',
+    dragHandle: 'Mâner de glisare',
     enterTime: 'Introduceți ora',
     loading: 'Se încarcă',
     loadingMore: 'Se încarcă mai multe',
@@ -648,6 +674,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Скопировано',
     copy: 'Копировать',
     copySelected: 'Выделено для копирования',
+    dragHandle: 'Маркер перемещения',
     enterTime: 'Введите время',
     loading: 'Загрузка',
     loadingMore: 'Загрузка ещё',
@@ -673,6 +700,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Skopírované',
     copy: 'Kopírovať',
     copySelected: 'Vybraté na kopírovanie',
+    dragHandle: 'Úchyt na presunutie',
     enterTime: 'Zadajte čas',
     loading: 'Načítava sa',
     loadingMore: 'Načítavajú sa ďalšie',
@@ -698,6 +726,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopirano',
     copy: 'Kopiraj',
     copySelected: 'Izbrano za kopiranje',
+    dragHandle: 'Ročica za vlečenje',
     enterTime: 'Vnesite čas',
     loading: 'Nalaganje',
     loadingMore: 'Nalaganje več',
@@ -722,6 +751,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopirano',
     copy: 'Kopiraj',
     copySelected: 'Izabrano za kopiranje',
+    dragHandle: 'Ručica za prevlačenje',
     enterTime: 'Unesite vreme',
     loading: 'Učitavanje',
     loadingMore: 'Učitavanje još',
@@ -742,6 +772,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopierat',
     copy: 'Kopiera',
     copySelected: 'Markerat för kopiering',
+    dragHandle: 'Draghandtag',
     enterTime: 'Ange tid',
     loading: 'Läser in',
     loadingMore: 'Läser in fler',
@@ -762,6 +793,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Kopyalandı',
     copy: 'Kopyala',
     copySelected: 'Kopyalamak için seçildi',
+    dragHandle: 'Sürükleme tutamacı',
     enterTime: 'Saati girin',
     loading: 'Yükleniyor',
     loadingMore: 'Daha fazlası yükleniyor',
@@ -787,6 +819,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: 'Скопійовано',
     copy: 'Копіювати',
     copySelected: 'Виділено для копіювання',
+    dragHandle: 'Маркер перетягування',
     enterTime: 'Введіть час',
     loading: 'Завантаження',
     loadingMore: 'Завантаження ще',
@@ -807,6 +840,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: '已复制',
     copy: '复制',
     copySelected: '已选中，可复制',
+    dragHandle: '拖动手柄',
     enterTime: '输入时间',
     loading: '正在加载',
     loadingMore: '正在加载更多',
@@ -827,6 +861,7 @@ const MESSAGES: LocalizedStrings<LibraryMessage, LocalizedString> = {
     copied: '已複製',
     copy: '複製',
     copySelected: '已選取，可複製',
+    dragHandle: '拖曳控點',
     enterTime: '輸入時間',
     loading: '正在載入',
     loadingMore: '正在載入更多',

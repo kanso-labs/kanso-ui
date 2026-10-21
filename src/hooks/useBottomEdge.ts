@@ -69,9 +69,10 @@ function useBottomEdgeClearance(): number {
  *
  * Measured from where the element is drawn, so the strip takes in whatever
  * lies between it and the edge, a safe area among them. It is measured again
- * whenever the element resizes, the window does, or an animation ends, since
- * an overlay arriving from below is drawn lower than it rests until its entry
- * has run.
+ * whenever the element resizes, the window does, or an animation or a scroll
+ * ends, since an overlay arriving from below is drawn lower than it rests
+ * until its entry has run — a dialog's entry is an animation, and a sheet's
+ * is a scroll, which is also what a swipe that lets go of it makes.
  */
 function useHoldBottomEdge(
   ref: RefObject<HTMLElement | null>,
@@ -94,11 +95,14 @@ function useHoldBottomEdge(
     observer.observe(element)
     window.addEventListener('resize', measure)
     document.addEventListener('animationend', measure, true)
+    // Captured, since `scrollend` does not bubble from the element scrolled.
+    document.addEventListener('scrollend', measure, true)
 
     return () => {
       observer.disconnect()
       window.removeEventListener('resize', measure)
       document.removeEventListener('animationend', measure, true)
+      document.removeEventListener('scrollend', measure, true)
       hold(element, undefined)
     }
   }, [isHolding, ref])

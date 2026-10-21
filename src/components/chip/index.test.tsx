@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
@@ -17,6 +17,7 @@ import {
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
+import { transitionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   shadows,
@@ -32,6 +33,17 @@ import {
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
   assistColor: { color: colors.onSurface },
+  // A coloured container to set a chip on, which is not the surface.
+  backdrop: { backgroundColor: colors.primary },
+  // A disabled chip's content: on surface at 38%, over whatever is behind it.
+  disabledColor: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  // The containers a disabled chip draws: on surface at 12%, over whatever
+  // is behind it.
+  disabledContainer: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
   elevatedBackground: { backgroundColor: colors.surfaceContainerLow },
   elevation1: { boxShadow: shadows.elevation1 },
   elevation2: { boxShadow: shadows.elevation2 },
@@ -64,6 +76,8 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   assistColor: classesOf(stylex.props(probeStyles.assistColor)),
+  disabledColor: classesOf(stylex.props(probeStyles.disabledColor)),
+  disabledContainer: classesOf(stylex.props(probeStyles.disabledContainer)),
   elevatedBackground: classesOf(stylex.props(probeStyles.elevatedBackground)),
   elevation1: classesOf(stylex.props(probeStyles.elevation1)),
   elevation2: classesOf(stylex.props(probeStyles.elevation2)),
@@ -79,6 +93,14 @@ const CLASSES = {
   ),
   unselectedBorder: classesOf(stylex.props(probeStyles.unselectedBorder)),
   unselectedColor: classesOf(stylex.props(probeStyles.unselectedColor)),
+}
+
+// The alpha of a computed colour, which Chromium writes as `rgba(…)` or as
+// `color(srgb … / a)`, and leaves out where it is 1.
+function alphaOf(colour: string) {
+  const alpha =
+    /\/\s*([\d.]+)\)$/.exec(colour) ?? /rgba\([^)]*,\s*([\d.]+)\)$/.exec(colour)
+  return alpha === null ? 1 : Number(alpha[1])
 }
 
 // The check, or null where the chip draws none. It is the only SVG a chip
@@ -101,6 +123,18 @@ function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+// The colour a probe style resolves to, read off an element of its own, so a
+// colour drawn by inheritance can be checked against the role it is meant to
+// be rather than against whatever it inherits.
+function roleColour(style: { className?: string | undefined }) {
+  const probe = document.createElement('span')
+  probe.className = style.className ?? ''
+  document.body.append(probe)
+  const colour = getComputedStyle(probe).color
+  probe.remove()
+  return colour
+}
+
 // An icon as the README asks for one: hidden from assistive technology,
 // drawn in `currentColor`, and `1em` square so the slot's size is its own.
 const ICON = (
@@ -119,6 +153,28 @@ const ICON = (
 function iconIn(chip: HTMLElement) {
   return chip.querySelector('[data-testid="icon"]')
 }
+
+// A chip set on the coloured backdrop, and the button it draws.
+function onBackdrop(element: ReactElement) {
+  const view = render(
+    <div {...stylex.props(probeStyles.backdrop)}>{element}</div>,
+  )
+  return view.getByRole('button')
+}
+
+// An arrow after the label, marked apart from the leading icon.
+const TRAILING = (
+  <svg
+    aria-hidden="true"
+    data-testid="trailing"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <path d="M7 10l5 5 5-5z" />
+  </svg>
+)
 
 // The slot the icon is drawn in, which is the element carrying its colour.
 function iconSlotOf(chip: HTMLElement) {
@@ -143,6 +199,19 @@ function labelOf(chip: HTMLElement) {
 function setup(props: Partial<ChipFilterProps> = {}) {
   const view = render(<Chip {...props}>Label</Chip>)
   return { ...view, chip: view.getByRole('button') }
+}
+
+function trailingIn(chip: HTMLElement) {
+  return chip.querySelector('[data-testid="trailing"]')
+}
+
+// The slot the trailing icon is drawn in.
+function trailingSlotOf(chip: HTMLElement) {
+  const slot = trailingIn(chip)?.parentElement
+  if (!(slot instanceof HTMLElement)) {
+    throw new Error('expected the chip to draw its trailing icon in a slot')
+  }
+  return slot
 }
 
 // A call site's own element in place of the plain <button>: the same tag, as
@@ -502,6 +571,92 @@ describe('chip', () => {
       expect(getComputedStyle(slot).color).toBe(
         getComputedStyle(disabled).color,
       )
+    })
+  })
+
+  // The page's dropdown filter chip: an icon after the label, which an arrow
+  // there makes a menu's trigger.
+  describe('the trailing icon', () => {
+    it("draws it after the label, in the page's 18dp slot inset by 8dp", () => {
+      const { chip } = setup({ trailingIcon: TRAILING })
+      const slot = trailingSlotOf(chip)
+      const box = slot.getBoundingClientRect()
+      const label = labelOf(chip).getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(chip).borderRightWidth)
+
+      expect([box.width, box.height]).toEqual([18, 18])
+      // Drawn in `em`, so the slot's font size is what sizes the icon.
+      expect(trailingIn(chip)?.getBoundingClientRect().width).toBe(18)
+      expect(chip.getBoundingClientRect().right - border - box.right).toBe(8)
+      expect(box.left - label.right).toBeCloseTo(8, 3)
+    })
+
+    it('draws it at the left end of a right-to-left chip', () => {
+      const { getByRole } = render(
+        <div dir="rtl">
+          <Chip trailingIcon={TRAILING}>Label</Chip>
+        </div>,
+      )
+      const chip = getByRole('button')
+      const box = trailingSlotOf(chip).getBoundingClientRect()
+      const border = Number.parseFloat(getComputedStyle(chip).borderLeftWidth)
+
+      expect(box.left - chip.getBoundingClientRect().left - border).toBe(8)
+    })
+
+    it('keeps it while the chip is selected, after the check', () => {
+      const { chip } = setup({ icon: ICON, trailingIcon: TRAILING })
+
+      fireEvent.click(chip)
+
+      const check = checkIn(chip)
+      expect(check).not.toBeNull()
+      expect(iconIn(chip)).toBeNull()
+      expect(trailingIn(chip)).not.toBeNull()
+      expect(
+        labelOf(chip).compareDocumentPosition(trailingSlotOf(chip)) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeGreaterThan(0)
+    })
+
+    // The page gives the trailing icon the chip's own content roles rather
+    // than the primary one its leading icon takes.
+    it.each([
+      ['unselected', false, probeStyles.unselectedColor],
+      ['selected', true, probeStyles.selectedColor],
+    ] as const)(
+      "draws it in the chip's own content role while %s",
+      (_state, defaultSelected, role) => {
+        const { chip } = setup({ defaultSelected, trailingIcon: TRAILING })
+        const slot = trailingSlotOf(chip)
+
+        expect(hasClasses(slot, CLASSES.icon)).toBe(false)
+        expect(getComputedStyle(slot).color).toBe(
+          roleColour(stylex.props(role)),
+        )
+      },
+    )
+
+    it('fades it with the label while the chip is disabled', () => {
+      const { chip } = setup({ isDisabled: true, trailingIcon: TRAILING })
+
+      expect(getComputedStyle(trailingSlotOf(chip)).color).toBe(
+        roleColour(stylex.props(probeStyles.disabledColor)),
+      )
+    })
+
+    it('leaves a chip without one as it was', () => {
+      const { chip } = setup()
+      const label = labelOf(chip)
+      const border = Number.parseFloat(getComputedStyle(chip).borderRightWidth)
+
+      expect(trailingIn(chip)).toBeNull()
+      expect(label.nextElementSibling?.querySelector('svg')).toBeFalsy()
+      expect(
+        chip.getBoundingClientRect().right -
+          border -
+          label.getBoundingClientRect().right,
+      ).toBeCloseTo(16, 3)
     })
   })
 })
@@ -864,5 +1019,94 @@ describe('elevated chips', () => {
 
     expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
     expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
+  })
+
+  // A mouse press does not end the hover, so the lift has to give way to the
+  // press of its own accord. A selected one is the same.
+  it.each([
+    ['an assist chip', { elevated: true, variant: 'assist' }],
+    ['a selected filter chip', { defaultSelected: true, elevated: true }],
+  ] as const)(
+    'comes back to elevation 1 while a hovering pointer presses %s',
+    (_chip, props) => {
+      const view = render(<Chip {...props}>Label</Chip>)
+      const chip = view.getByRole('button')
+
+      fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+      expect(hasClasses(chip, CLASSES.elevation2)).toBe(true)
+
+      pressDown(chip)
+
+      expect(hasClasses(chip, CLASSES.elevation2)).toBe(false)
+      expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+    },
+  )
+})
+
+// A flat chip lies on the page, but the page's filter chip tokens lift a
+// selected one to elevation 1 under a hovering pointer.
+describe('flat chips', () => {
+  it('lifts a selected filter chip to elevation 1 under a hovering pointer', () => {
+    const { chip } = setup({ defaultSelected: true })
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('lays it back down while the pointer presses it', () => {
+    const { chip } = setup({ defaultSelected: true })
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+    pressDown(chip)
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  it('leaves an unselected filter chip on the page under a hovering pointer', () => {
+    const { chip } = setup()
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  it('moves its shadow with the colours', () => {
+    const { chip } = setup({ defaultSelected: true })
+    const { durations, properties } = transitionOf(chip)
+    // A list of durations shorter than the properties repeats, as CSS does.
+    const durationOf = (property: string) =>
+      durations[properties.indexOf(property) % durations.length]
+
+    expect(properties).toContain('box-shadow')
+    expect(durationOf('box-shadow')).toBe(durationOf('background-color'))
+    expect(durationOf('box-shadow')).not.toBe('0s')
+  })
+})
+
+// The page gives a disabled chip's content and container as on surface at
+// 38% and 12% over whatever is behind it, so on a coloured container the
+// chip is a faint tint rather than a pale patch.
+describe('a disabled chip', () => {
+  it.each([
+    ['selected', { defaultSelected: true }],
+    ['elevated', { elevated: true }],
+  ] as const)('draws a %s container translucent', (_state, props) => {
+    const chip = onBackdrop(
+      <Chip isDisabled {...props}>
+        Label
+      </Chip>,
+    )
+
+    expect(hasClasses(chip, CLASSES.disabledContainer)).toBe(true)
+    expect(alphaOf(getComputedStyle(chip).backgroundColor)).toBeCloseTo(0.12)
+  })
+
+  it('draws its content translucent', () => {
+    const chip = onBackdrop(<Chip isDisabled>Label</Chip>)
+
+    expect(hasClasses(chip, CLASSES.disabledColor)).toBe(true)
+    expect(alphaOf(getComputedStyle(chip).color)).toBeCloseTo(0.38)
   })
 })

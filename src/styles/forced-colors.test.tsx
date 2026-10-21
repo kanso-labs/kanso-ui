@@ -90,7 +90,7 @@ function checkboxOf(props: { isDisabled?: boolean; isSelected?: boolean }) {
   }
 }
 
-/** A lone radio's dot, drawn inside its ring only while it is chosen. */
+/** A lone chosen radio's dot, inside its ring. */
 function dotOf(props: { isDisabled?: boolean } = {}) {
   const view = render(
     <RadioGroup defaultValue="first" label="Label" {...props}>
@@ -579,7 +579,7 @@ describe('a boundary drawn in a shadow or a fill', () => {
       expect(rules.get('border-top-style')).toBe('solid')
       expect(rules.get('border-top-width')).toBe('1px')
       expect(rules.get('border-top-color')).toBe('canvastext')
-      expect(rules.get('border-inline-start-style')).toBe('none')
+      expect(rules.get('border-inline-start-style')).toBeUndefined()
     })
   })
 })

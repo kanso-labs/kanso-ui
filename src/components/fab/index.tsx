@@ -100,7 +100,7 @@ type FabProps = {
    * @default 'tonal'
    */
   variant?: FabVariant
-} & Omit<ButtonDOMProps, 'isPending'>
+} & Omit<ButtonDOMProps, 'aria-label' | 'isPending'>
 
 type FabSize = 'lg' | 'md' | 'xl'
 

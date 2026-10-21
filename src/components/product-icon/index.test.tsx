@@ -1,8 +1,10 @@
+import * as stylex from '@stylexjs/stylex'
 import { render, waitFor } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import ProductIcon from '.'
+import { typography } from '../../tokens/design.tokens.stylex'
 import Avatar from '../avatar'
 
 // A 2:1 PNG, so `contain` and `cover` resolve to visibly different geometry
@@ -11,6 +13,24 @@ import Avatar from '../avatar'
 // fixture, and the fallback is swapped out only once the image has loaded.
 const WIDE_MARK =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAFElEQVR4nGP8z8Dwn4GBgYERRIAAI7YCCXhOjT8AAAAASUVORK5CYII='
+
+// The face the initials are set in, read off a probe drawn in it.
+const probeStyles = stylex.create({
+  titleMediumFace: {
+    fontFamily: typography.titleMediumFont,
+    fontWeight: typography.titleMediumWeight,
+  },
+})
+
+// Type unlike any the initial takes, set around the icon, so a property the
+// mark leaves unset reads as this rather than as the page's default.
+const AROUND = {
+  fontFamily: 'monospace',
+  fontSize: '30px',
+  fontWeight: 900,
+  letterSpacing: '3px',
+  lineHeight: '50px',
+} as const
 
 /** The rendered element, narrowed so a failure to render fails here. */
 function iconIn(container: HTMLElement) {
@@ -146,6 +166,46 @@ describe('the fallback', () => {
 
     expect(iconIn(view.container).textContent).toBe('S')
   })
+
+  // The type Avatar's initials take at each size, since the two share the
+  // mark: title medium at `md`, the role Material Design's list tokens give a
+  // 40dp leading avatar's label.
+  it.each([
+    ['sm', '14px', '20px', '0.1px'],
+    ['md', '16px', '24px', '0.15px'],
+    // A tracking of 0 reads as `normal`; one left unset would read 3px.
+    ['lg', '22px', '28px', 'normal'],
+  ] as const)(
+    'sets the initial at %s in %s on %s, letter-spacing %s',
+    (size, fontSize, lineHeight, letterSpacing) => {
+      const probe = render(
+        <span
+          data-testid="face"
+          {...stylex.props(probeStyles.titleMediumFace)}
+        />,
+      )
+      const face = getComputedStyle(probe.getByTestId('face'))
+      const expected = {
+        fontFamily: face.fontFamily,
+        fontWeight: face.fontWeight,
+      }
+      probe.unmount()
+
+      const view = render(
+        <div style={AROUND}>
+          <ProductIcon name="Label" size={size} />
+        </div>,
+      )
+      const initial = view.getByText('L')
+      const computed = getComputedStyle(initial)
+
+      expect(computed.fontSize).toBe(fontSize)
+      expect(computed.lineHeight).toBe(lineHeight)
+      expect(computed.letterSpacing).toBe(letterSpacing)
+      expect(computed.fontFamily).toBe(expected.fontFamily)
+      expect(computed.fontWeight).toBe(expected.fontWeight)
+    },
+  )
 
   it('takes fewer initials than Avatar does from the same string', () => {
     const icon = render(<ProductIcon name="Second item" />)

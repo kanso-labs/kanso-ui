@@ -87,9 +87,16 @@ const PLUS = <PlusIcon />
 
 const SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
+// The default first, then by how much weight each pulls, rather than the
+// order the type spells them in.
+const VARIANTS = ['filled', 'tonal', 'elevated', 'outlined', 'text'] as const
+
 const meta = {
   args: {
     children: 'Button',
+  },
+  argTypes: {
+    variant: { options: VARIANTS },
   },
   component: Button,
   title: 'Components/Button',
@@ -224,6 +231,64 @@ const Square: Story = {
   args: { shape: 'square' },
 }
 
+// Every variant at rest, from the most weight to the least: a container of
+// the primary role, a tonal one, a lifted one, a rule, and none.
+const Variants: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inline)}>
+      {VARIANTS.map((variant) => (
+        <Button key={variant} variant={variant}>
+          Label
+        </Button>
+      ))}
+    </div>
+  ),
+}
+
+// Every variant disabled, then a selected toggle. Disabled is a style of its
+// own per variant: the three with a container take one faint on-surface mix
+// and the elevated one loses its shadow, the outlined rule fades with its
+// label, and the text button is its label alone. The toggle keeps the square
+// corner a round one rests at once selected.
+const Disabled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inline)}>
+      {VARIANTS.map((variant) => (
+        <Button isDisabled key={variant} variant={variant}>
+          Label
+        </Button>
+      ))}
+      <Button defaultSelected isDisabled variant="tonal">
+        Label
+      </Button>
+    </div>
+  ),
+}
+
+// The five sizes without an icon, round over square, each at its own height,
+// padding, type and corner. The square corner steps up the radius scale as
+// the button grows.
+const Sizes: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inline)}>
+      {SIZES.map((size) => (
+        <div key={size} {...stylex.props(styles.pair)}>
+          <Button size={size}>Label</Button>
+          <Button shape="square" size={size}>
+            Label
+          </Button>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// Given `href`, the button is React Aria's `Link`: an `<a>` drawn the same
+// way, which a reader can open in a new tab as they would any link.
+const Link: Story = {
+  args: { href: '#label' },
+}
+
 // An icon before the label at each of the five sizes, where it takes the
 // page's icon size for that size and the gap the size sets before the label.
 const WithIcon: Story = {
@@ -240,14 +305,18 @@ const WithIcon: Story = {
 
 export {
   Default,
+  Disabled,
   Elevated,
   FullWidth,
+  Link,
   LongLabels,
   OutlinedBesideFilled,
   Pending,
   Pressed,
+  Sizes,
   Square,
   Toggle,
+  Variants,
   WithIcon,
 }
 

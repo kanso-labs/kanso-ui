@@ -55,20 +55,32 @@ const LongValue: Story = {
 // timer is really set and really fires.
 //
 // The clipboard is still stood in for. Its permission is not something a story
-// can grant, and it is not what this story is about — the real clock is.
+// can grant, and it is not what this story is about — the real clock is. The
+// stand-in is put back as the story is left: kept, it outlived the story, and
+// Copy on the next story the frame showed wrote to it rather than to the
+// clipboard.
 //
 // Hidden from the sidebar and from Chromatic, since it documents nothing a
 // reader would want to look at and its snapshot would land mid-dwell.
 const Copied: Story = {
-  parameters: {
-    chromatic: { disableSnapshot: true },
-  },
-  play: async ({ canvas, userEvent }) => {
+  beforeEach: () => {
+    const own = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText: async () => {} },
     })
-
+    return () => {
+      if (own === undefined) {
+        Reflect.deleteProperty(navigator, 'clipboard')
+      } else {
+        Object.defineProperty(navigator, 'clipboard', own)
+      }
+    }
+  },
+  parameters: {
+    chromatic: { disableSnapshot: true },
+  },
+  play: async ({ canvas, userEvent }) => {
     // Found by name rather than read off `textContent`: both labels sit in
     // the DOM so the button keeps its width, and only the accessible name
     // tells the one on show from the one holding the room.

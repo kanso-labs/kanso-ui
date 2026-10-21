@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -125,6 +127,47 @@ function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
 
+/**
+ * A dialog of the given role whose header holds the headline and, beside it,
+ * `beside`, read once it has arrived.
+ */
+function headed(role: 'alertdialog' | 'dialog', beside: ReactNode) {
+  const view = render(
+    <Dialog defaultOpen>
+      <Button>Open</Button>
+      <Dialog.Content role={role}>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+          {beside}
+        </Dialog.Header>
+        <Dialog.Body>Supporting line</Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close">Cancel</Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>,
+  )
+  return {
+    body: view.getByText('Supporting line'),
+    container: containerOf(view.getByRole(role)),
+    title: view.getByText('Headline'),
+    view,
+  }
+}
+
+/**
+ * The top and bottom of the line `title` sets its text on: its content box,
+ * inside whatever padding it reaches past the line with.
+ */
+function lineOf(title: HTMLElement) {
+  const box = title.getBoundingClientRect()
+  const style = getComputedStyle(title)
+  return {
+    bottom: box.bottom - Number.parseFloat(style.paddingBottom),
+    top: box.top + Number.parseFloat(style.paddingTop),
+  }
+}
+
 /** The four paddings as the browser resolved them. */
 function paddingOf(element: HTMLElement) {
   const style = getComputedStyle(element)
@@ -200,6 +243,8 @@ function presentationOf(view: ReturnType<typeof render>, role: string) {
       'font-weight',
       'letter-spacing',
       'line-height',
+      'padding-bottom',
+      'padding-top',
     ]),
   }
 }
@@ -919,21 +964,25 @@ describe('dialog', () => {
     })
 
     // The page's basic dialog pads 24 all round, with 16 between the
-    // headline and the body and 24 between the body and the actions. Read as
-    // the parts' own padding rather than from where the text lands, since the
-    // headline is centred against a taller close button beside it.
+    // headline and the body and 24 between the body and the actions. Above
+    // and below the headline the 24 and the 16 are the header's padding and
+    // the 4 the headline reaches past its line together; `sets the headline
+    // 24 below the top and 16 above the body` reads where the text lands.
     it("insets the parts by the page's paddings", async () => {
       await page.viewport(1024, 768)
       const view = setup()
       const container = containerOf(view.getByRole('dialog'))
       const { body, footer, header } = partsOf(view)
+      const title = view.getByText('Headline')
 
       expect(paddingOf(header)).toEqual({
-        bottom: '16px',
+        bottom: '12px',
         left: '24px',
         right: '24px',
-        top: '24px',
+        top: '20px',
       })
+      expect(paddingOf(title).top).toBe('4px')
+      expect(paddingOf(title).bottom).toBe('4px')
       expect(paddingOf(body).left).toBe('24px')
       expect(paddingOf(body).right).toBe('24px')
       // None of its own at either end: the header and the footer are what
@@ -1001,6 +1050,135 @@ describe('dialog', () => {
       expect(footer.getBoundingClientRect().height).toBe(56)
       expect(getComputedStyle(header).borderBottomStyle).toBe('solid')
       expect(getComputedStyle(footer).borderTopStyle).toBe('solid')
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // The headline's line is 32 and a close button's 40, so the button set
+    // the row and the headline, centred in it, sat 28 below the top and 20
+    // above the body. Without a button it measured 24 and 16, which is the
+    // page's. Read where the text's line lands rather than the parts'
+    // paddings, which is what moved.
+    it.each([
+      ['a dialog', 'dialog', 1024],
+      ['an alert dialog', 'alertdialog', 1024],
+      ['an alert dialog on a phone', 'alertdialog', 375],
+    ] as const)(
+      'sets the headline 24 below the top and 16 above the body of %s beside a close button',
+      async (_dialog, role, width) => {
+        await page.viewport(width, 768)
+        const { body, container, title } = headed(
+          role,
+          <IconButton aria-label="Close" slot="close">
+            ×
+          </IconButton>,
+        )
+        const line = lineOf(title)
+
+        expect(line.bottom - line.top).toBe(32)
+        expect(line.top - container.getBoundingClientRect().top).toBe(24)
+        expect(body.getBoundingClientRect().top - line.bottom).toBe(16)
+
+        await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      },
+    )
+
+    it.each([
+      ['on its own', null],
+      [
+        'beside a text button',
+        <Button key="done" slot="close" variant="text">
+          Done
+        </Button>,
+      ],
+    ])(
+      'sets the headline 24 below the top and 16 above the body %s',
+      async (_beside, beside) => {
+        await page.viewport(1024, 768)
+        const { body, container, title } = headed('dialog', beside)
+        const line = lineOf(title)
+
+        expect(line.top - container.getBoundingClientRect().top).toBe(24)
+        expect(body.getBoundingClientRect().top - line.bottom).toBe(16)
+
+        await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      },
+    )
+
+    // Centred on the headline's line, half the button's extra height above
+    // it and half below, rather than on a box taller at one end.
+    it("centres a close button on the headline's line", async () => {
+      await page.viewport(1024, 768)
+      const { title, view } = headed(
+        'dialog',
+        <IconButton aria-label="Close" slot="close">
+          ×
+        </IconButton>,
+      )
+      const line = lineOf(title)
+      const close = view.getByRole('button', { name: 'Close' })
+      const box = close.getBoundingClientRect()
+
+      expect(box.top + box.height / 2).toBe((line.top + line.bottom) / 2)
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // The reach is the header's: a headline set straight in the content has
+    // no padding it was given back from.
+    it('lets a headline outside a header reach nowhere', async () => {
+      await page.viewport(1024, 768)
+      const view = render(alertWithBody(true))
+      const title = view.getByText('Headline')
+
+      expect(paddingOf(title).top).toBe('0px')
+      expect(paddingOf(title).bottom).toBe('0px')
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // Full screen the 56dp bar already holds a close button, so the header
+    // keeps its 4 and the headline reaches nowhere: a headline that wraps
+    // grows the bar by its lines alone.
+    it('lets the headline reach nowhere full screen', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      containerOf(view.getByRole('dialog'))
+      const { header } = partsOf(view)
+      const title = view.getByText('Headline')
+
+      expect(paddingOf(title).top).toBe('0px')
+      expect(paddingOf(title).bottom).toBe('0px')
+      expect(paddingOf(header).top).toBe('4px')
+
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    // A dialog opened from a header is a dialog of its own, outside any
+    // header until it lays one out.
+    it('lets a headline in a dialog opened from a header reach nowhere', async () => {
+      await page.viewport(1024, 768)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Headline</Dialog.Title>
+              <Dialog defaultOpen>
+                <IconButton aria-label="More">+</IconButton>
+                <Dialog.Content role="alertdialog">
+                  <Dialog.Title>Second headline</Dialog.Title>
+                  <Dialog.Body>Supporting line</Dialog.Body>
+                </Dialog.Content>
+              </Dialog>
+            </Dialog.Header>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const title = view.getByText('Second headline')
+
+      expect(paddingOf(title).top).toBe('0px')
+      expect(paddingOf(view.getByText('Headline')).top).toBe('4px')
 
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })

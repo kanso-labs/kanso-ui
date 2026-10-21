@@ -110,6 +110,7 @@ const meta = {
       <FabMenu {...args} />
     </div>
   ),
+  subcomponents: { 'FabMenu.Item': FabMenu.Item },
   title: 'Components/FabMenu',
 } satisfies Meta<typeof FabMenu>
 

@@ -25,6 +25,20 @@ const TALL_MARK =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 96"><rect width="32" height="96" rx="4" fill="#394b47"/><circle cx="16" cy="20" r="8" fill="#74d9af"/><rect x="12" y="36" width="8" height="48" rx="4" fill="#e7edea"/></svg>`,
   )
 
+// A data URL that names a PNG and holds none, so the mark fails to load with
+// nothing reaching the network: the fallback a snapshot can rely on.
+const BROKEN = 'data:image/png;base64,AAAA'
+
+const SIZES = ['sm', 'md', 'lg'] as const
+
+const TONES = [
+  'primary',
+  'secondary',
+  'tertiary',
+  'positive',
+  'negative',
+] as const
+
 const styles = stylex.create({
   inline: {
     alignItems: 'flex-end',
@@ -37,6 +51,12 @@ const styles = stylex.create({
     alignItems: 'center',
     display: 'flex',
     gap: spacing.md,
+  },
+  // Rows a story draws one under the other.
+  rows: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
   },
   sample: {
     alignItems: 'center',
@@ -72,6 +92,51 @@ const Default: Story = {}
 const WithoutMark: Story = {
   args: {
     src: undefined,
+  },
+}
+
+// The three edge lengths, 36, 40 and 56px, with a mark over the initial it
+// falls back to.
+const Sizes: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      {[WIDE_MARK, undefined].map((src) => (
+        <div key={src ?? 'none'} {...stylex.props(styles.inline)}>
+          {SIZES.map((size) => (
+            <div key={size} {...stylex.props(styles.sample)}>
+              <ProductIcon name="First item" size={size} src={src} />
+              <Text tone="muted" variant="labelSmall">
+                {size}
+              </Text>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// The five container and on-container pairs the fallback is tinted with. A
+// mark that loads covers its tone, so these show only without one.
+const Tones: Story = {
+  render: () => (
+    <div {...stylex.props(styles.inline)}>
+      {TONES.map((tone) => (
+        <div key={tone} {...stylex.props(styles.sample)}>
+          <ProductIcon name="First item" tone={tone} />
+          <Text tone="muted" variant="labelSmall">
+            {tone}
+          </Text>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// A mark that fails to load: the initial it was drawn over stays.
+const BrokenSource: Story = {
+  args: {
+    src: BROKEN,
   },
 }
 
@@ -142,6 +207,15 @@ const InACard: Story = {
   ),
 }
 
-export { AspectRatios, AvatarComparison, Default, InACard, WithoutMark }
+export {
+  AspectRatios,
+  AvatarComparison,
+  BrokenSource,
+  Default,
+  InACard,
+  Sizes,
+  Tones,
+  WithoutMark,
+}
 
 export default meta

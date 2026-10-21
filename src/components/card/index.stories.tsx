@@ -19,11 +19,12 @@ const styles = stylex.create({
     paddingInline: spacing.lg,
   },
   // A row that stretches the cards in it to the tallest, as a feed's row
-  // does.
+  // does. The columns give way below 160px each, so a phone-sized window
+  // narrows the cards rather than scrolling sideways.
   row: {
     display: 'grid',
     gap: spacing.md,
-    gridTemplateColumns: 'repeat(3, 160px)',
+    gridTemplateColumns: 'repeat(3, minmax(0, 160px))',
   },
   stack: {
     display: 'flex',
@@ -35,14 +36,16 @@ const styles = stylex.create({
   },
 })
 
+// A span rather than a div, since an interactive card is a <button>, which
+// holds phrasing content only. A static card takes the same content.
 function Body() {
   return (
-    <div {...stylex.props(styles.stack)}>
+    <span {...stylex.props(styles.stack)}>
       <Text variant="titleMedium">Headline</Text>
       <Text tone="muted" variant="bodySmall">
         Supporting line
       </Text>
-    </div>
+    </span>
   )
 }
 
@@ -109,12 +112,24 @@ const Default: Story = {
 }
 
 // Its own story because it is a different element — a button rather than a
-// div — with focus and ripple behaviour a snapshot cannot show.
+// div — with focus and ripple behaviour a snapshot cannot show. One card per
+// variant, since each lifts and rings in its own way: a hover lifts each one
+// level, and Tab rings the elevated and filled cards in secondary and the
+// outlined one in on surface.
 const Interactive: Story = {
-  args: {
-    interactive: true,
-  },
-  decorators: [Wide],
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Card interactive variant="elevated">
+        {CONTENT}
+      </Card>
+      <Card interactive variant="filled">
+        {CONTENT}
+      </Card>
+      <Card interactive variant="outlined">
+        {CONTENT}
+      </Card>
+    </div>
+  ),
 }
 
 // A third element again, and the only place the anchor's own behaviour can be
