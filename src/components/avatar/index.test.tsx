@@ -4,7 +4,7 @@ import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import Avatar from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, typography } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than hex
 // literals, so the assertions pin which pair a tone reaches for without also
@@ -18,7 +18,21 @@ const probeStyles = stylex.create({
     backgroundColor: colors.tertiaryContainer,
     color: colors.onTertiaryContainer,
   },
+  titleMediumFace: {
+    fontFamily: typography.titleMediumFont,
+    fontWeight: typography.titleMediumWeight,
+  },
 })
+
+// Type unlike any the initials take, set around the avatar, so a property the
+// mark leaves unset reads as this rather than as the page's default.
+const AROUND = {
+  fontFamily: 'monospace',
+  fontSize: '30px',
+  fontWeight: 900,
+  letterSpacing: '3px',
+  lineHeight: '50px',
+} as const
 
 // A 1x1 gif, inline so the load resolves without touching the network.
 const PHOTO =
@@ -248,6 +262,45 @@ describe('avatar', () => {
         unmount()
       }
     })
+
+    // `md` is Material Design's 40dp leading avatar, whose label the list
+    // tokens set in title medium. The other two sizes take the role that is
+    // the same share of their diameter, in title medium's face.
+    it.each([
+      ['sm', '14px', '20px', '0.1px'],
+      ['md', '16px', '24px', '0.15px'],
+      // A tracking of 0 reads as `normal`; one left unset would read 3px.
+      ['lg', '22px', '28px', 'normal'],
+    ] as const)(
+      'sets the initials at %s in %s on %s, letter-spacing %s',
+      (size, fontSize, lineHeight, letterSpacing) => {
+        const probe = render(
+          <span
+            data-testid="face"
+            {...stylex.props(probeStyles.titleMediumFace)}
+          />,
+        )
+        const face = getComputedStyle(probe.getByTestId('face'))
+        const expected = {
+          fontFamily: face.fontFamily,
+          fontWeight: face.fontWeight,
+        }
+        probe.unmount()
+
+        const view = render(
+          <div style={AROUND}>
+            <Avatar name="Ada Lovelace" size={size} />
+          </div>,
+        )
+        const computed = getComputedStyle(view.getByRole('img'))
+
+        expect(computed.fontSize).toBe(fontSize)
+        expect(computed.lineHeight).toBe(lineHeight)
+        expect(computed.letterSpacing).toBe(letterSpacing)
+        expect(computed.fontFamily).toBe(expected.fontFamily)
+        expect(computed.fontWeight).toBe(expected.fontWeight)
+      },
+    )
 
     it('tints with the container and on-container pair of its tone', () => {
       const probe = render(
