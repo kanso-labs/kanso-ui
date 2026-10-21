@@ -10,9 +10,10 @@ import { MESSAGES } from './messages'
 // I18nProvider sets — the same locale every other name a control announces is
 // written in. Each one stands behind a prop that names it otherwise:
 // `pendingLabel`, a LoadMore's `label`, `copyLabel`, `copiedLabel` and
-// `selectedLabel`, `characterLimitLabel` and `characterLimitReachedLabel`,
-// the time picker's `cancelLabel`, `confirmLabel`, `selectTimeLabel` and
-// `enterTimeLabel`, and a collection's `renderEmptyState` for its empty row.
+// `selectedLabel`, a sheet handle's `aria-label`, `characterLimitLabel` and
+// `characterLimitReachedLabel`, the time picker's `cancelLabel`,
+// `confirmLabel`, `selectTimeLabel` and `enterTimeLabel`, and a collection's
+// `renderEmptyState` for its empty row.
 
 type LibraryMessages = {
   /** What a search view's back button is called. */
@@ -34,6 +35,11 @@ type LibraryMessages = {
    * been selected for the reader to copy themselves.
    */
   copySelected: string
+  /**
+   * What a bottom sheet's drag handle is called, while it is a button that
+   * moves the sheet between its snap points.
+   */
+  dragHandle: string
   /** The time picker's headline while it takes a time typed. */
   enterTime: string
   loading: string
@@ -82,6 +88,7 @@ function messagesFor(locale: string): LibraryMessages {
     copied: formatter.format('copied'),
     copy: formatter.format('copy'),
     copySelected: formatter.format('copySelected'),
+    dragHandle: formatter.format('dragHandle'),
     enterTime: formatter.format('enterTime'),
     loading: formatter.format('loading'),
     loadingMore: formatter.format('loadingMore'),

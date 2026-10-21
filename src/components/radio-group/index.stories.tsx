@@ -43,6 +43,9 @@ const meta = {
     label: 'Label',
   },
   component: RadioGroup,
+  // A tab of its own beside the group's in the Overview page's props table,
+  // since a group is written with its options.
+  subcomponents: { Radio },
   title: 'Components/RadioGroup',
 } satisfies Meta<typeof RadioGroup>
 
@@ -58,8 +61,9 @@ const Default: Story = {
   ),
 }
 
-// Disabled as a whole: the label, every option and every description fade
-// together.
+// Disabled as a whole, then one option alone. A disabled group fades its
+// label, every option and every description together, the chosen one
+// included; a disabled option fades by itself and the rest stay as they were.
 const Disabled: Story = {
   args: {
     description: 'Supporting line',
@@ -67,12 +71,60 @@ const Disabled: Story = {
   },
   render: (args) => (
     <div {...stylex.props(styles.sample)}>
+      <Stack gap="lg">
+        <RadioGroup {...args}>
+          <Radio description="Supporting line" value="first">
+            First item
+          </Radio>
+          <Radio value="second">Second item</Radio>
+          <Radio value="third">Third item</Radio>
+        </RadioGroup>
+        <RadioGroup defaultValue="first" label="Label">
+          <Radio value="first">First item</Radio>
+          <Radio value="second">Second item</Radio>
+          <Radio isDisabled value="third">
+            Third item
+          </Radio>
+        </RadioGroup>
+      </Stack>
+    </div>
+  ),
+}
+
+// The choice can be read but not changed. It looks as an enabled group does,
+// so it carries no snapshot of its own: what sets it apart is that a press
+// leaves the choice where it was.
+const ReadOnly: Story = {
+  args: {
+    isReadOnly: true,
+  },
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole('radio', { name: 'Second item' }))
+    await expect(
+      canvas.getByRole('radio', { name: 'First item' }),
+    ).toBeChecked()
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
       <RadioGroup {...args}>
-        <Radio description="Supporting line" value="first">
-          First item
-        </Radio>
-        <Radio value="second">Second item</Radio>
-        <Radio value="third">Third item</Radio>
+        <Options />
+      </RadioGroup>
+    </div>
+  ),
+}
+
+// The label carries the asterisk. WithValidation submits one with nothing
+// chosen.
+const Required: Story = {
+  args: {
+    defaultValue: undefined,
+    isRequired: true,
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.sample)}>
+      <RadioGroup {...args}>
+        <Options />
       </RadioGroup>
     </div>
   ),
@@ -190,6 +242,8 @@ export {
   Disabled,
   Horizontal,
   LongLabel,
+  ReadOnly,
+  Required,
   WithDescriptions,
   WithError,
   WithValidation,

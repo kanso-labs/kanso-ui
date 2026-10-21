@@ -1,12 +1,21 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useState } from 'react'
+import { expect } from 'storybook/test'
 
-import TextField from '.'
+import TextField, { type TextFieldProps } from '.'
 import { CloseGlyph, SearchGlyph } from '../../glyphs'
 import { spacing } from '../../tokens/design.tokens.stylex'
+import IconButton from '../icon-button'
 
 const styles = stylex.create({
+  // The button is 40px around its 24px icon, 8px more on each side than the
+  // icon alone, so it reaches 8px into the gap before it and the padding
+  // after it, and its icon lands where a bare trailing icon sits.
+  clear: {
+    marginInline: `calc(-1 * ${spacing.sm})`,
+  },
   // A field fills its container, so the samples need a width to fill.
   columns: {
     display: 'grid',
@@ -23,7 +32,49 @@ const styles = stylex.create({
 // The library's own glyphs stand in for an icon set, so the stories stay a
 // demonstration of the field alone.
 const LEADING_ICON = <SearchGlyph {...stylex.props(styles.icon)} />
-const TRAILING_ICON = <CloseGlyph {...stylex.props(styles.icon)} />
+const CLOSE_ICON = <CloseGlyph {...stylex.props(styles.icon)} />
+
+// A field whose trailing icon is a control: an icon button that clears it.
+// The field is controlled so the button can empty it, and the press hands
+// focus back to the input, since the button it landed on is gone once the
+// field is empty. The input is held in state rather than a ref, since the
+// handler that reads it is handed to a call during render.
+function ClearableField({
+  defaultValue = '',
+  ...props
+}: Omit<TextFieldProps, 'onChange' | 'trailingIcon' | 'value'>) {
+  const [value, setValue] = useState(defaultValue)
+  const [input, setInput] = useState<HTMLInputElement | null>(null)
+  const clear = useCallback(() => {
+    setValue('')
+    input?.focus()
+  }, [input])
+
+  return (
+    <TextField
+      {...props}
+      inputRef={setInput}
+      onChange={setValue}
+      trailingIcon={clearButton(value, clear)}
+      value={value}
+    />
+  )
+}
+
+// The clear button, while there is something to clear. Built by a call
+// rather than written at the prop, which is what react-perf's
+// no-jsx-as-prop is after.
+function clearButton(value: string, clear: () => void) {
+  return value === '' ? undefined : (
+    <IconButton
+      aria-label="Clear"
+      onPress={clear}
+      {...stylex.props(styles.clear)}
+    >
+      {CLOSE_ICON}
+    </IconButton>
+  )
+}
 
 const LONG_LABEL =
   'A label long enough that it has nowhere left to go on one line'
@@ -104,21 +155,43 @@ const OutlinedEmpty: Story = {
   },
 }
 
+// A leading icon, and a trailing one that is a control: an icon button that
+// clears the field and hands focus back to the input.
 const WithIcons: Story = {
   args: {
     leadingIcon: LEADING_ICON,
-    trailingIcon: TRAILING_ICON,
   },
+  render: (args) => <ClearableField {...args} />,
+}
+
+// The clear button pressed: the field is empty, the button gone, and focus
+// on the input. A check rather than a state to look at, since what it leaves
+// is Empty's field focused, so it is kept out of the sidebar, the Overview
+// page and Chromatic. It is a story because the button is the stories' own.
+const Cleared: Story = {
+  args: {
+    leadingIcon: LEADING_ICON,
+  },
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Clear' }))
+    const input = canvas.getByRole('textbox', { name: 'Label' })
+    await expect(input).toHaveValue('')
+    await expect(input).toHaveFocus()
+    await expect(canvas.queryByRole('button')).toBeNull()
+  },
+  render: (args) => <ClearableField {...args} />,
+  tags: ['!autodocs', '!dev'],
 }
 
 // A search input, which the browser would otherwise decorate with a clear
-// button of its own, beside the trailing icon.
+// button of its own, beside the trailing one.
 const Search: Story = {
   args: {
     leadingIcon: LEADING_ICON,
-    trailingIcon: TRAILING_ICON,
     type: 'search',
   },
+  render: (args) => <ClearableField {...args} />,
 }
 
 const WithPrefixAndSuffix: Story = {
@@ -149,16 +222,11 @@ const LongLabels: Story = {
   render: () => (
     <div {...stylex.props(styles.columns)}>
       <TextField defaultValue="" label={LONG_LABEL} />
-      <TextField
-        defaultValue="Value"
-        label={LONG_LABEL}
-        trailingIcon={TRAILING_ICON}
-      />
+      <ClearableField defaultValue="Value" label={LONG_LABEL} />
       <TextField defaultValue="" label={LONG_LABEL} variant="outlined" />
-      <TextField
+      <ClearableField
         defaultValue="Value"
         label={LONG_LABEL}
-        trailingIcon={TRAILING_ICON}
         variant="outlined"
       />
     </div>
@@ -166,6 +234,7 @@ const LongLabels: Story = {
 }
 
 export {
+  Cleared,
   Default,
   Disabled,
   Empty,

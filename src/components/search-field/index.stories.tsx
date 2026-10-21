@@ -12,10 +12,12 @@ const styles = stylex.create({
   },
 })
 
+// The name contains the placeholder's words, since the placeholder is the
+// only text a sighted reader has to call the field by.
 const meta = {
   args: {
-    label: 'Label',
-    placeholder: 'Supporting text',
+    label: 'Search',
+    placeholder: 'Search',
   },
   component: SearchField,
   title: 'Components/SearchField',
@@ -53,12 +55,15 @@ const WithError: Story = {
   ),
 }
 
+const LONG_PLACEHOLDER =
+  'Supporting text long enough to run well past the end of the bar it sits in'
+
 // Supporting text wider than the input ends in an ellipsis rather than being
 // cut off mid-letter, which a translated placeholder runs into first.
 const LongPlaceholder: Story = {
   args: {
-    placeholder:
-      'Supporting text long enough to run well past the end of the bar it sits in',
+    label: LONG_PLACEHOLDER,
+    placeholder: LONG_PLACEHOLDER,
   },
   render: (args) => (
     <div {...stylex.props(styles.sample)}>

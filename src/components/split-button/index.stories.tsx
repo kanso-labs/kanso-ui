@@ -26,6 +26,10 @@ const meta = {
     children: HALVES,
   },
   component: SplitButton,
+  subcomponents: {
+    'SplitButton.Action': SplitButton.Action,
+    'SplitButton.Menu': SplitButton.Menu,
+  },
   title: 'Components/SplitButton',
 } satisfies Meta<typeof SplitButton>
 

@@ -552,6 +552,18 @@ function fieldContent(
  * keep its own. A switch takes effect as it is flipped, which is what sets
  * it apart from a checkbox in a form.
  *
+ * Where the row around it already says what it turns on, it takes
+ * `aria-label` in place of a label, and draws the track alone.
+ *
+ * ```tsx
+ * const [selected, setSelected] = useState(false)
+ *
+ * <Switch isSelected={selected} onChange={setSelected}>
+ *   Label
+ * </Switch>
+ * <Switch aria-label="Label" defaultSelected />
+ * ```
+ *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions.
  */

@@ -8,7 +8,11 @@ import { describe, expect, it, vi } from 'vitest'
 import ChipGroup from '.'
 import { surfaceOf } from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
-import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  shadows,
+  stateLayerOpacity,
+} from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Popover from '../popover'
 
@@ -19,8 +23,9 @@ import Popover from '../popover'
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   disabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
   },
+  elevation1: { boxShadow: shadows.elevation1 },
   error: { color: colors.error },
   // The slot of an unselected chip with no icon, folded to nothing.
   folded: { inlineSize: 0, opacity: 0 },
@@ -41,6 +46,7 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   disabled: classesOf(stylex.props(probeStyles.disabled)),
+  elevation1: classesOf(stylex.props(probeStyles.elevation1)),
   error: classesOf(stylex.props(probeStyles.error)),
   folded: classesOf(stylex.props(probeStyles.folded)),
   icon: classesOf(stylex.props(probeStyles.icon)),
@@ -613,6 +619,34 @@ describe('chip group', () => {
     it('takes the error role on the label when there is an error', () => {
       const view = setup({ error: 'Choose one' })
       expect(hasClasses(view.getByText('Label'), CLASSES.error)).toBe(true)
+    })
+
+    // A group's chip is the page's filter chip until it can be removed, and
+    // its input chip from then on. The page lifts a selected filter chip
+    // under a hovering pointer, and never an input chip.
+    it('lifts a selected chip to elevation 1 under a hovering pointer', () => {
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        selectionMode: 'single',
+      })
+      const [, second] = view.getAllByRole('row')
+
+      fireEvent.pointerOver(second, { pointerType: 'mouse' })
+
+      expect(hasClasses(second, CLASSES.elevation1)).toBe(true)
+    })
+
+    it('leaves a selected chip that can be removed on the page', () => {
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        onRemove: vi.fn<(keys: Selection) => void>(),
+        selectionMode: 'single',
+      })
+      const [, second] = view.getAllByRole('row')
+
+      fireEvent.pointerOver(second, { pointerType: 'mouse' })
+
+      expect(hasClasses(second, CLASSES.elevation1)).toBe(false)
     })
   })
 

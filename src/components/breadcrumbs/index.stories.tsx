@@ -36,6 +36,7 @@ const meta = {
     children: TRAIL,
   },
   component: Breadcrumbs,
+  subcomponents: { 'Breadcrumbs.Item': Breadcrumbs.Item },
   title: 'Components/Breadcrumbs',
 } satisfies Meta<typeof Breadcrumbs>
 

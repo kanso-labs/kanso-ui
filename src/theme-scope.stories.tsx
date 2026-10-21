@@ -95,11 +95,13 @@ function ThemeScopePage() {
           Theme scope
         </Text>
         <Text render={PARAGRAPH} tone="muted" variant="bodyLarge">
-          The page&apos;s tokens on the left. On the right, a scope pinned to
-          the dark scheme, with two colour roles of its own declared on it. The
-          popover opened inside the scope is portalled into it, so it follows
-          the scope rather than the page. Below, a pinned scope with no colour
-          of its own, which paints its scheme&apos;s surface and text itself.
+          The panel titled Page shows the page&apos;s own tokens. The one titled
+          Scope is pinned to the dark scheme, with two colour roles of its own
+          declared on it. The popover opened inside the scope is portalled into
+          it, so it follows the scope rather than the page, and its filled
+          button takes the scope&apos;s accent. Below, a pinned scope with no
+          colour of its own, which paints its scheme&apos;s surface and text
+          itself.
         </Text>
       </header>
 
@@ -120,13 +122,18 @@ function ThemeScopePage() {
               than stretching across the panel's column, and opening at its
               inline end, so the panel lands over the scope rather than
               across its edge in either direction: the scope sits at the
-              end of the row, and a right-to-left locale moves both. */}
+              end of the row, and a right-to-left locale moves both. Aligned
+              with the trigger's top, so the panel grows down into the scope
+              rather than up over the buttons above it. */}
           <Stack direction="row">
             <Popover defaultOpen>
               <Button variant="tonal">Open</Button>
-              <Popover.Content side="end">
+              <Popover.Content align="start" side="end">
                 <Popover.Title>Headline</Popover.Title>
                 <Popover.Description>Supporting line</Popover.Description>
+                <Stack direction="row" justify="end">
+                  <Button slot="close">Label</Button>
+                </Stack>
               </Popover.Content>
             </Popover>
           </Stack>
@@ -153,6 +160,13 @@ type Story = StoryObj<typeof meta>
 // Named after the title's last segment for the reason SharedElements is: a
 // component holding one story of the same name folds into a single sidebar
 // leaf.
+//
+// The play takes focus off the open panel. Opened with nothing pressed, the
+// panel takes focus as though from the keyboard and draws the focus ring, and
+// a scripted press would not help: the browser does not count it as a
+// pointer, so the panel still matches `:focus-visible`. A reader's own click
+// draws no ring, and the panel, blurred, stays open and draws as that click
+// leaves it.
 const ThemeScope: Story = {
   play: async ({ canvasElement }) => {
     const scope = within(canvasElement).getByTestId('scope')
@@ -163,6 +177,10 @@ const ThemeScope: Story = {
     await waitFor(async () => {
       await expect(dialog).toBeVisible()
     })
+
+    dialog.blur()
+    await expect(dialog).not.toHaveFocus()
+    await expect(dialog).toBeVisible()
   },
 }
 

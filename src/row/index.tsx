@@ -6,12 +6,17 @@ import { hasContent } from '../render/content'
 import { rowStyles, supportingTone } from './styles'
 
 interface RowContentProps {
+  /**
+   * The caret a tree row opens with, ahead of `selection` and `leading`.
+   * Faded with `leading` while the row is disabled.
+   */
+  chevron?: ReactNode
   /** The row's headline — the one thing it is mostly about. */
   children?: ReactNode
   /**
    * Whether the row is disabled. The supporting line takes the row's own
    * faded colour when it is, rather than staying at full strength in the
-   * muted role.
+   * muted role, and the leading and trailing content fades with it.
    * @default false
    */
   isDisabled?: boolean
@@ -36,6 +41,13 @@ interface RowContentProps {
    * role the supporting line takes.
    */
   overline?: ReactNode
+  /**
+   * The checkbox a selecting row draws, between `chevron` and `leading`.
+   * React Aria disables it with the row and it draws that state itself, so
+   * it stays out of the fade the rest of the slot takes rather than fading
+   * twice.
+   */
+  selection?: ReactNode
   /** A second line under the headline, in the muted role. */
   supporting?: ReactNode
   /** Content after the headline, such as an amount or a control. */
@@ -64,12 +76,14 @@ type RowVariant = 'drawer' | 'list' | 'menu'
  * the same arrangement around a field.
  */
 function RowContent({
+  chevron,
   children,
   isDisabled = false,
   isEmphasized = false,
   isSelected = false,
   leading,
   overline,
+  selection,
   supporting,
   trailing,
   variant = 'list',
@@ -79,10 +93,27 @@ function RowContent({
   // why the tone below still asks which variant this is.
   const label = variant === 'drawer' || variant === 'menu'
   const tone = supportingTone(variant, { isDisabled, isSelected })
+  const faded = isDisabled && rowStyles.slotDisabled
+  const leadingSlot = !hasContent(leading) ? null : (
+    <span {...stylex.props(rowStyles.slot, faded)}>{leading}</span>
+  )
   return (
     <>
-      {!hasContent(leading) ? null : (
-        <span {...stylex.props(rowStyles.slot)}>{leading}</span>
+      {/*
+       * The caret, the checkbox and the leading content share one slot, with
+       * nothing between them, so a column of rows lines each of them up. The
+       * two that fade are slots of their own inside it.
+       */}
+      {!hasContent(chevron) && !hasContent(selection) ? (
+        leadingSlot
+      ) : (
+        <span {...stylex.props(rowStyles.slot)}>
+          {!hasContent(chevron) ? null : (
+            <span {...stylex.props(rowStyles.slot, faded)}>{chevron}</span>
+          )}
+          {selection}
+          {leadingSlot}
+        </span>
       )}
       <span {...stylex.props(rowStyles.main)}>
         {!hasContent(overline) ? null : (
@@ -103,7 +134,7 @@ function RowContent({
         )}
       </span>
       {!hasContent(trailing) ? null : (
-        <span {...stylex.props(rowStyles.slot)}>{trailing}</span>
+        <span {...stylex.props(rowStyles.slot, faded)}>{trailing}</span>
       )}
     </>
   )

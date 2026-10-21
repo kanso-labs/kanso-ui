@@ -12,11 +12,6 @@ import {
 import List from '../list'
 import Text from '../text'
 
-// Every story pins an explicit locale. Without one the component formats for
-// whatever locale the browser is set to, which would make the Chromatic
-// snapshot depend on the machine that took it.
-const LOCALE = 'en-US'
-
 // Widths chosen to differ in the integer part, since lining those up on the
 // decimal point is exactly what tabular figures are for.
 const LEDGER = [
@@ -30,9 +25,9 @@ const LEDGER = [
 // Hoisted so neither the keys nor the slots are new values on every render,
 // which is what react-perf's array and JSX rules are after.
 const SELECTED = ['second']
-const FIRST_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={1250} />
-const SECOND_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={-480} />
-const THIRD_AMOUNT = <Currency locale={LOCALE} tone="inherit" value={0} />
+const FIRST_AMOUNT = <Currency tone="inherit" value={1250} />
+const SECOND_AMOUNT = <Currency tone="inherit" value={-480} />
+const THIRD_AMOUNT = <Currency tone="inherit" value={0} />
 
 const styles = stylex.create({
   card: {
@@ -49,12 +44,13 @@ const styles = stylex.create({
     fontSize: typography.displaySmallSize,
   },
   // A list fills what it is given, so the sample needs a width and something
-  // to sit on, as List's own stories give it.
+  // to sit on, as List's own stories give it, and capped as they cap it.
   list: {
     backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.md,
     boxSizing: 'border-box',
-    inlineSize: '360px',
+    inlineSize: '100%',
+    maxInlineSize: '360px',
     overflow: 'hidden',
   },
   row: {
@@ -70,9 +66,12 @@ const styles = stylex.create({
   },
 })
 
+// No story names a locale it is not about, so the amounts follow the Locale
+// toolbar through the decorator's I18nProvider. The provider opens on English,
+// which is what keeps a snapshot the same whichever machine takes it.
 const meta = {
   args: {
-    locale: LOCALE,
+    currency: 'USD',
     value: 42.5,
   },
   component: Currency,
@@ -80,6 +79,9 @@ const meta = {
 } satisfies Meta<typeof Currency>
 
 type Story = StoryObj<typeof meta>
+
+// One amount, so every control drives the figure on the canvas.
+const Default: Story = {}
 
 // The three tones `auto` resolves to, in the order it decides them: a
 // positive value, a negative one, and zero.
@@ -105,8 +107,13 @@ const Signs: Story = {
 
 // Each currency in a locale of its own. The Egyptian pound is written right
 // to left, as Arabic is, whatever the page's direction: the amount carries its
-// locale's `lang` and `dir`.
+// locale's `lang` and `dir`. Every row names its currency, so that control is
+// off here. The first row takes its locale from the toolbar or the locale
+// control, and the rest name their own.
 const Currencies: Story = {
+  argTypes: {
+    currency: { control: false },
+  },
   render: (args) => (
     <div {...stylex.props(styles.stack)}>
       <Currency {...args} currency="USD" />
@@ -186,6 +193,15 @@ const InASelectedRow: Story = {
   ),
 }
 
-export { Compact, Currencies, Hero, InALedger, InASelectedRow, Signs, Tones }
+export {
+  Compact,
+  Currencies,
+  Default,
+  Hero,
+  InALedger,
+  InASelectedRow,
+  Signs,
+  Tones,
+}
 
 export default meta

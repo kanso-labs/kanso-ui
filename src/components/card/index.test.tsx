@@ -9,11 +9,13 @@ import { rippleStyles } from '../../styles/ripple'
 import {
   declarationsHeld,
   reducedMotionOf,
+  rulesReaching,
   transitionOf,
 } from '../../styles/stylesheet.testing'
 import {
   colors,
   radii,
+  shadows,
   spacing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
@@ -32,6 +34,26 @@ const probeStyles = stylex.create({
 
 // The query a forced-colours rule is held under, for `declarationsHeld`.
 const FORCED = 'forced-colors: active'
+
+// The query a hover is held under: a pointer that can hover, which the card
+// keys its hover layer and its lift on.
+const HOVER = 'hover: hover'
+
+// The two elevations a card lifts between, as the card names them, read back
+// as declared rather than as computed: a lift is a rule inside a query no test
+// can turn on, so there is nothing computed to compare.
+const shadowProbeStyles = stylex.create({
+  elevation1: { boxShadow: shadows.elevation1 },
+  elevation2: { boxShadow: shadows.elevation2 },
+})
+
+// The colours the cards page gives a focused card's ring, and the one every
+// other ring in the library takes.
+const ringProbeStyles = stylex.create({
+  onSurface: { color: colors.onSurface },
+  primary: { color: colors.primary },
+  secondary: { color: colors.secondary },
+})
 
 // The cards page's disabled containers, written as the component writes them:
 // each variant's container at 38%, and the outlined card's rule in the
@@ -124,6 +146,20 @@ function cardIn(container: HTMLElement) {
     throw new Error('expected the card to render an element')
   }
   return card
+}
+
+// What a probe's own rule declares for `box-shadow`, with the probe torn
+// down again.
+function declaredShadow(style: stylex.StyleXStyles) {
+  const view = render(<div data-testid="probe" {...stylex.props(style)} />)
+  const declared = rulesReaching(view.getByTestId('probe'))
+    .map((rule) => rule.style.getPropertyValue('box-shadow'))
+    .find((value) => value !== '')
+  view.unmount()
+  if (declared === undefined) {
+    throw new Error('expected the probe to declare a box-shadow')
+  }
+  return declared
 }
 
 /**
@@ -522,6 +558,94 @@ describe('card', () => {
 
       const filled = render(<Card variant="filled">content</Card>)
       expect(getComputedStyle(cardIn(filled.container)).boxShadow).toBe('none')
+    })
+  })
+
+  // The cards page's container elevations and focus indicators: each variant
+  // lifts one level on hover and comes back down on a press, and rings in
+  // its own colour rather than the primary every other ring takes.
+  describe('hover, press and focus', () => {
+    it.each([
+      ['elevated', 'elevation2', 'elevation1'],
+      ['filled', 'elevation1', 'none'],
+      ['outlined', 'elevation1', 'none'],
+    ] as const)(
+      'lifts the %s card to %s on hover, and sets it at %s on a press',
+      (variant, hover, press) => {
+        const expected = {
+          elevation1: declaredShadow(shadowProbeStyles.elevation1),
+          elevation2: declaredShadow(shadowProbeStyles.elevation2),
+          none: 'none',
+        }
+        // Guards the comparison: two levels declared alike would let a card
+        // lifted to the wrong one pass.
+        expect(expected.elevation1).not.toBe(expected.elevation2)
+
+        const view = render(
+          <Card interactive variant={variant}>
+            content
+          </Card>,
+        )
+        const held = declarationsHeld(cardIn(view.container), HOVER)
+
+        expect(held.get('box-shadow:hover')).toBe(expected[hover])
+        expect(held.get('box-shadow:active')).toBe(expected[press])
+      },
+    )
+
+    it.each(['filled', 'outlined'] as const)(
+      'rests an interactive %s card flat',
+      (variant) => {
+        const view = render(
+          <Card interactive variant={variant}>
+            content
+          </Card>,
+        )
+
+        expect(getComputedStyle(cardIn(view.container)).boxShadow).toBe('none')
+      },
+    )
+
+    it.each([
+      ['elevated', 'secondary'],
+      ['filled', 'secondary'],
+      ['outlined', 'onSurface'],
+    ] as const)('rings a focused %s card in %s', (variant, role) => {
+      const expected = {
+        onSurface: probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(ringProbeStyles.onSurface)}
+          />,
+        ).color,
+        primary: probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(ringProbeStyles.primary)}
+          />,
+        ).color,
+        secondary: probe(
+          <div
+            data-testid="probe"
+            {...stylex.props(ringProbeStyles.secondary)}
+          />,
+        ).color,
+      }
+      // Guards the comparisons: two of the three roles resolving to one
+      // colour would let a ring in the wrong one pass.
+      expect(new Set(Object.values(expected)).size).toBe(3)
+
+      const view = render(
+        <Card interactive variant={variant}>
+          content
+        </Card>,
+      )
+      const card = cardIn(view.container)
+      card.focus()
+
+      expect(document.activeElement).toBe(card)
+      expect(getComputedStyle(card).outlineStyle).toBe('solid')
+      expect(getComputedStyle(card).outlineColor).toBe(expected[role])
     })
   })
 

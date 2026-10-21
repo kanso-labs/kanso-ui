@@ -15,6 +15,10 @@ import {
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
 import { rowStyles } from '../../row/styles'
+import {
+  disabledContentOpacity,
+  opacityWithin,
+} from '../../styles/opacity.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -333,6 +337,29 @@ describe('list', () => {
         Number.parseFloat(getComputedStyle(row).columnGap),
       )
       expect(headline.left - rowBox.left).toBe(72)
+    })
+
+    // A disabled row fades what it leads with, and React Aria disables the
+    // box with the row, which then draws its own disabled state. Faded with
+    // the rest, it would sit at 38% of a colour already at 38%.
+    it("stays out of the fade a disabled row's leading content takes", () => {
+      const view = setup(
+        { disabledKeys: FIRST },
+        <List.Item id="first" leading={LEADING}>
+          First item
+        </List.Item>,
+      )
+      const [row] = view.getAllByRole('row')
+      const box = row.querySelector('[slot="selection"]')
+      if (box === null) {
+        throw new Error('expected the row to draw its selection checkbox')
+      }
+
+      expect(view.getByRole('checkbox')).toHaveProperty('disabled', true)
+      expect(opacityWithin(row, view.getByText('Leading'))).toBeCloseTo(
+        disabledContentOpacity(),
+      )
+      expect(opacityWithin(row, box)).toBe(1)
     })
 
     it('selects the row it belongs to', () => {

@@ -25,6 +25,10 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import {
+  disabledContentOpacity,
+  opacityWithin,
+} from '../../styles/opacity.testing'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -230,6 +234,36 @@ describe('tree', () => {
       const leaf = view.getByText('Second item').getBoundingClientRect().left
 
       expect(leaf).toBe(branch)
+    })
+
+    // The caret is drawn in a colour of its own, which the faded colour a
+    // disabled row gives its text never reaches, so it fades with what the
+    // row leads with. The selection box between the two draws its own
+    // disabled state, and stays out of the fade rather than taking it twice.
+    it('fades on a disabled row, where the selection box does not', () => {
+      const view = render(
+        <Tree
+          aria-label="Label"
+          defaultExpandedKeys={FIRST}
+          disabledKeys={FIRST}
+          selectionMode="multiple"
+        >
+          <Tree.Item headline="First item" id="first">
+            <Tree.Item headline="Child item" id="child" />
+          </Tree.Item>
+        </Tree>,
+      )
+      const [first, child] = view.getAllByRole('row')
+      const caret = view.getByRole('button', { name: 'Collapse First item' })
+      const box = first.querySelector('[slot="selection"]')
+      const enabledBox = child.querySelector('[slot="selection"]')
+      if (box === null || enabledBox === null) {
+        throw new Error('expected each row to draw its selection checkbox')
+      }
+
+      expect(opacityWithin(first, caret)).toBeCloseTo(disabledContentOpacity())
+      expect(opacityWithin(first, box)).toBe(1)
+      expect(opacityWithin(child, enabledBox)).toBe(1)
     })
 
     // The glyph points to the inline end, so a right-to-left direction

@@ -101,12 +101,16 @@ type StackJustify = 'around' | 'between' | 'center' | 'end' | 'start'
 
 type StackProps = {
   /**
-   * How the children line up across the stack: down the inline axis of a
-   * column, down the block axis of a row. Left unset, they stretch, which is
+   * How the children line up across the stack: along the inline axis of a
+   * column, along the block axis of a row. Left unset, they stretch, which is
    * what makes every card in a column the same width.
    *
    * `start` is what an inline-sized child needs in a column — a Tag or a
-   * Chip spans the whole width otherwise.
+   * Chip spans the whole width otherwise. `center` is what a row of controls
+   * usually wants: stretched, every button grows to the tallest one, so a
+   * label wrapping onto a second line makes its neighbours taller too.
+   * `baseline` lines the children up on their first line of text, and only
+   * means something in a row; in a column it places them as `start` does.
    */
   align?: StackAlign
   /**
@@ -132,8 +136,10 @@ type StackProps = {
    */
   justify?: StackJustify
   /**
-   * Lets a row wrap onto further lines rather than overflowing. Has no effect
-   * on a column, which has as many lines as it has children.
+   * Lets the children wrap onto further lines rather than overflowing. A row
+   * wraps once its children are wider than it is, and the gap then spaces
+   * the lines as well as the children. A column wraps only when the stack is
+   * given a fixed height, and then flows into further columns.
    * @default false
    */
   wrap?: boolean
@@ -167,6 +173,16 @@ function listRole(render: StackProps['render']) {
  * instead. A `render` function returns an element the stack cannot see
  * before it renders, so a list returned from one wants the role written on
  * it.
+ *
+ * ```tsx
+ * <Stack gap="sm" render={<ul />}>
+ *   <li>First item</li>
+ *   <li>Second item</li>
+ *   <li>Third item</li>
+ * </Stack>
+ * ```
+ *
+ * That renders a `<ul role="list">` with its items spaced by `sm`.
  */
 function Stack({
   align,

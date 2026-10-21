@@ -163,6 +163,10 @@ type LinkUnderline = 'always' | 'hover' | 'none'
  * disabled, it is a span announced as a link instead, since a disabled
  * anchor is no link at all.
  *
+ * ```tsx
+ * <Link href="#first">Label</Link>
+ * ```
+ *
  * Behaviour is React Aria's: `onPress` fires for pointer, touch and keyboard
  * alike, a `RouterProvider` above it turns a navigation into a client-side
  * one, and a `Breadcrumbs` or `Menu` around it reaches it through context.

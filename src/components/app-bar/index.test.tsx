@@ -2,13 +2,14 @@ import type { CSSProperties } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, render } from '@testing-library/react'
+import { createPortal } from 'react-dom'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import type { AppBarProps } from '.'
 
 import AppBar from '.'
 import { useAppBarScroll } from '../../hooks/useAppBarScroll'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import IconButton from '../icon-button'
 
 // Material Design's documented heights for the three sizes this ships, and
@@ -72,6 +73,12 @@ const GLYPH = (
 )
 
 const ICON_LEADING = <IconButton aria-label="Back">{GLYPH}</IconButton>
+
+const DISABLED_LEADING = (
+  <IconButton aria-label="Back" isDisabled>
+    {GLYPH}
+  </IconButton>
+)
 
 const ICON_TRAILING = (
   <>
@@ -854,13 +861,17 @@ describe('collapsed', () => {
   // The measurement holds still the edge the text hangs from, which is the
   // right edge in a right-to-left page and the middle in a centred bar: the
   // headline's box is wider in the second row than between the slots, so
-  // its left edge says nothing about where the text is in either.
+  // its left edge says nothing about where the text is in either. A centred
+  // headline is on the bar's middle in both rows, so its middle moves only
+  // where a wide slot pushes it off that in the strip: three actions against
+  // a back button, at a phone's width.
   it.each([
     {
       align: 'start',
       dir: 'rtl',
       edge: (box: { left: number; right: number }) => box.right,
       name: 'the right edge of a right-to-left',
+      trailing: ICON_TRAILING,
     },
     {
       align: 'center',
@@ -868,19 +879,20 @@ describe('collapsed', () => {
       edge: (box: { left: number; right: number }) =>
         (box.left + box.right) / 2,
       name: 'the middle of a centred',
+      trailing: THREE_ACTIONS,
     },
   ] as const)(
     'moves the headline from $name bar’s second row',
-    ({ align, dir, edge }) => {
+    ({ align, dir, edge, trailing }) => {
       const props = {
         align,
         headline: 'Headline',
         leading: ICON_LEADING,
         size: 'lg',
-        trailing: ICON_TRAILING,
+        trailing,
       } as const
       const view = render(
-        <div dir={dir}>
+        <div dir={dir} style={PHONE}>
           <AppBar {...props} />
         </div>,
       )
@@ -892,7 +904,7 @@ describe('collapsed', () => {
       const expanded = headline()
 
       view.rerender(
-        <div dir={dir}>
+        <div dir={dir} style={PHONE}>
           <AppBar {...props} collapsed />
         </div>,
       )
@@ -1113,6 +1125,35 @@ describe('content measure', () => {
   })
 })
 
+// The colours the page gives a bar's icons, read off probes drawn in them.
+const roleStyles = stylex.create({
+  onSurface: { color: colors.onSurface },
+  onSurfaceVariant: { color: colors.onSurfaceVariant },
+})
+
+function colourOf(role: keyof typeof roleStyles) {
+  const probe = document.createElement('span')
+  probe.className = stylex.props(roleStyles[role]).className ?? ''
+  document.body.append(probe)
+  const colour = getComputedStyle(probe).color
+  probe.remove()
+  return colour
+}
+
+/** The middle of the text a heading draws, across the bar. */
+function inkMiddleOf(heading: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(heading)
+  const box = range.getBoundingClientRect()
+  return (box.left + box.right) / 2
+}
+
+/** The middle of an element's box, across the bar. */
+function middleOf(element: Element) {
+  const box = element.getBoundingClientRect()
+  return (box.left + box.right) / 2
+}
+
 describe('align', () => {
   it('starts the text at the leading edge by default', () => {
     const view = render(<AppBar headline="Headline" />)
@@ -1133,6 +1174,187 @@ describe('align', () => {
       expect(getComputedStyle(text).textAlign).toBe('center')
       view.unmount()
     }
+  })
+
+  // Material Design centres the text on the bar rather than in the room the
+  // slots leave, which differs whenever the two sides do: one slot and no
+  // other, or a back button against three actions.
+  describe.each([
+    ['a leading slot alone', ICON_LEADING, undefined],
+    ['the trailing slot alone', undefined, ICON_TRAILING],
+    ['both slots', ICON_LEADING, ICON_TRAILING],
+    ['a leading slot against three actions', ICON_LEADING, THREE_ACTIONS],
+    ['no slots', undefined, undefined],
+  ])('with %s', (_name, leading, trailing) => {
+    it.each(['sm', 'md', 'lg', 'collapsed'] as const)(
+      'centres the headline on the bar at %s',
+      (size) => {
+        const view = render(
+          <div style={WIDE}>
+            <AppBar
+              align="center"
+              collapsed={size === 'collapsed'}
+              headline="Headline"
+              leading={leading}
+              size={size === 'collapsed' ? 'lg' : size}
+              trailing={trailing}
+            />
+          </div>,
+        )
+        const bar = barInWrapper(view.container)
+
+        expect(
+          inkMiddleOf(view.getByRole('heading', { level: 1 })),
+        ).toBeCloseTo(middleOf(bar), 0)
+      },
+    )
+  })
+
+  // The slots stay where a bar at the start has them: the leading glyph and
+  // the last trailing one on the inset. Each is as wide as what it holds,
+  // rather than stretching across the share of the row its column takes.
+  it('keeps the slots on the inset', () => {
+    const view = render(
+      <AppBar
+        align="center"
+        headline="Headline"
+        leading={ICON_LEADING}
+        trailing={THREE_ACTIONS}
+      />,
+    )
+    const bar = barIn(view.container).getBoundingClientRect()
+    const leading = view
+      .getByRole('button', { name: 'Back' })
+      .parentElement!.getBoundingClientRect()
+    const trailing = view
+      .getByRole('button', { name: 'Edit' })
+      .parentElement!.getBoundingClientRect()
+
+    expect(glyphAt(view.container, 0).left - bar.left).toBe(16)
+    expect(bar.right - glyphAt(view.container, 3).right).toBe(16)
+    // Half of what a 48 target leaves around a 24 glyph.
+    expect(leading.right - glyphAt(view.container, 0).right).toBe(12)
+    expect(glyphAt(view.container, 1).left - trailing.left).toBe(12)
+  })
+
+  // Where the text is wider than a side's share, it moves off the middle as
+  // far as the wider slot needs and no further, rather than running under
+  // it, and wraps against the room left.
+  it('moves a long headline off the middle rather than under a slot', () => {
+    const view = render(
+      <div style={PHONE}>
+        <AppBar
+          align="center"
+          headline="A headline long enough to need more than one line"
+          leading={ICON_LEADING}
+          trailing={THREE_ACTIONS}
+        />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
+    const heading = view.getByRole('heading', { level: 1 })
+    const text = heading.parentElement
+    const leadingSlot = rowOf(bar).firstElementChild
+    const trailingSlot = rowOf(bar).lastElementChild
+    if (text === null || leadingSlot === null || trailingSlot === null) {
+      throw new Error('expected the slots either side of the text')
+    }
+
+    expect(text.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      leadingSlot.getBoundingClientRect().right,
+    )
+    expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+      trailingSlot.getBoundingClientRect().left,
+    )
+    expect(Math.abs(middleOf(text) - middleOf(bar))).toBeGreaterThan(1)
+    expect(heading.getBoundingClientRect().height).toBeGreaterThan(28)
+  })
+
+  // A headline too long for the middle takes the whole room between the
+  // leading slot and the inset, as a bar at the start gives it, and an edge
+  // with no slot keeps it off by the inset.
+  it('gives a long headline the room up to the inset where there is no slot', () => {
+    const view = render(
+      <div style={NARROW}>
+        <AppBar
+          align="center"
+          headline="A headline long enough to need more than one line"
+          leading={ICON_LEADING}
+        />
+      </div>,
+    )
+    const bar = barInWrapper(view.container)
+    const text = view.getByRole('heading', { level: 1 }).parentElement
+
+    expect(
+      text!.getBoundingClientRect().left - bar.getBoundingClientRect().left,
+    ).toBeCloseTo(56, 0)
+    expect(
+      bar.getBoundingClientRect().right - text!.getBoundingClientRect().right,
+    ).toBeCloseTo(16, 0)
+  })
+})
+
+// The page gives a bar's leading icon on surface, and its trailing icons the
+// on surface variant a standard icon button draws in anyway.
+describe('slot colours', () => {
+  it('draws the leading icon on surface and the trailing on surface variant', () => {
+    const view = render(
+      <AppBar
+        headline="Headline"
+        leading={ICON_LEADING}
+        trailing={ICON_TRAILING}
+      />,
+    )
+    const [back, edit, more] = view.getAllByRole('button')
+
+    expect(colourOf('onSurface')).not.toBe(colourOf('onSurfaceVariant'))
+    expect(getComputedStyle(back).color).toBe(colourOf('onSurface'))
+    expect(getComputedStyle(back.parentElement!).color).toBe(
+      colourOf('onSurface'),
+    )
+    for (const button of [edit, more]) {
+      expect(getComputedStyle(button).color).toBe(colourOf('onSurfaceVariant'))
+      expect(getComputedStyle(button.parentElement!).color).toBe(
+        colourOf('onSurfaceVariant'),
+      )
+    }
+  })
+
+  it('keeps a disabled leading icon faded', () => {
+    const view = render(
+      <>
+        <AppBar headline="Headline" leading={DISABLED_LEADING} />
+        <IconButton aria-label="Elsewhere" isDisabled>
+          {GLYPH}
+        </IconButton>
+      </>,
+    )
+
+    expect(
+      getComputedStyle(view.getByRole('button', { name: 'Back' })).color,
+    ).toBe(
+      getComputedStyle(view.getByRole('button', { name: 'Elsewhere' })).color,
+    )
+  })
+
+  // The leading colour reaches what the slot holds on the page, not what it
+  // holds in the component tree: a menu or a sheet opened from the slot is
+  // portalled out of it, and its buttons keep their own colour.
+  it('leaves an icon button portalled out of the slot its own colour', () => {
+    const view = render(
+      <AppBar
+        headline="Headline"
+        leading={createPortal(
+          <IconButton aria-label="Close">{GLYPH}</IconButton>,
+          document.body,
+        )}
+      />,
+    )
+
+    expect(
+      getComputedStyle(view.getByRole('button', { name: 'Close' })).color,
+    ).toBe(colourOf('onSurfaceVariant'))
   })
 })
 

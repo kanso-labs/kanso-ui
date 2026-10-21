@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect } from 'storybook/test'
 
 import Switch from '.'
 
@@ -120,6 +121,41 @@ const Disabled: Story = {
   },
 }
 
+// On and disabled, with the check: the track, the handle and the icon each
+// take their own faded role, so the switch still reads as on.
+const DisabledOn: Story = {
+  args: {
+    defaultSelected: true,
+    icon: true,
+    isDisabled: true,
+  },
+}
+
+// The setting can be read but not changed. It looks as an enabled switch
+// does, so it carries no snapshot of its own: what sets it apart is that a
+// press leaves it where it was.
+const ReadOnly: Story = {
+  args: {
+    defaultSelected: true,
+    isReadOnly: true,
+  },
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas, userEvent }) => {
+    const control = canvas.getByRole('switch', { name: 'Label' })
+    await userEvent.click(control)
+    await expect(control).toBeChecked()
+  },
+}
+
+// No label beside it, for a switch whose row already says what it turns on:
+// `aria-label` names it instead, and the switch is the track alone.
+const WithoutLabel: Story = {
+  args: {
+    'aria-label': 'Label',
+    children: undefined,
+  },
+}
+
 // Its own story because a word with nowhere to break — an address, a long
 // compound — breaks inside the label and the line under it rather than
 // widening the page.
@@ -138,14 +174,17 @@ const LongLabel: Story = {
 export {
   Default,
   Disabled,
+  DisabledOn,
   LongLabel,
   On,
   OnWithError,
+  ReadOnly,
   WithCustomIcon,
   WithDescription,
   WithError,
   WithIcon,
   WithIcons,
+  WithoutLabel,
 }
 
 export default meta
