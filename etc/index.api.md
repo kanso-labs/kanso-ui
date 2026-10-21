@@ -1788,6 +1788,7 @@ export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pic
     container?: Element;
     isDismissable?: boolean;
     isKeyboardDismissDisabled?: boolean;
+    snapPoints?: Array<number | string>;
     style?: StyleOrFunction<SheetRenderProps>;
 };
 
@@ -1795,7 +1796,7 @@ export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pic
 export function SheetFooter(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public
-export function SheetHandle(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
+export function SheetHandle(input: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;
 
 // @public (undocumented)
 export function SheetHeader(props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>): JSX;

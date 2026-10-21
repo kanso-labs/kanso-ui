@@ -23,7 +23,8 @@ import { colors } from '../tokens/design.tokens.stylex'
 //   indicator: Card, in secondary or on surface by variant.
 // - A negative offset, drawing the ring inside the element rather than
 //   around it: DropZone, NumberField, Table, a Tab and its panel, the shared
-//   row, and the body of a Dialog or a Sheet while it scrolls.
+//   row, the body of a Dialog or a Sheet while it scrolls, and a bottom
+//   sheet's drag handle.
 // - An offset of its own, sized to what the ring surrounds: the colour
 //   thumb at 4px, the swatch at 6px, Chip's remove at 1px.
 // - A base of `outlineStyle: 'none'` that a separate style turns solid,

@@ -173,6 +173,40 @@ const LongBody: Story = {
   ),
 }
 
+// A collapsed height of 200, and the whole panel.
+const SNAP_POINTS = [200, '100%']
+
+// A bottom sheet given snap points, resting at the first: 200 of the panel
+// showing and the page above it in view, behind the scrim, as the bottom
+// sheets page's collapsed state. The handle is a button here, and a press on
+// it or a swipe up shows the rest of the panel; the body scrolls only once
+// all of it shows, so a swipe on the body moves the sheet until then.
+const CollapsedBottomSheet: Story = {
+  globals: BottomSheet.globals,
+  parameters: BottomSheet.parameters,
+  render: (args) => (
+    <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
+      <Sheet.Content snapPoints={SNAP_POINTS}>
+        <Sheet.Handle />
+        <Sheet.Header>
+          <Sheet.Title>Headline</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseIcon />
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>{LONG_BODY}</Sheet.Body>
+        <Sheet.Footer>
+          <Button>Confirm</Button>
+          <Button slot="close" variant="outlined">
+            Cancel
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>
+  ),
+}
+
 // An address with nowhere to break, which is the string a body most often
 // has to hold whole. It wraps inside the body rather than running past its
 // edge, so the bottom sheet's body has nothing to scroll sideways.
@@ -356,6 +390,7 @@ const OpensAndCloses: Story = {
 
 export {
   BottomSheet,
+  CollapsedBottomSheet,
   Default,
   LongAddress,
   LongBody,

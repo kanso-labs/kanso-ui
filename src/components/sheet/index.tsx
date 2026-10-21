@@ -13,6 +13,7 @@ import type {
   DialogTriggerProps,
   HeadingProps,
   ModalOverlayProps,
+  PressEvent,
   SheetRenderProps,
   StyleOrFunction,
 } from 'react-aria-components'
@@ -20,6 +21,7 @@ import type { OverlayTriggerState } from 'react-stately'
 
 import * as stylex from '@stylexjs/stylex'
 import {
+  createContext,
   useContext,
   useLayoutEffect,
   useMemo,
@@ -30,6 +32,7 @@ import {
   Heading,
   HeadingContext,
   OverlayTriggerStateContext,
+  Button as RACButton,
   Sheet as RACSheet,
   SheetContent as RACSheetContent,
   SheetBackdrop,
@@ -40,6 +43,7 @@ import {
 
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollStop } from '../../hooks/useScrollStop'
+import { useMessages } from '../../i18n'
 import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
 import { layers } from '../../styles/layers.stylex'
@@ -105,6 +109,10 @@ const BOTTOM_SHEET = '(width < 600px)'
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
+// The scrim's range along a sheet with snap points: from closed to the first
+// of them, as React Aria counts its swipe animation's range in snap points.
+const TO_THE_FIRST_SNAP_POINT = { end: 0 }
+
 // React Aria's overlay is a layer holding the scrim and a scroller, the
 // scroller holds the panel, and the panel holds the dialog. The styles are
 // split the same way: the layer and the scrim, `panel` and the edge's own
@@ -120,6 +128,9 @@ const styles = stylex.create({
     // column rather than one scrolling box.
     flexGrow: 1,
     gap: spacing.lg,
+    // Spelled out rather than left to the scroll container's own zero, so
+    // the body keeps the same size while `bodyHeld` takes the scrolling away.
+    minBlockSize: 0,
     // A string with nowhere to break — a long address, a token — wraps
     // rather than running past the body's width, which made the body scroll
     // sideways.
@@ -127,6 +138,15 @@ const styles = stylex.create({
     overflowY: 'auto',
     paddingBlock: spacing.lg,
     paddingInline: spacing.xl,
+  },
+  // A bottom sheet resting short of its last snap point. Its body is no
+  // scroll container until the sheet is expanded, so a swipe on the content
+  // reaches React Aria's scroller and moves the sheet, rather than scrolling
+  // the body inside a sheet that has more of itself to show. `clip` rather
+  // than `hidden`, which would still be a scroll container: one a swipe
+  // cannot move, but a focused control inside it could still scroll.
+  bodyHeld: {
+    overflowY: 'clip',
   },
   // The bottom sheet: full width, only as tall as its content up to the
   // bottom sheets page's 72 of top margin, and rounded along its top.
@@ -200,6 +220,36 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
     inlineSize: '32px',
+  },
+  // The handle of a sheet with snap points: a button around the bar, at the
+  // page's 48 target. The 22 above and below the 4 bar are that target's
+  // height already, so the button takes the row's height in place of them,
+  // and the bar is where it was.
+  //
+  // Its focus ring is drawn just inside its edge, since the panel clips what
+  // lies past its own top edge and the button starts there. The circle that
+  // leaves still clears the bar's ends, 16 from its centre against the
+  // ring's 22.
+  handleButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    blockSize: '48px',
+    borderRadius: radii.pill,
+    borderStyle: 'none',
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    display: 'flex',
+    inlineSize: '48px',
+    justifyContent: 'center',
+    margin: 0,
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: { ':focus-visible': 'solid', default: 'none' },
+    outlineWidth: '2px',
+    padding: 0,
+  },
+  handleHolding: {
+    paddingBlock: 0,
   },
   // The page's 12 between the header's elements.
   header: {
@@ -314,6 +364,45 @@ function isReducedMotion() {
   return window.matchMedia(REDUCED_MOTION).matches
 }
 
+/**
+ * Moves the sheet whose handle was pressed to its next snap point, or from
+ * the last back to the first. React Aria offers no call that moves a sheet,
+ * so this scrolls its scroller as React Aria does to open the sheet at the
+ * first: React Aria places a marker in the panel for each snap point, and a
+ * scroll that rests a marker one viewport below the scroller's top leaves
+ * that snap point showing. The markers are `[data-sheet-detent]`, in the
+ * order the snap points were given, and they are React Aria's markup rather
+ * than its API — a release that renames them leaves the handle pressing
+ * nothing, which the handle's tests are there to say.
+ *
+ * Which snap point the sheet is at is the marker whose resting scroll lies
+ * nearest the scroller's own, so a press after a swipe moves on from where
+ * the swipe left the sheet.
+ */
+function moveToNextSnapPoint({ target }: PressEvent) {
+  const scroller = target.closest('[data-sheet-scroll]')
+  if (!(scroller instanceof HTMLElement)) {
+    return
+  }
+  // Where the scroller's content starts, in the window's coordinates.
+  const origin = scroller.getBoundingClientRect().top - scroller.scrollTop
+  const stops = [...scroller.querySelectorAll('[data-sheet-detent]')].map(
+    (marker) =>
+      marker.getBoundingClientRect().top -
+      origin -
+      Number.parseFloat(getComputedStyle(marker).scrollMarginTop),
+  )
+  if (stops.length === 0) {
+    return
+  }
+  const distances = stops.map((stop) => Math.abs(stop - scroller.scrollTop))
+  const at = distances.indexOf(Math.min(...distances))
+  scroller.scrollTo({
+    behavior: isReducedMotion() ? 'auto' : 'smooth',
+    top: stops[(at + 1) % stops.length],
+  })
+}
+
 function onServer() {
   return false
 }
@@ -341,6 +430,14 @@ function subscribeTo(query: string) {
 
 const subscribeToBottomSheet = subscribeTo(BOTTOM_SHEET)
 const subscribeToReducedMotion = subscribeTo(REDUCED_MOTION)
+
+// Where a bottom sheet with snap points rests: at its last, `expanded`, or
+// short of it, `collapsed`. Content sets it from React Aria's render state,
+// and the handle and the body read it. Null in a sheet without snap points,
+// whose handle is decoration and whose body always scrolls.
+type SnapState = 'collapsed' | 'expanded' | null
+
+const SnapContext = createContext<SnapState>(null)
 
 /**
  * The dialog's element, given a key handler for Escape. React Aria's sheet
@@ -416,6 +513,7 @@ function SheetBody({
   ...props
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const ref = useRef<HTMLDivElement>(null)
+  const snap = useContext(SnapContext)
   // A body its content runs past is a tab stop named by the title, so a
   // keyboard can scroll it, when nothing inside it takes focus; a call
   // site's own name, role and tabIndex still win. See useScrollStop.
@@ -436,7 +534,14 @@ function SheetBody({
       {...scrollStop}
       {...props}
       ref={merged}
-      {...mergeStyles(stylex.props(styles.body, overlay.modalBodyRing), props)}
+      {...mergeStyles(
+        stylex.props(
+          styles.body,
+          snap === 'collapsed' && styles.bodyHeld,
+          overlay.modalBodyRing,
+        ),
+        props,
+      )}
     />
   )
 }
@@ -477,6 +582,7 @@ function SheetContent({
   isOpen,
   onOpenChange,
   ref,
+  snapPoints,
   style,
   ...props
 }: RefAttributes<HTMLDivElement> & SheetContentProps) {
@@ -491,6 +597,11 @@ function SheetContent({
     onServer,
   )
   const position = isBottom ? 'bottom' : 'end'
+  // The heights are the bottom sheet's alone; a side sheet has one width.
+  const heights =
+    isBottom && snapPoints !== undefined && snapPoints.length > 0
+      ? snapPoints
+      : undefined
   const overlayRef = useRef<HTMLDivElement>(null)
   useRestOnTurn(overlayRef, position)
   // React Aria holds Escape whenever it holds the scrim and the swipe, so
@@ -509,6 +620,7 @@ function SheetContent({
         position={position}
         preventDismissal={!isDismissable}
         ref={overlayRef}
+        snapPoints={heights}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
         {...stylex.props(styles.layer)}
@@ -517,6 +629,13 @@ function SheetContent({
           // The shared fade instead under reduced motion, where the panel
           // arrives without moving and the scrim is all that says so.
           swipeAnimation={isReduced ? undefined : scrimIn}
+          // Whole once the panel reaches its first snap point rather than
+          // only once all of it shows, so a collapsed sheet holds the page
+          // behind the same scrim an expanded one does, and a swipe below
+          // that point is what lifts it.
+          swipeAnimationRange={
+            heights === undefined ? undefined : TO_THE_FIRST_SNAP_POINT
+          }
           {...stylex.props(overlay.backdrop)}
         />
         <RACSheet
@@ -525,9 +644,19 @@ function SheetContent({
           ref={ref}
           {...mergeStatefulStyles(panelStyles, { className, style })}
         >
-          <SheetDialog escape={escape} {...props}>
-            {children}
-          </SheetDialog>
+          {({ isExpanded }) => {
+            let snap: SnapState = null
+            if (heights !== undefined) {
+              snap = isExpanded ? 'expanded' : 'collapsed'
+            }
+            return (
+              <SnapContext value={snap}>
+                <SheetDialog escape={escape} {...props}>
+                  {children}
+                </SheetDialog>
+              </SnapContext>
+            )
+          }}
         </RACSheet>
       </SheetOverlay>
     </OverlayScope>
@@ -585,26 +714,57 @@ function SheetFooter({
 
 /**
  * The bottom sheets page's drag handle: a short bar above the sheet's
- * content, saying the panel is a bottom sheet that a swipe down closes. Place
- * it first inside `Sheet.Content`; above the medium breakpoint the panel is a
+ * content, saying the panel is a bottom sheet that a swipe moves. Place it
+ * first inside `Sheet.Content`; above the medium breakpoint the panel is a
  * side sheet and this draws nothing.
  *
- * It is decoration rather than a control, and hidden from assistive
- * technology. The swipe it points at takes the panel from anywhere on it, the
- * handle included, and the panel has one height, so a control here would
- * offer nothing a swipe, the scrim, Escape or a `slot="close"` button does
- * not.
+ * On a sheet given `snapPoints` it is a button, as the bottom sheets page
+ * asks of a handle that moves the sheet between heights: a press, from a
+ * pointer, a keyboard or assistive technology, moves the sheet to its next
+ * snap point, from the last back to the first, and `aria-expanded` says
+ * whether it rests at the last. It is called "Drag handle" in the locale's
+ * own words, and a call site's `aria-label` names it instead. Its 48 square
+ * is the page's target, centred over the bar.
+ *
+ * On a sheet without them it is decoration, hidden from assistive
+ * technology: the panel has one height, and the swipe the bar points at
+ * takes it from anywhere on the panel, so a control here would offer
+ * nothing a swipe, the scrim, Escape or a `slot="close"` button does not.
  */
-function SheetHandle(
-  props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
-) {
+function SheetHandle({
+  'aria-label': label,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
+  const snap = useContext(SnapContext)
+  const messages = useMessages()
+  const bar = <span {...stylex.props(styles.handleBar)} />
+
+  if (snap === null) {
+    return (
+      <div
+        aria-hidden="true"
+        aria-label={label}
+        {...props}
+        {...mergeStyles(stylex.props(styles.handle), props)}
+      >
+        {bar}
+      </div>
+    )
+  }
+
   return (
     <div
-      aria-hidden="true"
       {...props}
-      {...mergeStyles(stylex.props(styles.handle), props)}
+      {...mergeStyles(stylex.props(styles.handle, styles.handleHolding), props)}
     >
-      <span {...stylex.props(styles.handleBar)} />
+      <RACButton
+        aria-expanded={snap === 'expanded'}
+        aria-label={label ?? messages.dragHandle}
+        onPress={moveToNextSnapPoint}
+        {...stylex.props(styles.handleButton)}
+      >
+        {bar}
+      </RACButton>
     </div>
   )
 }
@@ -715,6 +875,19 @@ type SheetContentProps = Omit<DialogProps, 'className' | 'style'> &
      * @default false
      */
     isKeyboardDismissDisabled?: boolean
+    /**
+     * The heights a bottom sheet rests at, each the amount of the panel
+     * showing: a number of pixels, or a percentage of the panel's own
+     * height. The sheet opens at the first, a swipe moves it between them,
+     * and a press on `Sheet.Handle` moves it to the next, from the last
+     * back to the first. React Aria's own prop, under its own name.
+     *
+     * End on `'100%'` for a sheet that can show all of itself: its body
+     * scrolls only while the whole panel is showing, and short of that a
+     * swipe on the body moves the sheet instead. The side sheet has one
+     * width and ignores them.
+     */
+    snapPoints?: Array<number | string>
     /** A function may compute the style from the panel's render state. */
     style?: StyleOrFunction<SheetRenderProps>
   }
