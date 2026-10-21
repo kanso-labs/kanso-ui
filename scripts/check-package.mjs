@@ -332,7 +332,7 @@ check('nothing in dist imports @kanso-labs/kanso-ui-core', () => {
     .map(String)
     .filter((file) => /\.(?:d\.ts|js)$/u.test(file))
     .filter((file) =>
-      /from ['"]@kanso-labs\/kanso-ui-core|import\(['"]@kanso-labs\/kanso-ui-core/u.test(
+      /(?:from|import\(?)\s*['"]@kanso-labs\/kanso-ui-core[/'"]/u.test(
         readFileSync(new URL(file, DIST), 'utf8'),
       ),
     )
