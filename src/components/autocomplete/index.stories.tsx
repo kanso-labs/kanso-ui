@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect, waitFor } from 'storybook/test'
 
 import Autocomplete from '.'
 import { CloseGlyph } from '../../glyphs'
@@ -211,6 +212,19 @@ const FilteredEmptyInAMenu: Story = {
 // a phone has no Escape key; the close button is the one way out there.
 const CommandPalette: Story = {
   parameters: { docs: { story: { height: '640px', inline: false } } },
+  // The story is the pattern a call site copies, so what it promises is
+  // checked on the story itself: the search field has focus once the palette
+  // is open. React Aria's dialog takes focus a frame after it mounts unless
+  // something inside it already has it, so this waits rather than reading
+  // once. Running a command is left unchecked here, since it closes the
+  // dialog the snapshot is of.
+  play: async () => {
+    await waitFor(async () => {
+      const search = document.querySelector('[role="dialog"] input')
+      await expect(search).not.toBeNull()
+      await expect(document.activeElement).toBe(search)
+    })
+  },
   render: (args) => (
     <Dialog defaultOpen>
       <Button variant="outlined">Open the palette</Button>
