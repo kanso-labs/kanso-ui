@@ -1,29 +1,26 @@
-// Writes every file of the Design System artifact that comes from the
-// repository into <dir>/project/, at the path the artifact serves it from:
-// tokens.json, the fonts, components/bundle.js, bundle.css, index.d.ts and the
-// two React files in components/lib/. It reads dist/, so `npm run build` first.
-// The README, the cover and each component's preview and guidelines are the
-// artifact's own and are never written here; README.md beside this file says
-// how a sync treats them.
+// Writes every file of the Design System artifact that comes from this
+// repository into <dir>/project/, at the path the artifact serves it from: the
+// fonts, components/bundle.js, bundle.css, index.d.ts and the two React files
+// in components/lib/. It reads dist/, so `npm run build` first. tokens.json is
+// kanso-ui-core's, written into the same directory by that repository's half
+// of the sync. The README, the cover and each component's preview and
+// guidelines are the artifact's own and are never written here; README.md
+// beside this file says how a sync treats them.
 //
-//   node .design-sync/artifact/build.mjs <dir> [--ref main@<sha>]
+//   node .design-sync/artifact/build.mjs <dir>
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
-import { componentPaths, toArtifact } from './tokens.mjs';
-
 const ROOT = new URL('../..', import.meta.url).pathname;
-const HERE = new URL('.', import.meta.url).pathname;
 const require = createRequire(`${ROOT}package.json`);
 const { build } = require('esbuild');
 const { Extractor, ExtractorConfig } = require('@microsoft/api-extractor');
 
 const NAMESPACE = 'KansoLabsKansoUi';
-const args = process.argv.slice(2);
-const dir = args[0];
-if (!dir) throw new Error('usage: build.mjs <dir> [--ref main@<sha>]');
-const ref = args.includes('--ref') ? args[args.indexOf('--ref') + 1] : `main@${execFileSync('git', ['-C', ROOT, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8' }).trim()}`;
+const dir = process.argv[2];
+if (!dir) throw new Error('usage: build.mjs <dir>');
+const ref = `main@${execFileSync('git', ['-C', ROOT, 'rev-parse', '--short=7', 'HEAD'], { encoding: 'utf8' }).trim()}`;
 if (!existsSync(`${ROOT}dist/index.js`)) throw new Error('dist/ is missing: run npm run build first');
 
 const P = `${dir}/project`;
@@ -34,14 +31,21 @@ const write = (path, contents) => {
   written.push(path);
 };
 
-// tokens.json
-const components = componentPaths();
-const tokens = toArtifact(JSON.parse(readFileSync(`${ROOT}src/tokens/design.tokens.json`, 'utf8')), JSON.parse(readFileSync(`${HERE}notes.json`, 'utf8')), { components, ref });
-write('tokens.json', `${JSON.stringify(tokens, null, 1)}\n`);
+// Each public component by its export name, with its entry: every
+// src/components/<dir> with an index.tsx, its name in PascalCase. The bundle's
+// header lists them, and kanso-ui-core's half reads the same list from a
+// checkout of this repository for tokens.json's meta.
+const components = Object.fromEntries(
+  readdirSync(`${ROOT}src/components`)
+    .filter((d) => existsSync(`${ROOT}src/components/${d}/index.tsx`))
+    .sort()
+    .map((d) => [d.split('-').map((p) => p[0].toUpperCase() + p.slice(1)).join(''), `src/components/${d}/index.tsx`]),
+);
 
-// Fonts: the woff2 files tokens.json names, and their licences.
+// Fonts: the woff2 file of each family tokens.json names, and its licence.
+const FONTS = readdirSync(`${ROOT}.design-sync/fonts`);
 for (const f of ['roboto-flex', 'roboto-mono', 'roboto-serif']) {
-  const woff = tokens.type.fonts.find((x) => x.file.includes(`/${f}-`)).file;
+  const woff = `fonts/${FONTS.find((x) => x.startsWith(`${f}-`) && x.endsWith('.woff2'))}`;
   copyFileSync(`${ROOT}.design-sync/${woff}`, `${P}/${woff}`);
   copyFileSync(`${ROOT}.design-sync/fonts/${f}.LICENSE`, `${P}/fonts/${f}-OFL.txt`);
   written.push(woff, `fonts/${f}-OFL.txt`);

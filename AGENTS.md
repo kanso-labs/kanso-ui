@@ -648,25 +648,20 @@ package's, and a module or declaration in `dist/` that still imports it.
 `src/tokens/theme.test.ts` fails a property `tokens.css` declares that the
 StyleX theme does not read.
 
-A daily routine runs the sync `.design-sync/artifact/README.md` sets out, after
-release-please's 09:00 UTC run. It brings the artifact's edits into a pull
-request from the `design-sync/artifact` branch, and publishes what changed here
-to the artifact: the bundle, the types, and the preview and guidelines of a
-component whose props, states or behaviour moved. A pull request here never
-updates the artifact itself. Three things follow from how it works:
+A daily routine runs the sync, after release-please's 09:00 UTC run, in two
+halves. kanso-ui-core's `.design-sync/artifact/` is the tokens': it brings a
+token or a usage note edited in the artifact into a pull request there, and
+builds the artifact's `tokens.json`, so a token edit reaches this library as a
+kanso-ui-core release like any other. This repository's
+`.design-sync/artifact/README.md` is the rest: it publishes what changed here to
+the artifact — the bundle, the types, and the preview and guidelines of a
+component whose props, states or behaviour moved — together with that
+`tokens.json`. A pull request here never updates the artifact itself.
 
-- **A token changed here survives the sync, and the artifact wins a clash.**
-  `tokens.mjs pull` applies only the fields the artifact changed since the
-  commit its `meta.ref` names, so a repository edit it never touched is kept;
-  where both sides changed one value, the artifact's lands and the pull request
-  names the clash.
-- **A token's usage note lives in `.design-sync/artifact/notes.json`**, since
-  the token file has no field for one. A note edited in the artifact comes back
-  into that file.
-- **`node .design-sync/artifact/tokens.mjs check` proves the mapping**: a pull
-  of an unedited build changes nothing, one edit of every kind lands, and a
-  repository edit survives. Run it after changing either direction; a field the
-  token file gains needs a place in both.
+**The artifact records a commit of each repository**, under `refs` in its
+`tokens.json`'s `meta`. kanso-ui-core's is what a token pull merges against;
+this repository's is what the diff deciding which component pages to republish
+starts from. Neither half can use the other's, since each moves on its own.
 
 ## The API reports
 
