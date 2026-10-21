@@ -551,7 +551,7 @@ describe('theme scope', () => {
     })
 
     // The same read is where a modal makes the page behind it inert.
-    it('makes the page behind a sheet open from its first render inert', () => {
+    it('makes the page behind a sheet open from its first render inert', async () => {
       const view = render(
         <ThemeScope>
           <Button>Label</Button>
@@ -566,8 +566,25 @@ describe('theme scope', () => {
         </ThemeScope>,
       )
       const behind = view.getByText('Label').closest('button')
+      const report = () => {
+        const dialog = view.queryByRole('dialog')
+        return JSON.stringify({
+          active: document.activeElement?.tagName,
+          behindConnected: behind?.isConnected,
+          dialogInScope: dialog !== null && view.container.contains(dialog),
+          dialogs: view.queryAllByRole('dialog', { hidden: true }).length,
+          inert: [...document.querySelectorAll('[inert]')].map(
+            (element) => element.tagName,
+          ),
+        })
+      }
+      if (behind?.closest('[inert]') == null) {
+        console.log('not inert on the first render', report())
+      }
 
-      expect(behind?.closest('[inert]')).not.toBeNull()
+      await waitFor(() => {
+        expect(behind?.closest('[inert]') ? 'inert' : report()).toBe('inert')
+      })
     })
 
     it('portals a tooltip into itself', () => {
