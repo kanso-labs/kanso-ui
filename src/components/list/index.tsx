@@ -265,6 +265,13 @@ function landsOnControl(event: PointerEvent<HTMLDivElement>) {
  *
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
+ *
+ * Inside a `Virtualizer` the list is its own scroll container, so its height
+ * and `overflow-y: auto` go on the list, through `className` or `style`, and
+ * not on an element around it. React Aria sizes a page of Page Up and Page
+ * Down from the list's own box, so a list left to grow to its full height
+ * inside a scrolling wrapper is one page long, and the keys jump from one
+ * end of it to the other.
  */
 function List<T extends object>({
   selectionBehavior,

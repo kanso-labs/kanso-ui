@@ -525,6 +525,10 @@ function escapeKeyOn(
  *   …
  * </Sheet.Content>
  * ```
+ *
+ * Tab stays inside an open sheet, so a `Snackbar` shown meanwhile is reached
+ * with F6, which React Aria uses to move between landmarks. Tabbing on past
+ * the snackbar's last control leads back into the sheet.
  */
 function Sheet({ children, ...props }: SheetProps) {
   return <SheetTrigger {...props}>{children}</SheetTrigger>

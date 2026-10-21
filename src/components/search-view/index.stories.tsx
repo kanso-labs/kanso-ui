@@ -26,7 +26,7 @@ function Search({ defaultOpen = false }: { defaultOpen?: boolean }) {
       <IconButton aria-label="Search">
         <SearchIcon />
       </IconButton>
-      <SearchView.Content label="Search" placeholder="Supporting text">
+      <SearchView.Content label="Search" placeholder="Search">
         <ListBox aria-label="Results">
           <ListBox.Item id="first" supporting="Supporting line">
             First item

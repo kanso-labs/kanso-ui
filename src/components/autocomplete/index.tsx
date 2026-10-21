@@ -106,7 +106,7 @@ type AutocompleteProps<T extends object = object> = {
  *             <SearchField
  *               autoFocus
  *               label="Search commands"
- *               placeholder="Type a command"
+ *               placeholder="Search commands"
  *             />
  *             <ListBox
  *               aria-label="Commands"

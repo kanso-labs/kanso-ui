@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { ComponentProps, SyntheticEvent } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { expect, waitFor } from 'storybook/test'
 
 import Form from '.'
@@ -190,6 +191,85 @@ const AsyncSubmit: Story = {
   render: (args) => <AsyncSubmitForm {...args} />,
 }
 
-export { AsyncSubmit, Default, NativeValidation, ServerErrors }
+// What the Client validation story says of an empty headline.
+const HEADLINE_MISSING = 'Enter a headline.'
+
+/**
+ * A form under the default `aria` behaviour that will not go out with its
+ * required field empty. `isRequired` marks the field and checks nothing, so
+ * the check is the submit handler's, and the message is the field's `error`.
+ */
+function ClientValidationForm(args: ComponentProps<typeof Form>) {
+  const [error, setError] = useState<string | undefined>(undefined)
+  const headline = useRef<HTMLInputElement>(null)
+  // The message goes as soon as the field is typed into, rather than waiting
+  // for the next submission to find it filled.
+  const clearError = useCallback(() => {
+    setError(undefined)
+  }, [])
+  // An empty headline stops the submission, puts the message under the field
+  // and moves focus to it. `flushSync` renders the message first, so the
+  // field is already marked invalid when focus lands on it, as AsyncSubmit's
+  // effect makes sure of.
+  const requireHeadline = useCallback(
+    (event: SyntheticEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      const value = new FormData(event.currentTarget).get('headline')
+      if (typeof value === 'string' && value.trim() !== '') {
+        return
+      }
+      flushSync(() => {
+        setError(HEADLINE_MISSING)
+      })
+      headline.current?.focus()
+    },
+    [],
+  )
+
+  return (
+    <div {...stylex.props(styles.sample)}>
+      <Form {...args} onSubmit={requireHeadline}>
+        <Stack gap="md">
+          <TextField
+            error={error}
+            inputRef={headline}
+            isRequired
+            label="Headline"
+            name="headline"
+            onChange={clearError}
+          />
+          <TextField label="Supporting line" name="supporting" />
+          <div>
+            <Button type="submit">Submit</Button>
+          </div>
+        </Stack>
+      </Form>
+    </div>
+  )
+}
+
+// A required field checked before the form goes out, under the default
+// `aria` behaviour. There `isRequired` draws the asterisk and sets
+// `aria-required` and nothing more: the form would submit with the field
+// empty and say nothing, so the call site checks it and hands it an `error`.
+const ClientValidation: Story = {
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Submit' }))
+
+    const field = canvas.getByRole('textbox', { name: /^Headline/u })
+    await expect(field).toHaveFocus()
+    await expect(field).toHaveAttribute('aria-invalid', 'true')
+    await expect(canvas.getByText(HEADLINE_MISSING)).toBeVisible()
+  },
+  render: (args) => <ClientValidationForm {...args} />,
+}
+
+export {
+  AsyncSubmit,
+  ClientValidation,
+  Default,
+  NativeValidation,
+  ServerErrors,
+}
 
 export default meta

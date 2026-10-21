@@ -277,6 +277,12 @@ type SearchFieldProps = {
   /**
    * What the field searches, for a screen reader. The bar draws no label,
    * so this is read and never shown; `placeholder` is what is seen.
+   *
+   * Write it so it contains the placeholder's words — `Search` beside a
+   * `Search` placeholder, or `Search people`. The placeholder is the only
+   * text a sighted reader has to call the field by, so it is what someone
+   * driving the page by voice says, and a name that does not contain it
+   * leaves them nothing to say.
    */
   label: string
   /** The supporting text in the empty bar, which is what a person reads. */
@@ -348,7 +354,7 @@ function fieldContent(
  * when it is emptied.
  *
  * ```tsx
- * <SearchField label="Label" onSubmit={search} />
+ * <SearchField label="Search" onSubmit={search} placeholder="Search" />
  * ```
  *
  * The call site's `className` and `style` land on the field as a whole,
