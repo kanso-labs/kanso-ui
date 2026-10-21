@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Button from '../components/button'
 import Dialog from '../components/dialog'
@@ -79,19 +79,6 @@ function openPopover() {
   return animatedAncestor(view.getByRole('dialog'))
 }
 
-function openSheet() {
-  const view = render(
-    <Sheet defaultOpen>
-      <Button>Open</Button>
-      <Sheet.Content>
-        <Sheet.Title>Headline</Sheet.Title>
-      </Sheet.Content>
-    </Sheet>,
-  )
-
-  return animatedAncestor(view.getByRole('dialog'))
-}
-
 // The tooltip carries the role itself, so the walk out to the animated
 // ancestor stops where it starts.
 function openTooltip() {
@@ -102,6 +89,50 @@ function openTooltip() {
   )
 
   return animatedAncestor(view.getByRole('tooltip'))
+}
+
+/**
+ * Opens a sheet and returns how each scroll that moved its panel was asked
+ * to move, `smooth` or `auto`. React Aria reads the reader's preference
+ * through `window.matchMedia` and nothing else, so with `reduced` the
+ * reduced-motion query is answered as matching and every other query the way
+ * the page would — a stub rather than Chromium's emulation, for the reason
+ * src/hooks/useRipple.test.tsx gives.
+ */
+function scrollsOfSheet({ reduced }: { reduced: boolean }) {
+  if (reduced) {
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.includes('prefers-reduced-motion') ? 'all' : query),
+    )
+  }
+  const scrollTo = vi.spyOn(Element.prototype, 'scrollTo')
+  const view = render(
+    <Sheet defaultOpen>
+      <Button>Open</Button>
+      <Sheet.Content>
+        <Sheet.Title>Headline</Sheet.Title>
+      </Sheet.Content>
+    </Sheet>,
+  )
+  const scroller = view.getByRole('dialog').closest('[data-sheet-scroll]')
+  const contexts: unknown[] = scrollTo.mock.contexts
+  const calls: unknown[][] = scrollTo.mock.calls
+
+  return calls.flatMap(([options], index) => {
+    if (
+      contexts[index] !== scroller ||
+      typeof options !== 'object' ||
+      options === null
+    ) {
+      return []
+    }
+    return [
+      'behavior' in options && typeof options.behavior === 'string'
+        ? options.behavior
+        : 'auto',
+    ]
+  })
 }
 
 function showSnackbar() {
@@ -116,7 +147,6 @@ function showSnackbar() {
 }
 
 const OVERLAYS: ReadonlyArray<{ name: string; open: () => HTMLElement }> = [
-  { name: "a sheet's panel", open: openSheet },
   { name: "a dialog's container", open: openDialog },
   { name: "a snackbar's strip", open: showSnackbar },
   { name: "a popover's surface", open: openPopover },
@@ -138,4 +168,26 @@ describe('an overlay that moves as it arrives', () => {
       expect(animationDurations(open()).reduced).toBe('0s')
     },
   )
+})
+
+// A sheet's panel arrives by scrolling rather than by an animation, since a
+// scroll is what a swipe moves, so there is no animation for the stylesheet
+// to stop. React Aria asks for a smooth scroll, and a plain one for a reader
+// who asked for less motion, which lands the panel where it rests at once.
+describe('a sheet, which arrives by scrolling', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('scrolls its panel in smoothly', () => {
+    expect(scrollsOfSheet({ reduced: false })).toContain('smooth')
+  })
+
+  // Not empty, or a sheet that stopped scrolling at all would pass.
+  it('scrolls its panel in place for a reader who asked for less motion', () => {
+    const scrolls = scrollsOfSheet({ reduced: true })
+
+    expect(scrolls).not.toHaveLength(0)
+    expect(scrolls).not.toContain('smooth')
+  })
 })

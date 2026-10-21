@@ -40,7 +40,10 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // React Aria keeps a closing surface mounted only while an animation is
 // running on it, and a popover in particular is dismissed far more often than
 // it is closed deliberately — usually by pressing something else, where a
-// lingering surface is in the way of whatever the press was for.
+// lingering surface is in the way of whatever the press was for. A sheet is
+// the one that leaves with movement, and none of it is a CSS animation: its
+// panel is moved by scrolling, since a scroll is what a swipe makes, so it
+// scrolls out as it scrolled in — see src/components/sheet/index.tsx.
 
 // The scrim settles before the panel it sits behind arrives: shorter than
 // any panel's entry, so the two do not finish together.
@@ -59,6 +62,24 @@ const scaleIn = stylex.keyframes({
 })
 
 const overlay = stylex.create({
+  // The scrim behind a sheet: the scrim's colour and its fade, and none of
+  // its place. React Aria draws the sheet's scrim inside the layer the panel
+  // shares and positions it there itself, and a layer of its own would put it
+  // over the panel rather than behind it.
+  //
+  // The fade is the reduced motion one. Otherwise the sheet hands React Aria
+  // a swipe animation for the scrim, which darkens it as the panel scrolls in
+  // and lifts it as the panel scrolls out, and React Aria sets that inline
+  // over this one — so the scrim keeps its documented duration under reduced
+  // motion, as `scrim` below does, and follows the panel the rest of the
+  // time.
+  backdrop: {
+    animationDuration: motion.durationShort2,
+    animationName: fadeIn,
+    animationTimingFunction: motion.easingStandard,
+    backgroundColor: `color-mix(in srgb, ${colors.scrim} 32%, transparent)`,
+    boxSizing: 'border-box',
+  },
   fromBottom: { transformOrigin: 'bottom center' },
   fromLeft: { transformOrigin: 'left center' },
   fromRight: { transformOrigin: 'right center' },

@@ -579,7 +579,7 @@ describe('a boundary drawn in a shadow or a fill', () => {
       expect(rules.get('border-top-style')).toBe('solid')
       expect(rules.get('border-top-width')).toBe('1px')
       expect(rules.get('border-top-color')).toBe('canvastext')
-      expect(rules.get('border-inline-start-style')).toBe('none')
+      expect(rules.get('border-inline-start-style')).toBeUndefined()
     })
   })
 })

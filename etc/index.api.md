@@ -104,6 +104,7 @@ import { SelectProps as SelectProps_2 } from 'react-aria-components';
 import { SeparatorProps as SeparatorProps_2 } from 'react-aria-components';
 import { SharedElement } from 'react-aria-components';
 import { SharedElementTransition } from 'react-aria-components';
+import { SheetRenderProps } from 'react-aria-components';
 import { SliderProps as SliderProps_2 } from 'react-aria-components';
 import { ToastRegionRenderProps as SnackbarRegionRenderProps } from 'react-aria-components';
 import { SortDescriptor } from 'react-aria-components';
@@ -1782,11 +1783,12 @@ export function SheetBody(input: HTMLAttributes<HTMLDivElement> & RefAttributes<
 export function SheetContent(input: RefAttributes<HTMLDivElement> & SheetContentProps): JSX;
 
 // @public (undocumented)
-export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'defaultOpen' | 'isKeyboardDismissDisabled' | 'isOpen' | 'onOpenChange'> & {
-    className?: ClassNameOrFunction<ModalRenderProps>;
+export type SheetContentProps = Omit<DialogProps_2, 'className' | 'style'> & Pick<ModalOverlayProps, 'defaultOpen' | 'isOpen' | 'onOpenChange'> & {
+    className?: ClassNameOrFunction<SheetRenderProps>;
     container?: Element;
     isDismissable?: boolean;
-    style?: StyleOrFunction<ModalRenderProps>;
+    isKeyboardDismissDisabled?: boolean;
+    style?: StyleOrFunction<SheetRenderProps>;
 };
 
 // @public

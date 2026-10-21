@@ -33,6 +33,14 @@ function CloseIcon() {
 
 const meta = {
   component: Sheet,
+  parameters: {
+    // A sheet arrives by scrolling, which Chromatic neither waits for nor
+    // pauses as it pauses an animation, so a snapshot could catch the panel
+    // anywhere on its way in. Under reduced motion React Aria scrolls it
+    // straight to where it rests, which is the state every story is for.
+    // Merged into each story's own `chromatic` rather than replaced by it.
+    chromatic: { prefersReducedMotion: 'reduce' },
+  },
   title: 'Components/Sheet',
 } satisfies Meta<typeof Sheet>
 
@@ -251,9 +259,10 @@ const LongHeadlineAndActions: Story = {
   ),
 }
 
-// The one check that runs against the real entry animation rather than a
-// stubbed clock — 250ms of it — which is why it is a story and not a case in
-// index.test.tsx. See AGENTS.md, "Controlling time".
+// The one check that runs a swipe against the real scrolls that bring the
+// panel in and take it out, rather than ones reduced motion makes instant,
+// which is why it is a story and not a case in index.test.tsx. See AGENTS.md,
+// "Controlling time".
 const OpensAndCloses: Story = {
   parameters: {
     chromatic: { disableSnapshot: true },
@@ -279,16 +288,60 @@ const OpensAndCloses: Story = {
     await expect(panel).not.toBeNull()
 
     // Focus has to land inside the panel, or the keyboard is still back on
-    // the page the sheet is covering.
-    await waitFor(async () => {
-      await expect(panel?.contains(document.activeElement)).toBe(true)
-    })
+    // the page the sheet is covering. React Aria moves it there once the
+    // panel has scrolled in.
+    await waitFor(
+      async () => {
+        await expect(panel?.contains(document.activeElement)).toBe(true)
+      },
+      { timeout: 3000 },
+    )
 
     await userEvent.keyboard('{Escape}')
-    await waitFor(async () => {
-      await expect(document.getElementById(panelId)).toBeNull()
-    })
+    await waitFor(
+      async () => {
+        await expect(document.getElementById(panelId)).toBeNull()
+      },
+      { timeout: 3000 },
+    )
     await expect(trigger.getAttribute('aria-expanded')).toBe('false')
+
+    // Opened again and swiped toward the edge it rests on, which is the
+    // scroller under the panel scrolled that way: a bottom sheet down, a
+    // sheet on the right to the right, one on the left to the left.
+    await userEvent.click(trigger)
+    const scroller = await waitFor(
+      async () => {
+        const found = document
+          .getElementById(trigger.getAttribute('aria-controls') ?? '')
+          ?.closest('[data-sheet-scroll]')
+        if (!(found instanceof HTMLElement)) {
+          throw new Error('the sheet never opened again')
+        }
+        await expect(found.parentElement?.hasAttribute('data-entering')).toBe(
+          false,
+        )
+        // React Aria closes a sheet once it has seen it in the window and then
+        // out of it, and says it has seen it whole with `data-expanded`.
+        await expect(found.parentElement?.hasAttribute('data-expanded')).toBe(
+          true,
+        )
+        return found
+      },
+      { timeout: 3000 },
+    )
+    const edge = scroller.parentElement?.dataset.position
+    if (edge === 'bottom') {
+      scroller.scrollTop = 0
+    } else {
+      scroller.scrollLeft = edge === 'left' ? scroller.scrollWidth : 0
+    }
+    await waitFor(
+      async () => {
+        await expect(trigger.getAttribute('aria-expanded')).toBe('false')
+      },
+      { timeout: 3000 },
+    )
   },
   render: (args) => (
     <Sheet {...args}>
