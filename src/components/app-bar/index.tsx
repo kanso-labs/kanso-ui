@@ -520,6 +520,10 @@ type Line = { size: number; x: number; y: number }
  * Material Design's app bar: the container at the top of a page carrying its
  * title, one or two actions, and the way back out.
  *
+ * ```tsx
+ * <AppBar headline="Headline" leading={back} size="md" trailing={actions} />
+ * ```
+ *
  * Three sizes. `sm` is a fixed 64px bar for a page whose title is a label;
  * `md` and `lg` are the flexible bars, which give the headline a larger
  * type role in a row of its own under the slots, and grow to fit a subtitle

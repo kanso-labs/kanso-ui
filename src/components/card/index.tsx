@@ -327,6 +327,12 @@ type CardVariant = 'elevated' | 'filled' | 'outlined'
  * as a link and opening in a new tab on a modifier click, which a `<button>`
  * with an onClick does neither of.
  *
+ * ```tsx
+ * <Card interactive render={<a href="#first" />}>
+ *   <Text variant="titleMedium">Headline</Text>
+ * </Card>
+ * ```
+ *
  * `interactive` and `render` are separate axes. `interactive` says the card
  * is pressable and gives it the ripple, the hover lift, and a focus ring;
  * `render` says what it is. A pressable card with no `render` is a

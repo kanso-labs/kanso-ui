@@ -31,8 +31,11 @@ function Blocks({ count = 3 }: { count?: number }) {
 }
 
 const meta = {
+  // `gap` is set to the step it defaults to anyway, so its control opens on
+  // `md` rather than on "Choose option…".
   args: {
     children: <Blocks />,
+    gap: 'md',
   },
   component: Stack,
   title: 'Components/Stack',

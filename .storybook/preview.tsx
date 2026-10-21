@@ -98,6 +98,44 @@ const withJSDocDefaultsUnquoted: Enhancer = ({ argTypes }) =>
     }),
   )
 
+// The steps of the library's size scale, smallest first: the steps `size`
+// takes, and the spacing steps Stack's `gap` does.
+const SCALE = ['none', 'xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl']
+
+// A control lists a union's members in the order its type declares them, and
+// lint sorts those by name, so Button's `size` offered lg, md, xl, xs and xxl.
+// A union made of steps of the scale is offered smallest first instead, and
+// the table spells its type in the same order.
+const withScaleInOrder: Enhancer = ({ argTypes }) =>
+  Object.fromEntries(
+    Object.entries(argTypes).map(([name, argType]) => {
+      const { table, type } = argType
+      if (
+        type?.name !== 'enum' ||
+        !type.value.every(
+          (value) => typeof value === 'string' && SCALE.includes(value),
+        )
+      ) {
+        return [name, argType]
+      }
+      const steps = SCALE.filter((step) => type.value.includes(step))
+      return [
+        name,
+        {
+          ...argType,
+          table: {
+            ...table,
+            type: {
+              ...table?.type,
+              summary: steps.map((step) => `"${step}"`).join(' | '),
+            },
+          },
+          type: { ...type, value: steps },
+        },
+      ]
+    }),
+  )
+
 // A story's uncontrolled defaults, `defaultValue`, `defaultSelected` and the
 // rest, as one string to key it on. A component reads a default once, when it
 // mounts, so editing one in Controls changed nothing on screen; keyed on them,
@@ -110,7 +148,11 @@ function defaultsKey(args: Record<string, unknown>) {
 }
 
 const preview: Preview = {
-  argTypesEnhancers: [withoutUnwritableEditors, withJSDocDefaultsUnquoted],
+  argTypesEnhancers: [
+    withoutUnwritableEditors,
+    withJSDocDefaultsUnquoted,
+    withScaleInOrder,
+  ],
   decorators: [
     (Story, context) => {
       // Globals arrive untyped, and the value reaches a `string` prop rather

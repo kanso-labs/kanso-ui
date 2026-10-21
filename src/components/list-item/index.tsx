@@ -78,6 +78,12 @@ type ListItemProps = {
  * the row module's in `src/row`, shared with every collection item; what is
  * here is the element around them — a `<div>` that presents, or a `<button>`
  * that ripples — and the props that fill the slots.
+ *
+ * ```tsx
+ * <ListItem leading={<Avatar name="Ada Lovelace" />} supporting="Supporting line">
+ *   Headline
+ * </ListItem>
+ * ```
  */
 function ListItem({
   children,
