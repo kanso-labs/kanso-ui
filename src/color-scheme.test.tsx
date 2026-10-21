@@ -15,7 +15,7 @@ import {
   typography,
 } from './tokens/design.tokens.stylex'
 
-// The scheme's primary in design.tokens.json, light and dark, which are what
+// The scheme's primary in tokens.json, light and dark, which are what
 // a pinned scheme has to land on whatever the OS asks for.
 const LIGHT_PRIMARY = 'rgb(103, 80, 164)'
 const DARK_PRIMARY = 'rgb(208, 188, 255)'

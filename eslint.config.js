@@ -14,7 +14,8 @@ export default defineConfig([
   // It is gitignored, but flat config does not read .gitignore the way oxlint
   // and oxfmt do, so it has to be named here. `scripts/consumer-types` is a
   // consumer of the built package, which only exists after a build, so it is
-  // type-checked by scripts/check-package.mjs rather than linted here.
+  // type-checked by scripts/check-package.mjs rather than linted here. The
+  // two token modules are generated, and ignored by git for that reason.
   globalIgnores([
     '.claude',
     '.design-sync',
@@ -22,6 +23,8 @@ export default defineConfig([
     'dist',
     'ds-bundle',
     'scripts/consumer-types',
+    'src/tokens/design.tokens.stylex.ts',
+    'src/tokens/values.ts',
     'storybook-static',
   ]),
   {

@@ -15,7 +15,7 @@ import Tooltip from './components/tooltip'
 import { type KuiTheme, ThemeScope, type ThemeScopeProps } from './theme-scope'
 import { colors } from './tokens/design.tokens.stylex'
 
-// The scheme's primary in design.tokens.json, light and dark — the runner's
+// The scheme's primary in tokens.json, light and dark — the runner's
 // OS asks for light — and a value well clear of both, set as an override.
 const LIGHT_PRIMARY = 'rgb(103, 80, 164)'
 const DARK_PRIMARY = 'rgb(208, 188, 255)'

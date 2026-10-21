@@ -18,7 +18,7 @@ import {
 // design.tokens.stylex.ts, which is the same mechanism .storybook/components/
 // ThemeWrapper.tsx already applies for light and dark. A consumer outside the
 // StyleX toolchain expresses the same thing by redeclaring the matching
-// `--kui-*` custom properties on `:root` — see src/tokens/design.tokens.css,
+// `--kui-*` custom properties on `:root` — see the package's tokens.css,
 // and the Theming page for the two side by side.
 //
 // **Only `colors` is stated in full, and it has to be.** Every colour token's

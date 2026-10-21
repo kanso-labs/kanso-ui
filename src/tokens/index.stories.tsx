@@ -689,7 +689,7 @@ const shadowStyles = stylex.create({
 // so the literal it resolves to exists only in the browser's computed style.
 // The element that each sample animates carries its own token, and the value
 // is read back off that element rather than restated here — which keeps this
-// section from drifting out of step with design.tokens.json, and is also the
+// section from drifting out of step with tokens.json, and is also the
 // only way to plot an easing curve, since an SVG path can't be handed a CSS
 // timing function.
 //
@@ -766,7 +766,7 @@ function bezierPoints(resolved: string | undefined) {
 }
 
 // Computed animation-duration comes back in seconds ('0.15s'), so it is
-// rounded back to whole milliseconds — the unit design.tokens.json states it
+// rounded back to whole milliseconds — the unit tokens.json states it
 // in — rather than shown as the browser's own normalization.
 function durationMs(resolved: string | undefined) {
   return resolved === undefined
@@ -775,7 +775,7 @@ function durationMs(resolved: string | undefined) {
 }
 
 // State layers composite an 'on-color' over its container at one of these
-// opacities (see stateLayerOpacity in design.tokens.json) rather than using a
+// opacities (see stateLayerOpacity in tokens.json) rather than using a
 // separate hover/pressed color — this is the same color-mix() formula
 // Button's own hover/focus/pressed/disabled styles use.
 function overOpacity(layer: string, over: string, opacity: string) {

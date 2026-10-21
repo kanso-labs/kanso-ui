@@ -1,6 +1,6 @@
+import tokens from '@kanso-labs/kanso-ui-core/tokens.json'
 import { describe, expect, it } from 'vitest'
 
-import tokens from './design.tokens.json'
 import { motionDurationMs, motionEasing, spacingPx } from './values'
 
 const { duration, easing } = tokens.motion
@@ -39,7 +39,7 @@ const EASINGS: [curve: string, generated: string, source: number[]][] = [
 ]
 
 // values.ts is generated, so its values cannot drift from
-// design.tokens.json the way a hand-copied constant would. What can still go
+// kanso-ui-core's tokens.json the way a hand-copied constant would. What can still go
 // wrong is the conversion: durations are authored as CSS strings ('450ms') and
 // have to reach element.animate() and setTimeout as numbers, and a parse that
 // is wrong but well-formed — 45 for '450ms', say — would pass the build and

@@ -528,10 +528,9 @@ component, independent of your app's build tooling:
 Overrides on `:root` reach the whole page. To theme part of one, declare them on
 a `ThemeScope` instead — see [Theming part of a page](#theming-part-of-a-page).
 
-[`@kanso-labs/kanso-ui/tokens.css`](src/tokens/design.tokens.css) is the
-canonical, generated reference for every available variable and its current
-default value — useful for discovering names, not required at runtime
-(components already carry their defaults inline):
+`@kanso-labs/kanso-ui/tokens.css` is the canonical, generated reference for
+every available variable and its current default value — useful for discovering
+names, not required at runtime (components already carry their defaults inline):
 
 ```ts
 import '@kanso-labs/kanso-ui/tokens.css'
@@ -761,13 +760,13 @@ anything — reach for `npm run format`.
 
 ### Everything else
 
-| Command                           | What it does                                          |
-| --------------------------------- | ----------------------------------------------------- |
-| `npm run storybook`               | the component playground (`npm run dev` is an alias)  |
-| `npm run build-storybook`         | that playground as a static site, as CI publishes it  |
-| `npm run test:coverage`           | the suite with v8 coverage, written to `coverage/`    |
-| `npm run tokens:build`            | regenerate `src/tokens/design.tokens.*` from the JSON |
-| `npm run component:new -- <name>` | scaffold `src/components/<name>` and its entries      |
+| Command                           | What it does                                         |
+| --------------------------------- | ---------------------------------------------------- |
+| `npm run storybook`               | the component playground (`npm run dev` is an alias) |
+| `npm run build-storybook`         | that playground as a static site, as CI publishes it |
+| `npm run test:coverage`           | the suite with v8 coverage, written to `coverage/`   |
+| `npm run tokens:build`            | generate the StyleX tokens from kanso-ui-core's JSON |
+| `npm run component:new -- <name>` | scaffold `src/components/<name>` and its entries     |
 
 [`AGENTS.md`](AGENTS.md) carries the conventions every component follows, the
 reasoning behind them, and the traps. It is written for coding agents and is

@@ -52,6 +52,14 @@
 // and all, unless the field names the entry as having side effects. The
 // import is still in dist/index.js when that happens, so the second check
 // passes; only bundling a consumer shows it.
+//
+// The eighth is what the package takes from @kanso-labs/kanso-ui-core, a
+// devDependency no consumer installs. tokens.css and tokens.json are copied
+// from it and have to arrive as they are, since the override contract is the
+// stylesheet's text; and no emitted module or declaration may still import
+// the package, which a consumer's bundler or compiler would fail to find —
+// `KuiTheme` is re-exported from it, so its declaration has to be written into
+// dist rather than referenced.
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -368,6 +376,34 @@ check('a consumer type-checks under TypeScript 6 defaults', () => {
 
   if (result.status !== 0) {
     throw new Error(result.stdout.trim() || result.stderr.trim())
+  }
+})
+
+check("dist/tokens.css and dist/tokens.json are kanso-ui-core's", () => {
+  for (const name of ['tokens.css', 'tokens.json']) {
+    const published = readFileSync(new URL(name, DIST))
+    const source = readFileSync(
+      require.resolve(`@kanso-labs/kanso-ui-core/${name}`),
+    )
+
+    if (!published.equals(source)) {
+      throw new Error(`dist/${name} differs from the package's ${name}`)
+    }
+  }
+})
+
+check('nothing in dist imports @kanso-labs/kanso-ui-core', () => {
+  const importing = readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((file) => /\.(?:d\.ts|js)$/u.test(file))
+    .filter((file) =>
+      /(?:from|import\(?)\s*['"]@kanso-labs\/kanso-ui-core[/'"]/u.test(
+        readFileSync(new URL(file, DIST), 'utf8'),
+      ),
+    )
+
+  if (importing.length > 0) {
+    throw new Error(`an import of the package in ${importing.join(', ')}`)
   }
 })
 

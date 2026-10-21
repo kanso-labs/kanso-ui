@@ -406,10 +406,11 @@ copy from the start rather than porting text over from wherever the design
 originated.
 
 That rule covers what the placeholder text may say. How copy is written — the
-sentence case, the imperative CTAs, the things to avoid — lives in
-`src/tokens/design.tokens.json`, under `$extensions` → `voice`, alongside the
-visual tokens, so it reaches anything handed the token file on its own. Both
-apply to a new component's stories, and neither is a subset of the other.
+sentence case, the imperative CTAs, the things to avoid — lives in the design
+tokens `@kanso-labs/kanso-ui-core` publishes as `tokens.json`, under
+`$extensions` → `voice`, alongside the visual tokens, so it reaches anything
+handed the token file on its own. Both apply to a new component's stories, and
+neither is a subset of the other.
 
 ### Media queries a test cannot set
 
@@ -628,11 +629,24 @@ reference rather than a runtime dependency.
 <https://claude.ai/artifact/TJSpYMBeBEMx1agnDVuZdv>: the tokens and their usage
 notes, the type styles and families, the brand book, and each component's
 guidelines and live preview. A person changes the design system there.
-`src/tokens/design.tokens.json` is the copy the packages build from — this
-library's StyleX tokens and `tokens.css`, and the `./tokens.json` export that
-react-native-kanso-ui reads — so a token edited in the artifact reaches both
-libraries through a pull request here, and one changed here reaches the artifact
-on the next sync.
+[`@kanso-labs/kanso-ui-core`](https://github.com/kanso-labs/kanso-ui-core) holds
+the copy of the tokens both libraries build from, and publishes it with
+`tokens.css` and the `KuiTheme` type, so a token edited in the artifact reaches
+this library through a kanso-ui-core release and the Renovate bump of it that
+follows.
+
+**This repository holds no token value.** The package is a pinned devDependency,
+and `scripts/build-tokens.mjs` reads its `tokens.json` for the two modules a
+StyleX build needs, `src/tokens/design.tokens.stylex.ts` and
+`src/tokens/values.ts`. Neither is committed: `build`, `lint`, `test`,
+`test:coverage`, `storybook` and `build-storybook` run `npm run tokens:build`
+first, so a bump of the package is the whole of a token change. tsdown copies
+`tokens.css` and `tokens.json` into `dist/` as they are and writes `KuiTheme`'s
+declaration there under `dist/kanso-ui-core/`, since no consumer installs the
+package; `scripts/check-package.mjs` fails a copy that differs from the
+package's, and a module or declaration in `dist/` that still imports it.
+`src/tokens/theme.test.ts` fails a property `tokens.css` declares that the
+StyleX theme does not read.
 
 A daily routine runs the sync `.design-sync/artifact/README.md` sets out, after
 release-please's 09:00 UTC run. It brings the artifact's edits into a pull
