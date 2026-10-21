@@ -161,6 +161,19 @@ const Compact: Story = {
   ),
 }
 
+// Under a right-to-left locale, for the mirrored layout and the Arabic-Indic
+// digits. Pinned to Arabic through `globals`, which the locale toolbar cannot
+// override, and framed on the Overview page: the locale's direction lands on
+// the document, and drawn inline there it would turn every story on the page
+// over with it. The dark snapshot is off, since neither depends on the theme.
+const RightToLeft: Story = {
+  globals: { locale: 'ar-EG' },
+  parameters: {
+    chromatic: { modes: { dark: { disable: true } } },
+    docs: { story: { height: '480px', inline: false } },
+  },
+}
+
 function isWeekend(date: DateValue) {
   const day = date.toDate(getLocalTimeZone()).getDay()
   return day === 0 || day === 6
@@ -175,6 +188,7 @@ export {
   MonthAndYearMenus,
   MonthList,
   ReadOnly,
+  RightToLeft,
   Today,
   TwoMonths,
   TwoMonthsWithMenus,
