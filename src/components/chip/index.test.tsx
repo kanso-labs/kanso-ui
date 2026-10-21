@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
@@ -17,6 +17,7 @@ import {
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
 import { rippleStyles } from '../../styles/ripple'
+import { transitionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   shadows,
@@ -32,9 +33,16 @@ import {
 // these tests are the first thing to use.
 const probeStyles = stylex.create({
   assistColor: { color: colors.onSurface },
-  // A disabled chip's content: on surface at 38%, over the surface.
+  // A coloured container to set a chip on, which is not the surface.
+  backdrop: { backgroundColor: colors.primary },
+  // A disabled chip's content: on surface at 38%, over whatever is behind it.
   disabledColor: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  // The containers a disabled chip draws: on surface at 12%, over whatever
+  // is behind it.
+  disabledContainer: {
+    backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
   },
   elevatedBackground: { backgroundColor: colors.surfaceContainerLow },
   elevation1: { boxShadow: shadows.elevation1 },
@@ -68,6 +76,8 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   assistColor: classesOf(stylex.props(probeStyles.assistColor)),
+  disabledColor: classesOf(stylex.props(probeStyles.disabledColor)),
+  disabledContainer: classesOf(stylex.props(probeStyles.disabledContainer)),
   elevatedBackground: classesOf(stylex.props(probeStyles.elevatedBackground)),
   elevation1: classesOf(stylex.props(probeStyles.elevation1)),
   elevation2: classesOf(stylex.props(probeStyles.elevation2)),
@@ -83,6 +93,14 @@ const CLASSES = {
   ),
   unselectedBorder: classesOf(stylex.props(probeStyles.unselectedBorder)),
   unselectedColor: classesOf(stylex.props(probeStyles.unselectedColor)),
+}
+
+// The alpha of a computed colour, which Chromium writes as `rgba(…)` or as
+// `color(srgb … / a)`, and leaves out where it is 1.
+function alphaOf(colour: string) {
+  const alpha =
+    /\/\s*([\d.]+)\)$/.exec(colour) ?? /rgba\([^)]*,\s*([\d.]+)\)$/.exec(colour)
+  return alpha === null ? 1 : Number(alpha[1])
 }
 
 // The check, or null where the chip draws none. It is the only SVG a chip
@@ -134,6 +152,14 @@ const ICON = (
 
 function iconIn(chip: HTMLElement) {
   return chip.querySelector('[data-testid="icon"]')
+}
+
+// A chip set on the coloured backdrop, and the button it draws.
+function onBackdrop(element: ReactElement) {
+  const view = render(
+    <div {...stylex.props(probeStyles.backdrop)}>{element}</div>,
+  )
+  return view.getByRole('button')
 }
 
 // An arrow after the label, marked apart from the leading icon.
@@ -993,5 +1019,94 @@ describe('elevated chips', () => {
 
     expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
     expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
+  })
+
+  // A mouse press does not end the hover, so the lift has to give way to the
+  // press of its own accord. A selected one is the same.
+  it.each([
+    ['an assist chip', { elevated: true, variant: 'assist' }],
+    ['a selected filter chip', { defaultSelected: true, elevated: true }],
+  ] as const)(
+    'comes back to elevation 1 while a hovering pointer presses %s',
+    (_chip, props) => {
+      const view = render(<Chip {...props}>Label</Chip>)
+      const chip = view.getByRole('button')
+
+      fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+      expect(hasClasses(chip, CLASSES.elevation2)).toBe(true)
+
+      pressDown(chip)
+
+      expect(hasClasses(chip, CLASSES.elevation2)).toBe(false)
+      expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+    },
+  )
+})
+
+// A flat chip lies on the page, but the page's filter chip tokens lift a
+// selected one to elevation 1 under a hovering pointer.
+describe('flat chips', () => {
+  it('lifts a selected filter chip to elevation 1 under a hovering pointer', () => {
+    const { chip } = setup({ defaultSelected: true })
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(true)
+  })
+
+  it('lays it back down while the pointer presses it', () => {
+    const { chip } = setup({ defaultSelected: true })
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+    pressDown(chip)
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  it('leaves an unselected filter chip on the page under a hovering pointer', () => {
+    const { chip } = setup()
+
+    fireEvent.pointerOver(chip, { pointerType: 'mouse' })
+
+    expect(hasClasses(chip, CLASSES.elevation1)).toBe(false)
+  })
+
+  it('moves its shadow with the colours', () => {
+    const { chip } = setup({ defaultSelected: true })
+    const { durations, properties } = transitionOf(chip)
+    // A list of durations shorter than the properties repeats, as CSS does.
+    const durationOf = (property: string) =>
+      durations[properties.indexOf(property) % durations.length]
+
+    expect(properties).toContain('box-shadow')
+    expect(durationOf('box-shadow')).toBe(durationOf('background-color'))
+    expect(durationOf('box-shadow')).not.toBe('0s')
+  })
+})
+
+// The page gives a disabled chip's content and container as on surface at
+// 38% and 12% over whatever is behind it, so on a coloured container the
+// chip is a faint tint rather than a pale patch.
+describe('a disabled chip', () => {
+  it.each([
+    ['selected', { defaultSelected: true }],
+    ['elevated', { elevated: true }],
+  ] as const)('draws a %s container translucent', (_state, props) => {
+    const chip = onBackdrop(
+      <Chip isDisabled {...props}>
+        Label
+      </Chip>,
+    )
+
+    expect(hasClasses(chip, CLASSES.disabledContainer)).toBe(true)
+    expect(alphaOf(getComputedStyle(chip).backgroundColor)).toBeCloseTo(0.12)
+  })
+
+  it('draws its content translucent', () => {
+    const chip = onBackdrop(<Chip isDisabled>Label</Chip>)
+
+    expect(hasClasses(chip, CLASSES.disabledColor)).toBe(true)
+    expect(alphaOf(getComputedStyle(chip).color)).toBeCloseTo(0.38)
   })
 })

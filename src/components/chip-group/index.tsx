@@ -236,7 +236,7 @@ const LABEL_STATE_INVALID = { isInvalid: true }
 
 // The pill of a chip with an action, which a press always reaches.
 function actingChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state)
+  return chipPropsFor(state, { kind: kindOf(state) })
 }
 
 /**
@@ -368,7 +368,17 @@ function ChipGroupChip({
 // every chip's reaches halfway across the gap its rows wrap at. Inert where
 // the group selects nothing and the chip has no action — see the header.
 function groupChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state, { inert: state.selectionMode === 'none' })
+  return chipPropsFor(state, {
+    inert: state.selectionMode === 'none',
+    kind: kindOf(state),
+  })
+}
+
+// Which of the page's chips a group's chip is: an input chip once it can be
+// removed, and a filter chip until then, which is what decides whether a
+// selected one lifts under a hovering pointer.
+function kindOf(state: TagRenderProps) {
+  return state.allowsRemoving ? 'input' : 'filter'
 }
 
 ChipGroup.Chip = ChipGroupChip
