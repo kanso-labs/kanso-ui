@@ -49,12 +49,13 @@ const styles = stylex.create({
     fontSize: typography.displaySmallSize,
   },
   // A list fills what it is given, so the sample needs a width and something
-  // to sit on, as List's own stories give it.
+  // to sit on, as List's own stories give it, and capped as they cap it.
   list: {
     backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.md,
     boxSizing: 'border-box',
-    inlineSize: '360px',
+    inlineSize: '100%',
+    maxInlineSize: '360px',
     overflow: 'hidden',
   },
   row: {

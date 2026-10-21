@@ -88,8 +88,12 @@ const styles = stylex.create({
   narrow: {
     maxInlineSize: '280px',
   },
+  // A group fills its container, so the samples need a width to fill. A cap
+  // rather than a fixed width, so a phone-sized window narrows it rather
+  // than scrolling sideways.
   width: {
-    inlineSize: '420px',
+    inlineSize: '100%',
+    maxInlineSize: '420px',
   },
 })
 

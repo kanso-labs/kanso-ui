@@ -25,9 +25,11 @@ const styles = stylex.create({
     inlineSize: '24px',
     justifyContent: 'center',
   },
-  // The drawer page's own container width.
+  // The drawer page's own container width, as a cap, so a phone-sized window
+  // narrows the tree rather than scrolling sideways.
   width: {
-    inlineSize: '360px',
+    inlineSize: '100%',
+    maxInlineSize: '360px',
   },
 })
 
