@@ -27,7 +27,7 @@ import type { ReactNode } from 'react'
 
 import { demoThemes } from '@kanso-labs/kanso-ui-core/themes'
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
+import { createContext, Fragment, useContext } from 'react'
 import { TokenFieldValue } from 'react-aria-components'
 
 import AppBar from '../components/app-bar'
@@ -134,6 +134,20 @@ const PAGE_MEASURE = '1040px'
 
 // The page draws the icons it needs, sized in `em` so each follows the font
 // size its control sets.
+function ArrowDropDownIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="M7 10l5 5 5-5z" />
+    </svg>
+  )
+}
+
 function CircleIcon() {
   return (
     <svg
@@ -393,6 +407,22 @@ const SHOWCASE_FIELD_SWATCH = <ColorSwatch color={SHOWCASE_SWATCHES[0]} />
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
 
+const ICON_BUTTON_VARIANTS = [
+  'standard',
+  'outlined',
+  'tonal',
+  'filled',
+] as const
+const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
+
+// A meter on a scale of its own, its value written in units in the locale's
+// own figures.
+const METER_BYTES = {
+  notation: 'compact',
+  style: 'unit',
+  unit: 'gigabyte',
+} as const
+
 const ROWS = [
   { amount: 1240.5, name: 'Ada Lovelace', tone: 'primary' },
   { amount: -86.2, name: 'Grace Hopper', tone: 'secondary' },
@@ -613,7 +643,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
             <div {...stylex.props(styles.autocomplete)}>
               <Card padding="none" variant="outlined">
                 <Autocomplete>
-                  <SearchField label="Label" placeholder="Search" />
+                  <SearchField label="Search" placeholder="Search" />
                   <ListBox aria-label="Label" selectionMode="single">
                     {SHOWCASE_OPTIONS}
                   </ListBox>
@@ -623,13 +653,14 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A circle for a person, tinted from a container/on-container pair, at each tone and at both sizes, and the anonymous person a blank name draws in the on-container role."
+            description="A circle for a person, tinted from a container/on-container pair, at each tone and at its three sizes, and the anonymous person a blank name draws in the on-container role."
             title="Avatar"
           >
             <div {...stylex.props(styles.inline)}>
               {AVATAR_TONES.map((tone) => (
                 <Avatar key={tone} name="Ada Lovelace" tone={tone} />
               ))}
+              <Avatar name="Grace Hopper" size="sm" />
               <Avatar name="Grace Hopper" size="lg" />
               <Avatar name="" />
             </div>
@@ -795,7 +826,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, and an elevated assist chip sits on the low container at elevation 1."
+            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, a trailing arrow the chip's own, and an elevated assist chip sits on the low container at elevation 1."
             title="Chip"
           >
             <div {...stylex.props(styles.row)}>
@@ -807,6 +838,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
               <Chip elevated icon={<CircleIcon />} variant="assist">
                 Fourth item
               </Chip>
+              <Chip trailingIcon={<ArrowDropDownIcon />}>Fifth item</Chip>
             </div>
           </Section>
 
@@ -1134,29 +1166,62 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The button's variants again at the icon's own size. A chosen toggle takes a second pair of roles and rests at the squarer corner."
+            description="The button's variants again at the icon's own size, then disabled, then each as a toggle unchosen and chosen, then the five sizes chosen. A chosen toggle takes a second pair of roles and rests at its size's squarer corner, which steps up the radius scale as the button grows."
             title="IconButton"
           >
-            <div {...stylex.props(styles.row)}>
-              <IconButton aria-label="Add">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="outlined">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="tonal">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="filled">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" defaultSelected={false}>
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" defaultSelected variant="tonal">
-                <PlusIcon />
-              </IconButton>
-            </div>
+            <Stack gap="sm">
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_VARIANTS.map((variant) => (
+                  <IconButton aria-label="Add" key={variant} variant={variant}>
+                    <PlusIcon />
+                  </IconButton>
+                ))}
+                <IconButton aria-label="Add" isDisabled variant="filled">
+                  <PlusIcon />
+                </IconButton>
+                <IconButton
+                  aria-label="Add"
+                  defaultSelected
+                  isDisabled
+                  variant="outlined"
+                >
+                  <PlusIcon />
+                </IconButton>
+              </div>
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_VARIANTS.map((variant) => (
+                  <Fragment key={variant}>
+                    <IconButton
+                      aria-label="Add"
+                      defaultSelected={false}
+                      variant={variant}
+                    >
+                      <PlusIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="Add"
+                      defaultSelected
+                      variant={variant}
+                    >
+                      <PlusIcon />
+                    </IconButton>
+                  </Fragment>
+                ))}
+              </div>
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_SIZES.map((size) => (
+                  <IconButton
+                    aria-label="Add"
+                    defaultSelected
+                    key={size}
+                    size={size}
+                    variant="tonal"
+                  >
+                    <PlusIcon />
+                  </IconButton>
+                ))}
+              </div>
+            </Stack>
           </Section>
 
           <Section
@@ -1279,11 +1344,18 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The tone recolours the active indicator, the stop indicator and the glyph before the value, and leaves the track, so a column of meters still shares one track."
+            description="Each of the three tones recolours the active indicator, the stop indicator and the glyph before the value, and leaves the track, so a column of meters still shares one track. The last measures on a scale of its own and writes its value in units."
             title="Meter"
           >
             <Meter label="Label" value={60} />
+            <Meter label="Label" tone="positive" value={40} />
             <Meter label="Label" tone="negative" value={94} />
+            <Meter
+              formatOptions={METER_BYTES}
+              label="Label"
+              maxValue={512}
+              value={318}
+            />
           </Section>
 
           <Section
@@ -1363,7 +1435,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The text field's chrome around a value the field formats itself, in the tabular figures the type scale carries. The outlined box centres the value and the side-by-side steppers on one line, which a scheme's own line heights and padding move."
+            description="The text field's chrome around a value the field formats itself, in the tabular figures the type scale carries. The outlined box centres the value and the side-by-side steppers on one line, which a scheme's own line heights and padding move. A value at its bound disables the stepper that would pass it."
             title="NumberField"
           >
             <NumberField defaultValue={1234.5} label="Label" />
@@ -1372,6 +1444,12 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
               label="Label"
               steppers="horizontal"
               variant="outlined"
+            />
+            <NumberField
+              defaultValue={10}
+              label="Label"
+              maxValue={10}
+              steppers="horizontal"
             />
           </Section>
 
@@ -1411,13 +1489,14 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A rounded square for a thing, tinted from the same container/on-container pairs the avatar takes."
+            description="A rounded square for a thing, tinted from the same container/on-container pairs the avatar takes, at each tone and at the avatar's three sizes."
             title="ProductIcon"
           >
             <div {...stylex.props(styles.inline)}>
               {AVATAR_TONES.map((tone) => (
                 <ProductIcon key={tone} name="Label" tone={tone} />
               ))}
+              <ProductIcon name="Label" size="sm" />
               <ProductIcon name="Label" size="lg" />
             </div>
           </Section>
@@ -1449,14 +1528,23 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The ring takes the on-surface-variant role while empty and primary once chosen, the same pair the checkbox draws."
+            description="The ring takes the on-surface-variant role while empty and primary once chosen, the same pair the checkbox draws. A required group's label carries the asterisk, and a disabled option, or a disabled group with its choice, fades to the on-surface role every disabled control fades to."
             title="RadioGroup"
           >
-            <RadioGroup defaultValue="second" label="Label">
-              <Radio value="first">First item</Radio>
-              <Radio value="second">Second item</Radio>
-              <Radio value="third">Third item</Radio>
-            </RadioGroup>
+            <div {...stylex.props(styles.inline)}>
+              <RadioGroup defaultValue="second" isRequired label="Label">
+                <Radio value="first">First item</Radio>
+                <Radio value="second">Second item</Radio>
+                <Radio isDisabled value="third">
+                  Third item
+                </Radio>
+              </RadioGroup>
+              <RadioGroup defaultValue="second" isDisabled label="Label">
+                <Radio value="first">First item</Radio>
+                <Radio value="second">Second item</Radio>
+                <Radio value="third">Third item</Radio>
+              </RadioGroup>
+            </div>
           </Section>
 
           <Section
@@ -1471,10 +1559,13 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
             title="SearchField"
           >
             <Stack gap="md">
-              <SearchField label="Label" placeholder="Supporting text" />
+              <SearchField
+                label="Supporting text"
+                placeholder="Supporting text"
+              />
               <SearchField
                 error="Supporting line"
-                label="Label"
+                label="Supporting text"
                 placeholder="Supporting text"
               />
             </Stack>
@@ -1486,7 +1577,10 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           >
             <SearchView>
               <Button variant="outlined">Open search</Button>
-              <SearchView.Content label="Label" placeholder="Supporting text">
+              <SearchView.Content
+                label="Supporting text"
+                placeholder="Supporting text"
+              >
                 <ListBox aria-label="Label">
                   <ListBox.Item id="first">First item</ListBox.Item>
                   <ListBox.Item id="second">Second item</ListBox.Item>
@@ -1651,12 +1745,15 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The track takes its container while off and primary once on, with the handle on the matching on-role."
+            description="The track takes its container while off and primary once on, with the handle on the matching on-role. Disabled, the track, the handle and the icon each fade on their own, so the switch still reads as on."
             title="Switch"
           >
             <div {...stylex.props(styles.row)}>
               <Switch>Label</Switch>
               <Switch defaultSelected icon>
+                Label
+              </Switch>
+              <Switch defaultSelected icon isDisabled>
                 Label
               </Switch>
             </div>

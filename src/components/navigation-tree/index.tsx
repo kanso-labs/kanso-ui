@@ -262,10 +262,11 @@ function itemContent(
   return (state: NavigationTreeItemRenderProps): ReactNode => (
     <>
       <RowContent
+        chevron={chevronFor(state)}
         isDisabled={state.isDisabled}
         isEmphasized={state.isCurrentAncestor}
         isSelected={state.isCurrent}
-        leading={leadingFor(state, leading)}
+        leading={leading}
         supporting={supporting}
         trailing={trailing}
         variant="drawer"
@@ -299,23 +300,6 @@ function itemStyles(state: NavigationTreeItemRenderProps) {
     state.isFocusVisible && rowStyles.focusVisible,
     state.isPressed && rowStyles.pressed,
     state.isDisabled && rowStyles.disabled,
-  )
-}
-
-/**
- * The caret, then whatever the row was given. Its return type is written out
- * rather than inferred: `ReactNode` is a union that includes a promise, and
- * a function inferred as returning one has to be `async`.
- */
-function leadingFor(
-  state: NavigationTreeItemRenderProps,
-  leading: ReactNode,
-): ReactNode {
-  return (
-    <>
-      {chevronFor(state)}
-      {leading}
-    </>
   )
 }
 

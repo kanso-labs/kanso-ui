@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.45.0](https://github.com/kanso-labs/kanso-ui/compare/v0.44.1...v0.45.0) (2026-10-21)
+
+
+### Features
+
+* **chip:** add a trailing icon for the dropdown filter chip ([#1776](https://github.com/kanso-labs/kanso-ui/issues/1776)) ([a9883c9](https://github.com/kanso-labs/kanso-ui/commit/a9883c9a54f4fc8f9f8d75b51f4257671cb3f89a))
+* export the HoverEvent, KeyboardEvent and FocusableElement types ([#1782](https://github.com/kanso-labs/kanso-ui/issues/1782)) ([ce3149b](https://github.com/kanso-labs/kanso-ui/commit/ce3149bcb8723e1d7909d38ef2f3b2dbbd73d3e5))
+* **sheet:** let a sheet be swiped closed, on React Aria's Sheet ([#1780](https://github.com/kanso-labs/kanso-ui/issues/1780)) ([2e428d6](https://github.com/kanso-labs/kanso-ui/commit/2e428d64d929fd9e8375e947edf783db3c61126b))
+* **sheet:** open a bottom sheet at a collapsed height and let its handle expand it ([#1781](https://github.com/kanso-labs/kanso-ui/issues/1781)) ([9ebb236](https://github.com/kanso-labs/kanso-ui/commit/9ebb236e4ad4dd09a74fa96ea24841811c8d267d))
+
+
+### Bug Fixes
+
+* **app-bar:** centre the headline on the bar and colour the leading icon on-surface ([#1771](https://github.com/kanso-labs/kanso-ui/issues/1771)) ([75ce381](https://github.com/kanso-labs/kanso-ui/commit/75ce381fae75f005a5361bd28d96744c447b2efc))
+* **button:** match the pressed layer and extra-small icon gap of the spec ([#1773](https://github.com/kanso-labs/kanso-ui/issues/1773)) ([38a639e](https://github.com/kanso-labs/kanso-ui/commit/38a639e71b7395c733026ffbaae55eabc0f55572))
+* **card:** lift filled and outlined cards on hover and use the focus ring colours of the spec ([#1774](https://github.com/kanso-labs/kanso-ui/issues/1774)) ([2559e84](https://github.com/kanso-labs/kanso-ui/commit/2559e84b527744b91eda591ee91134dde9adc879))
+* **chip:** match the elevation and disabled colours of the spec in every state ([#1777](https://github.com/kanso-labs/kanso-ui/issues/1777)) ([ae26233](https://github.com/kanso-labs/kanso-ui/commit/ae26233fa81dead5e82d8c5da8a5d7b1fde07d7c))
+* **control:** animate the checkbox glyph and radio dot and ripple from the label ([#1775](https://github.com/kanso-labs/kanso-ui/issues/1775)) ([13fe011](https://github.com/kanso-labs/kanso-ui/commit/13fe0115d89241b009ff35a6232d47d2abc91fb6))
+* **dialog:** keep the headline spacing of the spec beside a close button ([#1778](https://github.com/kanso-labs/kanso-ui/issues/1778)) ([98ec4ea](https://github.com/kanso-labs/kanso-ui/commit/98ec4eaaa4aa3810c374e62c7dcd441f679228d6))
+* **mark:** set the initials in the title-medium role ([#1772](https://github.com/kanso-labs/kanso-ui/issues/1772)) ([b4c4c48](https://github.com/kanso-labs/kanso-ui/commit/b4c4c483694fb3f86f98cdcc5d5e1aea35f5e082))
+* **progress-indicator:** keep the gap of the spec between the active part and the track at every value ([#1770](https://github.com/kanso-labs/kanso-ui/issues/1770)) ([829f600](https://github.com/kanso-labs/kanso-ui/commit/829f600de8c03e23b00cbb74dc83afa39e7d3179))
+* **row:** fade the leading and trailing slots when disabled and draw the focus layer ([#1769](https://github.com/kanso-labs/kanso-ui/issues/1769)) ([f53adc5](https://github.com/kanso-labs/kanso-ui/commit/f53adc5bd74465506d2d913d6ebb9a0c47bd8740))
+* **search-field:** draw the on-surface magnifier of the spec ([#1779](https://github.com/kanso-labs/kanso-ui/issues/1779)) ([bfc1dfe](https://github.com/kanso-labs/kanso-ui/commit/bfc1dfe515f985e8bb547f0429d544e47ee34808))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.13.1 ([#1794](https://github.com/kanso-labs/kanso-ui/issues/1794)) ([e4707b7](https://github.com/kanso-labs/kanso-ui/commit/e4707b7a1df7e3457fca3d52503fa985aafeae64))
+* update chromaui/action action to v18.13.2 ([#1817](https://github.com/kanso-labs/kanso-ui/issues/1817)) ([905da98](https://github.com/kanso-labs/kanso-ui/commit/905da980b6585589a0617395a5c62edbc07151bf))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.37 ([#1795](https://github.com/kanso-labs/kanso-ui/issues/1795)) ([e21ae3e](https://github.com/kanso-labs/kanso-ui/commit/e21ae3e3650a738b3b4c541c419e5b273cd6bcf8))
+* update dependency vite to v8.3.5 ([#1783](https://github.com/kanso-labs/kanso-ui/issues/1783)) ([3194463](https://github.com/kanso-labs/kanso-ui/commit/31944633465b0ff0a9a03ddd5f64f58685e18a4e))
+* update kanso-labs/actions action to v4.3.1 ([#1818](https://github.com/kanso-labs/kanso-ui/issues/1818)) ([081d25c](https://github.com/kanso-labs/kanso-ui/commit/081d25c815779c1a0d113d0ed41b4c6715886778))
+* update node.js to v24.22.1 ([#1796](https://github.com/kanso-labs/kanso-ui/issues/1796)) ([2ef23a7](https://github.com/kanso-labs/kanso-ui/commit/2ef23a7cf6576a7a70cc474dfbd1d6b3462274fb))
+
 ## [0.44.1](https://github.com/kanso-labs/kanso-ui/compare/v0.44.0...v0.44.1) (2026-10-20)
 
 

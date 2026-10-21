@@ -147,6 +147,21 @@ function pressEscape() {
   })
 }
 
+/**
+ * Waits until the browser hits `element` where it is drawn. React Aria keeps
+ * a modal overlay transparent and clipped to nothing until it has ruled out an
+ * on-screen keyboard, and once the window has lost a keyboard's height — as
+ * `page.viewport` takes it from the runner's 896px to 640px — it spends two
+ * animation frames doing so. A hit test in between sees through the whole
+ * overlay, scrim included, and under a full run's load those frames come
+ * late enough for one to land there.
+ */
+async function revealed(element: Element) {
+  await waitFor(() => {
+    expect(element.contains(hitAt(element))).toBe(true)
+  })
+}
+
 /** Plays out every entry under way, so what is drawn is where it rests. */
 function settle() {
   for (const animation of document.getAnimations()) {
@@ -209,6 +224,7 @@ describe('a dialog hosting other overlays', () => {
     const { opener, view } = host()
     await pressAt(opener)
     const dialog = await view.findByRole('dialog', { name: 'Headline' })
+    await revealed(dialog)
     settle()
 
     // React Aria makes everything outside an open modal inert, which takes

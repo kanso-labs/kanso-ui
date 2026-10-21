@@ -3,7 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SearchField from '.'
-import { rulesReaching } from '../../styles/stylesheet.testing'
+import { entriesOf, rulesReaching } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -13,6 +13,8 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // first thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   errorText: { color: colors.error },
+  onSurfaceText: { color: colors.onSurface },
+  onSurfaceVariantText: { color: colors.onSurfaceVariant },
   primaryText: { color: colors.primary },
   surface: { backgroundColor: colors.surfaceContainerHigh },
 })
@@ -43,6 +45,15 @@ function barOf(input: HTMLElement) {
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** The magnifier the bar opens on. */
+function magnifierOf(bar: HTMLElement) {
+  const glyph = bar.firstElementChild
+  if (!(glyph instanceof SVGElement)) {
+    throw new Error('expected the bar to open on the magnifier')
+  }
+  return glyph
 }
 
 /** A colour token as the browser resolves it, for comparing with a shadow. */
@@ -285,6 +296,56 @@ describe('search field', () => {
     it('draws the bar on surface container high', () => {
       const { input } = setup()
       expect(hasClasses(barOf(input), CLASSES.surface)).toBe(true)
+    })
+
+    // The page's level 3 is the tone of the container, and Google's own
+    // search bars cast no shadow for it, so every shadow the bar declares,
+    // resting or focused, is a ring inside the pill.
+    it.each([
+      ['a valid bar', {}],
+      ['an invalid bar', { error: 'Enter a keyword.' }],
+      ['a disabled bar', { isDisabled: true }],
+    ])('casts no shadow from %s', (_case, props) => {
+      const { input } = setup(props)
+      const shadows = rulesReaching(barOf(input), { holding: 'hover: hover' })
+        .map((rule) => rule.style.getPropertyValue('box-shadow'))
+        .filter((shadow) => shadow !== '')
+      expect(shadows).not.toEqual([])
+      expect(
+        shadows
+          .flatMap((shadow) => entriesOf(shadow))
+          .filter((entry) => entry !== 'none' && !entry.startsWith('inset ')),
+      ).toEqual([])
+    })
+
+    // The page's leading icon is on surface, a step stronger than the
+    // supporting text beside it. The magnifier took the bar's on surface
+    // variant and drew in the placeholder's colour.
+    it('draws the magnifier in on surface beside an on surface variant placeholder', () => {
+      const onSurface = resolvedColor(probeStyles.onSurfaceText)
+      const onSurfaceVariant = resolvedColor(probeStyles.onSurfaceVariantText)
+      expect(onSurface).not.toBe(onSurfaceVariant)
+      const { input } = setup()
+      const bar = barOf(input)
+      expect({
+        bar: getComputedStyle(bar).color,
+        magnifier: getComputedStyle(magnifierOf(bar)).color,
+        placeholder: getComputedStyle(input, '::placeholder').color,
+      }).toEqual({
+        bar: onSurfaceVariant,
+        magnifier: onSurface,
+        placeholder: onSurfaceVariant,
+      })
+    })
+
+    // The magnifier's own colour would otherwise hold against the bar's faded
+    // one, as it would against the `GrayText` forced colours gives the bar.
+    it('fades the magnifier with the rest of a disabled bar', () => {
+      const { input } = setup({ isDisabled: true })
+      const bar = barOf(input)
+      const faded = getComputedStyle(bar).color
+      expect(faded).not.toBe(resolvedColor(probeStyles.onSurfaceText))
+      expect(getComputedStyle(magnifierOf(bar)).color).toBe(faded)
     })
 
     // A translated placeholder is the one most likely to outrun the input,

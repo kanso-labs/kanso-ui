@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { I18nProvider } from 'react-aria-components'
+import { afterEach, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import { Button, Dialog, Sheet, Snackbar } from '.'
 import { rulesReaching } from '../styles/stylesheet.testing'
@@ -15,6 +17,13 @@ import { rulesReaching } from '../styles/stylesheet.testing'
 // where the insets are 0.
 
 const BELOW_MEDIUM = 'width < 600px'
+
+// The runner's own viewport, restored after a case that widens it. It sits
+// below the medium breakpoint, so a sheet opened at it is a bottom sheet.
+const DEFAULT_VIEWPORT = {
+  height: window.innerHeight,
+  width: window.innerWidth,
+}
 
 function computedPaddingOf(element: Element) {
   const computed = getComputedStyle(element)
@@ -92,14 +101,21 @@ function openDialog() {
   return container
 }
 
-function openSheet() {
+/**
+ * The panel of a sheet opened in `locale`. Which edge it rests on is decided
+ * as it renders, by the window's width and the locale's direction, so a case
+ * sets both before calling this rather than reading either side of a query.
+ */
+function openSheet(locale = 'en-US') {
   render(
-    <Sheet defaultOpen>
-      <Button>Open</Button>
-      <Sheet.Content>
-        <Sheet.Body>Supporting line</Sheet.Body>
-      </Sheet.Content>
-    </Sheet>,
+    <I18nProvider locale={locale}>
+      <Sheet defaultOpen>
+        <Button>Open</Button>
+        <Sheet.Content>
+          <Sheet.Body>Supporting line</Sheet.Body>
+        </Sheet.Content>
+      </Sheet>
+    </I18nProvider>,
   )
   const panel = screen.getByRole('dialog').parentElement
   if (!panel) {
@@ -117,16 +133,29 @@ function showSnackbar() {
 
 describe('the safe area', () => {
   describe('Sheet', () => {
-    // A side sheet is pinned to the top, the bottom and the edge it rests
-    // against, which is the right in a left-to-right document.
-    it('keeps a side sheet clear of the three edges it is pinned to', () => {
-      expect(paddingOf(openSheet(), false)).toEqual({
-        bottom: BOTTOM,
-        left: '0px',
-        right: RIGHT,
-        top: TOP,
-      })
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
+
+    // A side sheet is pinned to the top, the bottom and the edge it rests
+    // against, which is the right in a left-to-right locale and the left in a
+    // right-to-left one. The edge it faces the page by is not inset at all.
+    it.each([
+      { left: '', locale: 'en-US', right: RIGHT },
+      { left: LEFT, locale: 'ar-EG', right: '' },
+    ])(
+      'keeps a side sheet in $locale clear of the three edges it is pinned to',
+      async ({ left, locale, right }) => {
+        await page.viewport(1024, 768)
+
+        expect(paddingOf(openSheet(locale), false)).toEqual({
+          bottom: BOTTOM,
+          left,
+          right,
+          top: TOP,
+        })
+      },
+    )
 
     // A bottom sheet's top edge sits below the page's 72 of margin rather
     // than against the screen, so only the other three are inset.
@@ -135,7 +164,7 @@ describe('the safe area', () => {
         bottom: BOTTOM,
         left: LEFT,
         right: RIGHT,
-        top: '0px',
+        top: '',
       })
     })
 

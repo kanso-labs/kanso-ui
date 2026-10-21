@@ -223,6 +223,8 @@ type SearchViewContentProps<T extends object = object> = {
   /**
    * What is searched, for a screen reader. It names both the view and its
    * input, and is read rather than shown; `placeholder` is what is seen.
+   * Write it so it contains the placeholder's words, as SearchField's
+   * `label` explains.
    */
   label: string
   /** The supporting text in the empty input, which is what a person reads. */

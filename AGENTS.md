@@ -451,12 +451,14 @@ rewriting it into `:lang()` selectors, for the reason `tsdown.config.ts` gives �
 so `dir="rtl"` on a wrapper turns everything inside it over, and `lang` on its
 own turns nothing over. `getComputedStyle` then reads the mirrored value.
 
-An overlay needs more than a wrapper, since React Aria portals it to the body. A
-`Sheet` takes `dir` on `document.documentElement`, as its own test does.
-Anything drawn in a `Popover` — a menu, a select's list, a picker — ignores even
-that, because React Aria's `Popover` stamps a `dir` of its own from
-`useLocale()`. What turns one over is an `I18nProvider` with a right-to-left
-locale, in a test and in a consumer's app alike.
+An overlay needs more than a wrapper, since React Aria portals it to the body,
+and two kinds ignore even `dir` on `document.documentElement`. Anything drawn in
+a `Popover` — a menu, a select's list, a picker — does, because React Aria's
+`Popover` stamps a `dir` of its own from `useLocale()`, and so does a `Sheet`,
+whose panel React Aria gives a `direction` from the same place and whose `end`
+it resolves to the left or the right by it. What turns one over is an
+`I18nProvider` with a right-to-left locale, in a test and in a consumer's app
+alike.
 
 ### Controlling time
 
@@ -491,6 +493,13 @@ places instead of being written twice.
 - React derives `onPointerLeave` and `onPointerEnter` from the bubbling
   `pointerout` and `pointerover` events. Dispatching a raw `pointerleave` does
   nothing, because it does not bubble and React never listens for it.
+- **A story that replaces a global puts it back.** Stories share the preview's
+  frame, so a stand-in left behind is still there on the next story a reader
+  opens: CopyField's `Copied` once left every later Copy button writing to its
+  stub rather than to the clipboard. Install it in the story's `beforeEach` and
+  return what restores it, which Storybook runs as the story is left. A queue or
+  store kept at module scope is the same kind of thing, and Snackbar's
+  `OnDemand` empties its own the same way.
 
 ### Coverage
 
@@ -566,7 +575,7 @@ always carries every file.
 
 ## How the compiled CSS reaches a consumer
 
-Three pieces, and removing any one of them ships a package whose components all
+Four pieces, and removing any one of them ships a package whose components all
 render unstyled — which is what 0.8.0 did.
 
 **`src/index.ts` imports `./styles.css` for its side effect**, and
@@ -590,6 +599,19 @@ It throws rather than shipping silently if that file is missing, and runs in
 `closeBundle` rather than `writeBundle` because rollup runs `writeBundle` hooks
 in parallel — ours could otherwise read the file before the StyleX plugin had
 written it.
+
+**`sideEffects` in `package.json` names `./dist/index.js` beside the
+stylesheets.** Left to the stylesheets alone, the field calls the entry free of
+side effects, and a bundler honouring it — Vite, and Next.js under Turbopack and
+under webpack alike — follows a named import through the entry's re-exports to
+the module defining it and drops the entry, its `./styles.css` import with it.
+That was the field as published up to 0.44.1, and an app's production build
+under any of the three came out with no stylesheet at all. The entry holds
+nothing but imports and an export list, so naming it costs no tree-shaking: the
+measured bundle was the same size to within a few bytes. `npm run package:check`
+bundles a module importing `Button` by name and fails unless a stylesheet comes
+out, which is the only check that sees it — the import is still in
+`dist/index.js` either way.
 
 `package.json` then publishes `./styles.css` alongside `./tokens.css`, for CSS
 that loads the stylesheet apart from the JavaScript — an `@import` or a
@@ -719,6 +741,39 @@ component — Getting started, the Foundations pages and the Theming schemes —
 take `!autodocs`, since an Overview page there would document the page's wrapper
 and unfold the single sidebar leaf each of them relies on.
 
+**The props table lists React Aria's props beside the library's own.** The
+`propFilter` in `.storybook/main.ts` keeps what React Aria's packages declare
+and drops React's DOM props, which react-docgen-typescript's default filter
+would otherwise have done to both, leaving a `Button` with no `isDisabled` row
+and Controls with nothing to drive it. Two things follow for a component's
+types. Where its own props declare one of React Aria's again, to describe or
+narrow it, the type `Omit`s React Aria's: the table joins every description a
+prop is declared with, so `Form`'s `validationBehavior` read as the library's
+paragraph followed by React Aria's sentence. And a union of props types shares
+what its members have in common through one type both extend, as `Chip`'s
+`ChipBaseProps` does, for the same reason.
+
+**A compound component lists its parts in `subcomponents`**, in its stories'
+meta, which gives each part a tab of its own beside the root's in that table.
+Without it the page documents the root alone, and a part's props appear nowhere
+on it: `Dialog` holds only the open state, so its dismissal settings are
+`Dialog.Content`'s, and a list row's slots are `List.Item`'s. A part exported
+under a name of its own is listed the same way, as `Radio` is beside
+`RadioGroup`. A part that takes a `<div>`'s attributes and nothing else stays
+out, as `Dialog.Header` does: the table drops React's DOM props, so its tab
+would be empty, and the component's description names it instead.
+
+**Most of a table's controls are decided in `.storybook/preview.tsx`, and a
+story adds only what it alone knows.** Its `argTypesEnhancers` take the editor
+off a prop no control can write — a node, a `render`, a handler — while keeping
+its row, give a prop a story passes a string a text field, and offer a union of
+size or spacing steps smallest first, whatever order lint sorted the type into.
+What is left to a story's meta is what only it knows: a slot worth seeing filled
+offers the contents its stories use as a `select` with a `mapping`, as
+`ListItem`'s `leading` does, and an arg is set to the value it defaults to
+anyway where that turns its control on — a boolean is otherwise a "Set boolean"
+button and a select opens on "Choose option…".
+
 **No story is exported as `Overview`.** The page takes the id a story of that
 name would, `components-button--overview`, and the index keeps the page and
 drops the story. It leaves the sidebar and Chromatic, which both read the index,
@@ -767,13 +822,14 @@ mechanism Chromatic's modes use.
 
 **The Locale control beside it renders a story in another language.** The
 decorator wraps every story in React Aria's `I18nProvider` and puts the locale's
-`lang` and `dir` on `<html>`, which is where a portalled Sheet or Dialog reads
-them. It offers English, German, Arabic (Egypt) and Japanese: long compound
-words, Arabic-Indic digits running right to left, and a script with neither
-spaces nor Latin letters. It defaults to English, and `&globals=locale:ar-EG`
-opens a story straight into one. The stories' own copy stays English, since it
-is the stories' text rather than the library's, so what changes is every name,
-number and direction the components write.
+`lang` and `dir` on `<html>`, which is where a portalled Dialog reads them, and
+the provider is where a Sheet reads its direction. It offers English, German,
+Arabic (Egypt) and Japanese: long compound words, Arabic-Indic digits running
+right to left, and a script with neither spaces nor Latin letters. It defaults
+to English, and `&globals=locale:ar-EG` opens a story straight into one. The
+stories' own copy stays English, since it is the stories' text rather than the
+library's, so what changes is every name, number and direction the components
+write.
 
 **That control offers more than light and dark**, and the extra entries come
 from `@kanso-labs/kanso-ui-core/themes`: the demo schemes the `Theming` sidebar

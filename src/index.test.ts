@@ -1,5 +1,5 @@
 import * as reactAria from 'react-aria-components'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import * as publicApi from '.'
 import packageJson from '../package.json'
@@ -603,6 +603,42 @@ describe('package entry point', () => {
       expect(ours).toBe(theirs)
     },
   )
+
+  // A type export leaves nothing at runtime for the lists above to read, so
+  // the types are compared where only the compiler reads them: a name dropped
+  // from src/react-aria.ts, or one that stops being React Aria's own, fails
+  // `npm run build` here.
+  it('forwards each React Aria type as react-aria-components declares it', () => {
+    expectTypeOf<publicApi.FocusableElement>().toEqualTypeOf<reactAria.FocusableElement>()
+    expectTypeOf<publicApi.HoverEvent>().toEqualTypeOf<reactAria.HoverEvent>()
+    expectTypeOf<publicApi.Key>().toEqualTypeOf<reactAria.Key>()
+    expectTypeOf<publicApi.KeyboardEvent>().toEqualTypeOf<reactAria.KeyboardEvent>()
+    expectTypeOf<publicApi.PressEvent>().toEqualTypeOf<reactAria.PressEvent>()
+    expectTypeOf<publicApi.Selection>().toEqualTypeOf<reactAria.Selection>()
+    expectTypeOf<publicApi.SortDescriptor>().toEqualTypeOf<reactAria.SortDescriptor>()
+  })
+
+  // The README says which handlers take which keyboard event, since nothing
+  // outside the types shows it. A field's `onKeyDown` is React Aria's, with
+  // `continuePropagation()`, while Button and Link put the DOM's handlers back
+  // themselves and so hand theirs React's own.
+  it("hands a field React Aria's KeyboardEvent, and a Button and a Link React's", () => {
+    expectTypeOf<NonNullable<publicApi.TextFieldProps['onKeyDown']>>()
+      .parameter(0)
+      .toEqualTypeOf<publicApi.KeyboardEvent>()
+    expectTypeOf<NonNullable<publicApi.CheckboxProps['onKeyDown']>>()
+      .parameter(0)
+      .toEqualTypeOf<publicApi.KeyboardEvent>()
+    expectTypeOf<NonNullable<publicApi.ButtonProps['onKeyDown']>>()
+      .parameter(0)
+      .not.toHaveProperty('continuePropagation')
+    expectTypeOf<NonNullable<publicApi.LinkProps['onKeyDown']>>()
+      .parameter(0)
+      .not.toHaveProperty('continuePropagation')
+    expectTypeOf<NonNullable<publicApi.ButtonProps['onHoverStart']>>()
+      .parameter(0)
+      .toEqualTypeOf<publicApi.HoverEvent>()
+  })
 })
 
 // The ./date subpath has its own copy of this in src/date.test.ts. The main

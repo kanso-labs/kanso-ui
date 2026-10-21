@@ -34,6 +34,10 @@ function InfoIcon() {
 // for — `top` next to the edge of the frame would flip to `bottom` instead.
 const SIDES = ['top', 'right', 'left', 'bottom'] as const
 
+// What `Sides` hands each popover for a change of state: nothing, so each
+// stays as open as `isOpen` says.
+const stayOpen = () => {}
+
 const styles = stylex.create({
   // Centres the trigger and leaves the open panel somewhere to go, so the
   // snapshot frames both rather than cropping the panel at the bottom edge.
@@ -61,6 +65,14 @@ const meta = {
     size: 'md',
   },
   component: Popover,
+  // A tab of its own beside the root's in the Overview page's props table for
+  // each part, since the placement is `Popover.Content`'s rather than the
+  // root's.
+  subcomponents: {
+    'Popover.Content': Popover.Content,
+    'Popover.Description': Popover.Description,
+    'Popover.Title': Popover.Title,
+  },
   title: 'Components/Popover',
 } satisfies Meta<typeof Popover>
 
@@ -84,8 +96,6 @@ function PanelContents() {
   )
 }
 
-// Open on load, since a closed popover renders nothing for Chromatic to
-// compare.
 // Open on load, for the same reason the others are: a hovered popover that
 // nothing is hovering renders nothing to compare.
 const HoverTrigger: Story = {
@@ -104,6 +114,8 @@ const HoverTrigger: Story = {
   ),
 }
 
+// Open on load, since a closed popover renders nothing for Chromatic to
+// compare.
 const Default: Story = {
   parameters: { docs: { story: { height: '400px', inline: false } } },
   render: (args) => (
@@ -160,16 +172,38 @@ const OnAnIconButton: Story = {
 // Each panel carries a title as well as its trigger label, because a dialog
 // without one has no accessible name — `a11y.test` is `'error'` here, so a
 // story that leaves it out fails rather than merely warning.
+//
+// Each is held open rather than opened by default. A pressed panel takes
+// focus as it opens and a non-modal one closes as focus leaves it, so the
+// four opening at once closed one another, and the story settled on the last
+// side alone. Held open, a press on a trigger closes nothing either.
 const Sides: Story = {
   parameters: { docs: { story: { height: '400px', inline: false } } },
+  play: async ({ canvas }) => {
+    const triggers = SIDES.map((side) =>
+      canvas.getByRole('button', { name: side }),
+    )
+    // Focus moved through the four in turn, as their opening moves it, so
+    // each move is one that would close the panel before.
+    for (const trigger of triggers) {
+      document
+        .getElementById(trigger.getAttribute('aria-controls') ?? '')
+        ?.focus()
+    }
+    await expect(
+      triggers.map((trigger) => trigger.getAttribute('aria-expanded')),
+    ).toEqual(SIDES.map(() => 'true'))
+    // And let go, so the last panel does not draw the ring of a focus the
+    // story is not about.
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+  },
   render: (args) => (
     <div {...stylex.props(styles.sides)}>
       {SIDES.map((side) => (
-        <Popover {...args} defaultOpen key={side}>
+        <Popover {...args} isOpen key={side} onOpenChange={stayOpen}>
           <Button variant="outlined">{side}</Button>
-          {/* Four panels open at once means four of them reaching for the
-              focus, and whichever wins draws a ring the story is not about.
-              Nothing here is meant to be operated, so none of them takes it. */}
           <Popover.Content side={side}>
             <Popover.Title>{side}</Popover.Title>
           </Popover.Content>

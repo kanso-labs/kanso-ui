@@ -119,6 +119,10 @@ type MeterTone = Extract<IndicatorTone, 'negative' | 'positive' | 'primary'>
  * reach for ProgressIndicator instead — a meter has no indeterminate state,
  * because a measurement always has a value.
  *
+ * ```tsx
+ * <Meter label="Label" maxValue={5} value={3} />
+ * ```
+ *
  * The call site's `className` and `style` land on the meter as a whole,
  * which is the element a layout positions.
  */

@@ -33,6 +33,7 @@ const meta = {
     defaultValue: PALETTE[0],
   },
   component: ColorSwatchPicker,
+  subcomponents: { 'ColorSwatchPicker.Item': ColorSwatchPicker.Item },
   title: 'Components/ColorSwatchPicker',
 } satisfies Meta<typeof ColorSwatchPicker>
 

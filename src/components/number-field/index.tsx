@@ -314,9 +314,15 @@ type NumberFieldProps = {
  * its own — and `onChange` is handed the number, `NaN` while the field is
  * empty. `minValue`, `maxValue` and `step` shape it, and `formatOptions`
  * says how it reads, in the locale the page is in: a currency, a percentage,
- * a unit. Arrow keys step the value, and Page Up and Page Down by ten steps.
+ * a unit. The arrow keys and Page Up and Page Down step the value by one
+ * `step` each. Given a `minValue`, Home sets the value to it, and given a
+ * `maxValue`, End sets it to the last step that does not pass it.
  * The mouse wheel scrolls the page past it rather than stepping it, unless
  * `isWheelDisabled` is `false`.
+ *
+ * ```tsx
+ * <NumberField defaultValue={1} label="Label" minValue={0} />
+ * ```
  *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions. The box, label, input and message

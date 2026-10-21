@@ -69,6 +69,15 @@ function nothingToShow() {
 
 const meta = {
   component: Table,
+  subcomponents: {
+    'Table.Body': Table.Body,
+    'Table.Cell': Table.Cell,
+    'Table.Column': Table.Column,
+    'Table.Footer': Table.Footer,
+    'Table.Header': Table.Header,
+    'Table.LoadMore': Table.LoadMore,
+    'Table.Row': Table.Row,
+  },
   title: 'Components/Table',
 } satisfies Meta<typeof Table>
 

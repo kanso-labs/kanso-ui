@@ -152,7 +152,40 @@ type ListDetailProps = {
  * While only one pane fits, the pane that is not showing is hidden
  * outright, so focus inside it is dropped when `showing` changes. The call
  * site that changed it is what puts focus in the pane it revealed — see the
- * prop.
+ * prop. `flushSync` commits the swap before focus moves, since a pane that is
+ * still hidden cannot take it:
+ *
+ * ```tsx
+ * const [showing, setShowing] = useState<'detail' | 'list'>('list')
+ * const heading = useRef<HTMLHeadingElement>(null)
+ * const opener = useRef<HTMLElement>(null)
+ *
+ * function open(event: MouseEvent<HTMLElement>) {
+ *   opener.current = event.currentTarget
+ *   flushSync(() => setShowing('detail'))
+ *   heading.current?.focus()
+ * }
+ *
+ * function back() {
+ *   flushSync(() => setShowing('list'))
+ *   opener.current?.focus()
+ * }
+ *
+ * <ListDetail
+ *   detail={
+ *     <>
+ *       <Button onPress={back} variant="text">Back</Button>
+ *       <h2 ref={heading} tabIndex={-1}>Headline</h2>
+ *     </>
+ *   }
+ *   list={
+ *     <ListItem interactive onClick={open}>
+ *       First item
+ *     </ListItem>
+ *   }
+ *   showing={showing}
+ * />
+ * ```
  */
 function ListDetail({
   detail,

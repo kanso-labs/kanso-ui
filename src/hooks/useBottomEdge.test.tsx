@@ -16,6 +16,29 @@ const styles = stylex.create({
     insetInline: 0,
     position: 'fixed',
   }),
+  // A bar 56 tall resting just below the window, inside a scroller the
+  // window's height with a window of room to scroll: a sheet's actions
+  // before the scroll that brings the sheet in.
+  belowTheWindow: {
+    blockSize: '56px',
+    boxSizing: 'border-box',
+    insetBlockStart: '100vh',
+    insetInline: 0,
+    position: 'absolute',
+  },
+  scroller: {
+    blockSize: '100vh',
+    boxSizing: 'border-box',
+    insetBlockStart: 0,
+    insetInline: 0,
+    overflowY: 'auto',
+    position: 'fixed',
+  },
+  track: {
+    blockSize: '200vh',
+    boxSizing: 'border-box',
+    position: 'relative',
+  },
 })
 
 function Bar({
@@ -43,6 +66,18 @@ function clearanceWith(bars: ReactNode) {
     </>,
   )
   return { text: () => view.getByRole('status').textContent, view }
+}
+
+function ScrolledBar() {
+  const ref = useRef<HTMLDivElement>(null)
+  useHoldBottomEdge(ref, true)
+  return (
+    <div data-testid="scroller" {...stylex.props(styles.scroller)}>
+      <div {...stylex.props(styles.track)}>
+        <div ref={ref} {...stylex.props(styles.belowTheWindow)} />
+      </div>
+    </div>
+  )
 }
 
 describe('useBottomEdge', () => {
@@ -95,5 +130,16 @@ describe('useBottomEdge', () => {
     )
 
     await expect.poll(text).toBe('72')
+  })
+
+  // A sheet arrives by scrolling, which resizes nothing and runs no
+  // animation, so what reaches the clearance is the scroll ending.
+  it('follows a bar a scroll brings up from below the window', async () => {
+    const { text, view } = clearanceWith(<ScrolledBar />)
+    expect(text()).toBe('0')
+
+    view.getByTestId('scroller').scrollTop = 56
+
+    await expect.poll(text).toBe('56')
   })
 })

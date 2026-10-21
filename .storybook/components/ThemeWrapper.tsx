@@ -11,6 +11,7 @@ import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
   colors,
+  typography,
 } from '../../src/tokens/design.tokens.stylex'
 
 const styles = stylex.create({
@@ -23,9 +24,17 @@ const styles = stylex.create({
   // class, outside this div, so it can never pick up colors.surface — the
   // global override below zeroes that out and the padding here replaces it,
   // so the surface color reaches the true edge of the canvas.
+  //
+  // The text on it takes on surface and the body face for the same reason: a
+  // story whose text sits outside a `Text`, such as a link of the inherit
+  // tone, would otherwise be black on a dark surface and set in the browser's
+  // serif. The size and line height stay the browser's, which is what a
+  // component inheriting them meets on a page that sets neither.
   canvas: {
     backgroundColor: colors.surface,
     boxSizing: 'border-box',
+    color: colors.onSurface,
+    fontFamily: typography.bodyLargeFont,
     padding: '1rem',
   },
   // A story on its own fills the canvas, so the surface reaches the bottom of

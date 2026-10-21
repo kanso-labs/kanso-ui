@@ -63,7 +63,8 @@ type TextFieldProps = Omit<
   error?: string
   /**
    * Whether the label sits in the empty box and floats to the top once the
-   * field is focused or holds a value, as the text fields page draws it.
+   * field is focused or holds a value, as Material Design's text fields
+   * draw it.
    * `false` keeps it small at the top in every state.
    * @default true
    */
@@ -109,12 +110,19 @@ type TextFieldProps = Omit<
    * An icon at the end of the box, after the value: the page's 24dp trailing
    * icon, in the muted role and the error role while the field has an error.
    * An icon drawn in `em` takes that size from the slot.
+   *
+   * It may be a control rather than a picture, such as an `IconButton` that
+   * clears the field. A press on it is the button's own, where a press
+   * anywhere else in the box focuses the input. The button is 40px around
+   * its 24px icon, so an inline margin of -8px on each side puts the icon
+   * where a bare one sits. It draws its own colours, so it keeps the muted
+   * role while the field has an error.
    */
   trailingIcon?: ReactNode
   /**
    * The filled box, or the outlined one: no fill, an outline that thickens
    * and takes the primary role while focused, and the label cutting it once
-   * it floats — the text fields page's two fields.
+   * it floats — Material Design's two text fields.
    * @default 'filled'
    */
   variant?: FieldVariant
@@ -127,14 +135,36 @@ type TextFieldProps = Omit<
  * `className` and `style` land on the field as a whole, which is the element
  * a layout positions.
  *
- * The text fields page's configurations are props: `leadingIcon` and
- * `trailingIcon` at the box's ends, `prefix` and `suffix` on the value's
- * line, and `characterCount` opposite the supporting text, counting against
- * `maxLength`.
+ * ```tsx
+ * <TextField description="Supporting line" label="Label" />
+ * ```
  *
- * The box, label, input and message are the field chrome in `src/field`,
- * shared with every other field; this component is what React Aria's
- * `TextField` puts around them.
+ * The configurations of Material Design's text fields are props:
+ * `leadingIcon` and `trailingIcon` at the box's ends, `prefix` and `suffix`
+ * on the value's line, and `characterCount` opposite the supporting text,
+ * counting against `maxLength`. A trailing icon that clears the field is an
+ * `IconButton` there, shown while the field holds something:
+ *
+ * ```tsx
+ * const [value, setValue] = useState('')
+ *
+ * <TextField
+ *   label="Label"
+ *   onChange={setValue}
+ *   trailingIcon={
+ *     value === '' ? undefined : (
+ *       <IconButton aria-label="Clear" onPress={() => setValue('')}>
+ *         <CloseIcon />
+ *       </IconButton>
+ *     )
+ *   }
+ *   value={value}
+ * />
+ * ```
+ *
+ * The box, label, input and message are drawn as every field in the library
+ * draws them; this component is what React Aria's `TextField` puts around
+ * them.
  */
 function TextField({
   characterCount = false,

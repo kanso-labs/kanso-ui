@@ -8,10 +8,10 @@ import Button from '../button'
 import Dialog from '../dialog'
 import Text from '../text'
 
-// One queue for the page. A real app makes one where it can be reached from
-// anywhere and mounts the region once, near the root; a story page is the
-// same shape at a smaller scale. Seeded below so the page opens with a
-// snackbar on it rather than with three buttons and nothing to look at.
+// The queue OnDemand's buttons add to. A real app makes one where it can be
+// reached from anywhere and mounts the region once, near the root; a story
+// page is the same shape at a smaller scale. It starts empty, so what the
+// story shows is only what a press added, at the duration it was added with.
 const messages = new Snackbar.Queue()
 
 // Two sample actions. Their handlers do nothing, since what a story shows is
@@ -38,8 +38,6 @@ function seeded(
   return queue
 }
 
-messages.add('First item saved', { action: UNDO, timeout: 0 })
-
 // The handlers the story's buttons take, built by a call rather than written
 // inline at the prop, which is what react-perf's no-new-function-as-prop is
 // after. Each message takes the component's own duration, which is what the
@@ -59,15 +57,15 @@ const styles = stylex.create({
 })
 
 const meta = {
-  args: {
-    queue: messages,
-  },
   component: Snackbar,
   title: 'Components/Snackbar',
 } satisfies Meta<typeof Snackbar>
 
 type Story = StoryObj<typeof meta>
 
+// A message alone, with nothing to close it: held on the page so it is there
+// whenever the snapshot is taken, which a call site does not do. A message a
+// call site holds takes an action or `showCloseButton`, as `timeout` says.
 const Default: Story = {
   args: { queue: seeded({}) },
   parameters: { docs: { story: { height: '240px', inline: false } } },
@@ -131,7 +129,10 @@ const LongAction: Story = {
 // Its own story because the others are seeded to stay up. Here a press adds
 // the message at the component's own duration: five seconds for a bare one,
 // until closed for one with an action, and held while hovered or focused.
+// Emptied as the story is left, so it opens empty however it was left.
 const OnDemand: Story = {
+  args: { queue: messages },
+  beforeEach: () => clear,
   parameters: { docs: { story: { height: '240px', inline: false } } },
   render: (args) => (
     <>

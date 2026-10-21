@@ -270,8 +270,9 @@ type MenuItemProps<T extends object = object> = {
   /** Content before the label, usually an icon. */
   leading?: ReactNode
   /**
-   * The keystroke that runs the item, drawn as a keycap at the end. Goes
-   * through React Aria's keyboard slot, so a screen reader announces it
+   * The keystroke that runs the item, at the end of the row. Pass a `Keycap`
+   * to draw it as one; a string is set as plain text in the muted role. Either
+   * goes through React Aria's keyboard slot, so a screen reader announces it
    * apart from the label rather than reading the two as one name. It takes
    * the item's colour while the item is selected or disabled, and so does a
    * `Keycap` inside it, its rule included.
@@ -431,11 +432,13 @@ function itemStyles(state: MenuItemRenderProps) {
  * ```tsx
  * <Menu>
  *   <Button>Open</Button>
- *   <Menu.Content aria-label="Label">
+ *   <Menu.Content>
  *     <Menu.Item id="first">First item</Menu.Item>
  *   </Menu.Content>
  * </Menu>
  * ```
+ *
+ * The trigger's text names the menu, so the button is where a label goes.
  */
 function Menu({ children, ...props }: MenuProps) {
   return <RACMenuTrigger {...props}>{children}</RACMenuTrigger>
