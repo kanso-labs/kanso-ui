@@ -391,6 +391,7 @@ export type ChipFilterProps = Omit<ToggleButtonProps, 'children'> & {
     children: ReactNode;
     elevated?: boolean;
     icon?: ReactNode;
+    trailingIcon?: ReactNode;
     variant?: 'filter';
 };
 

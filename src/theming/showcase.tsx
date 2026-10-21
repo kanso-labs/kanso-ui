@@ -135,6 +135,20 @@ const PAGE_MEASURE = '1040px'
 
 // The page draws the icons it needs, sized in `em` so each follows the font
 // size its control sets.
+function ArrowDropDownIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="currentColor"
+      height="1em"
+      viewBox="0 0 24 24"
+      width="1em"
+    >
+      <path d="M7 10l5 5 5-5z" />
+    </svg>
+  )
+}
+
 function CircleIcon() {
   return (
     <svg
@@ -796,7 +810,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, and an elevated assist chip sits on the low container at elevation 1."
+            description="A chip leans on the container roles, which is where a scheme's secondary family shows up; a selected one takes a pair of its own, an icon takes the primary role, a trailing arrow the chip's own, and an elevated assist chip sits on the low container at elevation 1."
             title="Chip"
           >
             <div {...stylex.props(styles.row)}>
@@ -808,6 +822,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
               <Chip elevated icon={<CircleIcon />} variant="assist">
                 Fourth item
               </Chip>
+              <Chip trailingIcon={<ArrowDropDownIcon />}>Fifth item</Chip>
             </div>
           </Section>
 

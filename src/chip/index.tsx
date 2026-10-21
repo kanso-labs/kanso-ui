@@ -76,6 +76,23 @@ function chipLabel(children: ReactNode): ReactNode {
   return <ChipLabel>{children}</ChipLabel>
 }
 
+/**
+ * What a chip draws after its label: its trailing icon, in the 18dp slot the
+ * leading one takes, trimming the chip's padding at its own end instead. It
+ * keeps the chip's content colour, which is the page's trailing icon role in
+ * every state, and it stays while the chip is selected, since the check
+ * takes the leading slot alone. Nothing at all for a chip with none. Beside
+ * `chipGlyph` so the two slots are drawn from one box.
+ */
+function chipTrailingIcon(icon?: ReactNode): ReactNode {
+  if (icon === undefined || icon === null) {
+    return null
+  }
+  return (
+    <span {...stylex.props(chipStyles.glyph, chipStyles.trailing)}>{icon}</span>
+  )
+}
+
 // The three containers a chip can be on, with the layers and the disabled
 // treatment each takes. A table rather than a branch per state, so the
 // containers cannot differ in which states they answer.
@@ -188,4 +205,10 @@ function containerOf(isSelected: boolean, elevated: boolean) {
 
 export type { ChipKind }
 
-export { chipGlyph, chipLabel, chipPropsFor, chipRemoveClassName }
+export {
+  chipGlyph,
+  chipLabel,
+  chipPropsFor,
+  chipRemoveClassName,
+  chipTrailingIcon,
+}

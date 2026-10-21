@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Selection } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useState } from 'react'
 
 import Chip from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
+import Menu from '../menu'
 
 const FILTERS = ['First filter', 'Second filter', 'Third filter'] as const
 
@@ -23,6 +25,20 @@ const DOT = (
   </svg>
 )
 
+// The arrow the page's dropdown filter chip draws after its label, drawn here
+// for the same reason.
+const ARROW = (
+  <svg
+    aria-hidden="true"
+    fill="currentColor"
+    height="1em"
+    viewBox="0 0 24 24"
+    width="1em"
+  >
+    <path d="M7 10l5 5 5-5z" />
+  </svg>
+)
+
 const styles = stylex.create({
   // Tighter than the page's sample gap: a set of chips is one control, and
   // spacing them like separate samples would read as four unrelated buttons.
@@ -33,6 +49,32 @@ const styles = stylex.create({
     gap: spacing.sm,
   },
 })
+
+// A filter chip as a menu's trigger, which is the page's dropdown filter chip.
+// Controlled by what the menu has chosen rather than by its own press, so the
+// press that opens the menu does not select it: the chip reads as selected
+// once an item is chosen, and the arrow stays after its label.
+function DropdownChip() {
+  const [selected, setSelected] = useState<Selection>(() => new Set())
+  const chosen = selected === 'all' || selected.size > 0
+
+  return (
+    <Menu>
+      <Chip isSelected={chosen} trailingIcon={ARROW}>
+        Label
+      </Chip>
+      <Menu.Content
+        onSelectionChange={setSelected}
+        selectedKeys={selected}
+        selectionMode="single"
+      >
+        <Menu.Item id="first">First item</Menu.Item>
+        <Menu.Item id="second">Second item</Menu.Item>
+        <Menu.Item id="third">Third item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  )
+}
 
 // Pulled out so its handler can be one stable reference per chip. Inline in
 // the map below it would be a fresh closure per render, which is what
@@ -100,6 +142,11 @@ const Suggestion: Story = {
   args: { variant: 'suggestion' },
 }
 
+// Closed, since the chip is what this shows: pressing it opens the menu.
+const Dropdown: Story = {
+  render: () => <DropdownChip />,
+}
+
 // Its own story because the interaction is the point: a snapshot can only show
 // which chip is selected at rest, and what matters is that picking one clears
 // the last. Each state on its own is a prop away on Default.
@@ -107,6 +154,6 @@ const Controlled: Story = {
   render: () => <SingleSelect />,
 }
 
-export { Assist, Controlled, Default, Suggestion, WithIcon }
+export { Assist, Controlled, Default, Dropdown, Suggestion, WithIcon }
 
 export default meta
