@@ -450,12 +450,14 @@ rewriting it into `:lang()` selectors, for the reason `tsdown.config.ts` gives �
 so `dir="rtl"` on a wrapper turns everything inside it over, and `lang` on its
 own turns nothing over. `getComputedStyle` then reads the mirrored value.
 
-An overlay needs more than a wrapper, since React Aria portals it to the body. A
-`Sheet` takes `dir` on `document.documentElement`, as its own test does.
-Anything drawn in a `Popover` — a menu, a select's list, a picker — ignores even
-that, because React Aria's `Popover` stamps a `dir` of its own from
-`useLocale()`. What turns one over is an `I18nProvider` with a right-to-left
-locale, in a test and in a consumer's app alike.
+An overlay needs more than a wrapper, since React Aria portals it to the body,
+and two kinds ignore even `dir` on `document.documentElement`. Anything drawn in
+a `Popover` — a menu, a select's list, a picker — does, because React Aria's
+`Popover` stamps a `dir` of its own from `useLocale()`, and so does a `Sheet`,
+whose panel React Aria gives a `direction` from the same place and whose `end`
+it resolves to the left or the right by it. What turns one over is an
+`I18nProvider` with a right-to-left locale, in a test and in a consumer's app
+alike.
 
 ### Controlling time
 
@@ -753,13 +755,14 @@ mechanism Chromatic's modes use.
 
 **The Locale control beside it renders a story in another language.** The
 decorator wraps every story in React Aria's `I18nProvider` and puts the locale's
-`lang` and `dir` on `<html>`, which is where a portalled Sheet or Dialog reads
-them. It offers English, German, Arabic (Egypt) and Japanese: long compound
-words, Arabic-Indic digits running right to left, and a script with neither
-spaces nor Latin letters. It defaults to English, and `&globals=locale:ar-EG`
-opens a story straight into one. The stories' own copy stays English, since it
-is the stories' text rather than the library's, so what changes is every name,
-number and direction the components write.
+`lang` and `dir` on `<html>`, which is where a portalled Dialog reads them, and
+the provider is where a Sheet reads its direction. It offers English, German,
+Arabic (Egypt) and Japanese: long compound words, Arabic-Indic digits running
+right to left, and a script with neither spaces nor Latin letters. It defaults
+to English, and `&globals=locale:ar-EG` opens a story straight into one. The
+stories' own copy stays English, since it is the stories' text rather than the
+library's, so what changes is every name, number and direction the components
+write.
 
 **That control offers more than light and dark**, and the extra entries come
 from `src/theming/themes.ts`: the demo schemes the `Theming` sidebar section is

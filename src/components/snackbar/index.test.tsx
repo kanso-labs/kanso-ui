@@ -1068,17 +1068,23 @@ describe('snackbar', () => {
 
         // Read once the overlay's entry has ended, which is when the strip
         // it holds is measured where it rests and the actions sit where a
-        // tap finds them. A side sheet arrives across the window, so a tap
-        // read while it was still on its way could land past its edge.
-        await waitFor(() => {
-          // Above the actions with the page's 8dp of margin between them,
-          // rather than anywhere above them, and still on screen.
-          const actions = footerOf(confirm).getBoundingClientRect()
-          const box = toast.getBoundingClientRect()
-          expect(Math.round(actions.top - box.bottom)).toBe(8)
-          expect(box.top).toBeGreaterThan(0)
-          expect(tapAtTheCentreOf(confirm)).toBe('itself')
-        })
+        // tap finds them. A sheet arrives by scrolling across the window,
+        // which nothing here can finish early as the dialog's animation is
+        // finished, so a tap read while it was still on its way could land
+        // past its edge, and the wait is as long as the real-time case's
+        // below.
+        await waitFor(
+          () => {
+            // Above the actions with the page's 8dp of margin between them,
+            // rather than anywhere above them, and still on screen.
+            const actions = footerOf(confirm).getBoundingClientRect()
+            const box = toast.getBoundingClientRect()
+            expect(Math.round(actions.top - box.bottom)).toBe(8)
+            expect(box.top).toBeGreaterThan(0)
+            expect(tapAtTheCentreOf(confirm)).toBe('itself')
+          },
+          { timeout: 3000 },
+        )
       },
     )
 
