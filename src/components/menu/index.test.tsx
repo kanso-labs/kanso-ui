@@ -1,5 +1,7 @@
+import type { KuiTheme } from '@kanso-labs/kanso-ui-core'
 import type { PopoverRenderProps } from 'react-aria-components'
 
+import { demoThemes } from '@kanso-labs/kanso-ui-core/themes'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { I18nProvider } from 'react-aria-components'
@@ -19,7 +21,6 @@ import {
   opacityWithin,
 } from '../../styles/opacity.testing'
 import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
-import { demoThemes } from '../../theming/themes'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
@@ -97,12 +98,17 @@ function luminanceOf(colour: string) {
 }
 
 // Every scheme a selected item is drawn in: the library's own two, pinned as
-// the Storybook toolbar pins them, and each demo scheme.
-const SCHEMES: [string, stylex.CompiledStyles[]][] = [
-  ['light', [...tokenScope, colorDefaultsLightTheme]],
-  ['dark', [...tokenScope, colorDefaultsDarkTheme]],
+// the Storybook toolbar pins them, and each demo scheme, a `--kui-*` map
+// declared over the token scope as `ThemeScope` declares one.
+const SCHEMES: [string, stylex.CompiledStyles[], KuiTheme][] = [
+  ['light', [...tokenScope, colorDefaultsLightTheme], {}],
+  ['dark', [...tokenScope, colorDefaultsDarkTheme], {}],
   ...Object.entries(demoThemes).map(
-    ([name, { theme }]): [string, stylex.CompiledStyles[]] => [name, theme],
+    ([name, { theme }]): [string, stylex.CompiledStyles[], KuiTheme] => [
+      name,
+      tokenScope,
+      theme,
+    ],
   ),
 ]
 
@@ -758,11 +764,15 @@ describe('menu', () => {
     // below AA, in the muted role over the selected container.
     it.each(SCHEMES)(
       'keeps a selected shortcut at AA or better under %s',
-      (_name, theme) => {
-        const classes = (stylex.props(theme).className ?? '')
+      (_name, scope, theme) => {
+        const classes = (stylex.props(scope).className ?? '')
           .split(' ')
           .filter(Boolean)
+        const properties = Object.entries(theme)
         document.body.classList.add(...classes)
+        for (const [property, value] of properties) {
+          document.body.style.setProperty(property, value)
+        }
         try {
           const view = setup(
             { defaultSelectedKeys: FIRST, selectionMode: 'single' },
@@ -779,6 +789,9 @@ describe('menu', () => {
           view.unmount()
         } finally {
           document.body.classList.remove(...classes)
+          for (const [property] of properties) {
+            document.body.style.removeProperty(property)
+          }
         }
       },
     )

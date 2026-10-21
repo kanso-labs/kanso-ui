@@ -1,9 +1,9 @@
 import type { Preview } from '@storybook/react-vite'
 
+import { demoThemes } from '@kanso-labs/kanso-ui-core/themes'
 import React, { isValidElement } from 'react'
 import { I18nProvider } from 'react-aria-components'
 
-import { demoThemes } from '../src/theming/themes'
 import DocumentLocale from './components/DocumentLocale'
 import StyleXLoader from './components/StyleXLoader'
 import ThemeWrapper from './components/ThemeWrapper'

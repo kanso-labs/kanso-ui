@@ -827,22 +827,28 @@ library's, so what changes is every name, number and direction the components
 write.
 
 **That control offers more than light and dark**, and the extra entries come
-from `src/theming/themes.ts`: the demo schemes the `Theming` sidebar section is
-built from, which `ThemeWrapper` applies to any story the same way it applies
-the library's own two. They are Storybook material rather than library API —
-nothing under `src/index.ts` reaches them, they are excluded from coverage
-alongside the generated tokens, and no rule of theirs reaches `dist`.
+from `@kanso-labs/kanso-ui-core/themes`: the demo schemes the `Theming` sidebar
+section is built from, which react-native-kanso-ui's Storybook renders too. Each
+is a `--kui-*` map, the shape a consumer hands `ThemeScope`, and `ThemeWrapper`
+renders every story inside a `ThemeScope` and hands it the one the toolbar
+picked as its `theme`, so a scheme reaches a story exactly as it reaches an app.
+They are Storybook material rather than library API — nothing under
+`src/index.ts` reaches them, the package is a devDependency, and no rule or
+value of theirs reaches `dist`.
 
 Four things about them are worth knowing before adding another:
 
-- **A scheme over `colors` has to state every key.** Colour is the one token
-  group whose defaults are a `prefers-color-scheme` pair, so a key left out of a
-  `createTheme` over it falls through to whichever half the reader's OS asks for
-  — a dark scheme missing one key renders that role in its light value on a
-  light machine, and the two Chromatic modes then disagree for reasons nothing
-  in the file explains. Typography, spacing, radii, shadows, motion and the
-  state-layer opacities carry no media query, so partial overrides of those are
-  read the same way everywhere.
+- **A scheme states every colour, and they are changed in kanso-ui-core.**
+  Colour is the one token group whose defaults are a `prefers-color-scheme`
+  pair, so a `--kui-color-*` property a map leaves out falls through to
+  whichever half the reader's OS asks for — a dark scheme missing one renders
+  that role in its light value on a light machine, and the two Chromatic modes
+  then disagree for reasons nothing in the map explains. Typography, spacing,
+  radii, shadows, motion and the state-layer opacities carry no media query, so
+  partial overrides of those are read the same way everywhere. kanso-ui-core's
+  own tests hold every scheme to that and to properties `tokens.css` declares,
+  and a scheme changed there reaches this Storybook as the Renovate bump of the
+  package.
 - **Every pair a component renders has to clear WCAG AA**, since `a11y.test` is
   `'error'` and a scheme that cannot be read is not worth demonstrating. The
   library's own tokens hold to 4.5:1 for text and about 3:1 for the outline

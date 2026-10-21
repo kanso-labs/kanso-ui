@@ -76,7 +76,7 @@ const THUMB_LABELS = ['Start', 'End']
  */
 // A scheme that moves the spacing scale's small step off its default 8, which
 // is the value the handle's clearance used to be read from. `Editorial` in
-// src/theming/themes.ts is the scheme this came from.
+// kanso-ui-core's themes is the scheme this came from.
 const looseSpacing = stylex.createTheme(spacing, { sm: '10px' })
 
 function partsOf(input: HTMLElement) {

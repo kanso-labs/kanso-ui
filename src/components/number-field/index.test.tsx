@@ -40,7 +40,7 @@ function hasClasses(element: Element, classes: string[]) {
 
 // A theme with longer body lines than the defaults, which is what tells the
 // stacked steppers' derived halves apart from a stated 28 — under the default
-// tokens the two agree. The type is `Editorial`'s, from src/theming/themes.ts.
+// tokens the two agree. The type is `Editorial`'s, from kanso-ui-core's themes.
 //
 // Its `lg` is wider than Editorial's 20 so that the filled and outlined boxes
 // come out at different heights: the two derive from different expressions

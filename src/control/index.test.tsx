@@ -71,7 +71,7 @@ const DISCED: ReadonlyArray<{ element: ReactElement; name: string }> = [
 // A scheme whose body line is longer than the default 24, which is what
 // tells a centring derived from the line apart from one that happens to be
 // half the disc under the default tokens. `Editorial`'s values, from
-// src/theming/themes.ts — its `sm` is here too, since a padding taken from
+// kanso-ui-core's themes — its `sm` is here too, since a padding taken from
 // the spacing scale followed that rather than the line.
 const longLineType = stylex.createTheme(typography, {
   bodyLargeLineHeight: '28px',
