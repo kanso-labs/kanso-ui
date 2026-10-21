@@ -18,6 +18,14 @@ const KEY_3 = <Keycap>⌘3</Keycap>
 
 const meta = {
   component: Menu,
+  subcomponents: {
+    'Menu.Content': Menu.Content,
+    'Menu.Item': Menu.Item,
+    'Menu.LoadMore': Menu.LoadMore,
+    'Menu.Section': Menu.Section,
+    'Menu.Separator': Menu.Separator,
+    'Menu.Submenu': Menu.Submenu,
+  },
   title: 'Components/Menu',
 } satisfies Meta<typeof Menu>
 

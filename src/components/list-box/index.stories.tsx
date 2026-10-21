@@ -53,6 +53,11 @@ const meta = {
     selectionMode: 'single',
   },
   component: ListBox,
+  subcomponents: {
+    'ListBox.Item': ListBox.Item,
+    'ListBox.LoadMore': ListBox.LoadMore,
+    'ListBox.Section': ListBox.Section,
+  },
   title: 'Components/ListBox',
 } satisfies Meta<typeof ListBox<object>>
 

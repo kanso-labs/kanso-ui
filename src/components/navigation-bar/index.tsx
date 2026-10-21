@@ -88,14 +88,21 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
 /**
  * The bar of three to five top-level destinations a compact window keeps at
  * its bottom edge. Each destination is a link, so it routes through React
- * Aria's `RouterProvider` when the app has one.
+ * Aria's `RouterProvider` when the app has one. The bar is a navigation
+ * landmark, so name it with `aria-label`, and give a badge its words in
+ * `badgeLabel`, since the badge itself is hidden from assistive technology.
  *
  * ```tsx
  * <NavigationBar aria-label="Label" selectedRoute="/first">
  *   <NavigationBar.Item href="/first" icon={<FirstIcon />}>
  *     First item
  *   </NavigationBar.Item>
- *   <NavigationBar.Item href="/second" icon={<SecondIcon />}>
+ *   <NavigationBar.Item
+ *     badge={3}
+ *     badgeLabel="3 new"
+ *     href="/second"
+ *     icon={<SecondIcon />}
+ *   >
  *     Second item
  *   </NavigationBar.Item>
  *   <NavigationBar.Item href="/third" icon={<ThirdIcon />}>

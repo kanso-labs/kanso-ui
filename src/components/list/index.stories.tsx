@@ -82,6 +82,13 @@ const meta = {
     selectionMode: 'multiple',
   },
   component: List,
+  // A tab of its own beside the list's in the Overview page's props table for
+  // each part, since a row's slots are `List.Item`'s rather than the list's.
+  subcomponents: {
+    'List.Item': List.Item,
+    'List.LoadMore': List.LoadMore,
+    'List.Section': List.Section,
+  },
   title: 'Components/List',
 } satisfies Meta<typeof List<object>>
 

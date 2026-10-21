@@ -433,6 +433,29 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
  * `Dialog` opens it, and one given `slot="close"` anywhere inside the
  * content closes it; neither needs a part of its own.
  *
+ * ```tsx
+ * <Dialog>
+ *   <Button>Open dialog</Button>
+ *   <Dialog.Content>
+ *     <Dialog.Header>
+ *       <Dialog.Title>Headline</Dialog.Title>
+ *       <IconButton aria-label="Close" slot="close">
+ *         <CloseIcon />
+ *       </IconButton>
+ *     </Dialog.Header>
+ *     <Dialog.Body>Supporting text</Dialog.Body>
+ *     <Dialog.Footer>
+ *       <Button slot="close" variant="text">
+ *         Cancel
+ *       </Button>
+ *       <Button onPress={confirm} slot="close" variant="text">
+ *         Confirm
+ *       </Button>
+ *     </Dialog.Footer>
+ *   </Dialog.Content>
+ * </Dialog>
+ * ```
+ *
  * `Dialog` is the trigger's half, so a dialog nothing on the page opens — one
  * a route shows, or a menu item raises — leaves it out and passes `isOpen`
  * and `onOpenChange` to `Dialog.Content` instead. Wrapped in `Dialog` with no

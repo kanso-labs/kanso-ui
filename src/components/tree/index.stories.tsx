@@ -25,6 +25,11 @@ const meta = {
     'aria-label': 'Label',
   },
   component: Tree,
+  subcomponents: {
+    'Tree.Item': Tree.Item,
+    'Tree.LoadMore': Tree.LoadMore,
+    'Tree.Section': Tree.Section,
+  },
   title: 'Components/Tree',
 } satisfies Meta<typeof Tree>
 

@@ -337,7 +337,21 @@ function PanelDialog({
  * arbitrary — the parts are `Popover.Content`, `Popover.Title`, and
  * `Popover.Description`. A `Button` or `IconButton` placed directly inside
  * `Popover` opens it, and one given `slot="close"` inside the content closes
- * it; neither needs a part of its own.
+ * it; neither needs a part of its own. Where the panel sits against its
+ * trigger is `Popover.Content`'s `side` and `align`.
+ *
+ * ```tsx
+ * <Popover>
+ *   <Button>Open</Button>
+ *   <Popover.Content side="end">
+ *     <Popover.Title>Headline</Popover.Title>
+ *     <Popover.Description>Supporting line</Popover.Description>
+ *     <Button slot="close" variant="text">
+ *       Dismiss
+ *     </Button>
+ *   </Popover.Content>
+ * </Popover>
+ * ```
  */
 function Popover({
   children,

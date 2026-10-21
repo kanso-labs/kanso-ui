@@ -61,6 +61,7 @@ function SearchIcon() {
 
 const meta = {
   component: SearchView,
+  subcomponents: { 'SearchView.Content': SearchView.Content },
   title: 'Components/SearchView',
 } satisfies Meta<typeof SearchView>
 

@@ -65,6 +65,14 @@ const meta = {
     size: 'md',
   },
   component: Popover,
+  // A tab of its own beside the root's in the Overview page's props table for
+  // each part, since the placement is `Popover.Content`'s rather than the
+  // root's.
+  subcomponents: {
+    'Popover.Content': Popover.Content,
+    'Popover.Description': Popover.Description,
+    'Popover.Title': Popover.Title,
+  },
   title: 'Components/Popover',
 } satisfies Meta<typeof Popover>
 

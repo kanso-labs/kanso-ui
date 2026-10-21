@@ -61,6 +61,12 @@ const meta = {
     defaultSelectedKey: 'first',
   },
   component: Tabs,
+  subcomponents: {
+    'Tabs.List': Tabs.List,
+    'Tabs.Panel': Tabs.Panel,
+    'Tabs.Panels': Tabs.Panels,
+    'Tabs.Tab': Tabs.Tab,
+  },
   title: 'Components/Tabs',
 } satisfies Meta<typeof Tabs>
 

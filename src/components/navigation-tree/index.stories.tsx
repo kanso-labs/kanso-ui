@@ -43,6 +43,10 @@ const meta = {
     'aria-label': 'Label',
   },
   component: NavigationTree,
+  subcomponents: {
+    'NavigationTree.Item': NavigationTree.Item,
+    'NavigationTree.Section': NavigationTree.Section,
+  },
   title: 'Components/NavigationTree',
 } satisfies Meta<typeof NavigationTree>
 

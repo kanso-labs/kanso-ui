@@ -207,6 +207,7 @@ const meta = {
       <NavigationRail {...args} />
     </div>
   ),
+  subcomponents: { 'NavigationRail.Item': NavigationRail.Item },
   title: 'Components/NavigationRail',
 } satisfies Meta<typeof NavigationRail>
 
