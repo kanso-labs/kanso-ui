@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Checks the six things about the built package that publint and attw cannot
-// see.
+// Checks the seven things about the built package that publint and attw
+// cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
@@ -16,7 +16,7 @@
 // The second is the `./styles.css` side-effect import in dist/index.js. That
 // import is what carries the library's compiled rules into a consumer's
 // bundle; without it every component renders unstyled, which is what 0.8.0
-// shipped. Three separate pieces keep it there — see "How the compiled CSS
+// shipped. Four separate pieces keep it there — see "How the compiled CSS
 // reaches a consumer" in AGENTS.md — and nothing failed the build when it
 // went missing.
 //
@@ -45,10 +45,19 @@
 // this check. The other side matters as much: the entry and the modules it
 // reaches without crossing that line run on the server, so none of them may
 // import React or React Aria, which a server bundle cannot evaluate.
+//
+// The seventh is whether that import outlives an app's production build. A
+// bundler honouring `sideEffects` follows a named import through the entry's
+// re-exports to the module defining it, and drops the entry, stylesheet import
+// and all, unless the field names the entry as having side effects. The
+// import is still in dist/index.js when that happens, so the second check
+// passes; only bundling a consumer shows it.
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import { build } from 'vite'
 
 const require = createRequire(import.meta.url)
 
@@ -127,6 +136,62 @@ check('dist/index.js still imports ./styles.css', () => {
   if (!source.includes('./styles.css')) {
     throw new Error(
       'the side-effect import is gone, so a consumer gets no compiled rules',
+    )
+  }
+})
+
+// A module importing one component by name, bundled as an app's production
+// build bundles it, with nothing else on the page to pull the stylesheet in.
+// It is served from a plugin rather than a file, and reaches the package by
+// its own name, so the bundler reads this package.json's `sideEffects` as it
+// would read the installed copy's.
+const CONSUMER = '\0consumer'
+
+/** @returns {Promise<string[]>} the names of the files the bundle emits */
+async function bundleConsumer() {
+  const result = await build({
+    build: { rolldownOptions: { input: 'consumer' }, write: false },
+    configFile: false,
+    logLevel: 'silent',
+    plugins: [
+      {
+        load: (id) =>
+          id === CONSUMER
+            ? "import { Button } from '@kanso-labs/kanso-ui'\nglobalThis.Button = Button\n"
+            : null,
+        name: 'consumer',
+        resolveId: (id) => (id === 'consumer' ? CONSUMER : null),
+      },
+    ],
+    root: fileURLToPath(new URL('..', import.meta.url)),
+  })
+
+  if (!Array.isArray(result) && !('output' in result)) {
+    throw new TypeError('the build started a watcher rather than bundling')
+  }
+
+  return (Array.isArray(result) ? result : [result]).flatMap((bundle) =>
+    bundle.output.map((file) => file.fileName),
+  )
+}
+
+const consumerBundle = await bundleConsumer().catch(
+  /** @param {unknown} error */
+  (error) => (error instanceof Error ? error : new Error(String(error))),
+)
+
+check("a consumer's production bundle keeps the stylesheet", () => {
+  if (consumerBundle instanceof Error) {
+    throw consumerBundle
+  }
+
+  if (!consumerBundle.some((name) => name.endsWith('.js'))) {
+    throw new Error('the bundle holds no JavaScript, so this proves nothing')
+  }
+
+  if (!consumerBundle.some((name) => name.endsWith('.css'))) {
+    throw new Error(
+      'the bundle holds no stylesheet: the entry was dropped, and its ./styles.css import with it',
     )
   }
 })

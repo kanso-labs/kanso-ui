@@ -47,7 +47,8 @@
     "./package.json": "./package.json"
   },
   "sideEffects": [
-    "**/*.css"
+    "**/*.css",
+    "./dist/index.js"
   ],
   "repository": {
     "type": "git",

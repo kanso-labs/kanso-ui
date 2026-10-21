@@ -565,7 +565,7 @@ always carries every file.
 
 ## How the compiled CSS reaches a consumer
 
-Three pieces, and removing any one of them ships a package whose components all
+Four pieces, and removing any one of them ships a package whose components all
 render unstyled — which is what 0.8.0 did.
 
 **`src/index.ts` imports `./styles.css` for its side effect**, and
@@ -589,6 +589,19 @@ It throws rather than shipping silently if that file is missing, and runs in
 `closeBundle` rather than `writeBundle` because rollup runs `writeBundle` hooks
 in parallel — ours could otherwise read the file before the StyleX plugin had
 written it.
+
+**`sideEffects` in `package.json` names `./dist/index.js` beside the
+stylesheets.** Left to the stylesheets alone, the field calls the entry free of
+side effects, and a bundler honouring it — Vite, and Next.js under Turbopack and
+under webpack alike — follows a named import through the entry's re-exports to
+the module defining it and drops the entry, its `./styles.css` import with it.
+That was the field as published up to 0.44.1, and an app's production build
+under any of the three came out with no stylesheet at all. The entry holds
+nothing but imports and an export list, so naming it costs no tree-shaking: the
+measured bundle was the same size to within a few bytes. `npm run package:check`
+bundles a module importing `Button` by name and fails unless a stylesheet comes
+out, which is the only check that sees it — the import is still in
+`dist/index.js` either way.
 
 `package.json` then publishes `./styles.css` alongside `./tokens.css`, for CSS
 that loads the stylesheet apart from the JavaScript — an `@import` or a
