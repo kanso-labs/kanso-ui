@@ -40,6 +40,16 @@ const ARROW = (
 )
 
 const styles = stylex.create({
+  // Narrower than either label, so each chip is held to the room and cuts its
+  // label short.
+  narrow: {
+    alignItems: 'flex-start',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.sm,
+    inlineSize: '200px',
+  },
   // Tighter than the page's sample gap: a set of chips is one control, and
   // spacing them like separate samples would read as four unrelated buttons.
   row: {
@@ -146,14 +156,34 @@ const Suggestion: Story = {
   args: { variant: 'suggestion' },
 }
 
-// Raised off the page on a container of its own, which a hovering pointer
-// lifts further and a press brings back down.
-const Elevated: Story = {
-  args: { elevated: true },
+// Chosen: the secondary container, and the check in front of the label,
+// which is what tells it from an unchosen chip without colour.
+const Selected: Story = {
+  args: { defaultSelected: true },
 }
 
-// The three containers a disabled chip can be on. Each is translucent, so it
-// reads as a faint version of itself on whatever it is placed on.
+// Raised off the page on a container of its own, which a hovering pointer
+// lifts further and a press brings back down. A chosen chip keeps the
+// secondary container and takes the shadow with it, and an assist chip is
+// raised the same way.
+const Elevated: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Chip elevated>{FILTERS[0]}</Chip>
+      <Chip defaultSelected elevated>
+        {FILTERS[1]}
+      </Chip>
+      <Chip elevated icon={DOT} variant="assist">
+        Label
+      </Chip>
+    </div>
+  ),
+}
+
+// The three containers a disabled chip can be on, then an assist chip, whose
+// icon fades with its label rather than keeping the primary role. Each is
+// translucent, so it reads as a faint version of itself on whatever it is
+// placed on.
 const Disabled: Story = {
   render: () => (
     <div {...stylex.props(styles.row)}>
@@ -164,6 +194,23 @@ const Disabled: Story = {
       <Chip elevated isDisabled>
         {FILTERS[2]}
       </Chip>
+      <Chip icon={DOT} isDisabled variant="assist">
+        Label
+      </Chip>
+    </div>
+  ),
+}
+
+// In a room narrower than its label: the chip stops at the room's edge and
+// the label ends in an ellipsis, while the icons on either side keep their
+// place. The whole label stays the chip's name.
+const LongLabel: Story = {
+  render: () => (
+    <div {...stylex.props(styles.narrow)}>
+      <Chip icon={DOT} variant="assist">
+        Label long enough to run past the edge
+      </Chip>
+      <Chip trailingIcon={ARROW}>Label long enough to run past the edge</Chip>
     </div>
   ),
 }
@@ -194,7 +241,8 @@ const CONTROLLED_SOURCE = `const [selected, setSelected] = useState('First filte
 
 // Its own story because the interaction is the point: a snapshot can only show
 // which chip is selected at rest, and what matters is that picking one clears
-// the last. Each state on its own is a prop away on Default.
+// the last. Each state on its own has a story above: Selected, Elevated and
+// Disabled.
 const Controlled: Story = {
   parameters: {
     docs: { source: { code: CONTROLLED_SOURCE, language: 'tsx' } },
@@ -209,6 +257,8 @@ export {
   Disabled,
   Dropdown,
   Elevated,
+  LongLabel,
+  Selected,
   Suggestion,
   WithIcon,
 }

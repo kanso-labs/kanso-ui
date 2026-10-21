@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useState } from 'react'
+import { useFilter } from 'react-aria-components'
 import { expect, waitFor } from 'storybook/test'
 
 import Autocomplete from '.'
@@ -71,6 +73,14 @@ const PEOPLE = (
   </>
 )
 
+// The people again, as data a page would hold, each in a group the rows show
+// as their supporting line.
+const GROUPED = [
+  { group: 'First group', id: 'ada', name: 'Ada Lovelace' },
+  { group: 'Second group', id: 'grace', name: 'Grace Hopper' },
+  { group: 'Third group', id: 'alan', name: 'Alan Turing' },
+] as const
+
 // A menu's children are a collection, so the bar goes in the surface's
 // search slot rather than beside the items — see Menu.Content's own note.
 const SEARCH = <SearchField label="Search commands" placeholder="Search" />
@@ -121,6 +131,28 @@ const PALETTE_SEARCH = (
   />
 )
 
+// The page holds what has been typed, so anything else on it can read or set
+// the query.
+function ControlledSearch() {
+  const [query, setQuery] = useState('Grace')
+
+  return (
+    <div {...stylex.props(styles.surface)}>
+      <Autocomplete inputValue={query} onInputChange={setQuery}>
+        <SearchField label="Search people" placeholder="Search" />
+        <ListBox aria-label="People" selectionMode="single">
+          {PEOPLE}
+        </ListBox>
+      </Autocomplete>
+    </div>
+  )
+}
+
+// At module scope so every render hands Autocomplete the same function.
+function keepEvery() {
+  return true
+}
+
 // The palette's results, which run a command rather than select one: no
 // `selectionMode`, and an `onAction` that closes the dialog, since what a
 // command does is the page's and closing is what every command shares. A
@@ -143,6 +175,40 @@ function paletteResults(close: () => void) {
         Close file
       </ListBox.Item>
     </ListBox>
+  )
+}
+
+// The page filters its own data, on the group as well as the name, and hands
+// Autocomplete only the rows it kept. A predicate that keeps every row stops
+// Autocomplete filtering them a second time, by their names alone.
+function SelfFilteringSearch() {
+  const [query, setQuery] = useState('Second')
+  const { contains } = useFilter({ sensitivity: 'base' })
+  const people = GROUPED.filter(
+    (person) => contains(person.name, query) || contains(person.group, query),
+  )
+
+  return (
+    <div {...stylex.props(styles.surface)}>
+      <Autocomplete
+        filter={keepEvery}
+        inputValue={query}
+        onInputChange={setQuery}
+      >
+        <SearchField label="Search people" placeholder="Search" />
+        <ListBox aria-label="People" selectionMode="single">
+          {people.map((person) => (
+            <ListBox.Item
+              id={person.id}
+              key={person.id}
+              supporting={person.group}
+            >
+              {person.name}
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Autocomplete>
+    </div>
   )
 }
 
@@ -201,6 +267,72 @@ const FilteredEmptyInAMenu: Story = {
   render: InAMenu.render,
 }
 
+// What the Overview page prints under Controlled and FiltersItself. Storybook
+// writes no snippet for a story whose render takes no args, and the state is
+// inside each story's own component in any case, so the patterns are written
+// out by hand, with the surface's styles left out.
+const CONTROLLED_SOURCE = `const [query, setQuery] = useState('Grace')
+
+<Autocomplete inputValue={query} onInputChange={setQuery}>
+  <SearchField label="Search people" placeholder="Search" />
+  <ListBox aria-label="People" selectionMode="single">
+    <ListBox.Item id="ada" supporting="Supporting line">
+      Ada Lovelace
+    </ListBox.Item>
+    <ListBox.Item id="grace" supporting="Supporting line">
+      Grace Hopper
+    </ListBox.Item>
+    <ListBox.Item id="alan" supporting="Supporting line">
+      Alan Turing
+    </ListBox.Item>
+  </ListBox>
+</Autocomplete>`
+
+const SELF_FILTERING_SOURCE = `const [query, setQuery] = useState('Second')
+const { contains } = useFilter({ sensitivity: 'base' })
+const people = data.filter(
+  (person) => contains(person.name, query) || contains(person.group, query),
+)
+
+<Autocomplete
+  filter={() => true}
+  inputValue={query}
+  onInputChange={setQuery}
+>
+  <SearchField label="Search people" placeholder="Search" />
+  <ListBox aria-label="People" selectionMode="single">
+    {people.map((person) => (
+      <ListBox.Item id={person.id} key={person.id} supporting={person.group}>
+        {person.name}
+      </ListBox.Item>
+    ))}
+  </ListBox>
+</Autocomplete>`
+
+// What has been typed, held by the page rather than by Autocomplete.
+const Controlled: Story = {
+  parameters: {
+    docs: { source: { code: CONTROLLED_SOURCE, language: 'tsx' } },
+  },
+  render: () => <ControlledSearch />,
+}
+
+// A collection that filters itself, as one fed from a server does. "Second"
+// is in Grace Hopper's group and not in her name, so the row the page kept
+// is one Autocomplete's own filter would drop. The play function checks it
+// is still there.
+const FiltersItself: Story = {
+  parameters: {
+    docs: { source: { code: SELF_FILTERING_SOURCE, language: 'tsx' } },
+  },
+  play: async ({ canvas }) => {
+    await expect(
+      await canvas.findByRole('option', { name: /Grace Hopper/ }),
+    ).toBeVisible()
+  },
+  render: () => <SelfFilteringSearch />,
+}
+
 // The palette open on load, since a closed dialog renders nothing for
 // Chromatic to compare. The trigger is kept: React Aria's DialogTrigger wraps
 // its children in one PressResponder and warns when nothing inside it is
@@ -254,10 +386,12 @@ const CommandPalette: Story = {
 
 export {
   CommandPalette,
+  Controlled,
   Default,
   Filtered,
   FilteredEmpty,
   FilteredEmptyInAMenu,
+  FiltersItself,
   InAMenu,
 }
 
