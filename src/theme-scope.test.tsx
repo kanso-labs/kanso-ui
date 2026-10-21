@@ -550,7 +550,12 @@ describe('theme scope', () => {
       expect(view.getAllByRole('dialog')).toHaveLength(1)
     })
 
-    // The same read is where a modal makes the page behind it inert.
+    // The same read is where a modal makes the page behind it inert. React
+    // Aria does that in a passive effect, which a loaded CI run has been seen
+    // to reach only after `render` returned, so the case waits for it. A
+    // container that arrives a render late leaves the page reachable however
+    // long the case waits, since the effect has already run by then and
+    // found no element.
     it('makes the page behind a sheet open from its first render inert', async () => {
       const view = render(
         <ThemeScope>
@@ -566,24 +571,9 @@ describe('theme scope', () => {
         </ThemeScope>,
       )
       const behind = view.getByText('Label').closest('button')
-      const report = () => {
-        const dialog = view.queryByRole('dialog')
-        return JSON.stringify({
-          active: document.activeElement?.tagName,
-          behindConnected: behind?.isConnected,
-          dialogInScope: dialog !== null && view.container.contains(dialog),
-          dialogs: view.queryAllByRole('dialog', { hidden: true }).length,
-          inert: [...document.querySelectorAll('[inert]')].map(
-            (element) => element.tagName,
-          ),
-        })
-      }
-      if (behind?.closest('[inert]') == null) {
-        console.log('not inert on the first render', report())
-      }
 
       await waitFor(() => {
-        expect(behind?.closest('[inert]') ? 'inert' : report()).toBe('inert')
+        expect(behind?.closest('[inert]')).not.toBeNull()
       })
     })
 
