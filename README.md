@@ -176,11 +176,42 @@ names React Aria gives sit behind `clearLabel`, `closeLabel` and the rest.
 Numbers follow the provider too: `Currency` writes its amount, and a field its
 character count, in the locale's digits and grouping.
 
-A bundler includes every language unless told which ones the app supports. React
-Aria's
+A bundler includes every language React Aria ships unless told which ones the
+app supports.
 [`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
-is how an app says so for React Aria's own tables. This package's table is one
-small module, included whole.
+is how an app says so. Install it as a development dependency and give it the
+locales the app hands `I18nProvider`. Under Next.js with Turbopack, which needs
+Next.js 15.4 or newer, its rules spread into `turbopack.rules`:
+
+```ts
+// next.config.ts
+import optimizeLocales from '@react-aria/optimize-locales-plugin'
+
+const locales = optimizeLocales.turbopack({ locales: ['en-US', 'de-DE'] })
+
+export default {
+  turbopack: { rules: { ...locales.rules } },
+}
+```
+
+The object is left untyped because the plugin types `locales` as a read-only
+array, which `NextConfig` does not accept, so `const config: NextConfig` fails
+Next.js's type check over the same rules. Under Vite it is a plugin:
+
+```ts
+// vite.config.ts
+import optimizeLocales from '@react-aria/optimize-locales-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [optimizeLocales.vite({ locales: ['en-US', 'de-DE'] })],
+})
+```
+
+React Aria's strings for every other locale then build to nothing. The plugin's
+own README covers webpack, Rollup and esbuild. It reaches React Aria's tables
+alone: this package's strings are one module holding every locale, included
+whole wherever a component uses it.
 
 ### Layout
 
