@@ -142,6 +142,28 @@ const Suggestion: Story = {
   args: { variant: 'suggestion' },
 }
 
+// Raised off the page on a container of its own, which a hovering pointer
+// lifts further and a press brings back down.
+const Elevated: Story = {
+  args: { elevated: true },
+}
+
+// The three containers a disabled chip can be on. Each is translucent, so it
+// reads as a faint version of itself on whatever it is placed on.
+const Disabled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      <Chip isDisabled>{FILTERS[0]}</Chip>
+      <Chip defaultSelected isDisabled>
+        {FILTERS[1]}
+      </Chip>
+      <Chip elevated isDisabled>
+        {FILTERS[2]}
+      </Chip>
+    </div>
+  ),
+}
+
 // Closed, since the chip is what this shows: pressing it opens the menu.
 const Dropdown: Story = {
   render: () => <DropdownChip />,
@@ -154,6 +176,15 @@ const Controlled: Story = {
   render: () => <SingleSelect />,
 }
 
-export { Assist, Controlled, Default, Dropdown, Suggestion, WithIcon }
+export {
+  Assist,
+  Controlled,
+  Default,
+  Disabled,
+  Dropdown,
+  Elevated,
+  Suggestion,
+  WithIcon,
+}
 
 export default meta

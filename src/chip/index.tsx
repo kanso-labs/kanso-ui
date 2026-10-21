@@ -118,7 +118,7 @@ const CONTAINERS = {
 }
 
 /** Which of the page's chips a pill is drawn as. */
-type ChipKind = 'assist' | 'filter' | 'suggestion'
+type ChipKind = 'assist' | 'filter' | 'input' | 'suggestion'
 
 /**
  * The pill's styles in the render state React Aria hands a chip's
@@ -134,8 +134,12 @@ type ChipKind = 'assist' | 'filter' | 'suggestion'
  *
  * `elevated` raises the chip off the page on a container of its own, and
  * `kind` names which of the page's chips it is, which decides the label's
- * role. `inert` marks a chip a press does nothing to, which draws the arrow
- * rather than the pointer.
+ * role and whether a flat selected chip lifts under a hovering pointer: a
+ * filter chip does and an input chip, a group's removable one, does not. A
+ * hover's lift gives way while the chip is pressed, since a mouse press does
+ * not end the hover.
+ * `inert` marks a chip a press does nothing to, which draws the arrow rather
+ * than the pointer.
  */
 function chipPropsFor(
   state: {
@@ -153,6 +157,7 @@ function chipPropsFor(
 ) {
   const roles = CONTAINERS[containerOf(state.isSelected, elevated)]
   const raised = elevated && !state.isDisabled
+  const lifted = state.isHovered && !state.isPressed
 
   return stylex.props(
     chipStyles.base,
@@ -164,7 +169,12 @@ function chipPropsFor(
     kind === 'assist' && chipStyles.assist,
     raised && chipStyles.raised,
     state.isHovered && roles.hovered,
-    raised && state.isHovered && chipStyles.raisedHovered,
+    raised && lifted && chipStyles.raisedHovered,
+    kind === 'filter' &&
+      !elevated &&
+      state.isSelected &&
+      lifted &&
+      chipStyles.selectedHovered,
     state.isFocusVisible && roles.focused,
     state.isPressed && roles.pressed,
     state.isDisabled && chipStyles.disabled,
