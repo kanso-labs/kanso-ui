@@ -44,6 +44,7 @@ import {
   motion,
   radii,
   shadows,
+  sizing,
   spacing,
   typography,
 } from '../../tokens/design.tokens.stylex'
@@ -53,6 +54,12 @@ import {
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
 // module, and the generated one holds design tokens rather than queries.
 const FORCED_COLORS = '@media (forced-colors: active)'
+
+// How far a headline in a header reaches past its own line, above and below:
+// half of what the headline-small line lacks of a standard control's
+// height, which is 4 at the default tokens. The header gives the same back
+// out of its padding. See `header`.
+const HEADLINE_REACH = `max(0px, calc((${sizing.controlSm} - ${typography.headlineSmallLineHeight}) / 2))`
 
 // The window size the full-screen dialog is drawn at, which the styles read
 // as `media.belowMedium`. Spelled again for `matchMedia`, which is the one
@@ -260,10 +267,27 @@ const styles = stylex.create({
     paddingBlockStart: { default: spacing.xl, [media.belowMedium]: spacing.xs },
     paddingInline: spacing.xl,
   },
+  // A headline in a header reaches past its line by what the header takes
+  // off its padding; see `header`. Outside one it reaches nowhere.
+  headed: {
+    paddingBlock: { default: HEADLINE_REACH, [media.belowMedium]: 0 },
+  },
   // The page's 24dp above the headline and 16dp between it and the body.
   // Full screen, the header is the page's own: 56dp tall, under a divider.
   // That height is a least height for the reason the footer's is, so a
   // headline that wraps grows the bar rather than starting above it.
+  //
+  // **The headline sets the row, not the tallest control beside it.** The
+  // row is as tall as its tallest item, and the headline's line is 32 where
+  // a close button is 40, so a button beside it grew the row by 8 and the
+  // centred headline sat 28 below the top and 20 above the body. So the
+  // headline reaches past its line by half a standard control's extra
+  // height, 4 either side, and the header takes the same 4 off each end of
+  // its padding: a header holding only the headline measures as it did, and
+  // one with a button or a text button of the standard height beside it now
+  // measures the same, the button centred on the headline's line. A control
+  // taller than the standard height still grows the row. Full screen the
+  // 56dp bar already holds the button, so neither part changes there.
   header: {
     alignItems: 'center',
     borderBlockEndColor: colors.outlineVariant,
@@ -275,8 +299,14 @@ const styles = stylex.create({
     gap: spacing.md,
     justifyContent: 'space-between',
     minBlockSize: { default: null, [media.belowMedium]: '56px' },
-    paddingBlockEnd: { default: spacing.lg, [media.belowMedium]: spacing.xs },
-    paddingBlockStart: { default: spacing.xl, [media.belowMedium]: spacing.xs },
+    paddingBlockEnd: {
+      default: `calc(${spacing.lg} - ${HEADLINE_REACH})`,
+      [media.belowMedium]: spacing.xs,
+    },
+    paddingBlockStart: {
+      default: `calc(${spacing.xl} - ${HEADLINE_REACH})`,
+      [media.belowMedium]: spacing.xs,
+    },
     paddingInline: spacing.xl,
   },
   // Full screen the headline shares a 56dp row with the close button, so it
@@ -347,11 +377,14 @@ const basic = stylex.create({
     paddingBlockEnd: spacing.xl,
     paddingBlockStart: spacing.xl,
   },
+  headed: {
+    paddingBlock: HEADLINE_REACH,
+  },
   header: {
     borderBlockEndStyle: 'none',
     minBlockSize: null,
-    paddingBlockEnd: spacing.lg,
-    paddingBlockStart: spacing.xl,
+    paddingBlockEnd: `calc(${spacing.lg} - ${HEADLINE_REACH})`,
+    paddingBlockStart: `calc(${spacing.xl} - ${HEADLINE_REACH})`,
   },
   title: {
     fontFamily: typography.headlineSmallFont,
@@ -366,6 +399,11 @@ const basic = stylex.create({
 // the role and the parts read it, since each part carries its own share of
 // the full-screen presentation.
 const BasicContext = createContext(false)
+
+// Whether a title sits in a header, which is what it reaches past its line
+// in; see `header`. Content clears it, so a dialog opened from inside a
+// header starts outside one.
+const HeaderContext = createContext(false)
 
 // Where an alert dialog's body hands Content its id, so the dialog can name
 // the body as its description: the message an alert dialog interrupts with
@@ -530,15 +568,17 @@ function DialogContent({
                 { className, style },
               )}
             >
-              <RACDialog
-                {...props}
-                aria-describedby={
-                  props['aria-describedby'] ?? (isBasic ? body : undefined)
-                }
-                {...stylex.props(overlay.modalDialog)}
-              >
-                {children}
-              </RACDialog>
+              <HeaderContext value={false}>
+                <RACDialog
+                  {...props}
+                  aria-describedby={
+                    props['aria-describedby'] ?? (isBasic ? body : undefined)
+                  }
+                  {...stylex.props(overlay.modalDialog)}
+                >
+                  {children}
+                </RACDialog>
+              </HeaderContext>
             </Modal>
           </ModalOverlay>
         </OverlayScope>
@@ -584,13 +624,15 @@ function DialogHeader(
   const isBasic = useContext(BasicContext)
 
   return (
-    <div
-      {...props}
-      {...mergeStyles(
-        stylex.props(styles.header, isBasic && basic.header),
-        props,
-      )}
-    />
+    <HeaderContext value>
+      <div
+        {...props}
+        {...mergeStyles(
+          stylex.props(styles.header, isBasic && basic.header),
+          props,
+        )}
+      />
+    </HeaderContext>
   )
 }
 
@@ -603,13 +645,19 @@ function DialogTitle(
   props: DialogTitleProps & RefAttributes<HTMLHeadingElement>,
 ) {
   const isBasic = useContext(BasicContext)
+  const isHeaded = useContext(HeaderContext)
 
   return (
     <Heading
       slot="title"
       {...props}
       {...mergeStyles(
-        stylex.props(styles.title, isBasic && basic.title),
+        stylex.props(
+          styles.title,
+          isHeaded && styles.headed,
+          isBasic && basic.title,
+          isBasic && isHeaded && basic.headed,
+        ),
         props,
       )}
     />
