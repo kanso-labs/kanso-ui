@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import NavigationBar from '.'
+import { docsFrameWidth } from '../../../.storybook/decorators'
 
 const styles = stylex.create({
   icon: {
@@ -203,8 +204,12 @@ const LONG_LABELS = (
 
 // Below the medium breakpoint, where the destinations turn vertical. Sizes
 // the frame in Storybook itself, and tells Chromatic the width through its
-// modes — see sheet/index.stories.tsx, `BottomSheet`, for why both.
+// modes — see sheet/index.stories.tsx, `BottomSheet`, for why both. The
+// Overview page draws each such story in a frame of its own, narrowed to the
+// same width, since the bar's form follows the window and that page's own is
+// as wide as its column.
 const COMPACT = {
+  decorators: [docsFrameWidth('375px')],
   globals: { viewport: { isRotated: false, value: 'mobile1' } },
   parameters: {
     chromatic: {
@@ -213,8 +218,9 @@ const COMPACT = {
         light: { theme: 'light', viewport: { height: 700, width: 375 } },
       },
     },
+    docs: { story: { height: '160px', inline: false } },
   },
-} as const
+} satisfies Story
 
 const meta = {
   args: {
@@ -288,11 +294,13 @@ const NestedRoute: Story = {
 // Five labels the horizontal form has no room for at 640px, so the bar keeps
 // the vertical form there and turns horizontal once the window is wide
 // enough to show every label whole. Chromatic is told the width through its
-// modes; in Storybook the form follows the window.
+// modes, and the Overview page's frame is narrowed to it; on the story's own
+// canvas the form follows the window.
 const LongLabels: Story = {
   args: {
     children: LONG_LABELS,
   },
+  decorators: [docsFrameWidth('640px')],
   parameters: {
     chromatic: {
       modes: {
@@ -300,6 +308,7 @@ const LongLabels: Story = {
         light: { theme: 'light', viewport: { height: 700, width: 640 } },
       },
     },
+    docs: { story: { height: '160px', inline: false } },
   },
 }
 
