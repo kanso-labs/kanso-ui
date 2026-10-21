@@ -236,6 +236,33 @@ function landsOnControl(event: PointerEvent<HTMLDivElement>) {
  * `List.Item`, `List.Section` and `List.LoadMore`. Name the list with
  * `aria-label` or `aria-labelledby` — nothing here labels it for you.
  *
+ * ```tsx
+ * const [selected, setSelected] = useState<Selection>(new Set(['first']))
+ *
+ * <List
+ *   aria-label="Label"
+ *   onSelectionChange={setSelected}
+ *   selectedKeys={selected}
+ *   selectionMode="multiple"
+ * >
+ *   <List.Item
+ *     id="first"
+ *     leading={<Avatar name="Ada Lovelace" size="sm" />}
+ *     supporting="Supporting line"
+ *     trailing={<Currency value={1250} />}
+ *   >
+ *     First item
+ *   </List.Item>
+ *   <List.Item id="second" textValue="Second item">
+ *     <Text variant="bodyLarge">Second item</Text>
+ *   </List.Item>
+ * </List>
+ * ```
+ *
+ * A row's `id` is what `selectedKeys` holds. A row whose children are not a
+ * plain string takes a `textValue`, which is what typing a row's first
+ * letters matches against.
+ *
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
  */

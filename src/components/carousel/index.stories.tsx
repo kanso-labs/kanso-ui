@@ -65,6 +65,7 @@ const meta = {
     label: 'Label',
   },
   component: Carousel,
+  subcomponents: { 'Carousel.Item': Carousel.Item },
   title: 'Components/Carousel',
 } satisfies Meta<typeof Carousel>
 

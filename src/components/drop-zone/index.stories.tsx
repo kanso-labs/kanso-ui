@@ -24,6 +24,7 @@ const IMAGES = ['image/png', 'image/jpeg']
 
 const meta = {
   component: DropZone,
+  subcomponents: { FileTrigger },
   title: 'Components/DropZone',
 } satisfies Meta<typeof DropZone>
 

@@ -223,6 +223,9 @@ const meta = {
     selectedRoute: '#first',
   },
   component: NavigationBar,
+  // A tab of its own beside the bar's in the Overview page's props table,
+  // since a bar is written with its destinations.
+  subcomponents: { 'NavigationBar.Item': NavigationBar.Item },
   title: 'Components/NavigationBar',
 } satisfies Meta<typeof NavigationBar>
 

@@ -21,6 +21,15 @@ const styles = stylex.create({
 
 const meta = {
   component: Dialog,
+  // A tab of its own beside the root's in the Overview page's props table,
+  // for each part with props of its own: `Dialog` holds only the open state,
+  // and the dismissal settings and the portal are `Dialog.Content`'s. The
+  // header, body and footer take a `<div>`'s attributes and nothing else,
+  // which the table leaves out, so a tab of theirs would be empty.
+  subcomponents: {
+    'Dialog.Content': Dialog.Content,
+    'Dialog.Title': Dialog.Title,
+  },
   title: 'Components/Dialog',
 } satisfies Meta<typeof Dialog>
 

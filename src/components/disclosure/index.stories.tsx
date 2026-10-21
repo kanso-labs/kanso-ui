@@ -40,6 +40,10 @@ const meta = {
     ),
   },
   component: Disclosure,
+  subcomponents: {
+    'Disclosure.Header': Disclosure.Header,
+    'Disclosure.Panel': Disclosure.Panel,
+  },
   title: 'Components/Disclosure',
 } satisfies Meta<typeof Disclosure>
 

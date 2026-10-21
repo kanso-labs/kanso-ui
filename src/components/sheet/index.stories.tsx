@@ -41,6 +41,14 @@ const meta = {
     // Merged into each story's own `chromatic` rather than replaced by it.
     chromatic: { prefersReducedMotion: 'reduce' },
   },
+  // A tab of its own beside the root's in the Overview page's props table,
+  // for each part with props of its own, as Dialog's stories give theirs. The
+  // handle, header, body and footer take a `<div>`'s attributes and nothing
+  // else, which the table leaves out, so a tab of theirs would be empty.
+  subcomponents: {
+    'Sheet.Content': Sheet.Content,
+    'Sheet.Title': Sheet.Title,
+  },
   title: 'Components/Sheet',
 } satisfies Meta<typeof Sheet>
 

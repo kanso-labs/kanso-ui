@@ -724,9 +724,17 @@ narrow it, the type `Omit`s React Aria's: the table joins every description a
 prop is declared with, so `Form`'s `validationBehavior` read as the library's
 paragraph followed by React Aria's sentence. And a union of props types shares
 what its members have in common through one type both extend, as `Chip`'s
-`ChipBaseProps` does, for the same reason. A compound part gets its own table
-through `subcomponents` in its stories' meta, as `Radio` does beside
-`RadioGroup`.
+`ChipBaseProps` does, for the same reason.
+
+**A compound component lists its parts in `subcomponents`**, in its stories'
+meta, which gives each part a tab of its own beside the root's in that table.
+Without it the page documents the root alone, and a part's props appear nowhere
+on it: `Dialog` holds only the open state, so its dismissal settings are
+`Dialog.Content`'s, and a list row's slots are `List.Item`'s. A part exported
+under a name of its own is listed the same way, as `Radio` is beside
+`RadioGroup`. A part that takes a `<div>`'s attributes and nothing else stays
+out, as `Dialog.Header` does: the table drops React's DOM props, so its tab
+would be empty, and the component's description names it instead.
 
 **Most of a table's controls are decided in `.storybook/preview.tsx`, and a
 story adds only what it alone knows.** Its `argTypesEnhancers` take the editor
