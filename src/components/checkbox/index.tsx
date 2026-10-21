@@ -4,6 +4,7 @@ import type { ReactNode, RefAttributes } from 'react'
 import type {
   CheckboxButtonRenderProps,
   CheckboxFieldRenderProps,
+  PressEvent,
   CheckboxFieldProps as RACCheckboxFieldProps,
 } from 'react-aria-components'
 
@@ -49,6 +50,19 @@ import {
 // The adjacent label is body-large on surface, which the page keeps the same
 // whether or not the box is selected. The corner is a literal: the page's
 // 2dp is a step the shape scale does not carry.
+//
+// A change of state moves together: the fill and the rule fade, and the glyph
+// fades and grows in or shrinks out with them, over the same duration and
+// curve. Both glyphs are always drawn, one over the other, so a box moving
+// between checked and indeterminate crosses from one to the other, and one
+// being cleared fades out the mark it had.
+//
+// The ripple answers every press: on the control, on the text beside it, or
+// from a key, and grows from the middle of the control whichever it is. The
+// text runs the width of the row, so a ripple following the pointer there
+// reached the control only as it finished growing. A key press ripples once
+// the key has activated the checkbox, as Button's does.
+
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -58,7 +72,6 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 const styles = stylex.create({
   box: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
-    alignItems: 'center',
     backgroundColor: 'transparent',
     blockSize: '18px',
     borderColor: colors.onSurfaceVariant,
@@ -67,9 +80,9 @@ const styles = stylex.create({
     borderWidth: '2px',
     boxSizing: 'border-box',
     color: colors.onPrimary,
-    display: 'flex',
+    display: 'block',
     inlineSize: '18px',
-    justifyContent: 'center',
+    position: 'relative',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'background-color, border-color',
     transitionTimingFunction: motion.easingStandard,
@@ -113,15 +126,31 @@ const styles = stylex.create({
   control: {
     color: colors.onSurface,
   },
-  // The box is a flex container with 14dp of content inside its 2dp border,
-  // so the glyph holds its own 18dp rather than shrinking to fit that: it
-  // runs over the border, which a marked box fills like the rest, and lies
-  // over the whole box. Shrunk, both marks came out a fifth smaller.
+  // The box has 14dp of content inside its 2dp border, so the glyph is
+  // placed rather than laid out: it holds its own 18dp, starts 2dp out, over
+  // the border, which a marked box fills like the rest, and lies over the
+  // whole box. Fitted to the content, both marks came out a fifth smaller.
+  // Placing them is also what lets the two lie one over the other.
+  //
+  // Hidden, a glyph is clear and at half its size, and it fades and grows
+  // with the fill. Under reduced motion it changes at once, as the box does.
   glyph: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     blockSize: '18px',
     display: 'block',
-    flexShrink: 0,
     inlineSize: '18px',
+    insetBlockStart: '-2px',
+    insetInlineStart: '-2px',
+    opacity: 0,
+    position: 'absolute',
+    transform: 'scale(0.5)',
+    transitionDuration: motion.durationShort2,
+    transitionProperty: 'opacity, transform',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  glyphShown: {
+    opacity: 1,
+    transform: 'scale(1)',
   },
   // The description and error sit under the text, in the second column.
 })
@@ -194,17 +223,22 @@ type CheckboxProps = {
   error?: string
 } & Omit<RACCheckboxFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
 
-type Ripple = ReturnType<typeof useRipple<HTMLSpanElement>>
+type Ripple = ReturnType<typeof useRipple<HTMLLabelElement>>
 
 type Tone = 'error' | 'marked' | 'unmarked'
 
 // What the label draws, chosen from the render state React Aria hands it.
 // Built by a call rather than written inline at the prop, which is what
 // react-perf's no-new-function-as-prop is after; the React Compiler memoises
-// the result on its inputs. The ripple's handlers and surface go on the
-// control while the checkbox can change, and are left off while it cannot,
-// since a press that changes nothing should not look like one.
-function buttonContent(children: ReactNode, ripple: Ripple, inGroup: boolean) {
+// the result on its inputs. The ripple's surface goes on the control while
+// the checkbox can change, and is left off while it cannot, since a press
+// that changes nothing should not look like one. Its handlers are the
+// label's, in `Checkbox` below.
+function buttonContent(
+  children: ReactNode,
+  surface: Ripple['surface'],
+  inGroup: boolean,
+) {
   return (state: CheckboxButtonRenderProps) => {
     // A checkbox in a group is marked by the group's label rather than its
     // own: the group is what has to have a choice made in it.
@@ -221,7 +255,6 @@ function buttonContent(children: ReactNode, ripple: Ripple, inGroup: boolean) {
     return (
       <>
         <span
-          {...(interactive ? ripple.handlers : {})}
           {...stylex.props(
             controlStyles.disc,
             styles.control,
@@ -250,13 +283,20 @@ function buttonContent(children: ReactNode, ripple: Ripple, inGroup: boolean) {
                   : styles.boxUnmarkedDisabled),
             )}
           >
-            {state.isIndeterminate ? (
-              <IndeterminateGlyph {...stylex.props(styles.glyph)} />
-            ) : state.isSelected ? (
-              <CheckGlyph {...stylex.props(styles.glyph)} />
-            ) : null}
+            <CheckGlyph
+              {...stylex.props(
+                styles.glyph,
+                state.isSelected && !state.isIndeterminate && styles.glyphShown,
+              )}
+            />
+            <IndeterminateGlyph
+              {...stylex.props(
+                styles.glyph,
+                state.isIndeterminate && styles.glyphShown,
+              )}
+            />
           </span>
-          {interactive ? ripple.surface : null}
+          {interactive ? surface : null}
         </span>
         <ControlLabel isRequired={required} state={state}>
           {children}
@@ -286,8 +326,6 @@ function Checkbox({
   error,
   ...props
 }: CheckboxProps & RefAttributes<HTMLDivElement>) {
-  const ripple = useRipple<HTMLSpanElement>()
-
   const validationBehavior = useFieldValidationBehavior()
 
   // Whether a message can ever reach this checkbox, which is what a form
@@ -297,23 +335,48 @@ function Checkbox({
   // check of its own, or a name a form's errors can be keyed by. Without
   // this every checkbox in a form sat a line taller than it draws, and a
   // group of them in a form gained a line after every item.
-  const inGroup = useContext(CheckboxGroupStateContext) !== null
+  const group = useContext(CheckboxGroupStateContext)
+  const inGroup = group !== null
   const reachable =
     !inGroup &&
     (props.isRequired === true ||
       props.validate !== undefined ||
       props.name !== undefined)
 
+  // The ripple listens on the label, which hears a pointer on the control and
+  // on the text alike, and grows from the middle of the control for both.
+  // React Aria drops a click handler there, so a press ends on its release
+  // instead. A key reaches the input rather than the
+  // label, so its press is played once it activates the checkbox. React Aria
+  // reports that activation twice, as the key and then as the click the
+  // browser makes of it, and only the first plays. A checkbox that a press
+  // cannot change listens for neither, as in `buttonContent`.
+  const interactive =
+    props.isDisabled !== true &&
+    props.isReadOnly !== true &&
+    group?.isDisabled !== true &&
+    group?.isReadOnly !== true
+  const ripple = useRipple<HTMLLabelElement>(interactive, {}, true, true)
+  const press = {
+    onPress: (event: PressEvent) => {
+      if (event.pointerType === 'keyboard') {
+        ripple.play()
+      }
+      props.onPress?.(event)
+    },
+  }
+
   return (
     <CheckboxField
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}
       {...props}
+      {...press}
       {...mergeStatefulStyles(stylex.props(controlStyles.field), props)}
     >
       {fieldContent(
-        <CheckboxButton {...stylex.props(styles.button)}>
-          {buttonContent(children, ripple, inGroup)}
+        <CheckboxButton {...ripple.handlers} {...stylex.props(styles.button)}>
+          {buttonContent(children, ripple.surface, inGroup)}
         </CheckboxButton>,
         description,
         error,

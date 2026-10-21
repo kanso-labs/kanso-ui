@@ -52,6 +52,10 @@ import {
 //
 // The adjacent label is body-large on surface, which the page keeps the same
 // whether or not the button is selected.
+//
+// A change of selection moves together: the ring's colour fades, and the dot
+// grows in from nothing or shrinks away, over the same duration and curve.
+// The dot is always drawn, at no size while the button is not selected.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -71,7 +75,10 @@ const styles = stylex.create({
   control: {
     color: colors.onSurfaceVariant,
   },
-  // The dot, drawn in the ring's colour so the two never disagree.
+  // The dot, drawn in the ring's colour so the two never disagree. Its
+  // colour fades with the ring's while it grows or shrinks, so a dot leaving
+  // a button keeps the ring's colour to the end. Under reduced motion it
+  // changes at once, as the ring does.
   //
   // Not under forced colours. That mode paints an author's fill in the
   // page's own `Canvas`, so the dot vanished and a chosen radio drew the same
@@ -79,13 +86,21 @@ const styles = stylex.create({
   // so there the dot is `Highlight`, the colour the mode gives whatever is
   // chosen, and `GrayText` while disabled.
   dot: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
     backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'Highlight' },
     blockSize: '10px',
     borderRadius: radii.circle,
     inlineSize: '10px',
+    transform: 'scale(0)',
+    transitionDuration: motion.durationShort2,
+    transitionProperty: 'background-color, transform',
+    transitionTimingFunction: motion.easingStandard,
   },
   dotDisabled: {
     backgroundColor: { default: 'currentColor', [FORCED_COLORS]: 'GrayText' },
+  },
+  dotSelected: {
+    transform: 'scale(1)',
   },
   // The group's buttons along a line, for a horizontal group. One under
   // another is the shared `stack`, whose row gap this keeps for the lines a
@@ -234,14 +249,13 @@ function buttonContent(children: ReactNode, ripple: Ripple) {
           )}
         >
           <span {...stylex.props(styles.ring)}>
-            {state.isSelected ? (
-              <span
-                {...stylex.props(
-                  styles.dot,
-                  state.isDisabled && styles.dotDisabled,
-                )}
-              />
-            ) : null}
+            <span
+              {...stylex.props(
+                styles.dot,
+                state.isSelected && styles.dotSelected,
+                state.isDisabled && styles.dotDisabled,
+              )}
+            />
           </span>
           {interactive ? ripple.surface : null}
         </span>

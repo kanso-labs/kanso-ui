@@ -90,7 +90,7 @@ function checkboxOf(props: { isDisabled?: boolean; isSelected?: boolean }) {
   }
 }
 
-/** A lone radio's dot, drawn inside its ring only while it is chosen. */
+/** A lone chosen radio's dot, inside its ring. */
 function dotOf(props: { isDisabled?: boolean } = {}) {
   const view = render(
     <RadioGroup defaultValue="first" label="Label" {...props}>
