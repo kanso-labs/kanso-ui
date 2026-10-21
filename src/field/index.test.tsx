@@ -67,7 +67,7 @@ const CLASSES = {
 // A theme with longer body lines than the defaults, which is what tells a
 // derived box height apart from a stated one — under the default tokens the
 // two agree by construction, so a fixed 56 looks right there whatever it is
-// made of. The type is `Editorial`'s from src/theming/themes.ts, the scheme
+// made of. The type is `Editorial`'s from kanso-ui-core's themes, the scheme
 // the showcase drew the overflow on.
 //
 // Its `lg` is wider than Editorial's 20 on purpose. The filled box derives

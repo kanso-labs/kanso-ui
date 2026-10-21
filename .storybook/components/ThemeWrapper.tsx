@@ -1,18 +1,16 @@
 'use client'
 
+import type { DemoTheme } from '@kanso-labs/kanso-ui-core/themes'
 import type { ReactNode } from 'react'
 
+import { demoThemes } from '@kanso-labs/kanso-ui-core/themes'
 import * as stylex from '@stylexjs/stylex'
-import { useEffect } from 'react'
 
-import type { DemoTheme } from '../../src/theming/themes'
-
-import { demoThemes } from '../../src/theming/themes'
+import { ThemeScope } from '../../src/theme-scope'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
   colors,
-  tokenScope,
 } from '../../src/tokens/design.tokens.stylex'
 
 const styles = stylex.create({
@@ -50,59 +48,49 @@ type ThemeWrapperProps = {
 // Keyed by plain string rather than by the names it actually holds, so the
 // `theme` global — an arbitrary string as far as this file knows — can be
 // looked up without an assertion narrowing it back down.
-const DEMO_THEMES: Record<string, DemoTheme> = demoThemes
+const DEMO_THEMES: Readonly<Partial<Record<string, DemoTheme>>> = demoThemes
 
-// The library's own two, then the demo schemes the Theming page is built from.
-// Light is both a case and the fallback, and it has to be spelled out either
-// way for the reason under `ThemeWrapper` below: falling through is not the
-// same as choosing.
-function themeFor(name: string): stylex.CompiledStyles[] {
-  if (name === 'dark') {
-    return [...tokenScope, colorDefaultsDarkTheme]
-  }
-  if (name in DEMO_THEMES) {
-    return DEMO_THEMES[name].theme
-  }
-  return [...tokenScope, colorDefaultsLightTheme]
-}
-
-// Our tokens default to the OS-level prefers-color-scheme media query, which a
-// toolbar toggle can't override on its own. The library's own two are the
-// classes `colorScheme` exports: the scope, which declares every variable
-// again on the element so it resolves there rather than on `:root`, and a
-// theme pinning the colour defaults it falls back to, so the media query stops
-// being consulted — and both directions need that, not just dark, or picking
-// "light" against a dark OS preference would silently fall through to the
-// media query anyway. The demo schemes pin every colour outright instead.
+// Every story renders inside a `ThemeScope`, the component a consumer themes
+// the library with, so the canvas is themed the way an app is. The scope
+// declares every token again on its own element and portals the overlays
+// into itself, which is what takes Sheet's panel and scrim, menus, popovers,
+// tooltips and toasts along: rendered to the end of <body> instead, they
+// would keep the page's tokens and draw in the machine's OS theme rather
+// than the one the toolbar asked for, and both Chromatic modes would capture
+// the same thing.
+//
+// A demo scheme is kanso-ui-core's `--kui-*` map, handed to the scope's
+// `theme` prop as a consumer would hand one. It states every colour, so the
+// colour defaults are never consulted under it. The library's own two take
+// the class pinning those defaults instead, and both directions need it, not
+// just dark: our tokens default to the OS-level prefers-color-scheme media
+// query, which a toolbar toggle can't override on its own, so picking "light"
+// against a dark OS preference would otherwise fall through to the media
+// query. The class rather than the scope's `scheme` prop, which would also
+// set the text colour and `color-scheme` on every story.
 //
 // `name` comes from the `theme` global (see preview.tsx), which is what lets
 // Chromatic capture the same story in both themes and what lets a story pin
 // one of the demo schemes for itself.
 function ThemeWrapper({ children, fill, name }: ThemeWrapperProps) {
-  const theme = themeFor(name)
-  const themeClassName = stylex.props(theme).className ?? ''
-
-  // The same theme, copied onto <body>. Portalled content — Sheet's panel and
-  // scrim, and anything else that renders through a portal — is appended to
-  // <body>, outside the div below, so the theme class never reaches it. It
-  // then falls through to the tokens' own prefers-color-scheme default and
-  // renders in the machine's OS theme rather than the one the toolbar asked
-  // for, which would make both Chromatic modes capture the same thing.
-  useEffect(() => {
-    const classNames = themeClassName.split(' ').filter(Boolean)
-    document.body.classList.add(...classNames)
-
-    return () => {
-      document.body.classList.remove(...classNames)
-    }
-  }, [themeClassName])
+  const demo = DEMO_THEMES[name]
 
   return (
     <>
       <style>{'.sb-show-main.sb-main-padded { padding: 0; }'}</style>
-      <div {...stylex.props(theme, styles.canvas, fill && styles.fill)}>
+      <ThemeScope
+        {...stylex.props(
+          demo === undefined &&
+            (name === 'dark'
+              ? colorDefaultsDarkTheme
+              : colorDefaultsLightTheme),
+          styles.canvas,
+          fill && styles.fill,
+        )}
+        theme={demo?.theme}
+      >
         {children}
-      </div>
+      </ThemeScope>
     </>
   )
 }

@@ -74,7 +74,7 @@ import IconButton from '../icon-button'
 // `formatOptions`.
 // Half the box, spelled from the same tokens the box derives its height
 // from rather than as the 28 that half of 56 comes to. A theme with a longer
-// body line makes the box taller — `Editorial` in src/theming/themes.ts does
+// body line makes the box taller — `Editorial` in kanso-ui-core's themes does
 // — and a stated half leaves the pair short of the bottom edge they are
 // flush with.
 //

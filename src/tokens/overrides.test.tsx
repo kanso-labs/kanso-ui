@@ -17,7 +17,7 @@ import { motion, sizing, spacing, typography } from './design.tokens.stylex'
 // which is the one condition no default-token test can see.
 //
 // The schemes move each step well clear of its default so a stale literal
-// cannot pass by coincidence. `Editorial` in src/theming/themes.ts is the kind
+// cannot pass by coincidence. `Editorial` in kanso-ui-core's themes is the kind
 // of scheme this stands in for; slider/index.test.tsx's `looseSpacing` is the
 // same technique against the spacing scale.
 const wideControls = stylex.createTheme(sizing, {

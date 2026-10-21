@@ -45,7 +45,7 @@ const OUTLINE_FOCUSED_WIDTH = '2px'
 // What the box is tall enough for, rather than the 56dp the text fields page
 // draws it at. The page's number is the sum of these under the default
 // tokens, and stating it instead made the box right only there: a theme with
-// a longer body line — `Editorial` in src/theming/themes.ts, at body-small
+// a longer body line — `Editorial` in kanso-ui-core's themes, at body-small
 // 20 and body-large 28 on a 10dp `sm` — needs 68, and in a fixed 56 the
 // value's line ran past the underline with nothing left beneath it.
 //

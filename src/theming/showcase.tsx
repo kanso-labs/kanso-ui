@@ -22,13 +22,13 @@
 // Compiler this repo builds with already handles.
 // oxlint-disable react-perf/jsx-no-jsx-as-prop
 
+import type { DemoThemeName } from '@kanso-labs/kanso-ui-core/themes'
 import type { ReactNode } from 'react'
 
+import { demoThemes } from '@kanso-labs/kanso-ui-core/themes'
 import * as stylex from '@stylexjs/stylex'
 import { createContext, useContext } from 'react'
 import { TokenFieldValue } from 'react-aria-components'
-
-import type { DemoThemeName } from './themes'
 
 import AppBar from '../components/app-bar'
 import Autocomplete from '../components/autocomplete'
@@ -113,7 +113,6 @@ import Tree from '../components/tree'
 import { CalendarDate, Time } from '../date'
 import { SearchGlyph } from '../glyphs'
 import { colors, radii, spacing } from '../tokens/design.tokens.stylex'
-import { demoThemes } from './themes'
 
 // See src/getting-started.stories.tsx for why the page is built from the
 // library's own components, why its sections are divided by a rule, and why
