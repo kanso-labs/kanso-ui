@@ -13,7 +13,12 @@ import { Button, ToggleButton } from 'react-aria-components'
 
 import type { ChipKind } from '../../chip'
 
-import { chipGlyph, chipLabel, chipPropsFor } from '../../chip'
+import {
+  chipGlyph,
+  chipLabel,
+  chipPropsFor,
+  chipTrailingIcon,
+} from '../../chip'
 import { useRipple } from '../../hooks/useRipple'
 import {
   ariaAttributesOf,
@@ -101,6 +106,13 @@ type ChipFilterProps = Omit<RACToggleButtonProps, 'children'> & {
    */
   icon?: ReactNode
   /**
+   * An icon after the label, in the same 18dp slot and the chip's own
+   * content role, which is the page's dropdown filter chip: an arrow here
+   * says the chip opens a menu. It stays while the chip is selected. An icon
+   * drawn in `em` takes its size from the slot.
+   */
+  trailingIcon?: ReactNode
+  /**
    * A filter chip, a two-state button.
    * @default 'filter'
    */
@@ -185,6 +197,10 @@ function actionChipContent(
  * control it, or `defaultSelected` to let it keep its own state. Selection is
  * announced through `aria-pressed` rather than a role of its own.
  *
+ * Given a `trailingIcon`, a filter chip is the page's dropdown filter chip:
+ * placed first inside a `Menu`, it opens the menu, and an arrow after its
+ * label says so.
+ *
  * `variant="assist"` and `variant="suggestion"` draw the page's two action
  * chips instead: plain buttons, pressed with `onPress`, never selected.
  */
@@ -196,15 +212,21 @@ function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>) {
 }
 
 // What the chip draws, from React Aria's render state: the check while it is
-// selected or its icon while it is not, then the label, and the ripple over
-// both. Built by a call rather than written inline at the prop, which is what
+// selected or its icon while it is not, then the label and any trailing
+// icon, and the ripple over them all. Built by a call rather than written inline at the prop, which is what
 // react-perf's no-new-function-as-prop is after; the React Compiler memoises
 // the result on its inputs.
-function chipContent(children: ReactNode, icon: ReactNode, surface: ReactNode) {
+function chipContent(
+  children: ReactNode,
+  icon: ReactNode,
+  trailingIcon: ReactNode,
+  surface: ReactNode,
+) {
   return (state: ToggleButtonRenderProps) => (
     <>
       {chipGlyph(state, icon)}
       {chipLabel(children)}
+      {chipTrailingIcon(trailingIcon)}
       {surface}
     </>
   )
@@ -223,6 +245,7 @@ function FilterChip({
   onPointerLeave,
   onPointerUp,
   render,
+  trailingIcon,
   variant = 'filter',
   ...props
 }: ChipFilterProps & RefAttributes<HTMLButtonElement>) {
@@ -248,7 +271,7 @@ function FilterChip({
       {...props}
       {...mergeStatefulStyles(filterChipClasses(variant, elevated), props)}
     >
-      {chipContent(children, icon, ripple.surface)}
+      {chipContent(children, icon, trailingIcon, ripple.surface)}
     </ToggleButton>
   )
 }

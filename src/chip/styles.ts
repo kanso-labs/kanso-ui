@@ -73,6 +73,14 @@ import {
 // across. A chip given an icon does not widen, since the check takes the
 // icon's place in the same slot.
 //
+// **A filter chip can carry an icon after its label as well**, the page's
+// trailing icon, which is what draws its dropdown filter chip: an arrow
+// saying the chip opens a menu. It takes the same 18dp slot at the other
+// end, and the chip's content role rather than the primary one the leading
+// icon takes — on surface variant, then on secondary container once
+// selected, then the disabled 38% — so it is drawn in the chip's own colour
+// rather than a role of its own. The check never displaces it.
+//
 // **The widening is animated rather than taken in one frame.** A chip with
 // no icon keeps its slot mounted while unselected, folded to nothing, and
 // selecting it opens the slot over the chip's own short duration while the
@@ -339,6 +347,13 @@ const chipStyles = stylex.create({
       position: 'absolute',
     },
     position: 'relative',
+  },
+  // The trailing icon's slot, over `glyph`: the chip's padding trimmed at its
+  // end rather than its start, to the page's 8 there. Its colour is the
+  // chip's own; see the header.
+  trailing: {
+    marginInlineEnd: `calc(-1 * ${spacing.sm})`,
+    marginInlineStart: 0,
   },
   unselected: {
     backgroundColor: 'transparent',
