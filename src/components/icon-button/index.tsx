@@ -668,7 +668,7 @@ type IconButtonProps = {
    */
   variant?: IconButtonVariant
 } & ButtonForm &
-  Omit<ButtonDOMProps, 'render'>
+  Omit<ButtonDOMProps, 'aria-label' | 'render'>
 
 type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl'
 

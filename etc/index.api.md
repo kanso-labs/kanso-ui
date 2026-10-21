@@ -382,19 +382,15 @@ export type CheckboxProps = {
 // @public
 export function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>): JSX;
 
+// Warning: (ae-forgotten-export) The symbol "ChipBaseProps" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type ChipActionProps = Omit<ButtonProps_2, 'children' | 'isPending'> & {
-    children: ReactNode;
-    elevated?: boolean;
-    icon?: ReactNode;
+export type ChipActionProps = ChipBaseProps & Omit<ButtonProps_2, 'children' | 'isPending'> & {
     variant: 'assist' | 'suggestion';
 };
 
 // @public
-export type ChipFilterProps = Omit<ToggleButtonProps, 'children'> & {
-    children: ReactNode;
-    elevated?: boolean;
-    icon?: ReactNode;
+export type ChipFilterProps = ChipBaseProps & Omit<ToggleButtonProps, 'children'> & {
     trailingIcon?: ReactNode;
     variant?: 'filter';
 };
@@ -844,7 +840,7 @@ export type FabProps = {
     target?: string;
     tone?: FabTone;
     variant?: FabVariant;
-} & Omit<ButtonDOMProps, 'isPending'>;
+} & Omit<ButtonDOMProps, 'aria-label' | 'isPending'>;
 
 // @public (undocumented)
 export type FabSize = 'lg' | 'md' | 'xl';
@@ -884,7 +880,7 @@ export type FormProps = {
     className?: string;
     style?: CSSProperties;
     validationBehavior?: 'aria' | 'native';
-} & Omit<FormProps_2, 'className' | 'style'>;
+} & Omit<FormProps_2, 'className' | 'style' | 'validationBehavior'>;
 
 export { getColorChannels }
 
@@ -910,7 +906,7 @@ export type IconButtonProps = {
     size?: IconButtonSize;
     style?: StyleOrFunction<IconButtonState>;
     variant?: IconButtonVariant;
-} & ButtonForm & Omit<ButtonDOMProps, 'render'>;
+} & ButtonForm & Omit<ButtonDOMProps, 'aria-label' | 'render'>;
 
 // @public (undocumented)
 export type IconButtonSize = 'lg' | 'md' | 'xl' | 'xs' | 'xxl';
@@ -1669,7 +1665,7 @@ export type SearchFieldProps = {
     inputRef?: Ref<HTMLInputElement>;
     label: string;
     placeholder?: string;
-} & Omit<SearchFieldProps_2, 'children' | 'isInvalid' | 'validationBehavior'>;
+} & Omit<SearchFieldProps_2, 'children' | 'enterKeyHint' | 'isInvalid' | 'validationBehavior'>;
 
 // @public
 export function SearchView(input: SearchViewProps): JSX;
@@ -1712,7 +1708,7 @@ export namespace SegmentedButton {
 // Warning: (ae-forgotten-export) The symbol "LabelledByAttribute" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type SegmentedButtonProps = LabelledByAttribute & Omit<ToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
+export type SegmentedButtonProps = LabelledByAttribute & Omit<ToggleButtonGroupProps, 'className' | 'disallowEmptySelection' | 'orientation' | 'style'> & {
     className?: ToggleButtonGroupProps['className'];
     disallowEmptySelection?: boolean;
     showSelectedIcon?: boolean;
@@ -1874,7 +1870,7 @@ export type SnackbarProps = {
     closeLabel?: string;
     queue: SnackbarQueue;
     style?: ToastRegionProps<SnackbarMessage>['style'];
-} & Omit<ToastRegionProps<SnackbarMessage>, 'children' | 'className' | 'queue' | 'style'>;
+} & Omit<ToastRegionProps<SnackbarMessage>, 'aria-label' | 'children' | 'className' | 'queue' | 'style'>;
 
 // @public
 export class SnackbarQueue {

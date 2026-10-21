@@ -350,6 +350,13 @@ function Radio({
  * read-only and the error state reach every button from here, and
  * `orientation="horizontal"` lays the buttons along a line.
  *
+ * ```tsx
+ * <RadioGroup defaultValue="first" label="Label">
+ *   <Radio value="first">First item</Radio>
+ *   <Radio value="second">Second item</Radio>
+ * </RadioGroup>
+ * ```
+ *
  * The call site's `className` and `style` land on the group as a whole,
  * which is the element a layout positions.
  */

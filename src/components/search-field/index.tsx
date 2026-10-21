@@ -278,7 +278,10 @@ type SearchFieldProps = {
   label: string
   /** The supporting text in the empty bar, which is what a person reads. */
   placeholder?: string
-} & Omit<RACSearchFieldProps, 'children' | 'isInvalid' | 'validationBehavior'>
+} & Omit<
+  RACSearchFieldProps,
+  'children' | 'enterKeyHint' | 'isInvalid' | 'validationBehavior'
+>
 
 // What the bar draws, from the field's render state: the clear button only
 // while the field holds something, and the error ring while it is invalid. Built by a call rather than written
@@ -341,11 +344,14 @@ function fieldContent(
  * its own; `onSubmit` is handed the value on Enter and `onClear` is called
  * when it is emptied.
  *
+ * ```tsx
+ * <SearchField label="Label" onSubmit={search} />
+ * ```
+ *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions. The input and the message are
- * the field chrome in `src/field`, shared with every other field; the bar
- * around them is the search page's rather than the box the other fields
- * share.
+ * drawn as every field in the library draws them; the pill around them is
+ * Material Design's search bar rather than the box of its text fields.
  */
 function SearchField({
   clearLabel,

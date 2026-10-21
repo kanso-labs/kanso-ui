@@ -1,5 +1,15 @@
 import type { StorybookConfig } from '@storybook/react-vite'
 
+// Where React Aria declares the props its components take: its own packages,
+// and the `@react-types` ones they share.
+const REACT_ARIA_PACKAGES =
+  /\/node_modules\/(?:@react-aria|@react-stately|@react-types|react-aria|react-aria-components|react-stately)\//
+
+// The interfaces React Aria declares the DOM's own attributes and events in,
+// `dir` and `lang` and every `onMouseDown` and `onDragStart`, which each of its
+// components accepts and none of the library's documents.
+const GLOBAL_DOM_PROPS = new Set(['GlobalDOMAttributes', 'GlobalDOMEvents'])
+
 const config: StorybookConfig = {
   addons: [
     '@chromatic-com/storybook',
@@ -35,6 +45,25 @@ const config: StorybookConfig = {
       // default is the first entry; setting the option replaces it rather
       // than extends it.
       exclude: ['**/*.stories.tsx', '**/.storybook/**'],
+      // The default filter drops every prop declared under node_modules, and
+      // that is where React Aria declares the props a component here takes
+      // through `Omit` or `Pick` of its own: `isDisabled`, `onPress`, `value`,
+      // `minValue`, `selectionMode`, `isOpen` and the rest. A table then
+      // listed only the library's own few props, and Controls could drive
+      // none of the others, since Storybook drops an arg with no argType.
+      // This keeps React Aria's packages and still drops React's: the
+      // `@types/react` handlers and attributes a plain element takes, and
+      // the global DOM attributes and events React Aria declares on every
+      // component, which would add a hundred rows to a table and document
+      // nothing the library does.
+      propFilter: (prop) => {
+        const file = prop.parent?.fileName
+        if (file === undefined || !file.includes('/node_modules/')) return true
+        return (
+          REACT_ARIA_PACKAGES.test(file) &&
+          !GLOBAL_DOM_PROPS.has(prop.parent?.name ?? '')
+        )
+      },
       // Without this, a string-literal union is reported as one `other` whose
       // value is the type's source text, and Storybook falls back to the JSON
       // object editor — so choosing a variant means typing it, quotes and all.

@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/react-vite'
 
-import React from 'react'
+import React, { isValidElement } from 'react'
 import { I18nProvider } from 'react-aria-components'
 
 import { demoThemes } from '../src/theming/themes'
@@ -9,7 +9,108 @@ import StyleXLoader from './components/StyleXLoader'
 import ThemeWrapper from './components/ThemeWrapper'
 import { allModes } from './modes'
 
+type Enhancer = NonNullable<Preview['argTypesEnhancers']>[number]
+
+// What a JSON editor cannot write: a function, which is what a handler, a
+// render prop and a class or style that reads render state all are; a ref; a
+// React node; a DOM element; and a value that has to be an instance of a
+// class: a date or a time, which are @internationalized/date's, a drag and
+// drop controller, a snackbar's queue and a token field's value.
+const UNWRITABLE =
+  /=>|EventHandler<|Function<|RenderProp|^Ref<|ReactNode|ReactElement|^Element$|DateValue|TimeValue|RangeValue|DragAndDropHooks|SnackbarQueue|TokenFieldValue/
+
+// A props table lists React Aria's props too (see `propFilter` in main.ts),
+// and docgen reports many of them as a type Storybook builds no control for,
+// a union or one of React Aria's own, so it falls back to the JSON object
+// editor. Where a story passes such a prop a string or a number, which is
+// what a label, a `defaultValue` or an `aria-label` usually is, it takes a
+// text or a number field instead, as it did while the row was read off the
+// arg alone. Otherwise, for the types above the editor writes nothing the
+// prop accepts: an icon set there renders as an object, and a story whose
+// children are elements shows them as raw `$$typeof` records. Those rows keep
+// their description and lose the editor. Where JSON can write the value, a
+// style object or a list of keys or `formatOptions`, it stays, and so does a
+// control a story chose for itself.
+//
+// An arg no row describes, such as the children of a component whose own
+// props leave them to React's types, is described later from its value, and
+// an element was handed the same editor. It gets a row of its own here, with
+// no editor, which the description read off its value then fills in.
+const withoutUnwritableEditors: Enhancer = ({ argTypes, initialArgs }) => ({
+  ...Object.fromEntries(
+    Object.entries<unknown>(initialArgs)
+      .filter(([name, value]) => !(name in argTypes) && isValidElement(value))
+      .map(([name]) => [name, { control: false, name }]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(argTypes).map(([name, argType]) => {
+      if (argType.type?.name !== 'other' || argType.control !== undefined) {
+        return [name, argType]
+      }
+      const value: unknown = initialArgs[name]
+      if (typeof value === 'string' || typeof value === 'number') {
+        return [
+          name,
+          {
+            ...argType,
+            control: { type: typeof value === 'string' ? 'text' : 'number' },
+          },
+        ]
+      }
+      return [
+        name,
+        UNWRITABLE.test(argType.table?.type?.summary ?? '')
+          ? { ...argType, control: false }
+          : argType,
+      ]
+    }),
+  ),
+})
+
+// A default read off the code, `variant = 'filled'`, reaches the table as the
+// value, "filled", while one written as `@default 'md'` reaches it as the
+// tag's text, quotes and all, and read "'md'" — or 'react-aria-RadioField',
+// for one of React Aria's. Most props written that way have no default in the
+// code to read, since the value is worked out from something else, so this
+// takes the single quotes off rather than asking the source for a second
+// spelling of every default.
+const withJSDocDefaultsUnquoted: Enhancer = ({ argTypes }) =>
+  Object.fromEntries(
+    Object.entries(argTypes).map(([name, argType]) => {
+      const quoted = /^"?'([^']*)'"?$/.exec(
+        argType.table?.defaultValue?.summary ?? '',
+      )
+      return [
+        name,
+        quoted === null
+          ? argType
+          : {
+              ...argType,
+              table: {
+                ...argType.table,
+                defaultValue: {
+                  ...argType.table?.defaultValue,
+                  summary: `"${quoted[1]}"`,
+                },
+              },
+            },
+      ]
+    }),
+  )
+
+// A story's uncontrolled defaults, `defaultValue`, `defaultSelected` and the
+// rest, as one string to key it on. A component reads a default once, when it
+// mounts, so editing one in Controls changed nothing on screen; keyed on them,
+// the story mounts again and takes the new value. Every other arg still
+// updates the story where it stands.
+function defaultsKey(args: Record<string, unknown>) {
+  return JSON.stringify(
+    Object.entries(args).filter(([name]) => /^default[A-Z]/.test(name)),
+  )
+}
+
 const preview: Preview = {
+  argTypesEnhancers: [withoutUnwritableEditors, withJSDocDefaultsUnquoted],
   decorators: [
     (Story, context) => {
       // Globals arrive untyped, and the value reaches a `string` prop rather
@@ -28,7 +129,7 @@ const preview: Preview = {
           <DocumentLocale />
           <StyleXLoader />
           <ThemeWrapper fill={context.viewMode !== 'docs'} name={theme}>
-            <Story />
+            <Story key={defaultsKey(context.args)} />
           </ThemeWrapper>
         </I18nProvider>
       )
@@ -141,7 +242,10 @@ const preview: Preview = {
     controls: {
       matchers: {
         color: /(background|color)$/i,
-        date: /Date$/i,
+        // Case-sensitive, so it reads a camel-cased `...Date` and not the
+        // "date" closing React Aria's `validate` and `formNoValidate`, which
+        // it handed a date picker.
+        date: /Date$/,
       },
     },
     options: {

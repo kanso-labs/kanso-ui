@@ -48,7 +48,7 @@ type FormProps = {
    * @default 'aria'
    */
   validationBehavior?: 'aria' | 'native'
-} & Omit<RACFormProps, 'className' | 'style'>
+} & Omit<RACFormProps, 'className' | 'style' | 'validationBehavior'>
 
 /**
  * A form: the fields inside it and what they are told about validation. Pass

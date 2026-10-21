@@ -40,6 +40,9 @@ const meta = {
     defaultSelectedKeys: FIRST,
   },
   component: SegmentedButton,
+  // A tab of its own beside the button's in the Overview page's props table,
+  // since a segmented button is written with its segments.
+  subcomponents: { 'SegmentedButton.Segment': SegmentedButton.Segment },
   title: 'Components/SegmentedButton',
 } satisfies Meta<typeof SegmentedButton>
 

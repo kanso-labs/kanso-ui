@@ -670,13 +670,14 @@ type ProgressIndicatorProps = {
   /** A function may compute the class from the indicator's render state. */
   className?: RACProgressBarProps['className']
   /**
-   * How wide the ring is drawn, as a CSS length. Everything inside scales
-   * with it, so `1em` gives a ring the size of the type around it. Ignored
-   * by the line, which fills the width it is given.
+   * How wide the ring is drawn, as a CSS length: 40px unless given, or 48px
+   * for the wavy ring. Everything inside scales with it, so `1em` gives a
+   * ring the size of the type around it. Ignored by the line, which fills
+   * the width it is given.
    *
    * A length rather than a step of the size scale: a ring sized to the type
    * around it is what the prop is for, and no fixed scale gives that.
-   * @default '40px', or '48px' for the wavy ring
+   * @default '40px'
    */
   diameter?: string
   /**
@@ -713,7 +714,7 @@ type ProgressIndicatorProps = {
   tone?: ProgressIndicatorTone
   /**
    * The line the page draws, or the ring: `linear` fills the width it is
-   * given, `circular` is 40dp across.
+   * given, `circular` is 40dp across, or 48dp for the wavy ring.
    * @default 'linear'
    */
   variant?: ProgressIndicatorVariant
@@ -1101,6 +1102,10 @@ function linearWave(wavelength: number) {
  * set `isIndeterminate` for work whose length is not known. `formatOptions`
  * says how the value reads, in the locale the page is in, and `buffer` marks
  * how far the work is loaded ahead of it.
+ *
+ * ```tsx
+ * <ProgressIndicator label="Label" showValue value={40} />
+ * ```
  *
  * The call site's `className` and `style` land on the indicator as a whole,
  * which is the element a layout positions.

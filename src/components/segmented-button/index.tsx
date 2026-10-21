@@ -681,7 +681,10 @@ const styles = stylex.create({
 })
 
 type SegmentedButtonProps = LabelledByAttribute &
-  Omit<RACToggleButtonGroupProps, 'className' | 'orientation' | 'style'> & {
+  Omit<
+    RACToggleButtonGroupProps,
+    'className' | 'disallowEmptySelection' | 'orientation' | 'style'
+  > & {
     /** A function may compute the class from the set's render state. */
     className?: RACToggleButtonGroupProps['className']
     /**

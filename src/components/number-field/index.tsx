@@ -318,6 +318,10 @@ type NumberFieldProps = {
  * The mouse wheel scrolls the page past it rather than stepping it, unless
  * `isWheelDisabled` is `false`.
  *
+ * ```tsx
+ * <NumberField defaultValue={1} label="Label" minValue={0} />
+ * ```
+ *
  * The call site's `className` and `style` land on the field as a whole,
  * which is the element a layout positions. The box, label, input and message
  * are the field chrome in `src/field`, shared with every other field.

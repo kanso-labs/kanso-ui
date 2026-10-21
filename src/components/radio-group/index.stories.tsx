@@ -43,6 +43,9 @@ const meta = {
     label: 'Label',
   },
   component: RadioGroup,
+  // A tab of its own beside the group's in the Overview page's props table,
+  // since a group is written with its options.
+  subcomponents: { Radio },
   title: 'Components/RadioGroup',
 } satisfies Meta<typeof RadioGroup>
 
