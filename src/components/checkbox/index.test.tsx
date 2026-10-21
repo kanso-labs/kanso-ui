@@ -1,3 +1,4 @@
+import { minusPath } from '@kanso-labs/kanso-ui-core/glyphs'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -197,9 +198,7 @@ describe('checkbox', () => {
       const { input } = setup({ isIndeterminate: true })
       const box = boxOf(input)
       expect(hasClasses(box, CLASSES.markedFill)).toBe(true)
-      expect(box.querySelector('svg path')?.getAttribute('d')).toBe(
-        'M19 13H5v-2h14v2z',
-      )
+      expect(box.querySelector('svg path')?.getAttribute('d')).toBe(minusPath)
     })
 
     it('moves to the filled box when clicked', () => {
