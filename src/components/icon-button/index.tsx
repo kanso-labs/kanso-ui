@@ -295,11 +295,20 @@ const styles = stylex.create({
   // container of its own, as ListItem's rows do. The tint is its icon's
   // on-surface-variant, which is this variant's state layer on the page,
   // where a row's is the on-surface its headline is drawn in.
+  //
+  // The icon is on surface variant unless what the button sits in names
+  // another role through `--icon-button-standard-color`, as an AppBar's
+  // leading slot does with the on surface the app bar page gives its leading
+  // icon. A custom property rather than a React context because it follows
+  // the page rather than the component tree: a sheet or a menu opened from
+  // that slot is portalled out of it, and its buttons keep their own colour.
+  // Read here, with the role as its fallback, so it resolves in the theme
+  // the button is drawn in.
   standard: {
     backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
     borderWidth: 0,
-    color: colors.onSurfaceVariant,
+    color: `var(--icon-button-standard-color, ${colors.onSurfaceVariant})`,
   },
   standardDisabled: {
     backgroundColor: 'transparent',
