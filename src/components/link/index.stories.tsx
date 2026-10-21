@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { expect, fn } from 'storybook/test'
 
 import Link from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
@@ -68,6 +69,57 @@ const InFooter: Story = {
   ),
 }
 
-export { Default, InFooter, InProse }
+// Greyed in a sentence beside a live link, so the text around it is what the
+// grey reads against: on surface at the disabled-content opacity, the rule
+// greyed with it. React Aria renders it as a span announced as a link, which
+// a pointer cannot follow and the tab order skips.
+const Disabled: Story = {
+  render: () => (
+    <div {...stylex.props(styles.prose)}>
+      <Text render={PARAGRAPH} variant="bodyLarge">
+        A paragraph of supporting copy with{' '}
+        <Link href="#first">a live link</Link> and{' '}
+        <Link href="#second" isDisabled>
+          a disabled one
+        </Link>{' '}
+        beside it.
+      </Text>
+    </div>
+  ),
+}
+
+// With no `href`, a link is a span announced as a link and still in the tab
+// order, and `onPress` is what it does. The play checks the element and the
+// tab order without pressing it, which would leave the story focused.
+const WithoutHref: Story = {
+  args: {
+    href: undefined,
+    onPress: fn(),
+  },
+  play: async ({ canvas }) => {
+    const link = canvas.getByRole('link', { name: 'Label' })
+    await expect(link.tagName).toBe('SPAN')
+    await expect(link.tabIndex).toBe(0)
+  },
+}
+
+// A link that opens another site in a new tab, with `rel` keeping the opened
+// page from reaching back into this one. Both reach the anchor as given. It
+// draws exactly what Default does, so Chromatic takes no snapshot of it.
+const External: Story = {
+  args: {
+    href: 'https://example.com',
+    rel: 'noreferrer',
+    target: '_blank',
+  },
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas }) => {
+    const link = canvas.getByRole('link', { name: 'Label' })
+    await expect(link).toHaveAttribute('target', '_blank')
+    await expect(link).toHaveAttribute('rel', 'noreferrer')
+  },
+}
+
+export { Default, Disabled, External, InFooter, InProse, WithoutHref }
 
 export default meta
