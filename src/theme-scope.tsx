@@ -3,12 +3,12 @@
 import type { KuiTheme } from '@kanso-labs/kanso-ui-core'
 
 import * as stylex from '@stylexjs/stylex'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria/PortalProvider'
+import { useIsSSR } from 'react-aria/SSRProvider'
 
 import type { RenderComponentProps } from './render/useRender'
 
-import { mergeRefs } from './render/ref'
 import { useRender } from './render/useRender'
 import { mergeStyles } from './styles/merge'
 import { pinnedScheme } from './styles/scheme'
@@ -32,12 +32,33 @@ import {
 // it. A container appended to the body and given the scope's classes would
 // carry the classes alone, losing every override declared above the scope.
 //
-// It is appended to the scope's element once that element is in the document,
-// rather than rendered as one of its children. A rendered `<div>` was a child
-// of whatever the scope rendered as, so a scope rendered as a `<p>` drew
-// React's nesting error and a hydration warning, and the server's markup held
-// a `<div>` inside it. Appended, it is in neither React's tree nor the
-// server's markup, and it is there before anything can open into it.
+// It is appended to the scope's element rather than rendered as one of its
+// children. A rendered `<div>` was a child of whatever the scope rendered as,
+// so a scope rendered as a `<p>` drew React's nesting error and a hydration
+// warning, and the server's markup held a `<div>` inside it. Appended, it is
+// in neither React's tree nor the server's markup.
+//
+// It has to be in place before anything inside the scope runs a layout
+// effect, which is earlier than the scope's own ref: React attaches an
+// element's ref once everything inside it has run its layout effects. An
+// overlay open on the scope's first render reads its own element in one of
+// those effects, once — React Aria decides there whether a popover is a
+// dialog, and hides or makes inert the page behind a modal — so an overlay
+// mounted a render late, or into a container not yet in the document, gets
+// those wrong for as long as it stays open: a hover popover kept a second,
+// unnamed dialog role around its own, and a sheet left the page behind it
+// reachable. So the container is made on the first render and handed out
+// from it, and a `<template>` rendered ahead of the children appends it,
+// since its ref attaches before anything after it runs an effect. The
+// template then removes itself, so the call site's children keep their
+// places for `:first-child` and `:nth-child`. React never inserts anything
+// before it and only ever removes it along with the scope's element, so
+// nothing reaches for it once it is gone.
+//
+// Nothing is handed out while the page hydrates, as React Aria hands out
+// nothing then either: the server rendered no overlay, so a portal would be
+// a mismatch. One open from the start renders once hydration is over, as it
+// would outside a scope.
 //
 // `display: contents` keeps that container out of the layout, so a scope
 // that is a grid or a flex container gains no item and no gap from it. React
@@ -85,14 +106,15 @@ type ThemeScopeProps = RenderComponentProps<'div'> & {
 // `createElement`, which takes no props.
 const containerClassName = stylex.props(styles.container).className ?? ''
 
-// The container made for each scope's element. A ref attaches again whenever
-// the call site hands a ref of a new identity, and a new container each time
-// would move every open overlay into it, which remounts them. So the one an
-// element already holds is kept as it is — not even appended again, since
-// moving a node blurs whatever inside it has focus — and a new one is made
-// only for a new element, as when `render` changes the tag. React removes an
-// old element with its container in it, and the map lets both go.
-const containers = new WeakMap<Element, HTMLDivElement>()
+/** The overlays' container, or nothing where there is no document. */
+function makeContainer() {
+  if (typeof document === 'undefined') {
+    return null
+  }
+  const made = document.createElement('div')
+  made.className = containerClassName
+  return made
+}
 
 /**
  * Themes what is inside it, overlays included.
@@ -132,39 +154,39 @@ function ThemeScope({
   theme,
   ...props
 }: ThemeScopeProps) {
-  // State rather than a ref, so the overlays render again once the container
-  // exists. React Aria renders an overlay nowhere while `getContainer` hands
-  // back nothing, and one open on the scope's first render would otherwise
-  // stay that way.
-  const [container, setContainer] = useState<HTMLDivElement | null>(null)
-  const getContainer = useCallback(() => container, [container])
+  // One container for the scope's life. A new element, as when `render`
+  // changes the tag, has the same one moved into it rather than a new one
+  // made, which would remount every open overlay.
+  const [container] = useState(makeContainer)
+  const isSSR = useIsSSR()
+  const getContainer = useCallback(
+    () => (isSSR ? null : container),
+    [container, isSSR],
+  )
 
-  const attach = useCallback((scope: HTMLDivElement | null) => {
-    if (scope === null) {
-      return
-    }
-    let made = containers.get(scope)
-    if (made === undefined) {
-      made = scope.ownerDocument.createElement('div')
-      made.className = containerClassName
-      scope.append(made)
-      containers.set(scope, made)
-    }
-    setContainer(made)
-  }, [])
-  // The call site's ref lands on the same element. Read off `props` rather
-  // than destructured, as `useRender` reads it, so the compiler sees a prop
-  // holding still rather than a ref read during render.
-  const ref = useMemo(
-    () => mergeRefs(attach, props.ref ?? undefined),
-    [attach, props.ref],
+  // The scope's element is the template's parent. A template met again —
+  // React hands the ref over again when it changes, and twice under strict
+  // mode — has already left it, and finds no parent. The container is
+  // appended only where it is not already, since moving a node blurs
+  // whatever inside it has focus.
+  const place = useCallback(
+    (marker: HTMLTemplateElement | null) => {
+      const scope = marker?.parentElement ?? null
+      if (marker === null || scope === null || container === null) {
+        return
+      }
+      if (container.parentElement !== scope) {
+        scope.append(container)
+      }
+      marker.remove()
+    },
+    [container],
   )
 
   return useRender({
     defaultTagName: 'div',
     props: {
       ...props,
-      ref,
       ...mergeStyles(
         stylex.props(
           styles.root,
@@ -177,7 +199,12 @@ function ThemeScope({
           : { ...props, style: { ...theme, ...props.style } },
       ),
       children: (
-        <PortalProvider getContainer={getContainer}>{children}</PortalProvider>
+        <>
+          {!isSSR && <template ref={place} />}
+          <PortalProvider getContainer={getContainer}>
+            {children}
+          </PortalProvider>
+        </>
       ),
     },
     render,
