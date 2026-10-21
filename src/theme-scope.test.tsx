@@ -550,8 +550,13 @@ describe('theme scope', () => {
       expect(view.getAllByRole('dialog')).toHaveLength(1)
     })
 
-    // The same read is where a modal makes the page behind it inert.
-    it('makes the page behind a sheet open from its first render inert', () => {
+    // The same read is where a modal makes the page behind it inert. React
+    // Aria does that in a passive effect, which a loaded CI run has been seen
+    // to reach only after `render` returned, so the case waits for it. A
+    // container that arrives a render late leaves the page reachable however
+    // long the case waits, since the effect has already run by then and
+    // found no element.
+    it('makes the page behind a sheet open from its first render inert', async () => {
       const view = render(
         <ThemeScope>
           <Button>Label</Button>
@@ -567,7 +572,9 @@ describe('theme scope', () => {
       )
       const behind = view.getByText('Label').closest('button')
 
-      expect(behind?.closest('[inert]')).not.toBeNull()
+      await waitFor(() => {
+        expect(behind?.closest('[inert]')).not.toBeNull()
+      })
     })
 
     it('portals a tooltip into itself', () => {
