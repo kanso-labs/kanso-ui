@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { useCallback, useLayoutEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { expect, waitFor, within } from 'storybook/test'
 
 import Dialog from '.'
+import { docsFrameWidth } from '../../../.storybook/decorators'
 import { CloseGlyph } from '../../glyphs'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
@@ -41,33 +41,6 @@ const styles = stylex.create({
     inlineSize: '24px',
   },
 })
-
-// The phone width the compact stories are drawn at, on the Overview page as
-// in Chromatic's modes below.
-const COMPACT_WIDTH = '375px'
-
-// Narrows the frame the Overview page draws a compact story in. That frame
-// is as wide as the page's column, which is above the medium breakpoint, so
-// a compact story drew its wide form there and the page showed nothing the
-// story claims. The viewport global the story sets sizes Storybook's own
-// canvas alone. Only a frame inside one of the page's story blocks is
-// touched: on its own a story's frame is the canvas, which the viewport
-// toolbar sizes, and a test run or a Chromatic snapshot frames it otherwise.
-function CompactDocsFrame({ children }: { children: ReactNode }) {
-  useLayoutEffect(() => {
-    const frame = window.frameElement
-    if (!isDocsFrame(frame)) {
-      return undefined
-    }
-    const { width } = frame.style
-    frame.style.width = COMPACT_WIDTH
-    return () => {
-      frame.style.width = width
-    }
-  }, [])
-
-  return <>{children}</>
-}
 
 // A dialog nothing on the page opens: the page holds whether it is open, so
 // a route, a menu item or a finished request can show it, and `Dialog` is
@@ -105,15 +78,6 @@ function ControlledDialog() {
         </Dialog.Footer>
       </Dialog.Content>
     </>
-  )
-}
-
-// The frame belongs to the page around it, so `instanceof` against this
-// frame's own HTMLIFrameElement would never hold; the tag is read instead.
-function isDocsFrame(element: Element | null): element is HTMLIFrameElement {
-  return (
-    element?.tagName === 'IFRAME' &&
-    element.closest('[data-story-block]') !== null
   )
 }
 
@@ -272,13 +236,7 @@ const AlertDialog: Story = {
 // rounded, centred over the scrim, and only as tall as its question.
 const AlertDialogCompact: Story = {
   // The Overview page's frame, narrowed to the same width.
-  decorators: [
-    (Story) => (
-      <CompactDocsFrame>
-        <Story />
-      </CompactDocsFrame>
-    ),
-  ],
+  decorators: [docsFrameWidth('375px')],
   // Sizes the frame in Storybook itself, as Sheet's BottomSheet does, so the
   // story shows the compact width without narrowing the window by hand.
   globals: { viewport: { isRotated: false, value: 'mobile1' } },

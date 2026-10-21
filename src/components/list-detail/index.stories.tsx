@@ -202,10 +202,24 @@ const Default: Story = {}
 
 // Its own story because below the expanded breakpoint it is a different
 // layout rather than a differently-sized one — the list is gone, not narrower.
+// At 840px and wider `showing` changes nothing and both panes stay, so the
+// layout is drawn in a narrower block, as NarrowContainer is, which shows the
+// detail alone on every window; for the same reason its narrow window modes
+// are off.
 const ShowingDetail: Story = {
   args: {
     showing: 'detail',
   },
+  parameters: {
+    chromatic: {
+      modes: { compact: { disable: true }, medium: { disable: true } },
+    },
+  },
+  render: (args) => (
+    <div {...stylex.props(styles.narrow)}>
+      <ListDetail {...args} />
+    </div>
+  ),
 }
 
 // The breakpoints are the layout's own width rather than the window's, so in

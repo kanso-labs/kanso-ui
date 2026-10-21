@@ -92,6 +92,11 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
  * landmark, so name it with `aria-label`, and give a badge its words in
  * `badgeLabel`, since the badge itself is hidden from assistive technology.
  *
+ * Its form follows the window. Below 600px each destination is vertical, its
+ * icon over its label, and the destinations share the bar's width; from 600px
+ * each is a horizontal pill, once the window is wide enough for every label
+ * to show whole.
+ *
  * ```tsx
  * <NavigationBar aria-label="Label" selectedRoute="/first">
  *   <NavigationBar.Item href="/first" icon={<FirstIcon />}>
