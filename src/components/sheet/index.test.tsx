@@ -88,17 +88,19 @@ function hasClasses(element: Element, classes: string[]) {
 }
 
 /**
- * Whether `element` was drawn in a box that lies wholly inside the window, to
- * the subpixel, which is where a panel comes to rest and nowhere it passes
- * through on the way.
+ * Whether `element` was drawn in a box that lies wholly inside the window,
+ * to a hundredth of a pixel, which is where a panel comes to rest. Not to
+ * half a pixel: a smooth scroll moves the panel by fractions, so one coming
+ * in from the left passes through a box a fraction of a pixel outside the
+ * window on its last frames, and a read there is not a panel at rest.
  */
 function inWindow(element: Element) {
   const box = element.getBoundingClientRect()
   return (
-    box.left >= -0.5 &&
-    box.top >= -0.5 &&
-    box.right <= window.innerWidth + 0.5 &&
-    box.bottom <= window.innerHeight + 0.5
+    box.left >= -0.01 &&
+    box.top >= -0.01 &&
+    box.right <= window.innerWidth + 0.01 &&
+    box.bottom <= window.innerHeight + 0.01
   )
 }
 
@@ -153,6 +155,20 @@ function reduceMotion() {
   vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
     matchMedia(query.includes('prefers-reduced-motion') ? 'all' : query),
   )
+}
+
+/**
+ * Sizes the window and waits for the page inside it to see the new size.
+ * The sheet picks its presentation from `matchMedia` as it renders, so a
+ * render that lands before the resize does is drawn for the old window: a
+ * side sheet where a bottom sheet was asked for, and only turned once the
+ * query catches up.
+ */
+async function resize(width: number, height: number) {
+  await page.viewport(width, height)
+  await waitFor(() => {
+    expect([window.innerWidth, window.innerHeight]).toEqual([width, height])
+  })
 }
 
 /** The scrim, which React Aria draws in the layer ahead of the scroller. */
@@ -354,7 +370,7 @@ describe('sheet', () => {
 
   afterEach(async () => {
     vi.restoreAllMocks()
-    await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    await resize(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
   })
 
   describe('semantics', () => {
@@ -575,7 +591,7 @@ describe('sheet', () => {
     it.each(SWIPES)(
       'toward $edge closes a sheet resting on it',
       async ({ height, locale, swipe, width }) => {
-        await page.viewport(width, height)
+        await resize(width, height)
         const onOpenChange = vi.fn<(isOpen: boolean) => void>()
         const view = setup({ onOpenChange }, {}, locale)
         const dialog = view.getByRole('dialog')
@@ -600,7 +616,7 @@ describe('sheet', () => {
     it.each(SWIPES)(
       'toward $edge leaves a sheet with isDismissable={false} where it rests',
       async ({ height, locale, swipe, width }) => {
-        await page.viewport(width, height)
+        await resize(width, height)
         const onOpenChange = vi.fn<(isOpen: boolean) => void>()
         const view = setup({ onOpenChange }, { isDismissable: false }, locale)
         const dialog = view.getByRole('dialog')
@@ -772,7 +788,7 @@ describe('sheet', () => {
   // which half is on show.
   describe('presentation', () => {
     it('is a side sheet above the medium breakpoint', async () => {
-      await page.viewport(1024, 768)
+      await resize(1024, 768)
       const view = setup()
       const panel = panelOf(view.getByRole('dialog'))
 
@@ -818,7 +834,7 @@ describe('sheet', () => {
     ])(
       'rests a side sheet against the inline end in $locale',
       async ({ corners, edge, locale, resting }) => {
-        await page.viewport(1024, 768)
+        await resize(1024, 768)
         const view = setup({}, {}, locale)
         const panel = await arrived(view.getByRole('dialog'))
         const box = panel.getBoundingClientRect()
@@ -834,7 +850,7 @@ describe('sheet', () => {
     it.each(['en-US', 'ar-EG'])(
       'rests a bottom sheet on the bottom edge in %s',
       async (locale) => {
-        await page.viewport(375, 812)
+        await resize(375, 812)
         const view = setup({}, {}, locale)
         const panel = await arrived(view.getByRole('dialog'))
         const box = panel.getBoundingClientRect()
@@ -848,7 +864,7 @@ describe('sheet', () => {
     )
 
     it('is a bottom sheet below it', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const view = setup()
       const panel = panelOf(view.getByRole('dialog'))
 
@@ -869,18 +885,18 @@ describe('sheet', () => {
     // axis. It goes on resting where that one rests rather than being left
     // where the old scroll puts it, which is out of the window.
     it('keeps an open sheet where it rests as the window crosses the breakpoint', async () => {
-      await page.viewport(1024, 768)
+      await resize(1024, 768)
       const view = setup()
       const dialog = view.getByRole('dialog')
       const panel = await arrived(dialog)
 
-      await page.viewport(375, 812)
+      await resize(375, 812)
       await waitFor(() => {
         expect(layerOf(dialog).dataset.position).toBe('bottom')
         expect(panel.getBoundingClientRect().bottom).toBe(812)
       })
 
-      await page.viewport(1024, 768)
+      await resize(1024, 768)
       await waitFor(() => {
         expect(layerOf(dialog).dataset.position).toBe('right')
         expect(panel.getBoundingClientRect().right).toBe(1024)
@@ -899,7 +915,7 @@ describe('sheet', () => {
     ])(
       'scrolls the body of $name and keeps its actions on screen',
       async ({ height, width }) => {
-        await page.viewport(width, height)
+        await resize(width, height)
         const { body, cancel } = await longSheet()
 
         expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
@@ -925,14 +941,14 @@ describe('sheet', () => {
     // While it is a tab stop it is a region named by the title, so a screen
     // reader landing on it says what it is rather than announcing a group.
     it('names a body that scrolls by the title', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const { body, view } = await longSheet()
 
       expect(view.getByRole('region', { name: 'Headline' })).toBe(body)
     })
 
     it("keeps a call site's own label on a body that scrolls", async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const { body, view } = await longSheet({ label: 'Label' })
 
       expect(view.getByRole('region', { name: 'Label' })).toBe(body)
@@ -942,7 +958,7 @@ describe('sheet', () => {
     // Tab goes from the close button straight to the field, with no stop on
     // the body between them.
     it('makes no stop of a body holding a field', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const { body, close, view } = await longSheet({ field: true })
 
       expect(body.hasAttribute('tabindex')).toBe(false)
@@ -959,7 +975,7 @@ describe('sheet', () => {
     // A string with nowhere to break wraps, so the body has nothing to scroll
     // sideways and needs no stop for it.
     it('wraps a string with nowhere to break', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const view = render(
         <Sheet defaultOpen>
           <Button>Open</Button>
@@ -987,7 +1003,7 @@ describe('sheet', () => {
   // alone.
   describe('the drag handle', () => {
     it('draws nothing on the side sheet', async () => {
-      await page.viewport(1024, 768)
+      await resize(1024, 768)
       const view = setup()
 
       expect(getComputedStyle(view.getByTestId('handle')).display).toBe('none')
@@ -996,7 +1012,7 @@ describe('sheet', () => {
     // The page's bar: 32 by 4 in on surface variant, centred, with 22 above
     // and below it.
     it('draws the page bar on the bottom sheet', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const view = setup()
       const handle = view.getByTestId('handle')
       const bar = handle.firstElementChild
@@ -1023,7 +1039,7 @@ describe('sheet', () => {
     // Decoration rather than a control: it does nothing, so a screen reader
     // is not told about it.
     it('is hidden from assistive technology', async () => {
-      await page.viewport(375, 812)
+      await resize(375, 812)
       const view = setup()
 
       expect(view.getByTestId('handle').getAttribute('aria-hidden')).toBe(
@@ -1040,7 +1056,7 @@ describe('sheet', () => {
     // The headline is the part that gives way, so the close button keeps its
     // size and stays inside the panel.
     it('breaks one long word in the title rather than pushing the close button out', async () => {
-      await page.viewport(360, 640)
+      await resize(360, 640)
       const { panel, view } = await sheetHolding(LONG_WORD, ['Confirm'])
       const close = view.getByRole('button', { name: 'Close' })
       const title = view.getByRole('heading', { name: LONG_WORD })
@@ -1056,7 +1072,7 @@ describe('sheet', () => {
     // label broken over two or three lines; each now keeps its one-line
     // height on a row of its own.
     it('wraps actions onto another row, each at its one-line height', async () => {
-      await page.viewport(360, 640)
+      await resize(360, 640)
       const { panel, view } = await sheetHolding('Headline', [
         'First long action label',
         'Second long action label',
@@ -1083,14 +1099,19 @@ describe('sheet', () => {
 describe('sheet, moving', () => {
   afterEach(async () => {
     vi.restoreAllMocks()
-    await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    await resize(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
   })
 
-  // It opens outside the window, past the edge it rests on, and scrolls in.
-  // Read as it renders, before the scroll has drawn a frame, so a panel put
-  // straight where it rests fails here.
+  // It opens outside the window, past the edge it rests on, and scrolls in,
+  // drawn across that edge on the frames between, as the panel is on its
+  // way out below. A panel put straight where it rests is never drawn there.
+  // Whether the scroll has started when the render returns is React Aria's
+  // business: it waits two frames for a software keyboard wherever it
+  // thinks one might open, so only the box is read at that point.
   it.each([
     {
+      across: (box: DOMRect) =>
+        box.left < window.innerWidth && box.right > window.innerWidth,
       edge: 'the right',
       height: 768,
       locale: 'en-US',
@@ -1099,6 +1120,7 @@ describe('sheet, moving', () => {
       width: 1024,
     },
     {
+      across: (box: DOMRect) => box.left < 0 && box.right > 0,
       edge: 'the left',
       height: 768,
       locale: 'ar-EG',
@@ -1107,6 +1129,8 @@ describe('sheet, moving', () => {
       width: 1024,
     },
     {
+      across: (box: DOMRect) =>
+        box.top < window.innerHeight && box.bottom > window.innerHeight,
       edge: 'the bottom',
       height: 812,
       locale: 'en-US',
@@ -1116,22 +1140,27 @@ describe('sheet, moving', () => {
     },
   ])(
     'scrolls in from $edge, where it comes to rest',
-    async ({ height, locale, outside, resting, width }) => {
-      await page.viewport(width, height)
+    async ({ across, height, locale, outside, resting, width }) => {
+      await resize(width, height)
       const view = setup({}, {}, locale)
       const dialog = view.getByRole('dialog')
+      const panel = panelOf(dialog)
+      const crossings: boolean[] = []
+      scrollerOf(dialog).addEventListener('scroll', () => {
+        crossings.push(across(panel.getBoundingClientRect()))
+      })
 
-      expect(outside(panelOf(dialog).getBoundingClientRect())).toBe(true)
-      expect(layerOf(dialog).hasAttribute('data-entering')).toBe(true)
+      expect(outside(panel.getBoundingClientRect())).toBe(true)
 
-      const panel = await arrived(dialog)
+      await arrived(dialog)
       expect(resting(panel.getBoundingClientRect())).toBe(true)
+      expect(crossings).toContain(true)
     },
   )
 
   // And leaves the way it came, still mounted while it scrolls out.
   it('scrolls out toward the edge it rests on as it closes', async () => {
-    await page.viewport(1024, 768)
+    await resize(1024, 768)
     const view = setup()
     const dialog = view.getByRole('dialog')
     const panel = await arrived(dialog)
@@ -1205,7 +1234,7 @@ describe('sheet, moving', () => {
   ])(
     'keeps the scrim whole behind $sheet, and lifts it with a swipe',
     async ({ body, height, locale, swipe, width }) => {
-      await page.viewport(width, height)
+      await resize(width, height)
       const view = setup({}, {}, locale, body)
       const dialog = view.getByRole('dialog')
       const scrim = scrimOf(dialog)
