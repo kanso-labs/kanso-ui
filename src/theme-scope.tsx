@@ -1,11 +1,12 @@
 'use client'
 
+import type { KuiTheme } from '@kanso-labs/kanso-ui-core'
+
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useMemo, useState } from 'react'
 import { UNSAFE_PortalProvider as PortalProvider } from 'react-aria/PortalProvider'
 
 import type { RenderComponentProps } from './render/useRender'
-import type { KuiTheme } from './tokens/theme'
 
 import { mergeRefs } from './render/ref'
 import { useRender } from './render/useRender'
@@ -183,7 +184,10 @@ function ThemeScope({
   })
 }
 
-export type { KuiTheme } from './tokens/theme'
+// kanso-ui-core's, re-exported. The package is a devDependency, so the build
+// writes the type's declaration into dist rather than an import of it, and
+// scripts/check-package.mjs fails a declaration that still names the package.
+export type { KuiTheme } from '@kanso-labs/kanso-ui-core'
 export type { ThemeScopeProps }
 
 export { ThemeScope }

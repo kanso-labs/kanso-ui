@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Checks the six things about the built package that publint and attw cannot
-// see.
+// Checks the seven things about the built package that publint and attw
+// cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
 // exports target pointing at a file that is not there. It never opens an
@@ -45,6 +45,14 @@
 // this check. The other side matters as much: the entry and the modules it
 // reaches without crossing that line run on the server, so none of them may
 // import React or React Aria, which a server bundle cannot evaluate.
+//
+// The seventh is what the package takes from @kanso-labs/kanso-ui-core, a
+// devDependency no consumer installs. tokens.css and tokens.json are copied
+// from it and have to arrive as they are, since the override contract is the
+// stylesheet's text; and no emitted module or declaration may still import
+// the package, which a consumer's bundler or compiler would fail to find —
+// `KuiTheme` is re-exported from it, so its declaration has to be written into
+// dist rather than referenced.
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -303,6 +311,34 @@ check('a consumer type-checks under TypeScript 6 defaults', () => {
 
   if (result.status !== 0) {
     throw new Error(result.stdout.trim() || result.stderr.trim())
+  }
+})
+
+check("dist/tokens.css and dist/tokens.json are kanso-ui-core's", () => {
+  for (const name of ['tokens.css', 'tokens.json']) {
+    const published = readFileSync(new URL(name, DIST))
+    const source = readFileSync(
+      require.resolve(`@kanso-labs/kanso-ui-core/${name}`),
+    )
+
+    if (!published.equals(source)) {
+      throw new Error(`dist/${name} differs from the package's ${name}`)
+    }
+  }
+})
+
+check('nothing in dist imports @kanso-labs/kanso-ui-core', () => {
+  const importing = readdirSync(DIST, { recursive: true })
+    .map(String)
+    .filter((file) => /\.(?:d\.ts|js)$/u.test(file))
+    .filter((file) =>
+      /from ['"]@kanso-labs\/kanso-ui-core|import\(['"]@kanso-labs\/kanso-ui-core/u.test(
+        readFileSync(new URL(file, DIST), 'utf8'),
+      ),
+    )
+
+  if (importing.length > 0) {
+    throw new Error(`an import of the package in ${importing.join(', ')}`)
   }
 })
 

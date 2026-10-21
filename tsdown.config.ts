@@ -14,14 +14,19 @@ import {
   rmdirSync,
   writeFileSync,
 } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'tsdown'
 
 import {
   registerFormats,
   styleDictionaryConfig,
+  TOKENS_SOURCE,
 } from './scripts/build-tokens.mjs'
 
 let writtenOutput = false
+
+// Where an unbundled build would put a module of @kanso-labs/kanso-ui-core.
+const CORE_MODULES = 'node_modules/@kanso-labs/kanso-ui-core/dist/'
 
 export default defineConfig({
   // src/index.ts imports './styles.css' for its side effect, and the point of
@@ -39,6 +44,20 @@ export default defineConfig({
   // and a second entry is what gives that subpath a file to point at.
   entry: ['src/index.ts', 'src/date.ts'],
   format: ['esm'],
+  // What the build takes from @kanso-labs/kanso-ui-core is written into dist,
+  // since no consumer installs that package: today the declaration
+  // `KuiTheme` lives in. Unbundled, a module from node_modules keeps its
+  // path, and a declaration under `dist/node_modules/` is one API Extractor
+  // reads as another package's, which left `etc/index.api.md` naming an
+  // import where the type had been. `dist/kanso-ui-core/` is the same file
+  // under a path that reads as this package's own.
+  outputOptions: (options) => ({
+    ...options,
+    entryFileNames: (chunk) =>
+      chunk.name.startsWith(CORE_MODULES)
+        ? `kanso-ui-core/${chunk.name.slice(CORE_MODULES.length)}.js`
+        : '[name].js',
+  }),
   platform: 'neutral',
   plugins: [
     styleDictionaryRolldown({
@@ -129,24 +148,24 @@ export default defineConfig({
         )
       },
     },
-    // design.tokens.css (the public CSS-custom-property override contract —
-    // see build-tokens.mjs) is written straight to src/tokens/ by Style
-    // Dictionary, not through rolldown's module graph, so nothing else
-    // copies it into the published package. writeBundle fires once per
-    // output format (esm, cjs); copying to the same dist/tokens.css both
-    // times is redundant but harmless, and simpler than detecting "first
-    // format wins".
-    //
-    // design.tokens.json goes out beside it as dist/tokens.json, the DTCG
-    // source itself rather than anything built from it, for a library that
-    // builds its own tokens from the same file — react-native-kanso-ui reads
-    // it to give React Native the same `--kui-*` properties and defaults.
+    // tokens.css (the public CSS-custom-property override contract — see
+    // build-tokens.mjs) and tokens.json (the DTCG source it is written from)
+    // are @kanso-labs/kanso-ui-core's, and nothing in rolldown's module graph
+    // imports either, so this copies them into the published package as they
+    // are. A consumer installs this package and never that one, which is why
+    // the two subpaths are published here as well as there, and
+    // scripts/check-package.mjs fails a copy that differs from the package's.
     {
       name: 'copy-tokens',
       writeBundle() {
         mkdirSync('dist', { recursive: true })
-        copyFileSync('src/tokens/design.tokens.css', 'dist/tokens.css')
-        copyFileSync('src/tokens/design.tokens.json', 'dist/tokens.json')
+        copyFileSync(
+          fileURLToPath(
+            import.meta.resolve('@kanso-labs/kanso-ui-core/tokens.css'),
+          ),
+          'dist/tokens.css',
+        )
+        copyFileSync(TOKENS_SOURCE, 'dist/tokens.json')
       },
     },
     // The StyleX plugin compiles every rule the library uses into one
