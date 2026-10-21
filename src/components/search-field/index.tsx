@@ -141,9 +141,12 @@ const styles = stylex.create({
     gap: spacing.lg,
     inlineSize: '100%',
     maxInlineSize: '720px',
-    // The ring's offset and width are the library's own, from
+    // The outline repeats the 2px width and 2px offset of `focus.ring` in
     // src/styles/focus.ts, so the bar's focus is the size every other
-    // component's is.
+    // component's is, rather than importing it: that style draws on the
+    // element's own `:focus-visible` in every mode, and this one draws on
+    // `:focus-within`, since the input inside holds focus, and under forced
+    // colours alone, where the shadow above is gone.
     outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
     outlineOffset: { default: null, [FORCED_COLORS]: '2px' },
     outlineStyle: {
