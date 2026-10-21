@@ -288,9 +288,11 @@ const focusColors = stylex.create({
 type CardProps = {
   /**
    * Makes the card the thing you press: it ripples, lifts on hover, and takes
-   * a focus ring. Renders a `<button>` unless `render` says otherwise. Leave
-   * it off for a card that merely holds content, including one containing its
-   * own buttons.
+   * a focus ring. Renders a `<button>` unless `render` says otherwise. A
+   * button holds phrasing content only, so its children are spans, which a
+   * `Text` is, laid out through StyleX; for block content, `render` gives it
+   * an anchor or another element. Leave it off for a card that merely holds
+   * content, including one containing its own buttons.
    * @default false
    */
   interactive?: boolean

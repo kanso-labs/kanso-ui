@@ -36,14 +36,16 @@ const styles = stylex.create({
   },
 })
 
+// A span rather than a div, since an interactive card is a <button>, which
+// holds phrasing content only. A static card takes the same content.
 function Body() {
   return (
-    <div {...stylex.props(styles.stack)}>
+    <span {...stylex.props(styles.stack)}>
       <Text variant="titleMedium">Headline</Text>
       <Text tone="muted" variant="bodySmall">
         Supporting line
       </Text>
-    </div>
+    </span>
   )
 }
 

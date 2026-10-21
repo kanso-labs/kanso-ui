@@ -100,12 +100,16 @@ function FilterChip({
 }
 
 // Controlled: one selection at a time, which is a rule only the call site can
-// enforce — the chip itself has no notion of its neighbours.
+// enforce here — the chip itself has no notion of its neighbours. A set with a
+// selection rule is what ChipGroup is for, which keeps the rule and moves
+// between the chips with the arrow keys; this is the chip on its own, in a
+// group labelled as such a set still has to be.
 function SingleSelect() {
   const [selected, setSelected] = useState<string>(FILTERS[0])
 
   return (
-    <div {...stylex.props(styles.row)}>
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a `<fieldset>` brings a border, padding and a minimum width of the browser's own to a row that only names its buttons as one set
+    <div aria-label="Label" role="group" {...stylex.props(styles.row)}>
       {FILTERS.map((label) => (
         <FilterChip
           key={label}

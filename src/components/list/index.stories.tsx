@@ -16,8 +16,10 @@ import IconButton from '../icon-button'
 // which is what react-perf's array and JSX rules are after.
 const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
-const ADA = <Avatar name="Ada Lovelace" size="sm" />
-const GRACE = <Avatar name="Grace Hopper" size="sm" />
+// Decorative, since each sits beside the name it stands for: named, a screen
+// reader would read the name twice, once for the avatar and once for the row.
+const ADA = <Avatar decorative name="Ada Lovelace" size="sm" />
+const GRACE = <Avatar decorative name="Grace Hopper" size="sm" />
 const AMOUNT_ONE = <Currency value={1250} />
 const AMOUNT_TWO = <Currency value={480} />
 
