@@ -52,8 +52,11 @@ const styles = stylex.create({
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.weightMedium,
   },
+  // A cap rather than a fixed width, so a phone-sized window shows the row at
+  // the width it would have there rather than scrolling sideways.
   width: {
-    inlineSize: '380px',
+    inlineSize: '100%',
+    maxInlineSize: '380px',
   },
 })
 
