@@ -202,6 +202,17 @@ function actionChipContent(
  *
  * `variant="assist"` and `variant="suggestion"` draw the page's two action
  * chips instead: plain buttons, pressed with `onPress`, never selected.
+ *
+ * ```tsx
+ * const [selected, setSelected] = useState(false)
+ *
+ * <Chip isSelected={selected} onChange={setSelected}>
+ *   Label
+ * </Chip>
+ * <Chip icon={<AddIcon />} onPress={onAdd} variant="assist">
+ *   Label
+ * </Chip>
+ * ```
  */
 function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>) {
   if (isAction(props)) {

@@ -173,10 +173,32 @@ const Dropdown: Story = {
   render: () => <DropdownChip />,
 }
 
+// What the Overview page prints under Controlled. Storybook writes no snippet
+// for a story whose render takes no args, which left this one's panel empty,
+// and the state is inside SingleSelect in any case, so the pattern is written
+// out by hand. It is SingleSelect's, with the row's styles and the one stable
+// handler per chip left out.
+const CONTROLLED_SOURCE = `const [selected, setSelected] = useState('First filter')
+
+<div aria-label="Label" role="group">
+  {['First filter', 'Second filter', 'Third filter'].map((label) => (
+    <Chip
+      isSelected={selected === label}
+      key={label}
+      onChange={() => setSelected(label)}
+    >
+      {label}
+    </Chip>
+  ))}
+</div>`
+
 // Its own story because the interaction is the point: a snapshot can only show
 // which chip is selected at rest, and what matters is that picking one clears
 // the last. Each state on its own is a prop away on Default.
 const Controlled: Story = {
+  parameters: {
+    docs: { source: { code: CONTROLLED_SOURCE, language: 'tsx' } },
+  },
   render: () => <SingleSelect />,
 }
 

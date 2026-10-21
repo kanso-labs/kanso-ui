@@ -498,11 +498,33 @@ function escapeKeyOn(
  * given `slot="close"` anywhere inside the content closes it; neither needs
  * a part of its own.
  *
+ * ```tsx
+ * <Sheet>
+ *   <Button>Open</Button>
+ *   <Sheet.Content>
+ *     <Sheet.Handle />
+ *     <Sheet.Header>
+ *       <Sheet.Title>Headline</Sheet.Title>
+ *     </Sheet.Header>
+ *     <Sheet.Body>Supporting line</Sheet.Body>
+ *     <Sheet.Footer>
+ *       <Button slot="close">Close</Button>
+ *     </Sheet.Footer>
+ *   </Sheet.Content>
+ * </Sheet>
+ * ```
+ *
  * `Sheet` is the trigger's half, so a sheet nothing on the page opens — one
  * a route shows, or a menu item raises — leaves it out and passes `isOpen`
  * and `onOpenChange` to `Sheet.Content` instead. Wrapped in `Sheet` with no
  * button inside it, React Aria warns that its press responder found nothing
  * to press.
+ *
+ * ```tsx
+ * <Sheet.Content isOpen={isOpen} onOpenChange={setOpen}>
+ *   …
+ * </Sheet.Content>
+ * ```
  */
 function Sheet({ children, ...props }: SheetProps) {
   return <SheetTrigger {...props}>{children}</SheetTrigger>

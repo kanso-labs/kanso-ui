@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useState } from 'react'
 import { expect, waitFor } from 'storybook/test'
 
 import Sheet from '.'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
+import Menu from '../menu'
 import Text from '../text'
 
 const PARAGRAPH = <p />
@@ -81,6 +83,32 @@ function PanelContents() {
           Cancel
         </Button>
       </Sheet.Footer>
+    </>
+  )
+}
+
+// A sheet a menu item raises, which is the shape with no trigger: the button
+// opens the menu rather than the sheet, so the sheet is `Sheet.Content` on its
+// own, with its open state held here. Each way out of it — the close button,
+// Cancel, the scrim, a swipe and Escape — reports through `onOpenChange`, and
+// the menu's item raises it again.
+function RaisedFromMenu() {
+  const [isOpen, setOpen] = useState(true)
+  const raise = useCallback(() => {
+    setOpen(true)
+  }, [])
+
+  return (
+    <>
+      <Menu>
+        <Button variant="outlined">Open menu</Button>
+        <Menu.Content onAction={raise}>
+          <Menu.Item id="first">First item</Menu.Item>
+        </Menu.Content>
+      </Menu>
+      <Sheet.Content isOpen={isOpen} onOpenChange={setOpen}>
+        <PanelContents />
+      </Sheet.Content>
     </>
   )
 }
@@ -396,9 +424,18 @@ const OpensAndCloses: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
+// `Sheet.Content` on its own, open while `isOpen` says so: the shape for a
+// sheet nothing on the page opens directly, such as one a route shows or a
+// menu item raises. Open on load, like Default.
+const ControlledNoTrigger: Story = {
+  parameters: Default.parameters,
+  render: () => <RaisedFromMenu />,
+}
+
 export {
   BottomSheet,
   CollapsedBottomSheet,
+  ControlledNoTrigger,
   Default,
   LongAddress,
   LongBody,
