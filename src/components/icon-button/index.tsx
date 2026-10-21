@@ -714,6 +714,20 @@ function groupStyles(
  *   <StarIcon />
  * </IconButton>
  * ```
+ *
+ * An icon shows a sighted reader no words, so one whose meaning is not plain
+ * from its shape goes inside a `Tooltip` that repeats its `aria-label`,
+ * shown while a pointer rests on it or it holds focus. The tooltip repeats
+ * the name rather than giving it: touch never shows one, so `aria-label` is
+ * still what names the button.
+ *
+ * ```tsx
+ * <Tooltip label="Search">
+ *   <IconButton aria-label="Search">
+ *     <SearchIcon />
+ *   </IconButton>
+ * </Tooltip>
+ * ```
  */
 function IconButton({
   defaultSelected,
