@@ -239,16 +239,25 @@ const rowStyles = stylex.create({
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
     outlineWidth: '2px',
   },
-  // The hover and pressed layers from pseudo-classes — see `interactive`,
-  // and `HOVER_CAPABLE` for the query the hover waits on. `:active` is written
-  // twice, bare for a touch and again inside the query: StyleX orders a rule
-  // by the sum of its conditions, so a hover inside the query would
-  // otherwise come after a bare press and win while both held.
+  // The hover, focus and pressed layers from pseudo-classes — see
+  // `interactive`, and `HOVER_CAPABLE` for the query the hover waits on. The
+  // order is `focusVisible`'s, focus over hover and a press over both, and
+  // the layers are its own, so a ListItem a keyboard focuses draws the ring
+  // and the layer a focused List row does.
+  //
+  // `:focus-visible` and `:active` are each written twice, bare for a touch
+  // and a keyboard and again inside the query: StyleX orders a rule by the
+  // sum of its conditions, so a hover inside the query would otherwise come
+  // after a bare focus or press and win while both held.
   interactiveLayers: {
     backgroundColor: {
       ':active': {
         default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
         [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+      },
+      ':focus-visible': {
+        default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+        [HOVER_CAPABLE]: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
       },
       ':hover': {
         default: null,
@@ -350,6 +359,23 @@ const rowStyles = stylex.create({
     alignItems: 'center',
     display: 'flex',
     flexShrink: 0,
+  },
+  // A disabled row's leading and trailing content, faded as a whole to the
+  // 38% the lists page fades a disabled row's icons to. What sits there often
+  // carries colours of its own, which the faded colour `disabled` gives the
+  // row never reaches: an avatar's container, text in a tone of its own. The
+  // colour is set back to on surface first, so what is drawn in the row's
+  // colour, an icon or a menu item's shortcut, is faded once by the opacity
+  // rather than twice.
+  //
+  // Under forced colours the mode greys the row instead, so the slot takes
+  // `GrayText` at full strength, as the row's own text does.
+  slotDisabled: {
+    color: { default: colors.onSurface, [FORCED_COLORS]: 'GrayText' },
+    opacity: {
+      default: stateLayerOpacity.disabledContent,
+      [FORCED_COLORS]: 1,
+    },
   },
   supporting: {
     color: colors.onSurfaceVariant,

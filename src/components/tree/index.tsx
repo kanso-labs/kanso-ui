@@ -278,9 +278,11 @@ function itemContent(
   return (state: TreeItemRenderProps): ReactNode => (
     <>
       <RowContent
+        chevron={chevronFor(state)}
         isDisabled={state.isDisabled}
         isSelected={state.isSelected}
-        leading={leadingFor(state, leading, selectLabel)}
+        leading={leading}
+        selection={selectionFor(state, selectLabel)}
         supporting={supporting}
         trailing={trailing}
       >
@@ -305,26 +307,17 @@ function itemContent(
 // what a row is doing and not what it holds; the row is built by a call for
 // the same reason `itemContent` is.
 /**
- * The caret, the selection checkbox, then whatever the row was given. Its
- * return type is written out rather than inferred: `ReactNode` is a union
- * that includes a promise, and a function inferred as returning one has to
- * be `async`.
+ * The selection checkbox, while the tree toggles. The row draws it after the
+ * caret and ahead of whatever `leading` holds.
  */
-function leadingFor(
+function selectionFor(
   state: TreeItemRenderProps,
-  leading: ReactNode,
   selectLabel: string | undefined,
-): ReactNode {
-  const selects =
-    state.selectionBehavior === 'toggle' && state.selectionMode !== 'none'
-
-  return (
-    <>
-      {chevronFor(state)}
-      {selects ? <Checkbox aria-label={selectLabel} slot="selection" /> : null}
-      {leading}
-    </>
-  )
+) {
+  if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
+    return null
+  }
+  return <Checkbox aria-label={selectLabel} slot="selection" />
 }
 
 // What React Aria matches typeahead on, and what names the row. `TreeItemText`

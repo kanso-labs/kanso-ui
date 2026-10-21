@@ -154,8 +154,8 @@ function ListItem({
 
   // `disabled` goes last in both lists. On the button that is what lets it
   // win over the interactive style, as it does on every collection item:
-  // StyleX replaces a property whole, which takes the hover and pressed tints
-  // and the pointer cursor with it.
+  // StyleX replaces a property whole, which takes the hover, focus and
+  // pressed layers and the pointer cursor with it.
   if (!interactive) {
     return (
       <div
