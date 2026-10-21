@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
-import { expect } from 'storybook/test'
+import { expect, waitFor } from 'storybook/test'
 
 import type { AppBarProps } from '.'
 
 import AppBar from '.'
-import { useAppBarScroll } from '../../hooks/useAppBarScroll'
+import {
+  COLLAPSED_BLOCK_SIZE,
+  useAppBarScroll,
+} from '../../hooks/useAppBarScroll'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Container from '../container'
 import IconButton from '../icon-button'
@@ -288,6 +291,71 @@ const Large: Story = {
   },
 }
 
+// The three sizes, each with a subtitle. The small bar keeps its 64px and
+// stacks the two lines between its slots; the medium and large bars run them
+// in a row of their own under the slots, and grow to 136px and 152px to hold
+// them.
+const Sizes: Story = {
+  render: () => (
+    <div {...stylex.props(styles.stack)}>
+      <Sample
+        headline="Headline"
+        label="sm"
+        leading={LEADING}
+        subtitle="Supporting line"
+        trailing={TRAILING}
+      />
+      {/* Sections, so each bar after the first heads its own content rather
+          than adding a banner landmark to the page. */}
+      <section>
+        <Sample
+          headline="Headline"
+          label="md"
+          leading={LEADING}
+          size="md"
+          subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+      </section>
+      <section>
+        <Sample
+          headline="Headline"
+          label="lg"
+          leading={LEADING}
+          size="lg"
+          subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+      </section>
+    </div>
+  ),
+}
+
+// The fill a bar takes once content has scrolled beneath it, held still: the
+// surface container in place of the surface, rather than a shadow, which is
+// how Material Design separates a bar from what scrolls under it. Collapsing
+// reaches it by scrolling.
+const Scrolled: Story = {
+  args: {
+    scrolled: true,
+  },
+}
+
+// A bar beside another bar, or under a page heading of its own, lowers its
+// headline in the outline. It draws exactly what Default does, so Chromatic
+// takes no snapshot of it; the play checks the level instead.
+const HeadingLevel: Story = {
+  args: {
+    headingLevel: 2,
+  },
+  parameters: { chromatic: { disableSnapshot: true } },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole('heading', { level: 2, name: 'Headline' }),
+    ).toBeVisible()
+  },
+}
+
 // Its own story because centred text is centred on the bar rather than in the
 // room the slots leave, which the Default story's two equal slots cannot
 // show: the two only part when the sides differ. A leading slot alone, a back
@@ -335,10 +403,10 @@ const CenterAligned: Story = {
   ),
 }
 
-// The state a flexible bar collapses into, held still: the small bar's height,
-// with the headline and the subtitle both kept, in the small bar's type roles.
-// Collapsing reaches it only once its page is scrolled, which no snapshot of
-// that story is.
+// The state a flexible bar collapses into, held still and with nothing
+// scrolled under it: the small bar's height, with the headline and the
+// subtitle both kept, in the small bar's type roles. Collapsing reaches the
+// same height by scrolling its page, which fills the bar as well.
 const Collapsed: Story = {
   args: {
     collapsed: true,
@@ -349,7 +417,35 @@ const Collapsed: Story = {
 
 // The one story that has to be driven rather than described: both props are
 // controlled, so what a reader needs to see is the wiring, not the states.
+// The play scrolls the panel past the threshold and checks the bar has
+// collapsed to the small bar's height and taken the scrolled fill, so the
+// story opens collapsed and its snapshot is of a scrolled page.
 const Collapsing: Story = {
+  play: async ({ canvas }) => {
+    const bar = canvas.getByRole('banner')
+    const scroller = bar.parentElement
+    if (scroller === null) {
+      throw new Error('expected the bar to sit in its scroll container')
+    }
+
+    // The update a scroll causes can land frames after the scroll is
+    // reported — three frames on still read the expanded bar — so the bar is
+    // asked again until it has collapsed, with whatever it is animating run
+    // to its end each time.
+    const { backgroundColor } = getComputedStyle(bar)
+    scroller.scrollTop = 200
+    await waitFor(async () => {
+      for (const animation of bar.getAnimations()) {
+        animation.finish()
+      }
+      await expect(bar.getBoundingClientRect().height).toBe(
+        COLLAPSED_BLOCK_SIZE,
+      )
+      await expect(getComputedStyle(bar).backgroundColor).not.toBe(
+        backgroundColor,
+      )
+    })
+  },
   render: () => <ScrollingPage paragraphs={LONG_PAGE} />,
 }
 
@@ -483,10 +579,13 @@ export {
   Collapsed,
   Collapsing,
   Default,
+  HeadingLevel,
   Large,
   LongHeadline,
   PageAlignment,
+  Scrolled,
   ShortPage,
+  Sizes,
 }
 
 export default meta
