@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.1](https://github.com/kanso-labs/kanso-ui/compare/v0.45.0...v0.45.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **package:** keep the stylesheet in an app's production build ([#1819](https://github.com/kanso-labs/kanso-ui/issues/1819)) ([707698a](https://github.com/kanso-labs/kanso-ui/commit/707698a698af015387dc5cf42ce6432bd5b3aa79))
+* **theme-scope:** mount an overlay open on the first render into its container ([#1826](https://github.com/kanso-labs/kanso-ui/issues/1826)) ([6b08996](https://github.com/kanso-labs/kanso-ui/commit/6b08996df126f3a0959853a137ff27ba234a43a6))
+
 ## [0.45.0](https://github.com/kanso-labs/kanso-ui/compare/v0.44.1...v0.45.0) (2026-10-21)
 
 
