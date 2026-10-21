@@ -45,6 +45,7 @@ import { DOMRenderFunction } from 'react-aria-components';
 import { DropZoneProps as DropZoneProps_2 } from 'react-aria-components';
 import { FileTriggerProps as FileTriggerProps_2 } from 'react-aria-components';
 import { Focusable } from 'react-aria-components';
+import { FocusableElement } from 'react-aria-components';
 import { FormProps as FormProps_2 } from 'react-aria-components';
 import { getColorChannels } from 'react-aria-components';
 import { GridLayout } from 'react-aria-components';
@@ -53,6 +54,7 @@ import { GridListLoadMoreItemProps } from 'react-aria-components';
 import { GridListProps } from 'react-aria-components';
 import { GridListSectionProps } from 'react-aria-components';
 import { HeadingProps } from 'react-aria-components';
+import { HoverEvent } from 'react-aria-components';
 import { HTMLAttributes } from 'react';
 import { I18nProvider } from 'react-aria-components';
 import { ImgHTMLAttributes } from 'react';
@@ -62,6 +64,7 @@ import { isTextDropItem } from 'react-aria-components';
 import { JSX } from 'react';
 import { JSXElementConstructor } from 'react';
 import { Key } from 'react-aria-components';
+import { KeyboardEvent as KeyboardEvent_2 } from 'react-aria-components';
 import { LinkProps as LinkProps_2 } from 'react-aria-components';
 import { LinkRenderProps } from 'react-aria-components';
 import { ListBoxItemProps as ListBoxItemProps_2 } from 'react-aria-components';
@@ -871,6 +874,8 @@ export type FileTriggerProps = FileTriggerProps_2;
 
 export { Focusable }
 
+export { FocusableElement }
+
 // @public
 export function Form(input: FormProps & RefAttributes<HTMLFormElement>): JSX;
 
@@ -884,6 +889,8 @@ export type FormProps = {
 export { getColorChannels }
 
 export { GridLayout }
+
+export { HoverEvent }
 
 export { I18nProvider }
 
@@ -918,6 +925,8 @@ export { isFileDropItem }
 export { isTextDropItem }
 
 export { Key }
+
+export { KeyboardEvent_2 as KeyboardEvent }
 
 // @public
 export function Keycap(input: KeycapProps): ReactElement<unknown, string | JSXElementConstructor<any>>;

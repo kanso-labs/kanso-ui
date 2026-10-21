@@ -98,8 +98,16 @@ needs around them come from this package too: `I18nProvider` and
 the `useFilter`, `useListData`, `useTreeData` and `useAsyncList` hooks,
 `useDragAndDrop` with `useDrag`, `useDrop`, the drop item guards and
 `DIRECTORY_DRAG_TYPE`, `useLocale`, `parseColor` and `getColorChannels`,
-`TokenFieldValue`, and the `Key`, `Selection`, `SortDescriptor` and `PressEvent`
-types.
+`TokenFieldValue`, and the `Key`, `Selection`, `SortDescriptor`, `PressEvent`,
+`HoverEvent`, `KeyboardEvent` and `FocusableElement` types.
+
+`KeyboardEvent` is React Aria's, which is React's with `continuePropagation()`
+added. It is what `onKeyDown` and `onKeyUp` take on the fields and controls
+React Aria handles the keyboard for: `TextField`, `Select`, `Checkbox`,
+`Switch`, `Chip` and the rest. `Button`, `IconButton`, `Fab` and `Link` hand
+those handlers React's own, as does a component that renders a plain element,
+such as `Card`. `onHoverStart` and `onHoverEnd` take `HoverEvent` wherever a
+component has them.
 
 A virtualized collection needs to be told how tall its rows are, and
 `collectionSizes` is what the collections here measure — `listRow`, `menuRow`,
