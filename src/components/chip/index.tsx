@@ -192,6 +192,10 @@ function actionChipContent(
  * control it, or `defaultSelected` to let it keep its own state. Selection is
  * announced through `aria-pressed` rather than a role of its own.
  *
+ * This is the chip on its own. A set of chips with a selection rule, one at a
+ * time or several, is a `ChipGroup`, which keeps the rule, moves between the
+ * chips with the arrow keys and labels the set.
+ *
  * Given a `trailingIcon`, a filter chip is the page's dropdown filter chip:
  * placed first inside a `Menu`, it opens the menu, and an arrow after its
  * label says so.

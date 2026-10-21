@@ -25,9 +25,18 @@ const PARAGRAPH = <p />
 // Glyphs drawn inline: IconButton takes whatever the call site hands it.
 // At the 24dp the app bar's tokens give an icon, which is the size the bar's
 // layout centres in each button's target.
+// The back arrow points the way the reader came, so a right-to-left locale
+// turns it over along with the bar's layout.
+const glyph = stylex.create({
+  back: {
+    transform: { ':dir(rtl)': 'scaleX(-1)', default: null },
+  },
+})
+
 const BackIcon = () => (
   <svg
     aria-hidden="true"
+    {...stylex.props(glyph.back)}
     fill="none"
     height="24"
     stroke="currentColor"
