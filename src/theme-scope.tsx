@@ -42,7 +42,9 @@ import {
 // that is a grid or a flex container gains no item and no gap from it. React
 // Aria positions an overlay against the overlay's own containing block rather
 // than the container's box, so a container with no box of its own changes
-// nothing about where a popover lands.
+// nothing about where a popover lands. It is still an element, so a selector
+// that counts the scope's children counts it; the description below says
+// what that changes for a call site.
 const styles = stylex.create({
   container: {
     boxSizing: 'border-box',
@@ -64,8 +66,8 @@ type ThemeScopeProps = RenderComponentProps<'div'> & {
    * reader's OS asks for. A pinned scope paints its own surface and text in
    * that scheme and sets `color-scheme` for the native controls inside, so
    * it reads on any page. Left unset, the scope paints nothing and keeps the
-   * scheme around it: the one an enclosing scope or the `<html>` element
-   * pins, or the OS's.
+   * scheme around it: the one an enclosing scope or a `colorScheme` class
+   * pins, on the `<html>` element or nearer, or else the OS's.
    */
   scheme?: 'dark' | 'light' | undefined
   /**
@@ -123,6 +125,18 @@ const containers = new WeakMap<Element, HTMLDivElement>()
  * `<div>` added inside the scope's element, so an element whose content is
  * restricted — a list, whose children have to be list items, a paragraph,
  * or a part of a table — is not a scope: put the scope around it instead.
+ *
+ * That container comes after whatever the scope renders, and it has no box,
+ * so layout never sees it, but selectors do. Inside the scope the last
+ * element the call site rendered is not `:last-child` and is counted wrong
+ * by `:nth-last-child()`, a lone child is not `:only-child`, and a scope
+ * with nothing in it is not `:empty`. Key a rule like that on something of
+ * the call site's own, such as a class, or put the scope around the element
+ * whose children it counts.
+ *
+ * What reaches a scope from around it is the scheme and the `--kui-*`
+ * properties. It resolves every token again from those two, so a theme
+ * applied around it in any other way stops at its edge.
  */
 function ThemeScope({
   children,

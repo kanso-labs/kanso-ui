@@ -117,7 +117,7 @@ const PALETTE_SEARCH = (
     // oxlint-disable-next-line jsx-a11y/no-autofocus -- a palette opens to be typed into, so the input takes focus rather than the dialog around it
     autoFocus
     label="Search commands"
-    placeholder="Type a command"
+    placeholder="Search commands"
   />
 )
 

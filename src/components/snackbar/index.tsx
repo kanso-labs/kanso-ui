@@ -662,6 +662,13 @@ function readableTimeout(timeout: number) {
  * While a full-screen `Dialog` or a `Sheet` with a footer is open, the region
  * rises to sit above those actions rather than over them, since they share
  * the bottom edge of the window and the snackbar is drawn above both.
+ *
+ * While a `Dialog` or a `Sheet` is open, Tab stays inside it and never
+ * reaches the snackbar. F6 does: React Aria moves focus between landmarks
+ * with it, so it lands on the region, Tab then reaches the message and its
+ * action, and tabbing on past the last of them leads back into the dialog. A
+ * message with an action stays until it is answered, so a keyboard user has
+ * the time that route takes.
  */
 function Snackbar({
   closeLabel,

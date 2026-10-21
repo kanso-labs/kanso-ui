@@ -461,6 +461,10 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
  * and `onOpenChange` to `Dialog.Content` instead. Wrapped in `Dialog` with no
  * button inside it, React Aria warns that its press responder found nothing
  * to press.
+ *
+ * Tab stays inside an open dialog, so a `Snackbar` shown meanwhile is
+ * reached with F6, which React Aria uses to move between landmarks. Tabbing
+ * on past the snackbar's last control leads back into the dialog.
  */
 function Dialog({ children, ...props }: DialogProps) {
   return <DialogTrigger {...props}>{children}</DialogTrigger>

@@ -38,6 +38,13 @@ type FormProps = {
    * malformed field blocks submission, and its message is the browser's
    * own, shown once submission is tried.
    *
+   * Under `aria`, `isRequired` marks a field and checks nothing. The label
+   * takes its asterisk and the control `aria-required`, but an empty
+   * required field neither stops the form submitting nor shows a message,
+   * since the control carries no `required` for the browser to enforce. A
+   * form that must not go out with one empty checks it in `onSubmit` and
+   * hands the field its `error`, as the Client validation story does.
+   *
    * Under `aria`, moving focus after a server answers is the call site's.
    * The errors are associated — `aria-invalid` on each control, the message
    * in its `aria-describedby` — and each is read out politely as it appears

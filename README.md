@@ -114,6 +114,12 @@ A virtualized collection needs to be told how tall its rows are, and
 `tableRow` and the rest — so a `Virtualizer`'s `layoutOptions` take a number the
 components agree with rather than one guessed at the call site.
 
+The collection inside a `Virtualizer` is its own scroll container, so give the
+`List` itself its height and `overflow-y: auto`, through `className` or `style`.
+React Aria sizes a page of Page Up and Page Down from the collection's own box,
+so one left to grow to its full height inside a scrolling wrapper is one page
+long, and the keys jump from one end of it to the other.
+
 ```tsx
 import { I18nProvider, useListData } from '@kanso-labs/kanso-ui'
 ```
@@ -615,6 +621,13 @@ cost is that an ancestor confining its descendants confines those overlays too �
 a `transform` or a `filter` makes a sheet's scrim cover that ancestor rather
 than the viewport, and `overflow: hidden` clips a popover — so put the scope
 around such an element rather than inside it.
+
+The overlays' container is one more child of the scope's element, after
+everything the scope renders. It takes up no room, but selectors that count
+children count it: inside the scope, the last element you render is not
+`:last-child` and is counted wrong by `:nth-last-child()`, a lone child is not
+`:only-child`, and an empty scope is not `:empty`. Key a rule like that on a
+class of your own, or put the scope around the element whose children it counts.
 
 `themeScope` is the same thing as a class name, for an element you render
 yourself. Overlays opened under it still portal to the body and keep the page's

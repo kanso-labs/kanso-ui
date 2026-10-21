@@ -60,8 +60,9 @@ const ROWS = (
 )
 
 const styles = stylex.create({
-  // A virtualized list needs a box it can be taller than, which is what makes
-  // it render only the rows in view.
+  // A virtualized list scrolls itself. React Aria sizes a page of Page Up and
+  // Page Down from the list's own box, so the height and the overflow go on
+  // the list rather than on a wrapper.
   scroller: {
     blockSize: '320px',
     overflowY: 'auto',
@@ -312,9 +313,13 @@ const Virtualized: Story = {
     }))
 
     return (
-      <div {...stylex.props(styles.surface, styles.scroller)}>
+      <div {...stylex.props(styles.surface)}>
         <Virtualizer layout={ListLayout} layoutOptions={LIST_LAYOUT}>
-          <List aria-label="Label" items={rows}>
+          <List
+            {...stylex.props(styles.scroller)}
+            aria-label="Label"
+            items={rows}
+          >
             {(row) => (
               <List.Item id={row.id} supporting="Supporting line">
                 {row.name}

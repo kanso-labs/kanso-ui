@@ -628,7 +628,7 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
             <div {...stylex.props(styles.autocomplete)}>
               <Card padding="none" variant="outlined">
                 <Autocomplete>
-                  <SearchField label="Label" placeholder="Search" />
+                  <SearchField label="Search" placeholder="Search" />
                   <ListBox aria-label="Label" selectionMode="single">
                     {SHOWCASE_OPTIONS}
                   </ListBox>
@@ -1487,10 +1487,13 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
             title="SearchField"
           >
             <Stack gap="md">
-              <SearchField label="Label" placeholder="Supporting text" />
+              <SearchField
+                label="Supporting text"
+                placeholder="Supporting text"
+              />
               <SearchField
                 error="Supporting line"
-                label="Label"
+                label="Supporting text"
                 placeholder="Supporting text"
               />
             </Stack>
@@ -1502,7 +1505,10 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           >
             <SearchView>
               <Button variant="outlined">Open search</Button>
-              <SearchView.Content label="Label" placeholder="Supporting text">
+              <SearchView.Content
+                label="Supporting text"
+                placeholder="Supporting text"
+              >
                 <ListBox aria-label="Label">
                   <ListBox.Item id="first">First item</ListBox.Item>
                   <ListBox.Item id="second">Second item</ListBox.Item>
