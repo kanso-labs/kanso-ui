@@ -3,6 +3,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import RadioGroup, { Radio } from '.'
+import { reducedMotionOf, transitionOf } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 import Form from '../form'
 
@@ -33,6 +34,7 @@ const probeStyles = stylex.create({
   },
   restingTone: { color: colors.onSurfaceVariant },
   selectedTone: { color: colors.primary },
+  shownDot: { transform: 'scale(1)' },
 })
 
 // Hoisted so each is one stable value rather than a fresh one per render,
@@ -64,7 +66,12 @@ const CLASSES = {
   pressedPrimary: classesOf(stylex.props(probeStyles.pressedPrimary)),
   restingTone: classesOf(stylex.props(probeStyles.restingTone)),
   selectedTone: classesOf(stylex.props(probeStyles.selectedTone)),
+  shownDot: classesOf(stylex.props(probeStyles.shownDot)),
 }
+
+// The dot's size as the page draws it once nothing is moving.
+const FULL_SIZE = 'matrix(1, 0, 0, 1, 0, 0)'
+const NO_SIZE = 'matrix(0, 0, 0, 0, 0, 0)'
 
 /**
  * The 40dp control around the ring. React Aria wraps the input in a visually
@@ -76,6 +83,15 @@ function controlOf(input: HTMLElement) {
     throw new Error('expected the control to follow the input')
   }
   return control
+}
+
+/** The dot, which the ring always holds. */
+function dotOf(input: HTMLElement) {
+  const dot = ringOf(input).firstElementChild
+  if (!(dot instanceof HTMLElement)) {
+    throw new Error('expected the ring to hold the dot')
+  }
+  return dot
 }
 
 function hasClasses(element: Element, classes: string[]) {
@@ -210,23 +226,52 @@ describe('radio group', () => {
   // Every state is a class chosen from React Aria's render state rather than
   // a selector, so each is pinned to the role it reaches for.
   describe('appearance', () => {
-    it('draws an unselected ring in on surface variant, with no dot', () => {
+    // The dot is drawn whatever the selection, so it has a size to grow
+    // from and to.
+    it('draws an unselected ring in on surface variant, its dot at no size', () => {
       const { first } = setup()
       expect(hasClasses(controlOf(first), CLASSES.restingTone)).toBe(true)
-      expect(ringOf(first).childElementCount).toBe(0)
+      expect(getComputedStyle(dotOf(first)).transform).toBe(NO_SIZE)
     })
 
     it('draws a selected ring and its dot in primary', () => {
       const { first } = setup({ defaultValue: 'first' })
       expect(hasClasses(controlOf(first), CLASSES.selectedTone)).toBe(true)
-      expect(ringOf(first).childElementCount).toBe(1)
+      expect(getComputedStyle(dotOf(first)).transform).toBe(FULL_SIZE)
     })
 
+    // Read off the classes rather than the page, which is still part way
+    // through the change straight after the click.
     it('moves the dot when the selection changes', () => {
       const { first, second } = setup({ defaultValue: 'first' })
       fireEvent.click(second)
-      expect(ringOf(second).childElementCount).toBe(1)
-      expect(ringOf(first).childElementCount).toBe(0)
+      expect(hasClasses(dotOf(second), CLASSES.shownDot)).toBe(true)
+      expect(hasClasses(dotOf(first), CLASSES.shownDot)).toBe(false)
+    })
+
+    // The dot's colour fades with the ring's as it grows or shrinks, over the
+    // ring's own duration and curve, so the two stay one colour throughout.
+    it("grows the dot in and out with the ring's colour", () => {
+      const { first } = setup()
+      const ring = transitionOf(ringOf(first))
+      const dot = transitionOf(dotOf(first))
+
+      expect(dot.properties).toEqual(['background-color', 'transform'])
+      expect(dot.durations).toEqual([ring.durations[0]])
+      expect(dot.easings).toEqual([ring.easings[0]])
+      expect(ring.durations[0]).not.toBe('0s')
+    })
+
+    it('changes the dot at once for a reader who asked for less motion', () => {
+      const { first } = setup()
+      const ring = reducedMotionOf(ringOf(first), 'transition-duration')
+
+      expect(reducedMotionOf(dotOf(first), 'transition-duration')).toEqual({
+        reduced: '0s',
+        resting: ring.resting,
+      })
+      expect(ring.resting).toBeDefined()
+      expect(ring.resting).not.toBe('0s')
     })
 
     it('dims the ring and the label while disabled', () => {
@@ -341,15 +386,13 @@ describe('radio group', () => {
       const { first } = setup({ defaultValue: 'first' })
       const control = getComputedStyle(controlOf(first))
       const ring = getComputedStyle(ringOf(first))
-      const dot = ringOf(first).firstElementChild
+      const dot = getComputedStyle(dotOf(first))
       expect(control.width).toBe('40px')
       expect(control.height).toBe('40px')
       expect(ring.width).toBe('20px')
       expect(ring.height).toBe('20px')
       expect(ring.borderTopWidth).toBe('2px')
-      expect(dot instanceof HTMLElement && getComputedStyle(dot).width).toBe(
-        '10px',
-      )
+      expect(dot.width).toBe('10px')
     })
 
     // The 8dp a label is held off the control by is the description line's

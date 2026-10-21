@@ -3,6 +3,15 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Checkbox from '.'
+import {
+  advance,
+  firePointer,
+  hasRipple,
+  installFakeAnimate,
+  isPressed,
+  MINIMUM_PRESS_MS,
+} from '../../hooks/useRipple.testing'
+import { reducedMotionOf, transitionOf } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 import Form from '../form'
 
@@ -26,6 +35,7 @@ const probeStyles = stylex.create({
   markedFill: { backgroundColor: colors.primary },
   restingRule: { borderColor: colors.onSurfaceVariant },
   restingText: { color: colors.onSurfaceVariant },
+  shownGlyph: { opacity: 1, transform: 'scale(1)' },
 })
 
 // A box that takes its content's width, as the slot of a list row does, since
@@ -52,7 +62,15 @@ const CLASSES = {
   hoverLayer: classesOf(stylex.props(probeStyles.hoverLayer)),
   markedFill: classesOf(stylex.props(probeStyles.markedFill)),
   restingRule: classesOf(stylex.props(probeStyles.restingRule)),
+  shownGlyph: classesOf(stylex.props(probeStyles.shownGlyph)),
 }
+
+// A glyph as the page draws it once nothing is moving: a shown one whole, a
+// hidden one clear and at half its size.
+const SHOWN = { opacity: '1', transform: 'matrix(1, 0, 0, 1, 0, 0)' }
+const HIDDEN = { opacity: '0', transform: 'matrix(0.5, 0, 0, 0.5, 0, 0)' }
+
+const DASH_PATH = 'M19 13H5v-2h14v2z'
 
 /** The 18dp box inside the control. */
 function boxOf(input: HTMLElement) {
@@ -75,8 +93,41 @@ function controlOf(input: HTMLElement) {
   return control
 }
 
+/** How the page draws `glyph`: its opacity and its transform. */
+function drawnAs(glyph: Element) {
+  const { opacity, transform } = getComputedStyle(glyph)
+  return { opacity, transform }
+}
+
+/** The check and the dash, both of which the box always holds. */
+function glyphsOf(input: HTMLElement) {
+  const glyphs = [...boxOf(input).querySelectorAll('svg')]
+  const dash = glyphs.find(
+    (glyph) => glyph.querySelector('path')?.getAttribute('d') === DASH_PATH,
+  )
+  const check = glyphs.find((glyph) => glyph !== dash)
+  if (glyphs.length !== 2 || check === undefined || dash === undefined) {
+    throw new Error('expected the box to hold a check and a dash')
+  }
+  return { check, dash }
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/**
+ * Records every animation started while `run` runs, as the transform it
+ * starts and ends at, and puts the real `animate` back afterwards.
+ */
+function recordRipples(run: () => void) {
+  const animate = vi.spyOn(Element.prototype, 'animate')
+  try {
+    run()
+    return animate.mock.calls.map(([keyframes]) => transformsOf(keyframes))
+  } finally {
+    animate.mockRestore()
+  }
 }
 
 function setup(props: Partial<Parameters<typeof Checkbox>[0]> = {}) {
@@ -85,6 +136,34 @@ function setup(props: Partial<Parameters<typeof Checkbox>[0]> = {}) {
     ...view,
     input: view.getByRole('checkbox', { name: 'Label' }),
   }
+}
+
+/**
+ * Whether a ripple grows where it starts, which is the middle of the control:
+ * one that follows a pointer moves there from wherever the pointer was.
+ */
+function startsInTheMiddle({ end, start }: { end: string; start: string }) {
+  return translationOf(start) === translationOf(end)
+}
+
+/** The transform a ripple's keyframes start and end at. */
+function transformsOf(keyframes: Keyframe[] | null | PropertyIndexedKeyframes) {
+  const transform =
+    keyframes === null || Array.isArray(keyframes)
+      ? undefined
+      : keyframes.transform
+  const [start, end] = Array.isArray(transform) ? transform : []
+  if (typeof start !== 'string' || typeof end !== 'string') {
+    throw new TypeError(
+      'expected a ripple to move from one transform to another',
+    )
+  }
+  return { end, start }
+}
+
+/** Where a ripple's transform puts it, without how large it is. */
+function translationOf(transform: string) {
+  return transform.replace(/ scale\(.*\)$/u, '')
 }
 
 describe('checkbox', () => {
@@ -178,34 +257,55 @@ describe('checkbox', () => {
   // Every state is a class chosen from React Aria's render state rather than
   // a selector, so each is pinned to the role it reaches for.
   describe('appearance', () => {
-    it('draws an unselected box as a rule in on surface variant', () => {
+    // Both glyphs are drawn whatever the box holds, so each has something to
+    // fade from and to.
+    it('draws an unselected box as a rule in on surface variant, its glyphs hidden', () => {
       const { input } = setup()
       const box = boxOf(input)
       expect(hasClasses(box, CLASSES.restingRule)).toBe(true)
       expect(hasClasses(box, CLASSES.markedFill)).toBe(false)
-      expect(box.querySelector('svg')).toBeNull()
+      const { check, dash } = glyphsOf(input)
+      expect(drawnAs(check)).toEqual(HIDDEN)
+      expect(drawnAs(dash)).toEqual(HIDDEN)
     })
 
     it('fills a selected box with primary and draws the check', () => {
       const { input } = setup({ defaultSelected: true })
       const box = boxOf(input)
       expect(hasClasses(box, CLASSES.markedFill)).toBe(true)
-      expect(box.querySelector('svg')).not.toBeNull()
+      const { check, dash } = glyphsOf(input)
+      expect(drawnAs(check)).toEqual(SHOWN)
+      expect(drawnAs(dash)).toEqual(HIDDEN)
     })
 
-    it('fills an indeterminate box the same way, with the dash', () => {
-      const { input } = setup({ isIndeterminate: true })
-      const box = boxOf(input)
-      expect(hasClasses(box, CLASSES.markedFill)).toBe(true)
-      expect(box.querySelector('svg path')?.getAttribute('d')).toBe(
-        'M19 13H5v-2h14v2z',
-      )
-    })
+    // Indeterminate is drawn over whatever the value underneath is.
+    it.each([
+      ['', { isIndeterminate: true }],
+      [
+        ' over a selected value',
+        { defaultSelected: true, isIndeterminate: true },
+      ],
+    ] as const)(
+      'fills an indeterminate box the same way, with the dash%s',
+      (_over, props) => {
+        const { input } = setup(props)
+        const box = boxOf(input)
+        expect(hasClasses(box, CLASSES.markedFill)).toBe(true)
+        const { check, dash } = glyphsOf(input)
+        expect(drawnAs(check)).toEqual(HIDDEN)
+        expect(drawnAs(dash)).toEqual(SHOWN)
+      },
+    )
 
-    it('moves to the filled box when clicked', () => {
+    // Read off the classes rather than the page, which is still part way
+    // through the fade straight after the click.
+    it('moves to the filled box and the check when clicked', () => {
       const { input } = setup()
+      expect(hasClasses(glyphsOf(input).check, CLASSES.shownGlyph)).toBe(false)
       fireEvent.click(input)
       expect(hasClasses(boxOf(input), CLASSES.markedFill)).toBe(true)
+      expect(hasClasses(glyphsOf(input).check, CLASSES.shownGlyph)).toBe(true)
+      expect(hasClasses(glyphsOf(input).dash, CLASSES.shownGlyph)).toBe(false)
     })
 
     it('takes the error pair while invalid', () => {
@@ -292,17 +392,16 @@ describe('checkbox', () => {
     it.each([
       { mark: 'check', props: { isSelected: true } },
       { mark: 'dash', props: { isIndeterminate: true } },
-    ])('draws the $mark at 18 over the whole box', ({ props }) => {
-      const { input } = setup(props)
-      const box = boxOf(input)
-      const glyph = box.querySelector('svg')
-      if (glyph === null) {
-        throw new Error('expected the box to draw a glyph')
-      }
-      expect(glyph.getBoundingClientRect().toJSON()).toEqual(
-        box.getBoundingClientRect().toJSON(),
-      )
-    })
+    ] as const)(
+      'draws the $mark at 18 over the whole box',
+      ({ mark, props }) => {
+        const { input } = setup(props)
+        const glyph = glyphsOf(input)[mark]
+        expect(glyph.getBoundingClientRect().toJSON()).toEqual(
+          boxOf(input).getBoundingClientRect().toJSON(),
+        )
+      },
+    )
 
     // A checkbox a row or a cell names has nothing in the label's column but
     // its message line, which is out of the flow until there is something to
@@ -353,6 +452,138 @@ describe('checkbox', () => {
           control.getBoundingClientRect().right,
       ).toBe(8)
     })
+  })
+})
+
+// The glyph changes with the fill rather than a frame ahead of it: it fades
+// and grows over the box's own duration and curve.
+describe('the glyph', () => {
+  it.each(['check', 'dash'] as const)(
+    'fades and grows the %s with the fill',
+    (mark) => {
+      const { input } = setup()
+      const box = transitionOf(boxOf(input))
+      const glyph = transitionOf(glyphsOf(input)[mark])
+
+      expect(glyph.properties).toEqual(['opacity', 'transform'])
+      expect(glyph.durations).toEqual([box.durations[0]])
+      expect(glyph.easings).toEqual([box.easings[0]])
+      expect(box.durations[0]).not.toBe('0s')
+    },
+  )
+
+  it.each(['check', 'dash'] as const)(
+    'changes the %s at once for a reader who asked for less motion',
+    (mark) => {
+      const { input } = setup()
+      const box = reducedMotionOf(boxOf(input), 'transition-duration')
+      const glyph = reducedMotionOf(
+        glyphsOf(input)[mark],
+        'transition-duration',
+      )
+
+      expect(glyph).toEqual({ reduced: '0s', resting: box.resting })
+      expect(box.resting).toBeDefined()
+      expect(box.resting).not.toBe('0s')
+    },
+  )
+})
+
+// The label hears a press on the control and on the text beside it alike,
+// and a key reaches the input inside it. Each grows from the middle of the
+// control: the text runs the width of the row, and a press at its far end
+// is far from the control.
+describe('the ripple', () => {
+  it.each([
+    ['the text beside the control', 'text'],
+    ['the corner of the control', 'control'],
+  ] as const)('ripples a press on %s from the middle', (_where, target) => {
+    const { getByText, input } = setup()
+    const control = controlOf(input)
+    const pressed = target === 'text' ? getByText('Label') : control
+    const { right, top } = pressed.getBoundingClientRect()
+
+    const ripples = recordRipples(() => {
+      firePointer(pressed, 'pointerdown', {
+        buttons: 1,
+        clientX: right - 1,
+        clientY: top + 1,
+      })
+    })
+
+    expect(ripples.map(startsInTheMiddle)).toEqual([true])
+    expect(isPressed(control)).toBe(true)
+  })
+
+  // React Aria keeps the label's click to itself, so a press that waited for
+  // one held the ripple at its pressed opacity until the pointer left.
+  it('lets the ripple go once the press is released', async () => {
+    vi.useFakeTimers()
+    const restoreAnimate = installFakeAnimate()
+
+    try {
+      const { getByText, input } = setup()
+      const text = getByText('Label')
+      firePointer(text, 'pointerdown', { buttons: 1 })
+      firePointer(text, 'pointerup')
+      expect(isPressed(controlOf(input))).toBe(true)
+
+      await advance(MINIMUM_PRESS_MS)
+      expect(isPressed(controlOf(input))).toBe(false)
+    } finally {
+      restoreAnimate()
+      vi.useRealTimers()
+    }
+  })
+
+  // React Aria reports a key's activation twice, as the key and then as the
+  // click the browser makes of it, which carries no pointer. The click is
+  // dispatched here as the browser would, after the key comes up.
+  it('ripples a key press once, from the middle of the control, on its release', () => {
+    const { input } = setup()
+
+    const held = recordRipples(() => {
+      fireEvent.keyDown(input, { code: 'Space', key: ' ' })
+    })
+    const released = recordRipples(() => {
+      fireEvent.keyUp(input, { code: 'Space', key: ' ' })
+      fireEvent.click(input, { detail: 0 })
+    })
+
+    expect(input).toHaveProperty('checked', true)
+    expect(held).toEqual([])
+    expect(released.map(startsInTheMiddle)).toEqual([true])
+  })
+
+  // A key that activates the checkbox while a pointer holds it down leaves
+  // the pointer's press where it is rather than starting another.
+  it('leaves a press in flight to its pointer', () => {
+    const { getByText, input } = setup()
+
+    const ripples = recordRipples(() => {
+      firePointer(getByText('Label'), 'pointerdown', { buttons: 1 })
+      fireEvent.keyDown(input, { code: 'Space', key: ' ' })
+      fireEvent.keyUp(input, { code: 'Space', key: ' ' })
+    })
+
+    expect(ripples).toHaveLength(1)
+    expect(isPressed(controlOf(input))).toBe(true)
+  })
+
+  it.each([
+    ['disabled', { isDisabled: true }],
+    ['read-only', { isReadOnly: true }],
+  ] as const)('draws no ripple while %s', (_state, props) => {
+    const { getByText, input } = setup(props)
+
+    const ripples = recordRipples(() => {
+      firePointer(getByText('Label'), 'pointerdown', { buttons: 1 })
+      fireEvent.keyDown(input, { code: 'Space', key: ' ' })
+      fireEvent.keyUp(input, { code: 'Space', key: ' ' })
+    })
+
+    expect(hasRipple(controlOf(input))).toBe(false)
+    expect(ripples).toEqual([])
   })
 })
 
