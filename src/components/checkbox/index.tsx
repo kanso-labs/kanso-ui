@@ -346,11 +346,11 @@ function Checkbox({
   // The ripple listens on the label, which hears a pointer on the control and
   // on the text alike, and grows from the middle of the control for both.
   // React Aria drops a click handler there, so a press ends on its release
-  // instead. A key reaches the input rather than the
-  // label, so its press is played once it activates the checkbox. React Aria
-  // reports that activation twice, as the key and then as the click the
-  // browser makes of it, and only the first plays. A checkbox that a press
-  // cannot change listens for neither, as in `buttonContent`.
+  // instead. A key reaches the input rather than the label, so its press is
+  // played once it activates the checkbox. React Aria reports that
+  // activation twice, as the key and then as the click the browser makes of
+  // it, and only the first plays. A checkbox that a press cannot change
+  // listens for neither, as in `buttonContent`.
   const interactive =
     props.isDisabled !== true &&
     props.isReadOnly !== true &&
