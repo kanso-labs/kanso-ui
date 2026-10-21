@@ -646,13 +646,14 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A circle for a person, tinted from a container/on-container pair, at each tone and at both sizes, and the anonymous person a blank name draws in the on-container role."
+            description="A circle for a person, tinted from a container/on-container pair, at each tone and at its three sizes, and the anonymous person a blank name draws in the on-container role."
             title="Avatar"
           >
             <div {...stylex.props(styles.inline)}>
               {AVATAR_TONES.map((tone) => (
                 <Avatar key={tone} name="Ada Lovelace" tone={tone} />
               ))}
+              <Avatar name="Grace Hopper" size="sm" />
               <Avatar name="Grace Hopper" size="lg" />
               <Avatar name="" />
             </div>
@@ -1474,13 +1475,14 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="A rounded square for a thing, tinted from the same container/on-container pairs the avatar takes."
+            description="A rounded square for a thing, tinted from the same container/on-container pairs the avatar takes, at each tone and at the avatar's three sizes."
             title="ProductIcon"
           >
             <div {...stylex.props(styles.inline)}>
               {AVATAR_TONES.map((tone) => (
                 <ProductIcon key={tone} name="Label" tone={tone} />
               ))}
+              <ProductIcon name="Label" size="sm" />
               <ProductIcon name="Label" size="lg" />
             </div>
           </Section>
