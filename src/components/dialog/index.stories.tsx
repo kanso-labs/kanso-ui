@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useLayoutEffect, useState } from 'react'
 import { expect, waitFor, within } from 'storybook/test'
 
 import Dialog from '.'
 import { CloseGlyph } from '../../glyphs'
+import { colors, spacing } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
 import Text from '../text'
@@ -12,12 +15,107 @@ import Text from '../text'
 const PARAGRAPH = <p />
 
 const styles = stylex.create({
+  // The body under an icon, centred with the headline.
+  centredBody: {
+    textAlign: 'center',
+  },
+  // A header with an icon: the icon over the headline, both centred, 16dp
+  // apart, as the dialogs page draws it.
+  centredHeader: {
+    alignItems: 'center',
+    flexDirection: 'column',
+    gap: spacing.lg,
+    justifyContent: 'center',
+    textAlign: 'center',
+  },
   // Sized in `em`, so the glyph takes the button's own icon size.
   glyph: {
     blockSize: '1em',
     inlineSize: '1em',
   },
+  // The icon above the headline, at the page's 24dp in the secondary role.
+  icon: {
+    blockSize: '24px',
+    color: colors.secondary,
+    display: 'block',
+    inlineSize: '24px',
+  },
 })
+
+// The phone width the compact stories are drawn at, on the Overview page as
+// in Chromatic's modes below.
+const COMPACT_WIDTH = '375px'
+
+// Narrows the frame the Overview page draws a compact story in. That frame
+// is as wide as the page's column, which is above the medium breakpoint, so
+// a compact story drew its wide form there and the page showed nothing the
+// story claims. The viewport global the story sets sizes Storybook's own
+// canvas alone. Only a frame inside one of the page's story blocks is
+// touched: on its own a story's frame is the canvas, which the viewport
+// toolbar sizes, and a test run or a Chromatic snapshot frames it otherwise.
+function CompactDocsFrame({ children }: { children: ReactNode }) {
+  useLayoutEffect(() => {
+    const frame = window.frameElement
+    if (!isDocsFrame(frame)) {
+      return undefined
+    }
+    const { width } = frame.style
+    frame.style.width = COMPACT_WIDTH
+    return () => {
+      frame.style.width = width
+    }
+  }, [])
+
+  return <>{children}</>
+}
+
+// A dialog nothing on the page opens: the page holds whether it is open, so
+// a route, a menu item or a finished request can show it, and `Dialog` is
+// left out. The button beside it is the page's own and opens it by setting
+// that state. Open on load, as the other stories are, since a closed dialog
+// renders nothing for Chromatic to compare.
+function ControlledDialog() {
+  const [isOpen, setOpen] = useState(true)
+  const open = useCallback(() => {
+    setOpen(true)
+  }, [])
+
+  return (
+    <>
+      <Button onPress={open} variant="outlined">
+        Open dialog
+      </Button>
+      <Dialog.Content isOpen={isOpen} onOpenChange={setOpen}>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what the dialog is asking, in as many lines
+            as it needs.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </>
+  )
+}
+
+// The frame belongs to the page around it, so `instanceof` against this
+// frame's own HTMLIFrameElement would never hold; the tag is read instead.
+function isDocsFrame(element: Element | null): element is HTMLIFrameElement {
+  return (
+    element?.tagName === 'IFRAME' &&
+    element.closest('[data-story-block]') !== null
+  )
+}
 
 const meta = {
   component: Dialog,
@@ -173,6 +271,14 @@ const AlertDialog: Story = {
 // default role fills the window. An alert dialog stays the basic one there:
 // rounded, centred over the scrim, and only as tall as its question.
 const AlertDialogCompact: Story = {
+  // The Overview page's frame, narrowed to the same width.
+  decorators: [
+    (Story) => (
+      <CompactDocsFrame>
+        <Story />
+      </CompactDocsFrame>
+    ),
+  ],
   // Sizes the frame in Storybook itself, as Sheet's BottomSheet does, so the
   // story shows the compact width without narrowing the window by hand.
   globals: { viewport: { isRotated: false, value: 'mobile1' } },
@@ -195,6 +301,7 @@ const AlertDialogCompact: Story = {
 // onto a second row at the trailing edge rather than running the first of
 // them past the container's start edge.
 const ThreeActions: Story = {
+  decorators: AlertDialogCompact.decorators,
   globals: AlertDialogCompact.globals,
   parameters: AlertDialogCompact.parameters,
   render: () => (
@@ -222,6 +329,102 @@ const ThreeActions: Story = {
           </Button>
           <Button slot="close" variant="text">
             Third action
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
+}
+
+// The default dialog below the medium breakpoint, where it fills the window
+// as the page's full-screen dialog: square corners, the headline in a 56dp
+// bar with a divider under it, and the actions in a 56dp bar with a divider
+// over them.
+const FullScreen: Story = {
+  decorators: AlertDialogCompact.decorators,
+  globals: AlertDialogCompact.globals,
+  parameters: AlertDialogCompact.parameters,
+  render: Default.render,
+}
+
+// What the Overview page prints under Controlled. Storybook writes no snippet
+// for a story whose render takes no args, which would leave this one's panel
+// empty, and the state is inside ControlledDialog in any case, so the pattern
+// is written out by hand.
+const CONTROLLED_SOURCE = `const [isOpen, setOpen] = useState(false)
+
+<Button onPress={() => setOpen(true)} variant="outlined">
+  Open dialog
+</Button>
+<Dialog.Content isOpen={isOpen} onOpenChange={setOpen}>
+  <Dialog.Header>
+    <Dialog.Title>Headline</Dialog.Title>
+  </Dialog.Header>
+  <Dialog.Body>
+    <Text tone="muted" variant="bodyMedium">
+      Supporting text explains what the dialog is asking.
+    </Text>
+  </Dialog.Body>
+  <Dialog.Footer>
+    <Button slot="close" variant="text">
+      Cancel
+    </Button>
+    <Button slot="close" variant="text">
+      Confirm
+    </Button>
+  </Dialog.Footer>
+</Dialog.Content>`
+
+const Controlled: Story = {
+  parameters: {
+    docs: {
+      source: { code: CONTROLLED_SOURCE, language: 'tsx' },
+      story: { height: '600px', inline: false },
+    },
+  },
+  render: () => <ControlledDialog />,
+}
+
+// An icon above the headline, which the page centres the headline and the
+// body with. The icon and the centring are the call site's, given to
+// `Dialog.Header` and `Dialog.Body`. An alert dialog, so it stays the basic
+// dialog at every width, the one the page draws an icon in.
+const WithIcon: Story = {
+  parameters: { docs: { story: { height: '600px', inline: false } } },
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open alert</Button>
+      <Dialog.Content
+        isDismissable={false}
+        isKeyboardDismissDisabled
+        role="alertdialog"
+      >
+        <Dialog.Header {...stylex.props(styles.centredHeader)}>
+          <svg
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            {...stylex.props(styles.icon)}
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v6M12 7.5v.01" />
+          </svg>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+        <Dialog.Body {...stylex.props(styles.centredBody)}>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what happens either way.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Cancel
+          </Button>
+          <Button slot="close" variant="text">
+            Confirm
           </Button>
         </Dialog.Footer>
       </Dialog.Content>
@@ -299,6 +502,7 @@ const ADDRESS =
   'https://example.com/firstitem/seconditem/thirditem/supportingline?query=0123456789'
 
 const LongAddress: Story = {
+  decorators: AlertDialogCompact.decorators,
   globals: AlertDialogCompact.globals,
   parameters: AlertDialogCompact.parameters,
   render: () => (
@@ -334,11 +538,14 @@ const LongAddress: Story = {
 export {
   AlertDialog,
   AlertDialogCompact,
+  Controlled,
   Default,
+  FullScreen,
   LongAddress,
   LongBody,
   Nested,
   ThreeActions,
+  WithIcon,
 }
 
 export default meta
