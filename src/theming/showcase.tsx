@@ -416,6 +416,14 @@ const ICON_BUTTON_VARIANTS = [
 ] as const
 const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
+// A meter on a scale of its own, its value written in units in the locale's
+// own figures.
+const METER_BYTES = {
+  notation: 'compact',
+  style: 'unit',
+  unit: 'gigabyte',
+} as const
+
 const ROWS = [
   { amount: 1240.5, name: 'Ada Lovelace', tone: 'primary' },
   { amount: -86.2, name: 'Grace Hopper', tone: 'secondary' },
@@ -1337,11 +1345,18 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The tone recolours the active indicator, the stop indicator and the glyph before the value, and leaves the track, so a column of meters still shares one track."
+            description="Each of the three tones recolours the active indicator, the stop indicator and the glyph before the value, and leaves the track, so a column of meters still shares one track. The last measures on a scale of its own and writes its value in units."
             title="Meter"
           >
             <Meter label="Label" value={60} />
+            <Meter label="Label" tone="positive" value={40} />
             <Meter label="Label" tone="negative" value={94} />
+            <Meter
+              formatOptions={METER_BYTES}
+              label="Label"
+              maxValue={512}
+              value={318}
+            />
           </Section>
 
           <Section

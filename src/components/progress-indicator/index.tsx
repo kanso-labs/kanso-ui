@@ -664,7 +664,8 @@ type ProgressIndicatorProps = {
    * How far the work is loaded ahead of the value — a video's buffered
    * seconds, a queue's fetched pages. Read on the same scale as `value`: the
    * track is solid up to it and dotted beyond. Ignored while the indicator
-   * is indeterminate, and left out for work with nothing to buffer.
+   * is indeterminate, and by the ring, which draws no buffer; left out for
+   * work with nothing to buffer.
    */
   buffer?: number
   /** A function may compute the class from the indicator's render state. */
