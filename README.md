@@ -186,7 +186,7 @@ otherwise be bespoke CSS in every consuming app:
 ```tsx
 <Container>
   <Stack gap="xl">
-    <Stack align="center" direction="row" justify="between">
+    <Stack align="center" direction="row" gap="sm" justify="between" wrap>
       <Text variant="titleLarge">Headline</Text>
       <Button>Save changes</Button>
     </Stack>
