@@ -17,14 +17,25 @@ const styles = stylex.create({
     display: 'flex',
     gap: spacing.sm,
   },
+  // Centred, so a row of the five sizes lines up on their middles.
   row: {
+    alignItems: 'center',
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.lg,
   },
+  // Rows a story draws one under the other.
+  rows: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+  },
 })
 
+// From the most weight to the least.
 const VARIANTS = ['filled', 'tonal', 'outlined', 'standard'] as const
+
+const SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
 // A plain glyph rather than an icon set, so the stories stay a demonstration
 // of the button alone.
@@ -143,14 +154,93 @@ const Outlined: Story = {
   args: { variant: 'outlined' },
 }
 
+// The four variants at rest, over the same four disabled.
+const Variants: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      {[false, true].map((isDisabled) => (
+        <div key={String(isDisabled)} {...stylex.props(styles.row)}>
+          {VARIANTS.map((variant) => (
+            <IconButton
+              aria-label="Add"
+              isDisabled={isDisabled}
+              key={variant}
+              variant={variant}
+            >
+              <PlusIcon />
+            </IconButton>
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// The five sizes, filled over outlined. The icon grows with the container,
+// `md` and `lg` sharing one, and the outlined rule thickens as the button
+// grows.
+const Sizes: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      {(['filled', 'outlined'] as const).map((variant) => (
+        <div key={variant} {...stylex.props(styles.row)}>
+          {SIZES.map((size) => (
+            <IconButton
+              aria-label="Add"
+              key={size}
+              size={size}
+              variant={variant}
+            >
+              <PlusIcon />
+            </IconButton>
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// Each variant as a toggle, unchosen beside chosen. A chosen toggle takes its
+// variant's second pair of colours and rests at its size's pressed corner
+// rather than round. ToggleDisabled draws the same pairs disabled.
+const ToggleVariants: Story = {
+  render: () => (
+    <div {...stylex.props(styles.row)}>
+      {VARIANTS.map((variant) => (
+        <div key={variant} {...stylex.props(styles.pair)}>
+          <IconButton
+            aria-label="Star"
+            defaultSelected={false}
+            variant={variant}
+          >
+            <StarIcon />
+          </IconButton>
+          <IconButton aria-label="Star" defaultSelected variant={variant}>
+            <StarIcon />
+          </IconButton>
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+// Given `href`, the button is a link drawn the same way, as Button's is.
+const Link: Story = {
+  args: { href: '#add', variant: 'filled' },
+}
+
 export {
   Default,
+  Link,
   Outlined,
   Pending,
+  Sizes,
   Toggle,
   ToggleDisabled,
   TogglePending,
   ToggleSelected,
+  ToggleVariants,
+  Variants,
 }
 
 export default meta

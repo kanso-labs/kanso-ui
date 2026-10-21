@@ -25,7 +25,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
+import { createContext, Fragment, useContext } from 'react'
 import { TokenFieldValue } from 'react-aria-components'
 
 import type { DemoThemeName } from './themes'
@@ -407,6 +407,14 @@ const SHOWCASE_TRANSPARENT = 'hsla(200, 100%, 50%, 0.4)'
 const SHOWCASE_FIELD_SWATCH = <ColorSwatch color={SHOWCASE_SWATCHES[0]} />
 
 const CARD_VARIANTS = ['elevated', 'filled', 'outlined'] as const
+
+const ICON_BUTTON_VARIANTS = [
+  'standard',
+  'outlined',
+  'tonal',
+  'filled',
+] as const
+const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
 const ROWS = [
   { amount: 1240.5, name: 'Ada Lovelace', tone: 'primary' },
@@ -1150,29 +1158,62 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
           </Section>
 
           <Section
-            description="The button's variants again at the icon's own size. A chosen toggle takes a second pair of roles and rests at the squarer corner."
+            description="The button's variants again at the icon's own size, then disabled, then each as a toggle unchosen and chosen, then the five sizes chosen. A chosen toggle takes a second pair of roles and rests at its size's squarer corner, which steps up the radius scale as the button grows."
             title="IconButton"
           >
-            <div {...stylex.props(styles.row)}>
-              <IconButton aria-label="Add">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="outlined">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="tonal">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" variant="filled">
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" defaultSelected={false}>
-                <PlusIcon />
-              </IconButton>
-              <IconButton aria-label="Add" defaultSelected variant="tonal">
-                <PlusIcon />
-              </IconButton>
-            </div>
+            <Stack gap="sm">
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_VARIANTS.map((variant) => (
+                  <IconButton aria-label="Add" key={variant} variant={variant}>
+                    <PlusIcon />
+                  </IconButton>
+                ))}
+                <IconButton aria-label="Add" isDisabled variant="filled">
+                  <PlusIcon />
+                </IconButton>
+                <IconButton
+                  aria-label="Add"
+                  defaultSelected
+                  isDisabled
+                  variant="outlined"
+                >
+                  <PlusIcon />
+                </IconButton>
+              </div>
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_VARIANTS.map((variant) => (
+                  <Fragment key={variant}>
+                    <IconButton
+                      aria-label="Add"
+                      defaultSelected={false}
+                      variant={variant}
+                    >
+                      <PlusIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="Add"
+                      defaultSelected
+                      variant={variant}
+                    >
+                      <PlusIcon />
+                    </IconButton>
+                  </Fragment>
+                ))}
+              </div>
+              <div {...stylex.props(styles.row)}>
+                {ICON_BUTTON_SIZES.map((size) => (
+                  <IconButton
+                    aria-label="Add"
+                    defaultSelected
+                    key={size}
+                    size={size}
+                    variant="tonal"
+                  >
+                    <PlusIcon />
+                  </IconButton>
+                ))}
+              </div>
+            </Stack>
           </Section>
 
           <Section
