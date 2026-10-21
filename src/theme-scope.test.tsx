@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { act, render, waitFor } from '@testing-library/react'
+import { act, render, waitFor, within } from '@testing-library/react'
 import { createRef } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToStaticMarkup, renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { colorScheme } from './color-scheme'
@@ -230,6 +231,49 @@ describe('theme scope', () => {
       const section = view.getByTestId('scope')
       expect(section.tagName).toBe('SECTION')
       expect(section.contains(view.getByRole('dialog'))).toBe(true)
+    })
+
+    // The template that puts the container in place removes itself, so the
+    // call site's first child is still the element's first child.
+    it('leaves the children in their places', () => {
+      const view = render(
+        <ThemeScope data-testid="scope">
+          <span data-testid="first" />
+        </ThemeScope>,
+      )
+      const scope = view.getByTestId('scope')
+
+      expect(scope.firstElementChild).toBe(view.getByTestId('first'))
+      expect(scope.querySelector('template')).toBeNull()
+    })
+
+    // The server renders no overlay, so the page hydrates with none and
+    // portals the one open from the start once it has.
+    it('hydrates without a warning, then takes the overlays', () => {
+      const host = document.createElement('div')
+      host.innerHTML = renderToString(openScope({}))
+      document.body.append(host)
+
+      try {
+        let root: ReturnType<typeof hydrateRoot> | undefined
+        const errors = errorsDuring(() => {
+          act(() => {
+            root = hydrateRoot(host, openScope({}))
+          })
+        })
+
+        expect(errors).toEqual([])
+        expect(
+          within(host)
+            .getByTestId('scope')
+            .contains(within(host).getByRole('dialog')),
+        ).toBe(true)
+        act(() => {
+          root?.unmount()
+        })
+      } finally {
+        host.remove()
+      }
     })
   })
 
@@ -486,6 +530,51 @@ describe('theme scope', () => {
         true,
       )
       expect(colourOf(view.getByTestId('probe'))).toBe(DARK_PRIMARY)
+    })
+
+    // React Aria reads an overlay's own element once, as it mounts, to decide
+    // whether a popover is a dialog. A hover popover holds a dialog of its
+    // own, so it is one only while that read finds nothing — which is what
+    // it found while the container arrived a render late, leaving a second
+    // dialog with no name around the first.
+    it('leaves a hover popover open from its first render one dialog', () => {
+      const view = render(
+        <ThemeScope>
+          <Popover defaultOpen trigger="hover">
+            <Button>Open</Button>
+            <Popover.Content>Supporting line</Popover.Content>
+          </Popover>
+        </ThemeScope>,
+      )
+
+      expect(view.getAllByRole('dialog')).toHaveLength(1)
+    })
+
+    // The same read is where a modal makes the page behind it inert. React
+    // Aria does that in a passive effect, which a loaded CI run has been seen
+    // to reach only after `render` returned, so the case waits for it. A
+    // container that arrives a render late leaves the page reachable however
+    // long the case waits, since the effect has already run by then and
+    // found no element.
+    it('makes the page behind a sheet open from its first render inert', async () => {
+      const view = render(
+        <ThemeScope>
+          <Button>Label</Button>
+          <Sheet defaultOpen>
+            <Button>Open</Button>
+            <Sheet.Content>
+              <Sheet.Header>
+                <Sheet.Title>Headline</Sheet.Title>
+              </Sheet.Header>
+            </Sheet.Content>
+          </Sheet>
+        </ThemeScope>,
+      )
+      const behind = view.getByText('Label').closest('button')
+
+      await waitFor(() => {
+        expect(behind?.closest('[inert]')).not.toBeNull()
+      })
     })
 
     it('portals a tooltip into itself', () => {
