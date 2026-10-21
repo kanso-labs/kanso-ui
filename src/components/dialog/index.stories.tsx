@@ -113,7 +113,13 @@ const AlertDialog: Story = {
     })
     // Escape reaches React Aria only from inside the dialog, so a press made
     // anywhere else would leave it open for a reason that proves nothing.
-    await expect(alertDialog()?.contains(document.activeElement)).toBe(true)
+    // React Aria moves focus in a frame after the dialog mounts, so this
+    // waits for it: read once, as the dialog appeared, it could find focus
+    // still on the page, as it did on the Overview page, which loads this
+    // story's frame beside four others.
+    await waitFor(async () => {
+      await expect(alertDialog()?.contains(document.activeElement)).toBe(true)
+    })
     // And a dialog that is closing stays on screen until the animations on
     // it end, which the entry one has not yet: without this, the check below
     // passed on a dialog that Escape had already closed.
