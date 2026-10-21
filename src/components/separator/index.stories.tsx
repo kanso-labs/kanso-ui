@@ -4,7 +4,12 @@ import * as stylex from '@stylexjs/stylex'
 
 import Separator from '.'
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
+import Button from '../button'
+import Card from '../card'
+import ListItem from '../list-item'
+import Menu from '../menu'
 import Text from '../text'
+import Toolbar from '../toolbar'
 
 // A separator is a 1px rule, so on its own there is nothing to look at and
 // nothing to judge it against. `BetweenRows` and `BetweenInlineItems` place it
@@ -56,6 +61,9 @@ const styles = stylex.create({
     inlineSize: '280px',
     padding: spacing.lg,
   },
+  list: {
+    inlineSize: '280px',
+  },
   row: {
     paddingBlock: spacing.md,
   },
@@ -82,6 +90,11 @@ const meta = {
 
 type Story = StoryObj<typeof meta>
 
+// For a story whose layout decides the orientation: a stack of rows only has
+// a horizontal rule to show, and a row of inline items a vertical one, so
+// turning it over would draw a stub of `1em` rather than the other form.
+const ORIENTATION_FIXED = { orientation: { control: false } } as const
+
 // Bare, in a frame that gives it something to span, so `orientation` is
 // something the Controls panel can actually turn over.
 const Default: Story = {
@@ -98,10 +111,18 @@ const MiddleInset: Story = {
   decorators: [Framed],
 }
 
+// A vertical rule held off both ends, which the frame's 64dp of height
+// shortens to 32: the inset moves with the axis the rule runs along.
+const VerticalMiddleInset: Story = {
+  args: { inset: 'both', orientation: 'vertical' },
+  decorators: [Framed],
+}
+
 // Its own story because a rule is judged against content: between stacked rows
 // it spans whatever holds them, stopping at the padding. The rules take `args`,
 // so `inset` can be tried between rows as well.
 const BetweenRows: Story = {
+  argTypes: ORIENTATION_FIXED,
   render: (args) => (
     <div {...stylex.props(styles.demoStack)}>
       <div {...stylex.props(styles.row)}>
@@ -125,19 +146,41 @@ const BetweenRows: Story = {
 // structure — a heading, a control.
 const Decorative: Story = {
   args: { decorative: true },
+  argTypes: ORIENTATION_FIXED,
   render: BetweenRows.render,
+}
+
+// The inset rule between list rows, which is what it is for. A row holds its
+// content 16dp off its leading edge and `start` holds the rule the same 16dp
+// off, so the rule begins where the row's text does rather than at the
+// card's edge.
+const BetweenListItems: Story = {
+  args: { inset: 'start' },
+  argTypes: ORIENTATION_FIXED,
+  render: (args) => (
+    <div {...stylex.props(styles.list)}>
+      <Card padding="none" variant="outlined">
+        <ListItem supporting="Supporting line">First item</ListItem>
+        <Separator {...args} />
+        <ListItem supporting="Supporting line">Second item</ListItem>
+        <Separator {...args} />
+        <ListItem supporting="Supporting line">Third item</ListItem>
+      </Card>
+    </div>
+  ),
 }
 
 // Its own story because a vertical rule in a flex row has no length of its
 // own: it takes the height of the row it sits in, so it is worth seeing beside
 // content of a real height.
 const BetweenInlineItems: Story = {
-  render: () => (
+  argTypes: ORIENTATION_FIXED,
+  render: (args) => (
     <div {...stylex.props(styles.demoRow)}>
       <Text variant="labelLarge">First</Text>
-      <Separator orientation="vertical" />
+      <Separator {...args} orientation="vertical" />
       <Text variant="labelLarge">Second</Text>
-      <Separator orientation="vertical" />
+      <Separator {...args} orientation="vertical" />
       <Text variant="labelLarge">Third</Text>
     </div>
   ),
@@ -147,23 +190,61 @@ const BetweenInlineItems: Story = {
 // nothing to stretch to: it is one line of the text around it, and sits in
 // that line between the words rather than breaking it.
 const InRunningText: Story = {
-  render: () => (
+  argTypes: ORIENTATION_FIXED,
+  render: (args) => (
     <div {...stylex.props(styles.textBlock)}>
       <Text variant="bodyMedium">First item</Text>{' '}
-      <Separator orientation="vertical" />{' '}
+      <Separator {...args} orientation="vertical" />{' '}
       <Text variant="bodyMedium">Second item</Text>
     </div>
   ),
 }
 
+// Written inside a Toolbar with no orientation of its own: the toolbar asks
+// for the rule across its own direction, so between buttons in a row it is
+// vertical, and spans the bar's height inside its padding.
+const InToolbar: Story = {
+  argTypes: ORIENTATION_FIXED,
+  render: (args) => (
+    <Toolbar aria-label="Label">
+      <Button variant="text">First</Button>
+      <Button variant="text">Second</Button>
+      <Separator {...args} />
+      <Button variant="text">Third</Button>
+    </Toolbar>
+  ),
+}
+
+// `Menu.Separator` between two groups of items, open on load since a closed
+// menu draws nothing. The menu supplies its role, so it needs no slot.
+const InMenu: Story = {
+  argTypes: ORIENTATION_FIXED,
+  parameters: { docs: { story: { height: '280px', inline: false } } },
+  render: (args) => (
+    <Menu defaultOpen>
+      <Button variant="outlined">Label</Button>
+      <Menu.Content>
+        <Menu.Item id="first">First item</Menu.Item>
+        <Menu.Item id="second">Second item</Menu.Item>
+        <Menu.Separator {...args} />
+        <Menu.Item id="third">Third item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+}
+
 export {
   BetweenInlineItems,
+  BetweenListItems,
   BetweenRows,
   Decorative,
   Default,
+  InMenu,
   InRunningText,
   Inset,
+  InToolbar,
   MiddleInset,
+  VerticalMiddleInset,
 }
 
 export default meta
