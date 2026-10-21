@@ -26,12 +26,12 @@ import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 // for.
 //
 // The determinate line is a row of those parts: the active indicator takes
-// the value's share of what the gaps and the stop leave, and the track takes
-// the rest — see `activeAt` in src/indicator/styles.ts. The
+// the value's share of what the stop and the gap before it leave, and the
+// track takes the rest — see `activeAt` in src/indicator/styles.ts. The
 // determinate ring is two arcs of one circle, cut by the dash pattern: the
 // active arc runs from the top for its share of the circumference, and the
-// track picks up 4dp past it and stops 4dp before it comes back round,
-// which is the same gap measured along the curve.
+// track picks up past it and stops short of coming back round, leaving the
+// line's 4dp between the arcs' round ends — see `arcsFor`.
 //
 // The animations are Material's own rather than something assembled from
 // the motion tokens: an indeterminate indicator is a piece of choreography,
@@ -611,12 +611,12 @@ const styles = stylex.create({
     inlineSize: `${share}%`,
   }),
   // The determinate line's wave, cut to the active indicator's length by its
-  // dash: the value's share of the row less the two gaps and the stop, as
-  // `activeAt` gives the flat one, less the half stroke each round cap adds
-  // at either end. The path is measured in its own horizontal extent, so a
-  // length along it is a width across the row.
+  // dash: the value's share of the row less the stop and the gap before it,
+  // as `activeAt` gives the flat one, less the half stroke each round cap
+  // adds at either end. The path is measured in its own horizontal extent,
+  // so a length along it is a width across the row.
   waveAt: (percentage: number) => ({
-    strokeDasharray: `max(0px, (100cqi - ${GAP * 2 + THICKNESS}px) * ${percentage / 100} - ${THICKNESS}px) ${WAVE_REACH * 2}px`,
+    strokeDasharray: `max(0px, (100cqi - ${GAP + THICKNESS}px) * ${percentage / 100} - ${THICKNESS}px) ${WAVE_REACH * 2}px`,
   }),
   // A wave lying down, at either end of a determinate value.
   waveFlat: {
@@ -664,19 +664,21 @@ type ProgressIndicatorProps = {
    * How far the work is loaded ahead of the value — a video's buffered
    * seconds, a queue's fetched pages. Read on the same scale as `value`: the
    * track is solid up to it and dotted beyond. Ignored while the indicator
-   * is indeterminate, and left out for work with nothing to buffer.
+   * is indeterminate, and by the ring, which draws no buffer; left out for
+   * work with nothing to buffer.
    */
   buffer?: number
   /** A function may compute the class from the indicator's render state. */
   className?: RACProgressBarProps['className']
   /**
-   * How wide the ring is drawn, as a CSS length. Everything inside scales
-   * with it, so `1em` gives a ring the size of the type around it. Ignored
-   * by the line, which fills the width it is given.
+   * How wide the ring is drawn, as a CSS length: 40px unless given, or 48px
+   * for the wavy ring. Everything inside scales with it, so `1em` gives a
+   * ring the size of the type around it. Ignored by the line, which fills
+   * the width it is given.
    *
    * A length rather than a step of the size scale: a ring sized to the type
    * around it is what the prop is for, and no fixed scale gives that.
-   * @default '40px', or '48px' for the wavy ring
+   * @default '40px'
    */
   diameter?: string
   /**
@@ -713,7 +715,7 @@ type ProgressIndicatorProps = {
   tone?: ProgressIndicatorTone
   /**
    * The line the page draws, or the ring: `linear` fills the width it is
-   * given, `circular` is 40dp across.
+   * given, `circular` is 40dp across, or 48dp for the wavy ring.
    * @default 'linear'
    */
   variant?: ProgressIndicatorVariant
@@ -729,21 +731,34 @@ type ProgressIndicatorTone = Extract<IndicatorTone, 'inherit' | 'primary'>
 type ProgressIndicatorVariant = 'circular' | 'linear'
 
 // The dashes that cut the two arcs out of one circle. The active arc runs
-// from the top for its share of the circumference; the track picks up 4dp
-// after it and stops 4dp before it comes back round, which is the page's gap
-// measured along the curve.
+// from the top for its share of the circumference; the track picks up after
+// it and stops before it comes back round.
+//
+// Every arc ends in a round cap, which reaches half the stroke past the end
+// of its dash, so two dashes 4dp apart touch. The room between them is the
+// page's gap and a cap either side of it, which is how the gap is measured:
+// between what is drawn, as the line's is between its parts. Compose's ring
+// adds the stroke to its gap for a round cap in the same way.
+//
+// That room is never longer than the active arc, Compose's rule too, so an
+// empty ring is the whole track rather than a track with a dot wedged
+// between its ends. A dash of no length draws its caps all the same, as a
+// dot, so an arc with nothing to draw takes flat caps and draws nothing.
 function arcsFor(percentage: number | undefined, circumference: number) {
   const active = ((percentage ?? 0) / 100) * circumference
-  const track = Math.max(0, circumference - active - 2 * GAP)
+  const room = Math.min(active, GAP + THICKNESS)
+  const track = Math.max(0, circumference - active - 2 * room)
 
   return {
     active: {
       strokeDasharray: `${active} ${circumference}`,
       strokeDashoffset: 0,
+      strokeLinecap: capFor(active),
     },
     track: {
       strokeDasharray: `${track} ${circumference}`,
-      strokeDashoffset: -(active + GAP),
+      strokeDashoffset: -(active + room),
+      strokeLinecap: capFor(track),
     },
   }
 }
@@ -768,6 +783,12 @@ function bufferShare(
     return 0
   }
   return Math.min(100, Math.max(0, ((buffered - value) / remaining) * 100))
+}
+
+// An arc's caps: round, as the page draws every end, unless the arc has no
+// length to draw — see `arcsFor`.
+function capFor(length: number) {
+  return length > 0 ? ('round' as const) : ('butt' as const)
 }
 
 function CircularTrack({
@@ -809,7 +830,7 @@ function CircularTrack({
           r={radius}
           strokeDasharray={arcs.track.strokeDasharray}
           strokeDashoffset={arcs.track.strokeDashoffset}
-          strokeLinecap="round"
+          strokeLinecap={arcs.track.strokeLinecap}
           strokeWidth={THICKNESS}
           {...stylex.props(
             styles.arcMotion,
@@ -830,7 +851,7 @@ function CircularTrack({
         strokeDashoffset={
           isIndeterminate ? undefined : arcs.active.strokeDashoffset
         }
-        strokeLinecap="round"
+        strokeLinecap={isIndeterminate ? 'round' : arcs.active.strokeLinecap}
         strokeWidth={THICKNESS}
         {...stylex.props(
           isIndeterminate ? styles.arcIndeterminate : styles.arcMotion,
@@ -851,7 +872,7 @@ function CircularTrack({
           strokeDasharray={
             isIndeterminate ? undefined : arcs.active.strokeDasharray
           }
-          strokeLinecap="round"
+          strokeLinecap={isIndeterminate ? 'round' : arcs.active.strokeLinecap}
           strokeWidth={THICKNESS}
           {...stylex.props(
             isIndeterminate ? styles.arcIndeterminate : styles.arcMotion,
@@ -1082,6 +1103,10 @@ function linearWave(wavelength: number) {
  * set `isIndeterminate` for work whose length is not known. `formatOptions`
  * says how the value reads, in the locale the page is in, and `buffer` marks
  * how far the work is loaded ahead of it.
+ *
+ * ```tsx
+ * <ProgressIndicator label="Label" showValue value={40} />
+ * ```
  *
  * The call site's `className` and `style` land on the indicator as a whole,
  * which is the element a layout positions.

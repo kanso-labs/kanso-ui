@@ -52,8 +52,11 @@ const styles = stylex.create({
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.weightMedium,
   },
+  // A cap rather than a fixed width, so a phone-sized window shows the row at
+  // the width it would have there rather than scrolling sideways.
   width: {
-    inlineSize: '380px',
+    inlineSize: '100%',
+    maxInlineSize: '380px',
   },
 })
 
@@ -77,6 +80,29 @@ const meta = {
     children: 'Headline',
     supporting: 'Supporting line · Metadata · Detail',
   },
+  // The slots take nodes, which Controls cannot write, so each offers the
+  // contents the stories below put there, by name. An overline is a line of
+  // text.
+  argTypes: {
+    leading: {
+      control: 'select',
+      mapping: {
+        Avatar: <Avatar name="Ada Lovelace" size="md" />,
+        Glyph: <span {...stylex.props(styles.tile)}>★</span>,
+        None: undefined,
+      },
+      options: ['None', 'Avatar', 'Glyph'],
+    },
+    overline: { control: 'text' },
+    trailing: {
+      control: 'select',
+      mapping: {
+        None: undefined,
+        Value: <span {...stylex.props(styles.value)}>01</span>,
+      },
+      options: ['None', 'Value'],
+    },
+  },
   component: ListItem,
   title: 'Components/ListItem',
 } satisfies Meta<typeof ListItem>
@@ -88,11 +114,20 @@ const Default: Story = {
 }
 
 // Interactive, since a disabled row is most often an action that is not
-// available yet. A row that only presents is drawn the same way.
+// available yet. A row that only presents is drawn the same way. Both slots
+// are filled because what sits in them carries colours of its own, an
+// avatar's container and a tone of its own, and the row fades them as a whole
+// with its text.
 const Disabled: Story = {
   args: {
     interactive: true,
     isDisabled: true,
+    leading: <Avatar name="Ada Lovelace" size="md" />,
+    trailing: (
+      <Text tone="muted" variant="labelSmall">
+        01
+      </Text>
+    ),
   },
   decorators: [Constrained],
 }

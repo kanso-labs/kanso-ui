@@ -76,6 +76,23 @@ function chipLabel(children: ReactNode): ReactNode {
   return <ChipLabel>{children}</ChipLabel>
 }
 
+/**
+ * What a chip draws after its label: its trailing icon, in the 18dp slot the
+ * leading one takes, trimming the chip's padding at its own end instead. It
+ * keeps the chip's content colour, which is the page's trailing icon role in
+ * every state, and it stays while the chip is selected, since the check
+ * takes the leading slot alone. Nothing at all for a chip with none. Beside
+ * `chipGlyph` so the two slots are drawn from one box.
+ */
+function chipTrailingIcon(icon?: ReactNode): ReactNode {
+  if (icon === undefined || icon === null) {
+    return null
+  }
+  return (
+    <span {...stylex.props(chipStyles.glyph, chipStyles.trailing)}>{icon}</span>
+  )
+}
+
 // The three containers a chip can be on, with the layers and the disabled
 // treatment each takes. A table rather than a branch per state, so the
 // containers cannot differ in which states they answer.
@@ -101,7 +118,7 @@ const CONTAINERS = {
 }
 
 /** Which of the page's chips a pill is drawn as. */
-type ChipKind = 'assist' | 'filter' | 'suggestion'
+type ChipKind = 'assist' | 'filter' | 'input' | 'suggestion'
 
 /**
  * The pill's styles in the render state React Aria hands a chip's
@@ -117,8 +134,12 @@ type ChipKind = 'assist' | 'filter' | 'suggestion'
  *
  * `elevated` raises the chip off the page on a container of its own, and
  * `kind` names which of the page's chips it is, which decides the label's
- * role. `inert` marks a chip a press does nothing to, which draws the arrow
- * rather than the pointer.
+ * role and whether a flat selected chip lifts under a hovering pointer: a
+ * filter chip does and an input chip, a group's removable one, does not. A
+ * hover's lift gives way while the chip is pressed, since a mouse press does
+ * not end the hover.
+ * `inert` marks a chip a press does nothing to, which draws the arrow rather
+ * than the pointer.
  */
 function chipPropsFor(
   state: {
@@ -136,6 +157,7 @@ function chipPropsFor(
 ) {
   const roles = CONTAINERS[containerOf(state.isSelected, elevated)]
   const raised = elevated && !state.isDisabled
+  const lifted = state.isHovered && !state.isPressed
 
   return stylex.props(
     chipStyles.base,
@@ -147,7 +169,12 @@ function chipPropsFor(
     kind === 'assist' && chipStyles.assist,
     raised && chipStyles.raised,
     state.isHovered && roles.hovered,
-    raised && state.isHovered && chipStyles.raisedHovered,
+    raised && lifted && chipStyles.raisedHovered,
+    kind === 'filter' &&
+      !elevated &&
+      state.isSelected &&
+      lifted &&
+      chipStyles.selectedHovered,
     state.isFocusVisible && roles.focused,
     state.isPressed && roles.pressed,
     state.isDisabled && chipStyles.disabled,
@@ -188,4 +215,10 @@ function containerOf(isSelected: boolean, elevated: boolean) {
 
 export type { ChipKind }
 
-export { chipGlyph, chipLabel, chipPropsFor, chipRemoveClassName }
+export {
+  chipGlyph,
+  chipLabel,
+  chipPropsFor,
+  chipRemoveClassName,
+  chipTrailingIcon,
+}

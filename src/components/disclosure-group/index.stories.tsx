@@ -14,12 +14,14 @@ const FIRST_AND_THIRD = ['first', 'third']
 
 const styles = stylex.create({
   // A group fills what it is given, so the samples need a width and something
-  // to sit on.
+  // to sit on. A cap rather than a fixed width, so a phone-sized window
+  // narrows it rather than scrolling sideways.
   surface: {
     backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.md,
     boxSizing: 'border-box',
-    inlineSize: '360px',
+    inlineSize: '100%',
+    maxInlineSize: '360px',
     overflow: 'hidden',
   },
 })

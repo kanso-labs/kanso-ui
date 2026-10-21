@@ -42,8 +42,8 @@ import { sizing, spacing } from '../../tokens/design.tokens.stylex'
 // Three things it adds over a row of Chips.
 //
 // **It is a group, not a row of buttons.** React Aria's `TagGroup` names the
-// set, describes it, reports it invalid as a whole, and moves between its
-// chips with the arrow keys rather than making each one a tab stop — which
+// set, describes it, points it at its error, and moves between its chips
+// with the arrow keys rather than making each one a tab stop — which
 // is what a set of a dozen filters needs. The label, the supporting line and
 // the error are the field chrome's, so a group reads like the fields beside
 // it, exactly as CheckboxGroup and RadioGroup do.
@@ -139,8 +139,11 @@ type ChipGroupProps<T extends object = object> = {
   description?: string
   /**
    * The problem with the current selection, in words. Its presence is what
-   * puts the group in its error state — the message and `aria-invalid` both
-   * follow from it.
+   * puts the group in its error state: the label and the message take the
+   * error colour, the grid's `aria-describedby` names the message, and the
+   * message is read out politely as it appears. The grid carries no
+   * `aria-invalid`, which ARIA does not allow on a grid, so the message is
+   * the whole of what a screen reader is told.
    *
    * Outside a `Form` the message line arrives with the message, so the
    * field grows when this does and moves what is under it. A `Form` holds
@@ -236,7 +239,7 @@ const LABEL_STATE_INVALID = { isInvalid: true }
 
 // The pill of a chip with an action, which a press always reaches.
 function actingChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state)
+  return chipPropsFor(state, { kind: kindOf(state) })
 }
 
 /**
@@ -368,7 +371,17 @@ function ChipGroupChip({
 // every chip's reaches halfway across the gap its rows wrap at. Inert where
 // the group selects nothing and the chip has no action — see the header.
 function groupChipPropsFor(state: TagRenderProps) {
-  return chipPropsFor(state, { inert: state.selectionMode === 'none' })
+  return chipPropsFor(state, {
+    inert: state.selectionMode === 'none',
+    kind: kindOf(state),
+  })
+}
+
+// Which of the page's chips a group's chip is: an input chip once it can be
+// removed, and a filter chip until then, which is what decides whether a
+// selected one lifts under a hovering pointer.
+function kindOf(state: TagRenderProps) {
+  return state.allowsRemoving ? 'input' : 'filter'
 }
 
 ChipGroup.Chip = ChipGroupChip

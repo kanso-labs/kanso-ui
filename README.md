@@ -98,13 +98,27 @@ needs around them come from this package too: `I18nProvider` and
 the `useFilter`, `useListData`, `useTreeData` and `useAsyncList` hooks,
 `useDragAndDrop` with `useDrag`, `useDrop`, the drop item guards and
 `DIRECTORY_DRAG_TYPE`, `useLocale`, `parseColor` and `getColorChannels`,
-`TokenFieldValue`, and the `Key`, `Selection`, `SortDescriptor` and `PressEvent`
-types.
+`TokenFieldValue`, and the `Key`, `Selection`, `SortDescriptor`, `PressEvent`,
+`HoverEvent`, `KeyboardEvent` and `FocusableElement` types.
+
+`KeyboardEvent` is React Aria's, which is React's with `continuePropagation()`
+added. It is what `onKeyDown` and `onKeyUp` take on the fields and controls
+React Aria handles the keyboard for: `TextField`, `Select`, `Checkbox`,
+`Switch`, `Chip` and the rest. `Button`, `IconButton`, `Fab` and `Link` hand
+those handlers React's own, as does a component that renders a plain element,
+such as `Card`. `onHoverStart` and `onHoverEnd` take `HoverEvent` wherever a
+component has them.
 
 A virtualized collection needs to be told how tall its rows are, and
 `collectionSizes` is what the collections here measure — `listRow`, `menuRow`,
 `tableRow` and the rest — so a `Virtualizer`'s `layoutOptions` take a number the
 components agree with rather than one guessed at the call site.
+
+The collection inside a `Virtualizer` is its own scroll container, so give the
+`List` itself its height and `overflow-y: auto`, through `className` or `style`.
+React Aria sizes a page of Page Up and Page Down from the collection's own box,
+so one left to grow to its full height inside a scrolling wrapper is one page
+long, and the keys jump from one end of it to the other.
 
 ```tsx
 import { I18nProvider, useListData } from '@kanso-labs/kanso-ui'
@@ -162,11 +176,42 @@ names React Aria gives sit behind `clearLabel`, `closeLabel` and the rest.
 Numbers follow the provider too: `Currency` writes its amount, and a field its
 character count, in the locale's digits and grouping.
 
-A bundler includes every language unless told which ones the app supports. React
-Aria's
+A bundler includes every language React Aria ships unless told which ones the
+app supports.
 [`@react-aria/optimize-locales-plugin`](https://www.npmjs.com/package/@react-aria/optimize-locales-plugin)
-is how an app says so for React Aria's own tables. This package's table is one
-small module, included whole.
+is how an app says so. Install it as a development dependency and give it the
+locales the app hands `I18nProvider`. Under Next.js with Turbopack, which needs
+Next.js 15.4 or newer, its rules spread into `turbopack.rules`:
+
+```ts
+// next.config.ts
+import optimizeLocales from '@react-aria/optimize-locales-plugin'
+
+const locales = optimizeLocales.turbopack({ locales: ['en-US', 'de-DE'] })
+
+export default {
+  turbopack: { rules: { ...locales.rules } },
+}
+```
+
+The object is left untyped because the plugin types `locales` as a read-only
+array, which `NextConfig` does not accept, so `const config: NextConfig` fails
+Next.js's type check over the same rules. Under Vite it is a plugin:
+
+```ts
+// vite.config.ts
+import optimizeLocales from '@react-aria/optimize-locales-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [optimizeLocales.vite({ locales: ['en-US', 'de-DE'] })],
+})
+```
+
+React Aria's strings for every other locale then build to nothing. The plugin's
+own README covers webpack, Rollup and esbuild. It reaches React Aria's tables
+alone: this package's strings are one module holding every locale, included
+whole wherever a component uses it.
 
 ### Layout
 
@@ -178,7 +223,7 @@ otherwise be bespoke CSS in every consuming app:
 ```tsx
 <Container>
   <Stack gap="xl">
-    <Stack align="center" direction="row" justify="between">
+    <Stack align="center" direction="row" gap="sm" justify="between" wrap>
       <Text variant="titleLarge">Headline</Text>
       <Button>Save changes</Button>
     </Stack>
@@ -606,6 +651,13 @@ cost is that an ancestor confining its descendants confines those overlays too �
 a `transform` or a `filter` makes a sheet's scrim cover that ancestor rather
 than the viewport, and `overflow: hidden` clips a popover — so put the scope
 around such an element rather than inside it.
+
+The overlays' container is one more child of the scope's element, after
+everything the scope renders. It takes up no room, but selectors that count
+children count it: inside the scope, the last element you render is not
+`:last-child` and is counted wrong by `:nth-last-child()`, a lone child is not
+`:only-child`, and an empty scope is not `:empty`. Key a rule like that on a
+class of your own, or put the scope around the element whose children it counts.
 
 `themeScope` is the same thing as a class name, for an element you render
 yourself. Overlays opened under it still portal to the body and keep the page's

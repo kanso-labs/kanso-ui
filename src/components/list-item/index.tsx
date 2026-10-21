@@ -22,6 +22,13 @@ type ListItemProps = {
    * handlers. A row that only presents is a `<div>` that cannot be focused or
    * operated from the keyboard, so a handler on it would answer a mouse and
    * nothing else.
+   *
+   * An interactive row's slots hold content and never a control. The row is
+   * one button, and a checkbox, a switch, a link or a button inside it is
+   * invalid HTML: axe reports it as nested interactive content, and React
+   * warns as well when the control is itself a button. A row that carries a
+   * control is a presenting row, or a `List.Item`, whose rows are built to
+   * hold them.
    * @default false
    */
   interactive?: boolean
@@ -35,7 +42,10 @@ type ListItemProps = {
    * @default false
    */
   isDisabled?: boolean
-  /** Content before the headline: an avatar, an icon, a checkbox. */
+  /**
+   * Content before the headline: an avatar, an icon, or on a row that is not
+   * `interactive`, a checkbox.
+   */
   leading?: ReactNode
   /**
    * A line above the headline, in the page's label-small and the same muted
@@ -45,7 +55,10 @@ type ListItemProps = {
   overline?: ReactNode
   /** A second line under the headline, in the muted role. */
   supporting?: ReactNode
-  /** Content after the headline, such as an amount or a control. */
+  /**
+   * Content after the headline, such as an amount, or on a row that is not
+   * `interactive`, a control.
+   */
   trailing?: ReactNode
 } & HTMLAttributes<HTMLElement> &
   // The handlers a press delivers, which a row that only presents refuses:
@@ -78,6 +91,12 @@ type ListItemProps = {
  * the row module's in `src/row`, shared with every collection item; what is
  * here is the element around them — a `<div>` that presents, or a `<button>`
  * that ripples — and the props that fill the slots.
+ *
+ * ```tsx
+ * <ListItem leading={<Avatar name="Ada Lovelace" />} supporting="Supporting line">
+ *   Headline
+ * </ListItem>
+ * ```
  */
 function ListItem({
   children,
@@ -154,8 +173,8 @@ function ListItem({
 
   // `disabled` goes last in both lists. On the button that is what lets it
   // win over the interactive style, as it does on every collection item:
-  // StyleX replaces a property whole, which takes the hover and pressed tints
-  // and the pointer cursor with it.
+  // StyleX replaces a property whole, which takes the hover, focus and
+  // pressed layers and the pointer cursor with it.
   if (!interactive) {
     return (
       <div

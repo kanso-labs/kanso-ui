@@ -222,6 +222,7 @@ export type { ReachingRule }
 
 export {
   declarationsHeld,
+  entriesOf,
   reducedMotionOf,
   rulesReaching,
   transitionOf,

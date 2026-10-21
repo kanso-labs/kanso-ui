@@ -81,6 +81,50 @@ type AutocompleteProps<T extends object = object> = {
  * visually hidden status after its children, which tells a screen reader
  * when a search leaves the collection empty.
  *
+ * A command palette is the last of those, and three things make it one
+ * rather than a list in a dialog. The input takes `autoFocus`, so the first
+ * keystroke searches rather than landing on the dialog. The collection takes
+ * `onAction` and no `selectionMode`, so Enter runs a command and closes the
+ * palette rather than marking a row. And the dialog keeps a close button in
+ * its header: below the medium breakpoint it fills the window, which leaves
+ * no scrim to press, and a phone has no Escape key.
+ *
+ * ```tsx
+ * <Dialog>
+ *   <Button>Commands</Button>
+ *   <Dialog.Content>
+ *     {({ close }) => (
+ *       <>
+ *         <Dialog.Header>
+ *           <Dialog.Title>Commands</Dialog.Title>
+ *           <IconButton aria-label="Close" slot="close">
+ *             <CloseIcon />
+ *           </IconButton>
+ *         </Dialog.Header>
+ *         <Dialog.Body>
+ *           <Autocomplete>
+ *             <SearchField
+ *               autoFocus
+ *               label="Search commands"
+ *               placeholder="Search commands"
+ *             />
+ *             <ListBox
+ *               aria-label="Commands"
+ *               onAction={(key) => {
+ *                 runCommand(key)
+ *                 close()
+ *               }}
+ *             >
+ *               <ListBox.Item id="open">Open file</ListBox.Item>
+ *             </ListBox>
+ *           </Autocomplete>
+ *         </Dialog.Body>
+ *       </>
+ *     )}
+ *   </Dialog.Content>
+ * </Dialog>
+ * ```
+ *
  * Keyboard focus stays in the input while the arrow keys move through the
  * collection, which is React Aria's virtual focus. `disableVirtualFocus`
  * turns that off and makes the collection tabbable instead.

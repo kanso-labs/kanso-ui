@@ -16,8 +16,10 @@ import IconButton from '../icon-button'
 // which is what react-perf's array and JSX rules are after.
 const SECOND = ['second']
 const FIRST_AND_THIRD = ['first', 'third']
-const ADA = <Avatar name="Ada Lovelace" size="sm" />
-const GRACE = <Avatar name="Grace Hopper" size="sm" />
+// Decorative, since each sits beside the name it stands for: named, a screen
+// reader would read the name twice, once for the avatar and once for the row.
+const ADA = <Avatar decorative name="Ada Lovelace" size="sm" />
+const GRACE = <Avatar decorative name="Grace Hopper" size="sm" />
 const AMOUNT_ONE = <Currency value={1250} />
 const AMOUNT_TWO = <Currency value={480} />
 
@@ -58,19 +60,22 @@ const ROWS = (
 )
 
 const styles = stylex.create({
-  // A virtualized list needs a box it can be taller than, which is what makes
-  // it render only the rows in view.
+  // A virtualized list scrolls itself. React Aria sizes a page of Page Up and
+  // Page Down from the list's own box, so the height and the overflow go on
+  // the list rather than on a wrapper.
   scroller: {
     blockSize: '320px',
     overflowY: 'auto',
   },
   // A list fills what it is given, so the samples need a width and something
-  // to sit on.
+  // to sit on. A cap rather than a fixed width, so a phone-sized window
+  // narrows it rather than scrolling sideways or clipping its far edge.
   surface: {
     backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.md,
     boxSizing: 'border-box',
-    inlineSize: '360px',
+    inlineSize: '100%',
+    maxInlineSize: '360px',
     overflow: 'hidden',
   },
 })
@@ -82,6 +87,13 @@ const meta = {
     selectionMode: 'multiple',
   },
   component: List,
+  // A tab of its own beside the list's in the Overview page's props table for
+  // each part, since a row's slots are `List.Item`'s rather than the list's.
+  subcomponents: {
+    'List.Item': List.Item,
+    'List.LoadMore': List.LoadMore,
+    'List.Section': List.Section,
+  },
   title: 'Components/List',
 } satisfies Meta<typeof List<object>>
 
@@ -301,9 +313,13 @@ const Virtualized: Story = {
     }))
 
     return (
-      <div {...stylex.props(styles.surface, styles.scroller)}>
+      <div {...stylex.props(styles.surface)}>
         <Virtualizer layout={ListLayout} layoutOptions={LIST_LAYOUT}>
-          <List aria-label="Label" items={rows}>
+          <List
+            {...stylex.props(styles.scroller)}
+            aria-label="Label"
+            items={rows}
+          >
             {(row) => (
               <List.Item id={row.id} supporting="Supporting line">
                 {row.name}

@@ -30,32 +30,6 @@ afterEach(() => {
 })
 
 /**
- * The outermost ancestor the browser lays against the viewport: a modal's
- * scrim, or the snackbar's region. Walked to rather than assumed at a depth,
- * since React Aria nests the role a few elements inside it — and outermost,
- * since a sheet's panel is pinned to the viewport inside its scrim.
- */
-function fixedAncestor(from: Element): HTMLElement {
-  let outermost: HTMLElement | null = null
-  for (
-    let element: Element | null = from;
-    element !== null;
-    element = element.parentElement
-  ) {
-    if (
-      element instanceof HTMLElement &&
-      getComputedStyle(element).position === 'fixed'
-    ) {
-      outermost = element
-    }
-  }
-  if (outermost === null) {
-    throw new Error('expected a fixed ancestor')
-  }
-  return outermost
-}
-
-/**
  * What a press over the header lands on. React Aria makes everything outside
  * an open modal inert, which takes the header out of hit testing however it
  * paints, so that is undone first: what is left is the paint order.
@@ -69,6 +43,34 @@ function hitOver(header: HTMLElement) {
     box.left + box.width / 2,
     box.top + box.height / 2,
   )
+}
+
+/**
+ * The outermost ancestor the browser lays out of the page's flow: a dialog's
+ * scrim, a sheet's layer, or the snackbar's region. Walked to rather than
+ * assumed at a depth, since React Aria nests the role a few elements inside
+ * it — and outermost, since a sheet's panel sits on a scroller positioned
+ * inside the layer. A dialog's scrim and the region are fixed to the
+ * viewport, and a sheet's layer is laid over the page from its corner.
+ */
+function layerOf(from: Element): HTMLElement {
+  let outermost: HTMLElement | null = null
+  for (
+    let element: Element | null = from;
+    element !== null;
+    element = element.parentElement
+  ) {
+    if (
+      element instanceof HTMLElement &&
+      ['absolute', 'fixed'].includes(getComputedStyle(element).position)
+    ) {
+      outermost = element
+    }
+  }
+  if (outermost === null) {
+    throw new Error('expected an ancestor laid out of the flow')
+  }
+  return outermost
 }
 
 function openDialog() {
@@ -118,7 +120,7 @@ describe('overlay layers', () => {
     ['sheet', openSheet],
   ])("lays a %s's scrim over the page's layered content", (_name, open) => {
     const header = pageHeader()
-    const scrim = fixedAncestor(open())
+    const scrim = layerOf(open())
 
     expect(Number(getComputedStyle(scrim).zIndex)).toBeGreaterThan(
       Number(getComputedStyle(header).zIndex),
@@ -130,13 +132,13 @@ describe('overlay layers', () => {
   // A toast raised from inside a modal is read over it, not hidden behind
   // its scrim.
   it("lays the snackbar's region over a modal's scrim", () => {
-    const scrim = fixedAncestor(openDialog())
+    const scrim = layerOf(openDialog())
     const queue = new Snackbar.Queue()
     const view = render(<Snackbar queue={queue} />)
     act(() => {
       queue.add('First item')
     })
-    const region = fixedAncestor(view.getByText('First item'))
+    const region = layerOf(view.getByText('First item'))
 
     expect(Number(getComputedStyle(region).zIndex)).toBeGreaterThan(
       Number(getComputedStyle(scrim).zIndex),

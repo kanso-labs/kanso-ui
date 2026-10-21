@@ -162,6 +162,7 @@ type SeparatorProps = {
    * any other. Defaults to whatever the container asks for — a `Toolbar`
    * asks for the rule across its own direction — and to horizontal outside
    * one.
+   * @default 'horizontal'
    */
   orientation?: 'horizontal' | 'vertical'
 } & Omit<RACSeparatorProps, 'orientation'>
@@ -189,12 +190,36 @@ function decorativeRenderer(
 }
 
 /**
- * A 1px rule between items. The orientation drives the accessibility tree as
- * well as which side the rule is drawn on: horizontal renders an `<hr>`,
- * whose role and orientation are implicit, and vertical a `<div>` given the
- * separator role and `aria-orientation="vertical"`. `decorative` takes the
- * rule out of that tree altogether, for one that only draws a line between
- * items that already carry their own structure.
+ * A 1px rule between items: inset between list rows, across a toolbar's
+ * direction among its controls, and as `Menu.Separator` between groups of a
+ * menu's items.
+ *
+ * ```tsx
+ * <Card padding="none" variant="outlined">
+ *   <ListItem>First item</ListItem>
+ *   <Separator inset="start" />
+ *   <ListItem>Second item</ListItem>
+ * </Card>
+ *
+ * <Toolbar aria-label="Label">
+ *   <Button variant="text">First</Button>
+ *   <Separator />
+ *   <Button variant="text">Second</Button>
+ * </Toolbar>
+ *
+ * <Menu.Content>
+ *   <Menu.Item id="first">First item</Menu.Item>
+ *   <Menu.Separator />
+ *   <Menu.Item id="second">Second item</Menu.Item>
+ * </Menu.Content>
+ * ```
+ *
+ * The orientation drives the accessibility tree as well as which side the
+ * rule is drawn on: horizontal renders an `<hr>` and vertical a `<div>`, each
+ * given the separator role, and the vertical one `aria-orientation="vertical"`
+ * besides. `decorative` takes the rule out of that tree altogether, for one
+ * that only draws a line between items that already carry their own
+ * structure.
  *
  * `inset` holds the rule off the ends it runs between — `start` off the
  * leading one, `both` off each — which is what a rule between list rows

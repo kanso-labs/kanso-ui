@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useState } from 'react'
 import { expect, waitFor } from 'storybook/test'
 
 import Sheet from '.'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
+import Menu from '../menu'
 import Text from '../text'
 
 const PARAGRAPH = <p />
@@ -33,6 +35,22 @@ function CloseIcon() {
 
 const meta = {
   component: Sheet,
+  parameters: {
+    // A sheet arrives by scrolling, which Chromatic neither waits for nor
+    // pauses as it pauses an animation, so a snapshot could catch the panel
+    // anywhere on its way in. Under reduced motion React Aria scrolls it
+    // straight to where it rests, which is the state every story is for.
+    // Merged into each story's own `chromatic` rather than replaced by it.
+    chromatic: { prefersReducedMotion: 'reduce' },
+  },
+  // A tab of its own beside the root's in the Overview page's props table,
+  // for each part with props of its own, as Dialog's stories give theirs. The
+  // handle, header, body and footer take a `<div>`'s attributes and nothing
+  // else, which the table leaves out, so a tab of theirs would be empty.
+  subcomponents: {
+    'Sheet.Content': Sheet.Content,
+    'Sheet.Title': Sheet.Title,
+  },
   title: 'Components/Sheet',
 } satisfies Meta<typeof Sheet>
 
@@ -65,6 +83,32 @@ function PanelContents() {
           Cancel
         </Button>
       </Sheet.Footer>
+    </>
+  )
+}
+
+// A sheet a menu item raises, which is the shape with no trigger: the button
+// opens the menu rather than the sheet, so the sheet is `Sheet.Content` on its
+// own, with its open state held here. Each way out of it — the close button,
+// Cancel, the scrim, a swipe and Escape — reports through `onOpenChange`, and
+// the menu's item raises it again.
+function RaisedFromMenu() {
+  const [isOpen, setOpen] = useState(true)
+  const raise = useCallback(() => {
+    setOpen(true)
+  }, [])
+
+  return (
+    <>
+      <Menu>
+        <Button variant="outlined">Open menu</Button>
+        <Menu.Content onAction={raise}>
+          <Menu.Item id="first">First item</Menu.Item>
+        </Menu.Content>
+      </Menu>
+      <Sheet.Content isOpen={isOpen} onOpenChange={setOpen}>
+        <PanelContents />
+      </Sheet.Content>
     </>
   )
 }
@@ -146,6 +190,40 @@ const LongBody: Story = {
     <Sheet {...args} defaultOpen>
       <Button variant="outlined">Open</Button>
       <Sheet.Content>
+        <Sheet.Handle />
+        <Sheet.Header>
+          <Sheet.Title>Headline</Sheet.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseIcon />
+          </IconButton>
+        </Sheet.Header>
+        <Sheet.Body>{LONG_BODY}</Sheet.Body>
+        <Sheet.Footer>
+          <Button>Confirm</Button>
+          <Button slot="close" variant="outlined">
+            Cancel
+          </Button>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet>
+  ),
+}
+
+// A collapsed height of 200, and the whole panel.
+const SNAP_POINTS = [200, '100%']
+
+// A bottom sheet given snap points, resting at the first: 200 of the panel
+// showing and the page above it in view, behind the scrim, as the bottom
+// sheets page's collapsed state. The handle is a button here, and a press on
+// it or a swipe up shows the rest of the panel; the body scrolls only once
+// all of it shows, so a swipe on the body moves the sheet until then.
+const CollapsedBottomSheet: Story = {
+  globals: BottomSheet.globals,
+  parameters: BottomSheet.parameters,
+  render: (args) => (
+    <Sheet {...args} defaultOpen>
+      <Button variant="outlined">Open</Button>
+      <Sheet.Content snapPoints={SNAP_POINTS}>
         <Sheet.Handle />
         <Sheet.Header>
           <Sheet.Title>Headline</Sheet.Title>
@@ -251,9 +329,10 @@ const LongHeadlineAndActions: Story = {
   ),
 }
 
-// The one check that runs against the real entry animation rather than a
-// stubbed clock — 250ms of it — which is why it is a story and not a case in
-// index.test.tsx. See AGENTS.md, "Controlling time".
+// The one check that runs a swipe against the real scrolls that bring the
+// panel in and take it out, rather than ones reduced motion makes instant,
+// which is why it is a story and not a case in index.test.tsx. See AGENTS.md,
+// "Controlling time".
 const OpensAndCloses: Story = {
   parameters: {
     chromatic: { disableSnapshot: true },
@@ -279,16 +358,60 @@ const OpensAndCloses: Story = {
     await expect(panel).not.toBeNull()
 
     // Focus has to land inside the panel, or the keyboard is still back on
-    // the page the sheet is covering.
-    await waitFor(async () => {
-      await expect(panel?.contains(document.activeElement)).toBe(true)
-    })
+    // the page the sheet is covering. React Aria moves it there once the
+    // panel has scrolled in.
+    await waitFor(
+      async () => {
+        await expect(panel?.contains(document.activeElement)).toBe(true)
+      },
+      { timeout: 3000 },
+    )
 
     await userEvent.keyboard('{Escape}')
-    await waitFor(async () => {
-      await expect(document.getElementById(panelId)).toBeNull()
-    })
+    await waitFor(
+      async () => {
+        await expect(document.getElementById(panelId)).toBeNull()
+      },
+      { timeout: 3000 },
+    )
     await expect(trigger.getAttribute('aria-expanded')).toBe('false')
+
+    // Opened again and swiped toward the edge it rests on, which is the
+    // scroller under the panel scrolled that way: a bottom sheet down, a
+    // sheet on the right to the right, one on the left to the left.
+    await userEvent.click(trigger)
+    const scroller = await waitFor(
+      async () => {
+        const found = document
+          .getElementById(trigger.getAttribute('aria-controls') ?? '')
+          ?.closest('[data-sheet-scroll]')
+        if (!(found instanceof HTMLElement)) {
+          throw new Error('the sheet never opened again')
+        }
+        await expect(found.parentElement?.hasAttribute('data-entering')).toBe(
+          false,
+        )
+        // React Aria closes a sheet once it has seen it in the window and then
+        // out of it, and says it has seen it whole with `data-expanded`.
+        await expect(found.parentElement?.hasAttribute('data-expanded')).toBe(
+          true,
+        )
+        return found
+      },
+      { timeout: 3000 },
+    )
+    const edge = scroller.parentElement?.dataset.position
+    if (edge === 'bottom') {
+      scroller.scrollTop = 0
+    } else {
+      scroller.scrollLeft = edge === 'left' ? scroller.scrollWidth : 0
+    }
+    await waitFor(
+      async () => {
+        await expect(trigger.getAttribute('aria-expanded')).toBe('false')
+      },
+      { timeout: 3000 },
+    )
   },
   render: (args) => (
     <Sheet {...args}>
@@ -301,8 +424,18 @@ const OpensAndCloses: Story = {
   tags: ['!autodocs', '!dev'],
 }
 
+// `Sheet.Content` on its own, open while `isOpen` says so: the shape for a
+// sheet nothing on the page opens directly, such as one a route shows or a
+// menu item raises. Open on load, like Default.
+const ControlledNoTrigger: Story = {
+  parameters: Default.parameters,
+  render: () => <RaisedFromMenu />,
+}
+
 export {
   BottomSheet,
+  CollapsedBottomSheet,
+  ControlledNoTrigger,
   Default,
   LongAddress,
   LongBody,

@@ -116,9 +116,20 @@ function prefersReducedMotion() {
  * The press then ends when the pointer is released over the host rather than
  * on the click that would follow, still held for the minimum a short press
  * gets. A keyboard press reaches such a host as no pointer event at all, so
- * it draws no ripple there.
+ * it draws no ripple there unless the host plays one.
  *
- * `handlers` and `surface` are hand-memoized (not left to build-tool
+ * `play` is that: a whole press from the middle of the surface, as a click
+ * with no pointer before it plays, for a host that learns of a press some
+ * other way. A checkbox calls it for a key, which reaches its input rather
+ * than the label its ripple listens on.
+ *
+ * Pass `centred` for a host whose presses land beside its surface as well as
+ * on it: a checkbox, whose label runs the width of its row. Every press then
+ * grows from the middle of the surface, as a key's does. Following the
+ * pointer, a press at the far end of the label grew from hundreds of pixels
+ * away and reached the control only as the growth ended.
+ *
+ * `handlers`, `play` and `surface` are hand-memoized (not left to build-tool
  * optimization) so a consumer rendering many instances — a list of icon
  * buttons, say — can memoize around them too, and so stability doesn't
  * depend on any particular compiler being configured.
@@ -130,18 +141,30 @@ function useRipple<HostElement extends Element = Element>(
   enabled: boolean,
   externalHandlers: ReleaseHandlers<HostElement>,
   endsOnRelease: true,
-): { handlers: ReleaseHandlers<HostElement>; surface: ReactNode }
+  centred?: boolean,
+): {
+  handlers: ReleaseHandlers<HostElement>
+  play: () => void
+  surface: ReactNode
+}
 function useRipple<HostElement extends Element = Element>(
   enabled?: boolean,
   externalHandlers?: RippleEventHandlers<HostElement>,
   endsOnRelease?: false,
-): { handlers: RippleEventHandlers<HostElement>; surface: ReactNode }
+  centred?: boolean,
+): {
+  handlers: RippleEventHandlers<HostElement>
+  play: () => void
+  surface: ReactNode
+}
 function useRipple<HostElement extends Element = Element>(
   enabled = true,
   externalHandlers: RippleEventHandlers<HostElement> = {},
   endsOnRelease = false,
+  centred = false,
 ): {
   handlers: RippleEventHandlers<HostElement>
+  play: () => void
   surface: ReactNode
 } {
   const [pressed, setPressed] = useState(false)
@@ -212,7 +235,7 @@ function useRipple<HostElement extends Element = Element>(
   )
 
   const startPressAnimation = useCallback(
-    (target: HostElement, positionEvent?: PointerEvent<HostElement>) => {
+    (target: Element, positionEvent?: PointerEvent<HostElement>) => {
       const ripple = rippleRef.current
       if (!ripple) {
         return
@@ -238,7 +261,7 @@ function useRipple<HostElement extends Element = Element>(
       const size = determineRippleSize(rect)
       const { endPoint, startPoint } = getTranslationCoordinates(
         rect,
-        positionEvent,
+        centred ? undefined : positionEvent,
       )
 
       ripple.style.width = size
@@ -269,7 +292,7 @@ function useRipple<HostElement extends Element = Element>(
         },
       )
     },
-    [determineRippleSize, getTranslationCoordinates],
+    [centred, determineRippleSize, getTranslationCoordinates],
   )
 
   const endPressAnimation = useCallback(async () => {
@@ -474,6 +497,18 @@ function useRipple<HostElement extends Element = Element>(
     [endPressAnimation, startPressAnimation],
   )
 
+  // The element the surface is rendered in stands in for the host a click
+  // would have named. With no surface rendered there is nothing to play, and
+  // a press already in flight is left to the pointer that started it.
+  const play = useCallback(() => {
+    const host = rippleRef.current?.parentElement?.parentElement
+    if (!host || state.current !== RippleState.Inactive) {
+      return
+    }
+    startPressAnimation(host)
+    void endPressAnimation()
+  }, [endPressAnimation, startPressAnimation])
+
   const handleContextMenu = useCallback(() => {
     void endPressAnimation()
   }, [endPressAnimation])
@@ -572,12 +607,12 @@ function useRipple<HostElement extends Element = Element>(
   // `externalHandlers` does (a component typically passes a fresh object
   // literal each render), and vice versa.
   const enabledResult = useMemo(
-    () => ({ handlers, surface }),
-    [handlers, surface],
+    () => ({ handlers, play, surface }),
+    [handlers, play, surface],
   )
   const disabledResult = useMemo(
-    () => ({ handlers: externalHandlers, surface: null }),
-    [externalHandlers],
+    () => ({ handlers: externalHandlers, play, surface: null }),
+    [externalHandlers, play],
   )
 
   return enabled ? enabledResult : disabledResult

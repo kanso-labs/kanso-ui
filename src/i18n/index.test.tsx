@@ -113,6 +113,7 @@ describe("the library's own words", () => {
           'copied',
           'copy',
           'copySelected',
+          'dragHandle',
           'enterTime',
           'loading',
           'loadingMore',

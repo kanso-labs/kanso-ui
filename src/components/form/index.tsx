@@ -38,6 +38,13 @@ type FormProps = {
    * malformed field blocks submission, and its message is the browser's
    * own, shown once submission is tried.
    *
+   * Under `aria`, `isRequired` marks a field and checks nothing. The label
+   * takes its asterisk and the control `aria-required`, but an empty
+   * required field neither stops the form submitting nor shows a message,
+   * since the control carries no `required` for the browser to enforce. A
+   * form that must not go out with one empty checks it in `onSubmit` and
+   * hands the field its `error`, as the Client validation story does.
+   *
    * Under `aria`, moving focus after a server answers is the call site's.
    * The errors are associated — `aria-invalid` on each control, the message
    * in its `aria-describedby` — and each is read out politely as it appears
@@ -48,7 +55,7 @@ type FormProps = {
    * @default 'aria'
    */
   validationBehavior?: 'aria' | 'native'
-} & Omit<RACFormProps, 'className' | 'style'>
+} & Omit<RACFormProps, 'className' | 'style' | 'validationBehavior'>
 
 /**
  * A form: the fields inside it and what they are told about validation. Pass
@@ -65,9 +72,12 @@ type FormProps = {
  * A form also reserves each field's message line. A field on its own draws
  * that line only once it has something to say, so an error arriving after a
  * submit or an async check makes the field taller and moves everything below
- * it down the page. Inside a form the line is there from the start, empty,
- * and nothing moves when it fills — which is the whole reason a form is where
- * a message arrives after the fact.
+ * it down the page. Inside a form the line is there from the start, empty
+ * and one line tall, so a message that fits on it moves nothing when it
+ * arrives — which is the whole reason a form is where a message arrives
+ * after the fact. A longer message wraps, and each line past the first
+ * pushes everything below it down, so keep a message that arrives after the
+ * fact to one line.
  *
  * The call site's `className` and `style` land on the form element, which is
  * the element a layout positions.

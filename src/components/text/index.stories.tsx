@@ -34,8 +34,10 @@ const PARAGRAPH = <p />
 const styles = stylex.create({
   // Lets a sample take the rest of the row and wrap inside it, rather than
   // sizing to its own text and pushing out of the frame at display sizes.
+  // The basis is the narrowest a sample sits beside its label at: below it
+  // the row wraps, and the sample takes a line of its own under the label.
   fill: {
-    flexBasis: 0,
+    flexBasis: '16rem',
     flexGrow: 1,
     minInlineSize: 0,
   },

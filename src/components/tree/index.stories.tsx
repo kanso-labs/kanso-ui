@@ -13,8 +13,12 @@ import Tree from '.'
 import Card from '../card'
 
 const styles = stylex.create({
+  // A tree fills its container, so the samples need a width to fill. A cap
+  // rather than a fixed width, so a phone-sized window narrows it rather
+  // than scrolling sideways.
   width: {
-    inlineSize: '420px',
+    inlineSize: '100%',
+    maxInlineSize: '420px',
   },
 })
 
@@ -25,6 +29,11 @@ const meta = {
     'aria-label': 'Label',
   },
   component: Tree,
+  subcomponents: {
+    'Tree.Item': Tree.Item,
+    'Tree.LoadMore': Tree.LoadMore,
+    'Tree.Section': Tree.Section,
+  },
   title: 'Components/Tree',
 } satisfies Meta<typeof Tree>
 
