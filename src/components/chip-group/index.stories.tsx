@@ -153,6 +153,9 @@ const meta = {
     label: 'Label',
   },
   component: ChipGroup,
+  // A tab of its own beside the group's in the Overview page's props table,
+  // since a group is written with its chips.
+  subcomponents: { 'ChipGroup.Chip': ChipGroup.Chip },
   title: 'Components/ChipGroup',
 } satisfies Meta<typeof ChipGroup<object>>
 

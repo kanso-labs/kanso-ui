@@ -458,7 +458,7 @@ type SnackbarProps = {
   style?: RACToastRegionProps<SnackbarMessage>['style']
 } & Omit<
   RACToastRegionProps<SnackbarMessage>,
-  'children' | 'className' | 'queue' | 'style'
+  'aria-label' | 'children' | 'className' | 'queue' | 'style'
 >
 
 // One entry of the queue, as React Aria hands it to the region's render

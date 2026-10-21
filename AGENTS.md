@@ -707,6 +707,20 @@ component — Getting started, the Foundations pages and the Theming schemes —
 take `!autodocs`, since an Overview page there would document the page's wrapper
 and unfold the single sidebar leaf each of them relies on.
 
+**The props table lists React Aria's props beside the library's own.** The
+`propFilter` in `.storybook/main.ts` keeps what React Aria's packages declare
+and drops React's DOM props, which react-docgen-typescript's default filter
+would otherwise have done to both, leaving a `Button` with no `isDisabled` row
+and Controls with nothing to drive it. Two things follow for a component's
+types. Where its own props declare one of React Aria's again, to describe or
+narrow it, the type `Omit`s React Aria's: the table joins every description a
+prop is declared with, so `Form`'s `validationBehavior` read as the library's
+paragraph followed by React Aria's sentence. And a union of props types shares
+what its members have in common through one type both extend, as `Chip`'s
+`ChipBaseProps` does, for the same reason. A compound part gets its own table
+through `subcomponents` in its stories' meta, as `Radio` does beside
+`RadioGroup`.
+
 **No story is exported as `Overview`.** The page takes the id a story of that
 name would, `components-button--overview`, and the index keeps the page and
 drops the story. It leaves the sidebar and Chromatic, which both read the index,
