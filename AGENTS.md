@@ -721,6 +721,17 @@ what its members have in common through one type both extend, as `Chip`'s
 through `subcomponents` in its stories' meta, as `Radio` does beside
 `RadioGroup`.
 
+**Most of a table's controls are decided in `.storybook/preview.tsx`, and a
+story adds only what it alone knows.** Its `argTypesEnhancers` take the editor
+off a prop no control can write — a node, a `render`, a handler — while keeping
+its row, give a prop a story passes a string a text field, and offer a union of
+size or spacing steps smallest first, whatever order lint sorted the type into.
+What is left to a story's meta is what only it knows: a slot worth seeing filled
+offers the contents its stories use as a `select` with a `mapping`, as
+`ListItem`'s `leading` does, and an arg is set to the value it defaults to
+anyway where that turns its control on — a boolean is otherwise a "Set boolean"
+button and a select opens on "Choose option…".
+
 **No story is exported as `Overview`.** The page takes the id a story of that
 name would, `components-button--overview`, and the index keeps the page and
 drops the story. It leaves the sidebar and Chromatic, which both read the index,

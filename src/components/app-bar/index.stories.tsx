@@ -248,10 +248,19 @@ function ScrollingPage({ paragraphs }: { paragraphs: number }) {
 }
 
 const meta = {
+  // Set to what they default to anyway, so Controls draws each as a switch
+  // rather than a button that has to be pressed before it is one.
   args: {
+    collapsed: false,
     headline: 'Headline',
     leading: LEADING,
+    scrolled: false,
     trailing: TRAILING,
+  },
+  // A node, which Controls cannot write in general, but a subtitle is a line
+  // of text.
+  argTypes: {
+    subtitle: { control: 'text' },
   },
   component: AppBar,
   title: 'Components/AppBar',

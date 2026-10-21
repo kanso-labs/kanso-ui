@@ -77,6 +77,29 @@ const meta = {
     children: 'Headline',
     supporting: 'Supporting line · Metadata · Detail',
   },
+  // The slots take nodes, which Controls cannot write, so each offers the
+  // contents the stories below put there, by name. An overline is a line of
+  // text.
+  argTypes: {
+    leading: {
+      control: 'select',
+      mapping: {
+        Avatar: <Avatar name="Ada Lovelace" size="md" />,
+        Glyph: <span {...stylex.props(styles.tile)}>★</span>,
+        None: undefined,
+      },
+      options: ['None', 'Avatar', 'Glyph'],
+    },
+    overline: { control: 'text' },
+    trailing: {
+      control: 'select',
+      mapping: {
+        None: undefined,
+        Value: <span {...stylex.props(styles.value)}>01</span>,
+      },
+      options: ['None', 'Value'],
+    },
+  },
   component: ListItem,
   title: 'Components/ListItem',
 } satisfies Meta<typeof ListItem>

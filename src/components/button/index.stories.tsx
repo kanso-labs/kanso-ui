@@ -91,6 +91,11 @@ const meta = {
   args: {
     children: 'Button',
   },
+  // The default first, then by how much weight each pulls, rather than the
+  // order the type spells them in.
+  argTypes: {
+    variant: { options: ['filled', 'tonal', 'elevated', 'outlined', 'text'] },
+  },
   component: Button,
   title: 'Components/Button',
 } satisfies Meta<typeof Button>
