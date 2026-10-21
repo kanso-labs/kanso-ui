@@ -48,10 +48,10 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 const HOVER_CAPABLE = '@media (hover: hover)'
 
 // The search page's search bar, on its own: a 56dp container with a full
-// corner on surface container high, a 24dp magnifier in on surface variant
-// at the start, the supporting text in on surface variant and the input
-// text in on surface, both body-large, and a trailing icon button in on
-// surface variant that clears the field while it holds anything. The page's
+// corner on surface container high, a 24dp magnifier in on surface at the
+// start, the supporting text in on surface variant and the input text in on
+// surface, both body-large, and a trailing icon button in on surface
+// variant that clears the field while it holds anything. The page's
 // 16dp of padding is to a 48dp tap target, and the icon sits 12dp inside
 // that, so the magnifier starts 28dp in and the text 4dp past the target,
 // at 68dp; the clear button is the medium icon button, 40dp around a 24dp
@@ -60,6 +60,13 @@ const HOVER_CAPABLE = '@media (hover: hover)'
 // floor is left to the call site, since a phone's width less its margins is
 // under it. The list of suggestions the page draws under the bar is
 // Autocomplete's, and nothing here.
+//
+// The page gives the container level 3 elevation, and the bar casts no
+// shadow for it. Surface container high is the tone that level stands for,
+// and Google's own search bars draw it so: Compose's defaults give the bar
+// a shadow elevation of level 0, and the Android library keeps its 6dp but
+// makes the shadow transparent. The docked SearchView, which floats over
+// the page, is what casts level 3.
 //
 // The page's hovered and pressed states are on surface state layers over
 // the container, at the opacities the tokens hold. It names a focused state
@@ -194,11 +201,19 @@ const styles = stylex.create({
     display: 'block',
     inlineSize: '1em',
   },
+  // The page's leading icon is on surface, a step stronger than the
+  // supporting text beside it, which takes the bar's on surface variant.
   glyph: {
     blockSize: '24px',
+    color: colors.onSurface,
     display: 'block',
     flexShrink: 0,
     inlineSize: '24px',
+  },
+  // The disabled bar's faded colour, and its `GrayText` under forced
+  // colours, which the glyph's own colour would otherwise hold against.
+  glyphDisabled: {
+    color: 'inherit',
   },
   // The chrome's input, taking the room between the two icons. A search
   // input is the one type the browser decorates on its own — WebKit's
@@ -297,7 +312,12 @@ function fieldContent(
           state.isDisabled && styles.barDisabled,
         )}
       >
-        <SearchGlyph {...stylex.props(styles.glyph)} />
+        <SearchGlyph
+          {...stylex.props(
+            styles.glyph,
+            state.isDisabled && styles.glyphDisabled,
+          )}
+        />
         <FieldInput
           placeholder={placeholder}
           ref={inputRef}
