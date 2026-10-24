@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.45.3](https://github.com/kanso-labs/kanso-ui/compare/v0.45.2...v0.45.3) (2026-10-24)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.2 ([#1836](https://github.com/kanso-labs/kanso-ui/issues/1836)) ([8a1055c](https://github.com/kanso-labs/kanso-ui/commit/8a1055c905c33421c6e1daa4109c9fb4574cff5a))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.39 ([#1832](https://github.com/kanso-labs/kanso-ui/issues/1832)) ([20c1141](https://github.com/kanso-labs/kanso-ui/commit/20c11418ed07f6e679797b34e660bcfa58fbc00f))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.41 ([#1837](https://github.com/kanso-labs/kanso-ui/issues/1837)) ([c35dc52](https://github.com/kanso-labs/kanso-ui/commit/c35dc525c5261f5f8b485c31895c063e26b6697c))
+* update dependency oxlint-tsgolint to v7.0.2005 ([#1833](https://github.com/kanso-labs/kanso-ui/issues/1833)) ([931bfcb](https://github.com/kanso-labs/kanso-ui/commit/931bfcba7f62ed305e3a95c52b59fa4cf15f1bab))
+
 ## [0.45.2](https://github.com/kanso-labs/kanso-ui/compare/v0.45.1...v0.45.2) (2026-10-22)
 
 
