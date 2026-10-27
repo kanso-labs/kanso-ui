@@ -2393,8 +2393,8 @@ export { WaterfallLayout }
 
 // Warnings were encountered during analysis:
 //
-// dist/components/button/index.d.ts:14:3 - (ae-forgotten-export) The symbol "ButtonState" needs to be exported by the entry point index.d.ts
-// dist/components/icon-button/index.d.ts:19:3 - (ae-forgotten-export) The symbol "IconButtonState" needs to be exported by the entry point index.d.ts
+// dist/components/button/index.d.ts:13:3 - (ae-forgotten-export) The symbol "ButtonState" needs to be exported by the entry point index.d.ts
+// dist/components/icon-button/index.d.ts:18:3 - (ae-forgotten-export) The symbol "IconButtonState" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
