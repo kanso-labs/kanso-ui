@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.7](https://github.com/kanso-labs/kanso-ui/compare/v0.45.6...v0.45.7) (2026-10-27)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.4 ([#1854](https://github.com/kanso-labs/kanso-ui/issues/1854)) ([d52ca20](https://github.com/kanso-labs/kanso-ui/commit/d52ca2007dd5e36ef48e36f4659cb890fc2d6be4))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.44 ([#1852](https://github.com/kanso-labs/kanso-ui/issues/1852)) ([88931c1](https://github.com/kanso-labs/kanso-ui/commit/88931c1cb9f7190c09b3ad47fa0405a67dea8852))
+* update dependency @microsoft/api-extractor to v7.60.0 ([#1848](https://github.com/kanso-labs/kanso-ui/issues/1848)) ([cc7518b](https://github.com/kanso-labs/kanso-ui/commit/cc7518bd2a98539d457b0f9e668600ad5709034c))
+* update dependency eslint-plugin-oxlint to v1.90.0 ([#1856](https://github.com/kanso-labs/kanso-ui/issues/1856)) ([0950dab](https://github.com/kanso-labs/kanso-ui/commit/0950dab8e90e53b4c6cba9d834eeea57406ab4c7))
+* update dependency oxfmt to v0.75.0 ([#1850](https://github.com/kanso-labs/kanso-ui/issues/1850)) ([70a7074](https://github.com/kanso-labs/kanso-ui/commit/70a707413334b6c954d043fb64b2fe2071138132))
+* update dependency oxlint to v1.90.0 ([#1851](https://github.com/kanso-labs/kanso-ui/issues/1851)) ([e32caa1](https://github.com/kanso-labs/kanso-ui/commit/e32caa1eb7e2e29beb5e438397dd3c234a66adb9))
+* update dependency tsdown to v0.23.2 ([#1835](https://github.com/kanso-labs/kanso-ui/issues/1835)) ([29d25e6](https://github.com/kanso-labs/kanso-ui/commit/29d25e6a63dce9d172babd2e30e2696a61cc1941))
+* update storybook to v10.6.5 ([#1855](https://github.com/kanso-labs/kanso-ui/issues/1855)) ([fa651d4](https://github.com/kanso-labs/kanso-ui/commit/fa651d4957eea1ce8b98f9781770fb49475a90ab))
+
 ## [0.45.6](https://github.com/kanso-labs/kanso-ui/compare/v0.45.5...v0.45.6) (2026-10-26)
 
 
