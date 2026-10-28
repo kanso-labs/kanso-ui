@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.8](https://github.com/kanso-labs/kanso-ui/compare/v0.45.7...v0.45.8) (2026-10-28)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.45 ([#1857](https://github.com/kanso-labs/kanso-ui/issues/1857)) ([4418433](https://github.com/kanso-labs/kanso-ui/commit/44184333f7318b82dd29b19102a1f602e0dc8ca4))
+* update dependency tsdown to v0.23.3 ([#1859](https://github.com/kanso-labs/kanso-ui/issues/1859)) ([70a23fe](https://github.com/kanso-labs/kanso-ui/commit/70a23fef957704411f7d382a99424c0e97818491))
+
 ## [0.45.7](https://github.com/kanso-labs/kanso-ui/compare/v0.45.6...v0.45.7) (2026-10-27)
 
 
