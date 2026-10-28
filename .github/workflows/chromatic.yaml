@@ -39,7 +39,7 @@ jobs:
           ignore-scripts: true
 
       - name: Run Chromatic
-        uses: chromaui/action@v18.13.3
+        uses: chromaui/action@v18.13.4
         with:
           exitOnceUploaded: true
           onlyChanged: true
