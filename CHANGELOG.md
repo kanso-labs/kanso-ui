@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.11](https://github.com/kanso-labs/kanso-ui/compare/v0.45.10...v0.45.11) (2026-10-29)
+
+
+### Dependencies
+
+* update dependency tsdown to v0.23.4 ([#1868](https://github.com/kanso-labs/kanso-ui/issues/1868)) ([c07f9d6](https://github.com/kanso-labs/kanso-ui/commit/c07f9d61ab59fbabd036355d6fd084943d4e82e3))
+* update kanso-labs/actions action to v4.4.0 ([#1870](https://github.com/kanso-labs/kanso-ui/issues/1870)) ([f42f9b1](https://github.com/kanso-labs/kanso-ui/commit/f42f9b1cbe6bd1ecbebc017320f9efdb85256f63))
+
 ## [0.45.10](https://github.com/kanso-labs/kanso-ui/compare/v0.45.9...v0.45.10) (2026-10-29)
 
 
