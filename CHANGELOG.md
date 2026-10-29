@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.45.10](https://github.com/kanso-labs/kanso-ui/compare/v0.45.9...v0.45.10) (2026-10-29)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.13.4 ([#1865](https://github.com/kanso-labs/kanso-ui/issues/1865)) ([26083fc](https://github.com/kanso-labs/kanso-ui/commit/26083fc5c6a102957f639b814d16d04f1a91de6d))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.5 ([#1862](https://github.com/kanso-labs/kanso-ui/issues/1862)) ([3e3ea25](https://github.com/kanso-labs/kanso-ui/commit/3e3ea2584f7af0de86ce1e4cf96c1e39c2c0653c))
+* update dependency @types/node to v26.6.6 ([#1866](https://github.com/kanso-labs/kanso-ui/issues/1866)) ([529e446](https://github.com/kanso-labs/kanso-ui/commit/529e446e41d14d5ae2d7aae7e1863fec23c70651))
+* update node.js to v26 ([#1863](https://github.com/kanso-labs/kanso-ui/issues/1863)) ([ae28f91](https://github.com/kanso-labs/kanso-ui/commit/ae28f919ffdd3c93fe67e9cfb3ecc366346e69e3))
+
 ## [0.45.9](https://github.com/kanso-labs/kanso-ui/compare/v0.45.8...v0.45.9) (2026-10-28)
 
 
