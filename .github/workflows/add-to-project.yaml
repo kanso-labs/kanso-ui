@@ -1,0 +1,23 @@
+name: Add to Project
+
+# Puts every issue opened or reopened here on the Kanso UI project, as the
+# organization's project standard asks. The shared workflow skips issues a bot
+# opens, such as Renovate's Dependency Dashboard.
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+
+permissions: {}
+
+jobs:
+  add-to-project:
+    name: Add the issue to its project
+    uses: kanso-labs/actions/.github/workflows/_add-to-project.yaml@v4.4.0
+    with:
+      project-url: https://github.com/orgs/kanso-labs/projects/1
+    secrets:
+      client-id: ${{ secrets.RENOVATE_CLIENT_ID }}
+      private-key: ${{ secrets.RENOVATE_PRIVATE_KEY }}
