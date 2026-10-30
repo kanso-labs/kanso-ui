@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.45.12](https://github.com/kanso-labs/kanso-ui/compare/v0.45.11...v0.45.12) (2026-10-30)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.13.6 ([#1893](https://github.com/kanso-labs/kanso-ui/issues/1893)) ([8874fea](https://github.com/kanso-labs/kanso-ui/commit/8874feafe15cf5efd077c69c2610e8c1c989b020))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.6 ([#1894](https://github.com/kanso-labs/kanso-ui/issues/1894)) ([d44ace7](https://github.com/kanso-labs/kanso-ui/commit/d44ace75d3e1d5a08f37f39ce16ef25199f64b9a))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.47 ([#1895](https://github.com/kanso-labs/kanso-ui/issues/1895)) ([fe16e4f](https://github.com/kanso-labs/kanso-ui/commit/fe16e4fe1140711164c2c565b6ce2b8327631ab2))
+* update kanso-labs/actions action to v4.4.1 ([#1896](https://github.com/kanso-labs/kanso-ui/issues/1896)) ([545f5ee](https://github.com/kanso-labs/kanso-ui/commit/545f5ee5c0056b5564273fbc4e35dd362ba5da4f))
+* update kanso-labs/actions action to v4.4.1 ([#1899](https://github.com/kanso-labs/kanso-ui/issues/1899)) ([b7a22eb](https://github.com/kanso-labs/kanso-ui/commit/b7a22eb7622297beb7125e343c5aa34c23fef651))
+
 ## [0.45.11](https://github.com/kanso-labs/kanso-ui/compare/v0.45.10...v0.45.11) (2026-10-29)
 
 
