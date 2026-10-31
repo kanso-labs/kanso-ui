@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.45.13](https://github.com/kanso-labs/kanso-ui/compare/v0.45.12...v0.45.13) (2026-10-31)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.7 ([#1901](https://github.com/kanso-labs/kanso-ui/issues/1901)) ([8f6cceb](https://github.com/kanso-labs/kanso-ui/commit/8f6cceb575f754ca10445f8c14664109b0d81f8b))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.48 ([#1902](https://github.com/kanso-labs/kanso-ui/issues/1902)) ([6006172](https://github.com/kanso-labs/kanso-ui/commit/600617286754330c5b730f38fec890fb86adb267))
+* update dependency @microsoft/api-extractor to v7.60.1 ([#1905](https://github.com/kanso-labs/kanso-ui/issues/1905)) ([868dc97](https://github.com/kanso-labs/kanso-ui/commit/868dc97751c9530fc3fcc84a73ba35229796a0c4))
+* update dependency @rolldown/plugin-babel to v0.3.0 ([#1869](https://github.com/kanso-labs/kanso-ui/issues/1869)) ([98497b7](https://github.com/kanso-labs/kanso-ui/commit/98497b75f42a937b3b0893ba6eb54181954b5229))
+* update dependency eslint to v10.14.0 ([#1903](https://github.com/kanso-labs/kanso-ui/issues/1903)) ([bd5e7bd](https://github.com/kanso-labs/kanso-ui/commit/bd5e7bd007cb4c99b777d7461558f3a5a7ef8c2c))
+
 ## [0.45.12](https://github.com/kanso-labs/kanso-ui/compare/v0.45.11...v0.45.12) (2026-10-30)
 
 
