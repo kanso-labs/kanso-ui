@@ -14,6 +14,10 @@
       "matchPackageNames": ["@babel/core", "@babel/traverse", "@babel/types"]
     },
     {
+      "description": "@vitejs/plugin-react declares @rolldown/plugin-babel as an optional peer at ^0.1.7 || ^0.2.0, which a 0.x caret keeps on its own minor, so Renovate's lockfile update failed on 0.3.0 and every check died at npm ci, as on #1869. The overrides entry in package.json points that peer at the root's own @rolldown/plugin-babel, so it moves on its own. plugin-react imports nothing from it: reactCompilerPreset returns a plain preset object that vite.config.ts and tsdown.config.ts hand to the root's copy, so tsc -b checks that object against the installed version's types and src/components/compiler.test.ts fails if the components stop arriving compiled.",
+      "matchPackageNames": ["@rolldown/plugin-babel", "@vitejs/plugin-react"]
+    },
+    {
       "allowedVersions": "<7",
       "description": "typescript-eslint peers on typescript >=4.8.4 <6.1.0. Renovate's lockfile update fails on that conflict, so its TypeScript 7 pull request carries package.json alone and fails npm ci, and npm resolves it locally only by overriding the peer. It would not work if it did resolve: TypeScript 7 is the native Go port and has no compiler API yet, which typescript-eslint is built on, so admitting it is upstream work rather than a range to widen — typescript-eslint/typescript-eslint#10940. The eslint group matches typescript-eslint but not typescript, so this one name needs a rule of its own. Lift this once a released typescript-eslint admits TypeScript 7.",
       "matchPackageNames": ["typescript"]
