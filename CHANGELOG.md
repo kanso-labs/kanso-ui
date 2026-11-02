@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.45.16](https://github.com/kanso-labs/kanso-ui/compare/v0.45.15...v0.45.16) (2026-11-02)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.50 ([#1911](https://github.com/kanso-labs/kanso-ui/issues/1911)) ([591edb3](https://github.com/kanso-labs/kanso-ui/commit/591edb31c8f630ddb145d1857a8bba2bd66f24f5))
+* update dependency @vitejs/plugin-react to v6.2.1 ([#1915](https://github.com/kanso-labs/kanso-ui/issues/1915)) ([edc916d](https://github.com/kanso-labs/kanso-ui/commit/edc916dae2ab1862ac515f0c5bcb469f5691b2e2))
+* update dependency globals to v17.14.0 ([#1912](https://github.com/kanso-labs/kanso-ui/issues/1912)) ([869ce4e](https://github.com/kanso-labs/kanso-ui/commit/869ce4e1bd2ff2cb6133ae966abb81446a7f839b))
+
 ## [0.45.15](https://github.com/kanso-labs/kanso-ui/compare/v0.45.14...v0.45.15) (2026-10-31)
 
 
