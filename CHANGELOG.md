@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.45.17](https://github.com/kanso-labs/kanso-ui/compare/v0.45.16...v0.45.17) (2026-11-03)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.13.9 ([#1916](https://github.com/kanso-labs/kanso-ui/issues/1916)) ([b53e868](https://github.com/kanso-labs/kanso-ui/commit/b53e868acf65ed2d9a8a1f138ebfc32222f2eb6d))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.9 ([#1917](https://github.com/kanso-labs/kanso-ui/issues/1917)) ([8d27ce3](https://github.com/kanso-labs/kanso-ui/commit/8d27ce3f11d0f860815bff1bd6bbc70dcbd779c9))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.51 ([#1918](https://github.com/kanso-labs/kanso-ui/issues/1918)) ([0c6af9b](https://github.com/kanso-labs/kanso-ui/commit/0c6af9b88e81d963d8207028427cc9ad68a8df14))
+* update vitest to v5.1.0 ([#1919](https://github.com/kanso-labs/kanso-ui/issues/1919)) ([069f546](https://github.com/kanso-labs/kanso-ui/commit/069f54699cc225383bca130ed48b9fdb5f99637a))
+
 ## [0.45.16](https://github.com/kanso-labs/kanso-ui/compare/v0.45.15...v0.45.16) (2026-11-02)
 
 
