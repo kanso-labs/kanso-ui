@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
-import { createElement, useLayoutEffect, useRef } from 'react'
+import { createElement, useEffect, useLayoutEffect, useRef } from 'react'
 
 import type { RenderComponentProps } from '../../render/useRender'
 
@@ -828,7 +828,13 @@ function prefersReducedMotion() {
  * expanding bar's second row is laid out at full height from the start.
  *
  * Where the text was is measured after every commit that leaves the state
- * alone, so it is current when the state does change. A change that lands
+ * alone, so it is current when the state does change, and again whenever the
+ * bar or its text changes size or a font finishes loading in between: the
+ * window narrowing until the headline wraps, the stylesheet arriving after the
+ * first frame, a web font replacing its fallback. None of those renders, so
+ * a measure taken only at a commit left the next collapse starting from a bar
+ * that was no longer drawn: a large bar first laid out without its stylesheet
+ * began its collapse 28px taller than it stood. A change that lands
  * while the last one is still moving starts from where the bar and the text
  * are drawn at that moment, read off the running animations, so reversing
  * mid-way turns round rather than jumping to the end first.
@@ -911,6 +917,30 @@ function useCollapseMotion(collapse: boolean, align: 'center' | 'start') {
       )
     }
   })
+
+  useEffect(() => {
+    const text = textRef.current
+    const bar = text?.parentElement?.parentElement
+    if (text == null || bar == null) {
+      return undefined
+    }
+    const remeasure = () => {
+      const moving = animations.current.some(
+        (animation) => animation.playState === 'running',
+      )
+      if (!moving) {
+        settled.current = geometryOf(bar, text, align)
+      }
+    }
+    const resize = new ResizeObserver(remeasure)
+    resize.observe(bar)
+    resize.observe(text)
+    document.fonts.addEventListener('loadingdone', remeasure)
+    return () => {
+      resize.disconnect()
+      document.fonts.removeEventListener('loadingdone', remeasure)
+    }
+  }, [align])
 
   return textRef
 }

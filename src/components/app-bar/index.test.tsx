@@ -917,6 +917,37 @@ describe('collapsed', () => {
     },
   )
 
+  // The bar's layout can change with nothing rendering: the window narrows
+  // until the headline wraps, the stylesheet or a web font arrives. The
+  // collapse after that starts from the bar as it is drawn then, rather than
+  // as it was at the last render.
+  it('starts from a layout that changed without a render', async () => {
+    const props = {
+      headline: 'Headline long enough to wrap at a phone’s width',
+      leading: ICON_LEADING,
+      size: 'lg',
+    } as const
+    const view = render(<AppBar {...props} />)
+    const bar = barIn(view.container)
+    const headline = () =>
+      glyphsIn(bar, view.getByRole('heading', { level: 1 }))
+    const wide = bar.getBoundingClientRect().height
+
+    Object.assign(view.container.style, NARROW)
+    await nextFrame()
+    await nextFrame()
+    const narrow = {
+      headline: headline(),
+      height: bar.getBoundingClientRect().height,
+    }
+    expect(narrow.height).toBeGreaterThan(wide)
+
+    view.rerender(<AppBar {...props} collapsed />)
+    seek(bar, 0)
+    expect(bar.getBoundingClientRect().height).toBeCloseTo(narrow.height, 0)
+    expectSameLine(headline(), narrow.headline)
+  })
+
   // Turned round half-way, it starts back from where it has got to rather
   // than from the end it was heading for.
   it('turns round from where it has got to', () => {
