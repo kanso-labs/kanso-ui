@@ -45,6 +45,15 @@ const styles = stylex.create({
     position: 'absolute',
     whiteSpace: 'nowrap',
   },
+  // The button keeps the width its label asks for, and the value gives up
+  // the room instead. Both would otherwise shrink, and Button breaks a label
+  // anywhere so that a long one wraps rather than overflowing, so beside a
+  // value too long for the row the label broke first: "Cop" over "y". The
+  // value can lose any amount of width, since it breaks anywhere too, and
+  // nothing is lost by it taking another line.
+  button: {
+    flexShrink: 0,
+  },
   // Hidden rather than absent: `visibility` keeps the box, which is what
   // reserves the room, and takes the label out of the accessibility tree so
   // the button's name is the one on show.
@@ -326,6 +335,7 @@ function CopyField({
         onClick={handleCopy}
         size="xs"
         variant="text"
+        {...stylex.props(styles.button)}
       >
         <span {...stylex.props(styles.labels)}>
           <span
