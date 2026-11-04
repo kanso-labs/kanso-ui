@@ -126,7 +126,7 @@
     "react-dom": "19.3.1",
     "rimraf": "6.1.4",
     "storybook": "10.6.5",
-    "style-dictionary": "5.7.1",
+    "style-dictionary": "5.8.0",
     "tsdown": "0.23.5",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
