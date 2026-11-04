@@ -36,6 +36,11 @@ const segmentStyles = stylex.create({
     boxSizing: 'border-box',
     caretColor: 'transparent',
     color: colors.onSurface,
+    // The 24 by 24 WCAG 2.5.8 asks of a target with no room around it, which
+    // a segment has none of: an empty hour's placeholder or a single digit
+    // was 21 wide. The text sits in the middle of whatever a short value
+    // leaves over, and a wider one is unchanged.
+    minInlineSize: '24px',
     // What focus becomes under forced colours, where the fill below is gone.
     // That mode paints backgrounds in a system colour, so `segmentFocused`'s
     // filled shape — the only sign of focus this has, since the caret is
@@ -57,7 +62,7 @@ const segmentStyles = stylex.create({
     },
     outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
     paddingInline: spacing.xxs,
-    textAlign: 'end',
+    textAlign: 'center',
   },
   // Faded with the rest of the field, and the same 38% every disabled
   // control here takes.
@@ -75,6 +80,7 @@ const segmentStyles = stylex.create({
   // there. Not a focus stop, and not something a reader tabs through.
   segmentLiteral: {
     color: colors.onSurfaceVariant,
+    minInlineSize: 0,
     paddingInline: 0,
   },
   // A segment with nothing in it yet, showing its own placeholder.

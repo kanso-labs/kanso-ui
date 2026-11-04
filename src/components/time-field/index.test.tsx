@@ -119,6 +119,37 @@ describe('time field', () => {
       expect(colour).toBe(probe(probeStyles.onSurfaceVariant))
     })
 
+    // WCAG 2.5.8 asks 24 by 24 of a target with no room around it, and the
+    // segments sit side by side. An empty hour's placeholder and a single
+    // digit are narrower than that on their own.
+    it.each([
+      ['empty', undefined],
+      ['filled', new Time(9, 5)],
+    ])('gives every segment a target at least 24 by 24, %s', (_, value) => {
+      const view = render(
+        <I18nProvider locale="en-US">
+          <TimeField defaultValue={value} label="Label" />
+        </I18nProvider>,
+      )
+      const boxes = segmentsOf(view).map((s) => s.getBoundingClientRect())
+
+      expect(boxes).toHaveLength(3)
+      for (const box of boxes) {
+        expect(box.width).toBeGreaterThanOrEqual(24)
+        expect(box.height).toBeGreaterThanOrEqual(24)
+      }
+    })
+
+    it('leaves the punctuation its own width', () => {
+      const view = render(<TimeField defaultValue={TIME} label="Label" />)
+      const literal = view.container.querySelector('[data-type="literal"]')
+      if (!(literal instanceof HTMLElement)) {
+        throw new Error('expected punctuation between the segments')
+      }
+
+      expect(literal.getBoundingClientRect().width).toBeLessThan(12)
+    })
+
     it('floats the label clear of the segments, even with no value', () => {
       const view = render(<TimeField label="Label" />)
       const label = view.getByText('Label').getBoundingClientRect()
