@@ -31,6 +31,20 @@ describe('color picker', () => {
       expect(trigger.querySelector('[role="img"]')).not.toBeNull()
     })
 
+    // The size the label's line is tall, not the 40px a swatch takes on its
+    // own: the trigger's size once lost to the swatch's own, which landed
+    // later in the stylesheet.
+    it('draws its swatch at 24px', () => {
+      const view = render(<ColorPicker defaultValue={PURPLE} label="Label" />)
+      const square = view.getByRole('img').parentElement
+      if (square === null) {
+        throw new Error('expected the swatch to sit in its square')
+      }
+
+      const box = square.getBoundingClientRect()
+      expect([box.width, box.height]).toEqual([24, 24])
+    })
+
     it('shows the colour the picker holds', () => {
       const view = render(<ColorPicker defaultValue={PURPLE} label="Label" />)
 

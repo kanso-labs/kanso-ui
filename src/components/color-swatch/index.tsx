@@ -4,10 +4,12 @@ import type { CSSProperties, RefAttributes } from 'react'
 import type { ColorSwatchProps as RACColorSwatchProps } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import { ColorSwatch as RACColorSwatch } from 'react-aria-components'
 
 import { chequer } from '../../styles/chequer'
 import { mergeStyles } from '../../styles/merge'
+import { SwatchSquareContext } from '../../swatch'
 import { colors, radii } from '../../tokens/design.tokens.stylex'
 
 // A single colour, drawn as a square. The design carries no page for this —
@@ -96,10 +98,12 @@ function ColorSwatch({
   style,
   ...props
 }: ColorSwatchProps & RefAttributes<HTMLSpanElement>) {
+  const placed = useContext(SwatchSquareContext)
+
   return (
     <span
       ref={ref}
-      {...mergeStyles(stylex.props(chequer.ground, styles.ground), {
+      {...mergeStyles(stylex.props(chequer.ground, styles.ground, placed), {
         className,
         style,
       })}

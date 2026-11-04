@@ -21,6 +21,7 @@ import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import { popoverClassName } from '../../styles/picker'
+import { SwatchSquareContext } from '../../swatch'
 import {
   colors,
   radii,
@@ -82,7 +83,8 @@ const styles = stylex.create({
     padding: spacing.lg,
   },
   // The swatch in the trigger, at the size a label's line is tall rather
-  // than the 40dp a swatch takes on its own.
+  // than the 40dp a swatch takes on its own. Handed over through
+  // SwatchSquareContext rather than as the swatch's class — see src/swatch.
   triggerSwatch: {
     blockSize: '24px',
     flexShrink: 0,
@@ -234,7 +236,9 @@ function ColorPicker({
             { className, style },
           )}
         >
-          <ColorSwatch {...stylex.props(styles.triggerSwatch)} />
+          <SwatchSquareContext value={styles.triggerSwatch}>
+            <ColorSwatch />
+          </SwatchSquareContext>
           {label}
         </RACButton>
         <RACPopover

@@ -43,8 +43,14 @@ const segmentStyles = stylex.create({
     // stops telling one segment from another. An outline is a property the
     // mode keeps, and `Highlight` is the keyword a forced palette gives the
     // thing it marks as active.
+    //
+    // Drawn inside the segment's own box rather than around it. The line the
+    // segments sit on clips them, as an input clips its text, so an outline
+    // outside the box was cut away on three sides and left only its corners
+    // showing. The inline padding is what it covers, so it meets the digits
+    // without crossing them.
     outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
-    outlineOffset: { default: null, [FORCED_COLORS]: '1px' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '-2px' },
     outlineStyle: {
       default: 'none',
       [FORCED_COLORS]: { ':focus': 'solid', default: 'none' },

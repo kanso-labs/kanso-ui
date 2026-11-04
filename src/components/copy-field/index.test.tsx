@@ -27,10 +27,13 @@ const probeStyles = stylex.create({
     lineHeight: 1.75,
     textTransform: 'uppercase',
   },
+  // Narrower than LONG_VALUE, so the value has to wrap beside the button.
+  narrow: { inlineSize: '300px' },
   onSurface: { color: colors.onSurface },
 })
 
 const VALUE = 'first.second.third'
+const LONG_VALUE = 'registry.example/first-second/a-long-unbroken-name'
 const COPIED_RESET_MS = 2000
 
 // The real clipboard is unavailable outside a secure context and gated on
@@ -200,6 +203,29 @@ describe('copyField', () => {
         expect(end).toBeLessThan(start + padding)
       },
     )
+
+    // A value too long for the row wraps, and the label beside it does not:
+    // both labels take one line each, the hidden one included, since it is
+    // what holds the button's width.
+    it('keeps each label on one line beside a value that wraps', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.narrow)}>
+          <CopyField data-testid="field" value={LONG_VALUE} />
+        </div>,
+      )
+      const labels = [...view.getByRole('button').querySelectorAll('span[id]')]
+      const code = codeIn(view)
+
+      expect(labels).toHaveLength(2)
+      expect(code.getBoundingClientRect().height).toBeGreaterThan(
+        Number.parseFloat(getComputedStyle(code).lineHeight) * 1.5,
+      )
+      for (const label of labels) {
+        expect(label.getBoundingClientRect().height).toBeLessThan(
+          Number.parseFloat(getComputedStyle(label).lineHeight) * 1.5,
+        )
+      }
+    })
   })
 
   // Code takes the colour of the text around it, and the field paints a
