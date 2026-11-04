@@ -37,7 +37,14 @@ function StyleXLoader() {
     ? '/virtual:stylex.css'
     : './assets/stylex.css'
 
-  return <link href={href} rel="stylesheet" />
+  // `precedence` is what makes React hold the story back until the sheet has
+  // loaded: React 19 hoists a stylesheet given one into the head and waits
+  // for it before committing what rendered it. A bare `<link>` is inserted
+  // with the story and loads beside it, so the built Storybook drew every
+  // story's first frames unstyled — in the browser's serif, a large app bar
+  // 28px taller than its own — and a play function measuring on mount, as
+  // AppBar's Collapsing does, measured that.
+  return <link href={href} precedence="default" rel="stylesheet" />
 }
 
 export default StyleXLoader
