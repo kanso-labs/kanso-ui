@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.18](https://github.com/kanso-labs/kanso-ui/compare/v0.45.17...v0.45.18) (2026-11-04)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.14.0 ([#1928](https://github.com/kanso-labs/kanso-ui/issues/1928)) ([3379117](https://github.com/kanso-labs/kanso-ui/commit/3379117ffc5b5704f6ad04488bf54e8863b40bd0))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.10 ([#1921](https://github.com/kanso-labs/kanso-ui/issues/1921)) ([0c1ea41](https://github.com/kanso-labs/kanso-ui/commit/0c1ea417b47228060be538d742e5de4677eed2b3))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.52 ([#1922](https://github.com/kanso-labs/kanso-ui/issues/1922)) ([06c63e1](https://github.com/kanso-labs/kanso-ui/commit/06c63e167cdc8ec775bb7df2352fcb31f2aba225))
+* update dependency oxfmt to v0.76.0 ([#1925](https://github.com/kanso-labs/kanso-ui/issues/1925)) ([9c56652](https://github.com/kanso-labs/kanso-ui/commit/9c566524524688303f7e6bd676b63060f97ad2f0))
+* update dependency oxlint to v1.91.0 ([#1926](https://github.com/kanso-labs/kanso-ui/issues/1926)) ([5efd46e](https://github.com/kanso-labs/kanso-ui/commit/5efd46e6c7281be7b0fd30553680b7dd39acab6b))
+* update dependency rimraf to v6.1.4 ([#1923](https://github.com/kanso-labs/kanso-ui/issues/1923)) ([848e3c3](https://github.com/kanso-labs/kanso-ui/commit/848e3c35b231fce3f12963e6bd99478c554ff39d))
+* update dependency style-dictionary to v5.8.0 ([#1929](https://github.com/kanso-labs/kanso-ui/issues/1929)) ([226566a](https://github.com/kanso-labs/kanso-ui/commit/226566a23fd6e0b9bd39be1c4220434cf0048974))
+* update dependency tsdown to v0.23.5 ([#1924](https://github.com/kanso-labs/kanso-ui/issues/1924)) ([e21c673](https://github.com/kanso-labs/kanso-ui/commit/e21c67387e3a28baa2f2fcb4f74feb121bc6255f))
+
 ## [0.45.17](https://github.com/kanso-labs/kanso-ui/compare/v0.45.16...v0.45.17) (2026-11-03)
 
 
