@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import Select from '../components/select'
 import TextField from '../components/text-field'
+import TimeField from '../components/time-field'
 import { declarationsHeld } from '../styles/stylesheet.testing'
 import { fieldChromeStyles } from './styles'
 
@@ -111,5 +112,29 @@ describe('a field under forced colours', () => {
 
     expect(filled.get('border-bottom-color')).toBe('graytext')
     expect(outlined.get('color')).toBe('graytext')
+  })
+})
+
+describe('a segment under forced colours', () => {
+  // The line the segments sit on clips them, so a ring drawn outside a
+  // segment's box is cut away on three sides and only its corners show.
+  it('rings the focused segment inside its own box, where the line keeps it', () => {
+    const view = render(<TimeField label="Label" />)
+    const segment = view.getAllByRole('spinbutton')[0]
+    const rules = forcedColorRules(segment)
+    const reach =
+      Number.parseFloat(rules.get('outline-offset') ?? '') +
+      Number.parseFloat(rules.get('outline-width') ?? '')
+
+    let line = segment.parentElement
+
+    while (line !== null && getComputedStyle(line).overflowX !== 'hidden') {
+      line = line.parentElement
+    }
+
+    expect(line?.contains(segment)).toBe(true)
+    expect(rules.get('outline-style:focus')).toBe('solid')
+    expect(rules.get('outline-color')).toBe('highlight')
+    expect(reach).toBeLessThanOrEqual(0)
   })
 })
