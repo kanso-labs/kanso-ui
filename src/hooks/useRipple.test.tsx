@@ -241,6 +241,30 @@ describe('a ripple drawn in a part of its host', () => {
   })
 })
 
+// A press can reach a host that has no box: one hidden while it is pressed,
+// or a row whose press hides the pane it sits in, which is gone before the
+// click that plays the keyboard's ripple arrives. Growth is
+// sized against the box, and a disc grown from 0px took `scale(Infinity)`,
+// which the browser rejects with a warning on every such press.
+describe('a host with no box', () => {
+  it('grows no ripple', () => {
+    const animate = recordAnimations()
+
+    try {
+      const view = render(
+        <div hidden>
+          <ClickHost />
+        </div>,
+      )
+      fireEvent.click(view.getByTestId('host'))
+
+      expect(animate.transforms).toEqual([])
+    } finally {
+      animate.restore()
+    }
+  })
+})
+
 // A collection row never hears its own click, so a host asking for it ends
 // the press on the release. The rows' own tests press with a mouse; these
 // are the two touch paths, where a press is only confirmed after a delay.

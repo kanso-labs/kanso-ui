@@ -241,9 +241,6 @@ function useRipple<HostElement extends Element = Element>(
         return
       }
 
-      setPressed(true)
-      growAnimation.current?.cancel()
-
       // Read once and share: the two helpers below both only need the
       // rect, and a second `getBoundingClientRect()` call back to back with
       // the first would be a redundant layout read.
@@ -259,6 +256,19 @@ function useRipple<HostElement extends Element = Element>(
           ? surface
           : target.getBoundingClientRect()
       const size = determineRippleSize(rect)
+      // A host with no box has nowhere to draw: one hidden while it is
+      // pressed, or a row whose press hides the pane it sits in, which is
+      // gone before the click that plays the keyboard's ripple arrives.
+      // The disc would start at 0px, and the scale it grows by divides by
+      // that, which came out as `scale(Infinity)` — a keyframe the browser
+      // rejects with a warning.
+      if (initialSize.current === 0) {
+        return
+      }
+
+      setPressed(true)
+      growAnimation.current?.cancel()
+
       const { endPoint, startPoint } = getTranslationCoordinates(
         rect,
         centred ? undefined : positionEvent,
