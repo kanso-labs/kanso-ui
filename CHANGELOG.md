@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.20](https://github.com/kanso-labs/kanso-ui/compare/v0.45.19...v0.45.20) (2026-11-04)
+
+
+### Dependencies
+
+* update dependency @babel/core to v7.29.13 ([#1933](https://github.com/kanso-labs/kanso-ui/issues/1933)) ([fd5cdd5](https://github.com/kanso-labs/kanso-ui/commit/fd5cdd57ee46309f007cfc98a7f7a48f1a7b481d))
+
 ## [0.45.19](https://github.com/kanso-labs/kanso-ui/compare/v0.45.18...v0.45.19) (2026-11-04)
 
 
