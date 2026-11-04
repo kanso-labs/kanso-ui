@@ -485,6 +485,91 @@ function escapeKeyOn(
   }
 }
 
+function hasSize(element: HTMLElement) {
+  return element.clientWidth > 0 && element.clientHeight > 0
+}
+
+/**
+ * Puts a panel against the edge it rests on, without the smooth scroll an
+ * arrival takes: a bottom sheet, or a sheet on the right, at the end of its
+ * scroller, and a sheet on the left at the start. React Aria stamps the edge
+ * it resolved, by the writing direction, on the layer.
+ */
+function restAtEdge(layer: HTMLElement, scroller: HTMLElement) {
+  const edge = layer.dataset.position
+  if (edge === 'bottom') {
+    scroller.scrollTo({ top: scroller.scrollHeight })
+  } else {
+    scroller.scrollTo({ left: edge === 'left' ? 0 : scroller.scrollWidth })
+  }
+}
+
+/**
+ * Rests a panel that opened before it could be laid out, once it can be.
+ *
+ * React Aria brings a panel in by scrolling its scroller to where it rests,
+ * and counts the panel as arriving until that scroll ends. A scroller with no
+ * size scrolls nowhere and never ends a scroll, which is what a sheet opened
+ * inside something hidden has — a `container` in a tab panel or a route not
+ * shown yet. Shown later, the panel was laid out where the scroll left it,
+ * off the window, with its scrim over the page, and React Aria went on
+ * waiting: focus never moved in, and a press on the trigger behind it closed
+ * a sheet nobody had seen.
+ *
+ * So a layer whose scroller has no size as it mounts is watched until the
+ * scroller first has one, and the panel is then put where it opens, which
+ * ends the scroll React Aria is waiting on. A scroller with a size from the
+ * start is left to React Aria, and nothing here runs again: a panel being
+ * dragged or arriving always has a size. A ref callback rather than an
+ * effect, since the layer mounts with the sheet's opening, which the trigger
+ * rather than this part decides.
+ */
+function restOnceLaidOut(
+  layer: HTMLDivElement | null,
+): (() => void) | undefined {
+  const scroller = layer?.querySelector('[data-sheet-scroll]')
+  if (
+    !(layer instanceof HTMLElement && scroller instanceof HTMLElement) ||
+    hasSize(scroller)
+  ) {
+    return undefined
+  }
+  const observer = new ResizeObserver(() => {
+    if (!hasSize(scroller)) {
+      return
+    }
+    observer.disconnect()
+    restWhereItOpens(layer, scroller)
+  })
+  observer.observe(scroller)
+  return () => {
+    observer.disconnect()
+  }
+}
+
+/**
+ * Puts a panel where it opens, as React Aria's arrival does: at its first
+ * snap point where it has them, which React Aria marks inside the panel, and
+ * otherwise against its edge. Only a bottom sheet takes snap points, and the
+ * marker's top edge, less its scroll margin, is what React Aria lines up with
+ * the top of the scroller.
+ */
+function restWhereItOpens(layer: HTMLElement, scroller: HTMLElement) {
+  const first = layer.querySelector('[data-sheet-initial]')
+  if (!(first instanceof HTMLElement)) {
+    restAtEdge(layer, scroller)
+    return
+  }
+  const margin = Number.parseFloat(getComputedStyle(first).scrollMarginTop) || 0
+  scroller.scrollTo({
+    top:
+      first.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      margin,
+  })
+}
+
 /**
  * A modal panel that arrives from the edge of the screen — a side sheet on a
  * wide viewport, a bottom sheet on a narrow one. Open state is React Aria's:
@@ -629,6 +714,7 @@ function SheetContent({
       ? snapPoints
       : undefined
   const overlayRef = useRef<HTMLDivElement>(null)
+  const layerRef = mergeRefs(overlayRef, restOnceLaidOut)
   useRestOnTurn(overlayRef, position)
   // React Aria holds Escape whenever it holds the scrim and the swipe, so
   // the two settings disagreeing is where the dialog answers for Escape.
@@ -645,7 +731,7 @@ function SheetContent({
         onOpenChange={onOpenChange}
         position={position}
         preventDismissal={!isDismissable}
-        ref={overlayRef}
+        ref={layerRef}
         snapPoints={heights}
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
@@ -848,12 +934,7 @@ function useRestOnTurn(
     if (!(layer instanceof HTMLElement && scroller instanceof HTMLElement)) {
       return
     }
-    const edge = layer.dataset.position
-    if (edge === 'bottom') {
-      scroller.scrollTo({ top: scroller.scrollHeight })
-    } else {
-      scroller.scrollTo({ left: edge === 'left' ? 0 : scroller.scrollWidth })
-    }
+    restAtEdge(layer, scroller)
   }, [overlayRef, position])
 }
 
