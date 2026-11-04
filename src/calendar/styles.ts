@@ -65,6 +65,10 @@ const TARGET_REACH = `calc((${DATE_SIZE} - ${ROW_BLOCK_SIZE}) / 2)`
 // six draws every month in the box the longest one fills.
 const WEEKS_HELD = 6
 
+// The room one month is held at, the weekday row and the six weeks, which
+// the open month or year list takes too.
+const MONTH_BLOCK_SIZE = `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`
+
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -445,7 +449,7 @@ const calendarStyles = stylex.create({
   // draws them, and the rule above it is the page's outline variant divider
   // between the header and the list.
   menuList: {
-    blockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    blockSize: MONTH_BLOCK_SIZE,
     borderBlockStartColor: colors.outlineVariant,
     borderBlockStartStyle: 'solid',
     borderBlockStartWidth: '1px',
@@ -466,6 +470,32 @@ const calendarStyles = stylex.create({
     inlineSize: WEEK_INLINE_SIZE,
     maxInlineSize: '100%',
   },
+  // The name of a month while two or more stack below the expanded
+  // breakpoint. The heading between the chevrons names the whole range, and
+  // reads across months side by side in order; stacked, the second month sat
+  // under the first's last week with nothing saying which month it was.
+  // Material Design's full-screen range picker names each month of its list
+  // the same way: title small in on surface variant, at the start of a 48dp
+  // row with its text at the row's foot, so it reads with the month below it
+  // rather than the one above. Inset as that list's subhead is from the
+  // dates, by the 12dp the picker's own padding leaves.
+  //
+  // Hidden from assistive technology by the component, since React Aria
+  // already names each grid with its month.
+  monthCaption: {
+    alignItems: 'end',
+    blockSize: ROW_BLOCK_SIZE,
+    boxSizing: 'border-box',
+    color: colors.onSurfaceVariant,
+    display: { default: 'none', [media.belowExpanded]: 'flex' },
+    fontFamily: typography.titleSmallFont,
+    fontSize: typography.titleSmallSize,
+    fontWeight: typography.titleSmallWeight,
+    letterSpacing: typography.titleSmallTracking,
+    lineHeight: typography.titleSmallLineHeight,
+    paddingBlockEnd: spacing.sm,
+    paddingInline: spacing.md,
+  },
   // Two months side by side, for a `visibleDuration` of more than one, and
   // the room the grid is held at.
   //
@@ -480,16 +510,16 @@ const calendarStyles = stylex.create({
   // side by side come to 720dp with the calendar's padding, wider than a
   // compact window and most of a medium one, so they sit side by side only
   // from the expanded window size up, whether a picker holding them is
-  // docked or modal. Stacked, each sits in a row of its own holding the same
-  // six weeks of room, so a short month does not draw the one under it up.
+  // docked or modal. Stacked, each month takes its own height under its
+  // `monthCaption`, so a short month leaves no gap before the next one's
+  // name, and `monthsStacked` holds the stack itself still. `alignContent`
+  // is what keeps the slack under the last month: left to its default, a
+  // grid's rows stretch to share it out, which put it back between them.
   months: {
+    alignContent: { default: null, [media.belowExpanded]: 'start' },
     alignItems: 'start',
     display: { default: 'flex', [media.belowExpanded]: 'grid' },
     gap: spacing.xl,
-    gridAutoRows: {
-      default: null,
-      [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
-    },
     // One column, as wide as the calendar's content box and no wider: a track
     // left to size to its month holds the month's full 336 and runs past a
     // compact window's edge.
@@ -501,8 +531,19 @@ const calendarStyles = stylex.create({
     // as tall as its weeks, so the calendar grew by 80px between February
     // 2026 and May, taking whatever sat under it down the page — and inside a
     // picker's popover moving the panel's own edge while it was open.
-    minBlockSize: `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`,
+    minBlockSize: MONTH_BLOCK_SIZE,
   },
+  // The room `count` stacked months are held at below the expanded
+  // breakpoint, for the reason `months` holds one: each month's caption,
+  // weekday row and six weeks, and the gap between each two. Side by side
+  // they are held at one month's room, as `months` holds them. A dynamic
+  // style, since the count is `visibleDuration`'s.
+  monthsStacked: (count: number) => ({
+    minBlockSize: {
+      default: MONTH_BLOCK_SIZE,
+      [media.belowExpanded]: `calc((${MONTH_BLOCK_SIZE} + ${ROW_BLOCK_SIZE}) * ${count} + ${spacing.xl} * ${count - 1})`,
+    },
+  }),
   // The page's docked container: 360dp on the high surface container, or
   // the width of its container where that is narrower — a compact window
   // leaves 328dp between its margins, and the grid narrows to fit. Its height
