@@ -59,6 +59,10 @@ const WIDE = { inlineSize: '1000px' }
 // One word with no space to break at, wider than a narrow bar's headline.
 const LONG_WORD = 'Unterstützungszeilenüberschrift'
 
+// Too long for one line between a back button and three actions at a phone's
+// width, where it wrapped to four lines, and to five at 320px.
+const LONG_HEADLINE = 'A headline long enough to need more than one line'
+
 const LEADING = <button type="button">Back</button>
 
 // A glyph at the 24dp the app bar's tokens give an icon.
@@ -1179,6 +1183,12 @@ function inkMiddleOf(heading: HTMLElement) {
   return (box.left + box.right) / 2
 }
 
+/** How many lines a line of the bar's text is drawn on, by its line height. */
+function linesOf(element: Element) {
+  const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight)
+  return Math.round(element.getBoundingClientRect().height / lineHeight)
+}
+
 /** The middle of an element's box, across the bar. */
 function middleOf(element: Element) {
   const box = element.getBoundingClientRect()
@@ -1270,7 +1280,7 @@ describe('align', () => {
 
   // Where the text is wider than a side's share, it moves off the middle as
   // far as the wider slot needs and no further, rather than running under
-  // it, and wraps against the room left.
+  // it, and is cut short against the room left.
   it('moves a long headline off the middle rather than under a slot', () => {
     const view = render(
       <div style={PHONE}>
@@ -1298,7 +1308,116 @@ describe('align', () => {
       trailingSlot.getBoundingClientRect().left,
     )
     expect(Math.abs(middleOf(text) - middleOf(bar))).toBeGreaterThan(1)
-    expect(heading.getBoundingClientRect().height).toBeGreaterThan(28)
+    expect(heading.scrollWidth).toBeGreaterThan(heading.clientWidth)
+  })
+
+  // Beside the slots a centred line takes one line, cut short with an
+  // ellipsis, as Material Design gives the centre-aligned bar. Wrapped, the
+  // headline beside a back button and three actions at a phone's width was
+  // four lines in the middle of the bar. Cut, it is still the heading's whole
+  // text, so the bar's name does not change.
+  describe('a long line beside the slots', () => {
+    it('takes one line for the headline beside three actions', () => {
+      const view = render(
+        <div style={PHONE}>
+          <AppBar
+            align="center"
+            headline={LONG_HEADLINE}
+            leading={ICON_LEADING}
+            trailing={THREE_ACTIONS}
+          />
+        </div>,
+      )
+      const bar = barInWrapper(view.container)
+      const heading = view.getByRole('heading', {
+        level: 1,
+        name: LONG_HEADLINE,
+      })
+
+      expect(linesOf(heading)).toBe(1)
+      expect(heading.scrollWidth).toBeGreaterThan(heading.clientWidth)
+      expect(getComputedStyle(heading).textOverflow).toBe('ellipsis')
+      expect(bar.getBoundingClientRect().height).toBe(STRIP)
+    })
+
+    it('takes one line for the subtitle as well', () => {
+      const view = render(
+        <div style={PHONE}>
+          <AppBar
+            align="center"
+            headline="Headline"
+            leading={ICON_LEADING}
+            subtitle={LONG_HEADLINE}
+            trailing={THREE_ACTIONS}
+          />
+        </div>,
+      )
+
+      expect(linesOf(view.getByText(LONG_HEADLINE))).toBe(1)
+    })
+
+    // Collapsed, a flexible bar is the small bar, and its lines move up
+    // beside the slots with it.
+    it.each(['md', 'lg'] as const)(
+      'takes one line once the %s bar has collapsed',
+      (size) => {
+        const view = render(
+          <div style={PHONE}>
+            <AppBar
+              align="center"
+              collapsed
+              headline={LONG_HEADLINE}
+              leading={ICON_LEADING}
+              size={size}
+              trailing={THREE_ACTIONS}
+            />
+          </div>,
+        )
+
+        expect(linesOf(view.getByRole('heading', { level: 1 }))).toBe(1)
+      },
+    )
+
+    // The second row runs under the slots across the whole width, which is
+    // the room the flexible bars wrap in, centred or not.
+    it.each(['md', 'lg'] as const)(
+      "still wraps in the %s bar's second row",
+      (size) => {
+        const view = render(
+          <div style={PHONE}>
+            <AppBar
+              align="center"
+              headline={LONG_HEADLINE}
+              leading={ICON_LEADING}
+              size={size}
+              trailing={THREE_ACTIONS}
+            />
+          </div>,
+        )
+
+        expect(
+          linesOf(view.getByRole('heading', { level: 1 })),
+        ).toBeGreaterThan(1)
+      },
+    )
+
+    // Only the centred bar cuts its lines. One at the start wraps and grows
+    // the bar, as it always has.
+    it('still wraps a headline at the start', () => {
+      const view = render(
+        <div style={PHONE}>
+          <AppBar
+            headline={LONG_HEADLINE}
+            leading={ICON_LEADING}
+            trailing={THREE_ACTIONS}
+          />
+        </div>,
+      )
+
+      expect(linesOf(view.getByRole('heading', { level: 1 }))).toBeGreaterThan(
+        1,
+      )
+    })
   })
 
   // A headline too long for the middle takes the whole room between the

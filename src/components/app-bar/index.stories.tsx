@@ -361,7 +361,8 @@ const HeadingLevel: Story = {
 // show: the two only part when the sides differ. A leading slot alone, a back
 // button against three actions, and a headline too long for the middle,
 // which moves off it as far as the wider side needs rather than running
-// under a slot.
+// under a slot, and takes one line cut short with an ellipsis rather than
+// wrapping into a column in the middle of the bar.
 const CenterAligned: Story = {
   render: () => (
     <div {...stylex.props(styles.stack)}>
