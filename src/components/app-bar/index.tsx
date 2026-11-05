@@ -53,6 +53,16 @@ import Text from '../text'
 // them, and the text moves off the middle only where a wide slot needs the
 // room — see `centredColumns`.
 //
+// A centred bar's text takes one line beside its slots, cut short with an
+// ellipsis, as Material Design gives the centre-aligned bar one line of
+// headline. Everywhere else the text wraps and the bar grows with it, but
+// centred lines wrapping between a back button and three actions at a phone's
+// width made a ragged column four or five lines tall in the middle of the bar. The
+// flexible bars' second row runs under the slots across the whole width, so
+// it keeps wrapping when centred; collapsed, they are the small bar, and cut
+// their lines as it does. The headline is still the heading's whole text, so
+// it stays the bar's accessible name.
+//
 // The slots set the colours the page gives their icons: on surface for the
 // leading one and on surface variant for the trailing ones. The second is a
 // standard icon button's own colour, and the first is not, so the leading
@@ -209,6 +219,13 @@ const styles = stylex.create({
   },
   textCenter: {
     textAlign: 'center',
+  },
+  // A line of a centred bar's text beside its slots — see the header. The
+  // block's own wrapping rules give way to it, since nothing wraps.
+  textOneLine: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   // The slot that comes after the text, mirroring `leading`, in the colour a
   // standard icon button already draws in.
@@ -385,7 +402,9 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * the text on the bar rather than between the slots, so a bar with a
    * leading icon and no actions still has its headline in the middle. The
    * text moves off the middle only as far as a slot wider than the other
-   * needs, rather than running under it.
+   * needs, rather than running under it. Beside the slots, which is `sm` and
+   * a collapsed flexible bar, each line of centred text takes one line and
+   * is cut short with an ellipsis rather than wrapping.
    * @default 'start'
    */
   align?: 'center' | 'start'
@@ -456,7 +475,11 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * @default 1
    */
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
-  /** The page's title. Wraps rather than truncating, and grows the bar with it. */
+  /**
+   * The page's title. Wraps rather than truncating, and grows the bar with
+   * it, except beside the slots of a centred bar, where it takes one line and
+   * is cut short with an ellipsis — see `align`.
+   */
   headline?: ReactNode
   /**
    * Usually a back or menu icon button. Sits before the text, and a standard
@@ -569,6 +592,9 @@ function AppBar({
   const hasSlot = hasLeading || hasTrailing
   const padsForStart = centred ? hasSlot : hasLeading
   const padsForEnd = centred ? hasSlot : hasTrailing
+  // Each line of a centred bar's text takes one beside the slots — see the
+  // header.
+  const line = stylex.props(centred && !below && styles.textOneLine)
   const textRef = useCollapseMotion(collapse, align)
 
   return useRender({
@@ -615,6 +641,7 @@ function AppBar({
           >
             {!hasContent(headline) ? null : (
               <Text
+                {...line}
                 render={heading(headingLevel)}
                 variant={
                   collapse ? HEADLINE_VARIANT.sm : HEADLINE_VARIANT[size]
@@ -625,6 +652,7 @@ function AppBar({
             )}
             {!hasContent(subtitle) ? null : (
               <Text
+                {...line}
                 render={PARAGRAPH}
                 tone="muted"
                 variant={
