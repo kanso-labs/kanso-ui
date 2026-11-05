@@ -60,6 +60,41 @@ async function frames() {
   })
 }
 
+// A carousel whose items report what they are handed, as children written as
+// a function: how much of each shows, and the width it is laid out at.
+function reporting(props: Partial<CarouselProps> = {}) {
+  const view = render(
+    <div {...stylex.props(probeStyles.frame)}>
+      <Carousel label="Label" {...props}>
+        {LABELS.map((label) => (
+          <Carousel.Item key={label}>
+            {({ visibleWidth, width }) => (
+              <span data-visible={visibleWidth} data-width={width}>
+                {label}
+              </span>
+            )}
+          </Carousel.Item>
+        ))}
+      </Carousel>
+    </div>,
+  )
+  const scroller = view.getByRole('region', { name: 'Label' }).firstElementChild
+  if (!(scroller instanceof HTMLElement)) {
+    throw new TypeError('expected the carousel to open with its scroller')
+  }
+  scroller.style.scrollBehavior = 'auto'
+  // What the first `count` items were handed, rounded to whole pixels.
+  const reported = (count: number) =>
+    LABELS.slice(0, count).map((label) => {
+      const { dataset } = view.getByText(label)
+      return [
+        Math.round(Number(dataset.visible)),
+        Math.round(Number(dataset.width)),
+      ]
+    })
+  return { reported, scroller }
+}
+
 // A scroll lands at once, but what the carousel draws from it waits for the
 // scroll event the browser sends on the next frame.
 async function scrollCarousel(scroller: HTMLElement, left: number) {
@@ -374,6 +409,49 @@ describe('carousel', () => {
       await waitFor(() => {
         expect(scroller.scrollLeft).toBe(STEP)
       })
+    })
+  })
+
+  // The page shows an item's text once the item has room for it, which only
+  // what the item holds can judge, so it is told how much of the item shows.
+  describe('masks', () => {
+    it('tells what an item holds how much of it shows', () => {
+      const { reported } = reporting()
+
+      expect(reported(3)).toEqual([
+        [240, 240],
+        [168, 240],
+        [56, 240],
+      ])
+    })
+
+    it('tells it again as the carousel moves', async () => {
+      const { reported, scroller } = reporting()
+
+      await scrollCarousel(scroller, STEP)
+
+      expect(reported(4)).toEqual([
+        [56, 240],
+        [240, 240],
+        [168, 240],
+        [56, 240],
+      ])
+    })
+
+    it('shows the whole of every uncontained item, which masks nothing', () => {
+      const { reported } = reporting({ layout: 'uncontained' })
+
+      expect(reported(3)).toEqual([
+        [240, 240],
+        [240, 240],
+        [240, 240],
+      ])
+    })
+
+    it('leaves children that are not a function as they are', () => {
+      const { getAllByRole } = setup()
+
+      expect(getAllByRole('group')[0]?.textContent).toBe('First item')
     })
   })
 

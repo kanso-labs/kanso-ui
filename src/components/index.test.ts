@@ -153,6 +153,7 @@ import type { BadgeProps } from './badge'
 import type { ButtonGroupProps } from './button-group'
 import type {
   CarouselItemProps,
+  CarouselItemRenderProps,
   CarouselLayout,
   CarouselProps,
 } from './carousel'
@@ -1518,6 +1519,11 @@ describe('components barrel', () => {
   it('re-exports the CarouselItemProps type', () => {
     const props: CarouselItemProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the CarouselItemRenderProps type', () => {
+    const state: CarouselItemRenderProps = { visibleWidth: 56, width: 240 }
+    expect(state.visibleWidth).toBe(56)
   })
 
   it('re-exports the TimePickerProps type', () => {

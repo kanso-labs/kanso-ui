@@ -342,7 +342,13 @@ export function CarouselItem(input: CarouselItemProps & RefAttributes<HTMLDivEle
 
 // @public (undocumented)
 export type CarouselItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
-    children?: ReactNode;
+    children?: ((state: CarouselItemRenderProps) => ReactNode) | ReactNode;
+};
+
+// @public
+export type CarouselItemRenderProps = {
+    visibleWidth: number;
+    width: number;
 };
 
 // @public (undocumented)
