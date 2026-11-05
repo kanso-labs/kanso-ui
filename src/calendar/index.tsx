@@ -307,7 +307,7 @@ function CalendarMonths({
     <div
       {...stylex.props(
         calendarStyles.months,
-        isStackable && calendarStyles.monthsStacked(offsets.length),
+        isStackable && calendarStyles.monthsStacked,
       )}
     >
       {offsets.map((offset) => (
