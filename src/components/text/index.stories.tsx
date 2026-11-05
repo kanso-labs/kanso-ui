@@ -211,7 +211,7 @@ const SpanAndBlock: Story = {
           </Text>
         </div>
         <div {...stylex.props(styles.fill, styles.prose)}>
-          <Text>First sentence of the copy.</Text>
+          <Text>First sentence of the copy.</Text>{' '}
           <Text>Second sentence, which runs on from it.</Text>
         </div>
       </div>
