@@ -941,6 +941,69 @@ describe('sheet', () => {
       })
       expect(view.getByRole('dialog')).toBe(dialog)
     })
+
+    // A sheet opened inside something not laid out yet — a hidden tab panel
+    // or route — has a scroller with no size when React Aria scrolls it in,
+    // so the scroll goes nowhere. Shown later, it is laid out with the panel
+    // where the scroll left it, which is off the window, and stays there.
+    describe('opened inside something hidden', () => {
+      let host: HTMLDivElement
+
+      beforeEach(() => {
+        host = document.createElement('div')
+        host.hidden = true
+        document.body.append(host)
+      })
+
+      afterEach(() => {
+        host.remove()
+      })
+
+      async function shownLater(snapPoints?: Array<number | string>) {
+        const view = setup({}, { container: host, snapPoints })
+        const dialog = view.getByRole('dialog', { hidden: true })
+        // Long enough for React Aria to have made its scroll in.
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        })
+        host.hidden = false
+        return dialog
+      }
+
+      it('rests a bottom sheet at the bottom once it is shown', async () => {
+        const dialog = await shownLater()
+        const panel = await arrived(dialog)
+
+        expect(panel.getBoundingClientRect().bottom).toBe(window.innerHeight)
+      })
+
+      it('rests a side sheet at its edge once it is shown', async () => {
+        await resize(1024, 768)
+        const dialog = await shownLater()
+        const panel = await arrived(dialog)
+
+        expect(layerOf(dialog).dataset.position).toBe('right')
+        expect(panel.getBoundingClientRect().right).toBe(1024)
+      })
+
+      it('rests a sheet with snap points at its first once it is shown', async () => {
+        const dialog = await shownLater(SNAP_POINTS)
+        const panel = await collapsed(dialog)
+
+        expect(showing(panel)).toBe(200)
+      })
+
+      // React Aria moves focus into the sheet only once it has entered,
+      // which is the scroll that went nowhere ending.
+      it('takes focus once it is shown', async () => {
+        const dialog = await shownLater()
+        await arrived(dialog)
+
+        await waitFor(() => {
+          expect(dialog.contains(document.activeElement)).toBe(true)
+        })
+      })
+    })
   })
 
   // The body is the one part that scrolls: a body longer than the room
