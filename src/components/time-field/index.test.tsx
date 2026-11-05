@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import TimeField from '.'
 import { Time } from '../../date'
+import { crowdedSegments } from '../../segments/spacing.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -13,8 +14,9 @@ const probeStyles = stylex.create({
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   primary: { color: colors.primary },
   // Narrower than a twelve-hour time down to the second, which is where the
-  // line has to be clipped.
-  room: { inlineSize: '100px' },
+  // line has to be clipped, and wide enough for its last two segments, so
+  // stepping back from the last one leaves both in view.
+  room: { inlineSize: '120px' },
 })
 
 function probe(style: stylex.StyleXStyles) {
@@ -119,35 +121,22 @@ describe('time field', () => {
       expect(colour).toBe(probe(probeStyles.onSurfaceVariant))
     })
 
-    // WCAG 2.5.8 asks 24 by 24 of a target with no room around it, and the
-    // segments sit side by side. An empty hour's placeholder and a single
-    // digit are narrower than that on their own.
+    // A digit is narrower than the 24 by 24 WCAG 2.5.8 asks of a target, so
+    // what passes the segments is the room the punctuation keeps between them
+    // — see `segmentLiteral` in src/segments/styles.ts.
     it.each([
       ['empty', undefined],
       ['filled', new Time(9, 5)],
-    ])('gives every segment a target at least 24 by 24, %s', (_, value) => {
+    ])('keeps every segment clear of the next as a target, %s', (_, value) => {
       const view = render(
         <I18nProvider locale="en-US">
           <TimeField defaultValue={value} label="Label" />
         </I18nProvider>,
       )
-      const boxes = segmentsOf(view).map((s) => s.getBoundingClientRect())
+      const segments = segmentsOf(view)
 
-      expect(boxes).toHaveLength(3)
-      for (const box of boxes) {
-        expect(box.width).toBeGreaterThanOrEqual(24)
-        expect(box.height).toBeGreaterThanOrEqual(24)
-      }
-    })
-
-    it('leaves the punctuation its own width', () => {
-      const view = render(<TimeField defaultValue={TIME} label="Label" />)
-      const literal = view.container.querySelector('[data-type="literal"]')
-      if (!(literal instanceof HTMLElement)) {
-        throw new Error('expected punctuation between the segments')
-      }
-
-      expect(literal.getBoundingClientRect().width).toBeLessThan(12)
+      expect(segments).toHaveLength(3)
+      expect(crowdedSegments(segments)).toEqual([])
     })
 
     it('floats the label clear of the segments, even with no value', () => {

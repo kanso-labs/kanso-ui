@@ -36,11 +36,6 @@ const segmentStyles = stylex.create({
     boxSizing: 'border-box',
     caretColor: 'transparent',
     color: colors.onSurface,
-    // The 24 by 24 WCAG 2.5.8 asks of a target with no room around it, which
-    // a segment has none of: an empty hour's placeholder or a single digit
-    // was 21 wide. The text sits in the middle of whatever a short value
-    // leaves over, and a wider one is unchanged.
-    minInlineSize: '24px',
     // What focus becomes under forced colours, where the fill below is gone.
     // That mode paints backgrounds in a system colour, so `segmentFocused`'s
     // filled shape — the only sign of focus this has, since the caret is
@@ -62,7 +57,7 @@ const segmentStyles = stylex.create({
     },
     outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
     paddingInline: spacing.xxs,
-    textAlign: 'center',
+    textAlign: 'end',
   },
   // Faded with the rest of the field, and the same 38% every disabled
   // control here takes.
@@ -78,10 +73,19 @@ const segmentStyles = stylex.create({
   },
   // A literal between two segments — the slash or the colon the locale puts
   // there. Not a focus stop, and not something a reader tabs through.
+  //
+  // The room either side of it is what keeps the segments apart as targets.
+  // A single digit is narrower than the 24 by 24 WCAG 2.5.8 asks of a
+  // target, and the criterion lets one that size pass only where a 24px
+  // circle centred on it reaches neither the next segment nor that
+  // segment's own circle. With the literal drawn tight, the 9 and the 5 of
+  // 9/5/2026 sat 19px apart, centre to centre. Spaced here rather than by
+  // widening the segments: a segment held at 24 leaves a short value
+  // floating in it, which drew the value off the label's edge and the
+  // literals at uneven distances, where this spaces every literal alike.
   segmentLiteral: {
     color: colors.onSurfaceVariant,
-    minInlineSize: 0,
-    paddingInline: 0,
+    paddingInline: spacing.xs,
   },
   // A segment with nothing in it yet, showing its own placeholder.
   segmentPlaceholder: {
