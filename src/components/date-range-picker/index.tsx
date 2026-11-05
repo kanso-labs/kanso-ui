@@ -63,8 +63,26 @@ import RangeCalendar from '../range-calendar'
 // **Both segment groups and the trigger sit in one React Aria `Group`.** The
 // box draws once around all three, so a reader tabs start, end, trigger
 // rather than meeting three controls in a row.
+//
+// **The end date takes a line of its own where the two do not fit on one.**
+// The line the segments sit on clips them, as an input clips its text, and
+// two dates and the dash are wider than a phone's field: at 328px the empty
+// field showed 212px of the 281px its placeholders take, so most of the end
+// date was out of sight until it was typed in. Every segment is a place to
+// type, so none can be hidden, and shortening the placeholders would not hold
+// for a locale whose dates are longer. So the two groups wrap, the dash stays
+// after the start date, and the box grows by a line, as a text area's does,
+// from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
+// the dates share their line.
 
 const styles = stylex.create({
+  // The two segment groups and the dash, wrapping the end date onto a line of
+  // its own where they do not fit on one. No gap between the lines, which
+  // are the segments' own line height apart, as a text area's are.
+  group: {
+    flexWrap: 'wrap',
+    rowGap: 0,
+  },
   // The dash between the two segment groups. Body-large so it sits on the
   // segments' own line, muted so the dates either side stay the thing being
   // read.
@@ -228,6 +246,9 @@ function DateRangePicker<T extends DateValue>({
         isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
+        // Grows by a line where the end date wraps onto one of its own, and
+        // is the page's 56dp otherwise — see the header.
+        multiline
         // In the chrome's trailing slot rather than on the segments' line —
         // see the same prop on DatePicker for what that slot does and why
         // the trigger still opens from there.
@@ -235,7 +256,7 @@ function DateRangePicker<T extends DateValue>({
         variant={variant}
       >
         <FieldSegments>
-          <RACGroup {...stylex.props(picker.group)}>
+          <RACGroup {...stylex.props(picker.group, styles.group)}>
             <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>

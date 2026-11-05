@@ -41,6 +41,27 @@ function parts(container: HTMLElement) {
   }
 }
 
+// A phone's 360dp less the page's 16dp margins either side.
+const PHONE = { inlineSize: '328px' }
+
+// The page's 56dp box, and the segments' body-large line.
+const BOX_HEIGHT = 56
+const LINE_HEIGHT = 24
+
+// The line the segments sit on, which clips whatever does not fit on it.
+function lineOf(view: ReturnType<typeof render>) {
+  const line = view
+    .getAllByRole('spinbutton')[0]
+    .closest('[role="group"]')?.parentElement
+  if (
+    !(line instanceof HTMLElement) ||
+    getComputedStyle(line).overflow !== 'hidden'
+  ) {
+    throw new Error('expected the segments to sit on a line that clips')
+  }
+  return line.getBoundingClientRect()
+}
+
 // React Aria names every segment for the end it belongs to — "month, Start
 // Date," and "month, End Date," — which is what separates the two groups
 // without either carrying a test id.
@@ -307,6 +328,88 @@ describe('date range picker', () => {
       expect(legend?.getBoundingClientRect().width).toBeGreaterThan(0)
     })
   })
+  // Two dates and the dash are wider than a phone's field, and the line the
+  // segments sit on clips them, so at 328px the empty field hid most of the
+  // end date. The end date takes a line of its own there, and the box grows
+  // by a line to hold it.
+  describe('a field too narrow for both dates', () => {
+    it.each(['filled', 'outlined'] as const)(
+      'keeps every segment of the %s field in sight',
+      (variant) => {
+        const view = render(
+          <div style={PHONE}>
+            <DateRangePicker label="Label" variant={variant} />
+          </div>,
+        )
+        const line = lineOf(view)
+
+        for (const segment of view.getAllByRole('spinbutton')) {
+          const box = segment.getBoundingClientRect()
+          expect(box.left).toBeGreaterThanOrEqual(line.left)
+          expect(box.right).toBeLessThanOrEqual(line.right)
+          expect(box.top).toBeGreaterThanOrEqual(line.top)
+          expect(box.bottom).toBeLessThanOrEqual(line.bottom)
+        }
+      },
+    )
+
+    // The dash stays after the start date, so the first line reads as the
+    // start of a range and the second as its end.
+    it('puts the end date on a line of its own, after the dash', () => {
+      const view = render(
+        <div style={PHONE}>
+          <DateRangePicker label="Label" />
+        </div>,
+      )
+      const start = segmentsOf(view, 'Start')[0].getBoundingClientRect()
+      const end = segmentsOf(view, 'End')[0].getBoundingClientRect()
+      const dash = view.getByText('–').getBoundingClientRect()
+
+      expect(end.top).toBeGreaterThanOrEqual(start.bottom)
+      expect(end.left).toBeCloseTo(start.left, 0)
+      expect(dash.top).toBeLessThan(start.bottom)
+      expect(dash.left).toBeGreaterThan(start.right)
+    })
+
+    it.each(['filled', 'outlined'] as const)(
+      'grows the %s box by a line and keeps the trigger centred',
+      (variant) => {
+        const view = render(
+          <div style={PHONE}>
+            <DateRangePicker label="Label" variant={variant} />
+          </div>,
+        )
+        const { box, trigger } = parts(view.container)
+
+        expect(box.height).toBe(BOX_HEIGHT + LINE_HEIGHT)
+        expect(trigger.top - box.top).toBeCloseTo(
+          box.bottom - trigger.bottom,
+          0,
+        )
+      },
+    )
+
+    // Where both fit, nothing moves: one line, and the page's 56dp box.
+    it.each(['filled', 'outlined'] as const)(
+      'keeps both dates on one line in a %s field that fits them',
+      (variant) => {
+        const view = render(
+          <DateRangePicker
+            defaultValue={RANGE}
+            label="Label"
+            variant={variant}
+          />,
+        )
+        const tops = view
+          .getAllByRole('spinbutton')
+          .map((segment) => segment.getBoundingClientRect().top)
+
+        expect(new Set(tops).size).toBe(1)
+        expect(parts(view.container).box.height).toBe(BOX_HEIGHT)
+      },
+    )
+  })
+
   // The trigger is the chrome's trailing icon rather than something on the
   // segments' line. On that line it was taller than the row holding it, so
   // it hung past the underline and pulled the segments down with it.
