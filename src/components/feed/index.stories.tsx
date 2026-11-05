@@ -46,8 +46,12 @@ const styles = stylex.create({
     display: 'flex',
     gap: spacing.md,
   },
+  // The two containers ContainerWidths sets the feed in, each held to the
+  // page's width so a phone's window shows the wide one as wide as it can be
+  // rather than scrolling the page sideways to reach the rest of it.
   narrow: {
     inlineSize: '300px',
+    maxInlineSize: '100%',
   },
   // alignItems, because a flex column stretches its children and an
   // inline-flex Tag would otherwise span the whole card.
@@ -59,6 +63,7 @@ const styles = stylex.create({
   },
   wide: {
     inlineSize: '640px',
+    maxInlineSize: '100%',
   },
 })
 
