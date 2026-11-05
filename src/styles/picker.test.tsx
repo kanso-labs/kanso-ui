@@ -366,10 +366,10 @@ describe('a date picker showing two months', () => {
     },
   )
 
-  // February 2026 runs four weeks and March five. Stacked, each month still
-  // sits in six weeks of room, so March is where it would be under a
-  // six-week February: the weekday row and six weeks of 48, then the gap.
-  it('keeps the room of six weeks for each stacked month', async () => {
+  // February 2026 runs four weeks and March five. Stacked, each month takes
+  // its own height under its own name, so March starts right after
+  // February's four weeks: the gap, then the 48 March's name sits in.
+  it('starts each stacked month right after the one above it', async () => {
     await page.viewport(COMPACT, 900)
     const [first, second] = monthsIn(
       surfaceOf(
@@ -383,6 +383,6 @@ describe('a date picker showing two months', () => {
     )
 
     expect(first.height).toBe(5 * 48)
-    expect(second.top - first.top).toBe(7 * 48 + 24)
+    expect(second.top - first.bottom).toBe(24 + 48)
   })
 })

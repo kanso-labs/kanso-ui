@@ -10,13 +10,10 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import {
   CalendarCell as RACCalendarCell,
-  CalendarGrid as RACCalendarGrid,
-  CalendarGridBody as RACCalendarGridBody,
   RangeCalendar as RACRangeCalendar,
 } from 'react-aria-components'
 
-import { CalendarFrame, CalendarGridHeader } from '../../calendar'
-import { monthOffsets } from '../../calendar/months'
+import { CalendarFrame, CalendarMonths } from '../../calendar'
 import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -162,19 +159,9 @@ function RangeCalendar<T extends DateValue>({
         months={props.visibleDuration?.months ?? 1}
         showMonthYearMenus={showMonthYearMenus}
       >
-        <div {...stylex.props(calendarStyles.months)}>
-          {monthOffsets(props.visibleDuration?.months ?? 1).map((offset) => (
-            <div key={offset.months} {...stylex.props(calendarStyles.month)}>
-              <RACCalendarGrid
-                offset={offset}
-                {...stylex.props(calendarStyles.grid)}
-              >
-                <CalendarGridHeader />
-                <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-              </RACCalendarGrid>
-            </div>
-          ))}
-        </div>
+        <CalendarMonths months={props.visibleDuration?.months ?? 1}>
+          {gridCell}
+        </CalendarMonths>
       </CalendarFrame>
     </RACRangeCalendar>
   )

@@ -16,13 +16,10 @@ import {
   CalendarStateContext,
   Calendar as RACCalendar,
   CalendarCell as RACCalendarCell,
-  CalendarGrid as RACCalendarGrid,
-  CalendarGridBody as RACCalendarGridBody,
   Text as RACText,
 } from 'react-aria-components'
 
-import { CalendarFrame, CalendarGridHeader } from '../../calendar'
-import { monthOffsets } from '../../calendar/months'
+import { CalendarFrame, CalendarMonths } from '../../calendar'
 import { calendarStyles, dateLayers } from '../../calendar/styles'
 import { invalidFrom } from '../../field/root'
 import { fieldChromeStyles } from '../../field/styles'
@@ -158,9 +155,9 @@ type CalendarStates = {
  *
  * `minValue` and `maxValue` bound it, `isDateUnavailable` rules individual
  * dates out, and `visibleDuration` of `{ months: 2 }` draws two months side
- * by side, stacked below the expanded breakpoint. Name it with `aria-label`
- * or `aria-labelledby`; React Aria composes the visible month into that name
- * itself.
+ * by side, stacked below the expanded breakpoint with each month named over
+ * its grid. Name it with `aria-label` or `aria-labelledby`; React Aria
+ * composes the visible month into that name itself.
  *
  * The call site's `className` and `style` land on the container, which is the
  * element a layout positions.
@@ -182,24 +179,9 @@ function Calendar<T extends DateValue>({
             months={props.visibleDuration?.months ?? 1}
             showMonthYearMenus={showMonthYearMenus}
           >
-            <div {...stylex.props(calendarStyles.months)}>
-              {monthOffsets(props.visibleDuration?.months ?? 1).map(
-                (offset) => (
-                  <div
-                    key={offset.months}
-                    {...stylex.props(calendarStyles.month)}
-                  >
-                    <RACCalendarGrid
-                      offset={offset}
-                      {...stylex.props(calendarStyles.grid)}
-                    >
-                      <CalendarGridHeader />
-                      <RACCalendarGridBody>{gridCell}</RACCalendarGridBody>
-                    </RACCalendarGrid>
-                  </div>
-                ),
-              )}
-            </div>
+            <CalendarMonths months={props.visibleDuration?.months ?? 1}>
+              {gridCell}
+            </CalendarMonths>
           </CalendarFrame>
           {/*
            * Through React Aria's error slot, which gives it the id an

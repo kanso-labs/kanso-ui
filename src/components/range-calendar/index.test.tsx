@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
+import { page } from 'vitest/browser'
 
 import RangeCalendar from '.'
 import { CalendarDate } from '../../date'
@@ -102,6 +103,59 @@ async function nextFrame() {
       })
     })
   })
+}
+
+// How far below the first of two months the second one's grid starts, for a
+// range calendar opening on the given range.
+function spaceBetweenMonths(defaultValue: typeof RANGE) {
+  const view = render(
+    <RangeCalendar
+      aria-label="Label"
+      defaultValue={defaultValue}
+      visibleDuration={VISIBLE_TWO}
+    />,
+  )
+  const [first, second] = view
+    .getAllByRole('grid')
+    .map((grid) => grid.getBoundingClientRect())
+  view.unmount()
+  return second.top - first.bottom
+}
+
+// What the stacked months leave under the second one's last week, inside the
+// box that holds them both.
+function spaceUnderMonths(defaultValue: typeof RANGE) {
+  const view = render(
+    <RangeCalendar
+      aria-label="Label"
+      defaultValue={defaultValue}
+      visibleDuration={VISIBLE_TWO}
+    />,
+  )
+  const grids = view.getAllByRole('grid')
+  const months = grids.at(-1)?.parentElement?.parentElement
+  if (months == null || grids.length !== 2) {
+    throw new Error('expected two months in one container')
+  }
+  const space =
+    months.getBoundingClientRect().bottom -
+    grids[1].getBoundingClientRect().bottom
+  view.unmount()
+  return space
+}
+
+// The height of a calendar showing two months from `defaultValue` on.
+function stackedHeight(defaultValue: typeof RANGE) {
+  const view = render(
+    <RangeCalendar
+      aria-label="Label"
+      defaultValue={defaultValue}
+      visibleDuration={VISIBLE_TWO}
+    />,
+  )
+  const height = calendarBox(view).height
+  view.unmount()
+  return height
 }
 
 describe('range calendar', () => {
@@ -320,6 +374,116 @@ describe('range calendar', () => {
       ).toBe('true')
     })
   })
+
+  // Below the expanded breakpoint two months stack, and the heading between
+  // the chevrons names them only together, so each month carries its own
+  // name over its grid. 360 is a phone's width; 1280 sits past the expanded
+  // breakpoint, where the two sit side by side under the one heading.
+  describe('two months stacked', () => {
+    afterAll(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('names each month over its own grid', async () => {
+      await page.viewport(PHONE, 900)
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          visibleDuration={VISIBLE_TWO}
+        />,
+      )
+      const [first, second] = view
+        .getAllByRole('grid')
+        .map((grid) => grid.getBoundingClientRect())
+      const september = view.getByText('September 2026')
+      const october = view.getByText('October 2026')
+
+      expect(september).toBeVisible()
+      expect(october).toBeVisible()
+      expect(september.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        first.top,
+      )
+      expect(october.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        first.bottom,
+      )
+      expect(october.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        second.top,
+      )
+    })
+
+    it('names no month while the two sit side by side', async () => {
+      await page.viewport(WIDE, 900)
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          visibleDuration={VISIBLE_TWO}
+        />,
+      )
+
+      expect(view.getByText('September 2026')).not.toBeVisible()
+      expect(view.getByText('October 2026')).not.toBeVisible()
+    })
+
+    // The heading between the chevrons already names a month shown alone.
+    it('adds no name to a month shown alone', async () => {
+      await page.viewport(PHONE, 900)
+      const view = render(
+        <RangeCalendar aria-label="Label" defaultValue={RANGE} />,
+      )
+
+      expect(view.getAllByText('September 2026')).toHaveLength(1)
+    })
+
+    // February 2026 runs four weeks and May six. Named, the month under each
+    // starts right after its last week, rather than after six weeks of room
+    // whatever the month held.
+    it('starts the second month right after the first one ends', async () => {
+      await page.viewport(PHONE, 900)
+      const afterFour = spaceBetweenMonths(FOUR_WEEK_RANGE)
+
+      expect(afterFour).toBe(spaceBetweenMonths(SIX_WEEK_RANGE))
+      expect(afterFour).toBe(GAP + ROW)
+    })
+
+    // The stack takes the months' own heights, so it ends right after the
+    // second month's last week whichever two show: February and March 2026
+    // fill nine weeks, the fewest any two months do, and May and June 2026
+    // eleven, the most.
+    it('ends right after the last week of the months it shows', async () => {
+      await page.viewport(PHONE, 900)
+
+      expect(spaceUnderMonths(FOUR_WEEK_RANGE)).toBe(0)
+      expect(spaceUnderMonths(SIX_WEEK_RANGE)).toBe(0)
+    })
+
+    it('grows by the weeks the months shown differ by', async () => {
+      await page.viewport(PHONE, 900)
+      const nine = stackedHeight(FOUR_WEEK_RANGE)
+
+      expect(stackedHeight(SIX_WEEK_RANGE) - nine).toBe(ROW * 2)
+    })
+
+    // Side by side the two keep one month's six weeks of room, as a single
+    // month does, so they page without moving the calendar's edge.
+    it('holds its height side by side whatever the months are', async () => {
+      await page.viewport(WIDE, 900)
+      const short = stackedHeight(FOUR_WEEK_RANGE)
+
+      expect(stackedHeight(SIX_WEEK_RANGE)).toBe(short)
+    })
+  })
 })
 
+// Storybook and the other specs share this browser, so the viewport goes
+// back to something ordinary once the stacked cases are done.
+const DEFAULT_VIEWPORT = { height: 900, width: 1200 }
+
+// The gap between two stacked months and the row a month's name sits in.
+const GAP = 24
+const ROW = 48
+
+const PHONE = 360
 const VISIBLE_TWO = { months: 2 }
+const WIDE = 1280

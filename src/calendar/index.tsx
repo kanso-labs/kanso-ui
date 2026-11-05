@@ -12,10 +12,13 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useDateFormatter } from 'react-aria'
 import {
   ButtonContext,
   CalendarStateContext,
   Button as RACButton,
+  CalendarGrid as RACCalendarGrid,
+  CalendarGridBody as RACCalendarGridBody,
   CalendarGridHeader as RACCalendarGridHeader,
   CalendarHeaderCell as RACCalendarHeaderCell,
   CalendarMonthPicker as RACCalendarMonthPicker,
@@ -29,11 +32,12 @@ import {
 import { ArrowDropDownGlyph, CheckGlyph, ChevronEndGlyph } from '../glyphs'
 import { focus } from '../styles/focus'
 import { iconButton } from '../styles/icon-button'
+import { monthOffsets } from './months'
 import { calendarStyles, dateLayers, menuLayers } from './styles'
 
 // The parts Calendar and RangeCalendar both render: the row that moves the
-// month, the weekday header, and the offsets that put more than one month
-// side by side. Apart from either component so the two cannot drift, and
+// month, the months themselves with their weekday header, and the name each
+// month takes while more than one stack. Apart from either component so the two cannot drift, and
 // outside `src/components` for the reason ./styles.ts gives.
 
 /** One entry of React Aria's month or year picker, as either lists it. */
@@ -272,6 +276,53 @@ function CalendarMenus({ children }: { children: ReactNode }): ReactElement {
         </RACCalendarYearPicker>
       ) : null}
     </>
+  )
+}
+
+/**
+ * The month grids, one per visible month, each with the weekday row over
+ * its dates. React Aria positions each grid from its own offset, so
+ * `visibleDuration` of more than one draws the months side by side rather
+ * than one grid that scrolls between them, and stacks them below the
+ * expanded breakpoint. Stacked, each month is named over its grid by
+ * `MonthCaption`, since the heading above them all names the range as a
+ * whole; see `monthCaption` in ./styles.ts.
+ *
+ * The date's cell is the one thing the two calendars draw differently, so it
+ * is the child.
+ */
+function CalendarMonths({
+  children,
+  months,
+}: {
+  /** The cell each date of every month renders in. */
+  children: (date: CalendarDate) => ReactElement
+  /** How many months the calendar shows. */
+  months: number
+}): ReactElement {
+  const offsets = monthOffsets(months)
+  const isStackable = offsets.length > 1
+
+  return (
+    <div
+      {...stylex.props(
+        calendarStyles.months,
+        isStackable && calendarStyles.monthsStacked,
+      )}
+    >
+      {offsets.map((offset) => (
+        <div key={offset.months} {...stylex.props(calendarStyles.month)}>
+          {isStackable ? <MonthCaption offset={offset} /> : null}
+          <RACCalendarGrid
+            offset={offset}
+            {...stylex.props(calendarStyles.grid)}
+          >
+            <CalendarGridHeader />
+            <RACCalendarGridBody>{children}</RACCalendarGridBody>
+          </RACCalendarGrid>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -544,4 +595,46 @@ function MenuList({
   )
 }
 
-export { CalendarFrame, CalendarGridHeader }
+/**
+ * The name of the month a grid shows, over the grid, for a calendar drawing
+ * more than one. It is formatted as React Aria names the grid itself — the
+ * month in full and the year, in the calendar system and time zone the
+ * calendar runs in, with the era where a Gregorian date falls before the
+ * common one — so the two say the same thing.
+ *
+ * Hidden from assistive technology, which hears the same name already: React
+ * Aria labels every grid with the calendar's name and its own month.
+ */
+function MonthCaption({
+  offset,
+}: {
+  offset: { months: number }
+}): null | ReactElement {
+  const single = useContext(CalendarStateContext)
+  const range = useContext(RangeCalendarStateContext)
+  const state = single ?? range
+  const start = state?.visibleRange.start.add(offset)
+  const formatter = useDateFormatter({
+    calendar: start?.calendar.identifier,
+    era:
+      start?.calendar.identifier === 'gregory' && start.era === 'BC'
+        ? 'short'
+        : undefined,
+    month: 'long',
+    timeZone: state?.timeZone,
+    year: 'numeric',
+  })
+
+  if (state == null || start == null) {
+    return null
+  }
+  const month = start.calendar.getFormattableMonth?.(start) ?? start
+
+  return (
+    <div aria-hidden {...stylex.props(calendarStyles.monthCaption)}>
+      {formatter.format(month.toDate(state.timeZone))}
+    </div>
+  )
+}
+
+export { CalendarFrame, CalendarMonths }
