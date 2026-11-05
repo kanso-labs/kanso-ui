@@ -242,6 +242,68 @@ describe('the last chip removed', () => {
     expect(outline.outlineWidth).toBe('2px')
     expect(root.getBoundingClientRect().height).toBe(before)
   })
+  // The emptied list drew a square ring, 2px off an empty state that
+  // started at the list's own edge: square where the chip's ring had been
+  // round, and touching the first letter.
+  it("rounds the ring to a chip's corner, clear of the empty state", async () => {
+    const view = render(<OneRemovable empty />)
+    const chip = view.getByRole('row', { name: 'First item' })
+    const corner = getComputedStyle(chip).borderStartStartRadius
+    act(() => {
+      chip.focus()
+    })
+    fireEvent.keyDown(chip, { key: 'Delete' })
+    fireEvent.keyUp(chip, { key: 'Delete' })
+
+    await waitFor(() => {
+      expect(view.queryByRole('row')).toBeNull()
+    })
+    await waitFor(() => {
+      expect(document.activeElement?.getAttribute('role')).toBe('group')
+    })
+    const list = document.activeElement
+    if (!(list instanceof HTMLElement)) {
+      throw new Error('expected focus on the list')
+    }
+    const style = getComputedStyle(list)
+    expect(list.matches(':focus-visible')).toBe(true)
+    expect(style.outlineStyle).toBe('solid')
+    expect(corner).not.toBe('0px')
+    expect(style.borderStartStartRadius).toBe(corner)
+    expect(style.borderEndEndRadius).toBe(corner)
+
+    // The ring's inner edge, `outline-offset` outside the list's box, against
+    // the empty state's text.
+    const offset = Number.parseFloat(style.outlineOffset)
+    const box = list.getBoundingClientRect()
+    const range = document.createRange()
+    range.selectNodeContents(list)
+    const text = range.getBoundingClientRect()
+    expect(text.width).toBeGreaterThan(0)
+    const gaps = [
+      text.left - (box.left - offset),
+      text.top - (box.top - offset),
+      box.bottom + offset - text.bottom,
+    ]
+    for (const gap of gaps) {
+      expect(gap).toBeGreaterThanOrEqual(6)
+    }
+  })
+
+  // The empty state's inset is the empty list's alone: with chips in it,
+  // the first chip starts at the list's edge, under the group's label.
+  it('keeps the chips at the edge of the list', () => {
+    const view = render(<OneRemovable empty />)
+    const chip = view.getByRole('row', { name: 'First item' })
+    const list = chip.parentElement
+    if (list === null) {
+      throw new Error('expected the chip to sit in the list')
+    }
+
+    expect(chip.getBoundingClientRect().left).toBe(
+      list.getBoundingClientRect().left,
+    )
+  })
 })
 
 describe('chip group', () => {

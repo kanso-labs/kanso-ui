@@ -32,7 +32,7 @@ import { CloseGlyph } from '../../glyphs'
 import { useRipple } from '../../hooks/useRipple'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { sizing, spacing } from '../../tokens/design.tokens.stylex'
+import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 
 // The chips page's filter and input chips as a set: one or more chosen from a
 // row, each one removable. The pill is the chip module's in `src/chip`,
@@ -88,15 +88,28 @@ const styles = stylex.create({
   // The chips draw their own rings, and the list draws one only when it
   // holds focus itself — which it does once the last chip is removed, when
   // React Aria moves focus onto the empty list, or onto the empty state it
-  // holds. That ring is `focus.ring`, the one a chip draws. And the list
-  // keeps a chip's height when it empties, so removing the last chip leaves
-  // what sits under the group where it was rather than drawing it up.
+  // holds. That ring is `focus.ring` with a chip's corner, so the group's
+  // focus keeps the shape it had on the chip.
+  //
+  // The list keeps a chip's height when it empties, so removing the last
+  // chip leaves what sits under the group where it was rather than drawing
+  // it up, and the empty state takes the place of the chip's label: centred
+  // in that height, behind a chip's inline padding. Without the padding it
+  // started at the list's own edge, and the ring 2px outside that edge ran
+  // against its first letter; a wider offset is no way out, since the
+  // group's label sits 4px above the list and its descenders would meet the
+  // ring. Centring moves no chip, since a chip's height is fixed, and the
+  // padding is the empty list's alone, so chips still line up with the
+  // label.
   list: {
+    alignItems: 'center',
+    borderRadius: radii.sm,
     boxSizing: 'border-box',
     display: 'flex',
     flexWrap: 'wrap',
     gap: spacing.sm,
     minBlockSize: sizing.controlXs,
+    paddingInline: { ':is([data-empty])': spacing.lg, default: 0 },
   },
 })
 
