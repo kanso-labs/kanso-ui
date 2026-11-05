@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import DateField from '.'
 import { CalendarDate, CalendarDateTime } from '../../date'
+import { crowdedSegments } from '../../segments/spacing.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -26,6 +27,7 @@ const DATE = new CalendarDate(2026, 9, 15)
 // A granularity below a day needs a value that carries a time: React Aria
 // rejects `minute` against a date-only value outright.
 const DATE_TIME = new CalendarDateTime(2026, 9, 15, 9, 30)
+const SINGLE_DIGITS = new CalendarDate(2026, 9, 5)
 
 // A segment is a spinbutton; the punctuation between them is not, which is
 // what makes this the list of what a reader can actually type into.
@@ -43,6 +45,23 @@ describe('date field', () => {
         expect(segment.getAttribute('tabindex')).toBe('0')
       }
     })
+
+    // A single-digit month and day are the narrowest a date gets, and German
+    // writes its punctuation as a full stop, narrower than a slash.
+    it.each(['en-US', 'de-DE'])(
+      'keeps every segment clear of the next as a target, in %s',
+      (locale) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <DateField defaultValue={SINGLE_DIGITS} label="Label" />
+          </I18nProvider>,
+        )
+        const segments = segmentsOf(view)
+
+        expect(segments).toHaveLength(3)
+        expect(crowdedSegments(segments)).toEqual([])
+      },
+    )
 
     it('adds the time segments when the granularity asks for them', () => {
       const view = render(
@@ -99,10 +118,11 @@ describe('date field', () => {
       const colour = style.color
       const padding = style.paddingInlineStart
 
-      // Muted and tight against its neighbours: it is a separator rather than
-      // something a reader lands on and types into.
+      // Muted, since it is a separator rather than something a reader lands
+      // on and types into, and with room either side that keeps the segments
+      // apart as targets.
       expect(colour).toBe(probe(probeStyles.onSurfaceVariant))
-      expect(Number.parseFloat(padding)).toBe(0)
+      expect(Number.parseFloat(padding)).toBe(4)
     })
   })
 
