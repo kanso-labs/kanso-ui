@@ -436,6 +436,31 @@ describe('range calendar', () => {
 
       expect(short).toBe(calendarBox(six).height)
     })
+
+    // The room it holds is what the tallest two months fill together, May
+    // and June 2026's six weeks and five, so under those it ends right
+    // after June's last week rather than a week further down.
+    it('holds no more room than the tallest two months fill', async () => {
+      await page.viewport(PHONE, 900)
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={SIX_WEEK_RANGE}
+          visibleDuration={VISIBLE_TWO}
+        />,
+      )
+      const grids = view.getAllByRole('grid')
+      const months = grids.at(-1)?.parentElement?.parentElement
+
+      if (months == null) {
+        throw new Error('expected the months to sit in one container')
+      }
+      expect(grids).toHaveLength(2)
+      expect(
+        months.getBoundingClientRect().bottom -
+          grids[1].getBoundingClientRect().bottom,
+      ).toBe(0)
+    })
   })
 })
 
