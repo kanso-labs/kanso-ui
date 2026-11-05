@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.45.22](https://github.com/kanso-labs/kanso-ui/compare/v0.45.21...v0.45.22) (2026-11-05)
+
+
+### Bug Fixes
+
+* **app-bar:** start a collapse from the bar as it is drawn after a resize ([#1937](https://github.com/kanso-labs/kanso-ui/issues/1937)) ([d25ab12](https://github.com/kanso-labs/kanso-ui/commit/d25ab129e125bf4ee295016236d88e1072f1eb5b))
+* **app-bar:** stop a centred headline wrapping beside its actions ([#1965](https://github.com/kanso-labs/kanso-ui/issues/1965)) ([1e5a76b](https://github.com/kanso-labs/kanso-ui/commit/1e5a76b6d312ccd5b0d6a804b0fff02f43b1e1f3))
+* **carousel:** let a masked item hide a label it has no room for ([#1970](https://github.com/kanso-labs/kanso-ui/issues/1970)) ([ffd7ec5](https://github.com/kanso-labs/kanso-ui/commit/ffd7ec50fce8cfd74d156c3b79644d5768e3aed0))
+* **chip-group:** round the empty list's focus ring and give it room ([#1972](https://github.com/kanso-labs/kanso-ui/issues/1972)) ([4ae6fb2](https://github.com/kanso-labs/kanso-ui/commit/4ae6fb2e613bac12a9f2135ef650d94cb815d8e3))
+* **color-picker:** draw the trigger's swatch at 24px ([#1937](https://github.com/kanso-labs/kanso-ui/issues/1937)) ([d25ab12](https://github.com/kanso-labs/kanso-ui/commit/d25ab129e125bf4ee295016236d88e1072f1eb5b))
+* **color-picker:** fade the trigger's swatch when the picker is disabled ([#1967](https://github.com/kanso-labs/kanso-ui/issues/1967)) ([4f40442](https://github.com/kanso-labs/kanso-ui/commit/4f40442ec12a2a842397fb471ec387591b722ee3))
+* **copy-field:** keep the copy button's label on one line beside a long value ([#1937](https://github.com/kanso-labs/kanso-ui/issues/1937)) ([d25ab12](https://github.com/kanso-labs/kanso-ui/commit/d25ab129e125bf4ee295016236d88e1072f1eb5b))
+* **date-field:** keep a focused segment's high-contrast ring inside the field ([#1937](https://github.com/kanso-labs/kanso-ui/issues/1937)) ([d25ab12](https://github.com/kanso-labs/kanso-ui/commit/d25ab129e125bf4ee295016236d88e1072f1eb5b))
+* **date-field:** space the segments so each clears the 24px target size ([#1961](https://github.com/kanso-labs/kanso-ui/issues/1961)) ([c2708d3](https://github.com/kanso-labs/kanso-ui/commit/c2708d3f9f672a485faea5af2df02eb77363c31e))
+* **date-range-picker:** show the whole placeholder at a compact width ([#1966](https://github.com/kanso-labs/kanso-ui/issues/1966)) ([305d54c](https://github.com/kanso-labs/kanso-ui/commit/305d54c35642a23538bd3c6b9d6bab51d289349a))
+* **popover:** draw a focused panel's ring at the panel's edge ([#1971](https://github.com/kanso-labs/kanso-ui/issues/1971)) ([d69cd8b](https://github.com/kanso-labs/kanso-ui/commit/d69cd8bdcb884b03a3102d4893a15d487593fda6))
+* **range-calendar:** name every month when two months stack at a compact width ([#1963](https://github.com/kanso-labs/kanso-ui/issues/1963)) ([82ab220](https://github.com/kanso-labs/kanso-ui/commit/82ab220a252f4be2a487fb877d789c96ad509eda))
+* **ripple:** grow no ripple on a host with no box ([#1937](https://github.com/kanso-labs/kanso-ui/issues/1937)) ([d25ab12](https://github.com/kanso-labs/kanso-ui/commit/d25ab129e125bf4ee295016236d88e1072f1eb5b))
+* **segmented-button:** keep every segment's label readable at a compact width ([#1964](https://github.com/kanso-labs/kanso-ui/issues/1964)) ([0ff4311](https://github.com/kanso-labs/kanso-ui/commit/0ff43119a955173d047a5e54b92c65ada47f00ef))
+* **sheet:** rest an open panel at its edge once its scroller first has a size ([#1960](https://github.com/kanso-labs/kanso-ui/issues/1960)) ([17da9d8](https://github.com/kanso-labs/kanso-ui/commit/17da9d8a95ca5a86a3ff5f526b4e59a6c2699e75))
+* **table:** keep a column header's words whole when its column is resized ([#1969](https://github.com/kanso-labs/kanso-ui/issues/1969)) ([7ec6984](https://github.com/kanso-labs/kanso-ui/commit/7ec6984bba8945ab3d62c30a1953d2cf8af8b0a5))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.54 ([#1979](https://github.com/kanso-labs/kanso-ui/issues/1979)) ([c653450](https://github.com/kanso-labs/kanso-ui/commit/c653450004815db0664dfa4b515c140bf7566906))
+* update dependency vite to v8.3.6 ([#1978](https://github.com/kanso-labs/kanso-ui/issues/1978)) ([8895073](https://github.com/kanso-labs/kanso-ui/commit/889507392aefedb986d99e3edcd6246fffb574ae))
+* update kanso-labs/actions action to v4.5.0 ([#1980](https://github.com/kanso-labs/kanso-ui/issues/1980)) ([e5b7aac](https://github.com/kanso-labs/kanso-ui/commit/e5b7aacc94e2a4fd6b3b84173649ccc4c79a32a7))
+
 ## [0.45.21](https://github.com/kanso-labs/kanso-ui/compare/v0.45.20...v0.45.21) (2026-11-04)
 
 
