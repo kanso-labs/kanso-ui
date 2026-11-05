@@ -19,12 +19,15 @@ const styles = stylex.create({
     paddingInline: spacing.lg,
   },
   // A row that stretches the cards in it to the tallest, as a feed's row
-  // does. The columns give way below 160px each, so a phone-sized window
-  // narrows the cards rather than scrolling sideways.
+  // does: three cards of 160px where there is room for them. Where there is
+  // not, the row wraps rather than narrow a card below 120px, the width that
+  // still holds its headline on one line, so a phone-sized window and the
+  // Overview page's narrower frame neither scroll sideways nor break a word.
   row: {
     display: 'grid',
     gap: spacing.md,
-    gridTemplateColumns: 'repeat(3, minmax(0, 160px))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 120px), 1fr))',
+    maxInlineSize: `calc(3 * 160px + 2 * ${spacing.md})`,
   },
   stack: {
     display: 'flex',
