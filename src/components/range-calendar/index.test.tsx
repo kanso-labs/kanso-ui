@@ -122,6 +122,42 @@ function spaceBetweenMonths(defaultValue: typeof RANGE) {
   return second.top - first.bottom
 }
 
+// What the stacked months leave under the second one's last week, inside the
+// box that holds them both.
+function spaceUnderMonths(defaultValue: typeof RANGE) {
+  const view = render(
+    <RangeCalendar
+      aria-label="Label"
+      defaultValue={defaultValue}
+      visibleDuration={VISIBLE_TWO}
+    />,
+  )
+  const grids = view.getAllByRole('grid')
+  const months = grids.at(-1)?.parentElement?.parentElement
+  if (months == null || grids.length !== 2) {
+    throw new Error('expected two months in one container')
+  }
+  const space =
+    months.getBoundingClientRect().bottom -
+    grids[1].getBoundingClientRect().bottom
+  view.unmount()
+  return space
+}
+
+// The height of a calendar showing two months from `defaultValue` on.
+function stackedHeight(defaultValue: typeof RANGE) {
+  const view = render(
+    <RangeCalendar
+      aria-label="Label"
+      defaultValue={defaultValue}
+      visibleDuration={VISIBLE_TWO}
+    />,
+  )
+  const height = calendarBox(view).height
+  view.unmount()
+  return height
+}
+
 describe('range calendar', () => {
   describe('the range', () => {
     it('marks every day from the first to the last', () => {
@@ -411,55 +447,31 @@ describe('range calendar', () => {
       expect(afterFour).toBe(GAP + ROW)
     })
 
-    // The months take their own heights, but the stack does not, for the
-    // reason a single month does not: a picker's panel would move its own
-    // edge as the months paged.
-    it('holds its height whatever the months are', async () => {
+    // The stack takes the months' own heights, so it ends right after the
+    // second month's last week whichever two show: February and March 2026
+    // fill nine weeks, the fewest any two months do, and May and June 2026
+    // eleven, the most.
+    it('ends right after the last week of the months it shows', async () => {
       await page.viewport(PHONE, 900)
-      const four = render(
-        <RangeCalendar
-          aria-label="Label"
-          defaultValue={FOUR_WEEK_RANGE}
-          visibleDuration={VISIBLE_TWO}
-        />,
-      )
-      const short = calendarBox(four).height
-      four.unmount()
 
-      const six = render(
-        <RangeCalendar
-          aria-label="Label"
-          defaultValue={SIX_WEEK_RANGE}
-          visibleDuration={VISIBLE_TWO}
-        />,
-      )
-
-      expect(short).toBe(calendarBox(six).height)
+      expect(spaceUnderMonths(FOUR_WEEK_RANGE)).toBe(0)
+      expect(spaceUnderMonths(SIX_WEEK_RANGE)).toBe(0)
     })
 
-    // The room it holds is what the tallest two months fill together, May
-    // and June 2026's six weeks and five, so under those it ends right
-    // after June's last week rather than a week further down.
-    it('holds no more room than the tallest two months fill', async () => {
+    it('grows by the weeks the months shown differ by', async () => {
       await page.viewport(PHONE, 900)
-      const view = render(
-        <RangeCalendar
-          aria-label="Label"
-          defaultValue={SIX_WEEK_RANGE}
-          visibleDuration={VISIBLE_TWO}
-        />,
-      )
-      const grids = view.getAllByRole('grid')
-      const months = grids.at(-1)?.parentElement?.parentElement
+      const nine = stackedHeight(FOUR_WEEK_RANGE)
 
-      if (months == null) {
-        throw new Error('expected the months to sit in one container')
-      }
-      expect(grids).toHaveLength(2)
-      expect(
-        months.getBoundingClientRect().bottom -
-          grids[1].getBoundingClientRect().bottom,
-      ).toBe(0)
+      expect(stackedHeight(SIX_WEEK_RANGE) - nine).toBe(ROW * 2)
+    })
+
+    // Side by side the two keep one month's six weeks of room, as a single
+    // month does, so they page without moving the calendar's edge.
+    it('holds its height side by side whatever the months are', async () => {
+      await page.viewport(WIDE, 900)
+      const short = stackedHeight(FOUR_WEEK_RANGE)
+
+      expect(stackedHeight(SIX_WEEK_RANGE)).toBe(short)
     })
   })
 })
