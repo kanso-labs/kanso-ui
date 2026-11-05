@@ -20,14 +20,25 @@ type Segment = Parameters<
   NonNullable<Parameters<typeof RACDateInput>[0]['children']>
 >[0]
 
+// The invisible marks that keep a value's direction, which a locale can put
+// at either end of it as a literal of their own.
+const UNSEEN = /^[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]*$/u
+
 // What each segment draws. A literal — the slash or colon between two
 // segments — takes a style of its own, since it is punctuation rather than
-// something a reader types into.
+// something a reader types into, and the room either side of it only where
+// it takes up room: a direction mark at the start of a time is a literal
+// too, and spaced, it moved the value off the label's edge. A space is spaced
+// like a slash, since it is what stands between a time and its AM or PM.
 function renderSegment(segment: Segment): ReactElement {
   if (segment.type === 'literal') {
     return (
       <RACDateSegment
-        {...stylex.props(segmentStyles.segment, segmentStyles.segmentLiteral)}
+        {...stylex.props(
+          segmentStyles.segment,
+          segmentStyles.segmentLiteral,
+          !UNSEEN.test(segment.text) && segmentStyles.segmentSeparator,
+        )}
         segment={segment}
       />
     )
