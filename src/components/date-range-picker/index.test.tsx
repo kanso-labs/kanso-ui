@@ -1,5 +1,7 @@
+import type { ReactElement } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import DateRangePicker from '.'
@@ -48,11 +50,29 @@ const PHONE = { inlineSize: '328px' }
 const BOX_HEIGHT = 56
 const LINE_HEIGHT = 24
 
+// Wide enough for both dates and the dash on one line, in any variant.
+const WIDE = { inlineSize: '1000px' }
+
+// Whether the end date has a line of its own, below the start date's.
+function endWrapped(view: ReturnType<typeof render>) {
+  const start = segmentsOf(view, 'Start')[0].getBoundingClientRect()
+  const end = segmentsOf(view, 'End')[0].getBoundingClientRect()
+  return end.top >= start.bottom
+}
+
+// The group holding the two dates and the dash, which is the segments' own
+// closest group.
+function groupOf(view: ReturnType<typeof render>) {
+  const group = view.getAllByRole('spinbutton')[0].closest('[role="group"]')
+  if (!(group instanceof HTMLElement)) {
+    throw new Error('expected the segments to sit in a group')
+  }
+  return group
+}
+
 // The line the segments sit on, which clips whatever does not fit on it.
 function lineOf(view: ReturnType<typeof render>) {
-  const line = view
-    .getAllByRole('spinbutton')[0]
-    .closest('[role="group"]')?.parentElement
+  const line = groupOf(view).parentElement
   if (
     !(line instanceof HTMLElement) ||
     getComputedStyle(line).overflow !== 'hidden'
@@ -60,6 +80,28 @@ function lineOf(view: ReturnType<typeof render>) {
     throw new Error('expected the segments to sit on a line that clips')
   }
   return line.getBoundingClientRect()
+}
+
+// How wide the two dates and the dash are on one line, gaps included.
+function oneLineWidthOf(view: ReturnType<typeof render>) {
+  const group = groupOf(view)
+  const laidOut = [...group.children].filter(
+    (child) => child.getBoundingClientRect().height > 0,
+  )
+  const gap = Number.parseFloat(getComputedStyle(group).columnGap)
+  return laidOut.reduce(
+    (sum, child) => sum + child.getBoundingClientRect().width,
+    gap * (laidOut.length - 1),
+  )
+}
+
+// Renders the picker as the only thing in a block this many pixels wide. React
+// Testing Library removes the block from the body again when it cleans up.
+function renderIn(width: number, element: ReactElement) {
+  const host = document.createElement('div')
+  host.style.inlineSize = `${width}px`
+  document.body.append(host)
+  return render(element, { container: host })
 }
 
 // React Aria names every segment for the end it belongs to — "month, Start
@@ -388,6 +430,68 @@ describe('date range picker', () => {
         )
       },
     )
+
+    // A date is narrower filled than empty, so between the two widths the
+    // end date would lift back up beside the start while the start date was
+    // being typed, and the box would shrink under it. It stays on its own
+    // line until the field's width changes.
+    it('keeps the end date on its own line as the dates fill in', () => {
+      const wide = render(
+        <div style={WIDE}>
+          <DateRangePicker label="Label" />
+        </div>,
+      )
+      const empty = oneLineWidthOf(wide)
+      const chrome =
+        parts(wide.container).box.width -
+        groupOf(wide).getBoundingClientRect().width
+      wide.unmount()
+      const filledView = render(
+        <div style={WIDE}>
+          <DateRangePicker defaultValue={RANGE} label="Label" />
+        </div>,
+      )
+      const filled = oneLineWidthOf(filledView)
+      filledView.unmount()
+      expect(empty - filled).toBeGreaterThan(8)
+      const between = chrome + (empty + filled) / 2
+
+      const fresh = renderIn(
+        between,
+        <DateRangePicker defaultValue={RANGE} label="Label" />,
+      )
+      expect(endWrapped(fresh)).toBe(false)
+      fresh.unmount()
+
+      const view = renderIn(
+        between,
+        <DateRangePicker label="Label" value={null} />,
+      )
+      expect(endWrapped(view)).toBe(true)
+      view.rerender(<DateRangePicker label="Label" value={RANGE} />)
+      expect(endWrapped(view)).toBe(true)
+      expect(parts(view.container).box.height).toBe(BOX_HEIGHT + LINE_HEIGHT)
+    })
+
+    it('brings the end date back up once the field is wide enough', async () => {
+      const view = render(
+        <div style={PHONE}>
+          <DateRangePicker label="Label" />
+        </div>,
+      )
+      expect(endWrapped(view)).toBe(true)
+
+      const wrapper = view.container.firstElementChild
+      if (!(wrapper instanceof HTMLElement)) {
+        throw new Error('expected the picker in a wrapper')
+      }
+      Object.assign(wrapper.style, WIDE)
+
+      await waitFor(() => {
+        expect(endWrapped(view)).toBe(false)
+      })
+      expect(parts(view.container).box.height).toBe(BOX_HEIGHT)
+    })
 
     // Where both fit, nothing moves: one line, and the page's 56dp box.
     it.each(['filled', 'outlined'] as const)(
