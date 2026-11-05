@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { expect, waitFor } from 'storybook/test'
 
 import CopyField from '.'
+import { messagesFor } from '../../i18n'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
 const VALUE = 'first.second.third'
@@ -80,22 +81,26 @@ const Copied: Story = {
   parameters: {
     chromatic: { disableSnapshot: true },
   },
-  play: async ({ canvas, userEvent }) => {
+  play: async ({ canvas, globals, userEvent }) => {
     // Found by name rather than read off `textContent`: both labels sit in
     // the DOM so the button keeps its width, and only the accessible name
-    // tells the one on show from the one holding the room.
+    // tells the one on show from the one holding the room. The names are the
+    // library's own, in the toolbar's locale.
+    const { copied, copy } = messagesFor(
+      typeof globals.locale === 'string' ? globals.locale : 'en-US',
+    )
     const button = canvas.getByRole('button')
-    await expect(canvas.getByRole('button', { name: 'Copy' })).toBe(button)
+    await expect(canvas.getByRole('button', { name: copy })).toBe(button)
 
     await userEvent.click(button)
     await waitFor(async () => {
-      await expect(canvas.getByRole('button', { name: 'Copied' })).toBe(button)
+      await expect(canvas.getByRole('button', { name: copied })).toBe(button)
     })
 
     // No timer is advanced. This waits out the real dwell.
     await waitFor(
       async () => {
-        await expect(canvas.getByRole('button', { name: 'Copy' })).toBe(button)
+        await expect(canvas.getByRole('button', { name: copy })).toBe(button)
       },
       { timeout: 5000 },
     )
