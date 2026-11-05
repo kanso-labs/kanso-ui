@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Checkbox from '.'
+import Link from '../link'
 
 const styles = stylex.create({
   // Narrower than the address, so it has to break.
@@ -89,13 +90,16 @@ const LongLabel: Story = {
   ),
 }
 
-// A label carrying a link, as rich text from a translation or markdown
-// arrives. The link is a plain anchor; it is followed on a press or Enter, as
-// in a native label, and the checkbox stays as it was. Hoisted so it is one
-// element rather than a fresh one per render.
+// A label carrying a link. It is followed on a press or Enter, as in a native
+// label, and the checkbox stays as it was. The link is the library's `Link`,
+// which draws in the primary role and so holds its contrast in both themes,
+// where a bare anchor keeps the browser's blue and falls below it in the dark
+// one. A bare anchor from a translation or markdown behaves the same way in
+// the label, and src/control's tests pin both. Hoisted so it is one element
+// rather than a fresh one per render.
 const AGREEMENT = (
   <>
-    I agree to the <a href="#terms">terms</a>
+    I agree to the <Link href="#terms">terms</Link>
   </>
 )
 
