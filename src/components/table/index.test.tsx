@@ -21,7 +21,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -187,6 +187,11 @@ function resizerOf(handle: HTMLElement) {
 // A width for the table's surroundings, hoisted so it is one object.
 const FOUR_HUNDRED_WIDE = { width: '400px' } as const
 
+// Surroundings that let a word break anywhere, as a Card's do, and leave
+// each `1fr` column of `Words` at React Aria's 75px floor — less than the
+// 83px "Waiting" and its padding take.
+const BREAKING_WORDS = { overflowWrap: 'anywhere', width: '240px' } as const
+
 /** The rule a resizer draws inside its wider target. */
 function ruleOf(resizer: HTMLElement) {
   const rule = resizer.querySelector(':scope > span')
@@ -229,6 +234,67 @@ function Sortable() {
         </Table.Body>
       </Table>
     </>
+  )
+}
+
+/**
+ * How a word sits in its cell: the lines its text takes, and whether it
+ * reaches past the cell's padding. A broken word takes two lines; a whole one
+ * in a column too narrow for it takes one and runs into the padding — which
+ * `scrollWidth` does not report for a table cell, so the text is measured
+ * against the box it has.
+ */
+function wordIn(view: ReturnType<typeof render>, text: string) {
+  const element = view.getByText(text)
+  const cell = element.closest('[role="gridcell"]')
+  if (!(cell instanceof HTMLElement)) {
+    throw new Error(`expected "${text}" to sit in a cell`)
+  }
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  const rects = [...range.getClientRects()]
+  const style = getComputedStyle(cell)
+  const room =
+    cell.clientWidth -
+    Number.parseFloat(style.paddingInlineStart) -
+    Number.parseFloat(style.paddingInlineEnd)
+  return {
+    lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+    overflows: rects.some((rect) => rect.width > room),
+  }
+}
+
+// A resizable table laid out as the Resizable story is, with a status cell
+// the case chooses the text of.
+function Words(props: { status: string }) {
+  return (
+    <div style={BREAKING_WORDS}>
+      <Table aria-label="Label" resizable>
+        <Table.Header>
+          <Table.Column
+            defaultWidth="2fr"
+            id={COLUMNS[0]}
+            isRowHeader
+            resizable
+          >
+            Label
+          </Table.Column>
+          <Table.Column defaultWidth="1fr" id="colStatus" resizable>
+            Status
+          </Table.Column>
+          <Table.Column defaultWidth="1fr" id={COLUMNS[1]}>
+            Value
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="rowFirst">
+            <Table.Cell>First item</Table.Cell>
+            <Table.Cell>{props.status}</Table.Cell>
+            <Table.Cell>01</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    </div>
   )
 }
 
@@ -955,6 +1021,39 @@ describe('table', () => {
       fireEvent.pointerUp(resizer, DRAG_TO)
 
       expect(active).toBe('highlight')
+    })
+
+    // A fixed layout gives a column what its fraction says without reading
+    // what it holds, so "Waiting" in a 60px column came apart, "Waitin" over
+    // "g", under a parent that lets words break.
+    it('keeps a word whole in a column narrower than it', () => {
+      const view = render(<Words status="Waiting" />)
+
+      expect(wordIn(view, 'Waiting')).toEqual({ lines: 1, overflows: false })
+    })
+
+    it('stops a handle at the longest word in its column', () => {
+      const view = render(<Words status="Waiting" />)
+      const resizer = resizerOf(view.getAllByRole('slider')[1])
+
+      fireEvent.pointerDown(resizer, DRAG_FROM)
+      fireEvent.pointerMove(resizer, { ...DRAG_TO, clientX: 0 })
+      fireEvent.pointerUp(resizer, { ...DRAG_TO, clientX: 0 })
+
+      expect(wordIn(view, 'Waiting')).toEqual({ lines: 1, overflows: false })
+    })
+
+    it('measures a column again when what it holds changes', async () => {
+      const view = render(<Words status="Waiting" />)
+
+      view.rerender(<Words status="Acknowledged" />)
+
+      await waitFor(() => {
+        expect(wordIn(view, 'Acknowledged')).toEqual({
+          lines: 1,
+          overflows: false,
+        })
+      })
     })
   })
 
