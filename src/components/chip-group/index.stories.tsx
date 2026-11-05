@@ -292,8 +292,9 @@ const RemovableChips: Story = {
 }
 
 // The group once its last chip is removed: React Aria moves focus onto the
-// emptied list, which draws the ring a chip draws, and keeps a chip's height
-// so nothing under it moves. Removed by its `play`, so the snapshot shows the
+// emptied list, which draws the ring a chip draws, round at a chip's corner,
+// and keeps a chip's height so nothing under it moves. The empty state sits
+// where the chip's label sat. Removed by its `play`, so the snapshot shows the
 // state after it.
 const EmptyState: Story = {
   play: async ({ canvas, userEvent }) => {
