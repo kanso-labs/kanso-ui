@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
@@ -176,6 +176,20 @@ function labelOf(segment: Element) {
   return found
 }
 
+// How wide each of the default set's labels is laid out, to the fraction of
+// a pixel, measured where nothing cuts it. A range over the text rather than
+// `scrollWidth`, which rounds.
+function labelWidths() {
+  const view = setup()
+  const widths = view.getAllByRole('radio').map((segment) => {
+    const range = document.createRange()
+    range.selectNodeContents(labelOf(segment))
+    return range.getBoundingClientRect().width
+  })
+  view.unmount()
+  return widths
+}
+
 // The state layer, above the container and below the label. `currentColor`
 // is what nothing else in the segment is painted with.
 function layerOf(segment: Element) {
@@ -192,6 +206,23 @@ function layerOf(segment: Element) {
 function press(segment: Element, key: string) {
   fireEvent.keyDown(segment, { key })
   fireEvent.keyUp(segment, { key })
+}
+
+// The default set's three segments, each with the given icon, if any.
+function segmentsWith(icon?: ReactNode) {
+  return (
+    <>
+      <SegmentedButton.Segment icon={icon} id="first">
+        First item
+      </SegmentedButton.Segment>
+      <SegmentedButton.Segment icon={icon} id="second">
+        Second item
+      </SegmentedButton.Segment>
+      <SegmentedButton.Segment icon={icon} id="third">
+        Third item
+      </SegmentedButton.Segment>
+    </>
+  )
 }
 
 // Every transition the track has running, played out.
@@ -267,6 +298,7 @@ function spacerWidths(segment: Element) {
 function squeezed(
   width: number,
   props: Partial<Parameters<typeof SegmentedButton>[0]> = {},
+  icon?: ReactNode,
 ) {
   return render(
     <div {...stylex.props(sizeStyles.width(`${width}px`))}>
@@ -275,11 +307,7 @@ function squeezed(
         defaultSelectedKeys={FIRST}
         {...props}
       >
-        <SegmentedButton.Segment id="first">First item</SegmentedButton.Segment>
-        <SegmentedButton.Segment id="second">
-          Second item
-        </SegmentedButton.Segment>
-        <SegmentedButton.Segment id="third">Third item</SegmentedButton.Segment>
+        {segmentsWith(icon)}
       </SegmentedButton>
     </div>,
   )
@@ -1060,6 +1088,162 @@ describe('segmented button', () => {
       await waitFor(() => {
         expect(second.hasAttribute('title')).toBe(false)
       })
+    })
+  })
+
+  // A track narrow enough that a glyph would cut a label the segment could
+  // otherwise show whole: the set stops drawing glyphs, and the chosen
+  // segment says so with the stronger container instead. Columns 10px wider
+  // than the widest label's content box, which holds every label bare and
+  // none of them beside a glyph's 26.
+  describe('a track a glyph would crowd', () => {
+    it('draws no glyph and cuts no label', async () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 27), {}, ICON)
+      const segments = view.getAllByRole('radio')
+
+      await waitFor(() => {
+        expect(
+          segments
+            .map((segment) => labelOf(segment))
+            .filter((label) => label.scrollWidth > label.clientWidth)
+            .map((label) => label.textContent),
+        ).toStrictEqual([])
+      })
+      expect(view.queryAllByTestId('icon')).toStrictEqual([])
+      expect(
+        segments.map((segment) => glyphSlotOf(segment).childElementCount),
+      ).toStrictEqual([0, 0, 0])
+    })
+
+    it('draws the chosen segment on the stronger container', async () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 27), {}, ICON)
+      const chosen = view.getAllByRole('radio')[0]
+
+      await waitFor(() => {
+        expect(hasClasses(chosen, CLASSES.selectedUnmarked)).toBe(true)
+      })
+      expect(hasClasses(containerOf(chosen), CLASSES.chosenUnmarked)).toBe(true)
+    })
+
+    // Choosing several, a chosen segment whose label fits beside the check
+    // and one whose label does not are still drawn alike: the decision is
+    // the set's, not each segment's. The columns' content box lies halfway
+    // between what "First item" and "Third item" need beside a glyph, so
+    // the first would keep its check if each segment decided for itself.
+    it('draws every chosen segment alike while several are chosen', async () => {
+      const [firstWidth, , thirdWidth] = labelWidths()
+      expect(thirdWidth - firstWidth).toBeGreaterThan(4)
+      const view = squeezed(3 * ((firstWidth + thirdWidth) / 2 + 26 + 17), {
+        defaultSelectedKeys: FIRST_AND_THIRD,
+        selectionMode: 'multiple',
+      })
+      const [first, , third] = view.getAllByRole('button')
+
+      await waitFor(() => {
+        expect(
+          [first, third].map((segment) =>
+            hasClasses(segment, CLASSES.selectedUnmarked),
+          ),
+        ).toStrictEqual([true, true])
+      })
+      expect(
+        [first, third].map((segment) => glyphSlotOf(segment).childElementCount),
+      ).toStrictEqual([0, 0])
+    })
+
+    // A set choosing one asks of every segment whether its label would be
+    // cut beside a check, not only of the chosen one, so choosing another
+    // never turns the checks off or on. The columns' content box lies
+    // halfway between what "First item" and "Second item" need beside a
+    // glyph: the chosen first has room for its check, and the second would
+    // not if it were chosen.
+    it('decides by every segment rather than the chosen one', async () => {
+      const [firstWidth, secondWidth] = labelWidths()
+      expect(secondWidth - firstWidth).toBeGreaterThan(4)
+      const view = squeezed(3 * ((firstWidth + secondWidth) / 2 + 26 + 17))
+      const chosen = view.getAllByRole('radio')[0]
+
+      await waitFor(() => {
+        expect(hasClasses(chosen, CLASSES.selectedUnmarked)).toBe(true)
+      })
+      expect(glyphSlotOf(chosen).childElementCount).toBe(0)
+    })
+
+    // The glyphs come back as the room does, and the track keeps its width
+    // across both, since the room a glyph keeps is never given up to it.
+    it('draws its glyphs again once there is room', async () => {
+      const widest = widestLabel()
+      const view = squeezed(3 * (widest + 27), {}, ICON)
+      const chosen = view.getAllByRole('radio')[0]
+      await waitFor(() => {
+        expect(view.queryAllByTestId('icon')).toStrictEqual([])
+      })
+
+      view.rerender(
+        <div {...stylex.props(sizeStyles.width('2000px'))}>
+          <SegmentedButton aria-label="Label" defaultSelectedKeys={FIRST}>
+            {segmentsWith(ICON)}
+          </SegmentedButton>
+        </div>,
+      )
+
+      await waitFor(() => {
+        expect(view.queryAllByTestId('icon')).toHaveLength(2)
+      })
+      expect(glyphSlotOf(chosen).childElementCount).toBe(1)
+      expect(hasClasses(chosen, CLASSES.selected)).toBe(true)
+      expect(hasClasses(chosen, CLASSES.selectedUnmarked)).toBe(false)
+    })
+
+    // A segment that never draws a glyph has no glyph to cut its label with,
+    // so a long label there leaves its neighbours' icons where they are. The
+    // columns' content box holds "First item" beside its icon and not
+    // "Second item" beside one, which the second never draws.
+    it('leaves the glyphs alone for a label beside no glyph', async () => {
+      const [firstWidth, secondWidth] = labelWidths()
+      const view = render(
+        <div
+          {...stylex.props(
+            sizeStyles.width(
+              `${3 * ((firstWidth + secondWidth) / 2 + 26 + 17)}px`,
+            ),
+          )}
+        >
+          <SegmentedButton
+            aria-label="Label"
+            defaultSelectedKeys={SECOND}
+            showSelectedIcon={false}
+          >
+            <SegmentedButton.Segment icon={ICON} id="first">
+              First item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="second">
+              Second item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="third">
+              Third item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+        </div>,
+      )
+
+      // Settled once the layout effects have measured and any report has
+      // reached the set, which a frame is enough for.
+      await new Promise(requestAnimationFrame)
+      await new Promise(requestAnimationFrame)
+      expect(view.queryAllByTestId('icon')).toHaveLength(1)
+    })
+
+    it('leaves a track with room drawing its glyphs', async () => {
+      const view = squeezed(2000, {}, ICON)
+      await waitFor(() => {
+        expect(view.queryAllByTestId('icon')).toHaveLength(2)
+      })
+      expect(glyphSlotOf(view.getAllByRole('radio')[0]).childElementCount).toBe(
+        1,
+      )
     })
   })
 

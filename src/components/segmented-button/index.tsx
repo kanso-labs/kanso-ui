@@ -15,8 +15,11 @@ import * as stylex from '@stylexjs/stylex'
 import {
   createContext,
   createElement,
+  useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
+  useMemo,
   useState,
 } from 'react'
 import {
@@ -125,12 +128,21 @@ import {
 // already measured while its own segment was the chosen one. A track
 // squeezed below that — long labels on a phone — gives the reserve back
 // first, then the 4dp of the page's 12dp padding beyond the 8dp a segment
-// always keeps, and only then cuts a label short, with an ellipsis and a
-// `title` that shows it whole. A segment drawing a glyph keeps the glyph and
-// its 8dp gap, so the chosen label is the first to be cut. A label shows
-// whole in a segment 16dp wider than it, or 42dp while a glyph is drawn
-// beside it, plus the segment's rule. The track's width still never depends
-// on the choice: squeezed, its columns are the container's, shared equally.
+// always keeps, and then the glyphs themselves. A label shows whole in a
+// segment 16dp wider than it, or 42dp while a glyph is drawn beside it, plus
+// the segment's rule, so on a phone a check or an icon is what cuts a label
+// that would otherwise fit. Once any segment's label would be cut beside its
+// glyph, the whole set stops drawing them: no check and no icons, and the
+// chosen segment on the stronger container a set without a check draws, so
+// the choice still reads. The whole set rather than the one segment, since a
+// set choosing several would otherwise draw one chosen segment one way and
+// the next another. And any segment rather than the chosen one, since a
+// check that would cut a label only once its segment is chosen is the same
+// cut a moment later, and choosing should not turn the glyphs off or on.
+// Only past that is a label cut short, with an ellipsis
+// and a `title` that shows it whole. The track's width still never depends
+// on the choice: squeezed, its columns are the container's, shared equally,
+// and the glyphs giving way frees room inside them without moving them.
 //
 // Angular Material delays the check's own transition by 45ms so the space
 // opens before the glyph arrives. That is dropped rather than carried as a
@@ -191,6 +203,20 @@ const ShowSelectedIconContext = createContext(true)
 // context for the same reason, and because React Aria's own state context
 // holds the mode in a shape this would have to narrow before using.
 const SelectionModeContext = createContext<SelectionMode>('single')
+
+// Whether the set has stopped drawing glyphs because one would cut a label,
+// and how a segment says whether its own would. The segments measure, since
+// each holds its own label; the set decides, since the decision is the whole
+// set's. See the header.
+const CrowdingContext = createContext<Crowding>({
+  crowded: false,
+  report: () => undefined,
+})
+
+interface Crowding {
+  crowded: boolean
+  report: (key: Key, crowded: boolean) => void
+}
 
 type GroupRender = RACToggleButtonGroupProps['render']
 
@@ -465,6 +491,11 @@ const styles = stylex.create({
   // It holds its own width while the spacers beside it give theirs back —
   // `flexShrink: 0` is what puts the label last — and the most it can take
   // is the segment's content box, which is where it starts to be cut.
+  //
+  // `scrollMarginInlineStart` lays nothing out: nothing scrolls the label
+  // into view. It is the glyph's room, resolved to pixels where
+  // `useLabelFit` can read it, so the measurement takes the room from the
+  // tokens rather than repeating it as a number.
   label: {
     '@media (prefers-reduced-motion: reduce)': {
       transitionDuration: '0s',
@@ -473,6 +504,7 @@ const styles = stylex.create({
     maxInlineSize: '100%',
     minInlineSize: 0,
     overflow: 'hidden',
+    scrollMarginInlineStart: GLYPH_RESERVE,
     textOverflow: 'ellipsis',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'max-inline-size',
@@ -802,6 +834,7 @@ function segmentContent(
   ripple: Ripple,
   selectionMode: SelectionMode,
   marked: boolean,
+  crowded: boolean,
   labelRef: (element: HTMLSpanElement | null) => void,
   labelTitle: string | undefined,
 ) {
@@ -809,11 +842,16 @@ function segmentContent(
   // Whether this segment can ever draw a glyph, and so whether it keeps room
   // for one. A set that draws no check and a segment with no icon of its own
   // never needs the slot, and reserving it there would be dead space in
-  // every segment of the track.
+  // every segment of the track. Read from the set's choice rather than from
+  // what is drawn now, so a crowded set keeps the same reserve to give back.
   const reserves = marked || icon !== undefined
+  // A crowded set draws no glyph beside a label, and its chosen container is
+  // the one a set without a check draws. An icon alone is untouched.
+  const checks = marked && !crowded
+  const shown = crowded && labelled ? undefined : icon
 
   return (state: ToggleButtonRenderProps) => {
-    const glyph = glyphFor(state, icon, marked)
+    const glyph = glyphFor(state, shown, checks)
     const drawn = glyph !== null
 
     return (
@@ -822,7 +860,7 @@ function segmentContent(
           className={indicatorClassName(
             state.isDisabled,
             selectionMode,
-            marked,
+            checks,
           )}
         />
         <span
@@ -920,20 +958,50 @@ function SegmentedButton({
   ...props
 }: RefAttributes<HTMLDivElement> & SegmentedButtonProps) {
   const single = selectionMode === 'single'
+  // The segments whose label a glyph would cut, by key. The set is crowded
+  // while it holds any.
+  const [crowding, setCrowding] = useState<ReadonlySet<Key>>(NONE_CROWDED)
+  // Kept the same across renders, so a segment's report does not run again
+  // each time the set's answer changes.
+  const report = useCallback((key: Key, crowds: boolean) => {
+    setCrowding((current) => {
+      if (current.has(key) === crowds) {
+        return current
+      }
+      const next = new Set(current)
+      if (crowds) {
+        next.add(key)
+      } else {
+        next.delete(key)
+      }
+      return next
+    })
+  }, [])
+  const crowded = crowding.size > 0
+  const crowdingValue = useMemo(() => ({ crowded, report }), [crowded, report])
 
   return (
     <ShowSelectedIconContext value={showSelectedIcon}>
       <SelectionModeContext value={selectionMode}>
-        <RACToggleButtonGroup
-          {...props}
-          disallowEmptySelection={disallowEmptySelection ?? single}
-          render={single ? radioGroupRenderer(render) : render}
-          selectionMode={selectionMode}
-          {...mergeStatefulStyles(stylex.props(styles.root), props)}
-        />
+        <CrowdingContext value={crowdingValue}>
+          <RACToggleButtonGroup
+            {...props}
+            disallowEmptySelection={disallowEmptySelection ?? single}
+            render={single ? radioGroupRenderer(render) : render}
+            selectionMode={selectionMode}
+            {...mergeStatefulStyles(stylex.props(styles.root), props)}
+          />
+        </CrowdingContext>
       </SelectionModeContext>
     </ShowSelectedIconContext>
   )
+}
+
+const NONE_CROWDED: ReadonlySet<Key> = new Set()
+
+interface LabelFit {
+  crowds: boolean
+  title: string | undefined
 }
 
 /**
@@ -961,7 +1029,20 @@ function SegmentedButtonSegment({
   // unless the segment has no label — see the header.
   const marked = useContext(ShowSelectedIconContext) && hasLabel(children)
   const [label, setLabel] = useState<HTMLSpanElement | null>(null)
-  const labelTitle = useTruncatedText(label)
+  const fit = useLabelFit(label)
+  const { crowded, report } = useContext(CrowdingContext)
+  // Each segment tells the set whether its own glyph would cut its label,
+  // and takes the answer back for the whole set. Only a segment that could
+  // ever draw one says so: a long label beside a slot it never fills is not
+  // a reason for its neighbours to drop theirs. Withdrawn as the segment
+  // goes, so a set that loses its one crowded segment draws glyphs again.
+  const crowds = fit.crowds && (marked || icon !== undefined)
+  useEffect(() => {
+    report(props.id, crowds)
+    return () => {
+      report(props.id, false)
+    }
+  }, [crowds, props.id, report])
   // The `aria-*` props React Aria would drop and the keyboard handlers it
   // would wrap go on the element itself, as they do on Chip, Button and
   // IconButton; see src/render/aria.tsx.
@@ -996,7 +1077,7 @@ function SegmentedButtonSegment({
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(segmentStyles(marked), props)}
+      {...mergeStatefulStyles(segmentStyles(marked && !crowded), props)}
     >
       {segmentContent(
         children,
@@ -1004,8 +1085,9 @@ function SegmentedButtonSegment({
         ripple,
         selectionMode,
         marked,
+        crowded,
         setLabel,
-        labelTitle,
+        fit.title,
       )}
     </RACToggleButton>
   )
@@ -1027,39 +1109,91 @@ function segmentStyles(marked: boolean) {
     )
 }
 
-// The text of a label its segment is cutting short, for a `title` that shows
-// it whole; undefined while it fits. Measured again whenever the label's box
-// or its text changes, which is when it can start or stop being cut.
-function useTruncatedText(label: HTMLElement | null): string | undefined {
-  const [text, setText] = useState<string | undefined>(undefined)
+// Two readings of a label against its segment. `title` is the label's text
+// while the segment is cutting it short, for a `title` that shows it whole,
+// and undefined while it fits. `crowds` is whether the label would be cut
+// beside a glyph, which is what the set stops drawing glyphs for.
+//
+// `crowds` compares the label's own width with the segment's content box
+// less the glyph's room, and neither of those depends on whether a glyph is
+// drawn, so the set dropping its glyphs cannot flip the answer back. The
+// label's width is read off a range over its text rather than its
+// `scrollWidth`, which rounds up to a whole pixel and would call a label
+// that fits by a fraction cut.
+//
+// Measured again whenever the label's box, the segment's box or the label's
+// text changes, and once the fonts arrive, since a label still held at the
+// segment's width keeps its box while its text grows or shrinks inside it.
+function useLabelFit(label: HTMLElement | null): LabelFit {
+  const [fit, setFit] = useState<LabelFit>(FITS)
 
   useLayoutEffect(() => {
-    if (label === null) {
+    const segment = label?.parentElement
+    if (label === null || segment === null || segment === undefined) {
       return undefined
     }
 
     const measure = () => {
       const cut = label.scrollWidth > label.clientWidth
-      setText(cut && label.textContent !== '' ? label.textContent : undefined)
+      const title =
+        cut && label.textContent !== '' ? label.textContent : undefined
+      const crowds =
+        textWidthOf(label) +
+          Number.parseFloat(getComputedStyle(label).scrollMarginInlineStart) >
+        contentWidthOf(segment)
+      setFit((current) =>
+        current.title === title && current.crowds === crowds
+          ? current
+          : { crowds, title },
+      )
     }
 
     measure()
     const resize = new ResizeObserver(measure)
     resize.observe(label)
+    resize.observe(segment)
     const relabel = new MutationObserver(measure)
     relabel.observe(label, {
       characterData: true,
       childList: true,
       subtree: true,
     })
+    document.fonts.addEventListener('loadingdone', measure)
 
     return () => {
       resize.disconnect()
       relabel.disconnect()
+      document.fonts.removeEventListener('loadingdone', measure)
     }
   }, [label])
 
-  return text
+  return fit
+}
+
+const FITS: LabelFit = { crowds: false, title: undefined }
+
+// The width a segment lays its label out in: its box less its rule and its
+// padding, the box the label's `100%` resolves against.
+function contentWidthOf(segment: HTMLElement) {
+  const style = getComputedStyle(segment)
+  return (
+    segment.getBoundingClientRect().width -
+    [
+      style.borderInlineStartWidth,
+      style.borderInlineEndWidth,
+      style.paddingInlineStart,
+      style.paddingInlineEnd,
+    ].reduce((sum, length) => sum + Number.parseFloat(length), 0)
+  )
+}
+
+// How wide a label's text is laid out, whether or not the label shows it
+// all: a range measures the text's own boxes, which run on past a label
+// that clips them.
+function textWidthOf(label: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(label)
+  return range.getBoundingClientRect().width
 }
 
 SegmentedButton.Segment = SegmentedButtonSegment
