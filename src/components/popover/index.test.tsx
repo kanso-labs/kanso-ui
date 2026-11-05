@@ -558,6 +558,45 @@ describe('popover', () => {
       expect(hasClasses(description, CLASSES.subhead)).toBe(false)
     })
 
+    // The dialog sits inside the panel's inset, so a ring drawn around it
+    // was a square box tight against the text. A keyboard focusing the
+    // dialog sees the ring on the panel's edge instead, its corner included.
+    it.each([
+      ['non-modal', false],
+      ['modal', true],
+    ] as const)(
+      "draws a %s focused dialog's ring with its outer edge on the panel's",
+      (_, modal) => {
+        const view = setup({ modal })
+        const dialog = view.getByRole('dialog')
+        const panel = panelOf(dialog)
+
+        focusByKeyboard(dialog)
+        const ring = getComputedStyle(panel)
+
+        expect(dialog.matches(':focus-visible')).toBe(true)
+        expect(getComputedStyle(dialog).outlineStyle).toBe('none')
+        expect(ring.outlineStyle).toBe('solid')
+        expect(ring.outlineWidth).toBe('2px')
+        expect(ring.outlineOffset).toBe('-2px')
+        expect(ring.borderTopLeftRadius).not.toBe('0px')
+      },
+    )
+
+    // A control inside the dialog draws its own ring, so the panel draws
+    // none beside it.
+    it('draws no ring on the panel while a control inside holds focus', () => {
+      const view = setup()
+      const close = view.getByRole('button', { name: 'Close' })
+
+      focusByKeyboard(close)
+
+      expect(close.matches(':focus-visible')).toBe(true)
+      expect(
+        getComputedStyle(panelOf(view.getByRole('dialog'))).outlineStyle,
+      ).toBe('none')
+    })
+
     // The rich tooltip's inset, read as the browser resolved it, since a
     // padding is a number rather than a role.
     it('insets the panel 12 above, 8 below and 16 at the sides', () => {

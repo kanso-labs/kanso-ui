@@ -44,7 +44,6 @@ import type { OverlayAlign, OverlaySide } from '../../styles/overlay'
 
 import { OverlayScope } from '../../overlay'
 import { mergeRefs } from '../../render/ref'
-import { focus } from '../../styles/focus'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import { overlay, placementOf, popupOrigin } from '../../styles/overlay'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
@@ -57,9 +56,10 @@ import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 // rather than an inherited one.
 const DEFAULT_SIDE_OFFSET = 8
 
-// The surface, its entry and the dialog's focus ring are the overlay module's,
-// shared with every anchored overlay; what is here is Popover's own — its
-// inset, its two widths, and the type of its title and description.
+// The surface and its entry are the overlay module's, shared with every
+// anchored overlay; what is here is Popover's own — its inset, its two
+// widths, the type of its title and description, and where the dialog's
+// focus ring is drawn.
 //
 // Popover has no page of its own, so the inset and the type follow the rich
 // tooltip, the nearest thing the Material Design pages draw: a plain rounded
@@ -67,9 +67,9 @@ const DEFAULT_SIDE_OFFSET = 8
 // a subhead over supporting text.
 //
 // React Aria's popover is two elements — the positioned panel and the dialog
-// inside it — so the styles are split the same way: the surface, `content`
-// and a size on the panel, the dialog style on the element that carries the
-// role.
+// inside it — so the styles are split the same way: the surface, `content`,
+// a size and the dialog's focus ring on the panel, the dialog style on the
+// element that carries the role.
 const styles = stylex.create({
   // The rich tooltip's inset: 12 above, 8 below and 16 at the sides. The
   // surface leaves it out, since a menu's items run to its edges.
@@ -87,6 +87,28 @@ const styles = stylex.create({
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
     margin: 0,
+  },
+  // The dialog draws no ring of its own: the panel draws it, below.
+  dialog: {
+    outlineStyle: 'none',
+  },
+  // The ring a focused dialog shows, drawn on the panel around it. The
+  // dialog sits inside the panel's inset, so `focus.ring` on the dialog drew
+  // a square box tight against the text, well inside the panel's rounded
+  // edge; and since the inset is 12 above, 8 below and 16 at the sides, no
+  // one offset from the dialog reaches that edge. So the panel draws it when
+  // the dialog directly inside it holds focus from a keyboard — a button
+  // inside the dialog draws its own — with its outer edge on the panel's
+  // edge and following its corner. Inside rather than 2px out, so the ring
+  // is the panel's boundary rather than a second one floating off it.
+  dialogRing: {
+    outlineColor: colors.primary,
+    outlineOffset: '-2px',
+    outlineStyle: {
+      ':has(> [role="dialog"]:focus-visible)': 'solid',
+      default: 'none',
+    },
+    outlineWidth: '2px',
   },
   // The width belongs to the size rather than to the surface, the same split
   // Sheet makes: StyleX merges a property whole, so one unconditional
@@ -306,7 +328,7 @@ function PanelDialog({
       role="dialog"
       slot={slot ?? undefined}
       tabIndex={-1}
-      {...stylex.props(overlay.popupDialog, focus.ring)}
+      {...stylex.props(overlay.popupDialog, styles.dialog)}
     >
       <HeadingContext value={headings}>
         <TextContext value={TEXT_SLOTS}>
@@ -499,6 +521,7 @@ function PopoverContent({
             stylex.props(
               overlay.popup,
               styles.content,
+              styles.dialogRing,
               styles[size],
               popupOrigin(render.placement),
             ),
@@ -509,7 +532,7 @@ function PopoverContent({
           <Dialog
             aria-describedby={describedBy}
             {...props}
-            {...stylex.props(overlay.popupDialog, focus.ring)}
+            {...stylex.props(overlay.popupDialog, styles.dialog)}
           >
             <DescriptionContext value={registerDescription}>
               {children}

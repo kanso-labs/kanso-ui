@@ -32,6 +32,9 @@ import { colors } from '../tokens/design.tokens.stylex'
 //   thumb, the colour swatch picker, and the shared colour styles.
 // - An `outlineStyle` keyed on a breakpoint, for a ring that moves from one
 //   element to another as the window widens: a navigation bar's destination.
+// - Drawn by the element around the one holding focus, keyed on `:has()`,
+//   for a focused element whose own edge is not the boundary a reader sees:
+//   a Popover's dialog, inset inside its panel.
 // - A shadow inside a box whose input holds focus, keyed on `:focus-within`,
 //   with an outline under forced colours alone: the field chrome's box and
 //   SearchField's bar.
