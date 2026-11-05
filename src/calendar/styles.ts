@@ -69,16 +69,6 @@ const WEEKS_HELD = 6
 // the open month or year list takes too.
 const MONTH_BLOCK_SIZE = `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`
 
-// The weeks `count` stacked months hold room for together, which is fewer
-// than six apiece: no two months running one after the other both take six.
-// A month takes its sixth week only by running at least 36 days into its
-// weeks from the first one's start, so the month after it begins on the
-// second or third day of a week and fits in five. February and March 2026
-// are nine together, and May and June 2026 the eleven of the tallest pair.
-function weeksHeld(count: number): number {
-  return WEEKS_HELD * count - Math.floor(count / 2)
-}
-
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -522,11 +512,8 @@ const calendarStyles = stylex.create({
   // from the expanded window size up, whether a picker holding them is
   // docked or modal. Stacked, each month takes its own height under its
   // `monthCaption`, so a short month leaves no gap before the next one's
-  // name, and `monthsStacked` holds the stack itself still. `alignContent`
-  // is what keeps the slack under the last month: left to its default, a
-  // grid's rows stretch to share it out, which put it back between them.
+  // name, and `monthsStacked` lets the stack follow them.
   months: {
-    alignContent: { default: null, [media.belowExpanded]: 'start' },
     alignItems: 'start',
     display: { default: 'flex', [media.belowExpanded]: 'grid' },
     gap: spacing.xl,
@@ -543,25 +530,21 @@ const calendarStyles = stylex.create({
     // picker's popover moving the panel's own edge while it was open.
     minBlockSize: MONTH_BLOCK_SIZE,
   },
-  // The room `count` stacked months are held at below the expanded
-  // breakpoint, for the reason `months` holds one: each month's caption and
-  // weekday row, the gap between each two, and the weeks `weeksHeld` counts
-  // for them together. Held at six weeks apiece, the stack kept a row more
-  // than any two months fill, under the tallest pair, and three under
-  // February and March 2026. Side by side they are held at one month's room,
-  // as `months` holds them. A dynamic style, since the count is
-  // `visibleDuration`'s.
-  monthsStacked: (count: number) => ({
-    minBlockSize: {
-      default: MONTH_BLOCK_SIZE,
-      [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${count * 2 + weeksHeld(count)} + ${spacing.xl} * ${count - 1})`,
-    },
-  }),
+  // Stacked months below the expanded breakpoint, as tall as the weeks they
+  // hold and no taller. Held at the most any two months fill, the stack kept
+  // still as it paged but left rows empty under every shorter pair, two
+  // under February and March 2026, which read as a calendar missing its
+  // foot. So paging grows or shrinks the stack by the weeks the months shown
+  // differ by instead. Side by side they keep one month's room, as `months`
+  // holds it.
+  monthsStacked: {
+    minBlockSize: { default: MONTH_BLOCK_SIZE, [media.belowExpanded]: 'auto' },
+  },
   // The page's docked container: 360dp on the high surface container, or
   // the width of its container where that is narrower — a compact window
   // leaves 328dp between its margins, and the grid narrows to fit. Its height
   // follows the room `months` holds, which is what keeps it from month to
-  // month.
+  // month while one month shows or two sit side by side.
   root: {
     backgroundColor: colors.surfaceContainerHigh,
     borderRadius: radii.lg,
