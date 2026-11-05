@@ -257,11 +257,13 @@ export default defineConfig(({ command }) => ({
       // mismatched statement maps and the merged coverage totals go wrong.
       {
         extends: true,
-        // `react-dom/server` for the one spec rendering markup, named for the
+        // `react-dom/server` for the one spec rendering markup, and
+        // `@storybook/react-vite` for the one composing stories, named for the
         // reason the root list gives: met late, it re-bundles and reloads
         // whatever is importing at that moment.
         optimizeDeps: {
           include: [
+            '@storybook/react-vite',
             '@testing-library/dom',
             '@testing-library/react',
             'react-dom/server',

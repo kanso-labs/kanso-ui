@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 
+import { composeStory } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -19,6 +20,7 @@ import {
   spacing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
+import meta, { Disabled, Interactive, Stretched } from './index.stories'
 
 // Compared against elements styled straight from the tokens rather than
 // literals, so the assertions pin which role each variant reaches for without
@@ -118,6 +120,22 @@ function stretchedContent() {
 // Empty and hoisted for the same reasons the stories hoist theirs: useRender
 // injects the children, so jsx-a11y sees an anchor with no content yet, and a
 // fresh element per render would trip react-perf's no-jsx-as-prop.
+// The room a story's row of cards gets in a 360px window: its own canvas,
+// inside Storybook's 1rem gutter, and the narrower frame the Overview page
+// draws it in. And a window with room for the row's three cards.
+const rowFrames = stylex.create({
+  canvas: { inlineSize: '328px' },
+  overview: { inlineSize: '186px' },
+  wide: { inlineSize: '1248px' },
+})
+
+// How many lines an element's text takes: one box per line it is laid out on.
+function linesOf(element: Element) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  return range.getClientRects().length
+}
+
 const ARTICLE = <article />
 // oxlint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- filled by useRender
 const EXAMPLE_LINK = <a href="https://example.com" />
@@ -763,6 +781,55 @@ describe('card', () => {
       const inline = view.getByTestId('inline').getBoundingClientRect()
 
       expect(inline.top).toBe(line.top)
+    })
+  })
+
+  // The stories setting three cards in a row draw them at a phone's width
+  // too, where the Overview page gave each card 54px and broke its headline
+  // over four lines. Rendered from the stories themselves, since the row is
+  // theirs rather than the card's.
+  describe("in the stories' row", () => {
+    const rows = { Disabled, Interactive, Stretched }
+
+    it.each(['canvas', 'overview'] as const)(
+      "keeps every headline on one line in a phone's %s",
+      (frame) => {
+        const lines = Object.fromEntries(
+          Object.entries(rows).map(([name, story]) => {
+            const Row = composeStory(story, meta)
+            const view = render(
+              <div {...stylex.props(rowFrames[frame])}>
+                <Row />
+              </div>,
+            )
+            const counts = view.getAllByText('Headline').map(linesOf)
+            view.unmount()
+            return [name, counts]
+          }),
+        )
+
+        expect(lines).toEqual({
+          Disabled: [1, 1, 1],
+          Interactive: [1, 1, 1],
+          Stretched: [1, 1, 1],
+        })
+      },
+    )
+
+    it('sets three cards of 160px side by side where there is room', () => {
+      const Row = composeStory(Stretched, meta)
+      const view = render(
+        <div {...stylex.props(rowFrames.wide)}>
+          <Row />
+        </div>,
+      )
+      const cards = [
+        ...(view.container.firstElementChild?.firstElementChild?.children ??
+          []),
+      ].map((card) => card.getBoundingClientRect())
+
+      expect(cards.map(({ width }) => width)).toEqual([160, 160, 160])
+      expect(new Set(cards.map(({ top }) => top)).size).toBe(1)
     })
   })
 
