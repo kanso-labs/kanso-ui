@@ -19,7 +19,13 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { createContext, useContext } from 'react'
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   Cell as RACCell,
   Column as RACColumn,
@@ -110,6 +116,16 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // `table-layout: fixed` and `width: min-content` on the table as inline
 // styles, which no rule here can outrank; the container fills the width
 // instead and scrolls when the columns together are wider than it.
+//
+// **And no column of it is narrower than its longest word.** A fixed layout
+// sizes columns without reading what is in them, so a column given less than
+// a word took the word apart, "Waitin" over "g", wherever a parent such as a
+// `Card` lets words break. So the container keeps words whole, and the table
+// measures what each column holds and hands React Aria that as the column's
+// `minWidth` — see `useColumnMinWidths`. Columns that stop fitting then
+// scroll in the container, as a wide table already does, and a handle stops
+// at the word rather than breaking it. A column given a `minWidth` of its own
+// keeps it.
 //
 // One thing about React Aria's collection is worth knowing before writing a
 // call site. **A column's `id` and a row's `id` share one namespace**, and a
@@ -241,10 +257,13 @@ const styles = stylex.create({
   },
   // The container React Aria needs around a resizable table. It fills the
   // width the table has given up and scrolls when the columns outgrow it,
-  // which is also what a sticky header inside it sticks to.
+  // which is also what a sticky header inside it sticks to. Words are kept
+  // whole inside it, against a parent that breaks them, since the columns
+  // are measured to hold them — see the header.
   resizableContainer: {
     boxSizing: 'border-box',
     inlineSize: '100%',
+    overflowWrap: 'normal',
     overflowX: 'auto',
   },
   // The handle at a column's trailing edge: a target 24px wide, centred on
@@ -517,6 +536,16 @@ const ResizableContext = createContext(false)
 // repeating the table's own decision on each one.
 const StickyHeaderContext = createContext(false)
 
+// The narrowest each column of a resizable table can be with its words whole,
+// by the column's header cell. Empty for a table that does not resize, whose
+// columns size to what they hold anyway.
+const NO_MIN_WIDTHS: ReadonlyMap<Element, number> = new Map()
+const ColumnMinWidthsContext = createContext(NO_MIN_WIDTHS)
+
+// React Aria's own minimum for a column, which a measured one below it would
+// otherwise lower.
+const REACT_ARIA_MIN_WIDTH = 75
+
 // What a body cell draws, and the classes it draws with. Written as calls
 // rather than inline at the props, which is what react-perf's
 // no-new-function-as-prop and jsx-no-jsx-as-prop are after; the React
@@ -619,6 +648,40 @@ function emptyContent(
   return (state: TableBodyRenderProps): ReactNode => (
     <span {...stylex.props(styles.empty)}>{renderEmptyState(state)}</span>
   )
+}
+
+/**
+ * Each header cell's width with the table laid out to its content. A fixed
+ * layout never reads a cell's content, so the table is laid out the other
+ * way for the length of the measurement: automatically, at no width, and
+ * with the widths React Aria put on the header cells lifted, which leaves
+ * every column at the width of the longest word it holds, its padding
+ * included. The styles are put back before returning, so nothing is painted
+ * in between.
+ */
+function measureColumns(table: HTMLTableElement): Map<Element, number> {
+  const headers: HTMLTableCellElement[] = []
+  for (const row of table.tHead?.rows ?? []) {
+    headers.push(...row.cells)
+  }
+  const held = [table, ...headers].map(
+    (element) => [element, element.style.cssText] as const,
+  )
+  table.style.tableLayout = 'auto'
+  table.style.width = '0px'
+  for (const header of headers) {
+    header.style.width = ''
+  }
+  const widths = new Map(
+    headers.map((header) => [
+      header,
+      Math.ceil(header.getBoundingClientRect().width),
+    ]),
+  )
+  for (const [element, css] of held) {
+    element.style.cssText = css
+  }
+  return widths
 }
 
 // The container's class. React Aria takes a plain string here rather than a
@@ -724,8 +787,26 @@ function Table({
   stickyHeader = false,
   ...props
 }: RefAttributes<HTMLTableElement> & TableProps) {
+  // Held as state rather than in a ref object, since the columns are
+  // measured from an effect that has to run again when it changes, and only
+  // for a table that resizes, so no other table renders twice for it. The
+  // call site's ref lands on the same element, read off `props` for the
+  // reason NavigationBar gives.
+  const [element, setElement] = useState<HTMLTableElement | null>(null)
+  const ref = useMemo(
+    () =>
+      resizable
+        ? mergeRefs<HTMLTableElement>(setElement, props.ref ?? undefined)
+        : props.ref,
+    [props.ref, resizable],
+  )
+  const minWidths = useColumnMinWidths(resizable ? element : null)
   const table = (
-    <RACTable {...props} {...mergeStatefulStyles(tableClasses, props)} />
+    <RACTable
+      {...props}
+      {...mergeStatefulStyles(tableClasses, props)}
+      ref={ref}
+    />
   )
 
   return (
@@ -734,17 +815,19 @@ function Table({
         <ResizeLabelContext value={resizeLabel}>
           <ResizableContext value={resizable}>
             <StickyHeaderContext value={stickyHeader}>
-              {resizable ? (
-                <RACResizableTableContainer
-                  className={resizableContainerClassName()}
-                  onResize={onResize}
-                  onResizeEnd={onResizeEnd}
-                >
-                  {table}
-                </RACResizableTableContainer>
-              ) : (
-                table
-              )}
+              <ColumnMinWidthsContext value={minWidths}>
+                {resizable ? (
+                  <RACResizableTableContainer
+                    className={resizableContainerClassName()}
+                    onResize={onResize}
+                    onResizeEnd={onResizeEnd}
+                  >
+                    {table}
+                  </RACResizableTableContainer>
+                ) : (
+                  table
+                )}
+              </ColumnMinWidthsContext>
             </StickyHeaderContext>
           </ResizableContext>
         </ResizeLabelContext>
@@ -825,11 +908,30 @@ function TableColumn({
   const resizeLabel = useContext(ResizeLabelContext)
   const resizableTable = useContext(ResizableContext)
   const sticky = useContext(StickyHeaderContext)
+  // The header cell, which is what the table's measurements are keyed by,
+  // held only in a table that measures them.
+  const [element, setElement] = useState<HTMLTableCellElement | null>(null)
+  const ref = useMemo(
+    () =>
+      resizableTable
+        ? mergeRefs<HTMLTableCellElement>(setElement, props.ref ?? undefined)
+        : props.ref,
+    [props.ref, resizableTable],
+  )
+  const minWidths = useContext(ColumnMinWidthsContext)
+  const measured = element === null ? undefined : minWidths.get(element)
 
   return (
     <RACColumn
       {...props}
       {...mergeStatefulStyles(columnStyles(selection, sticky), props)}
+      minWidth={
+        props.minWidth ??
+        (measured === undefined
+          ? undefined
+          : Math.max(measured, REACT_ARIA_MIN_WIDTH))
+      }
+      ref={ref}
     >
       {columnContent(
         children,
@@ -910,6 +1012,48 @@ function TableRow<T extends object = object>(
   props: RefAttributes<HTMLTableRowElement> & TableRowProps<T>,
 ) {
   return <RACRow<T> {...props} {...mergeStatefulStyles(rowStyles, props)} />
+}
+
+/**
+ * The narrowest each column of a resizable table can be with none of its
+ * words broken, by the column's header cell, for the columns to take as
+ * their minimum — see the header.
+ *
+ * Measured again when a row, a cell or its text changes, and when a font
+ * finishes loading, which is when a word's width changes; never when the
+ * table is resized, since what a column holds does not change with it.
+ */
+function useColumnMinWidths(table: HTMLTableElement | null) {
+  const [widths, setWidths] = useState(NO_MIN_WIDTHS)
+
+  useLayoutEffect(() => {
+    if (table === null) {
+      return undefined
+    }
+    const measure = () => {
+      const next = measureColumns(table)
+      setWidths((current) =>
+        current.size === next.size &&
+        [...next].every(([header, width]) => current.get(header) === width)
+          ? current
+          : next,
+      )
+    }
+    measure()
+    const changes = new MutationObserver(measure)
+    changes.observe(table, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    })
+    document.fonts.addEventListener('loadingdone', measure)
+    return () => {
+      changes.disconnect()
+      document.fonts.removeEventListener('loadingdone', measure)
+    }
+  }, [table])
+
+  return widths
 }
 
 Table.Body = TableBody
