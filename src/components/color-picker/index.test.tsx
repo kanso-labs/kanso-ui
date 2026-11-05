@@ -45,6 +45,30 @@ describe('color picker', () => {
       expect([box.width, box.height]).toEqual([24, 24])
     })
 
+    // At the opacity a disabled label's colour mixes at, so the trigger does
+    // not read as half enabled, and at full strength otherwise.
+    it.each([
+      [false, '1'],
+      [true, '0.38'],
+    ])(
+      'fades its swatch with its label when disabled is %s',
+      (isDisabled, opacity) => {
+        const view = render(
+          <ColorPicker
+            defaultValue={PURPLE}
+            isDisabled={isDisabled}
+            label="Label"
+          />,
+        )
+        const square = view.getByRole('img').parentElement
+        if (square === null) {
+          throw new Error('expected the swatch to sit in its square')
+        }
+
+        expect(getComputedStyle(square).opacity).toBe(opacity)
+      },
+    )
+
     it('shows the colour the picker holds', () => {
       const view = render(<ColorPicker defaultValue={PURPLE} label="Label" />)
 

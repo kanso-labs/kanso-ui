@@ -90,7 +90,21 @@ const styles = stylex.create({
     flexShrink: 0,
     inlineSize: '24px',
   },
+  // Laid over the swatch while the trigger is disabled, at the opacity a
+  // disabled label's colour mixes at, so the swatch fades with the label and
+  // the trigger does not read as half enabled. Through the same context as
+  // the size, for the reason src/swatch gives.
+  triggerSwatchDisabled: {
+    opacity: stateLayerOpacity.disabledContent,
+  },
 })
+
+// Hoisted so the context is handed one array rather than a new one on every
+// render, which would re-render every swatch reading it.
+const DISABLED_TRIGGER_SWATCH = [
+  styles.triggerSwatch,
+  styles.triggerSwatchDisabled,
+]
 
 const triggerStyles = stylex.create({
   base: {
@@ -236,10 +250,20 @@ function ColorPicker({
             { className, style },
           )}
         >
-          <SwatchSquareContext value={styles.triggerSwatch}>
-            <ColorSwatch />
-          </SwatchSquareContext>
-          {label}
+          {(state: ButtonRenderProps) => (
+            <>
+              <SwatchSquareContext
+                value={
+                  state.isDisabled
+                    ? DISABLED_TRIGGER_SWATCH
+                    : styles.triggerSwatch
+                }
+              >
+                <ColorSwatch />
+              </SwatchSquareContext>
+              {label}
+            </>
+          )}
         </RACButton>
         <RACPopover
           className={popoverClassName}
