@@ -69,6 +69,16 @@ const WEEKS_HELD = 6
 // the open month or year list takes too.
 const MONTH_BLOCK_SIZE = `calc(${ROW_BLOCK_SIZE} * ${WEEKS_HELD} + ${ROW_BLOCK_SIZE})`
 
+// The weeks `count` stacked months hold room for together, which is fewer
+// than six apiece: no two months running one after the other both take six.
+// A month takes its sixth week only by running at least 36 days into its
+// weeks from the first one's start, so the month after it begins on the
+// second or third day of a week and fits in five. February and March 2026
+// are nine together, and May and June 2026 the eleven of the tallest pair.
+function weeksHeld(count: number): number {
+  return WEEKS_HELD * count - Math.floor(count / 2)
+}
+
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
 // StyleX compiler resolves a constant across files only out of a `.stylex.ts`
@@ -534,14 +544,17 @@ const calendarStyles = stylex.create({
     minBlockSize: MONTH_BLOCK_SIZE,
   },
   // The room `count` stacked months are held at below the expanded
-  // breakpoint, for the reason `months` holds one: each month's caption,
-  // weekday row and six weeks, and the gap between each two. Side by side
-  // they are held at one month's room, as `months` holds them. A dynamic
-  // style, since the count is `visibleDuration`'s.
+  // breakpoint, for the reason `months` holds one: each month's caption and
+  // weekday row, the gap between each two, and the weeks `weeksHeld` counts
+  // for them together. Held at six weeks apiece, the stack kept a row more
+  // than any two months fill, under the tallest pair, and three under
+  // February and March 2026. Side by side they are held at one month's room,
+  // as `months` holds them. A dynamic style, since the count is
+  // `visibleDuration`'s.
   monthsStacked: (count: number) => ({
     minBlockSize: {
       default: MONTH_BLOCK_SIZE,
-      [media.belowExpanded]: `calc((${MONTH_BLOCK_SIZE} + ${ROW_BLOCK_SIZE}) * ${count} + ${spacing.xl} * ${count - 1})`,
+      [media.belowExpanded]: `calc(${ROW_BLOCK_SIZE} * ${count * 2 + weeksHeld(count)} + ${spacing.xl} * ${count - 1})`,
     },
   }),
   // The page's docked container: 360dp on the high surface container, or
