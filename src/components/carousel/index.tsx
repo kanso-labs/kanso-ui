@@ -50,6 +50,13 @@ import IconButton from '../icon-button'
 // drawn at, centred, with the page's corner on the mask: what it holds is
 // cut at both sides rather than squeezed, as the page's masked items are.
 //
+// **What an item holds can see its mask.** The page shows an item's text
+// once the item is wide enough to hold it, and only what the item holds
+// knows where its text is, so `Carousel.Item` takes its children as a
+// function too, handed the width the item is laid out at and the width
+// that shows of it, as MDC-Android's masked items report their mask to a
+// listener. The text can then fade or hide as the mask closes over it.
+//
 // **The scrolling is the browser's.** A scroller holds the items' track,
 // which stays put while it scrolls, and a run of empty markers one item
 // apart after it, which is what gives the scroller its length and its rests:
@@ -79,8 +86,28 @@ const PADDING = 16
 const DEFAULT_ITEM_SIZE = 240
 
 type CarouselItemProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
-  /** What the item shows: usually an image, which the item masks. */
-  children?: ReactNode
+  /**
+   * What the item shows: usually an image, which the item masks. A function
+   * is handed how much of the item shows, every time that changes, so text
+   * the item has no room for can be hidden as the mask closes over it.
+   */
+  children?: ((state: CarouselItemRenderProps) => ReactNode) | ReactNode
+}
+
+/** How much of a `Carousel.Item` shows, for children written as a function. */
+type CarouselItemRenderProps = {
+  /**
+   * How much of `width` shows, in pixels. The mask takes the rest evenly
+   * from both sides, so `(width - visibleWidth) / 2` is cut off each. It is
+   * `width` for an item drawn large, and for every item of an uncontained
+   * carousel, which masks nothing.
+   */
+  visibleWidth: number
+  /**
+   * The width the item is laid out at, in pixels: the large item's, which
+   * every item in the carousel shares.
+   */
+  width: number
 }
 
 type CarouselProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
@@ -474,7 +501,8 @@ function CarouselItem({
   const index = slot?.index ?? 0
   const large = slot?.large ?? 0
   const placement = slot?.placement
-  const inset = placement === undefined ? 0 : (large - placement.width) / 2
+  const visibleWidth = placement === undefined ? large : placement.width
+  const inset = (large - visibleWidth) / 2
 
   return (
     <div
@@ -501,7 +529,9 @@ function CarouselItem({
         props,
       )}
     >
-      {children}
+      {typeof children === 'function'
+        ? children({ visibleWidth, width: large })
+        : children}
     </div>
   )
 }
@@ -536,7 +566,12 @@ function scrollAlong(scroller: HTMLElement | null, offset: number) {
 
 Carousel.Item = CarouselItem
 
-export type { CarouselItemProps, CarouselLayout, CarouselProps }
+export type {
+  CarouselItemProps,
+  CarouselItemRenderProps,
+  CarouselLayout,
+  CarouselProps,
+}
 
 export { CarouselItem }
 

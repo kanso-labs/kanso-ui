@@ -37,6 +37,7 @@ export type { CardProps, CardVariant } from './card'
 export { default as Card } from './card'
 export type {
   CarouselItemProps,
+  CarouselItemRenderProps,
   CarouselLayout,
   CarouselProps,
 } from './carousel'
