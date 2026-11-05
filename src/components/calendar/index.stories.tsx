@@ -126,10 +126,16 @@ const MonthList: Story = {
     showMonthYearMenus: true,
   },
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole('button', { name: 'Sep month' }))
-    await expect(
-      canvas.getByRole('option', { name: 'September' }),
-    ).toHaveAttribute('aria-selected', 'true')
+    // Found by role and state rather than by name, since the names follow the
+    // toolbar's locale: the month and the year are the header's two menu
+    // buttons, the only ones that say whether they are open, and the month
+    // comes first.
+    const [month] = canvas.getAllByRole('button', { expanded: false })
+    await userEvent.click(month)
+    // September, the ninth of the twelve, is the month shown.
+    const months = canvas.getAllByRole('option')
+    await expect(months).toHaveLength(12)
+    await expect(months[8]).toHaveAttribute('aria-selected', 'true')
   },
 }
 

@@ -231,12 +231,13 @@ const Reorderable: Story = {
     await userEvent.keyboard('{Enter}')
     // React Aria puts focus on the first place the row could land a frame
     // after the drag starts, and only then listens for the keys that move
-    // and drop it.
+    // and drop it. That place is the drop indicator it marks as the target,
+    // found by that mark rather than by its role description, which React
+    // Aria words in the toolbar's locale.
     await waitFor(async () => {
-      await expect(document.activeElement).toHaveAttribute(
-        'aria-roledescription',
-        'drop indicator',
-      )
+      await expect(
+        document.activeElement?.closest('[data-drop-target]'),
+      ).not.toBeNull()
     })
     await userEvent.keyboard('{ArrowDown}{Enter}')
     await waitFor(async () => {
