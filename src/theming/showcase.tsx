@@ -291,11 +291,15 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     padding: spacing.md,
   },
-  // Two rails side by side, as tall as a short window.
+  // Two rails side by side, as tall as a short window. Together they are
+  // wider than a phone's column, 96dp collapsed beside an expanded rail of at
+  // least 220, so the pair scrolls inside the section there rather than
+  // widening the page and scrolling every Theming page sideways.
   rails: {
     blockSize: '320px',
     display: 'flex',
     gap: spacing.lg,
+    overflowX: 'auto',
   },
   row: {
     alignItems: 'center',

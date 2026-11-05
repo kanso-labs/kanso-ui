@@ -1,5 +1,7 @@
+import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
 import type { ShowcaseProps } from './showcase'
 
@@ -41,7 +43,23 @@ function titlesOf(half?: ShowcaseProps['half']) {
   )
 }
 
+// The gutter Storybook's ThemeWrapper puts around a story, which is the
+// frame a Theming page is read in.
+const frame = stylex.create({
+  canvas: { boxSizing: 'border-box', padding: '1rem' },
+})
+
+// The runner's own viewport, put back after the case that narrows it.
+const DEFAULT_VIEWPORT = {
+  height: window.innerHeight,
+  width: window.innerWidth,
+}
+
 describe('the showcase', () => {
+  afterEach(async () => {
+    await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+  })
+
   // What this catches is omission, not hollowness: a Section with a title and
   // no children satisfies it. That is deliberate — AppBar's own section is
   // exactly that, because the bar is drawn at the top of the page and its
@@ -78,5 +96,20 @@ describe('the showcase', () => {
     expect(first.length).toBeGreaterThan(0)
     expect(second.length).toBeGreaterThan(0)
     expect([...first, ...second]).toEqual(titlesOf())
+  })
+
+  // Every Theming page renders this one, so a section wider than a phone's
+  // window scrolled each of them sideways. The NavigationRail section did,
+  // by its expanded rail.
+  it("fits a phone's window", async () => {
+    await page.viewport(360, 640)
+    render(
+      <div {...stylex.props(frame.canvas)}>
+        <Showcase name="editorial" />
+      </div>,
+    )
+
+    const root = document.documentElement
+    expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth)
   })
 })
