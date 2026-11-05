@@ -139,6 +139,23 @@ describe('time field', () => {
       expect(crowdedSegments(segments)).toEqual([])
     })
 
+    // A time opens with an invisible mark that keeps its direction, which
+    // React Aria hands over as a literal. Spaced like a colon, it pushed the
+    // hour 8px off the label's edge.
+    it('starts the time at the edge the label starts at', () => {
+      const view = render(
+        <I18nProvider locale="en-US">
+          <TimeField defaultValue={TIME} label="Label" />
+        </I18nProvider>,
+      )
+      const [hour] = segmentsOf(view)
+      const label = view.getByText('Label').getBoundingClientRect()
+
+      expect(
+        Math.abs(hour.getBoundingClientRect().left - label.left),
+      ).toBeLessThanOrEqual(2)
+    })
+
     it('floats the label clear of the segments, even with no value', () => {
       const view = render(<TimeField label="Label" />)
       const label = view.getByText('Label').getBoundingClientRect()

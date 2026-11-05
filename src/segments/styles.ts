@@ -73,23 +73,25 @@ const segmentStyles = stylex.create({
   },
   // A literal between two segments — the slash or the colon the locale puts
   // there. Not a focus stop, and not something a reader tabs through.
-  //
-  // The room either side of it is what keeps the segments apart as targets.
-  // A single digit is narrower than the 24 by 24 WCAG 2.5.8 asks of a
-  // target, and the criterion lets one that size pass only where a 24px
-  // circle centred on it reaches neither the next segment nor that
-  // segment's own circle. With the literal drawn tight, the 9 and the 5 of
-  // 9/5/2026 sat 19px apart, centre to centre. Spaced here rather than by
-  // widening the segments: a segment held at 24 leaves a short value
-  // floating in it, which drew the value off the label's edge and the
-  // literals at uneven distances, where this spaces every literal alike.
   segmentLiteral: {
     color: colors.onSurfaceVariant,
-    paddingInline: spacing.xs,
+    paddingInline: 0,
   },
   // A segment with nothing in it yet, showing its own placeholder.
   segmentPlaceholder: {
     color: colors.onSurfaceVariant,
+  },
+  // The room either side of a literal that takes up room, which is what
+  // keeps the segments apart as targets. A single digit is narrower than the
+  // 24 by 24 WCAG 2.5.8 asks of a target, and the criterion lets one that
+  // size pass only where a 24px circle centred on it reaches neither the
+  // next segment nor that segment's own circle. With the slash drawn tight,
+  // the 9 and the 5 of 9/5/2026 sat 19px apart, centre to centre. Spaced
+  // here rather than by widening the segments: a segment held at 24 leaves a
+  // short value floating in it, which drew the value off the label's edge
+  // and the literals at uneven distances, where this spaces every one alike.
+  segmentSeparator: {
+    paddingInline: spacing.xs,
   },
 })
 
