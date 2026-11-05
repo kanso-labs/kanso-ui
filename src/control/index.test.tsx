@@ -5,6 +5,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import Checkbox from '../components/checkbox'
+import Link from '../components/link'
 import RadioGroup, { Radio } from '../components/radio-group'
 import Switch from '../components/switch'
 import { spacing, typography } from '../tokens/design.tokens.stylex'
@@ -321,6 +322,24 @@ describe('a link in the label', () => {
       expect(control.checked).toBe(false)
     },
   )
+
+  // The library's own Link, which a label reaches for to keep its link on the
+  // theme's roles. React Aria's link takes the press itself, so the box is
+  // left alone even without the exception the control makes for a link; what
+  // this pins is that the two together still follow the link.
+  it('is followed rather than toggling the Checkbox when it is a Link', () => {
+    const view = render(
+      <Checkbox>
+        I agree to the <Link href="#terms">terms</Link>
+      </Checkbox>,
+    )
+    const control = controlIn(view, 'checkbox')
+
+    pressWithMouse(view.getByRole('link', { name: 'terms' }))
+
+    expect(location.hash).toBe('#terms')
+    expect(control.checked).toBe(false)
+  })
 
   it.each(LINKED)(
     'leaves the rest of the $name label toggling it',
