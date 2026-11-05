@@ -1153,6 +1153,24 @@ describe('segmented button', () => {
       ).toStrictEqual([0, 0])
     })
 
+    // A set choosing one asks of every segment whether its label would be
+    // cut beside a check, not only of the chosen one, so choosing another
+    // never turns the checks off or on. The columns' content box lies
+    // halfway between what "First item" and "Second item" need beside a
+    // glyph: the chosen first has room for its check, and the second would
+    // not if it were chosen.
+    it('decides by every segment rather than the chosen one', async () => {
+      const [firstWidth, secondWidth] = labelWidths()
+      expect(secondWidth - firstWidth).toBeGreaterThan(4)
+      const view = squeezed(3 * ((firstWidth + secondWidth) / 2 + 26 + 17))
+      const chosen = view.getAllByRole('radio')[0]
+
+      await waitFor(() => {
+        expect(hasClasses(chosen, CLASSES.selectedUnmarked)).toBe(true)
+      })
+      expect(glyphSlotOf(chosen).childElementCount).toBe(0)
+    })
+
     // The glyphs come back as the room does, and the track keeps its width
     // across both, since the room a glyph keeps is never given up to it.
     it('draws its glyphs again once there is room', async () => {

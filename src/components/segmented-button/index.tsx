@@ -136,7 +136,10 @@ import {
 // chosen segment on the stronger container a set without a check draws, so
 // the choice still reads. The whole set rather than the one segment, since a
 // set choosing several would otherwise draw one chosen segment one way and
-// the next another. Only past that is a label cut short, with an ellipsis
+// the next another. And any segment rather than the chosen one, since a
+// check that would cut a label only once its segment is chosen is the same
+// cut a moment later, and choosing should not turn the glyphs off or on.
+// Only past that is a label cut short, with an ellipsis
 // and a `title` that shows it whole. The track's width still never depends
 // on the choice: squeezed, its columns are the container's, shared equally,
 // and the glyphs giving way frees room inside them without moving them.

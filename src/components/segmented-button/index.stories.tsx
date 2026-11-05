@@ -105,9 +105,10 @@ const IconOnly: Story = {
   },
 }
 
-// The set on a phone-width container, narrower than the track asks for. The
-// room a check needs is given back from the segments not drawing one before
-// any label is cut, and a label that is cut still shows whole in its title.
+// The set on a phone-width container, narrower than the track asks for.
+// "First item" has room for its check, but "Second item" would not if it were
+// chosen, so the set draws no check whichever segment is chosen, and the
+// chosen one takes the stronger container instead. Every label shows whole.
 const Narrow: Story = {
   render: (args) => (
     <div {...stylex.props(styles.narrow)}>
