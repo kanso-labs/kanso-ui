@@ -8,6 +8,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useLayoutEffect, useState } from 'react'
 import {
   Button as RACButton,
   DateInput as RACDateInput,
@@ -63,8 +64,42 @@ import RangeCalendar from '../range-calendar'
 // **Both segment groups and the trigger sit in one React Aria `Group`.** The
 // box draws once around all three, so a reader tabs start, end, trigger
 // rather than meeting three controls in a row.
+//
+// **The end date takes a line of its own where the two do not fit on one.**
+// The line the segments sit on clips them, as an input clips its text, and
+// two dates and the dash are wider than a phone's field: at 328px the empty
+// field showed 212px of the 281px its placeholders take, so most of the end
+// date was out of sight until it was typed in. Every segment is a place to
+// type, so none can be hidden, and shortening the placeholders would not hold
+// for a locale whose dates are longer. So the two groups wrap, the dash stays
+// after the start date, and the box grows by a line, as a text area's does,
+// from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
+// the dates share their line.
+//
+// The wrap is decided by the line's width, and typing never undoes it. A date
+// is narrower filled than empty — `9` where `mm` was — so a field between the
+// two widths, which is where a 375 to 400px phone puts it, would otherwise
+// lift the end date back up beside the start and shrink the box while the
+// start date was being typed. So the end date goes onto its own line whenever
+// the three stop fitting, and comes back only when the line's width changes
+// or a font arrives — see `useEndDateWrap`.
 
 const styles = stylex.create({
+  // The two segment groups and the dash, with the end date on a line of its
+  // own — see the header. No gap between the lines, which are the segments'
+  // own line height apart, as a text area's are.
+  groupWrapped: {
+    flexWrap: 'wrap',
+    rowGap: 0,
+  },
+  // What keeps the end date on that line while it would fit beside the start
+  // again, since a wrap alone moves it down only while it does not. A line of
+  // its own, full width and no height, so the end date starts the next.
+  lineBreak: {
+    blockSize: 0,
+    boxSizing: 'border-box',
+    flexBasis: '100%',
+  },
   // The dash between the two segment groups. Body-large so it sits on the
   // segments' own line, muted so the dates either side stay the thing being
   // read.
@@ -204,6 +239,8 @@ function DateRangePicker<T extends DateValue>({
   ...props
 }: DateRangePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
+  const [group, setGroup] = useState<HTMLDivElement | null>(null)
+  const wrapped = useEndDateWrap(group)
 
   return (
     <RACDateRangePicker<T>
@@ -228,6 +265,9 @@ function DateRangePicker<T extends DateValue>({
         isRequired={props.isRequired}
         label={label}
         leading={leadingIcon}
+        // Grows by a line while the end date is on one of its own, and is
+        // the page's 56dp otherwise — see the header.
+        multiline
         // In the chrome's trailing slot rather than on the segments' line —
         // see the same prop on DatePicker for what that slot does and why
         // the trigger still opens from there.
@@ -235,13 +275,19 @@ function DateRangePicker<T extends DateValue>({
         variant={variant}
       >
         <FieldSegments>
-          <RACGroup {...stylex.props(picker.group)}>
+          <RACGroup
+            ref={setGroup}
+            {...stylex.props(picker.group, wrapped && styles.groupWrapped)}
+          >
             <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
             <span aria-hidden="true" {...stylex.props(styles.separator)}>
               {separator}
             </span>
+            {wrapped && (
+              <span aria-hidden="true" {...stylex.props(styles.lineBreak)} />
+            )}
             <RACDateInput slot="end" {...stylex.props(segmentStyles.input)}>
               {renderSegment}
             </RACDateInput>
@@ -264,6 +310,65 @@ function DateRangePicker<T extends DateValue>({
       </RACPopover>
     </RACDateRangePicker>
   )
+}
+
+/**
+ * Whether the end date takes a line of its own: whenever the start date, the
+ * dash and the end date are wider together than the line they sit on.
+ *
+ * Decided afresh when the line's width changes or a font finishes loading,
+ * and otherwise only ever turned on, so a date narrowing as it is typed
+ * never moves the end date back up mid-entry — see the header. Read off the
+ * three parts' own widths rather than the line's overflow, since a wrapped
+ * line overflows nothing.
+ */
+function useEndDateWrap(group: HTMLElement | null) {
+  const [wrapped, setWrapped] = useState(false)
+
+  useLayoutEffect(() => {
+    if (group === null) {
+      return undefined
+    }
+    let decidedAt: null | number = null
+    const measure = () => {
+      const room = group.getBoundingClientRect().width
+      // React Aria's hidden inputs sit in the group too, and so does the
+      // break while the end date is held down. Neither takes a line's height,
+      // and neither is a part the line has to hold.
+      const parts = [...group.children].filter(
+        (part) => part.getBoundingClientRect().height > 0,
+      )
+      const gap = Number.parseFloat(getComputedStyle(group).columnGap) || 0
+      const needs = parts.reduce(
+        (sum, part) => sum + part.getBoundingClientRect().width,
+        gap * (parts.length - 1),
+      )
+      const fits = needs <= room + 0.5
+      if (room !== decidedAt) {
+        decidedAt = room
+        setWrapped(!fits)
+      } else if (!fits) {
+        setWrapped(true)
+      }
+    }
+    const redecide = () => {
+      decidedAt = null
+      measure()
+    }
+    measure()
+    const resize = new ResizeObserver(measure)
+    resize.observe(group)
+    for (const part of group.children) {
+      resize.observe(part)
+    }
+    document.fonts.addEventListener('loadingdone', redecide)
+    return () => {
+      resize.disconnect()
+      document.fonts.removeEventListener('loadingdone', redecide)
+    }
+  }, [group])
+
+  return wrapped
 }
 
 export type { DateRangePickerProps }
