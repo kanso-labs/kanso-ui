@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.25](https://github.com/kanso-labs/kanso-ui/compare/v0.45.24...v0.45.25) (2026-11-06)
+
+
+### Dependencies
+
+* update chromaui/action action to v18.14.2 ([#1999](https://github.com/kanso-labs/kanso-ui/issues/1999)) ([f26d7d0](https://github.com/kanso-labs/kanso-ui/commit/f26d7d097981e49e07359fb061f0756b06ae9ae8))
+
 ## [0.45.24](https://github.com/kanso-labs/kanso-ui/compare/v0.45.23...v0.45.24) (2026-11-06)
 
 
