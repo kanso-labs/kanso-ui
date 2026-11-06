@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.45.23](https://github.com/kanso-labs/kanso-ui/compare/v0.45.22...v0.45.23) (2026-11-06)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.12 ([#1983](https://github.com/kanso-labs/kanso-ui/issues/1983)) ([9352733](https://github.com/kanso-labs/kanso-ui/commit/935273388fb801ddd6b3b3480df9a15abbb4a07c))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.13 ([#1990](https://github.com/kanso-labs/kanso-ui/issues/1990)) ([2bafafd](https://github.com/kanso-labs/kanso-ui/commit/2bafafd9816c3d90ea9f6b465351bef905016004))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.14 ([#1994](https://github.com/kanso-labs/kanso-ui/issues/1994)) ([4249b94](https://github.com/kanso-labs/kanso-ui/commit/4249b9477ae33d0f8d767c5b9ce848ad913208ba))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.55 ([#1984](https://github.com/kanso-labs/kanso-ui/issues/1984)) ([3bcb234](https://github.com/kanso-labs/kanso-ui/commit/3bcb234a5eb51267d34b5e68864da1332e8504d4))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.57 ([#1991](https://github.com/kanso-labs/kanso-ui/issues/1991)) ([a396440](https://github.com/kanso-labs/kanso-ui/commit/a396440a4bd238d290911750e3944b94243cf804))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.58 ([#1996](https://github.com/kanso-labs/kanso-ui/issues/1996)) ([8eef7dd](https://github.com/kanso-labs/kanso-ui/commit/8eef7dd250eb4c5420205135559010e3d0597875))
+* update dependency eslint-plugin-oxlint to v1.92.0 ([#1995](https://github.com/kanso-labs/kanso-ui/issues/1995)) ([e1c7659](https://github.com/kanso-labs/kanso-ui/commit/e1c7659a93a106517c3fc6d7298b361b11ab15b9))
+* update dependency oxfmt to v0.77.0 ([#1992](https://github.com/kanso-labs/kanso-ui/issues/1992)) ([6637806](https://github.com/kanso-labs/kanso-ui/commit/663780631012ffe0332e89e036c6eaf85d94b667))
+* update dependency oxlint to v1.92.0 ([#1993](https://github.com/kanso-labs/kanso-ui/issues/1993)) ([2f878c8](https://github.com/kanso-labs/kanso-ui/commit/2f878c86e42a3328c63cc4ec5c2226b3673ee4fd))
+* update dependency oxlint-tsgolint to v7.0.2006 ([#1985](https://github.com/kanso-labs/kanso-ui/issues/1985)) ([3b7a489](https://github.com/kanso-labs/kanso-ui/commit/3b7a489c7249eb48b41295246f1531e81600c080))
+* update dependency tsdown to v0.23.7 ([#1989](https://github.com/kanso-labs/kanso-ui/issues/1989)) ([506f2d9](https://github.com/kanso-labs/kanso-ui/commit/506f2d956fb9d0b84ec6599ca632758efc375121))
+* update storybook to v10.6.6 ([#1986](https://github.com/kanso-labs/kanso-ui/issues/1986)) ([14fdd39](https://github.com/kanso-labs/kanso-ui/commit/14fdd39932b236c948e8b05178f8a385e04fcaa0))
+
 ## [0.45.22](https://github.com/kanso-labs/kanso-ui/compare/v0.45.21...v0.45.22) (2026-11-05)
 
 
