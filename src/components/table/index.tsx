@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefAttributes } from 'react'
 import type {
+  CellRenderProps,
   ColumnRenderProps,
   ColumnResizerRenderProps,
   CellProps as RACCellProps,
@@ -151,6 +152,12 @@ const styles = stylex.create({
     paddingInline: spacing.lg,
     textAlign: 'start',
     verticalAlign: 'middle',
+  },
+  // A disabled row's cell, faded as a whole at the disabled content opacity,
+  // so that whatever it holds fades with its text — a Tag, or anything else
+  // that draws its own colours and so reads nothing of the row's.
+  cellDisabled: {
+    opacity: stateLayerOpacity.disabledContent,
   },
   // What the body shows in place of rows. React Aria puts it in a cell of its
   // own spanning every column, and that cell is not this component's — so the
@@ -325,10 +332,12 @@ const styles = stylex.create({
   // Applied from render state rather than `:disabled`, since a row is a
   // `<tr>` React Aria marks with aria-disabled. Last, so its ground and colour
   // win over the selected row's; React Aria reports no hover or press on a
-  // disabled row, so the state layers never meet it.
+  // disabled row, so the state layers never meet it. Its text is on surface
+  // at full strength, since the cells holding it fade as a whole, and fading
+  // it here as well would fade it twice.
   rowDisabled: {
     backgroundColor: 'transparent',
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: colors.onSurface,
     cursor: 'not-allowed',
     // Back to the mode, which a selected row opts out of.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
@@ -564,8 +573,15 @@ function cellContent(
   return <Checkbox aria-label={label} slot="selection" />
 }
 
+// A cell's classes, faded on a disabled row unless it holds the checkbox,
+// which draws its own disabled state.
 function cellStyles(selection: boolean) {
-  return stylex.props(styles.cell, styles.focus, selection && styles.selection)
+  return (state: CellRenderProps) =>
+    stylex.props(
+      styles.cell,
+      styles.focus,
+      selection ? styles.selection : state.isDisabled && styles.cellDisabled,
+    )
 }
 
 function columnContent(
@@ -863,7 +879,8 @@ function TableBody<T extends object = object>({
 
 /**
  * One cell. `selection` draws this row's checkbox in place of whatever else
- * the cell would hold.
+ * the cell would hold. On a disabled row the cell fades as a whole, so what
+ * it holds fades with its text.
  */
 function TableCell({
   children,
