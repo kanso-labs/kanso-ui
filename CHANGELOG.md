@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.45.27](https://github.com/kanso-labs/kanso-ui/compare/v0.45.26...v0.45.27) (2026-11-09)
+
+
+### Bug Fixes
+
+* **button-group:** round a connected group's ends no more than the theme's pill ([#2013](https://github.com/kanso-labs/kanso-ui/issues/2013)) ([da25d87](https://github.com/kanso-labs/kanso-ui/commit/da25d8721414be3a84900ad58d4b8380afeed2ee))
+* **table:** fade what a disabled row's cells hold ([#2014](https://github.com/kanso-labs/kanso-ui/issues/2014)) ([49f8450](https://github.com/kanso-labs/kanso-ui/commit/49f8450255bdf80663475605ad48dab23df89eb3))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.14.3 ([#2015](https://github.com/kanso-labs/kanso-ui/issues/2015)) ([e68aefd](https://github.com/kanso-labs/kanso-ui/commit/e68aefd088a70114a87fab98bf7e1fe6f6d6cb97))
+* update dependency @kanso-labs/kanso-ui-core to v0.1.16 ([#2004](https://github.com/kanso-labs/kanso-ui/issues/2004)) ([2031338](https://github.com/kanso-labs/kanso-ui/commit/203133892fc0094fb452def66b80d98bc3709386))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.60 ([#2005](https://github.com/kanso-labs/kanso-ui/issues/2005)) ([7d237e2](https://github.com/kanso-labs/kanso-ui/commit/7d237e202ee078b10aa65918c0fc98bfa0b49088))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.61 ([#2017](https://github.com/kanso-labs/kanso-ui/issues/2017)) ([a4e6b82](https://github.com/kanso-labs/kanso-ui/commit/a4e6b820add3b89bdf163382d1c33fd86e7923d1))
+* update dependency @rolldown/plugin-babel to v0.3.1 ([#2008](https://github.com/kanso-labs/kanso-ui/issues/2008)) ([27edc7f](https://github.com/kanso-labs/kanso-ui/commit/27edc7fc102d793c676bd95609aaa919c89c67e5))
+* update dependency @vitejs/plugin-react to v6.3.0 ([#2010](https://github.com/kanso-labs/kanso-ui/issues/2010)) ([0683b21](https://github.com/kanso-labs/kanso-ui/commit/0683b21fca5d3a3e52b439b31a1fca25448e1ae6))
+* update dependency oxfmt to v0.78.0 ([#2011](https://github.com/kanso-labs/kanso-ui/issues/2011)) ([abe5fec](https://github.com/kanso-labs/kanso-ui/commit/abe5fec761e915aa1c45b58668a27432339025f5))
+* update dependency typescript-eslint to v8.72.2 ([#2016](https://github.com/kanso-labs/kanso-ui/issues/2016)) ([6745fc3](https://github.com/kanso-labs/kanso-ui/commit/6745fc377c2178b652bab4771dfaf68191c7fad9))
+* update dependency vite to v8.3.7 ([#2009](https://github.com/kanso-labs/kanso-ui/issues/2009)) ([f556ff4](https://github.com/kanso-labs/kanso-ui/commit/f556ff4772c4d26e3f6e4af58fde4d09d2f41e18))
+* update oxlint to v1.93.0 ([#2012](https://github.com/kanso-labs/kanso-ui/issues/2012)) ([fab5642](https://github.com/kanso-labs/kanso-ui/commit/fab5642f8927e3b7d69cfa69c62471c1fad3359f))
+
 ## [0.45.26](https://github.com/kanso-labs/kanso-ui/compare/v0.45.25...v0.45.26) (2026-11-08)
 
 
