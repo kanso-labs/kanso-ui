@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import List from '../components/list'
 import ListBox from '../components/list-box'
+import { computedKeyword } from '../styles/keyword.testing'
 
 // The lists page's three container heights. A row draws the one its content
 // asks for: a headline alone, a headline with one more line, or all three.
@@ -81,7 +82,9 @@ describe('an overline on a collection row', () => {
       const row = view.getByRole(role)
 
       expect(heightOf(row)).toBe(THREE_LINE)
-      expect(getComputedStyle(row).alignItems).toBe('flex-start')
+      expect(getComputedStyle(row).alignItems).toBe(
+        computedKeyword('align-items', 'flex-start'),
+      )
     },
   )
 
