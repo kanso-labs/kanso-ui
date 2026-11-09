@@ -35,13 +35,13 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import Tag from '../tag'
 
 const probeStyles = stylex.create({
   bodyMedium: { fontSize: typography.bodyMediumSize },
-  disabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-  },
+  faded: { opacity: stateLayerOpacity.disabledContent },
   labelLarge: { fontWeight: typography.labelLargeWeight },
+  onSurface: { color: colors.onSurface },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { color: colors.outlineVariant },
   primary: { color: colors.primary },
@@ -169,6 +169,7 @@ function probe(style: stylex.StyleXStyles) {
     color: computed.color,
     fontSize: computed.fontSize,
     fontWeight: computed.fontWeight,
+    opacity: computed.opacity,
   }
   view.unmount()
   return read
@@ -625,13 +626,61 @@ describe('table', () => {
       expect(second.getAttribute('aria-disabled')).toBe('true')
     })
 
-    it('fades its text to on-surface at the disabled content opacity', () => {
+    // Its cells fade rather than its text, which is on surface under them,
+    // so the text is not faded twice.
+    it('fades its cells to the disabled content opacity', () => {
       const view = render(<Basic disabledKeys={['second']} />)
       const [, first, second] = view.getAllByRole('row')
-      const faded = probe(probeStyles.disabled).color
+      const faded = probe(probeStyles.faded).opacity
 
-      expect(getComputedStyle(second).color).toBe(faded)
-      expect(getComputedStyle(first).color).not.toBe(faded)
+      expect(faded).not.toBe('1')
+      expect(getComputedStyle(second).color).toBe(
+        probe(probeStyles.onSurface).color,
+      )
+      for (const cell of second.children) {
+        expect(getComputedStyle(cell).opacity).toBe(faded)
+      }
+      for (const cell of first.children) {
+        expect(getComputedStyle(cell).opacity).toBe('1')
+      }
+    })
+
+    // Faded through the row's colour alone, a Tag in a cell kept its own
+    // colours at full strength beside the faded text. The checkbox draws its
+    // own disabled state, so its cell is left alone.
+    it('fades what its cells hold, and leaves the checkbox to its own', () => {
+      const view = render(
+        <Table
+          aria-label="Label"
+          disabledKeys={['second']}
+          selectionMode="multiple"
+        >
+          <Table.Header>
+            <Table.Column id="colSelect" selection />
+            <Table.Column id="colName" isRowHeader>
+              Label
+            </Table.Column>
+            <Table.Column id="colTag">Tag</Table.Column>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row id="second">
+              <Table.Cell selection />
+              <Table.Cell>Second item</Table.Cell>
+              <Table.Cell>
+                <Tag>Label</Tag>
+              </Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>,
+      )
+      const [, row] = view.getAllByRole('row')
+      const [select, name, tag] = row.children
+      const faded = probe(probeStyles.faded).opacity
+
+      expect(getComputedStyle(select).opacity).toBe('1')
+      expect(getComputedStyle(name).opacity).toBe(faded)
+      expect(getComputedStyle(tag).opacity).toBe(faded)
+      expect(tag.textContent).toBe('Label')
     })
 
     // React Aria reports no hover on a disabled row, so hovering it leaves it
