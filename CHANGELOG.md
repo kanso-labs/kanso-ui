@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.28](https://github.com/kanso-labs/kanso-ui/compare/v0.45.27...v0.45.28) (2026-11-09)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.17 ([#2018](https://github.com/kanso-labs/kanso-ui/issues/2018)) ([f9eb57c](https://github.com/kanso-labs/kanso-ui/commit/f9eb57c4b0629ffd39975ed83a865f8910c7fa3a))
+* update dependency playwright to v1.65.0 ([#1988](https://github.com/kanso-labs/kanso-ui/issues/1988)) ([82b7052](https://github.com/kanso-labs/kanso-ui/commit/82b70523f5b4ac959c4b82aa46b3405e90bf74db))
+
 ## [0.45.27](https://github.com/kanso-labs/kanso-ui/compare/v0.45.26...v0.45.27) (2026-11-09)
 
 
