@@ -9,6 +9,7 @@ import { page } from 'vitest/browser'
 import type { SheetContentProps } from '.'
 
 import Sheet from '.'
+import { computedKeyword } from '../../styles/keyword.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import IconButton from '../icon-button'
@@ -814,7 +815,9 @@ describe('sheet', () => {
         view.getByRole('button', { name: 'Cancel' }).parentElement!,
       )
 
-      expect(footer.justifyContent).toBe('flex-start')
+      expect(footer.justifyContent).toBe(
+        computedKeyword('justify-content', 'flex-start'),
+      )
       expect(footer.minHeight).toBe('72px')
       expect(footer.paddingTop).toBe('16px')
       expect(footer.paddingBottom).toBe('24px')

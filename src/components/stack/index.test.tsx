@@ -4,6 +4,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import Stack from '.'
+import { computedKeyword } from '../../styles/keyword.testing'
 import { spacingPx } from '../../tokens/values'
 
 // Wide enough that a row only wraps when it is told to, so the wrap
@@ -126,7 +127,9 @@ describe('alignment', () => {
       throw new Error('expected the stack to render its children')
     }
 
-    expect(getComputedStyle(stack).alignItems).toBe('flex-start')
+    expect(getComputedStyle(stack).alignItems).toBe(
+      computedKeyword('align-items', 'flex-start'),
+    )
     expect(child.getBoundingClientRect().width).toBeLessThan(400)
   })
 

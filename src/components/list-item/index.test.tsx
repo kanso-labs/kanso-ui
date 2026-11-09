@@ -13,6 +13,7 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ListItem from '.'
+import { computedKeyword } from '../../styles/keyword.testing'
 import {
   disabledContentOpacity,
   opacityWithin,
@@ -387,7 +388,9 @@ describe('list item', () => {
       const style = getComputedStyle(rowIn(view.container))
 
       expect(style.minHeight).toBe('88px')
-      expect(style.alignItems).toBe('flex-start')
+      expect(style.alignItems).toBe(
+        computedKeyword('align-items', 'flex-start'),
+      )
     })
 
     it('stays a centred two-line row with an overline alone', () => {
@@ -489,7 +492,7 @@ describe('list item', () => {
         </ListItem>,
       )
       expect(getComputedStyle(rowIn(view.container)).alignItems).toBe(
-        'flex-start',
+        computedKeyword('align-items', 'flex-start'),
       )
     })
   })
