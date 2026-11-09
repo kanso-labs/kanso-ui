@@ -332,6 +332,34 @@ describe('button group', () => {
       expect(fitsAsWritten(second)).toBe(true)
     })
 
+    // A scheme that squares its pill squares its Buttons, and the group's
+    // ends and a selected button follow them rather than staying round.
+    it('rounds its ends no more than the pill', () => {
+      const root = document.documentElement.style
+      root.setProperty('--kui-radius-pill', '2px')
+      try {
+        render(
+          <>
+            <Group
+              defaultSelectedKeys={SECOND}
+              selectionMode="single"
+              variant="connected"
+            />
+            <Button>Label</Button>
+          </>,
+        )
+        const [first, second, third] = screen.getAllByRole('radio')
+        const alone = screen.getByRole('button', { name: 'Label' })
+
+        expect(cornersOf(first).left).toBe('2px')
+        expect(cornersOf(second)).toEqual({ left: '2px', right: '2px' })
+        expect(cornersOf(third).right).toBe('2px')
+        expect(cornersOf(alone).left).toBe('2px')
+      } finally {
+        root.removeProperty('--kui-radius-pill')
+      }
+    })
+
     it('keeps the round end at the start under right-to-left', () => {
       render(
         <div dir="rtl">

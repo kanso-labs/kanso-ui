@@ -100,18 +100,20 @@ const INNER = {
   xxl: '20px',
 }
 
-// The round end at each size: half the button's height. Not the pill's
-// 9999px: CSS scales every corner of a box down together when two on one
-// side add up to more than the side is long, so a 9999px end beside an 8px
-// inner corner shrank the inner one to nothing. Half the height fits as
-// written. A label that wraps makes a button taller than this, and its ends
-// a little less than round.
+// The round end at each size: half the button's height, or the pill where
+// that is smaller, as Button's own round corner is. Not the pill's 9999px
+// alone: CSS scales every corner of a box down together when two on one side
+// add up to more than the side is long, so a 9999px end beside an 8px inner
+// corner shrank the inner one to nothing. Half the height fits as written.
+// `min()` leaves the pill in charge below that, so a scheme that squares its
+// pill squares the group's ends with its Buttons. A label that wraps makes a
+// button taller than this, and its ends a little less than round.
 const ROUND = {
-  lg: `calc(${sizing.controlLg} / 2)`,
-  md: `calc(${sizing.controlSm} / 2)`,
-  xl: `calc(${sizing.controlXl} / 2)`,
-  xs: `calc(${sizing.controlXs} / 2)`,
-  xxl: `calc(${sizing.controlXxl} / 2)`,
+  lg: `min(${radii.pill}, calc(${sizing.controlLg} / 2))`,
+  md: `min(${radii.pill}, calc(${sizing.controlSm} / 2))`,
+  xl: `min(${radii.pill}, calc(${sizing.controlXl} / 2))`,
+  xs: `min(${radii.pill}, calc(${sizing.controlXs} / 2))`,
+  xxl: `min(${radii.pill}, calc(${sizing.controlXxl} / 2))`,
 }
 
 const INNER_PRESSED = {
