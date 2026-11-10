@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.30](https://github.com/kanso-labs/kanso-ui/compare/v0.45.29...v0.45.30) (2026-11-10)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.62 ([#2023](https://github.com/kanso-labs/kanso-ui/issues/2023)) ([ff18a0b](https://github.com/kanso-labs/kanso-ui/commit/ff18a0b3248d989f155e34dc47824aa4133a3920))
+
 ## [0.45.29](https://github.com/kanso-labs/kanso-ui/compare/v0.45.28...v0.45.29) (2026-11-10)
 
 
