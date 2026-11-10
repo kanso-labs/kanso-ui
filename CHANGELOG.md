@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.29](https://github.com/kanso-labs/kanso-ui/compare/v0.45.28...v0.45.29) (2026-11-10)
+
+
+### Dependencies
+
+* update storybook to v10.6.7 ([#2021](https://github.com/kanso-labs/kanso-ui/issues/2021)) ([9c059c5](https://github.com/kanso-labs/kanso-ui/commit/9c059c5a6d6b5ee9a2f4a612b2dc7f2b6c7fbe05))
+
 ## [0.45.28](https://github.com/kanso-labs/kanso-ui/compare/v0.45.27...v0.45.28) (2026-11-09)
 
 
