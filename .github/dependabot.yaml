@@ -1,0 +1,29 @@
+# Dependabot raises security updates here and nothing else. Renovate owns
+# version updates, and open-pull-requests-limit: 0 is what turns Dependabot's
+# off while leaving its security updates running. schedule is required by the
+# schema and does nothing for a security update.
+#
+# The prefix is the one Renovate's pull requests carry, so a security fix
+# passes commitlint on its title and releases as a dependency upgrade. No
+# labels are set, so Dependabot adds its own `dependencies` and ecosystem
+# labels, which the organization's labels.yaml leaves alone. An ecosystem
+# without an entry here keeps Dependabot's default prefix, which is why
+# github-actions has one too. AGENTS.md has the details.
+#
+# `.yaml` like every other file here: Dependabot reads either spelling.
+updates:
+  - commit-message:
+      prefix: deps
+    directory: /
+    open-pull-requests-limit: 0
+    package-ecosystem: npm
+    schedule:
+      interval: weekly
+  - commit-message:
+      prefix: deps
+    directory: /
+    open-pull-requests-limit: 0
+    package-ecosystem: github-actions
+    schedule:
+      interval: weekly
+version: 2
