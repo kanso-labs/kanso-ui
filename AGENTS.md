@@ -1038,6 +1038,19 @@ installed app. This repository is listed in that runner's `config.js`, and
 removed; do not add `.github/dependabot.yml` back, or the two will open
 competing pull requests for the same upgrades.
 
+**Dependabot's minor and patch security fixes merge themselves, through
+`dependabot-auto-merge.yaml`.** The shared `_dependabot-auto-merge.yaml` turns
+squash auto-merge on for those and leaves a major to a person, the rule the
+organization's Renovate preset applies. Auto-merge then waits on the required
+checks, so a fix merges once they pass. It merges with `GITHUB_TOKEN`, so the
+merge starts no workflow run on `main`. Only `main`'s copy of the file runs,
+since a Dependabot pull request takes its workflows from the merge ref and
+Dependabot never edits one, so a change to it cannot be tried from a branch. A
+green run is not evidence: the job passes when it leaves a major for a person,
+so read its notice and check that the pull request shows auto-merge enabled.
+Dependabot's default title is not a Conventional Commit, and `Lint` checks the
+title, so a pull request carrying that title waits until its title is fixed.
+
 **Renovate commits are typed `deps:`, and that is what makes them release.**
 release-please computes a patch bump for any commit that is not a `feat` or a
 breaking change, but it only opens a release pull request when the notes it

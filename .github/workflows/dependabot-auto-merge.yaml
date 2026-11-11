@@ -1,0 +1,28 @@
+name: Dependabot Auto-merge
+
+# Renovate's minor and patch updates merge themselves, and Dependabot has no
+# setting that does the same. Its pull requests here are security fixes, often
+# for a dependency only package-lock.json names, which Renovate cannot reach.
+# This turns auto-merge on for its minor and patch ones, so they merge once the
+# required checks pass instead of waiting for a person.
+#
+# Only the default branch's copy of this file runs for a Dependabot pull
+# request, because Dependabot never edits a workflow here — so a change to it
+# has to be merged before it can be tried.
+on:
+  pull_request:
+
+# The caller's job grants the two scopes the shared workflow declares, and
+# nothing else here needs a token.
+permissions: {}
+
+jobs:
+  dependabot-auto-merge:
+    name: Enable auto-merge
+    # Spares every other pull request a skipped job. The shared workflow checks
+    # the same thing itself, and that is the check that counts.
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: kanso-labs/actions/.github/workflows/_dependabot-auto-merge.yaml@v4.5.2
