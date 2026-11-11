@@ -1,4 +1,4 @@
-name: Dependabot Auto-merge
+name: Dependabot auto-merge
 
 # Renovate's minor and patch updates merge themselves, and Dependabot has no
 # setting that does the same. Its pull requests here are security fixes, often

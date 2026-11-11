@@ -1,4 +1,4 @@
-name: Add to Project
+name: Add to project
 
 # Puts every issue opened or reopened here on the Kanso UI project, as the
 # organization's project standard asks. The shared workflow skips issues a bot
