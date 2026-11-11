@@ -1,4 +1,4 @@
-name: Renovate Command
+name: Renovate command
 
 # Renovate has no comment commands of its own, so `@renovate rebase` on one of
 # its pull requests does nothing by default. This answers it: the shared
