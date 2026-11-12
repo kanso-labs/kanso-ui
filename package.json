@@ -87,7 +87,7 @@
     "@commitlint/config-conventional": "21.2.4",
     "@eslint/js": "10.0.1",
     "@kanso-labs/kanso-ui-core": "0.1.18",
-    "@kanso-labs/unplugin-style-dictionary": "0.10.63",
+    "@kanso-labs/unplugin-style-dictionary": "0.10.64",
     "@microsoft/api-extractor": "7.60.1",
     "@rolldown/plugin-babel": "0.3.1",
     "@storybook/addon-a11y": "10.6.7",
