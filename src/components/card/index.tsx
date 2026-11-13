@@ -188,6 +188,15 @@ const styles = stylex.create({
   paddingNone: {
     padding: 0,
   },
+  // The outlined card's rule is inside its border box, so on top of the
+  // padding it set the content 1px further in than the other variants set
+  // theirs: side by side, its headline sat 1px lower and 1px further in. The
+  // padding gives the rule's width back, which puts the content on the same
+  // grid and the card at the same size as an elevated or filled one holding
+  // the same children.
+  paddingOutlined: {
+    padding: `calc(${spacing.lg} - 1px)`,
+  },
 })
 
 // A pointer that can hover: a mouse or a trackpad, not a finger. An
@@ -370,7 +379,12 @@ function Card({
     onPointerLeave,
     onPointerUp,
   })
-  const padded = padding === 'none' ? styles.paddingNone : styles.paddingDefault
+  const padded =
+    padding === 'none'
+      ? styles.paddingNone
+      : variant === 'outlined'
+        ? styles.paddingOutlined
+        : styles.paddingDefault
 
   return useRender({
     defaultTagName: interactive ? 'button' : 'div',
