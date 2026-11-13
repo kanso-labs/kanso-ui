@@ -349,7 +349,8 @@ const rowStyles = stylex.create({
   // the `Canvas` backplate the mode lays behind text would leave
   // `HighlightText` on `Canvas` — black on black in High Contrast Black. A
   // child that names a colour of its own names a system one too — see the
-  // supporting styles below — and `disabled` hands the row back.
+  // supporting styles below — `slotSelected` hands back what sits before the
+  // headline, and `disabled` hands back the whole row.
   selectedDrawer: {
     backgroundColor: {
       default: colors.secondaryContainer,
@@ -404,6 +405,19 @@ const rowStyles = stylex.create({
       default: stateLayerOpacity.disabledContent,
       [FORCED_COLORS]: 1,
     },
+  },
+  // A selected row's selection checkbox and leading content, handed back to
+  // the mode the row opts out of. The property inherits, so out of the mode
+  // they kept the theme's colours over the row's `Highlight`: a checked box
+  // in primary, an icon square in its own container. Back in it, they are
+  // drawn in system colours, as a native control in a chosen option is,
+  // while an icon drawn in the row's own colour still inherits
+  // `HighlightText`. The trailing slot stays out with the headline, since
+  // that is where a row's text sits — a shortcut, an amount — and the
+  // `Canvas` backplate the mode lays behind text would leave it
+  // `HighlightText` on `Canvas`.
+  slotSelected: {
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
   supporting: {
     color: colors.onSurfaceVariant,
