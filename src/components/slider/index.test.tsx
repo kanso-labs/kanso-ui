@@ -56,6 +56,18 @@ const CLASSES = {
   stopActiveDisabled: classesOf(stylex.props(probeStyles.stopActiveDisabled)),
 }
 
+// A part's four physical corners, top first, so an end turned the wrong way
+// round reads as such.
+function cornersOf(part: Element) {
+  const style = getComputedStyle(part)
+  return [
+    style.borderTopLeftRadius,
+    style.borderTopRightRadius,
+    style.borderBottomLeftRadius,
+    style.borderBottomRightRadius,
+  ]
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
 }
@@ -408,6 +420,31 @@ describe('slider', () => {
       expect(view.track.getBoundingClientRect().width).toBe(68)
       expect(view.segments[0].getBoundingClientRect().width).toBe(56)
       expect(view.thumb.getBoundingClientRect().width).toBe(68)
+    })
+
+    // Vertical, a part starts at its block end, since the value grows from
+    // the bottom: the full corner is at the track's top and foot, and the
+    // 2dp ones face the handle.
+    it("rounds a vertical track's outer ends, not the ends by the handle", () => {
+      const view = setupFramed({ orientation: 'vertical' })
+      const [active, inactive] = view.segments
+
+      // The active part, at the foot, and the inactive one above the handle.
+      expect(cornersOf(active)).toEqual(['2px', '2px', '8px', '8px'])
+      expect(cornersOf(inactive)).toEqual(['8px', '8px', '2px', '2px'])
+    })
+
+    it("rounds a vertical range's outer ends, and every end by a handle at 2", () => {
+      const view = setupFramed({
+        defaultValue: RANGE,
+        orientation: 'vertical',
+        thumbLabels: THUMB_LABELS,
+      })
+      const [below, between, above] = view.segments
+
+      expect(cornersOf(below)).toEqual(['2px', '2px', '8px', '8px'])
+      expect(cornersOf(between)).toEqual(['2px', '2px', '2px', '2px'])
+      expect(cornersOf(above)).toEqual(['8px', '8px', '2px', '2px'])
     })
 
     // React Aria's centring translate is physical, so the inset it backs out

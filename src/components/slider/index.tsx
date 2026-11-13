@@ -750,10 +750,11 @@ function trackContent(extras: Extras, thumbLabels: string[] | undefined) {
       (size === 'md' || size === 'lg' || size === 'xl')
     const steps = showStops ? stepsOf(state) : []
     const place = vertical ? placements.block : placements.inline
-    const innerStart = vertical
-      ? styles.innerBlockStart
-      : styles.innerInlineStart
-    const innerEnd = vertical ? styles.innerBlockEnd : styles.innerInlineEnd
+    // Vertical, a part starts at its block end, since the value grows from
+    // the bottom — `placements.block` turns the axis over the same way — so
+    // the corners it turns to a handle at its start are the block end's.
+    const innerStart = vertical ? styles.innerBlockEnd : styles.innerInlineStart
+    const innerEnd = vertical ? styles.innerBlockStart : styles.innerInlineEnd
 
     return (
       <>
