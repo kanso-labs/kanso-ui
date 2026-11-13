@@ -362,6 +362,54 @@ describe('slider', () => {
         expect(middleOf(thumb)).toBeLessThanOrEqual(box.right + 0.5)
       },
     )
+
+    // Vertical, the value sits on the handle's inline-start side, which is
+    // where the slider's own edge is: it ran past that edge, off the page
+    // against the container's, and at 100 it reached up beside the label. The
+    // slider keeps room for it on that side, and it is held to the track's
+    // length at the ends, so it stays inside the slider and clear of the
+    // label in either direction.
+    it.each([
+      ['left-to-right', 0, 'en-US', 'ltr'],
+      ['left-to-right', 100, 'en-US', 'ltr'],
+      ['right-to-left', 0, 'he-IL', 'rtl'],
+      ['right-to-left', 100, 'he-IL', 'rtl'],
+    ] as const)(
+      'keeps a vertical value inside the slider and off its label, %s, at %i',
+      (_, value, locale, dir) => {
+        const view = setupFramed(
+          { defaultValue: value, orientation: 'vertical' },
+          { dir, locale },
+        )
+
+        fireEvent.keyDown(document.body, { key: 'Tab' })
+        act(() => {
+          view.input.focus()
+        })
+        const output = view.container.querySelector('output')
+        if (output === null) {
+          throw new Error('expected the handle to show its value')
+        }
+        const box = output.getBoundingClientRect()
+        const root = view.getByRole('group').getBoundingClientRect()
+        const label = view.getByText('Label').getBoundingClientRect()
+        const thumb = view.thumb.getBoundingClientRect()
+
+        expect(box.left).toBeGreaterThanOrEqual(root.left - 0.5)
+        expect(box.right).toBeLessThanOrEqual(root.right + 0.5)
+        expect(box.top).toBeGreaterThanOrEqual(label.bottom)
+        expect(box.bottom).toBeLessThanOrEqual(root.bottom + 0.5)
+        // Still the page's 12 from the handle, on its inline-start side, and
+        // beside it: the end of the track the handle sits at is level with
+        // the value.
+        const clearance =
+          dir === 'rtl' ? box.left - thumb.right : thumb.left - box.right
+        expect(clearance).toBeCloseTo(12, 0)
+        const level = thumb.top + thumb.height / 2
+        expect(level).toBeGreaterThanOrEqual(box.top - 0.5)
+        expect(level).toBeLessThanOrEqual(box.bottom + 0.5)
+      },
+    )
   })
 
   describe('measurements', () => {

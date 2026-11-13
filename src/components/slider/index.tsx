@@ -89,6 +89,12 @@ import {
 //
 // Vertical, the same parts run along the block axis, with the active part
 // rising from the bottom and the indicator to the start side of the handle.
+// The slider keeps the indicator's least width and its 12dp of clearance on
+// that side of the track, as a horizontal one keeps its height above, and
+// the indicator is held to the track's length at the ends the same way, so
+// at 100 it stays below the label rather than reaching up beside it. A value
+// wider than three digits grows the indicator past that room, towards the
+// slider's start edge.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -112,6 +118,11 @@ const STOP = 4
 const ICON_PADDING = 10
 /** The value indicator's height. */
 const INDICATOR = 44
+/**
+ * The value indicator's least width, which holds three digits at
+ * label-large. A vertical slider keeps this much room beside its track.
+ */
+const INDICATOR_WIDTH = 48
 
 type SliderSize = 'lg' | 'md' | 'sm' | 'xl' | 'xs'
 
@@ -224,7 +235,7 @@ const styles = stylex.create({
     justifyContent: 'center',
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
-    minInlineSize: '48px',
+    minInlineSize: `${INDICATOR_WIDTH}px`,
     paddingInline: spacing.md,
     position: 'absolute',
     // Back by half its own width, to centre it on the handle, held between
@@ -243,12 +254,19 @@ const styles = stylex.create({
     },
     whiteSpace: 'nowrap',
   },
+  // Beside the handle, on its inline-start side, and back by half its own
+  // height to centre it on the handle, held between the track's two ends as
+  // a horizontal one is: no further up than the handle is from the track's
+  // top, `1 - --slider-at` of its length in `cqb`, and no further down than
+  // leaves its bottom edge at the track's foot. The block axis does not turn
+  // over under right-to-left, so neither does this translate.
   indicatorVertical: {
     insetBlockEnd: 'auto',
     insetBlockStart: '50%',
     insetInlineEnd: `calc(100% + ${spacing.md})`,
     insetInlineStart: 'auto',
-    transform: 'translateY(-50%)',
+    transform:
+      'translateY(clamp(calc((1 - var(--slider-at)) * -100cqb), -50%, calc(var(--slider-at) * 100cqb - 100%)))',
   },
   // The corners a part turns to the handle, 2dp against the full ones at
   // its outer end. Which end is which depends on the part and the axis.
@@ -427,13 +445,17 @@ const styles = stylex.create({
   trackDisabled: {
     cursor: 'not-allowed',
   },
-  // Vertical, the indicator sits beside the handle, so nothing is kept
-  // above the track for it.
+  // Vertical, the indicator sits beside the handle, so its room is kept on
+  // the track's inline-start side rather than above it: its least width and
+  // its clearance from the handle. A container on both axes, since the
+  // indicator is held to the track's length along the block one.
   trackVertical: {
     blockSize: '100%',
+    containerType: 'size',
     flexGrow: 1,
     inlineSize: 'var(--slider-handle)',
     marginBlockStart: 0,
+    marginInlineStart: `calc(${INDICATOR_WIDTH}px + ${spacing.md})`,
     minBlockSize: 0,
   },
 })
