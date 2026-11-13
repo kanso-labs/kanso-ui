@@ -60,27 +60,43 @@ const styles = stylex.create({
   },
 })
 
-// A filter chip as a menu's trigger, which is the page's dropdown filter chip.
-// Controlled by what the menu has chosen rather than by its own press, so the
-// press that opens the menu does not select it: the chip reads as selected
-// once an item is chosen, and the arrow stays after its label.
+// The dropdown chip's menu, by key, so the chip can name what was chosen.
+const ITEMS = new Map([
+  ['first', 'First item'],
+  ['second', 'Second item'],
+  ['third', 'Third item'],
+])
+
+// The page's dropdown filter chip, as a menu's trigger. A menu button rather
+// than a toggle, so it announces no pressed state, and selected by what the
+// menu has chosen rather than by its own press, so the press that opens the
+// menu does not select it. Once an item is chosen the chip reads as selected
+// and takes the item's name as its label, which is what tells a screen
+// reader the choice; the arrow stays after it.
 function DropdownChip() {
   const [selected, setSelected] = useState<Selection>(() => new Set())
-  const chosen = selected === 'all' || selected.size > 0
+  const key = selected === 'all' ? undefined : selected.values().next().value
+  const chosen = key === undefined ? undefined : ITEMS.get(String(key))
 
   return (
     <Menu>
-      <Chip isSelected={chosen} trailingIcon={ARROW}>
-        Label
+      <Chip
+        isSelected={chosen !== undefined}
+        trailingIcon={ARROW}
+        variant="dropdown"
+      >
+        {chosen ?? 'Label'}
       </Chip>
       <Menu.Content
         onSelectionChange={setSelected}
         selectedKeys={selected}
         selectionMode="single"
       >
-        <Menu.Item id="first">First item</Menu.Item>
-        <Menu.Item id="second">Second item</Menu.Item>
-        <Menu.Item id="third">Third item</Menu.Item>
+        {[...ITEMS].map(([id, label]) => (
+          <Menu.Item id={id} key={id}>
+            {label}
+          </Menu.Item>
+        ))}
       </Menu.Content>
     </Menu>
   )

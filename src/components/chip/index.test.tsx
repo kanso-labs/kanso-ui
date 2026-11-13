@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactElement } from 'react'
 
+import { composeStory } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
 import { createElement } from 'react'
@@ -24,6 +25,8 @@ import {
   spacing,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
+import Menu from '../menu'
+import meta, { Dropdown } from './index.stories'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -1108,5 +1111,77 @@ describe('a disabled chip', () => {
 
     expect(hasClasses(chip, CLASSES.disabledColor)).toBe(true)
     expect(alphaOf(getComputedStyle(chip).color)).toBeCloseTo(0.38)
+  })
+})
+
+// The page's dropdown filter chip opens a menu, which is not a toggle: a
+// filter chip there carried `aria-pressed` beside the menu's `aria-haspopup`
+// and `aria-expanded`, and was announced as a pressed toggle that was also a
+// collapsed menu once something was chosen.
+describe('a dropdown chip', () => {
+  it('is a menu button, announcing no pressed state', () => {
+    const view = render(
+      <Menu>
+        <Chip trailingIcon={TRAILING} variant="dropdown">
+          Label
+        </Chip>
+        <Menu.Content>
+          <Menu.Item id="first">First item</Menu.Item>
+        </Menu.Content>
+      </Menu>,
+    )
+    const chip = view.getByRole('button', { name: 'Label' })
+
+    expect(chip).toHaveAttribute('aria-haspopup', 'true')
+    expect(chip).toHaveAttribute('aria-expanded', 'false')
+    expect(chip).not.toHaveAttribute('aria-pressed')
+    expect(trailingIn(chip)).not.toBeNull()
+  })
+
+  it('draws the selected pill and the check while selected, and the outline while not', () => {
+    const selected = render(
+      <Chip isSelected variant="dropdown">
+        Label
+      </Chip>,
+    ).getByRole('button')
+
+    expect(selected).not.toHaveAttribute('aria-pressed')
+    expect(hasClasses(selected, CLASSES.selectedBackground)).toBe(true)
+    expect(checkIn(selected)).not.toBeNull()
+
+    const unselected = render(<Chip variant="dropdown">Other</Chip>).getByRole(
+      'button',
+      { name: 'Other' },
+    )
+
+    expect(hasClasses(unselected, CLASSES.unselectedBackground)).toBe(true)
+    expect(checkIn(unselected)).toBeNull()
+  })
+
+  // A press opens the menu and selects nothing: the look follows the call
+  // site's `isSelected` alone.
+  it('stays unselected when pressed', () => {
+    const view = render(<Chip variant="dropdown">Label</Chip>)
+    const chip = view.getByRole('button')
+
+    fireEvent.click(chip)
+
+    expect(hasClasses(chip, CLASSES.unselectedBorder)).toBe(true)
+    expect(checkIn(chip)).toBeNull()
+  })
+
+  // The issue's own steps through the story: open the menu, choose an item.
+  it('names the choice and looks selected once the Dropdown story has one', () => {
+    const Story = composeStory(Dropdown, meta)
+    const view = render(<Story />)
+
+    fireEvent.click(view.getByRole('button', { name: 'Label' }))
+    fireEvent.click(view.getByRole('menuitemradio', { name: 'Second item' }))
+
+    const chip = view.getByRole('button', { name: 'Second item' })
+    expect(chip).toHaveAttribute('aria-haspopup', 'true')
+    expect(chip).not.toHaveAttribute('aria-pressed')
+    expect(hasClasses(chip, CLASSES.selectedColor)).toBe(true)
+    expect(checkIn(chip)).not.toBeNull()
   })
 })

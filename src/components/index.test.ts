@@ -23,6 +23,7 @@ import type {
   CheckboxGroupProps,
   CheckboxProps,
   ChipActionProps,
+  ChipDropdownProps,
   ChipFilterProps,
   ChipGroupChipProps,
   ChipGroupProps,
@@ -748,6 +749,11 @@ describe('components barrel', () => {
   it('re-exports the ChipActionProps type', () => {
     const props: ChipActionProps = { children: 'test', variant: 'assist' }
     expect(props.variant).toBe('assist')
+  })
+
+  it('re-exports the ChipDropdownProps type', () => {
+    const props: ChipDropdownProps = { children: 'test', variant: 'dropdown' }
+    expect(props.variant).toBe('dropdown')
   })
 
   it('re-exports the ChipFilterProps type', () => {
