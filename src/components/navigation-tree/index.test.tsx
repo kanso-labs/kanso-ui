@@ -99,11 +99,28 @@ function caretPointsUnder(dir: 'ltr' | 'rtl', expanded: boolean) {
   return { x: Math.round(a), y: Math.round(b) }
 }
 
-// Real key presses, then a frame: a row hands focus on to its link a frame
-// after it takes it.
+// A key dispatched at whatever has focus, then a frame: a row hands focus on
+// to its link a frame after it takes it.
+async function dispatch(key: string) {
+  const target = document.activeElement ?? document.body
+  fireEvent.keyDown(target, { key })
+  fireEvent.keyUp(target, { key })
+  await nextFrame()
+}
+
+async function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(resolve))
+}
+
+// A real key press, through the browser. Only Tab and Enter need one: the
+// tree keeps to one Tab stop by moving focus itself while the browser
+// performs the Tab, and React Aria leaves a native link's Enter to the
+// browser, which turns it into the click that follows the link. Every other
+// key is dispatched, which costs no round trip to the page while the rest of
+// the suite is running.
 async function press(keys: string) {
   await userEvent.keyboard(keys)
-  await new Promise((resolve) => requestAnimationFrame(resolve))
+  await nextFrame()
 }
 
 function probe(style: stylex.StyleXStyles) {
@@ -372,9 +389,7 @@ describe('navigation tree', () => {
 
   // React Aria gives a row with an `href` its Tab stop, its `aria-current`
   // and its press through the link inside it, so a row drawn without one
-  // could be reached by nothing but a pointer. Real key presses rather than
-  // dispatched events: the tree keeps to one Tab stop by handling Tab
-  // itself, and a row hands focus on to its link a frame after taking it.
+  // could be reached by nothing but a pointer.
   describe('the keyboard', () => {
     it('takes one Tab stop, on the current row link', async () => {
       const view = render(
@@ -413,13 +428,13 @@ describe('navigation tree', () => {
       act(() => {
         view.getByRole('link', { name: 'Child item' }).focus()
       })
-      await press('{ArrowDown}')
+      await dispatch('ArrowDown')
       expect(document.activeElement).toBe(
         view.getByRole('link', { name: 'Second item' }),
       )
 
-      await press('{ArrowUp}')
-      await press('{ArrowUp}')
+      await dispatch('ArrowUp')
+      await dispatch('ArrowUp')
       expect(document.activeElement).toBe(
         view.getByRole('link', { name: 'First item' }),
       )
@@ -435,11 +450,11 @@ describe('navigation tree', () => {
       act(() => {
         view.getByRole('link', { name: 'Child item' }).focus()
       })
-      await press('{ArrowUp}')
-      await press('{ArrowLeft}')
+      await dispatch('ArrowUp')
+      await dispatch('ArrowLeft')
       expect([...onExpandedChange.mock.calls[0][0]]).toEqual([])
 
-      await press('{ArrowRight}')
+      await dispatch('ArrowRight')
       expect([...onExpandedChange.mock.calls[1][0]]).toEqual(['first'])
     })
 
@@ -454,7 +469,7 @@ describe('navigation tree', () => {
       act(() => {
         view.getByRole('link', { name: 'Child item' }).focus()
       })
-      await press('{ArrowDown}')
+      await dispatch('ArrowDown')
       await press('{Enter}')
 
       expect(navigate).toHaveBeenCalledWith('#second', undefined)
@@ -467,7 +482,7 @@ describe('navigation tree', () => {
       act(() => {
         view.getByRole('link', { name: 'Child item' }).focus()
       })
-      await press('{ArrowDown}')
+      await dispatch('ArrowDown')
 
       expect(document.activeElement).toBe(second)
       expect(
