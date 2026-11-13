@@ -11,6 +11,7 @@ import {
   isPressed,
   MINIMUM_PRESS_MS,
 } from '../../hooks/useRipple.testing'
+import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
@@ -278,6 +279,30 @@ describe('list box', () => {
 
       expect(hasClasses(second, CLASSES.selected)).toBe(true)
       expect(hasClasses(first, CLASSES.selected)).toBe(false)
+    })
+
+    // Under forced colours the selected option is `Highlight`, and its ring
+    // in `HighlightText` has to sit inside that rather than along its edge —
+    // see `focusVisibleSelected` in src/row/styles.ts. List and Tree draw
+    // their rows through the same `rowItemStyles`.
+    it('insets the ring of a focused selected option under forced colours', () => {
+      const view = setup({ defaultSelectedKeys: SECOND })
+      const list = view.getByRole('listbox', { name: 'Label' })
+      const [first, second] = view.getAllByRole('option')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(list, { key: 'ArrowDown' })
+      fireEvent.keyUp(list, { key: 'ArrowDown' })
+
+      expect(second.getAttribute('data-focus-visible')).toBe('true')
+      expect(
+        valueIn(
+          rulesReaching(second, { holding: 'forced-colors: active' }),
+          'outline-offset',
+        ),
+      ).toBe('-4px')
     })
 
     // The muted role a supporting line draws on the surface is a second

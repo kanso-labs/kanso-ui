@@ -415,6 +415,7 @@ function itemStyles(state: MenuItemRenderProps) {
     state.isSelected && rowStyles.selectedMenu,
     state.isHovered && rowStyles.hovered,
     state.isFocusVisible && rowStyles.focusVisible,
+    state.isFocusVisible && state.isSelected && rowStyles.focusVisibleSelected,
     state.isPressed && rowStyles.pressed,
     state.isDisabled && rowStyles.disabled,
   )

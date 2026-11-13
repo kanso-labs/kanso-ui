@@ -29,6 +29,7 @@ import {
   surfaceOf,
 } from '../../hooks/useRipple.testing'
 import { rowStyles } from '../../row/styles'
+import { rulesReaching, valueIn } from '../../styles/stylesheet.testing'
 import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 
 const probeStyles = stylex.create({
@@ -106,6 +107,14 @@ async function dispatch(key: string) {
   fireEvent.keyDown(target, { key })
   fireEvent.keyUp(target, { key })
   await nextFrame()
+}
+
+/** The outline offset the forced-colours mode gives `row`. */
+function forcedOutlineOffsetOf(row: Element) {
+  return valueIn(
+    rulesReaching(row, { holding: 'forced-colors: active' }),
+    'outline-offset',
+  )
 }
 
 async function nextFrame() {
@@ -335,6 +344,27 @@ describe('navigation tree', () => {
 
       expect(view.queryByText('Child item')).toBeNull()
       expect(branch.getAttribute('data-current-ancestor')).toBe('true')
+    })
+
+    // Under forced colours the current row is `Highlight`, and its ring in
+    // `HighlightText` has to sit inside that rather than along its edge —
+    // see `focusVisibleSelected` in src/row/styles.ts.
+    it('insets the ring of the focused current row under forced colours', async () => {
+      const view = render(<Basic />)
+      const [first, child] = view.getAllByRole('row')
+
+      act(() => {
+        view.getByRole('link', { name: 'Child item' }).focus()
+      })
+      // The row above is on the way to the current one, not current itself,
+      // so it keeps the ring every other row draws.
+      await dispatch('ArrowUp')
+      expect(first.getAttribute('data-focus-visible')).toBe('true')
+      expect(forcedOutlineOffsetOf(first)).toBe('-2px')
+
+      await dispatch('ArrowDown')
+      expect(child.getAttribute('data-focus-visible')).toBe('true')
+      expect(forcedOutlineOffsetOf(child)).toBe('-4px')
     })
 
     it('marks nothing when no route matches', () => {

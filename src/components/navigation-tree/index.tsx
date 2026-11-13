@@ -309,6 +309,7 @@ function itemStyles(state: NavigationTreeItemRenderProps) {
     state.isCurrent && rowStyles.selectedDrawer,
     state.isHovered && rowStyles.hovered,
     state.isFocusVisible && rowStyles.focusVisible,
+    state.isFocusVisible && state.isCurrent && rowStyles.focusVisibleSelected,
     state.isPressed && rowStyles.pressed,
     state.isDisabled && rowStyles.disabled,
   )
