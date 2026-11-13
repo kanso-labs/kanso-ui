@@ -17,7 +17,7 @@ import type { ButtonShape, ButtonSize } from '../button'
 
 import { ButtonGroupItemContext } from '../../button/context'
 import { mergeStyles } from '../../styles/merge'
-import { radioGroupRenderer } from '../../toggle-group'
+import { toggleGroupRenderer } from '../../toggle-group'
 import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 
 // The button groups page's two groups, around Buttons and IconButtons placed
@@ -257,7 +257,7 @@ function ButtonGroup({
         selectionMode={selectionMode}
         {...props}
         disallowEmptySelection={disallowEmptySelection ?? single}
-        render={single ? radioGroupRenderer(props.render) : props.render}
+        render={toggleGroupRenderer(props.render, single)}
         {...groupProps}
       >
         {content}
