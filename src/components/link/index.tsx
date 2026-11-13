@@ -47,6 +47,9 @@ import {
 // tapped, so `:hover` kept a tapped link lit until the next tap, and React
 // Aria ignores that pointer; it also never reports a disabled link hovered.
 
+// Windows High Contrast and the rest of the forced-colours modes.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   base: {
     '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
@@ -68,10 +71,20 @@ const styles = stylex.create({
   // Tabs and Button style theirs that way. A disabled link is never hovered,
   // so neither its colour nor an underline held back until hover comes on
   // under a pointer, and the rule of an `always` link stays, greyed.
+  //
+  // Under forced colours the mode repaints the mix in the colour of enabled
+  // text, so the text and the rule name `GrayText` there, as every other
+  // disabled control here does.
   disabled: {
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
-    textDecorationColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    textDecorationColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
   },
 })
 
