@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -359,4 +361,104 @@ describe('disclosure', () => {
       expect(getComputedStyle(inner!).paddingLeft).toBe('16px')
     })
   })
+
+  // The panel's content starts where the headline does. With nothing in the
+  // header's leading slot that is the row's 16dp inset; with an avatar or an
+  // icon there it is that inset, the slot and the row's gap after it.
+  describe("the panel's start edge", () => {
+    it.each([
+      ['ltr', 40],
+      ['rtl', 40],
+      ['ltr', 24],
+      ['rtl', 24],
+    ] as const)(
+      'lines up with the headline under %s, after a %ipx leading slot',
+      (dir, size) => {
+        const edges = edgesUnder(dir, <Square size={size} />)
+
+        expect(edges.panel).toBe(edges.headline)
+        expect(edges.panel).not.toBe(edges.row)
+      },
+    )
+
+    it.each(['ltr', 'rtl'] as const)(
+      'keeps the row inset with no leading slot, under %s',
+      (dir) => {
+        const edges = edgesUnder(dir)
+
+        expect(edges.panel).toBe(edges.headline)
+        expect(Math.abs(edges.panel - edges.row)).toBe(16)
+      },
+    )
+
+    it('follows the leading slot as it changes size', async () => {
+      const view = render(
+        <Disclosure defaultExpanded>
+          <Disclosure.Header leading={ICON_SIZED}>Headline</Disclosure.Header>
+          <Disclosure.Panel>
+            <span>Panel body</span>
+          </Disclosure.Panel>
+        </Disclosure>,
+      )
+      view.rerender(
+        <Disclosure defaultExpanded>
+          <Disclosure.Header leading={AVATAR_SIZED}>Headline</Disclosure.Header>
+          <Disclosure.Panel>
+            <span>Panel body</span>
+          </Disclosure.Panel>
+        </Disclosure>,
+      )
+
+      await expect
+        .poll(() => startOf(view.getByText('Panel body'), 'ltr'))
+        .toBe(startOf(view.getByText('Headline'), 'ltr'))
+    })
+  })
 })
+
+const squareStyles = stylex.create({
+  square: (size: string) => ({
+    blockSize: size,
+    display: 'block',
+    inlineSize: size,
+  }),
+})
+
+// The start edges of the header row, its headline and the panel's content,
+// with the disclosure open inside a `<div dir>`.
+function edgesUnder(dir: 'ltr' | 'rtl', leading?: ReactNode) {
+  const view = render(
+    <div dir={dir}>
+      <Disclosure defaultExpanded>
+        <Disclosure.Header leading={leading}>Headline</Disclosure.Header>
+        <Disclosure.Panel>
+          <span>Panel body</span>
+        </Disclosure.Panel>
+      </Disclosure>
+    </div>,
+  )
+  const edges = {
+    headline: startOf(view.getByText('Headline'), dir),
+    panel: startOf(view.getByText('Panel body'), dir),
+    row: startOf(view.getByRole('button'), dir),
+  }
+  view.unmount()
+  return edges
+}
+
+// A leading slot's content at a size of its own: an avatar's 40 or an
+// icon's 24.
+function Square({ size }: { size: number }) {
+  return <span {...stylex.props(squareStyles.square(`${size}px`))} />
+}
+
+// Hoisted so neither is a new element on every render, which is what
+// react-perf's jsx-no-jsx-as-prop is after.
+const ICON_SIZED = <Square size={24} />
+const AVATAR_SIZED = <Square size={40} />
+
+// Where an element starts along the line, from the inline start of `dir`.
+function startOf(element: Element, dir: 'ltr' | 'rtl') {
+  const box = element.getBoundingClientRect()
+  return dir === 'rtl' ? box.right : box.left
+}
