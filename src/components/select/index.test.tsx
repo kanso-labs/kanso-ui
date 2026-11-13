@@ -413,6 +413,32 @@ describe('select', () => {
   })
 
   describe('appearance', () => {
+    // React Aria moves DOM focus to the option under the pointer, and the
+    // browser can match that focus to `:focus-visible` while React Aria,
+    // reading the pointer, reports no focus ring. The row's ring is drawn
+    // from React Aria's state, so the browser's own `outline: auto` drew a
+    // second, black one under the cursor.
+    it('draws no outline on an option the pointer focused', async () => {
+      const view = setup()
+      // Opened by a pointer rather than a bare click: React Aria moves focus
+      // on hover only once it has read the input in use as a pointer.
+      fireEvent.pointerDown(view.trigger, { button: 0, pointerType: 'mouse' })
+      fireEvent.pointerUp(view.trigger, { button: 0, pointerType: 'mouse' })
+      const option = await view.findByRole('option', { name: 'Third item' })
+
+      fireEvent.pointerOver(option, { pointerType: 'mouse' })
+      fireEvent.pointerMove(option, { pointerType: 'mouse' })
+
+      await waitFor(() => {
+        expect(document.activeElement).toBe(option)
+      })
+      // What the browser's own ring answers to, so the case would fail on
+      // the outline below rather than pass for want of it.
+      expect(option.matches(':focus-visible')).toBe(true)
+      expect(option).not.toHaveAttribute('data-focus-visible')
+      expect(getComputedStyle(option).outlineStyle).toBe('none')
+    })
+
     // With no floating label there is nothing for the placeholder to hide
     // behind, so it shows in the muted role from the start.
     it('draws the placeholder in the muted role', () => {
