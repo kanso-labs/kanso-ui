@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import Toolbar from '.'
@@ -10,6 +11,7 @@ import IconButton from '../icon-button'
 import Popover from '../popover'
 import Separator from '../separator'
 import Sheet from '../sheet'
+import TextField from '../text-field'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -114,6 +116,25 @@ function narrow() {
   )
 }
 
+// A key pressed on `element`, down and up. Whether the press kept its
+// default, which is `false` once a handler took the key from the page.
+function press(element: HTMLElement, key: string) {
+  const kept = fireEvent.keyDown(element, { key })
+  fireEvent.keyUp(element, { key })
+  return kept
+}
+
+// Three controls and no rule, so the first and the last are the bar's ends.
+function row(props: Partial<Parameters<typeof Toolbar>[0]> = {}) {
+  return render(
+    <Toolbar aria-label="Label" {...props}>
+      <IconButton aria-label="First item">{null}</IconButton>
+      <IconButton aria-label="Second item">{null}</IconButton>
+      <IconButton aria-label="Third item">{null}</IconButton>
+    </Toolbar>,
+  )
+}
+
 function setup(
   props: Partial<Parameters<typeof Toolbar>[0]> = {},
   children?: Parameters<typeof Toolbar>[0]['children'],
@@ -191,6 +212,140 @@ describe('toolbar', () => {
       fireEvent.keyUp(first, { key: 'ArrowDown' })
 
       expect(document.activeElement).toBe(second)
+    })
+
+    // The APG's toolbar pattern gives Home and End to the first and the last
+    // control, which React Aria's toolbar leaves alone. Both are taken from
+    // the page, so neither scrolls it as well.
+    describe('Home and End', () => {
+      it('move to the first and the last control', () => {
+        const view = row()
+        const [first, , third] = view.getAllByRole('button')
+
+        act(() => {
+          first.focus()
+        })
+        expect(press(first, 'End')).toBe(false)
+        expect(document.activeElement).toBe(third)
+
+        expect(press(third, 'Home')).toBe(false)
+        expect(document.activeElement).toBe(first)
+      })
+
+      it('skip a disabled control at either end', () => {
+        const view = render(
+          <Toolbar aria-label="Label">
+            <IconButton aria-label="First item" isDisabled>
+              {null}
+            </IconButton>
+            <IconButton aria-label="Second item">{null}</IconButton>
+            <IconButton aria-label="Third item">{null}</IconButton>
+            <IconButton aria-label="Fourth item" isDisabled>
+              {null}
+            </IconButton>
+          </Toolbar>,
+        )
+        const second = view.getByRole('button', { name: 'Second item' })
+        const third = view.getByRole('button', { name: 'Third item' })
+
+        act(() => {
+          second.focus()
+        })
+        press(second, 'End')
+        expect(document.activeElement).toBe(third)
+
+        press(third, 'Home')
+        expect(document.activeElement).toBe(second)
+      })
+
+      it('do the same while it runs vertically', () => {
+        const view = row({ orientation: 'vertical' })
+        const [first, , third] = view.getAllByRole('button')
+
+        act(() => {
+          first.focus()
+        })
+        press(first, 'End')
+        expect(document.activeElement).toBe(third)
+
+        press(third, 'Home')
+        expect(document.activeElement).toBe(first)
+      })
+
+      // Home is the start and End the end, so under a right-to-left locale
+      // Home reaches the control drawn at the right, where the row begins.
+      it('follow the row to its start under right-to-left', () => {
+        const view = render(
+          <I18nProvider locale="ar-EG">
+            <div dir="rtl">
+              <Toolbar aria-label="Label">
+                <IconButton aria-label="First item">{null}</IconButton>
+                <IconButton aria-label="Second item">{null}</IconButton>
+                <IconButton aria-label="Third item">{null}</IconButton>
+              </Toolbar>
+            </div>
+          </I18nProvider>,
+        )
+        const [first, , third] = view.getAllByRole('button')
+
+        act(() => {
+          third.focus()
+        })
+        press(third, 'Home')
+        expect(document.activeElement).toBe(first)
+        expect(first.getBoundingClientRect().left).toBeGreaterThan(
+          third.getBoundingClientRect().left,
+        )
+      })
+
+      // A field in the bar moves its caret on Home and End, and the bar
+      // leaves the keys to it.
+      it('leave the keys to a text field in the bar', () => {
+        const view = render(
+          <Toolbar aria-label="Label">
+            <IconButton aria-label="First item">{null}</IconButton>
+            <TextField defaultValue="Value" label="Field" />
+          </Toolbar>,
+        )
+        const field = view.getByRole('textbox', { name: 'Field' })
+
+        act(() => {
+          field.focus()
+        })
+        expect(press(field, 'Home')).toBe(true)
+        expect(document.activeElement).toBe(field)
+      })
+
+      // Held with a modifier, the key may be the browser's or the call
+      // site's shortcut, and the bar leaves it be.
+      it('leave the keys alone while a modifier is held', () => {
+        const view = row()
+        const [first] = view.getAllByRole('button')
+
+        act(() => {
+          first.focus()
+        })
+        const kept = fireEvent.keyDown(first, { ctrlKey: true, key: 'End' })
+
+        expect(kept).toBe(true)
+        expect(document.activeElement).toBe(first)
+      })
+
+      // A call site's `render` still draws the bar, and still gets the keys.
+      it('keep working under a render of the call site', () => {
+        const view = row({
+          render: (props) => <div data-testid="drawn" {...props} />,
+        })
+        const [first, , third] = view.getAllByRole('button')
+
+        act(() => {
+          first.focus()
+        })
+        press(first, 'End')
+
+        expect(view.getByTestId('drawn').getAttribute('role')).toBe('toolbar')
+        expect(document.activeElement).toBe(third)
+      })
     })
   })
 
