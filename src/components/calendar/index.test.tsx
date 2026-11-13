@@ -5,8 +5,11 @@ import { describe, expect, it, vi } from 'vitest'
 import Calendar from '.'
 import { CalendarDate, getLocalTimeZone, today } from '../../date'
 import {
+  colorDefaultsDarkTheme,
+  colorDefaultsLightTheme,
   colors,
   stateLayerOpacity,
+  tokenScope,
   typography,
 } from '../../tokens/design.tokens.stylex'
 
@@ -21,8 +24,7 @@ const probeStyles = stylex.create({
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
   },
   error: { color: colors.error },
-  errorContainer: { color: colors.errorContainer },
-  onErrorContainer: { color: colors.onErrorContainer },
+  onError: { color: colors.onError },
   onPrimary: { color: colors.onPrimary },
   onSurface: { color: colors.onSurface },
   primary: { color: colors.primary },
@@ -46,7 +48,7 @@ const stateStyles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   invalidHovered: {
-    backgroundColor: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.errorContainer})`,
+    backgroundColor: `color-mix(in srgb, ${colors.onError} calc(${stateLayerOpacity.hover} * 100%), ${colors.error})`,
   },
   plainHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
@@ -82,6 +84,40 @@ const BOUNDED = {
   minValue: new CalendarDate(2026, 9, 8),
 }
 
+/** WCAG's contrast ratio between two `rgb()` colours. */
+function contrastOf(one: string, two: string) {
+  const a = luminanceOf(one)
+  const b = luminanceOf(two)
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
+
+// The background an element is drawn on: the nearest ancestor that paints
+// one.
+function groundOf(element: Element) {
+  for (
+    let ancestor = element.parentElement;
+    ancestor !== null;
+    ancestor = ancestor.parentElement
+  ) {
+    const { backgroundColor } = getComputedStyle(ancestor)
+    if (backgroundColor !== 'rgba(0, 0, 0, 0)') {
+      return backgroundColor
+    }
+  }
+  throw new Error('expected an ancestor to paint a background')
+}
+
+/** WCAG's relative luminance of an `rgb()` colour. */
+function luminanceOf(colour: string) {
+  const [r, g, b] = (colour.match(/\d+/g) ?? []).map((part) => {
+    const channel = Number(part) / 255
+    return channel <= 0.039_28
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -94,6 +130,12 @@ function probe(style: stylex.StyleXStyles) {
 // 2026 begins on a Tuesday and runs 30 days, which is five weeks with days
 // from August and October filling the ends.
 const SEPTEMBER = new CalendarDate(2026, 9, 15)
+
+// The library's two schemes, pinned as the Storybook toolbar pins them.
+const SCHEMES: [string, stylex.CompiledStyles[]][] = [
+  ['light', [...tokenScope, colorDefaultsLightTheme]],
+  ['dark', [...tokenScope, colorDefaultsDarkTheme]],
+]
 const DECEMBER = new CalendarDate(2026, 12, 15)
 
 // The three lengths a month grid comes in, and 2026 has all of them.
@@ -747,7 +789,7 @@ describe('calendar', () => {
   })
 
   describe('invalid', () => {
-    it('draws the date it holds in the error container roles', () => {
+    it('draws the date it holds in the error and on error roles', () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} isInvalid />,
       )
@@ -755,14 +797,46 @@ describe('calendar', () => {
 
       expect(cell.getAttribute('data-invalid')).toBe('true')
       expect(getComputedStyle(cell).backgroundColor).toBe(
-        probe(probeStyles.errorContainer).color,
+        probe(probeStyles.error).color,
       )
       expect(getComputedStyle(cell).color).toBe(
-        probe(probeStyles.onErrorContainer).color,
+        probe(probeStyles.onError).color,
       )
     })
 
-    it("lays the error container's own state layer while hovered", () => {
+    // The circle is what says which date the error is about, so it has to
+    // stand apart from the calendar's container as a selected one does:
+    // WCAG's 3:1 for a state indicator, and 4.5:1 for the date on it. The
+    // error container roles it was drawn in came to 1.04:1 in light and
+    // 1.58:1 in dark.
+    it.each(SCHEMES)(
+      'sets the circle apart from the container under %s',
+      (_name, scope) => {
+        const classes = (stylex.props(scope).className ?? '')
+          .split(' ')
+          .filter(Boolean)
+        document.body.classList.add(...classes)
+        try {
+          const view = render(
+            <Calendar aria-label="Label" defaultValue={SEPTEMBER} isInvalid />,
+          )
+          const cell = cellFor(view, 'Tuesday, September 15, 2026')
+          const circle = getComputedStyle(cell)
+
+          expect(
+            contrastOf(circle.backgroundColor, groundOf(cell)),
+          ).toBeGreaterThanOrEqual(3)
+          expect(
+            contrastOf(circle.color, circle.backgroundColor),
+          ).toBeGreaterThanOrEqual(4.5)
+          view.unmount()
+        } finally {
+          document.body.classList.remove(...classes)
+        }
+      },
+    )
+
+    it("lays the error role's own state layer while hovered", () => {
       const view = render(
         <Calendar aria-label="Label" defaultValue={SEPTEMBER} isInvalid />,
       )

@@ -56,7 +56,7 @@ import { mergeStatefulStyles } from '../../styles/merge'
 //   a value, but drops the pointer and the state layers from the dates, which
 //   a press no longer changes. The chevrons and the menus still move the
 //   month, so they keep theirs.
-// - **Invalid** draws the date held in the error container roles, and
+// - **Invalid** draws the date held in the error and on error roles, and
 //   `error` writes the reason under the months in the field's supporting
 //   type and error colour. Each date React Aria marks invalid points
 //   `aria-describedby` at it, so a screen reader hears why as well as that.
@@ -107,9 +107,9 @@ type CalendarProps<T extends DateValue = DateValue> = {
   className?: RACCalendarProps<T>['className']
   /**
    * The message shown under the months, which also marks the calendar
-   * invalid: the date it holds turns to the error container colours, and
-   * React Aria points that date's description at the message. `isInvalid`
-   * on its own marks the date with no message.
+   * invalid: the date it holds turns to the error colours, and React Aria
+   * points that date's description at the message. `isInvalid` on its own
+   * marks the date with no message.
    */
   error?: string
   /**

@@ -95,8 +95,7 @@ const ReadOnly: Story = {
 }
 
 // Invalid, with the reason under the months. The date held turns to the
-// error container colours, and React Aria points its description at the
-// message.
+// error colours, and React Aria points its description at the message.
 const Invalid: Story = {
   args: {
     error: 'Choose another date.',
