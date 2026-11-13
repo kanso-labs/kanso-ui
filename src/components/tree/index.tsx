@@ -84,6 +84,12 @@ type RACTreeSectionProps<T> = Parameters<typeof RACTreeSection<T>>[0]
 // the name React Aria gives in the reader's locale.
 const SelectLabelContext = createContext<string | undefined>(undefined)
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // The caret that opens a row. A bare button: the row around it already
   // carries the state layers, and a second set inside them would read as a
@@ -97,7 +103,15 @@ const styles = stylex.create({
     borderRadius: radii.pill,
     borderWidth: 0,
     boxSizing: 'border-box',
-    color: colors.onSurfaceVariant,
+    // The row's own text colour under forced colours. A selected row opts
+    // out of the mode to keep its Highlight pair, and the caret inherits the
+    // opt-out, so the muted token here would reach the screen unforced, on
+    // Highlight, where it all but vanishes. `currentColor` is HighlightText
+    // there, CanvasText on any other row and GrayText on a disabled one.
+    color: {
+      default: colors.onSurfaceVariant,
+      [FORCED_COLORS]: 'currentColor',
+    },
     cursor: 'pointer',
     display: 'flex',
     flexShrink: 0,
