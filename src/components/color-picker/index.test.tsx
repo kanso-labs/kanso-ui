@@ -4,6 +4,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ColorPicker from '.'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 
 const PURPLE = '#6750A4'
 
@@ -66,6 +67,45 @@ describe('color picker', () => {
         }
 
         expect(getComputedStyle(square).opacity).toBe(opacity)
+      },
+    )
+
+    // Its edge is a border rather than its container alone: the container
+    // sits within about 1.05:1 of the surface, and a forced-colours mode
+    // drops it outright, which left a swatch and a word with no edge at all.
+    it('draws its edge in a border', () => {
+      const style = getComputedStyle(
+        triggerOf(render(<ColorPicker defaultValue={PURPLE} label="Label" />)),
+      )
+
+      expect([style.borderTopStyle, style.borderTopWidth]).toEqual([
+        'solid',
+        '1px',
+      ])
+      expect(style.borderTopColor).not.toBe('rgba(0, 0, 0, 0)')
+    })
+
+    // The rule is read rather than applied, since no test can turn the mode
+    // on; see AGENTS.md, "Media queries a test cannot set".
+    it.each([
+      [false, 'buttonborder'],
+      [true, 'graytext'],
+    ])(
+      'names its edge a system colour under forced colours when disabled is %s',
+      (isDisabled, colour) => {
+        const view = render(
+          <ColorPicker
+            defaultValue={PURPLE}
+            isDisabled={isDisabled}
+            label="Label"
+          />,
+        )
+
+        expect(
+          declarationsHeld(triggerOf(view), 'forced-colors: active').get(
+            'border-top-color',
+          ),
+        ).toBe(colour)
       },
     )
 

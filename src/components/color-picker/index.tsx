@@ -48,7 +48,13 @@ import ColorSwatch from '../color-swatch'
 // **The trigger is a swatch beside a name, not a swatch alone.** A swatch
 // on its own is a coloured square with no affordance — nothing says it can
 // be pressed, and a screen reader is told a colour rather than an action.
-// The label is what makes it a button.
+// The label is what makes it a button. Its edge is a 1px border in outline
+// variant, as an unselected chip's is, rather than its container alone: the
+// container sits within about 1.05:1 of the surface, and a forced-colours
+// mode drops it outright, which left a swatch and a word with no edge at
+// all. Under that mode the border names `ButtonBorder`, and `GrayText`
+// while the trigger is disabled, as a disabled chip's does. The padding
+// gives the border's pixel back, so the trigger keeps its size.
 //
 // **Hue is a slider rather than a wheel here.** A wheel and the plane want
 // the same space and would make the surface square and large; the strip
@@ -106,12 +112,24 @@ const DISABLED_TRIGGER_SWATCH = [
   styles.triggerSwatchDisabled,
 ]
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const triggerStyles = stylex.create({
+  // The edge is a border; see the header.
   base: {
     alignItems: 'center',
     backgroundColor: colors.surfaceContainerLow,
+    borderColor: {
+      default: colors.outlineVariant,
+      [FORCED_COLORS]: 'ButtonBorder',
+    },
     borderRadius: radii.pill,
-    borderWidth: 0,
+    borderStyle: 'solid',
+    borderWidth: '1px',
     boxSizing: 'border-box',
     color: colors.onSurface,
     cursor: 'pointer',
@@ -122,11 +140,16 @@ const triggerStyles = stylex.create({
     gap: spacing.sm,
     letterSpacing: typography.labelLargeTracking,
     lineHeight: typography.labelLargeLineHeight,
-    paddingBlock: spacing.sm,
-    paddingInline: spacing.md,
+    // Less the border's pixel; see the header.
+    paddingBlock: `calc(${spacing.sm} - 1px)`,
+    paddingInline: `calc(${spacing.md} - 1px)`,
   },
   disabled: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     cursor: 'not-allowed',
   },
