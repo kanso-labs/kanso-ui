@@ -29,6 +29,25 @@ const DATE = new CalendarDate(2026, 9, 15)
 const DATE_TIME = new CalendarDateTime(2026, 9, 15, 9, 30)
 const SINGLE_DIGITS = new CalendarDate(2026, 9, 5)
 
+// The literals between the segments, by their text with the invisible
+// direction marks some locales add taken out, each with the padding on its
+// two sides.
+function literalsOf(view: ReturnType<typeof render>) {
+  return [...view.container.querySelectorAll('[data-type="literal"]')]
+    .map((literal) => {
+      const style = getComputedStyle(literal)
+      return {
+        end: style.paddingInlineEnd,
+        start: style.paddingInlineStart,
+        text: literal.textContent.replaceAll(
+          /[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/gu,
+          '',
+        ),
+      }
+    })
+    .filter((literal) => literal.text !== '')
+}
+
 // A segment is a spinbutton; the punctuation between them is not, which is
 // what makes this the list of what a reader can actually type into.
 function segmentsOf(view: ReturnType<typeof render>) {
@@ -123,6 +142,69 @@ describe('date field', () => {
       // apart as targets.
       expect(colour).toBe(probe(probeStyles.onSurfaceVariant))
       expect(Number.parseFloat(padding)).toBe(4)
+    })
+  })
+
+  // A date with a time joins the two with a comma and a space in most of the
+  // Storybook's locales, and with a space alone in Japanese, and the time
+  // with its AM or PM with a space.
+  describe('with a time', () => {
+    it.each(['en-US', 'de-DE', 'ar-EG', 'ja-JP'])(
+      'keeps every segment clear of the next as a target, in %s',
+      (locale) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <DateField
+              defaultValue={DATE_TIME}
+              granularity="minute"
+              label="Label"
+            />
+          </I18nProvider>,
+        )
+
+        expect(crowdedSegments(segmentsOf(view))).toEqual([])
+      },
+    )
+
+    // The comma hangs off the year as it does in prose, so it takes no room
+    // on that side: the year is wide enough to clear the hour after it as a
+    // target, and the room was a space before the comma.
+    it.each(['en-US', 'de-DE', 'ar-EG'])(
+      'draws the comma against the date, in %s',
+      (locale) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <DateField
+              defaultValue={DATE_TIME}
+              granularity="minute"
+              label="Label"
+            />
+          </I18nProvider>,
+        )
+        const comma = literalsOf(view).find((literal) =>
+          /^[,،] $/u.test(literal.text),
+        )
+
+        expect(comma).toMatchObject({ end: '4px', start: '0px' })
+      },
+    )
+
+    it('keeps the room either side of the punctuation inside the date and the time', () => {
+      const view = render(
+        <DateField
+          defaultValue={DATE_TIME}
+          granularity="minute"
+          label="Label"
+        />,
+      )
+      const marks = literalsOf(view).filter((literal) =>
+        ['/', ':'].includes(literal.text),
+      )
+
+      expect(marks).toHaveLength(3)
+      for (const mark of marks) {
+        expect(mark).toMatchObject({ end: '4px', start: '4px' })
+      }
     })
   })
 
