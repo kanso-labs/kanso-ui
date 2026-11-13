@@ -5,7 +5,15 @@ import { page } from 'vitest/browser'
 
 import RangeCalendar from '.'
 import { CalendarDate } from '../../date'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
+
+const FORCED_COLORS = 'forced-colors: active'
+
+// The colour a cell names for itself under forced colours, if any.
+function forcedColourOf(cell: Element) {
+  return declarationsHeld(cell, FORCED_COLORS).get('color')
+}
 
 const probeStyles = stylex.create({
   onPrimary: { color: colors.onPrimary },
@@ -316,6 +324,31 @@ describe('range calendar', () => {
         'line-through',
       )
       expect(getComputedStyle(available).textDecorationLine).toBe('none')
+    })
+
+    // The disabled dates in GrayText under forced colours, as Calendar's
+    // are: a range started on a date outside the bounds fails, and with
+    // every date in CanvasText nothing said why.
+    it('draws the dates it disables in GrayText under forced colours', () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          minValue={new CalendarDate(2026, 9, 5)}
+        />,
+      )
+      const outside = view.container.querySelector('[data-outside-month]')
+      if (!(outside instanceof HTMLElement)) {
+        throw new Error('expected a date from an adjacent month')
+      }
+
+      expect(forcedColourOf(cellFor(view, 'September 1, 2026'))).toBe(
+        'graytext',
+      )
+      expect(forcedColourOf(outside)).toBe('graytext')
+      expect(
+        forcedColourOf(cellFor(view, 'September 16, 2026')),
+      ).toBeUndefined()
     })
 
     it('draws the same chevrons, one per direction', () => {

@@ -32,9 +32,12 @@ import {
 // `HighlightText` on that backplate is a blank box. With it off nothing is
 // forced on those cells, so they name a system colour for everything they
 // draw — the fill, the date, today's outline and the focus ring. A day ruled
-// out or disabled names none, so it hands itself back to the mode, apart from
-// the date a disabled calendar holds, which takes `GrayText` as its fill in
-// the same way; see `cellSelectedDisabled`.
+// out or disabled stays adjusted, which keeps the backplate behind its text.
+// A ruled-out day names nothing and keeps the mode's colours, its
+// strikethrough being the cue; a disabled day names `GrayText` for its date
+// and outline, since the mode gives an `aria-disabled` cell no colour of its
+// own; see `cellDisabled`. The date a disabled calendar holds takes
+// `GrayText` as its fill instead; see `cellSelectedDisabled`.
 
 // One row of the grid. The weekday row and every week of dates are the same
 // 48dp, the page's date container and Compose's own row, so `headerCell`, the
@@ -119,12 +122,24 @@ const calendarStyles = stylex.create({
   // The border takes the same fade, which is today's outline in a disabled
   // calendar: left to `cellToday` it stayed at full primary around a date
   // faded to 38%.
+  //
+  // Under forced colours both are `GrayText`, the mode's disabled colour.
+  // The cell is React Aria's `aria-disabled` element rather than a disabled
+  // native control, so the mode has no state of its own to map and painted
+  // it `CanvasText`, the same as a date that can be picked — the fade was
+  // the one cue, and the mode drops it.
   cellDisabled: {
     backgroundColor: 'transparent',
-    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+    borderColor: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surfaceContainerHigh})`,
+      [FORCED_COLORS]: 'GrayText',
+    },
     cursor: 'not-allowed',
-    // Back to the mode's own colours — see the header.
+    // Left to adjust — see the header.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
   },
   // The days between the two ends of a range, in the modal date picker's
