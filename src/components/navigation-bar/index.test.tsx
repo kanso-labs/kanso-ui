@@ -18,7 +18,9 @@ import {
 import {
   declarationsHeld,
   reducedMotionOf,
+  rulesReaching,
   transitionOf,
+  valueIn,
 } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -115,6 +117,18 @@ function indicatorOf(link: HTMLElement) {
     throw new Error('expected the destination to draw an indicator')
   }
   return indicator
+}
+
+/** The ring's weight at rest, and the one the forced-colours mode applies. */
+function outlineWidthsOf(element: Element) {
+  const rules = rulesReaching(element, { holding: FORCED_COLORS })
+  return {
+    forced: valueIn(rules, 'outline-width'),
+    resting: valueIn(
+      rules.filter((rule) => !rule.held),
+      'outline-width',
+    ),
+  }
 }
 
 // The three parts of a destination that set a colour of their own: the pill
@@ -958,6 +972,32 @@ describe('navigation bar', () => {
 
       expect(rules.get('border-top-color')).toBe('highlight')
       expect(rules.get('border-top-width')).toBe('2px')
+    })
+
+    // That ring is 2px, and a focus ring of the same weight around the pill
+    // beside it read as the same mark in another colour — Highlight and
+    // LinkText are all but alike under High Contrast White. The focus ring
+    // is twice as heavy there, on the pill in a wide window and on the
+    // indicator in a compact one.
+    it('draws the focus ring heavier than the current destination’s', async () => {
+      const wide = render(<Bar />)
+      const first = wide.getByRole('link', { name: 'First item' })
+      focusByKeyboard(first)
+      expect(outlineWidthsOf(first)).toEqual({ forced: '4px', resting: '2px' })
+      wide.unmount()
+
+      await page.viewport(COMPACT_WIDTH, DEFAULT_VIEWPORT.height)
+      try {
+        const compact = render(<Bar />)
+        const link = compact.getByRole('link', { name: 'First item' })
+        focusByKeyboard(link)
+        expect(outlineWidthsOf(indicatorOf(link))).toEqual({
+          forced: '4px',
+          resting: '2px',
+        })
+      } finally {
+        await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      }
     })
 
     // That ring is what marks the current destination there, and a ripple

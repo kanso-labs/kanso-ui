@@ -17,6 +17,8 @@ import {
 import {
   declarationsHeld,
   reducedMotionOf,
+  rulesReaching,
+  valueIn,
 } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -122,6 +124,18 @@ function Marked({
       </NavigationRail.Item>
     </NavigationRail>
   )
+}
+
+/** The ring's weight at rest, and the one the forced-colours mode applies. */
+function outlineWidthsOf(element: Element) {
+  const rules = rulesReaching(element, { holding: FORCED_COLORS })
+  return {
+    forced: valueIn(rules, 'outline-width'),
+    resting: valueIn(
+      rules.filter((rule) => !rule.held),
+      'outline-width',
+    ),
+  }
 }
 
 // The indicator a destination draws its icon in, and the label after it.
@@ -685,6 +699,42 @@ describe('navigation rail', () => {
           FORCED_COLORS,
         ).get('border-top-color'),
       ).toBe('highlight')
+    })
+
+    // That ring is 2px, and a focus ring of the same weight around the pill
+    // beside it read as the same mark in another colour — Highlight and
+    // LinkText are all but alike under High Contrast White. The focus ring
+    // is twice as heavy there, on the indicator collapsed and on the pill
+    // expanded.
+    it('draws the focus ring heavier than the current destination’s', () => {
+      const collapsed = render(<Rail />)
+      const first = collapsed.getByRole('link', { name: 'First item' })
+      focusByKeyboard(first)
+      expect(outlineWidthsOf(partsOf(first).indicator)).toEqual({
+        forced: '4px',
+        resting: '2px',
+      })
+      collapsed.unmount()
+
+      const expanded = render(<Rail isExpanded />)
+      const link = expanded.getByRole('link', { name: 'First item' })
+      focusByKeyboard(link)
+      expect(outlineWidthsOf(link)).toEqual({ forced: '4px', resting: '2px' })
+
+      // The destinations scroll, and the list they scroll in is padded by
+      // the ring's reach so it is not clipped: 2px of offset and the ring.
+      const list = link.closest('ul')
+      if (list === null) {
+        throw new Error('expected the destinations to sit in a list')
+      }
+      const rules = rulesReaching(list, { holding: FORCED_COLORS })
+      expect(valueIn(rules, 'padding-block-start')).toBe('6px')
+      expect(
+        valueIn(
+          rules.filter((rule) => !rule.held),
+          'padding-block-start',
+        ),
+      ).toBe('4px')
     })
   })
 })
