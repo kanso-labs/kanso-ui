@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 
 import ColorSwatch from '.'
 import { parseColor } from '../../react-aria'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 
+const FORCED_COLORS = 'forced-colors: active'
 const OPAQUE = '#6750A4'
 const TRANSPARENT = parseColor('hsla(200, 100%, 50%, 0.4)')
 // Hoisted, which is what react-perf's no-new-object-as-prop is after.
@@ -66,6 +68,16 @@ describe('color swatch', () => {
     expect(ground.backgroundPosition).toBe(
       '0px 0px, 0px 8px, 8px -8px, -8px 0px',
     )
+  })
+
+  // The mode drops a background image that is not a url(), so left to it the
+  // chequer goes and a translucent colour reads as a flat one. React Aria
+  // already opts the swatch itself out, inline; the ground has to be too.
+  it('keeps the chequer under forced colours', () => {
+    const view = render(<ColorSwatch color={TRANSPARENT} />)
+    const forced = declarationsHeld(groundOf(view), FORCED_COLORS)
+
+    expect(forced.get('forced-color-adjust')).toBe('none')
   })
 
   it('outlines the swatch, so a colour near the surface still has an edge', () => {

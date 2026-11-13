@@ -10,7 +10,7 @@ import { colors } from '../tokens/design.tokens.stylex'
 // In `src/styles` rather than either component, since both draw it and a
 // second copy would be a second density to keep in step.
 //
-// Two things about the recipe are worth knowing before touching it.
+// Three things about the recipe are worth knowing before touching it.
 //
 // **The offsets are half a tile, not a whole one.** Four gradients draw the
 // two dark squares of a tile, and at a whole tile all four line up — the
@@ -22,6 +22,15 @@ import { colors } from '../tokens/design.tokens.stylex'
 // and a colour track's gradient to its inline `background`, and CSS paints a
 // background image over a background colour rather than under it — so a
 // chequer on that element would cover what it is there to reveal.
+//
+// **It opts out of forced colours.** The mode drops a background image that
+// is not a `url()` and paints the ground in Canvas, so left to it the
+// chequer goes and a translucent colour reads as a flat one. React Aria
+// already opts the swatch and the colour track out, inline, since their
+// colour is the value; the ground they are read against has to keep its
+// pattern for the same reason. Everything drawn inside the ground sits in
+// one of those two already, so the opt-out it hands down changes nothing
+// else.
 
 // 8px squares, which reads as a chequer at a swatch's size without turning
 // into a texture.
@@ -38,6 +47,10 @@ const chequer = stylex.create({
     backgroundImage: GRADIENTS,
     backgroundPosition: `0 0, 0 ${HALF}, ${HALF} -${HALF}, -${HALF} 0`,
     backgroundSize: `${TILE} ${TILE}`,
+    forcedColorAdjust: {
+      '@media (forced-colors: active)': 'none',
+      default: null,
+    },
   },
 })
 

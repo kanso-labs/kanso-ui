@@ -5,8 +5,10 @@ import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
 import ColorSlider from '.'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 
 const BLUE = 'hsl(200, 100%, 50%)'
+const FORCED_COLORS = 'forced-colors: active'
 
 // The strip's shape and the chequer live on the element around the track:
 // React Aria paints the channel on the track's own inline `background`, and
@@ -141,6 +143,18 @@ describe('color slider', () => {
       expect(ground.backgroundPosition).toBe(
         '0px 0px, 0px 8px, 8px -8px, -8px 0px',
       )
+    })
+
+    // The mode drops a gradient background, so left to it the chequer goes
+    // while React Aria keeps the track's own gradient, and the alpha channel
+    // reads as fading to the page rather than to nothing.
+    it('keeps the chequer under forced colours', () => {
+      const view = render(
+        <ColorSlider channel="alpha" defaultValue={BLUE} label="Label" />,
+      )
+      const forced = declarationsHeld(groundOf(view), FORCED_COLORS)
+
+      expect(forced.get('forced-color-adjust')).toBe('none')
     })
   })
 
