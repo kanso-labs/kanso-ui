@@ -138,6 +138,15 @@ const styles = stylex.create({
   // `--` or `$` to the other end — so the field showed one string and copied
   // another. On the `<code>` rather than the box around it, which keeps the
   // page's direction and so keeps the value at the row's inline start.
+  //
+  // And it is in English whatever the page's language, through `lang` on the
+  // `<code>`. The mono stack names no face Windows ships ahead of the generic
+  // `monospace`, and Chromium resolves that generic by language: under
+  // Japanese it picked MS Gothic, which draws U+005C as a yen sign, and under
+  // Korean a face drawing it as a won sign, so a backslash ending a line of
+  // a command showed as one character and copied as another. A Latin value
+  // gets a Latin face, and a value with Japanese in it still draws, since
+  // the browser falls back character by character for what that face lacks.
   valueText: {
     boxSizing: 'border-box',
     fontFamily: typography.fontFamilyMono,
@@ -326,7 +335,12 @@ function CopyField({
       {...mergeStyles(stylex.props(styles.root), props)}
     >
       <span {...stylex.props(styles.value)}>
-        <code dir="ltr" ref={code} {...stylex.props(styles.valueText)}>
+        <code
+          dir="ltr"
+          lang="en"
+          ref={code}
+          {...stylex.props(styles.valueText)}
+        >
           {value}
         </code>
       </span>
