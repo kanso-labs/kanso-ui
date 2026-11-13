@@ -10,6 +10,7 @@ import type {
 import * as stylex from '@stylexjs/stylex'
 import {
   Button as RACButton,
+  Link as RACLink,
   NavigationTree as RACNavigationTree,
   NavigationTreeHeader as RACNavigationTreeHeader,
   NavigationTreeItem as RACNavigationTreeItem,
@@ -138,6 +139,16 @@ const styles = stylex.create({
   // declaration cover every level rather than a style per depth.
   indent: {
     paddingInlineStart: `calc(${spacing.lg} + (var(--tree-item-level, 1) - 1) * ${spacing.xl})`,
+  },
+  // The row's link. React Aria hands it the row's `href`, its
+  // `aria-current` and the row's Tab stop through context, and a row with no
+  // link inside has none of the three — see `NavigationTreeItem`. It draws as
+  // the label it wraps: the row carries the colour, the state layers and the
+  // focus ring, which React Aria reports on the row while its link has focus.
+  link: {
+    color: 'inherit',
+    outlineStyle: 'none',
+    textDecorationLine: 'none',
   },
   // Where a caret would be on a row that has none, so a leaf's label lines
   // up with the label of a row that opens rather than sliding left.
@@ -271,7 +282,7 @@ function itemContent(
         trailing={trailing}
         variant="drawer"
       >
-        {label}
+        <RACLink {...stylex.props(styles.link)}>{label}</RACLink>
       </RowContent>
       {state.isDisabled ? null : (
         <span {...stylex.props(rowStyles.drawerSurface)}>{ripple}</span>
