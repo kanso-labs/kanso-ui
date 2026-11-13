@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import ColorSwatchPicker from '.'
 import { focus } from '../../styles/focus'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 const PALETTE = ['#6750A4', '#625B71', '#7D5260']
@@ -15,13 +16,14 @@ const PALETTE = ['#6750A4', '#625B71', '#7D5260']
 const BY_SELECTION = (state: { isSelected: boolean }) =>
   state.isSelected ? 'chosen' : 'unchosen'
 
-// The four roles a swatch's rings are drawn in, resolved the way the page
+// The roles a swatch's rings and marks are drawn in, resolved the way the page
 // resolves them, so a case compares computed colour with computed colour.
 const probeStyles = stylex.create({
   onSurface: { color: colors.onSurface },
   outline: { color: colors.outline },
   outlineVariant: { color: colors.outlineVariant },
   primary: { color: colors.primary },
+  surface: { color: colors.surface },
 })
 
 function colourOf(style: stylex.StyleXStyles) {
@@ -292,10 +294,46 @@ describe('color swatch picker', () => {
 
     fireEvent.click(disabled)
 
-    expect(Number.parseFloat(getComputedStyle(disabled).opacity)).toBeLessThan(
-      1,
-    )
+    // The colour fades, inside the item rather than the item itself, which
+    // stays opaque so the mark over it does not fade with it.
+    expect(
+      Number.parseFloat(getComputedStyle(disabled.firstElementChild!).opacity),
+    ).toBeLessThan(1)
+    expect(getComputedStyle(disabled).opacity).toBe('1')
     expect(onChange).not.toHaveBeenCalled()
+  })
+
+  // A faded colour reads as another colour, and a pale one is as good an
+  // option as any, so fading alone said nothing about being unavailable. The
+  // slash says it: an on-surface line edged in surface, so one of the two
+  // reads against whatever colour lies under it, in either theme.
+  describe('a colour that cannot be chosen', () => {
+    it('is struck through, and one that can be is not', () => {
+      const view = render(picker({ disabled: true }))
+      const [first, second] = view.getAllByRole('option')
+      const mark = getComputedStyle(second, '::before')
+
+      expect(mark.content).toBe('""')
+      expect(mark.backgroundImage).toContain('linear-gradient')
+      expect(mark.backgroundImage).toContain(colourOf(probeStyles.onSurface))
+      expect(mark.backgroundImage).toContain(colourOf(probeStyles.surface))
+      expect(getComputedStyle(first, '::before').content).toBe('none')
+    })
+
+    // Forced colours drop a gradient from the background outright, so the
+    // mark opts out of the mode and names the system colours itself: GrayText,
+    // the colour a disabled control takes there, edged in Canvas.
+    it('keeps the mark under forced colours, in GrayText', () => {
+      const view = render(picker({ disabled: true }))
+      const second = view.getAllByRole('option')[1]
+      const held = declarationsHeld(second, 'forced-colors: active', 'before')
+
+      expect(held.get('background-image')).toMatch(/graytext/i)
+      expect(held.get('background-image')).toMatch(/canvas/i)
+      expect(getComputedStyle(second, '::before').forcedColorAdjust).toBe(
+        'none',
+      )
+    })
   })
 
   // A state layer is a fill, and a swatch's fill is the colour being chosen,

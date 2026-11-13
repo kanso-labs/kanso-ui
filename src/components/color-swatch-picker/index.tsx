@@ -64,10 +64,35 @@ import ColorSwatch from '../color-swatch'
 // a touch, so that press is the one a reader waits through before the swatch
 // is theirs. Under forced colours both roles become one system colour, so the
 // ring turns dashed there, where the selection ring stays solid.
+//
+// **A colour that cannot be chosen is struck through, as well as faded.**
+// Faded alone it read as a paler colour, and a pale colour is as good an
+// option as any. The slash is drawn over the swatch, where the first choice
+// says no single ink reads against every colour, so it is two: an on-surface
+// line edged in surface, and whichever of the two the colour beneath is
+// nearer to, the other reads against it. The fade is on the item's contents
+// rather than the item, so the slash over them keeps its full strength.
 
 const FORCED_COLORS = '@media (forced-colors: active)'
 
+// The slash, corner to corner across a square: a 2px line of ink with 1.5px
+// of edge either side, measured across the line rather than along the
+// square's side. Written out twice, once per pair of colours, since StyleX
+// evaluates a constant but not a function building one.
+const SLASH = `linear-gradient(to top right, transparent calc(50% - 2.5px), ${colors.surface} calc(50% - 2.5px) calc(50% - 1px), ${colors.onSurface} calc(50% - 1px) calc(50% + 1px), ${colors.surface} calc(50% + 1px) calc(50% + 2.5px), transparent calc(50% + 2.5px))`
+const SLASH_FORCED =
+  'linear-gradient(to top right, transparent calc(50% - 2.5px), Canvas calc(50% - 2.5px) calc(50% - 1px), GrayText calc(50% - 1px) calc(50% + 1px), Canvas calc(50% + 1px) calc(50% + 2.5px), transparent calc(50% + 2.5px))'
+
 const styles = stylex.create({
+  // What the item draws, in a box of its own so the fade can land on it
+  // rather than on the item, whose slash would fade with it.
+  content: {
+    boxSizing: 'border-box',
+    display: 'inline-flex',
+  },
+  contentDisabled: {
+    opacity: stateLayerOpacity.disabledContent,
+  },
   // The item a swatch sits in. It carries no colour of its own — the rings
   // are all it draws: focus as its outline, and selection, hover and press
   // as the border of the box after it, which reaches 5px out from the
@@ -97,9 +122,26 @@ const styles = stylex.create({
     outlineStyle: 'none',
     position: 'relative',
   },
+  // The slash, over the contents and under nothing else. Forced colours
+  // would drop the gradient from the background outright, so the mark opts
+  // out of the mode and names its system colours itself: GrayText, the
+  // colour a disabled control takes there, edged in Canvas.
   itemDisabled: {
+    '::before': {
+      backgroundImage: {
+        default: SLASH,
+        [FORCED_COLORS]: SLASH_FORCED,
+      },
+      borderRadius: radii.xs,
+      boxSizing: 'border-box',
+      content: '""',
+      forcedColorAdjust: 'none',
+      inset: 0,
+      pointerEvents: 'none',
+      position: 'absolute',
+      zIndex: 1,
+    },
     cursor: 'default',
-    opacity: stateLayerOpacity.disabledContent,
   },
   // Laid over the library's focus ring, which `itemStyles` applies with it:
   // the same ring at an offset of its own, outside the selection ring, so a
@@ -208,7 +250,16 @@ function ColorSwatchPickerItem({
       {...props}
       {...mergeStatefulStyles(itemStyles, props)}
     >
-      {children ?? <ColorSwatch />}
+      {(state) => (
+        <span
+          {...stylex.props(
+            styles.content,
+            state.isDisabled && styles.contentDisabled,
+          )}
+        >
+          {children ?? <ColorSwatch />}
+        </span>
+      )}
     </RACColorSwatchPickerItem>
   )
 }
@@ -223,7 +274,8 @@ function ColorSwatchPickerItem({
 // then `focused`, which moves it out; both draw on the outline, which
 // nothing else touches but the item's resting `none`, so a swatch that is
 // chosen and focused keeps both. `disabled` is last, so it takes the cursor
-// with it; React Aria reports neither hover nor press on one.
+// with it, and draws the slash; React Aria reports neither hover nor press
+// on one.
 function itemStyles(state: {
   isDisabled: boolean
   isFocusVisible: boolean
