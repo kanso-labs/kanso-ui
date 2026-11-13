@@ -5,6 +5,7 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import ColorSwatchPicker from '.'
+import { focus } from '../../styles/focus'
 import { colors } from '../../tokens/design.tokens.stylex'
 
 const PALETTE = ['#6750A4', '#625B71', '#7D5260']
@@ -14,9 +15,10 @@ const PALETTE = ['#6750A4', '#625B71', '#7D5260']
 const BY_SELECTION = (state: { isSelected: boolean }) =>
   state.isSelected ? 'chosen' : 'unchosen'
 
-// The three roles a swatch's ring is drawn in, resolved the way the page
+// The four roles a swatch's rings are drawn in, resolved the way the page
 // resolves them, so a case compares computed colour with computed colour.
 const probeStyles = stylex.create({
+  onSurface: { color: colors.onSurface },
   outline: { color: colors.outline },
   outlineVariant: { color: colors.outlineVariant },
   primary: { color: colors.primary },
@@ -31,6 +33,19 @@ function colourOf(style: stylex.StyleXStyles) {
 
 function hover(element: Element) {
   fireEvent.pointerOver(element, { pointerType: 'mouse' })
+}
+
+// The focus ring every other control draws, as the page resolves it.
+function libraryRing() {
+  const view = render(<span {...stylex.props(focus.ringVisible)} />)
+  const outline = getComputedStyle(view.container.firstElementChild!)
+  const ring = {
+    color: outline.outlineColor,
+    style: outline.outlineStyle,
+    width: outline.outlineWidth,
+  }
+  view.unmount()
+  return ring
 }
 
 function picker(props: { defaultValue?: string; disabled?: boolean } = {}) {
@@ -73,12 +88,15 @@ function ringsOf(element: Element) {
   const outline = getComputedStyle(element)
   return {
     focus: {
+      color: outline.outlineColor,
       offset: outline.outlineOffset,
       style: outline.outlineStyle,
+      width: outline.outlineWidth,
     },
     selection: {
       color: ring.borderTopColor,
       style: ring.borderTopStyle,
+      width: ring.borderTopWidth,
     },
   }
 }
@@ -105,7 +123,7 @@ describe('color swatch picker', () => {
 
     expect(first.getAttribute('aria-selected')).toBe('true')
     expect(ringsOf(first).selection.style).toBe('solid')
-    expect(ringsOf(first).selection.color).toBe(colourOf(probeStyles.primary))
+    expect(ringsOf(first).selection.color).toBe(colourOf(probeStyles.onSurface))
     expect(ringsOf(second).selection.style).toBe('none')
   })
 
@@ -157,7 +175,10 @@ describe('color swatch picker', () => {
 
     // Focused and not chosen: the focus ring alone.
     expect(second.getAttribute('data-focus-visible')).toBe('true')
-    expect(ringsOf(second).focus).toEqual({ offset: '6px', style: 'solid' })
+    expect(ringsOf(second).focus).toMatchObject({
+      offset: '6px',
+      style: 'solid',
+    })
     expect(ringsOf(second).selection.style).toBe('none')
 
     fireEvent.keyDown(listbox, { key: 'ArrowLeft' })
@@ -165,10 +186,45 @@ describe('color swatch picker', () => {
 
     // Focused and chosen: both, the focus ring outside the selection one.
     expect(first.getAttribute('data-focus-visible')).toBe('true')
-    expect(ringsOf(first)).toEqual({
-      focus: { offset: '6px', style: 'solid' },
-      selection: { color: colourOf(probeStyles.primary), style: 'solid' },
+    expect(ringsOf(first).focus).toMatchObject({
+      offset: '6px',
+      style: 'solid',
     })
+    expect(ringsOf(first).selection).toMatchObject({
+      color: colourOf(probeStyles.onSurface),
+      style: 'solid',
+    })
+  })
+
+  // Arrowing moves focus without choosing, so after it one swatch is chosen
+  // and another focused. Both rings were 2px of primary then, the only
+  // difference their distance from the swatch, and a keyboard could not tell
+  // which colour was its own. Focus is the library's focus ring, as it is on
+  // every other control; the selection ring is the one that changed, heavier
+  // and in on-surface, so the two differ in colour and in weight.
+  it('tells the focused swatch from the chosen one', () => {
+    const view = render(picker())
+    const listbox = view.getByRole('listbox')
+    const [first, second] = view.getAllByRole('option')
+    const library = libraryRing()
+
+    fireEvent.focus(listbox)
+    fireEvent.keyDown(listbox, { key: 'ArrowRight' })
+    fireEvent.keyUp(listbox, { key: 'ArrowRight' })
+
+    const chosen = ringsOf(first).selection
+    const focused = ringsOf(second).focus
+
+    expect(first.getAttribute('aria-selected')).toBe('true')
+    expect(second.getAttribute('data-focus-visible')).toBe('true')
+    expect(focused).toMatchObject(library)
+    expect(chosen).toEqual({
+      color: colourOf(probeStyles.onSurface),
+      style: 'solid',
+      width: '3px',
+    })
+    expect(chosen.color).not.toBe(focused.color)
+    expect(chosen.width).not.toBe(focused.width)
   })
 
   // Forced colours drop a box shadow outright, so neither ring may be one:
@@ -182,7 +238,7 @@ describe('color swatch picker', () => {
     fireEvent.keyDown(view.getByRole('listbox'), { key: 'ArrowLeft' })
     fireEvent.keyUp(view.getByRole('listbox'), { key: 'ArrowLeft' })
 
-    expect(getComputedStyle(first, '::after').borderTopWidth).toBe('2px')
+    expect(getComputedStyle(first, '::after').borderTopWidth).toBe('3px')
     expect(getComputedStyle(first, '::after').boxShadow).toBe('none')
     expect(getComputedStyle(first).outlineWidth).toBe('2px')
     expect(getComputedStyle(first).boxShadow).toBe('none')
@@ -252,7 +308,7 @@ describe('color swatch picker', () => {
 
       hover(second)
 
-      expect(ringsOf(second).selection).toEqual({
+      expect(ringsOf(second).selection).toMatchObject({
         color: colourOf(probeStyles.outlineVariant),
         style: 'solid',
       })
@@ -269,7 +325,7 @@ describe('color swatch picker', () => {
       press(second, 'touch')
 
       expect(second.getAttribute('aria-selected')).toBe('false')
-      expect(ringsOf(second).selection).toEqual({
+      expect(ringsOf(second).selection).toMatchObject({
         color: colourOf(probeStyles.outline),
         style: 'solid',
       })
@@ -284,8 +340,8 @@ describe('color swatch picker', () => {
       hover(first)
       press(first)
 
-      expect(ringsOf(first).selection).toEqual({
-        color: colourOf(probeStyles.primary),
+      expect(ringsOf(first).selection).toMatchObject({
+        color: colourOf(probeStyles.onSurface),
         style: 'solid',
       })
     })

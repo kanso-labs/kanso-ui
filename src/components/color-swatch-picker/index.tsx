@@ -12,6 +12,7 @@ import {
   ColorSwatchPickerItem as RACColorSwatchPickerItem,
 } from 'react-aria-components'
 
+import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import {
   colors,
@@ -34,24 +35,29 @@ import ColorSwatch from '../color-swatch'
 // single ink is; a ring sits outside the swatch and needs only to read
 // against the surface behind it.
 //
-// **The ring is the primary role, and offset.** It is the same weight and
-// colour the focus ring takes elsewhere, one step out from the swatch so the
-// colour stays whole — a ring drawn on the swatch would eat two pixels of
-// the thing being chosen.
+// **The ring is 3px of on-surface, and offset.** It sits 2px out from the
+// swatch so the colour stays whole — a ring drawn on the swatch would eat
+// pixels of the thing being chosen. It is not the focus ring's colour or
+// weight on purpose: the arrow keys move focus without choosing, so one
+// swatch is chosen while another is focused, and when both rings were 2px of
+// primary only their distance from the swatch told them apart. Focus keeps
+// the library's ring, the one every other control draws, so the selection
+// ring is the one that differs, heavier and in on-surface.
 //
 // **Focus and selection are drawn by different properties.** An element has
 // one outline, so with both drawn in it the second replaced the first, and a
 // keyboard arrowing onto the chosen colour saw a swatch that looked
 // unchosen. The focus ring is the item's outline, 6px out; the selection
-// ring is a border on a box laid 2px around the swatch, inside it. Both are
-// properties forced colours keep, which a box shadow is not.
+// ring is a border on a box laid 5px around the swatch, inside it, with 1px
+// clear between the two. Both are properties forced colours keep, which a
+// box shadow is not, and there the difference in weight is what is left.
 //
 // **Hover and press are a ring too, in the slot selection would take.** Every
 // other interactive element here answers the pointer with a state layer, but
 // a state layer is a fill and a swatch's fill is the colour being chosen:
 // behind it the tint is hidden, over it the tint changes the colour. So an
 // unselected swatch under the pointer takes a ring at the selection ring's
-// offset, drawn in the outline roles rather than primary so it cannot be read
+// outer edge, 2px wide and in the outline roles, so it cannot be read
 // as chosen — outline variant while a pointer is over it, and outline while a
 // touch or a pen holds it. Those are the only presses anyone sees: React Aria
 // chooses a swatch the moment a mouse or a key presses it, and on release for
@@ -64,21 +70,23 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 const styles = stylex.create({
   // The item a swatch sits in. It carries no colour of its own — the rings
   // are all it draws: focus as its outline, and selection, hover and press
-  // as the border of the box after it, 2px wide with 2px clear of the
-  // swatch. That box draws nothing at rest, by style rather than by a
-  // transparent colour, which forced colours would paint in.
+  // as the border of the box after it, which reaches 5px out from the
+  // swatch. Hover and press draw 2px of it and selection 3px, each leaving
+  // at least 2px clear of the swatch. That box draws nothing at rest, by
+  // style rather than by a transparent colour, which forced colours would
+  // paint in.
   //
-  // The box's corner follows the swatch's 4px further out, as an outline's
+  // The box's corner follows the swatch's 5px further out, as an outline's
   // does, and stays square where a scheme squares the swatch: `min()` adds
   // nothing to a corner of 0.
   item: {
     '::after': {
-      borderRadius: `calc(${radii.xs} + min(${radii.xs}, 4px))`,
+      borderRadius: `calc(${radii.xs} + min(${radii.xs}, 5px))`,
       borderStyle: 'none',
       borderWidth: '2px',
       boxSizing: 'border-box',
       content: '""',
-      inset: '-4px',
+      inset: '-5px',
       pointerEvents: 'none',
       position: 'absolute',
     },
@@ -93,12 +101,11 @@ const styles = stylex.create({
     cursor: 'default',
     opacity: stateLayerOpacity.disabledContent,
   },
-  // Outside the selection ring, so a swatch that is both keeps both.
+  // Laid over the library's focus ring, which `itemStyles` applies with it:
+  // the same ring at an offset of its own, outside the selection ring, so a
+  // swatch that is both keeps both.
   itemFocused: {
-    outlineColor: colors.primary,
     outlineOffset: '6px',
-    outlineStyle: 'solid',
-    outlineWidth: '2px',
   },
   // An unselected swatch under the pointer. See the fourth choice above.
   itemHovered: {
@@ -116,11 +123,13 @@ const styles = stylex.create({
     },
   },
   // Applied after the hover and press rings, which draw on the same border,
-  // so a chosen swatch keeps the ring that says so.
+  // so a chosen swatch keeps the ring that says so. See the second choice
+  // above for its colour and weight.
   itemSelected: {
     '::after': {
-      borderColor: colors.primary,
+      borderColor: colors.onSurface,
       borderStyle: 'solid',
+      borderWidth: '3px',
     },
   },
   // Wraps, so a long palette becomes rows rather than a scrollbar.
@@ -210,10 +219,11 @@ function ColorSwatchPickerItem({
 //
 // The order matters where two styles draw on one property. The hover and
 // press rings come before `selected`, which draws on the same border, so a
-// chosen swatch keeps the ring that says so. `focused` draws on the outline,
-// which nothing else touches, so a swatch that is chosen and focused keeps
-// both. `disabled` is last, so it takes the cursor with it; React Aria
-// reports neither hover nor press on one.
+// chosen swatch keeps the ring that says so. Focus is the library's ring and
+// then `focused`, which moves it out; both draw on the outline, which
+// nothing else touches but the item's resting `none`, so a swatch that is
+// chosen and focused keeps both. `disabled` is last, so it takes the cursor
+// with it; React Aria reports neither hover nor press on one.
 function itemStyles(state: {
   isDisabled: boolean
   isFocusVisible: boolean
@@ -226,7 +236,7 @@ function itemStyles(state: {
     state.isHovered && styles.itemHovered,
     state.isPressed && styles.itemPressed,
     state.isSelected && styles.itemSelected,
-    state.isFocusVisible && styles.itemFocused,
+    state.isFocusVisible && [focus.ringVisible, styles.itemFocused],
     state.isDisabled && styles.itemDisabled,
   )
 }
