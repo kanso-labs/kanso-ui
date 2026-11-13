@@ -27,6 +27,8 @@ function probe(style: stylex.StyleXStyles) {
 
 const DATE = new CalendarDate(2026, 9, 15)
 
+const TWO_MONTHS = { months: 2 }
+
 // The surface stays in the document while it animates out, so closed is
 // a state it reaches rather than one it is in the moment it is told.
 async function closed(view: ReturnType<typeof render>) {
@@ -298,6 +300,25 @@ describe('date picker', () => {
       fireEvent.click(triggerOf(view))
 
       expect(view.getByRole('dialog').textContent).toContain('Tue, Sep 15')
+    })
+
+    // Docked with the months stacked, two are taller than the room under
+    // the field, so the calendar shows one at a time there.
+    it.each([
+      [720, 1],
+      [840, 2],
+    ])('docks %ipx with %i of two months', async (width, shown) => {
+      await page.viewport(width, 768)
+      const view = render(
+        <DatePicker
+          defaultOpen
+          defaultValue={DATE}
+          label="Label"
+          visibleDuration={TWO_MONTHS}
+        />,
+      )
+
+      expect(view.getAllByRole('grid')).toHaveLength(shown)
     })
 
     it('takes the words it is given for the headline and the actions', async () => {

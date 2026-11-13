@@ -59,8 +59,9 @@ const Open: Story = {
 
 // Two months side by side, which is what a range is usually picked from, and
 // the docked surface twice as wide for it. Captured at the medium and the
-// compact width too, where the months stack: docked at the first and modal
-// at the second.
+// compact width too: docked at the first, where two stacked months would
+// not fit under the field and the calendar shows one at a time, and modal
+// at the second, where the two stack.
 const OpenTwoMonths: Story = {
   args: {
     defaultOpen: true,

@@ -336,17 +336,17 @@ describe('a date picker showing two months', () => {
     },
   )
 
-  // Docked still, at a medium width, but with no room for both.
+  // Docked still, at a medium width, but with no room for both side by side,
+  // and two stacked are taller than the room under the field. So one month
+  // shows, and the calendar pages a month at a time.
   it.each(TWO_MONTH_PICKERS)(
-    'stacks the months of $name below it, inside the window',
+    'docks one month of $name at a time below it, inside the window',
     async ({ element }) => {
       await page.viewport(BELOW_EXPANDED, 900)
       const surface = surfaceOf(element)
-      const [first, second] = monthsIn(surface)
       const box = surface.getBoundingClientRect()
 
-      expect(second.left).toBe(first.left)
-      expect(second.top).toBeGreaterThan(first.bottom)
+      expect(monthsIn(surface)).toHaveLength(1)
       expect(box.right).toBeLessThanOrEqual(BELOW_EXPANDED)
     },
   )

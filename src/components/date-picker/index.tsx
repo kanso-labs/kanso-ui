@@ -32,6 +32,7 @@ import {
   useFieldValidationBehavior,
 } from '../../field/root'
 import { CalendarGlyph } from '../../glyphs'
+import { useDockedMonths } from '../../hooks/useDockedMonths'
 import { useMessages } from '../../i18n'
 import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
@@ -219,7 +220,9 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
   /**
    * How much of the calendar shows at once: `{ months: 2 }` draws two
    * months side by side. Below the expanded breakpoint, where two do not
-   * fit, they stack instead — see `Calendar`.
+   * fit, they stack instead — see `Calendar` — in the modal; docked, above
+   * the medium breakpoint, the calendar shows one month at a time there,
+   * since two stacked are taller than the room under the field.
    * @default { months: 1 }
    */
   visibleDuration?: DateDuration
@@ -277,6 +280,7 @@ function DatePicker<T extends DateValue>({
 }: DatePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
   const messages = useMessages()
+  const months = useDockedMonths(visibleDuration)
 
   return (
     <RACDatePicker<T>
@@ -334,7 +338,7 @@ function DatePicker<T extends DateValue>({
           label={label}
           selectDateLabel={selectDateLabel ?? messages.selectDate}
           showMonthYearMenus={showMonthYearMenus}
-          visibleDuration={visibleDuration}
+          visibleDuration={months}
         />
       </RACPopover>
     </RACDatePicker>
