@@ -113,6 +113,15 @@ import IconButton from '../icon-button'
 // segments do, so in a right-to-left locale the period selector sits on the
 // left.
 //
+// **Every digit is a lining figure.** The boxes' display type is the brand
+// face, which falls back to Georgia where it is not loaded, and Georgia's
+// figures are old-style by default: a zero at x-height and a nine below the
+// baseline, so `09` read as `o9` at 57px. The boxes ask for lining figures,
+// which stand on the baseline at cap height in any face that has both, and
+// so do the dial's labels and the period selector, whose plain family a
+// theme can set to such a face too. The boxes and the selector keep
+// tabular ones, so a digit changing does not shift the rest.
+//
 // Twenty-four hours put the day's second half on an inner ring, 12 at its top
 // and 00 at the outer ring's, with no period selector, and whether there is
 // one at all is the reader's locale or `hourCycle`, as it is in TimeField.
@@ -266,6 +275,7 @@ const styles = stylex.create({
     fill: { default: colors.onSurface, [FORCED_COLORS]: 'CanvasText' },
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
+    fontVariantNumeric: 'lining-nums',
     fontWeight: typography.bodyLargeWeight,
     letterSpacing: typography.bodyLargeTracking,
   },
@@ -300,6 +310,7 @@ const styles = stylex.create({
     flexGrow: 1,
     fontFamily: typography.titleMediumFont,
     fontSize: typography.titleMediumSize,
+    fontVariantNumeric: 'tabular-nums lining-nums',
     fontWeight: typography.titleMediumWeight,
     justifyContent: 'center',
     letterSpacing: typography.titleMediumTracking,
@@ -371,7 +382,7 @@ const styles = stylex.create({
     display: 'inline-flex',
     fontFamily: typography.displayLargeFont,
     fontSize: typography.displayLargeSize,
-    fontVariantNumeric: 'tabular-nums',
+    fontVariantNumeric: 'tabular-nums lining-nums',
     fontWeight: typography.displayLargeWeight,
     inlineSize: sizing.controlXl,
     justifyContent: 'center',
