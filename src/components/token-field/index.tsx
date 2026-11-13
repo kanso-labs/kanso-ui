@@ -4,6 +4,7 @@ import type { ReactNode, RefAttributes } from 'react'
 import type {
   TokenFieldProps as RACTokenFieldProps,
   TokenInputProps as RACTokenInputProps,
+  TokenInputRenderProps,
   TokenRenderProps,
 } from 'react-aria-components'
 
@@ -22,6 +23,7 @@ import { chipLabel } from '../../chip'
 import { chipStyles } from '../../chip/styles'
 import { FieldBox, FieldMessage } from '../../field'
 import { fieldStyles, invalidFrom } from '../../field/root'
+import { fieldChromeStyles } from '../../field/styles'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { colors, typography } from '../../tokens/design.tokens.stylex'
@@ -57,6 +59,12 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // segment and returns what the pill holds; without it the pill holds the
 // segment's own text. Either way the pill is the page's, so a token here and
 // a chip elsewhere cannot drift.
+//
+// Disabled, the text takes the colour a disabled TextField's value does,
+// the chrome's `inputDisabled`, and each token the disabled chip's content
+// colour and outline, so the value fades with the label and the box. Both
+// name `GrayText` under forced colours, since the mode greys a native
+// disabled control by itself and neither is one.
 
 // A token's pill is 32dp tall inside a body line of 24, so the control's
 // line makes room for it or the pills overlap once the value wraps. Stated
@@ -189,6 +197,17 @@ function changeHandler<T extends TokenFieldValue>(
   }
 }
 
+// The editable area's class, from its render state. Built by a call rather
+// than written inline at the prop, for the reason `changeHandler` gives.
+function inputClassName(variant: FieldVariant) {
+  return ({ isDisabled }: TokenInputRenderProps) =>
+    stylex.props(
+      styles.input,
+      variant === 'filled' && styles.inputUnderLabel,
+      isDisabled && fieldChromeStyles.inputDisabled,
+    ).className ?? ''
+}
+
 // Whether the field holds anything, for the floating label. A token field's
 // editable area is a contenteditable element rather than an input, so the
 // chrome cannot read a value off it and is told instead.
@@ -208,13 +227,19 @@ function isPopulated(value: TokenFieldValue | undefined) {
 // `user-select: all`, and so does the keyboard's selection running across
 // it; either way it is the token Backspace removes next, and this is what
 // says so.
-function tokenClassName({ isSelected }: TokenRenderProps) {
+// Disabled comes last so it wins, since StyleX replaces a property whole.
+function tokenClassName({ isDisabled, isSelected }: TokenRenderProps) {
   return (
     stylex.props(
       chipStyles.base,
       focus.ring,
       isSelected ? chipStyles.selected : chipStyles.unselected,
       styles.token,
+      isDisabled && chipStyles.disabled,
+      isDisabled &&
+        (isSelected
+          ? chipStyles.disabledSelected
+          : chipStyles.disabledUnselected),
     ).className ?? ''
   )
 }
@@ -320,13 +345,7 @@ function TokenField<T extends TokenFieldValue = TokenFieldValue>({
         trailing={trailingIcon}
         variant={variant}
       >
-        <RACTokenInput<T>
-          ref={area}
-          {...stylex.props(
-            styles.input,
-            variant === 'filled' && styles.inputUnderLabel,
-          )}
-        >
+        <RACTokenInput<T> className={inputClassName(variant)} ref={area}>
           {tokenContent(renderToken)}
         </RACTokenInput>
       </FieldBox>

@@ -4,7 +4,15 @@ import { TokenFieldValue } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import TokenField from '.'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  colors,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
+import TextField from '../text-field'
+
+const FORCED_COLORS = 'forced-colors: active'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -13,6 +21,14 @@ import { colors, typography } from '../../tokens/design.tokens.stylex'
 // thing to use — see chip/index.test.tsx for the flake behind this.
 const probeStyles = stylex.create({
   chip: { borderColor: colors.outlineVariant },
+  // A disabled chip's content at 38% and its outline at 12%, over whatever
+  // is behind it.
+  chipDisabled: {
+    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), transparent)`,
+  },
+  chipDisabledOutline: {
+    borderColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContainer} * 100%), transparent)`,
+  },
   error: { color: colors.error },
   floated: { fontSize: typography.bodySmallSize },
   selected: { color: colors.onSecondaryContainer },
@@ -30,6 +46,8 @@ function classesOf(props: { className?: string | undefined }) {
 
 const CLASSES = {
   chip: classesOf(stylex.props(probeStyles.chip)),
+  chipDisabled: classesOf(stylex.props(probeStyles.chipDisabled)),
+  chipDisabledOutline: classesOf(stylex.props(probeStyles.chipDisabledOutline)),
   error: classesOf(stylex.props(probeStyles.error)),
   floated: classesOf(stylex.props(probeStyles.floated)),
   selected: classesOf(stylex.props(probeStyles.selected)),
@@ -220,6 +238,81 @@ describe('token field', () => {
       const view = setup({ renderToken: (segment) => segment.text.slice(1) })
       expect(view.getByText('first')).not.toBeNull()
       expect(view.queryByText('#first')).toBeNull()
+    })
+
+    // Disabled, the label, box and underline faded and the value did not:
+    // the text stayed on surface and the tokens kept their colour and
+    // outline, so the field looked editable beside a disabled TextField.
+    // The text takes the colour a disabled TextField's value does, and each
+    // token the disabled chip's colour and outline.
+    it('fades its text as a disabled TextField fades its value', () => {
+      const field = render(
+        <TextField defaultValue="Value" isDisabled label="Other" />,
+      )
+      const faded = getComputedStyle(
+        field.getByRole('textbox', { name: 'Other' }),
+      ).color
+      field.unmount()
+
+      const enabled = setup()
+      const resting = getComputedStyle(
+        enabled.getByRole('textbox', { name: 'Label' }),
+      ).color
+      enabled.unmount()
+
+      const view = setup({ isDisabled: true })
+      const control = view.getByRole('textbox', { name: 'Label' })
+
+      expect(resting).not.toBe(faded)
+      expect(getComputedStyle(control).color).toBe(faded)
+    })
+
+    it('fades its tokens as disabled chips', () => {
+      const view = setup({ isDisabled: true })
+      const token = view
+        .getByText('#first')
+        .closest<HTMLElement>('[contenteditable="false"]')
+      if (token === null) {
+        throw new Error('expected the text to sit in a token')
+      }
+
+      expect(hasClasses(token, CLASSES.chipDisabled)).toBe(true)
+      expect(hasClasses(token, CLASSES.chipDisabledOutline)).toBe(true)
+      expect(hasClasses(token, CLASSES.chip)).toBe(false)
+    })
+
+    // Forced colours leaves an element that is not a native disabled control
+    // in `CanvasText`, and neither the editable area nor a token is one, so
+    // each names `GrayText` itself. The enabled field is checked beside it,
+    // so a `GrayText` reaching every state would fail.
+    it('draws a disabled field’s text and tokens in GrayText under forced colours', () => {
+      const view = setup({ isDisabled: true })
+      const control = view.getByRole('textbox', { name: 'Label' })
+      const token = view
+        .getByText('#first')
+        .closest<HTMLElement>('[contenteditable="false"]')
+      if (token === null) {
+        throw new Error('expected the text to sit in a token')
+      }
+
+      expect(declarationsHeld(control, FORCED_COLORS).get('color')).toBe(
+        'graytext',
+      )
+      expect(declarationsHeld(token, FORCED_COLORS).get('color')).toBe(
+        'graytext',
+      )
+      expect(
+        declarationsHeld(token, FORCED_COLORS).get('border-top-color'),
+      ).toBe('graytext')
+    })
+
+    it('leaves an enabled field’s text to forced colours', () => {
+      const view = setup()
+      const control = view.getByRole('textbox', { name: 'Label' })
+
+      expect(
+        declarationsHeld(control, FORCED_COLORS).get('color'),
+      ).toBeUndefined()
     })
 
     it('draws nothing in an empty field', () => {
