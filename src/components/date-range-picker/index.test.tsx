@@ -2,11 +2,18 @@ import type { ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { page } from 'vitest/browser'
 
 import DateRangePicker from '.'
 import { CalendarDate } from '../../date'
 import { colors } from '../../tokens/design.tokens.stylex'
+
+// The runner's own viewport, restored after any test that changes it.
+const DEFAULT_VIEWPORT = {
+  height: window.innerHeight,
+  width: window.innerWidth,
+}
 
 const probeStyles = stylex.create({
   onSurface: { color: colors.onSurface },
@@ -115,6 +122,33 @@ function segmentsOf(view: ReturnType<typeof render>, end: 'End' | 'Start') {
 // label.
 function triggerOf(view: ReturnType<typeof render>, label = 'Calendar') {
   return view.getByRole('button', { name: new RegExp(label) })
+}
+
+// A range in February, whose four weeks put March's five under them once the
+// two months stack.
+const FEBRUARY = {
+  end: new CalendarDate(2026, 2, 20),
+  start: new CalendarDate(2026, 2, 15),
+}
+
+const TWO_MONTHS = { months: 2 }
+
+// A picker open on two months, with its grids and the surface they open on.
+function openTwoMonths() {
+  const view = render(
+    <DateRangePicker
+      defaultOpen
+      defaultValue={FEBRUARY}
+      label="Label"
+      visibleDuration={TWO_MONTHS}
+    />,
+  )
+  const dialog = view.getByRole('dialog')
+  const surface = dialog.parentElement
+  if (surface === null) {
+    throw new Error('expected the dialog to sit in its surface')
+  }
+  return { grids: view.getAllByRole('grid'), surface }
 }
 
 describe('date range picker', () => {
@@ -326,6 +360,51 @@ describe('date range picker', () => {
           .getByRole('button', { name: /September 1, 2026/ })
           .getAttribute('aria-disabled'),
       ).toBe('true')
+    })
+  })
+
+  // Two months are side by side from the expanded breakpoint up and stack
+  // below it, and the surface is docked from the medium breakpoint up. Between
+  // the two, two stacked months were taller than the room under a field at the
+  // top of a 768px window, and the docked surface clipped the second month's
+  // last week with nothing to say it scrolled.
+  describe('two months, by window width', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it.each([600, 720, 839])(
+      'docks one month at a time at %ipx, every week of it in view',
+      async (width) => {
+        await page.viewport(width, 768)
+        const { grids, surface } = openTwoMonths()
+
+        expect(grids.map((grid) => grid.getAttribute('aria-label'))).toEqual([
+          'Label, February 2026',
+        ])
+        expect(surface.scrollHeight).toBeLessThanOrEqual(surface.clientHeight)
+      },
+    )
+
+    it('docks both months side by side from the expanded breakpoint', async () => {
+      await page.viewport(840, 768)
+      const { grids, surface } = openTwoMonths()
+
+      expect(grids).toHaveLength(2)
+      expect(grids[0].getBoundingClientRect().top).toBe(
+        grids[1].getBoundingClientRect().top,
+      )
+      expect(surface.scrollHeight).toBeLessThanOrEqual(surface.clientHeight)
+    })
+
+    it('keeps both months, stacked, in the modal', async () => {
+      await page.viewport(599, 768)
+      const { grids } = openTwoMonths()
+
+      expect(grids).toHaveLength(2)
+      expect(grids[1].getBoundingClientRect().top).toBeGreaterThan(
+        grids[0].getBoundingClientRect().bottom,
+      )
     })
   })
 

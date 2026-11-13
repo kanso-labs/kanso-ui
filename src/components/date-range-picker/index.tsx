@@ -27,6 +27,7 @@ import {
   useFieldValidationBehavior,
 } from '../../field/root'
 import { CalendarGlyph } from '../../glyphs'
+import { useDockedMonths } from '../../hooks/useDockedMonths'
 import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
 import { focus } from '../../styles/focus'
@@ -180,7 +181,9 @@ type DateRangePickerProps<T extends DateValue = DateValue> = Omit<
    * How much of the calendar shows at once: `{ months: 2 }` draws two
    * months side by side, which is what a range is usually picked from.
    * Below the expanded breakpoint, where two do not fit, they stack instead
-   * — see `RangeCalendar`.
+   * — see `RangeCalendar` — in the modal; docked, above the medium
+   * breakpoint, the calendar shows one month at a time there, since two
+   * stacked are taller than the room under the field.
    * @default { months: 1 }
    */
   visibleDuration?: DateDuration
@@ -239,6 +242,7 @@ function DateRangePicker<T extends DateValue>({
   ...props
 }: DateRangePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
+  const months = useDockedMonths(visibleDuration)
   const [group, setGroup] = useState<HTMLDivElement | null>(null)
   const wrapped = useEndDateWrap(group)
 
@@ -304,7 +308,7 @@ function DateRangePicker<T extends DateValue>({
           <RangeCalendar
             aria-label={label}
             showMonthYearMenus={showMonthYearMenus}
-            visibleDuration={visibleDuration}
+            visibleDuration={months}
           />
         </RACDialog>
       </RACPopover>
