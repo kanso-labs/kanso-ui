@@ -25,6 +25,7 @@ import {
   useFieldValidationBehavior,
 } from '../../field/root'
 import { ChevronEndGlyph } from '../../glyphs'
+import { RowOnValueLineContext } from '../../row/context'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay, popupOrigin } from '../../styles/overlay'
 import {
@@ -119,6 +120,17 @@ const styles = stylex.create({
     minInlineSize: 0,
     overflowY: 'auto',
     paddingBlock: spacing.sm,
+  },
+  // What is drawn on the value's line, cut short with an ellipsis before the
+  // chevron. On React Aria's element rather than the chrome's `FieldValue`
+  // around it, which is a flex container, and `text-overflow` does not
+  // reach a flex item's text — ComboBox does the same. That reaches a
+  // placeholder, which is React Aria's own text; a chosen option is drawn as
+  // its row, whose headline `RowOnValueLineContext` cuts short instead.
+  valueText: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
 })
 
@@ -315,7 +327,9 @@ function SelectedValue({ isFocused }: { isFocused: boolean }) {
 
   return (
     <FieldValue isFocused={isFocused} isPlaceholder={isPlaceholder}>
-      <RACSelectValue />
+      <RowOnValueLineContext value>
+        <RACSelectValue {...stylex.props(styles.valueText)} />
+      </RowOnValueLineContext>
     </FieldValue>
   )
 }

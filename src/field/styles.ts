@@ -891,12 +891,14 @@ const fieldChromeStyles = stylex.create({
   },
   // A value that was chosen rather than typed. The input's type and its
   // place on the line, laid out as a row so it does not stretch to the box's
-  // height, and truncating rather than wrapping — the box is one line tall.
+  // height, and clipped rather than wrapped — the box is one line tall. The
+  // ellipsis is the element inside's to draw, Select's and ComboBox's:
+  // `text-overflow` does not reach a flex container's items, so declared
+  // here it would draw nothing and leave the text cut off flat.
   value: {
     alignItems: 'center',
     display: 'flex',
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
   // Nothing chosen yet: the placeholder's muted role, and hidden under a

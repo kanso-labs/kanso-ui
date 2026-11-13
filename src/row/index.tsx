@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 
 import { hasContent } from '../render/content'
+import { RowOnValueLineContext } from './context'
 import { rowStyles, supportingTone } from './styles'
 
 interface RowContentProps {
@@ -92,6 +94,7 @@ function RowContent({
   // what they do not share is the container a selected row brings, which is
   // why the tone below still asks which variant this is.
   const label = variant === 'drawer' || variant === 'menu'
+  const onValueLine = useContext(RowOnValueLineContext)
   const tone = supportingTone(variant, { isDisabled, isSelected })
   const faded = isDisabled && rowStyles.slotDisabled
   const leadingSlot = !hasContent(leading) ? null : (
@@ -123,6 +126,7 @@ function RowContent({
           {...stylex.props(
             label ? rowStyles.headlineMenu : rowStyles.headlineList,
             isEmphasized && rowStyles.headlineEmphasis,
+            onValueLine && rowStyles.headlineOnValueLine,
           )}
         >
           {children}

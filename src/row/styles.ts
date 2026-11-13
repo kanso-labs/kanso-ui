@@ -236,6 +236,14 @@ const rowStyles = stylex.create({
     lineHeight: typography.labelLargeLineHeight,
     overflowWrap: 'anywhere',
   },
+  // A headline on a field's value line — see `RowOnValueLineContext` in
+  // `context.ts` — which is one line tall, so it stays on one and ends in an
+  // ellipsis where it runs out of room rather than wrapping.
+  headlineOnValueLine: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
   // A state layer from render state — see `focusVisible`.
   hovered: {
     backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.hover} * 100%), transparent))`,
