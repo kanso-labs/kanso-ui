@@ -76,9 +76,15 @@ import {
 // pair. So a chosen filled toggle looks like a plain filled button, and an
 // unchosen one does not.
 //
-// A toggle is never a link and never pending. React Aria's `ToggleButton`
-// takes neither, and neither means anything for a control whose whole job is
-// to report which of two states it is in.
+// A toggle is never a link. React Aria's `ToggleButton` takes no `href`, and
+// a link goes somewhere rather than reporting which of two states it is in.
+// A toggle may be pending, though, for a state saved somewhere slow — a
+// favourite, a mute. On its own it is the plain button given `aria-pressed`,
+// so it goes pending as that button does: the ring takes the icon's place,
+// the element is `aria-busy` and `aria-disabled`, and a press changes nothing
+// until `isPending` clears. Inside a selecting ButtonGroup it is React Aria's
+// `ToggleButton`, which has no pending state, so there `isPending` only keeps
+// the ripple off.
 //
 // The corner softens from a circle to a rounded square while pressed, which
 // is the shape morph the icon buttons spec page gives this control, at the
