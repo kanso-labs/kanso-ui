@@ -5,6 +5,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { RowContent } from '.'
+import { rulesReaching, valueIn } from '../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
@@ -43,6 +44,20 @@ function classesOf(style: StyleXStyles) {
 
 function hasClasses(element: HTMLElement, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** The outline offset at rest, and the one the forced-colours mode applies. */
+function outlineOffsetsOf(style: StyleXStyles) {
+  const rules = rulesReaching(rowWith(style), {
+    holding: 'forced-colors: active',
+  })
+  return {
+    forced: valueIn(rules, 'outline-offset'),
+    resting: valueIn(
+      rules.filter((rule) => !rule.held),
+      'outline-offset',
+    ),
+  }
 }
 
 // Scoped to the render's own container: two rows rendered in one test would
@@ -178,6 +193,36 @@ describe('row', () => {
       expect(hasClasses(row, classesOf(probeStyles.selectedListSurface))).toBe(
         false,
       )
+    })
+  })
+
+  // Under forced colours a selected row is `Highlight` under `HighlightText`
+  // on the mode's `Canvas`, and its ring takes the text's colour. Two pixels
+  // in, that ring lay along the row's own edge, against the `Canvas` beside
+  // it, so a focused selected row read as the same band 2px narrower.
+  describe('focus ring under forced colours', () => {
+    it.each([
+      ['list', rowStyles.selectedList],
+      ['menu', rowStyles.selectedMenu],
+      ['drawer', rowStyles.selectedDrawer],
+    ])('draws a selected %s row’s ring inside its Highlight', (_, selected) => {
+      expect(
+        outlineOffsetsOf([
+          rowStyles.base,
+          selected,
+          rowStyles.focusVisible,
+          rowStyles.focusVisibleSelected,
+        ]),
+      ).toEqual({ forced: '-4px', resting: '-2px' })
+    })
+
+    it('leaves the ring of a row that is not selected where it was', () => {
+      expect(
+        outlineOffsetsOf([rowStyles.base, rowStyles.focusVisible]),
+      ).toEqual({
+        forced: '-2px',
+        resting: '-2px',
+      })
     })
   })
 })

@@ -170,6 +170,9 @@ function rowItemStyles(
       state.isSelected && rowStyles.selectedList,
       state.isHovered && rowStyles.hovered,
       state.isFocusVisible && rowStyles.focusVisible,
+      state.isFocusVisible &&
+        state.isSelected &&
+        rowStyles.focusVisibleSelected,
       state.isPressed && rowStyles.pressed,
       state.isDropTarget === true && rowStyles.dropTarget,
       state.isDisabled && rowStyles.disabled,

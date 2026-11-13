@@ -583,6 +583,32 @@ describe('menu', () => {
   })
 
   describe('keyboard', () => {
+    // Under forced colours a selected item is `Highlight`, and its ring in
+    // `HighlightText` has to sit inside that rather than along its edge —
+    // see `focusVisibleSelected` in src/row/styles.ts.
+    it('insets the ring of a focused selected item under forced colours', () => {
+      const view = setup({
+        defaultSelectedKeys: SECOND,
+        selectionMode: 'single',
+      })
+      const menu = view.getByRole('menu', { name: 'Open' })
+      const [first, second] = view.getAllByRole('menuitemradio')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(menu, { key: 'ArrowDown' })
+      fireEvent.keyUp(menu, { key: 'ArrowDown' })
+
+      expect(second.getAttribute('data-focus-visible')).toBe('true')
+      expect(
+        valueIn(
+          rulesReaching(second, { holding: 'forced-colors: active' }),
+          'outline-offset',
+        ),
+      ).toBe('-4px')
+    })
+
     it('moves through the items with the arrow keys', () => {
       const view = setup()
       const menu = view.getByRole('menu', { name: 'Open' })

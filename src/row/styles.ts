@@ -191,6 +191,17 @@ const rowStyles = stylex.create({
     outlineStyle: 'solid',
     outlineWidth: '2px',
   },
+  // The ring of a selected row, applied after `focusVisible` on a row that
+  // is both. Under forced colours the row is `Highlight` on the mode's
+  // `Canvas` and the ring `HighlightText`, so at `focusVisible`'s 2px in it
+  // lay along the row's own edge, against the `Canvas` beside it, and a
+  // focused selected row read as the same band 2px narrower. Two pixels
+  // further in, it is drawn over the `Highlight` with a band of it either
+  // side. Everywhere else the ring keeps `focusVisible`'s offset, which is
+  // spelled again here because StyleX replaces a property whole.
+  focusVisibleSelected: {
+    outlineOffset: { default: '-2px', [FORCED_COLORS]: '-4px' },
+  },
   // A headline drawn heavier than its variant's own, for a row marked
   // without the container a selected one takes. It sets the weight alone, so
   // the rest of the type role still comes from the variant's headline style
