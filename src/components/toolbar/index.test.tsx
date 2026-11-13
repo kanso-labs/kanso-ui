@@ -152,10 +152,11 @@ describe('toolbar', () => {
     })
 
     // Pinned because the toolbar pattern usually implies a roving tabindex
-    // and React Aria's does not do one: every control stays tabbable, so the
-    // arrows are a second way to move rather than the only one. A version
-    // that started roving would change what Tab does on every page using
-    // this, and should fail here first.
+    // and React Aria's does not do one: the bar is a single Tab stop because
+    // a Tab inside it moves focus to the control at the end it leaves by
+    // before the browser moves on, while every control keeps its own
+    // `tabindex`. A version that started roving would change what each
+    // control reports on every page using this, and should fail here first.
     it('leaves every control tabbable', () => {
       const view = setup()
       const stops = view
