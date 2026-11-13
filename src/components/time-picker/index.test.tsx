@@ -189,6 +189,28 @@ describe('time picker', () => {
       expect(boxOf(dialog, 'minute').textContent).toBe('30')
     })
 
+    // React Aria's dialog takes focus itself unless something inside it
+    // already has it, which left the reader a Tab away from the hour the
+    // modal draws as selected.
+    it('opens with focus on the hour, in both variants', () => {
+      for (const defaultMode of ['dial', 'input'] as const) {
+        const view = render(
+          <TimePicker
+            defaultMode={defaultMode}
+            defaultValue={TIME}
+            label="Label"
+          />,
+        )
+        const dialog = open(view)
+        const hour = boxOf(dialog, 'hour')
+
+        expect(document.activeElement).toBe(hour)
+        fireEvent.keyDown(hour, { key: 'ArrowUp' })
+        expect(hour.textContent).toBe('10')
+        view.unmount()
+      }
+    })
+
     it('opens on midnight when the field is empty', () => {
       const view = render(<TimePicker label="Label" />)
       const dialog = open(view)
