@@ -17,10 +17,12 @@ import {
 // window size classes.
 const FORCED_COLORS = '@media (forced-colors: active)'
 
-// The colour of a disabled control's text: its label and the description
-// under it, from one definition so the two cannot drift apart. `GrayText`
-// under forced colours, which leaves a group's legend and a description
-// alone: they are text beside a control, not a control the mode would grey.
+// The colour of a disabled control's text: its label, the description
+// under it and the value inside it, from one definition so they cannot drift
+// apart. `GrayText` under forced colours, which leaves a group's legend and
+// a description alone: they are text beside a control, not a control the
+// mode would grey. The mode greys a native disabled input's value by itself,
+// but not a token field's, which is a contenteditable element.
 const DISABLED_TEXT = {
   default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   [FORCED_COLORS]: 'GrayText',
@@ -620,7 +622,7 @@ const fieldChromeStyles = stylex.create({
     '::placeholder': {
       color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
     },
-    color: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+    color: DISABLED_TEXT,
   },
   inputInvalid: {
     caretColor: colors.error,
