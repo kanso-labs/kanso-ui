@@ -8,7 +8,14 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useContext } from 'react'
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   DisclosureStateContext,
   Button as RACButton,
@@ -37,7 +44,7 @@ import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 // own, taken from the row's own trailing slot and inline padding rather than
 // invented.
 //
-// Three things are this component's own.
+// Four things are this component's own.
 //
 // **The header is a heading with a button in it.** React Aria wants both —
 // the heading is what a screen reader jumps between, and the button is what
@@ -57,6 +64,31 @@ import { colors, motion, spacing } from '../../tokens/design.tokens.stylex'
 // nothing left to shrink. Worth knowing before reaching for a closing
 // animation: it needs the panel kept in the layout, which would cost the
 // find-in-page behaviour that attribute buys.
+//
+// **The panel's content starts where the headline does.** With nothing in
+// the header's leading slot that is the row's own 16dp inset. With an avatar
+// or an icon there, it is that inset, the slot and the row's 16dp gap after
+// it, so the panel's text sits under the headline rather than under the
+// avatar. The slot is as wide as what a call site puts in it, so the header
+// measures it and hands the width to the panel through the disclosure's own
+// context, and the panel adds the two 16s from the tokens. Logical padding
+// does the rest, so the same width indents from the right under
+// right-to-left.
+
+// The width of the header's leading slot, from the header to the panel: null
+// while the header has nothing there, or outside a `Disclosure`.
+const LeadingSlotContext = createContext<null | {
+  setWidth: (width: null | number) => void
+  width: null | number
+}>(null)
+
+// The panel's start padding past the header's leading slot, which the panel
+// works out from the slot's width: the row's inset, the slot, and the row's
+// gap between the slot and the headline. A function style because the width
+// is the call site's content.
+const insetStyles = stylex.create({
+  inner: (paddingInlineStart: string) => ({ paddingInlineStart }),
+})
 
 const styles = stylex.create({
   // Points at what the section opens, so it turns a quarter to point down
@@ -215,12 +247,17 @@ function Disclosure({
   children,
   ...props
 }: DisclosureProps & RefAttributes<HTMLDivElement>) {
+  const [width, setWidth] = useState<null | number>(null)
+  const leadingSlot = useMemo(() => ({ setWidth, width }), [width])
+
   return (
     <RACDisclosure
       {...props}
       {...mergeStatefulStyles(stylex.props(styles.root), props)}
     >
-      {children}
+      <LeadingSlotContext.Provider value={leadingSlot}>
+        {children}
+      </LeadingSlotContext.Provider>
     </RACDisclosure>
   )
 }
@@ -244,11 +281,37 @@ function DisclosureHeader({
   // button, which hears its own click, so the press ends there as Button's
   // does, and a keyboard press draws one too.
   const ripple = useRipple<FocusableElement>()
+  const trigger = useRef<HTMLButtonElement>(null)
+  const setLeadingWidth = useContext(LeadingSlotContext)?.setWidth
+  const hasLeading =
+    leading !== undefined && leading !== null && leading !== false
+
+  // The leading slot is the row's first child when there is one, and its
+  // width is what it holds, so it is watched rather than read once: an
+  // avatar's image arriving, or the slot's content swapped for something of
+  // another size, moves the headline and the panel with it.
+  useLayoutEffect(() => {
+    const slot = trigger.current?.firstElementChild
+    if (setLeadingWidth === undefined || !hasLeading || slot == null) {
+      return undefined
+    }
+    const measure = () => {
+      setLeadingWidth(slot.getBoundingClientRect().width)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(slot)
+    return () => {
+      observer.disconnect()
+      setLeadingWidth(null)
+    }
+  }, [hasLeading, setLeadingWidth])
 
   return (
     <RACHeading level={headingLevel} {...stylex.props(styles.heading)}>
       <RACButton
         className={headerClassName(supporting)}
+        ref={trigger}
         slot="trigger"
         {...ripple.handlers}
       >
@@ -266,9 +329,10 @@ function DisclosureHeader({
 
 /**
  * What the section shows while it is open. Its content lines up with the
- * headline above it, and it takes the group role React Aria gives it —
- * `role="region"` names it in the landmark list instead, for a section a
- * reader should be able to jump to.
+ * headline above it, past the header's leading slot when it has one, and it
+ * takes the group role React Aria gives it — `role="region"` names it in
+ * the landmark list instead, for a section a reader should be able to jump
+ * to.
  */
 function DisclosurePanel({
   children,
@@ -278,6 +342,7 @@ function DisclosurePanel({
   // rather than to what wraps it — so the state comes from its context, the
   // same one its own panel reads.
   const state = useContext(DisclosureStateContext)
+  const leadingWidth = useContext(LeadingSlotContext)?.width ?? null
 
   return (
     <div
@@ -290,7 +355,17 @@ function DisclosurePanel({
         {...props}
         {...mergeStatefulStyles(stylex.props(styles.panel), props)}
       >
-        <div {...stylex.props(styles.inner)}>{children}</div>
+        <div
+          {...stylex.props(
+            styles.inner,
+            leadingWidth !== null &&
+              insetStyles.inner(
+                `calc(${spacing.lg} + ${leadingWidth}px + ${spacing.lg})`,
+              ),
+          )}
+        >
+          {children}
+        </div>
       </RACDisclosurePanel>
     </div>
   )
