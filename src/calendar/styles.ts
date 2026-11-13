@@ -163,24 +163,31 @@ const calendarStyles = stylex.create({
     marginInline: 0,
     outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
   },
-  // The date an invalid calendar holds, in the error container roles rather
-  // than the primary ones, so the circle says the choice was refused as well
-  // as where it is. Applied over `cellSelected`, which it repaints whole:
-  // the border too, so today's outline still disappears into the fill.
+  // The date an invalid calendar holds, in the error and on error roles
+  // rather than the primary ones, so the circle says the choice was refused
+  // as well as where it is. The page gives a date no error colour of its
+  // own, so the circle takes the error role at the emphasis the selected one
+  // has: error in place of primary, on error in place of on primary. The
+  // error container roles are the quieter pair, and on the high surface
+  // container they came to 1.04:1 in light and 1.58:1 in dark, which read as
+  // a hover rather than a choice; error clears WCAG's 3:1 for a state
+  // indicator in both. Applied over `cellSelected`, which it repaints
+  // whole: the border too, so today's outline still disappears into the
+  // fill.
   // Under forced colours it keeps the `Highlight` pair every chosen date
   // takes, since a system palette has no error colour to tell it apart by;
   // the calendar's `error` message is what says so there.
   cellInvalid: {
     backgroundColor: {
-      default: colors.errorContainer,
+      default: colors.error,
       [FORCED_COLORS]: 'Highlight',
     },
     borderColor: {
-      default: colors.errorContainer,
+      default: colors.error,
       [FORCED_COLORS]: 'Highlight',
     },
     color: {
-      default: colors.onErrorContainer,
+      default: colors.onError,
       [FORCED_COLORS]: 'HighlightText',
     },
   },
@@ -583,13 +590,13 @@ const dateLayers = stylex.create({
   },
   invalidHovered: {
     backgroundColor: {
-      default: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.errorContainer})`,
+      default: `color-mix(in srgb, ${colors.onError} calc(${stateLayerOpacity.hover} * 100%), ${colors.error})`,
       [FORCED_COLORS]: 'Highlight',
     },
   },
   invalidPressed: {
     backgroundColor: {
-      default: `color-mix(in srgb, ${colors.onErrorContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.errorContainer})`,
+      default: `color-mix(in srgb, ${colors.onError} calc(${stateLayerOpacity.pressed} * 100%), ${colors.error})`,
       [FORCED_COLORS]: 'Highlight',
     },
   },
