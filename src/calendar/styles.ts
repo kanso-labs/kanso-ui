@@ -34,8 +34,10 @@ import {
 // draw — the fill, the date, today's outline and the focus ring. A day ruled
 // out or disabled stays adjusted, which keeps the backplate behind its text.
 // A ruled-out day names nothing and keeps the mode's colours, its
-// strikethrough being the cue; a disabled day names `GrayText` for its date
-// and outline, since the mode gives an `aria-disabled` cell no colour of its
+// strikethrough being the cue — apart from one inside a range, which keeps
+// the band's pair under its strikethrough, so the run does not break around
+// it; see `cellUnavailableInRange`. A disabled day names `GrayText` for its
+// date and outline, since the mode gives an `aria-disabled` cell no colour of its
 // own; see `cellDisabled`. The date a disabled calendar holds takes
 // `GrayText` as its fill instead; see `cellSelectedDisabled`.
 
@@ -284,6 +286,14 @@ const calendarStyles = stylex.create({
     cursor: 'not-allowed',
     // Back to the mode's own colours — see the header.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
+    textDecorationLine: 'line-through',
+  },
+  // A ruled-out date between the two ends of a range: the strikethrough
+  // `cellUnavailable` draws, over the band rather than in place of it, so
+  // the range stays one shape from its first day to its last. The ground,
+  // and the band's forced-colours pair with it, are `cellInRange`'s.
+  cellUnavailableInRange: {
+    cursor: 'not-allowed',
     textDecorationLine: 'line-through',
   },
   // What the chevrons that move the month add to the shared icon-button

@@ -74,6 +74,7 @@ const SIX_WEEK_RANGE = {
 
 // Hoisted so the identity is stable, which is what react-perf is after.
 const isTenth = (date: { day: number }) => date.day === 10
+const isTwentieth = (date: { day: number }) => date.day === 20
 
 // The calendar's own box, which is the element a layout positions.
 function calendarBox(view: ReturnType<typeof render>) {
@@ -324,6 +325,43 @@ describe('range calendar', () => {
         'line-through',
       )
       expect(getComputedStyle(available).textDecorationLine).toBe('none')
+    })
+
+    // React Aria leaves a ruled-out date out of the range it selects, so a
+    // band drawn from `isSelected` alone stopped square either side of it and
+    // the range read as two blocks with a hole between them.
+    it('keeps the band under a date ruled out inside the range', () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          isDateUnavailable={isTenth}
+        />,
+      )
+      const unavailable = cellFor(view, 'September 10, 2026')
+      const drawn = getComputedStyle(unavailable)
+
+      expect(unavailable).not.toHaveAttribute('data-selected')
+      expect(drawn.backgroundColor).toBe(probe(probeStyles.secondaryContainer))
+      expect(drawn.textDecorationLine).toBe('line-through')
+      expect(Number.parseFloat(drawn.borderTopLeftRadius)).toBe(0)
+      // The band's Highlight pair under forced colours, as the days either
+      // side of it take, so the run is unbroken there too.
+      expect(forcedColourOf(unavailable)).toBe('highlighttext')
+    })
+
+    it('draws no band under a date ruled out outside the range', () => {
+      const view = render(
+        <RangeCalendar
+          aria-label="Label"
+          defaultValue={RANGE}
+          isDateUnavailable={isTwentieth}
+        />,
+      )
+
+      expect(
+        getComputedStyle(cellFor(view, 'September 20, 2026')).backgroundColor,
+      ).toBe('rgba(0, 0, 0, 0)')
     })
 
     // The disabled dates in GrayText under forced colours, as Calendar's

@@ -863,10 +863,11 @@ describe('a state told by a fill alone', () => {
     expect(rules.get('outline-color')).toBe('canvastext')
   })
 
-  // A day ruled out inside a range, and a date in a disabled calendar, draw
-  // no fill of their own and name no system colour, so they are the mode's
-  // to colour again.
-  it('hands a day ruled out inside a range back to the mode', () => {
+  // A day ruled out inside a range keeps the band under its strikethrough,
+  // so the range is one run from end to end here as well. The band is a
+  // fill, so it takes the chosen pair as the other days in it do — left to
+  // adjust, its `HighlightText` would be a blank box on the mode's backplate.
+  it('keeps the band’s pair on a day ruled out inside a range', () => {
     const view = render(
       <RangeCalendar
         aria-label="Label"
@@ -878,8 +879,13 @@ describe('a state told by a fill alone', () => {
       view.getByRole('button', { name: /September 11, 2026/ }),
     )
 
-    expect(rules.get('forced-color-adjust')).toBe('auto')
+    expect(rules.get('forced-color-adjust')).toBe('none')
+    expect(rules.get('background-color')).toBe('highlight')
+    expect(rules.get('color')).toBe('highlighttext')
   })
+
+  // A date in a disabled calendar draws no fill of its own and names no
+  // system colour, so it is the mode's to colour again.
 
   it('hands a date in a disabled calendar back to the mode', () => {
     const view = render(
