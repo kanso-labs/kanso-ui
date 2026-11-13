@@ -35,12 +35,19 @@ import { radii, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 // could not be made to show under any pairing tried — including the RGB
 // alpha pairing whose gradient really does carry a `rgba(0, 0, 0, 0)` stop.
 //
-// **Alpha is a channel here only in RGB, and even there it does not thin
-// the plane.** Asked for it in HSL, React Aria draws the saturation and
-// lightness plane instead and says nothing — the gradients come out
-// identical to the pair it would have drawn anyway. It does not throw the
-// way an unknown channel does, so the only sign is a plane that will not
-// change, which is why it is written down here.
+// **Alpha belongs on a `ColorSlider` beside the plane, never on an axis.**
+// React Aria paints the plane from the two axis channels and one more, the
+// first of the space's colour channels the axes leave over, held at the
+// value's own. With alpha on an axis that leaves two colour channels over,
+// so the second is never painted: against `rgba(0, 170, 255, 0.6)` with red
+// and alpha on the axes, the plane runs from `rgb(0, 170, 0)` to
+// `rgb(255, 170, 0)` with no blue anywhere, while the handle shows the
+// light blue the value is. Nor does the alpha axis thin the plane, for the
+// reason above. In HSL it is not even that: React Aria draws the saturation
+// and lightness plane instead and says nothing, so a plane that will not
+// change is the only sign. Neither throws the way an unknown channel does,
+// which is why it is written down here. The `Alpha` story, and ColorPicker,
+// put the alpha on a slider holding the same value.
 
 const styles = stylex.create({
   // The plane React Aria paints the two channels across, filling the square
@@ -103,9 +110,11 @@ type ColorAreaProps = Omit<
  * convert it, or give the value in the space you mean to work in. The same
  * trap `ColorSlider` documents.
  *
- * **`alpha` is a channel here only in RGB.** Asked for it in HSL, React Aria
- * quietly draws the saturation and lightness plane instead, so a plane that
- * will not fade is the only sign anything was ignored.
+ * **Give `alpha` to a `ColorSlider` holding the same value, not to an axis.**
+ * On an axis in RGB the plane leaves one of the colour channels out, and so
+ * shows colours the value does not have while the handle shows the one it
+ * does; in HSL React Aria quietly draws the saturation and lightness plane
+ * instead. Neither says so.
  *
  * React Aria names the handle "Color picker" and announces both channels;
  * pass `aria-label` to say what the plane is for instead.
