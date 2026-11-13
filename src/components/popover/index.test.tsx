@@ -52,6 +52,19 @@ const CLASSES = {
 
 // The gap `Popover.Content` puts between the anchor and the panel when the
 // call site names none.
+/** A pressed popover that starts closed, for a test that opens it. */
+function closedPopover(props: Partial<Parameters<typeof Popover>[0]> = {}) {
+  return render(
+    <Popover {...props}>
+      <Button>Open</Button>
+      <Popover.Content>
+        <Popover.Title>Headline</Popover.Title>
+        <Button slot="close">Close</Button>
+      </Popover.Content>
+    </Popover>,
+  )
+}
+
 const DEFAULT_SIDE_OFFSET = 8
 
 /**
@@ -595,6 +608,50 @@ describe('popover', () => {
       expect(
         getComputedStyle(panelOf(view.getByRole('dialog'))).outlineStyle,
       ).toBe('none')
+    })
+
+    // The panel focuses its dialog as it opens, and Chromium matches that
+    // programmatic focus to `:focus-visible` whatever opened it, so a panel
+    // a pointer opened drew the ring kept for a keyboard. The ring follows
+    // React Aria's reading of the input in use instead.
+    describe('the ring as the panel opens', () => {
+      it.each([
+        ['non-modal', false],
+        ['modal', true],
+      ] as const)(
+        'draws none on a %s panel a pointer opened',
+        async (_, modal) => {
+          const view = closedPopover({ modal })
+
+          pressWithMouse(view.getByRole('button', { name: 'Open' }), {
+            focuses: true,
+          })
+          const dialog = await view.findByRole('dialog')
+          await waitFor(() => {
+            expect(document.activeElement).toBe(dialog)
+          })
+
+          // What the browser would have drawn the ring from.
+          expect(dialog.matches(':focus-visible')).toBe(true)
+          expect(getComputedStyle(panelOf(dialog)).outlineStyle).toBe('none')
+        },
+      )
+
+      it.each([
+        ['non-modal', false],
+        ['modal', true],
+      ] as const)(
+        'draws it on a %s panel the keyboard opened',
+        async (_, modal) => {
+          const view = closedPopover({ modal })
+
+          await openByKeyboard(view)
+          const dialog = view.getByRole('dialog')
+
+          expect(document.activeElement).toBe(dialog)
+          expect(getComputedStyle(panelOf(dialog)).outlineStyle).toBe('solid')
+        },
+      )
     })
 
     // The rich tooltip's inset, read as the browser resolved it, since a
