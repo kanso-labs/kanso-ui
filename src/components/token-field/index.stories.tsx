@@ -21,19 +21,30 @@ const floatedClassNames = (stylex.props(probeStyles.floated).className ?? '')
   .filter(Boolean)
 
 // What counts as a token is the call site's, which is what subclassing the
-// value is for: here, a word beginning with a hash.
+// value is for: here, a word beginning with a hash, once a space after it
+// says it is finished. The value is tokenised on every key, so a tag with
+// nothing after it is one still being typed: without the space it became a
+// pill at its first letter, `#a`, and the rest was left as text after it.
+//
+// A token is a part the pattern matched, which `split` puts at the odd
+// indices, rather than any part that starts with a hash: a lone `#`, or a
+// tag not yet finished, starts with one too and is still text.
 class TaggedValue extends TokenFieldValue {
   protected override tokenize(text: string) {
     return text
-      .split(/(#[\w-]+)/u)
-      .filter((part) => part.length > 0)
-      .map((part) =>
-        part.startsWith('#')
+      .split(/(#[\w-]+)(?=\s)/u)
+      .map((part, index) =>
+        index % 2 === 1
           ? ({ text: part, type: 'token' } as const)
           : ({ text: part, type: 'text' } as const),
       )
+      .filter((segment) => segment.text.length > 0)
   }
 }
+
+// A token, as React Aria draws it: the one element inside the editable area
+// the caret cannot enter.
+const TOKEN = '[contenteditable="false"]'
 
 function isFloated(label: HTMLElement) {
   // The length check matters: `[].every()` is vacuously true, so an empty
@@ -42,6 +53,27 @@ function isFloated(label: HTMLElement) {
     floatedClassNames.length > 0 &&
     floatedClassNames.every((name) => label.classList.contains(name))
   )
+}
+
+// The zero-width space React Aria pads either side of a token with, so the
+// caret has somewhere to land beside it.
+const CARET_PADDING = /\u200B/gu
+
+/** The field's text outside its tokens, without the caret's padding. */
+function looseTextIn(box: HTMLElement) {
+  const copy = box.cloneNode(true)
+  if (!(copy instanceof HTMLElement)) {
+    return ''
+  }
+  for (const token of copy.querySelectorAll(TOKEN)) {
+    token.remove()
+  }
+  return copy.textContent.replaceAll(CARET_PADDING, '').trim()
+}
+
+/** The text of each token in the field, in order. */
+function tokensIn(box: HTMLElement) {
+  return [...box.querySelectorAll(TOKEN)].map((token) => token.textContent)
 }
 
 const EMPTY = new TokenFieldValue([])
@@ -62,13 +94,19 @@ const styles = stylex.create({
 })
 
 // A field that actually tokenises as it is typed, since that is the one thing
-// a static story cannot show.
+// a static story cannot show. It starts empty, so there is nothing to delete
+// before typing, and its supporting line says how a tag is finished.
 function Editable() {
-  const [value, setValue] = useState<TokenFieldValue>(
-    () => new TaggedValue([{ text: 'Type a #tag', type: 'text' }]),
-  )
+  const [value, setValue] = useState<TokenFieldValue>(() => new TaggedValue([]))
 
-  return <TokenField label="Tags" onChange={setValue} value={value} />
+  return (
+    <TokenField
+      description="End a #tag with a space"
+      label="Tags"
+      onChange={setValue}
+      value={value}
+    />
+  )
 }
 
 const meta = {
@@ -115,10 +153,34 @@ const Disabled: Story = {
   render: Default.render,
 }
 
-// Type a word beginning with a hash and it becomes a token. The box is the one
-// every other field draws and the pill is the one Chip and ChipGroup draw; what
-// counts as a token is the call site's, through the TaggedValue above.
+// Type a word beginning with a hash, then a space, and it becomes a token. The
+// box is the one every other field draws and the pill is the one Chip and
+// ChipGroup draw; what counts as a token is the call site's, through the
+// TaggedValue above.
+//
+// Its `play` types a tag a key at a time and checks it stays text until a
+// space finishes it, then becomes one pill. A genuine key press, for the
+// reason `Typed` below gives: nothing short of one moves this field's value.
 const Editing: Story = {
+  play: async ({ canvas, step, userEvent }) => {
+    const box = canvas.getByRole('textbox', { name: 'Tags' })
+
+    await step('type a tag, a key at a time', async () => {
+      await userEvent.click(box)
+      await userEvent.keyboard('#alpha')
+    })
+
+    await expect(tokensIn(box)).toEqual([])
+
+    await step('finish it with a space', async () => {
+      await userEvent.keyboard(' ')
+    })
+
+    await waitFor(async () => {
+      await expect(tokensIn(box)).toEqual(['#alpha'])
+    })
+    await expect(looseTextIn(box)).toBe('')
+  },
   render: () => (
     <div {...stylex.props(styles.width)}>
       <Editable />
