@@ -143,8 +143,14 @@ const fieldChromeStyles = stylex.create({
   // That is what grows the box with typing without measuring anything — the
   // replica is the value in the control's own type, wrapped the same way,
   // and never seen.
+  //
+  // The column is `minmax(0, 1fr)` rather than the implicit `auto`, whose
+  // least width is the content's: the replica wraps a word with no space to
+  // break at, but that word's width is still its min-content, so a pasted
+  // URL widened the column, the box and the page with it.
   autosize: {
     display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr)',
   },
   autosizeCell: {
     gridArea: '1 / 1 / 2 / 2',
