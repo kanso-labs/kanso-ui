@@ -10,9 +10,13 @@
 // oxlint-disable react-perf/jsx-no-new-function-as-prop
 // oxlint-disable react-perf/jsx-no-new-object-as-prop
 
+import type { ReactNode } from 'react'
+
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
+import { RouterProvider } from 'react-aria-components'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import NavigationTree from '.'
 import {
@@ -61,6 +65,18 @@ function Basic(props: {
   )
 }
 
+// A button either side of what it holds, so a Tab has somewhere to come from
+// and somewhere to go.
+function Between(props: { children: ReactNode }) {
+  return (
+    <>
+      <button type="button">Before</button>
+      {props.children}
+      <button type="button">After</button>
+    </>
+  )
+}
+
 /**
  * Where the caret's glyph points, as the browser resolved its transform with
  * the tree inside a `<div>` carrying `dir`: the image of the glyph's own
@@ -81,6 +97,13 @@ function caretPointsUnder(dir: 'ltr' | 'rtl', expanded: boolean) {
   const { a, b } = new DOMMatrixReadOnly(getComputedStyle(glyph).transform)
   view.unmount()
   return { x: Math.round(a), y: Math.round(b) }
+}
+
+// Real key presses, then a frame: a row hands focus on to its link a frame
+// after it takes it.
+async function press(keys: string) {
+  await userEvent.keyboard(keys)
+  await new Promise((resolve) => requestAnimationFrame(resolve))
 }
 
 function probe(style: stylex.StyleXStyles) {
@@ -344,6 +367,113 @@ describe('navigation tree', () => {
       expect(caretPointsUnder('rtl', false)).toEqual({ x: -1, y: 0 })
       expect(caretPointsUnder('ltr', true)).toEqual({ x: 0, y: 1 })
       expect(caretPointsUnder('rtl', true)).toEqual({ x: 0, y: 1 })
+    })
+  })
+
+  // React Aria gives a row with an `href` its Tab stop, its `aria-current`
+  // and its press through the link inside it, so a row drawn without one
+  // could be reached by nothing but a pointer. Real key presses rather than
+  // dispatched events: the tree keeps to one Tab stop by handling Tab
+  // itself, and a row hands focus on to its link a frame after taking it.
+  describe('the keyboard', () => {
+    it('takes one Tab stop, on the current row link', async () => {
+      const view = render(
+        <Between>
+          <Basic />
+        </Between>,
+      )
+
+      act(() => {
+        view.getByRole('button', { name: 'Before' }).focus()
+      })
+      await press('{Tab}')
+      expect(document.activeElement).toBe(
+        view.getByRole('link', { name: 'Child item' }),
+      )
+
+      await press('{Tab}')
+      expect(document.activeElement).toBe(
+        view.getByRole('button', { name: 'After' }),
+      )
+    })
+
+    it('names the current row a page to a reader', () => {
+      const view = render(<Basic />)
+      const current = (name: string) =>
+        view.getByRole('link', { name }).getAttribute('aria-current')
+
+      expect(current('Child item')).toBe('page')
+      expect(current('First item')).toBeNull()
+      expect(current('Second item')).toBeNull()
+    })
+
+    it('moves between rows with the up and down arrows', async () => {
+      const view = render(<Basic />)
+
+      act(() => {
+        view.getByRole('link', { name: 'Child item' }).focus()
+      })
+      await press('{ArrowDown}')
+      expect(document.activeElement).toBe(
+        view.getByRole('link', { name: 'Second item' }),
+      )
+
+      await press('{ArrowUp}')
+      await press('{ArrowUp}')
+      expect(document.activeElement).toBe(
+        view.getByRole('link', { name: 'First item' }),
+      )
+    })
+
+    it('closes and opens a row with the start and end arrows', async () => {
+      const onExpandedChange = vi.fn<(keys: Set<unknown>) => void>()
+      const view = render(<Basic onExpandedChange={onExpandedChange} />)
+
+      // Reached by the keys, as a reader would: a row opens and closes only
+      // while it is the one the tree has focused, and a script's `focus()`
+      // moves the browser's focus without telling the tree.
+      act(() => {
+        view.getByRole('link', { name: 'Child item' }).focus()
+      })
+      await press('{ArrowUp}')
+      await press('{ArrowLeft}')
+      expect([...onExpandedChange.mock.calls[0][0]]).toEqual([])
+
+      await press('{ArrowRight}')
+      expect([...onExpandedChange.mock.calls[1][0]]).toEqual(['first'])
+    })
+
+    it('follows the row link on Enter', async () => {
+      const navigate = vi.fn<(path: string) => void>()
+      const view = render(
+        <RouterProvider navigate={navigate}>
+          <Basic />
+        </RouterProvider>,
+      )
+
+      act(() => {
+        view.getByRole('link', { name: 'Child item' }).focus()
+      })
+      await press('{ArrowDown}')
+      await press('{Enter}')
+
+      expect(navigate).toHaveBeenCalledWith('#second', undefined)
+    })
+
+    it('draws the focus ring on the row, not on the link inside it', async () => {
+      const view = render(<Basic />)
+      const second = view.getByRole('link', { name: 'Second item' })
+
+      act(() => {
+        view.getByRole('link', { name: 'Child item' }).focus()
+      })
+      await press('{ArrowDown}')
+
+      expect(document.activeElement).toBe(second)
+      expect(
+        second.closest('[role="row"]')?.getAttribute('data-focus-visible'),
+      ).toBe('true')
+      expect(getComputedStyle(second).outlineStyle).toBe('none')
     })
   })
 
