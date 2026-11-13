@@ -103,6 +103,17 @@ const segmentStyles = stylex.create({
   segmentSeparatorHanging: {
     paddingInlineStart: 0,
   },
+  // A space standing alone between a date and its time, as Japanese writes
+  // 2026/9/5 9:30. The segments either side of it are a day and an hour,
+  // either of which can be a single digit, and with the room a slash takes
+  // the 5 and the 9 sat 21px apart, centre to centre, short of the 24 their
+  // circles need. Twice that room clears them with some to spare for a face
+  // with narrower figures, and sets the time apart from the date as the
+  // space between them does. A comma between the two hangs instead, after a
+  // year wide enough to need none of this.
+  segmentSeparatorJoining: {
+    paddingInline: spacing.sm,
+  },
 })
 
 export { segmentStyles }
