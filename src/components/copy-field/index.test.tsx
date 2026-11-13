@@ -305,6 +305,27 @@ describe('copyField', () => {
     })
   })
 
+  // The mono stack names no font Windows ships ahead of the generic
+  // `monospace`, and under a Japanese or Korean page Chromium resolves that
+  // generic to a face drawing U+005C as a yen or a won sign, so a backslash
+  // showed as one character and copied as another. The value is in English
+  // whatever the page's language, which is what picks a Latin face for it.
+  describe('under a Japanese or Korean page', () => {
+    it.each(['ja-JP', 'ko-KR'])(
+      'marks the value as English under %s',
+      (lang) => {
+        const view = render(
+          <div lang={lang}>
+            <CopyField data-testid="field" value={'npm install \\'} />
+          </div>,
+        )
+        const code = codeIn(view)
+
+        expect(code.closest('[lang]')?.getAttribute('lang')).toBe('en')
+      },
+    )
+  })
+
   describe('copying', () => {
     it('writes the value to the clipboard', async () => {
       const { button } = setup()
