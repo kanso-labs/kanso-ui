@@ -3,7 +3,10 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Breadcrumbs from '.'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
+
+const FORCED_COLORS = 'forced-colors: active'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -130,6 +133,47 @@ describe('breadcrumbs', () => {
       const [chevron] = [...view.container.querySelectorAll('svg')]
 
       expect(chevron.getAttribute('aria-hidden')).toBe('true')
+    })
+
+    // A disabled link fades to the disabled content colour, and the chevron
+    // after it, drawn in the row's muted role, stood out between the faded
+    // labels as though the trail were partly live. It fades with its link,
+    // and keeps the row's colour while the trail is enabled.
+    it('fades with the links of a disabled trail', () => {
+      const view = setup({ isDisabled: true })
+      const [first, second] = view.getAllByRole('link')
+      const [firstChevron, secondChevron] = [
+        ...view.container.querySelectorAll('svg'),
+      ]
+      const faded = getComputedStyle(first).color
+
+      expect(faded).not.toBe(getComputedStyle(view.getByRole('list')).color)
+      expect(getComputedStyle(firstChevron).color).toBe(faded)
+      expect(getComputedStyle(secondChevron).color).toBe(
+        getComputedStyle(second).color,
+      )
+    })
+
+    // An `<svg>` keeps a colour of its own under forced colours, since the
+    // user agent forces its colour only while it inherits one, so the faded
+    // mix would reach the screen in place of the system colour the mode
+    // paints the link in. The chevron inherits that colour there instead.
+    it('takes the link’s system colour under forced colours', () => {
+      const view = setup({ isDisabled: true })
+      const [chevron] = [...view.container.querySelectorAll('svg')]
+
+      expect(declarationsHeld(chevron, FORCED_COLORS).get('color')).toBe(
+        'currentcolor',
+      )
+    })
+
+    it('keeps the row colour while the trail is enabled', () => {
+      const view = setup()
+      const [chevron] = [...view.container.querySelectorAll('svg')]
+
+      expect(getComputedStyle(chevron).color).toBe(
+        getComputedStyle(view.getByRole('list')).color,
+      )
     })
   })
 
