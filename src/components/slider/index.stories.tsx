@@ -29,13 +29,12 @@ const ICON = (
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 const styles = stylex.create({
-  // A slider fills its container, so the samples need a width to fill, and
-  // room above for the value indicator.
+  // A slider fills its container, so the samples need a width to fill. The
+  // room above for the value indicator is the slider's own.
   sample: {
     maxInlineSize: '420px',
-    paddingBlockStart: spacing.xxxl,
   },
-  // The sizes, one under another, each with room above for its value.
+  // The sizes, one under another.
   sizes: {
     display: 'flex',
     flexDirection: 'column',

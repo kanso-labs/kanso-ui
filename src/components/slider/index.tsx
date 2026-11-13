@@ -71,6 +71,15 @@ import {
 // is React Aria's `SliderOutput`, so what it shows is what the slider
 // announces.
 //
+// The indicator is drawn inside the slider, as MDC-Android's `withinBounds`
+// label behaviour draws it, rather than floating over whatever is above. A
+// horizontal slider keeps the indicator's 44dp and its 12dp of clearance
+// above the track, between the label and the track, since the indicator
+// shares that space with the label and would otherwise cover it. Along the
+// track it is centred on the handle until that would carry it past either
+// end, and is then held to the track's length, so at 0 and at 100 it sits
+// over the handle without running off the slider's edge.
+//
 // React Aria's `Slider` is the root, `SliderTrack` the strip the handles are
 // placed along by percent, and `SliderThumb` each handle around a visually
 // hidden range input. The track's parts are drawn here from those percents
@@ -101,6 +110,8 @@ const CLEAR = GAP + HANDLE_WIDTH / 2
 const STOP = 4
 /** MDC-Android's padding either side of the inset icon. */
 const ICON_PADDING = 10
+/** The value indicator's height. */
+const INDICATOR = 44
 
 type SliderSize = 'lg' | 'md' | 'sm' | 'xl' | 'xs'
 
@@ -200,7 +211,7 @@ const styles = stylex.create({
   indicator: {
     alignItems: 'center',
     backgroundColor: colors.inverseSurface,
-    blockSize: '44px',
+    blockSize: `${INDICATOR}px`,
     borderRadius: radii.pill,
     boxSizing: 'border-box',
     color: colors.inverseOnSurface,
@@ -216,12 +227,20 @@ const styles = stylex.create({
     minInlineSize: '48px',
     paddingInline: spacing.md,
     position: 'absolute',
-    // Back by half its own width, to centre it on the handle. The inset that
-    // puts its start edge at the handle's centre is logical and the
-    // translate is physical, so under right-to-left, where that start edge is
-    // the right one, it moves the other way: a single physical translate put
-    // the indicator a whole width to the left of the handle there.
-    transform: { ':dir(rtl)': 'translateX(50%)', default: 'translateX(-50%)' },
+    // Back by half its own width, to centre it on the handle, held between
+    // the track's two ends: no further back than the handle is from the
+    // track's start, `--slider-at` of its length in `cqi`, and no further on
+    // than leaves its far edge at the track's end. The inset that puts its
+    // start edge at the handle's centre is logical and the translate is
+    // physical, so under right-to-left, where that start edge is the right
+    // one, it moves the other way: a single physical translate put the
+    // indicator a whole width to the left of the handle there.
+    transform: {
+      ':dir(rtl)':
+        'translateX(clamp(calc(100% - (1 - var(--slider-at)) * 100cqi), 50%, calc(var(--slider-at) * 100cqi)))',
+      default:
+        'translateX(clamp(calc(var(--slider-at) * -100cqi), -50%, calc((1 - var(--slider-at)) * 100cqi - 100%)))',
+    },
     whiteSpace: 'nowrap',
   },
   indicatorVertical: {
@@ -391,21 +410,30 @@ const styles = stylex.create({
     left: '50%',
   },
   // The strip the handles are placed along: as long across as the handle,
-  // so a press anywhere on it lands on the slider.
+  // so a press anywhere on it lands on the slider. Horizontal, the room
+  // above it is the value indicator's — its height and its clearance above
+  // the handle — so the indicator draws inside the slider rather than over
+  // the label. A container along its length, which is what the indicator
+  // measures the ends it is held between in.
   track: {
     blockSize: 'var(--slider-handle)',
     boxSizing: 'border-box',
+    containerType: 'inline-size',
     cursor: 'pointer',
     inlineSize: '100%',
+    marginBlockStart: `calc(${INDICATOR}px + ${spacing.md})`,
     position: 'relative',
   },
   trackDisabled: {
     cursor: 'not-allowed',
   },
+  // Vertical, the indicator sits beside the handle, so nothing is kept
+  // above the track for it.
   trackVertical: {
     blockSize: '100%',
     flexGrow: 1,
     inlineSize: 'var(--slider-handle)',
+    marginBlockStart: 0,
     minBlockSize: 0,
   },
 })
@@ -414,10 +442,15 @@ const styles = stylex.create({
 // two ends, and where a stop sits inside a part. Dynamic styles, since the
 // percents come from the value at render time and StyleX compiles its
 // classes ahead of time; each writes its insets to custom properties inline.
+// `indicatorAt` is how far along the track a handle is, as a fraction, which
+// is what the value indicator over it is held to the track's ends by.
 const placements = stylex.create({
   block: (start: string, end: string) => ({
     insetBlockEnd: start,
     insetBlockStart: end,
+  }),
+  indicatorAt: (fraction: number) => ({
+    '--slider-at': fraction,
   }),
   inline: (start: string, end: string) => ({
     insetInlineEnd: end,
@@ -691,6 +724,7 @@ function thumbContent(index: number, vertical: boolean) {
       <SliderOutput
         {...stylex.props(
           styles.indicator,
+          placements.indicatorAt(state.state.getThumbPercent(index)),
           vertical && styles.indicatorVertical,
         )}
       >
