@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEventHandler, ReactNode, RefAttributes } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import type {
   FocusableElement,
   Key,
@@ -8,13 +8,11 @@ import type {
   ToggleButtonProps as RACToggleButtonProps,
   SharedElementRenderProps,
   ToggleButtonRenderProps,
-  ToggleGroupState,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
 import {
   createContext,
-  createElement,
   useCallback,
   useContext,
   useEffect,
@@ -36,6 +34,7 @@ import { useToggleGroupDisabled } from '../../hooks/useToggleGroupDisabled'
 import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
+import { radioGroupRenderer, useRadioItem } from '../../toggle-group'
 import {
   colors,
   motion,
@@ -61,15 +60,18 @@ import {
 // React Aria stops at the name, though: its single mode is announced as a
 // radio group and behaves as a toolbar. So that mode takes the rest of the
 // radio group pattern from the ARIA Authoring Practices, a deliberate
-// departure from React Aria's `ToggleButtonGroup`, in two parts. The chosen
+// departure from React Aria's `ToggleButtonGroup` that a single-selecting
+// ButtonGroup shares, through src/toggle-group, in three parts. The chosen
 // segment cannot be pressed off, since a radio group always holds a choice
 // and the page's single-select set always keeps one segment chosen;
-// `disallowEmptySelection={false}` gives React Aria's default back. And the
+// `disallowEmptySelection={false}` gives React Aria's default back. The
 // arrow keys choose as they move, wrapping at either end, with Home and End
-// choosing the first and last segment. Under React Aria the arrows moved
-// focus alone and stopped at the ends, so a screen reader reached each radio
-// without it being checked, and choosing one took a separate Space. Choosing
-// several keeps React Aria's toolbar keys, where the arrows only move between
+// choosing the first and last segment. And the chosen segment is the set's
+// one Tab stop, so Tab lands on the choice. Under React Aria the arrows
+// moved focus alone and stopped at the ends, so a screen reader reached each
+// radio without it being checked, choosing one took a separate Space, and
+// Tab entered on the first segment whichever was chosen. Choosing several
+// keeps React Aria's toolbar keys, where the arrows only move between
 // buttons and Space toggles one.
 //
 // Six things are this component's own.
@@ -218,111 +220,9 @@ interface Crowding {
   report: (key: Key, crowded: boolean) => void
 }
 
-type GroupRender = RACToggleButtonGroupProps['render']
-
 type Ripple = ReturnType<typeof useRipple<FocusableElement>>
 
 type SelectionMode = NonNullable<RACToggleButtonGroupProps['selectionMode']>
-
-// A segment's key, back from the attribute `SegmentedButtonSegment` writes
-// it into. JSON rather than the key as written, so a numeric key comes back
-// a number and matches the one React Aria's selection holds.
-function keyOf(segment: HTMLElement): Key | null {
-  const written = segment.dataset.key
-  if (written === undefined) {
-    return null
-  }
-  const key: unknown = JSON.parse(written)
-  return typeof key === 'string' || typeof key === 'number' ? key : null
-}
-
-// The group's element, with `radioKeys` in place of React Aria's keyboard
-// handler, then handed to the call site's own `render` if it passed one.
-function radioGroupRenderer(render: GroupRender): NonNullable<GroupRender> {
-  return (domProps, renderProps) => {
-    const merged = {
-      ...domProps,
-      onKeyDownCapture: radioKeys(renderProps.state, domProps.onKeyDownCapture),
-    }
-    return render === undefined
-      ? createElement('div', merged)
-      : render(merged, renderProps)
-  }
-}
-
-// The radio group's keys, taken ahead of React Aria's toolbar ones on the
-// same capture listener: the arrows, Home and End move focus to a segment
-// and choose it, wrapping at the ends and passing over a disabled segment,
-// which is what the toolbar's own handler would otherwise do with focus
-// alone. Everything else — Tab, and an arrow held with a modifier the
-// browser may want — is handed to the toolbar as before.
-function radioKeys(
-  state: ToggleGroupState,
-  toolbar: KeyboardEventHandler<HTMLDivElement> | undefined,
-): KeyboardEventHandler<HTMLDivElement> {
-  return (event) => {
-    const group = event.currentTarget
-    const segments = [
-      ...group.querySelectorAll<HTMLElement>('[data-key]:not([data-disabled])'),
-    ].filter((segment) => segment.closest('[role="radiogroup"]') === group)
-    const from = segments.findIndex((segment) => segment === event.target)
-    const step =
-      event.altKey || event.ctrlKey || event.metaKey
-        ? null
-        : stepOf(event.key, getComputedStyle(group).direction === 'rtl')
-    if (from === -1 || step === null) {
-      toolbar?.(event)
-      return
-    }
-
-    event.preventDefault()
-    event.stopPropagation()
-    const to =
-      step === 'first'
-        ? 0
-        : step === 'last'
-          ? segments.length - 1
-          : (from + step + segments.length) % segments.length
-    const segment = segments[to]
-    const key = keyOf(segment)
-    if (key === null) {
-      return
-    }
-    segment.focus()
-    state.setSelected(key, true)
-  }
-}
-
-// Where a key moves the choice in a radio group: one segment on, one back,
-// or to either end. Right and left follow the direction the track is drawn
-// in, read off the track itself rather than the locale, so a `dir` on a
-// wrapper turns them over as it turns the track over; up and down, and Home
-// and End, follow the document order whatever the direction.
-function stepOf(key: string, rtl: boolean): -1 | 1 | 'first' | 'last' | null {
-  switch (key) {
-    case 'ArrowDown': {
-      return 1
-    }
-    case 'ArrowLeft': {
-      return rtl ? 1 : -1
-    }
-    case 'ArrowRight': {
-      return rtl ? -1 : 1
-    }
-    case 'ArrowUp': {
-      return -1
-    }
-    case 'End': {
-      return 'last'
-    }
-    case 'Home': {
-      return 'first'
-    }
-    default: {
-      return null
-    }
-  }
-}
 
 // The page's 18dp icon slot, and the room a segment keeps for it: the slot
 // plus the gap between it and the label. Half of that room sits on each side
@@ -944,8 +844,9 @@ function segmentContent(
  * `ToggleButtonGroup` does not. The chosen segment stays chosen when it is
  * pressed again, unless `disallowEmptySelection` is `false`. The arrow keys
  * move to a segment and choose it, wrapping at either end, and Home and End
- * choose the first and last. Choosing several keeps React Aria's keys: the
- * arrows move between segments, and Space or Enter toggles the focused one.
+ * choose the first and last. Tab lands on the chosen segment, the set's one
+ * Tab stop. Choosing several keeps React Aria's keys: the arrows move
+ * between segments, and Space or Enter toggles the focused one.
  *
  * The call site's `className` and `style` land on the track, which is the
  * element a layout positions.
@@ -1052,6 +953,7 @@ function SegmentedButtonSegment({
   // its segments through React Aria's group state rather than their props,
   // so the group is read as well.
   const disabledByGroup = useToggleGroupDisabled(props.id)
+  const radio = useRadioItem(props.id)
   // The call site's pointer handlers go through the ripple, which calls
   // them after its own. Spread beside the ripple's, one of the two sets
   // would write over the other.
@@ -1069,11 +971,9 @@ function SegmentedButtonSegment({
 
   return (
     <RACToggleButton
-      // The key the radio group's arrow keys choose this segment by; see
-      // `radioKeys`. React Aria keeps a segment's key off its element.
-      data-key={
-        selectionMode === 'single' ? JSON.stringify(props.id) : undefined
-      }
+      // The radio group's key and Tab stop while one segment is chosen; see
+      // src/toggle-group.
+      {...radio}
       render={toggleButtonRenderer(element, render)}
       {...ripple.handlers}
       {...props}

@@ -261,9 +261,10 @@ export function Button(input: ButtonProps & RefAttributes<HTMLAnchorElement | HT
 export function ButtonGroup(input: ButtonGroupProps): JSX;
 
 // @public (undocumented)
-export type ButtonGroupProps = Omit<ToggleButtonGroupProps, 'children' | 'className' | 'selectionMode' | 'style'> & RefAttributes<HTMLDivElement> & {
+export type ButtonGroupProps = Omit<ToggleButtonGroupProps, 'children' | 'className' | 'disallowEmptySelection' | 'selectionMode' | 'style'> & RefAttributes<HTMLDivElement> & {
     children?: ReactNode;
     className?: string;
+    disallowEmptySelection?: boolean;
     selectionMode?: ToggleButtonGroupProps['selectionMode'];
     shape?: ButtonShape;
     size?: ButtonSize;

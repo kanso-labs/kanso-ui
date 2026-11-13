@@ -17,6 +17,7 @@ import type { ButtonShape, ButtonSize } from '../button'
 
 import { ButtonGroupItemContext } from '../../button/context'
 import { mergeStyles } from '../../styles/merge'
+import { radioGroupRenderer } from '../../toggle-group'
 import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 
 // The button groups page's two groups, around Buttons and IconButtons placed
@@ -48,6 +49,15 @@ import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
 // makes every button in it a toggle and reports the selection by the
 // buttons' `id`s: a radio group for `single`, a toolbar for `multiple`.
 // Without it the group is React Aria's plain `Group`.
+//
+// React Aria announces `single` as a radio group and behaves as a toolbar,
+// so that mode takes the rest of the radio group pattern from
+// src/toggle-group, as SegmentedButton does. The checked button cannot be
+// pressed off, unless `disallowEmptySelection` is `false`; it is the group's
+// one Tab stop, so Tab lands on the choice; and the arrow keys move the
+// choice as they move focus, wrapping at either end, with Home and End
+// choosing the first and last button. `multiple` keeps React Aria's toolbar
+// keys, where the arrows only move between buttons and Space toggles one.
 
 // The press interaction's share, from Material Design's own button group.
 const EXPANDED_RATIO = 0.15
@@ -126,13 +136,26 @@ const INNER_PRESSED = {
 
 type ButtonGroupProps = Omit<
   RACToggleButtonGroupProps,
-  'children' | 'className' | 'selectionMode' | 'style'
+  | 'children'
+  | 'className'
+  | 'disallowEmptySelection'
+  | 'selectionMode'
+  | 'style'
 > &
   RefAttributes<HTMLDivElement> & {
     /** The buttons: Buttons and IconButtons, each with an `id` in a group that selects. */
     children?: ReactNode
     /** The class for the group's own element. */
     className?: string
+    /**
+     * Whether the checked button stays checked when it is pressed again. On
+     * by default while the group selects one, since a radio group always
+     * holds a choice; `false` lets a press clear it, as React Aria's own
+     * default does. Off by default while it selects several, where any of
+     * them can be turned off.
+     * @default true while the group selects one, false while it selects several
+     */
+    disallowEmptySelection?: boolean
     /**
      * Makes the group select, as React Aria's `ToggleButtonGroup`: `single`
      * for one at a time, `multiple` for any number. Left out, the group's
@@ -168,7 +191,11 @@ type Press = { delta: number; index: number }
 /**
  * A row of Buttons and IconButtons drawn as the button groups page's
  * standard or connected group. Given `selectionMode`, its buttons are
- * toggles whose selection the group keeps, by their `id`s.
+ * toggles whose selection the group keeps, by their `id`s. Selecting one at
+ * a time behaves as a radio group, which React Aria's `ToggleButtonGroup`
+ * does not: the checked button stays checked when pressed again, Tab lands
+ * on it, and the arrow keys check the button they move to, wrapping at
+ * either end.
  *
  * ```tsx
  * <ButtonGroup aria-label="Label" selectionMode="single" variant="connected">
@@ -181,6 +208,7 @@ type Press = { delta: number; index: number }
 function ButtonGroup({
   children,
   className,
+  disallowEmptySelection,
   ref,
   selectionMode,
   shape = 'round',
@@ -222,11 +250,14 @@ function ButtonGroup({
   ))
 
   if (selectionMode !== undefined) {
+    const single = selectionMode === 'single'
     return (
       <RACToggleButtonGroup
         ref={ref}
         selectionMode={selectionMode}
         {...props}
+        disallowEmptySelection={disallowEmptySelection ?? single}
+        render={single ? radioGroupRenderer(props.render) : props.render}
         {...groupProps}
       >
         {content}

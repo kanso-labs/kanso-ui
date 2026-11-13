@@ -25,6 +25,7 @@ import {
   toggleButtonRenderer,
 } from '../render/aria'
 import { mergeStatefulStyles } from '../styles/merge'
+import { useRadioItem } from '../toggle-group'
 import { useButtonBase } from './hooks'
 import { buttonBaseStyles } from './styles'
 
@@ -361,9 +362,13 @@ function ToggleButtonBase({
     disabledByGroup ? { ...input, isDisabled: true } : input,
     isPending,
   )
+  // A ButtonGroup choosing one button at a time is a radio group, and this
+  // is each button's part in it; see src/toggle-group.
+  const radio = useRadioItem(input.id)
 
   return (
     <RACToggleButton
+      {...radio}
       defaultSelected={defaultSelected}
       isDisabled={disabled}
       isSelected={isSelected}

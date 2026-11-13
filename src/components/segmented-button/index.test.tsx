@@ -4,6 +4,7 @@ import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import SegmentedButton from '.'
 import { firePointer } from '../../hooks/useRipple.testing'
@@ -592,9 +593,44 @@ describe('segmented button', () => {
       expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
     })
 
-    // Focus can sit on a segment that is not the chosen one — Tab lands on
-    // the first — and Home there is a move of no distance that still has to
-    // choose.
+    // A real Tab, through the browser: which segment it lands on is the
+    // browser's decision, made from the Tab order the set leaves it.
+    it('takes one Tab stop, on the chosen segment', async () => {
+      const view = render(
+        <>
+          <button type="button">Before</button>
+          <SegmentedButton aria-label="Label" defaultSelectedKeys={SECOND}>
+            <SegmentedButton.Segment id="first">
+              First item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="second">
+              Second item
+            </SegmentedButton.Segment>
+            <SegmentedButton.Segment id="third">
+              Third item
+            </SegmentedButton.Segment>
+          </SegmentedButton>
+          <button type="button">After</button>
+        </>,
+      )
+
+      act(() => {
+        view.getByRole('button', { name: 'Before' }).focus()
+      })
+      await userEvent.keyboard('{Tab}')
+      expect(document.activeElement).toBe(
+        view.getByRole('radio', { name: 'Second item' }),
+      )
+
+      await userEvent.keyboard('{Tab}')
+      expect(document.activeElement).toBe(
+        view.getByRole('button', { name: 'After' }),
+      )
+    })
+
+    // Focus can still be put on a segment that is not the chosen one, by a
+    // call site or a pointer, and Home there is a move of no distance that
+    // still has to choose.
     it('chooses the focused segment when a key leaves focus where it is', () => {
       const view = setup({ defaultSelectedKeys: SECOND })
       const [first] = view.getAllByRole('radio')
