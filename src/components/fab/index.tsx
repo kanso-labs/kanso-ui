@@ -18,6 +18,7 @@ import {
   fabStyles,
   fabTones,
 } from '../../fab/styles'
+import { useClippedTitle } from '../../hooks/useClippedTitle'
 import { focus } from '../../styles/focus'
 
 // The FAB page's floating action button, and the extended FAB page's form of
@@ -33,6 +34,12 @@ import { focus } from '../../styles/focus'
 // the 26dp and 28dp paddings fall between steps of their scales and are
 // written out. The pages' small FAB is gone from the newer set, so there is
 // no `xs`.
+//
+// The label stays on one line, as the pages draw it. One wider than the box
+// the FAB is placed in is cut short with an ellipsis rather than wrapped onto
+// lines the fixed height has no room for, and the FAB keeps inside that box.
+// Its full text stays the button's name, and shows in the browser's tooltip
+// on hover once it is cut short — see `useClippedTitle`.
 //
 // Six colour pairs, by `tone` and `variant`: `tonal` draws the tone's
 // container pair — primary container is the pages' default — and `filled`
@@ -74,7 +81,9 @@ type FabProps = {
   href?: string
   /**
    * A label after the icon, which makes this the extended FAB: as tall as
-   * the size, as wide as what it holds.
+   * the size, as wide as what it holds. Kept to one line, it ends in an
+   * ellipsis when the FAB's container is narrower than it, and shows its
+   * full text in a tooltip on hover.
    */
   label?: ReactNode
   /** The link's `rel`, when `href` is set. */
@@ -127,6 +136,8 @@ function Fab({
   variant = 'tonal',
   ...props
 }: FabProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>) {
+  const clipped = useClippedTitle(label)
+
   return (
     <ButtonBase
       {...props}
@@ -137,7 +148,11 @@ function Fab({
           {children}
         </span>
       )}
-      {label}
+      {label === undefined ? null : (
+        <span {...clipped} {...stylex.props(fabStyles.label)}>
+          {label}
+        </span>
+      )}
     </ButtonBase>
   )
 }
@@ -158,6 +173,7 @@ function fabClasses(
       focus.ring,
       fabTones[variant][tone],
       isExtended ? extendedFabSizes[size] : fabSizes[size],
+      isExtended && fabStyles.extended,
       state.isHovered && fabStyles.hovered,
       state.isFocusVisible && fabStyles.focused,
       state.isPressed && fabStyles.pressed,

@@ -26,6 +26,8 @@ const probeStyles = stylex.create({
   large: { borderRadius: radii.lg },
   liftFour: { boxShadow: shadows.elevation4 },
   liftThree: { boxShadow: shadows.elevation3 },
+  // A container narrower than the long label below, as a phone's column is.
+  narrow: { inlineSize: '200px' },
   primaryContainer: {
     backgroundColor: colors.primaryContainer,
     color: colors.onPrimaryContainer,
@@ -63,6 +65,14 @@ function focusByKeyboard(element: HTMLElement) {
   act(() => {
     element.focus()
   })
+}
+
+// The boxes of the lines a label's text is laid out on, one per line: a
+// flex item reports a single box of its own however many lines it holds.
+function lineBoxes(element: HTMLElement) {
+  const range = document.createRange()
+  range.selectNodeContents(element)
+  return range.getClientRects()
 }
 
 // What a probe style resolves to in the page, with the probe torn down again.
@@ -193,6 +203,74 @@ describe('FAB', () => {
       const label = textBox(view.getByText('Label'))
 
       expect(icon.left).toBeGreaterThan(label.right)
+    })
+  })
+
+  // A label wider than the FAB's container wrapped onto lines the FAB's
+  // fixed height had no room for. It stays on one line, cut short with an
+  // ellipsis, and its full text stays reachable.
+  describe('a long label', () => {
+    const LONG = 'A label long enough to be cut short in a narrow column'
+
+    function renderNarrow() {
+      return render(
+        <div {...stylex.props(probeStyles.narrow)}>
+          <Fab label={LONG}>{ICON}</Fab>
+        </div>,
+      )
+    }
+
+    it('stays on one line, inside its container, ending in an ellipsis', () => {
+      const view = renderNarrow()
+      const button = view.getByRole('button')
+      const label = view.getByText(LONG)
+      const computed = getComputedStyle(label)
+      const lines = new Set(
+        [...lineBoxes(label)].map((rect) => Math.round(rect.top)),
+      )
+
+      expect(label).not.toBe(button)
+      expect(lines.size).toBe(1)
+      expect(button.getBoundingClientRect().width).toBeLessThanOrEqual(200)
+      expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+      expect([computed.whiteSpace, computed.textOverflow]).toEqual([
+        'nowrap',
+        'ellipsis',
+      ])
+    })
+
+    // Clipped across and never down, so a reader's wider text spacing
+    // keeps the bottom of the line, as Navigation's labels do.
+    it('clips across and never down', () => {
+      const computed = getComputedStyle(renderNarrow().getByText(LONG))
+
+      expect([computed.overflowX, computed.overflowY]).toEqual([
+        'clip',
+        'visible',
+      ])
+    })
+
+    it('keeps the whole label as its name', () => {
+      expect(
+        renderNarrow().getByRole('button', { name: LONG }),
+      ).toBeInTheDocument()
+    })
+
+    it('shows the whole label in a tooltip once it is cut short', () => {
+      const label = renderNarrow().getByText(LONG)
+
+      fireEvent.pointerOver(label)
+
+      expect(label).toHaveAttribute('title', LONG)
+    })
+
+    it('leaves a label that fits untitled', () => {
+      const view = render(<Fab label="Label">{ICON}</Fab>)
+      const label = view.getByText('Label')
+
+      fireEvent.pointerOver(label)
+
+      expect(label).not.toHaveAttribute('title')
     })
   })
 
