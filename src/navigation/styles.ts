@@ -46,7 +46,9 @@ import {
 //
 // Under forced colours the mode paints the secondary container over in its
 // background, which left the current destination looking like every other.
-// The pill takes a 2px border in `Highlight` there, which the mode keeps.
+// The pill takes a 2px border in `Highlight` there, which the mode keeps,
+// and a focused destination's ring doubles its weight, so the two marks
+// differ in shape and not in colour alone — see `ringWeight`.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -131,6 +133,18 @@ const navigationItemStyles = stylex.create({
     borderRadius: radii.pill,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
+  },
+  // The focus ring's weight, applied after whichever ring a form draws.
+  // Under forced colours the current destination is marked by a 2px border
+  // in `Highlight`, and a 2px ring around the pill beside it read as the
+  // same mark in another colour: `Highlight` and the `LinkText` the mode
+  // draws a link's ring in are all but alike under High Contrast White. The
+  // ring is twice as heavy there, so the two differ in shape as well, and a
+  // focused current destination shows both, the border inside the ring.
+  // Everywhere else it is the 2px every ring here draws, spelled again
+  // because StyleX replaces a property whole.
+  ringWeight: {
+    outlineWidth: { default: '2px', [FORCED_COLORS]: '4px' },
   },
 })
 

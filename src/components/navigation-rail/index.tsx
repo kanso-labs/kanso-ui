@@ -34,12 +34,18 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // The rail is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // How far a destination's focus ring reaches past it: the 2dp offset and
-// the 2dp ring. The destinations scroll, and a scroll container clips what
-// overflows it, so the block they scroll in is padded by this much and
-// pulled back out by as much, which leaves every destination where it was
-// and every ring whole.
-const RING_REACH = '4px'
+// the 2dp ring, and 2dp more under forced colours, where the ring is twice
+// as heavy — see `ringWeight` in src/navigation/styles.ts. The destinations
+// scroll, and a scroll container clips what overflows it, so the block they
+// scroll in is padded by this much and pulled back out by as much, which
+// leaves every destination where it was and every ring whole.
+const RING_REACH = { default: '4px', [FORCED_COLORS]: '6px' }
+const RING_PULL = { default: '-4px', [FORCED_COLORS]: '-6px' }
 
 const styles = stylex.create({
   collapsed: {
@@ -59,8 +65,8 @@ const styles = stylex.create({
     flexDirection: 'column',
     flexGrow: 1,
     flexShrink: 1,
-    marginBlock: `calc(-1 * ${RING_REACH})`,
-    marginInline: `calc(-1 * ${RING_REACH})`,
+    marginBlock: RING_PULL,
+    marginInline: RING_PULL,
     minBlockSize: 0,
     overflowY: 'auto',
     paddingBlock: RING_REACH,

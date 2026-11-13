@@ -74,12 +74,26 @@ const FORMS = {
 // indicator in a vertical destination, the whole destination in a horizontal
 // one. The rail's two forms take the library's shared ring. The bar's pill
 // moves from one element to the other at the medium breakpoint, so its rings
-// are its own, each giving way at the width the other takes over.
+// are its own, each giving way at the width the other takes over. Each ring
+// takes `ringWeight` after it, which is what tells it from the current
+// destination's border under forced colours.
 const RINGS = {
-  bar: { indicator: barItemStyles.indicatorRing, item: barItemStyles.itemRing },
-  barCramped: { indicator: focus.ringVisible, item: null },
-  collapsed: { indicator: focus.ringVisible, item: null },
-  expanded: { indicator: null, item: focus.ringVisible },
+  bar: {
+    indicator: [barItemStyles.indicatorRing, navigationItemStyles.ringWeight],
+    item: [barItemStyles.itemRing, navigationItemStyles.ringWeight],
+  },
+  barCramped: {
+    indicator: [focus.ringVisible, navigationItemStyles.ringWeight],
+    item: null,
+  },
+  collapsed: {
+    indicator: [focus.ringVisible, navigationItemStyles.ringWeight],
+    item: null,
+  },
+  expanded: {
+    indicator: null,
+    item: [focus.ringVisible, navigationItemStyles.ringWeight],
+  },
 }
 
 // The ids a destination naming its badge gives its label and the badge's
