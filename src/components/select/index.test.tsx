@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Select from '.'
@@ -437,6 +437,47 @@ describe('select', () => {
       expect(option.matches(':focus-visible')).toBe(true)
       expect(option).not.toHaveAttribute('data-focus-visible')
       expect(getComputedStyle(option).outlineStyle).toBe('none')
+    })
+
+    // The value's line is one line tall, so a chosen value too long for it
+    // ends in an ellipsis before the chevron. React Aria draws the option's
+    // own row there, so the text sits in the row's headline, several
+    // elements inside the chrome's value — and an ellipsis on the chrome
+    // never reached it, leaving the text cut off flat through a letter.
+    it('cuts a long chosen value short with an ellipsis', () => {
+      const LONG =
+        'First item, with a headline long enough to run past the end of the box'
+      const view = setup({
+        defaultValue: 'long',
+        options: <ListBox.Item id="long">{LONG}</ListBox.Item>,
+      })
+      const value = valueOf(view)
+      const text = within(value).getByText(LONG)
+
+      expect(getComputedStyle(text).textOverflow).toBe('ellipsis')
+      expect(getComputedStyle(text).overflowX).toBe('hidden')
+      expect(getComputedStyle(text).whiteSpace).toBe('nowrap')
+      // Narrowed to the value's line rather than running past it, which is
+      // what leaves the ellipsis something to cut.
+      expect(text.scrollWidth).toBeGreaterThan(text.clientWidth)
+      expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+        value.getBoundingClientRect().right,
+      )
+    })
+
+    // A placeholder is drawn on the same line, as React Aria's own text.
+    it('cuts a long placeholder short with an ellipsis', () => {
+      const LONG =
+        'A placeholder long enough to run past the box and into the chevron'
+      const view = setup({ floatingLabel: false, placeholder: LONG })
+      const text = within(valueOf(view)).getByText(LONG)
+
+      expect(getComputedStyle(text).textOverflow).toBe('ellipsis')
+      expect(getComputedStyle(text).overflowX).toBe('hidden')
+      expect(text.scrollWidth).toBeGreaterThan(text.clientWidth)
+      expect(text.getBoundingClientRect().right).toBeLessThanOrEqual(
+        valueOf(view).getBoundingClientRect().right,
+      )
     })
 
     // With no floating label there is nothing for the placeholder to hide
