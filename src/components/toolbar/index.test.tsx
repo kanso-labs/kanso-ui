@@ -21,9 +21,11 @@ const probeStyles = stylex.create({
   vibrant: { backgroundColor: colors.primaryContainer },
 })
 
-// A width for the rule inside an overlay to run across: a popover is as wide
-// as what it holds, and a rule alone holds nothing.
 const testStyles = stylex.create({
+  // Narrower than the row of controls `narrow()` puts in the bar.
+  narrow: { inlineSize: '240px' },
+  // A width for the rule inside an overlay to run across: a popover is as
+  // wide as what it holds, and a rule alone holds nothing.
   span: { inlineSize: '200px' },
 })
 
@@ -94,6 +96,22 @@ const OVERLAYS = [
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+// Three icon buttons, a rule and a text button, in a parent 240px wide: the
+// row needs about 250px at its own widths.
+function narrow() {
+  return render(
+    <div {...stylex.props(testStyles.narrow)}>
+      <Toolbar aria-label="Label">
+        <IconButton aria-label="First item">{null}</IconButton>
+        <IconButton aria-label="Second item">{null}</IconButton>
+        <IconButton aria-label="Third item">{null}</IconButton>
+        <Separator />
+        <Button variant="tonal">Label</Button>
+      </Toolbar>
+    </div>,
+  )
 }
 
 function setup(
@@ -286,8 +304,46 @@ describe('toolbar', () => {
     it('is as wide as what it holds', () => {
       const view = setup()
       expect(getComputedStyle(view.getByRole('toolbar')).display).toBe(
-        'inline-flex',
+        'inline-grid',
       )
+    })
+  })
+
+  // A Button wraps its label rather than overflow a container narrower than
+  // it, and as a flex item that let the bar squeeze it until the label broke
+  // after every letter. The bar keeps every control at its own width and
+  // scrolls, inside what holds it, once they no longer fit.
+  describe('narrower than its controls', () => {
+    it('keeps a button label on one line', () => {
+      const view = narrow()
+      const button = view.getByRole('button', { name: 'Label' })
+
+      // The button's 40dp container, which a second line of label grows.
+      expect(button.getBoundingClientRect().height).toBe(40)
+      expect(view.getByRole('toolbar').getBoundingClientRect().height).toBe(64)
+    })
+
+    it('scrolls inside what holds it rather than overflow it', () => {
+      const view = narrow()
+      const toolbar = view.getByRole('toolbar')
+
+      expect(toolbar.getBoundingClientRect().width).toBe(240)
+      expect(toolbar.scrollWidth).toBeGreaterThan(toolbar.clientWidth)
+    })
+
+    // Centring a row wider than the bar pushed part of it past the start
+    // edge, where no scroll reaches: the first control starts after the
+    // bar's own padding, unscrolled.
+    it('starts the row at the bar’s start edge', () => {
+      const view = narrow()
+      const toolbar = view.getByRole('toolbar')
+      const [first] = view.getAllByRole('button')
+
+      expect(toolbar.scrollLeft).toBe(0)
+      expect(
+        first.getBoundingClientRect().left -
+          toolbar.getBoundingClientRect().left,
+      ).toBe(16)
     })
   })
 })
