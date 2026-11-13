@@ -3,14 +3,17 @@
 import type { CalendarDate } from '@internationalized/date'
 import type { ReactElement, RefAttributes } from 'react'
 import type {
+  CalendarCellRenderProps,
   DateValue,
   RangeCalendarProps as RACRangeCalendarProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import {
   CalendarCell as RACCalendarCell,
   RangeCalendar as RACRangeCalendar,
+  RangeCalendarStateContext,
 } from 'react-aria-components'
 
 import { CalendarFrame, CalendarMonths } from '../../calendar'
@@ -69,54 +72,83 @@ type RangeCalendarProps<T extends DateValue = DateValue> = {
 // the band; the two ends then take the circle over it, and round the outer
 // edge the band does not continue past. The hover and pressed layers come
 // next, each written for the ground under it — the circle, the band, or
-// nothing — a press over a hover. `unavailable` comes after those, so a
-// ruled-out day inside a range keeps the band and takes the strikethrough
-// over it. `disabled` is last of all, and StyleX replaces a property whole,
-// so it takes the branches above it with it.
-function cellClassName(state: {
-  isDisabled: boolean
-  isHovered: boolean
-  isPressed: boolean
-  isSelected: boolean
-  isSelectionEnd: boolean
-  isSelectionStart: boolean
-  isToday: boolean
-  isUnavailable: boolean
-}) {
+// nothing — a press over a hover. `unavailable` comes after those and takes
+// the layers away, since a ruled-out day is not one a press picks; inside a
+// range it keeps the band and takes the strikethrough over it. `disabled` is
+// last of all, and StyleX replaces a property whole, so it takes the branches
+// above it with it.
+//
+// The band is `isInRange`, not React Aria's `isSelected`: React Aria leaves a
+// ruled-out day out of the dates it selects, even between the two ends, so a
+// band drawn from `isSelected` alone stopped square either side of it and the
+// range read as two blocks with a hole between them.
+function cellClassName(state: CalendarCellRenderProps, isInRange: boolean) {
   const isEnd =
     state.isSelected && (state.isSelectionStart || state.isSelectionEnd)
+  const isBand = state.isSelected || (isInRange && !state.isDisabled)
+  const isLayered = !state.isUnavailable
 
   return (
     stylex.props(
       calendarStyles.cell,
       focus.ring,
       state.isToday && calendarStyles.cellToday,
-      state.isSelected && calendarStyles.cellInRange,
+      isBand && calendarStyles.cellInRange,
       state.isSelected &&
         state.isSelectionStart &&
         calendarStyles.cellRangeStart,
       state.isSelected && state.isSelectionEnd && calendarStyles.cellRangeEnd,
       isEnd && calendarStyles.cellSelected,
-      state.isHovered &&
+      isLayered &&
+        state.isHovered &&
         (isEnd
           ? dateLayers.selectedHovered
-          : state.isSelected
+          : isBand
             ? dateLayers.inRangeHovered
             : dateLayers.plainHovered),
-      state.isPressed &&
+      isLayered &&
+        state.isPressed &&
         (isEnd
           ? dateLayers.selectedPressed
-          : state.isSelected
+          : isBand
             ? dateLayers.inRangePressed
             : dateLayers.plainPressed),
-      state.isUnavailable && calendarStyles.cellUnavailable,
+      state.isUnavailable &&
+        (isBand
+          ? calendarStyles.cellUnavailableInRange
+          : calendarStyles.cellUnavailable),
       state.isDisabled && calendarStyles.cellDisabled,
     ).className ?? ''
   )
 }
 
+// A date's classes, bound once per date. Built by a call rather than written
+// inline at the prop, which is what react-perf's no-new-function-as-prop is
+// after.
+function cellClassNameIn(isInRange: boolean) {
+  return (state: CalendarCellRenderProps) => cellClassName(state, isInRange)
+}
+
+/**
+ * One date. React Aria's cell, with whether the date lies inside the range
+ * read from React Aria's range state: between the two ends of the value, or
+ * of the range being picked while one end is down, which is the same range
+ * React Aria draws `isSelected` from. The classes leave a disabled date out
+ * of the band, so a date of a neighbouring month or outside the bounds draws
+ * none.
+ */
+function DateCell({ date }: { date: CalendarDate }): ReactElement {
+  const highlighted = useContext(RangeCalendarStateContext)?.highlightedRange
+  const isInRange =
+    highlighted != null &&
+    date.compare(highlighted.start) >= 0 &&
+    date.compare(highlighted.end) <= 0
+
+  return <RACCalendarCell className={cellClassNameIn(isInRange)} date={date} />
+}
+
 function gridCell(date: CalendarDate): ReactElement {
-  return <RACCalendarCell className={cellClassName} date={date} />
+  return <DateCell date={date} />
 }
 
 /**
