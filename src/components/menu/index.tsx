@@ -360,6 +360,12 @@ function emptyState() {
 // the label stays where it was, so choosing an item moves nothing in the
 // menu. Hidden from the tree, since React Aria's `aria-checked` already says
 // the item is chosen.
+//
+// At the end of the row, an item that is not chosen keeps the check's 24dp
+// empty in its place, in a menu that selects at all. The check comes after a
+// shortcut, so drawn on the chosen item alone it pushed that item's keycap
+// in from the others', and the shortcuts stopped forming a column. A menu
+// that selects nothing has no check to make room for, and keeps none.
 function itemContent(
   children: ReactNode,
   leading: ReactNode,
@@ -368,10 +374,12 @@ function itemContent(
   ripple: ReactNode,
 ) {
   return (state: MenuItemRenderProps) => {
+    const hasLeading = leading !== undefined && leading !== null
     const check = state.isSelected ? (
       <CheckGlyph {...stylex.props(styles.check)} />
-    ) : undefined
-    const hasLeading = leading !== undefined && leading !== null
+    ) : hasLeading || state.selectionMode === 'none' ? undefined : (
+      <span aria-hidden {...stylex.props(styles.check)} />
+    )
 
     return (
       <>
