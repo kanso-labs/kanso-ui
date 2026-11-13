@@ -120,6 +120,7 @@ describe("the library's own words", () => {
           'nextSlide',
           'noResults',
           'previousSlide',
+          'selectDate',
           'selectTime',
           'slide',
         ] as const) {

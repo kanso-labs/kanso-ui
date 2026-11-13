@@ -7,14 +7,20 @@ import type {
   DatePickerProps as RACDatePickerProps,
 } from 'react-aria-components'
 
+import { toCalendarDate } from '@internationalized/date'
 import * as stylex from '@stylexjs/stylex'
+import { useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { useDateFormatter } from 'react-aria'
 import {
+  CalendarContext,
+  DatePickerStateContext,
   Button as RACButton,
   DateInput as RACDateInput,
   DatePicker as RACDatePicker,
   Dialog as RACDialog,
   Group as RACGroup,
   Popover as RACPopover,
+  useSlottedContext,
 } from 'react-aria-components'
 
 import type { FieldVariant } from '../../field'
@@ -26,6 +32,7 @@ import {
   useFieldValidationBehavior,
 } from '../../field/root'
 import { CalendarGlyph } from '../../glyphs'
+import { useMessages } from '../../i18n'
 import { renderSegment } from '../../segments'
 import { segmentStyles } from '../../segments/styles'
 import { focus } from '../../styles/focus'
@@ -36,6 +43,13 @@ import {
   picker,
   triggerClassName,
 } from '../../styles/picker'
+import {
+  colors,
+  media,
+  spacing,
+  typography,
+} from '../../tokens/design.tokens.stylex'
+import Button from '../button'
 import Calendar from '../calendar'
 
 // The date pickers page's picker: the date field a date is typed into, with
@@ -59,13 +73,92 @@ import Calendar from '../calendar'
 // stayed centred on a desktop would cover a form for no reason. `Sheet`
 // settles its own swap the same way, and doing it twice in two different
 // ways is how the two would drift. The styles are in `src/styles/picker.ts`.
+//
+// **The modal is the page's modal picker, not the docked calendar centred.**
+// Below the breakpoint the calendar opens under the modal's header — the
+// `Select date` supporting text in label-large over the date held in
+// headline-large, both on surface variant, in a 120dp header padded 24dp at
+// its start, 12dp at its end, 16dp above and 12dp below, with an outline
+// variant divider under it — and over the Cancel and OK text buttons at the
+// actions' end. A date picked there is a draft: it moves the headline and
+// the selection and nothing else, OK writes it into the field, and Cancel,
+// Escape or a press on the scrim close the modal with the field as it was.
+// Docked, the header and the actions are not drawn and a pick is the answer.
+//
+// The header and the actions are hidden above the breakpoint by the same
+// media query that moves the surface, and a pick asks whether the actions
+// are on screen to know which of the two it was made in. That keeps the
+// breakpoint in the stylesheet alone, rather than spelled again for
+// `matchMedia`, so what is drawn and what a pick does cannot disagree about
+// which picker is showing.
+//
+// Two departures from the page's modal. It draws no button switching the
+// modal to a text input, since the field under the scrim is that input. And
+// with nothing yet picked the headline is left empty rather than holding
+// words of its own, the header keeping its height.
+
+// The page's height for the modal picker's header.
+const HEADER_BLOCK_SIZE = '120px'
+
+const styles = stylex.create({
+  // Cancel and OK at the actions' end, 8dp apart, with the calendar's own
+  // inline padding after them and 8dp under them.
+  actions: {
+    boxSizing: 'border-box',
+    display: { default: 'none', [media.belowMedium]: 'flex' },
+    gap: spacing.sm,
+    justifyContent: 'flex-end',
+    paddingBlockEnd: spacing.sm,
+    paddingInlineEnd: spacing.md,
+  },
+  header: {
+    blockSize: HEADER_BLOCK_SIZE,
+    borderBlockEndColor: colors.outlineVariant,
+    borderBlockEndStyle: 'solid',
+    borderBlockEndWidth: '1px',
+    boxSizing: 'border-box',
+    color: colors.onSurfaceVariant,
+    display: { default: 'none', [media.belowMedium]: 'flex' },
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingBlockEnd: spacing.md,
+    paddingBlockStart: spacing.lg,
+    paddingInlineEnd: spacing.md,
+    paddingInlineStart: spacing.xl,
+  },
+  headline: {
+    fontFamily: typography.headlineLargeFont,
+    fontSize: typography.headlineLargeSize,
+    fontWeight: typography.headlineLargeWeight,
+    letterSpacing: typography.headlineLargeTracking,
+    lineHeight: typography.headlineLargeLineHeight,
+    minBlockSize: typography.headlineLargeLineHeight,
+  },
+  supportingText: {
+    fontFamily: typography.labelLargeFont,
+    fontSize: typography.labelLargeSize,
+    fontWeight: typography.labelLargeWeight,
+    letterSpacing: typography.labelLargeTracking,
+    lineHeight: typography.labelLargeLineHeight,
+  },
+})
 
 type DatePickerProps<T extends DateValue = DateValue> = Omit<
   RACDatePickerProps<T>,
   'children' | 'className' | 'style'
 > & {
+  /**
+   * What the modal's dismissing action says. Left out, it is the word for
+   * it in the I18nProvider's locale — "Cancel" in English.
+   */
+  cancelLabel?: string
   /** A function may compute the class from the picker's render state. */
   className?: RACDatePickerProps<T>['className']
+  /**
+   * What the modal's confirming action says. Left out, it is the word for
+   * it in the I18nProvider's locale — "OK" in English.
+   */
+  confirmLabel?: string
   /**
    * Where to portal the calendar. Defaults to the container of the `ThemeScope`
    * around it, which keeps the calendar on that scope's tokens, or to the end
@@ -98,6 +191,11 @@ type DatePickerProps<T extends DateValue = DateValue> = Omit<
    * in `em` takes that size from the slot.
    */
   leadingIcon?: ReactNode
+  /**
+   * The modal's supporting text, above the date it holds. Left out, it is
+   * the I18nProvider's locale's — "Select date" in English.
+   */
+  selectDateLabel?: string
   /**
    * Whether the calendar's header draws the month and the year as menu
    * buttons, each opening a list of them in the grid's place — see
@@ -153,12 +251,16 @@ function calendarTrigger(triggerLabel: string | undefined) {
  * The segments are `DateField`'s and the calendar is `Calendar`, so
  * `granularity`, `minValue`, `maxValue` and `isDateUnavailable` all behave
  * as they do there. Above the medium breakpoint the calendar is docked to
- * the field; below it, it opens centred, which is the page's modal picker.
+ * the field and a pick is the answer; below it, it opens centred as the
+ * page's modal picker, under a headline holding the date picked, and only
+ * its OK writes that date into the field.
  *
  * The call site's `className` and `style` land on the picker as a whole,
  * which is the element a layout positions.
  */
 function DatePicker<T extends DateValue>({
+  cancelLabel,
+  confirmLabel,
   container,
   description,
   error,
@@ -166,6 +268,7 @@ function DatePicker<T extends DateValue>({
   isDisabled = false,
   label,
   leadingIcon,
+  selectDateLabel,
   showMonthYearMenus = false,
   triggerLabel,
   variant = 'filled',
@@ -173,6 +276,7 @@ function DatePicker<T extends DateValue>({
   ...props
 }: DatePickerProps<T> & RefAttributes<HTMLDivElement>) {
   const validationBehavior = useFieldValidationBehavior()
+  const messages = useMessages()
 
   return (
     <RACDatePicker<T>
@@ -224,15 +328,111 @@ function DatePicker<T extends DateValue>({
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
       >
-        <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
-          <Calendar
-            aria-label={label}
-            showMonthYearMenus={showMonthYearMenus}
-            visibleDuration={visibleDuration}
-          />
-        </RACDialog>
+        <DatePickerDialog
+          cancelLabel={cancelLabel ?? messages.cancel}
+          confirmLabel={confirmLabel ?? messages.confirm}
+          label={label}
+          selectDateLabel={selectDateLabel ?? messages.selectDate}
+          showMonthYearMenus={showMonthYearMenus}
+          visibleDuration={visibleDuration}
+        />
       </RACPopover>
     </RACDatePicker>
+  )
+}
+
+/**
+ * The surface's content, mounted each time the calendar opens: the date it
+ * was opened on is its draft, which a pick in the docked calendar writes
+ * straight through and a pick in the modal holds until OK.
+ */
+function DatePickerDialog({
+  cancelLabel,
+  confirmLabel,
+  label,
+  selectDateLabel,
+  showMonthYearMenus,
+  visibleDuration,
+}: {
+  cancelLabel: string
+  confirmLabel: string
+  label: string
+  selectDateLabel: string
+  showMonthYearMenus: boolean
+  visibleDuration: DateDuration | undefined
+}) {
+  // What React Aria's picker hands its calendar — the bounds, the date it
+  // holds, and an `onChange` that writes a date into the field and closes
+  // the surface — and the picker's state, which holds the date and writes
+  // one the same way. The calendar is handed the same props with the draft
+  // in place of the date and of `onChange`, so the picker stays the one
+  // owner of its value and its `onChange` stays React Aria's own.
+  const calendar = useSlottedContext(CalendarContext)
+  const state = useContext(DatePickerStateContext)
+  const [draft, setDraft] = useState(() => state?.dateValue ?? null)
+  const actions = useRef<HTMLDivElement>(null)
+  const formatter = useDateFormatter({
+    calendar: draft?.calendar.identifier,
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+    weekday: 'short',
+  })
+
+  // A calendar's `onChange` is typed for a calendar selecting several dates
+  // as well as one; the picker's selects one, so a list never arrives.
+  const pick = useCallback(
+    (date: DateValue | readonly DateValue[]) => {
+      if (!('calendar' in date)) {
+        return
+      }
+      setDraft(date)
+      if (actions.current?.checkVisibility() !== true) {
+        state?.setDateValue(date)
+      }
+    },
+    [state],
+  )
+
+  // OK writes the draft through the picker's state, and its `slot` closes
+  // the surface after, which is all Cancel does.
+  const confirm = useCallback(() => {
+    if (draft !== null) {
+      state?.setDateValue(draft)
+    }
+  }, [draft, state])
+
+  const drafted = useMemo(
+    () => ({ ...calendar, onChange: pick, value: draft }),
+    [calendar, draft, pick],
+  )
+
+  return (
+    <RACDialog {...stylex.props(overlay.popupDialog, focus.ring)}>
+      <div {...stylex.props(styles.header)}>
+        <div {...stylex.props(styles.supportingText)}>{selectDateLabel}</div>
+        <div {...stylex.props(styles.headline)}>
+          {draft === null
+            ? null
+            : formatter.format(toCalendarDate(draft).toDate('UTC'))}
+        </div>
+      </div>
+      <CalendarContext.Provider value={drafted}>
+        <Calendar
+          aria-label={label}
+          showMonthYearMenus={showMonthYearMenus}
+          visibleDuration={visibleDuration}
+        />
+      </CalendarContext.Provider>
+      <div ref={actions} {...stylex.props(styles.actions)}>
+        <Button slot="close" variant="text">
+          {cancelLabel}
+        </Button>
+        <Button onPress={confirm} slot="close" variant="text">
+          {confirmLabel}
+        </Button>
+      </div>
+    </RACDialog>
   )
 }
 
