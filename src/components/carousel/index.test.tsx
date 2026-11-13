@@ -295,6 +295,58 @@ describe('carousel', () => {
       expect(previous.hasAttribute('disabled')).toBe(false)
     })
 
+    // A disabled button cannot hold focus, so the browser drops it on the
+    // body as next disables at the end, and the reader's next Tab starts
+    // from the top of the page. The other button is where focus goes.
+    it('hands focus to previous when next disables at the last rest', async () => {
+      const { getByRole, scroller } = setup()
+      const previous = getByRole('button', { name: 'Previous slide' })
+      const next = getByRole('button', { name: 'Next slide' })
+
+      await scrollCarousel(scroller, 4 * STEP)
+      act(() => {
+        next.focus()
+      })
+      fireEvent.click(next)
+      await waitFor(() => {
+        expect(next.hasAttribute('disabled')).toBe(true)
+      })
+
+      expect(document.activeElement).toBe(previous)
+    })
+
+    it('hands focus to next when previous disables at the first rest', async () => {
+      const { getByRole, scroller } = setup()
+      const previous = getByRole('button', { name: 'Previous slide' })
+      const next = getByRole('button', { name: 'Next slide' })
+
+      await scrollCarousel(scroller, STEP)
+      act(() => {
+        previous.focus()
+      })
+      fireEvent.click(previous)
+      await waitFor(() => {
+        expect(previous.hasAttribute('disabled')).toBe(true)
+      })
+
+      expect(document.activeElement).toBe(next)
+    })
+
+    it('leaves focus that is not on a button where it is', async () => {
+      const { getByRole, scroller } = setup()
+      const next = getByRole('button', { name: 'Next slide' })
+
+      act(() => {
+        scroller.focus()
+      })
+      await scrollCarousel(scroller, 5 * STEP)
+      await waitFor(() => {
+        expect(next.hasAttribute('disabled')).toBe(true)
+      })
+
+      expect(document.activeElement).toBe(scroller)
+    })
+
     // Six items with one large: rests 0 to 3 move along an item at a time,
     // and rests 4 and 5 turn the small and then the medium slot round.
     it('turns round at the last rests, so the last items are drawn large', async () => {

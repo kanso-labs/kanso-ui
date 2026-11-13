@@ -14,6 +14,7 @@ import {
   isValidElement,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -73,6 +74,12 @@ import IconButton from '../icon-button'
 // large, and the scroller is a tab stop while it scrolls, so the arrow keys
 // move it too. Under reduced motion the scroller jumps rather than scrolling
 // smoothly.
+//
+// Previous disables at the first rest and next at the last. A disabled
+// button cannot hold focus, and the browser drops it on the page's body as
+// the button holding it disables, so the next Tab started again from the
+// top of the page. Focus goes to the other button instead, which is the way
+// back.
 //
 // The page's large width is "dynamic, or user-set", and neither MDC-Android
 // nor Compose has a default for it; `itemSize`'s 240 is this component's own.
@@ -331,6 +338,12 @@ function Carousel({
 }: CarouselProps & RefAttributes<HTMLElement>) {
   const messages = useMessages()
   const scrollerRef = useRef<HTMLDivElement>(null)
+  const previousRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null)
+  const nextRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null)
+  // The button that has just lost focus by disabling, until the effect
+  // below hands focus on from it.
+  const droppedRef = useRef<Element | null>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
   // The scroller's width and how far it has scrolled along the text:
   // everything drawn is drawn from these two.
   const [width, setWidth] = useState(0)
@@ -349,6 +362,8 @@ function Carousel({
     ? arrangement.steps * step
     : Math.max(count * step - GAP + 2 * PADDING - width, 0)
   const lastLarge = arrangement.largeCount - 1
+  const atStart = scrolled <= 0.5
+  const atEnd = scrolled >= end - 0.5
   const position = masked && step > 0 ? scrolled / step : 0
   const drawn = masked
     ? placements(layout, arrangement, room, PADDING, count, position)
@@ -378,6 +393,48 @@ function Carousel({
       observer.disconnect()
     }
   }, [measure])
+
+  // Focus leaving a button because it disabled: the one blur that goes
+  // nowhere from a button that is now disabled; see the header. A blur to
+  // anywhere else, or from a button still enabled, is the reader's own. A
+  // listener on the row's element rather than React's `onBlur`: the browser
+  // blurs the button as React writes `disabled` onto it, in the middle of a
+  // commit, and an `onBlur` on the row never ran for that blur.
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (controls === null) {
+      return undefined
+    }
+    const noteDropped = (event: globalThis.FocusEvent) => {
+      const { relatedTarget, target } = event
+      droppedRef.current =
+        relatedTarget === null &&
+        target instanceof Element &&
+        target.hasAttribute('disabled')
+          ? target
+          : null
+    }
+    controls.addEventListener('focusout', noteDropped)
+    return () => {
+      controls.removeEventListener('focusout', noteDropped)
+    }
+  }, [])
+
+  // Run in the commit that disables a button, after the blur above, and so
+  // before the reader can press anything else. The browser may also still
+  // be holding focus on the button, to let go of it later.
+  useLayoutEffect(() => {
+    const dropped = droppedRef.current
+    droppedRef.current = null
+    const previousButton = previousRef.current
+    const nextButton = nextRef.current
+    if (atStart && previousButton !== null && holds(previousButton, dropped)) {
+      handFocus(nextButton)
+    }
+    if (atEnd && nextButton !== null && holds(nextButton, dropped)) {
+      handFocus(previousButton)
+    }
+  }, [atEnd, atStart])
 
   const previous = useCallback(() => {
     const geometry = { end, lastLarge, masked, scrolled, step }
@@ -464,18 +521,20 @@ function Carousel({
             ))
           : null}
       </div>
-      <div {...stylex.props(styles.controls)}>
+      <div ref={controlsRef} {...stylex.props(styles.controls)}>
         <IconButton
           aria-label={previousLabel ?? messages.previousSlide}
-          isDisabled={scrolled <= 0.5}
+          isDisabled={atStart}
           onPress={previous}
+          ref={previousRef}
         >
           <ChevronEndGlyph {...stylex.props(styles.glyphPrevious)} />
         </IconButton>
         <IconButton
           aria-label={nextLabel ?? messages.nextSlide}
-          isDisabled={scrolled >= end - 0.5}
+          isDisabled={atEnd}
           onPress={next}
+          ref={nextRef}
         >
           <ChevronEndGlyph {...stylex.props(styles.glyphNext)} />
         </IconButton>
@@ -534,6 +593,20 @@ function CarouselItem({
         : children}
     </div>
   )
+}
+
+// Focus to the button other than the one that has just disabled, unless
+// that one is disabled too: a carousel with nowhere to scroll disables both.
+function handFocus(to: HTMLAnchorElement | HTMLButtonElement | null) {
+  if (to !== null && !to.hasAttribute('disabled')) {
+    to.focus()
+  }
+}
+
+// Whether a button had focus as it disabled: it lost it in the blur the
+// controls noted, or it holds it still.
+function holds(button: Element, dropped: Element | null) {
+  return dropped === button || document.activeElement === button
 }
 
 // The nearest rest that draws the item at `index` large, from the rest
