@@ -15,7 +15,12 @@ import {
 
 import { ChevronEndGlyph } from '../../glyphs'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  spacing,
+  stateLayerOpacity,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 import Link from '../link'
 
 // A trail of links back up a hierarchy, ending at the page you are on. The
@@ -51,6 +56,12 @@ import Link from '../link'
 // the trail reports which one was pressed, for a page that navigates without
 // an `href`.
 
+// Windows High Contrast and the rest of the forced-colours modes. Spelled
+// here rather than imported, for the reason src/field/styles.ts records: the
+// StyleX compiler resolves a constant across files only out of a `.stylex.ts`
+// module, and the generated one holds design tokens rather than queries.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   // Points further in, so it mirrors under a right-to-left writing mode.
   //
@@ -67,6 +78,25 @@ const styles = stylex.create({
     flexShrink: 0,
     inlineSize: '18px',
     transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
+  },
+  // The chevron of a disabled trail, in the colour Link gives a disabled
+  // link: on surface at the disabled content opacity, mixed onto the surface
+  // rather than faded with `opacity`, as the label beside it is. In the
+  // row's muted role it would stand out between the faded labels, and the
+  // trail would read as partly live. React Aria disables the whole trail or
+  // none of it — an item takes its disabled state from the list — so the
+  // chevrons fade together with every link.
+  //
+  // Under forced colours it takes the item's colour again, which the mode
+  // has repainted in the same system colour as the link beside it. The user
+  // agent gives an `<svg>` `forced-color-adjust: preserve-parent-color`,
+  // which forces its colour only while it inherits one, so the mix above
+  // would otherwise reach the screen unforced.
+  chevronDisabled: {
+    color: {
+      default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
+      [FORCED_COLORS]: 'currentColor',
+    },
   },
   // The item you are on: the same type as the links, in the full-strength
   // content role rather than the muted one, so it reads as the end of the
@@ -209,7 +239,12 @@ function itemContent(
         >
           {children}
         </Link>
-        <ChevronEndGlyph {...stylex.props(styles.chevron)} />
+        <ChevronEndGlyph
+          {...stylex.props(
+            styles.chevron,
+            state.isDisabled && styles.chevronDisabled,
+          )}
+        />
       </>
     )
   }
