@@ -35,7 +35,9 @@ const Outlined: Story = {
 }
 
 // Its own story because the open calendar is the half a closed picker cannot
-// show, and it is the state a reviewer most wants to look at.
+// show, and it is the state a reviewer most wants to look at. Below the
+// medium breakpoint it is the modal picker, under its headline and over
+// Cancel and OK.
 const Open: Story = {
   args: {
     defaultOpen: true,

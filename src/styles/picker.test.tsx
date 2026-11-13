@@ -252,7 +252,7 @@ describe("a date picker's surface", () => {
     async ({ element }) => {
       await page.viewport(MEDIUM, 900)
       const surface = surfaceOf(element)
-      const calendar = surface.querySelector('[role="dialog"] > *')
+      const calendar = surface.querySelector('[role="application"]')
       if (calendar === null) {
         throw new Error('expected a calendar inside the dialog')
       }

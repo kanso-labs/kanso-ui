@@ -1,10 +1,17 @@
 import * as stylex from '@stylexjs/stylex'
-import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { page } from 'vitest/browser'
 
 import DatePicker from '.'
 import { CalendarDate } from '../../date'
 import { colors } from '../../tokens/design.tokens.stylex'
+
+// The runner's own viewport, restored after any test that changes it.
+const DEFAULT_VIEWPORT = {
+  height: window.innerHeight,
+  width: window.innerWidth,
+}
 
 const probeStyles = stylex.create({
   onSurface: { color: colors.onSurface },
@@ -19,6 +26,23 @@ function probe(style: stylex.StyleXStyles) {
 }
 
 const DATE = new CalendarDate(2026, 9, 15)
+
+// The surface stays in the document while it animates out, so closed is
+// a state it reaches rather than one it is in the moment it is told.
+async function closed(view: ReturnType<typeof render>) {
+  await waitFor(() => {
+    expect(view.queryByRole('dialog')).toBeNull()
+  })
+}
+
+// Opens a picker holding the 15th, reporting to the spy it is given.
+function openPicker(onChange = vi.fn<(value: CalendarDate | null) => void>()) {
+  const view = render(
+    <DatePicker defaultValue={DATE} label="Label" onChange={onChange} />,
+  )
+  fireEvent.click(triggerOf(view))
+  return { onChange, view }
+}
 
 // Matched on a pattern rather than the whole name: React Aria composes the
 // field's own label into the trigger's accessible name, so an exact string
@@ -36,6 +60,10 @@ function parts(container: HTMLElement) {
     box: box.getBoundingClientRect(),
     trigger: trigger.getBoundingClientRect(),
   }
+}
+
+function pickSixteenth(view: ReturnType<typeof render>) {
+  fireEvent.click(view.getByRole('button', { name: /September 16, 2026/ }))
 }
 
 function segmentsOf(view: ReturnType<typeof render>) {
@@ -163,19 +191,6 @@ describe('date picker', () => {
       expect(view.getByRole('grid', { name: /September 2026/ })).not.toBeNull()
     })
 
-    it('reports the date picked from it', () => {
-      const onChange = vi.fn<(value: CalendarDate | null) => void>()
-      const view = render(
-        <DatePicker defaultValue={DATE} label="Label" onChange={onChange} />,
-      )
-
-      fireEvent.click(triggerOf(view))
-      fireEvent.click(view.getByRole('button', { name: /September 16, 2026/ }))
-
-      expect(onChange).toHaveBeenCalled()
-      expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('2026-09-16')
-    })
-
     it('names the trigger, and takes the name it was given', () => {
       const view = render(
         <DatePicker
@@ -204,6 +219,103 @@ describe('date picker', () => {
           .getByRole('button', { name: /September 1, 2026/ })
           .getAttribute('aria-disabled'),
       ).toBe('true')
+    })
+  })
+
+  // The page's two pickers, which this one is by window size: docked to the
+  // field above the medium breakpoint, where a pick is the answer, and a
+  // modal below it, where a pick waits under a headline for OK or Cancel.
+  describe('docked and modal', () => {
+    afterEach(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('reports the date picked from the docked calendar at once', async () => {
+      await page.viewport(1024, 768)
+      const { onChange, view } = openPicker()
+
+      // Docked, the picker draws neither the headline nor the actions.
+      expect(view.getByText('Select date').checkVisibility()).toBe(false)
+      expect(view.queryByRole('button', { name: 'OK' })).toBeNull()
+
+      pickSixteenth(view)
+
+      expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('2026-09-16')
+      await closed(view)
+    })
+
+    it('heads the modal with the date it holds, over Cancel and OK', async () => {
+      await page.viewport(360, 640)
+      const { view } = openPicker()
+      const dialog = view.getByRole('dialog')
+
+      expect(view.getByText('Select date').checkVisibility()).toBe(true)
+      expect(dialog.textContent).toContain('Tue, Sep 15')
+      expect(view.getByRole('button', { name: 'Cancel' })).not.toBeNull()
+      expect(view.getByRole('button', { name: 'OK' })).not.toBeNull()
+    })
+
+    it('holds a date picked in the modal until OK writes it', async () => {
+      await page.viewport(360, 640)
+      const { onChange, view } = openPicker()
+
+      pickSixteenth(view)
+
+      // The pick moves the headline and the selection, and nothing else:
+      // the field still holds the 15th and the modal is still open.
+      expect(onChange).not.toHaveBeenCalled()
+      expect(view.getByRole('dialog').textContent).toContain('Wed, Sep 16')
+
+      fireEvent.click(view.getByRole('button', { name: 'OK' }))
+
+      expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('2026-09-16')
+      await closed(view)
+    })
+
+    it('leaves the value as it was on Cancel', async () => {
+      await page.viewport(360, 640)
+      const { onChange, view } = openPicker()
+
+      pickSixteenth(view)
+      fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+
+      expect(onChange).not.toHaveBeenCalled()
+      await closed(view)
+      expect(segmentsOf(view).map((segment) => segment.textContent)).toEqual([
+        '9',
+        '15',
+        '2026',
+      ])
+    })
+
+    it('opens on the value again after a Cancel', async () => {
+      await page.viewport(360, 640)
+      const { view } = openPicker()
+
+      pickSixteenth(view)
+      fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+      await closed(view)
+      fireEvent.click(triggerOf(view))
+
+      expect(view.getByRole('dialog').textContent).toContain('Tue, Sep 15')
+    })
+
+    it('takes the words it is given for the headline and the actions', async () => {
+      await page.viewport(360, 640)
+      const view = render(
+        <DatePicker
+          cancelLabel="Close"
+          confirmLabel="Done"
+          defaultOpen
+          defaultValue={DATE}
+          label="Label"
+          selectDateLabel="Headline"
+        />,
+      )
+
+      expect(view.getByText('Headline')).not.toBeNull()
+      expect(view.getByRole('button', { name: 'Close' })).not.toBeNull()
+      expect(view.getByRole('button', { name: 'Done' })).not.toBeNull()
     })
   })
 

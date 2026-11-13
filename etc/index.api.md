@@ -661,13 +661,16 @@ export function DatePicker<T extends DateValue>(input: DatePickerProps<T> & RefA
 
 // @public (undocumented)
 export type DatePickerProps<T extends DateValue = DateValue> = Omit<DatePickerProps_2<T>, 'children' | 'className' | 'style'> & {
+    cancelLabel?: string;
     className?: DatePickerProps_2<T>['className'];
+    confirmLabel?: string;
     container?: Element;
     description?: string;
     error?: string;
     floatingLabel?: boolean;
     label: string;
     leadingIcon?: ReactNode;
+    selectDateLabel?: string;
     showMonthYearMenus?: boolean;
     style?: DatePickerProps_2<T>['style'];
     triggerLabel?: string;

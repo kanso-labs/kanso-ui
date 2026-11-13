@@ -12,13 +12,17 @@ import { MESSAGES } from './messages'
 // `pendingLabel`, a LoadMore's `label`, `copyLabel`, `copiedLabel` and
 // `selectedLabel`, a sheet handle's `aria-label`, `characterLimitLabel` and
 // `characterLimitReachedLabel`, the time picker's `cancelLabel`,
-// `confirmLabel`, `selectTimeLabel` and `enterTimeLabel`, and a collection's
+// `confirmLabel`, `selectTimeLabel` and `enterTimeLabel`, the date picker's
+// `cancelLabel`, `confirmLabel` and `selectDateLabel`, and a collection's
 // `renderEmptyState` for its empty row.
 
 type LibraryMessages = {
   /** What a search view's back button is called. */
   back: string
-  /** The time picker's action that closes it and keeps the time it had. */
+  /**
+   * The time picker's and the modal date picker's action that closes it and
+   * keeps the value it had.
+   */
   cancel: string
   /** What a carousel calls itself, as its role description. */
   carousel: string
@@ -26,7 +30,10 @@ type LibraryMessages = {
   characterLimit: (count: number) => string
   /** What a field announces once its length reaches its limit. */
   characterLimitReached: string
-  /** The time picker's action that closes it and keeps the time picked. */
+  /**
+   * The time picker's and the modal date picker's action that closes it and
+   * keeps the value picked.
+   */
   confirm: string
   copied: string
   copy: string
@@ -50,6 +57,8 @@ type LibraryMessages = {
   noResults: string
   /** What a carousel's previous button is called. */
   previousSlide: string
+  /** The modal date picker's supporting text, above the date it holds. */
+  selectDate: string
   /** The time picker's headline while it shows the dial. */
   selectTime: string
   /** What a carousel calls one of its slides, as its role description. */
@@ -95,6 +104,7 @@ function messagesFor(locale: string): LibraryMessages {
     nextSlide: formatter.format('nextSlide'),
     noResults: formatter.format('noResults'),
     previousSlide: formatter.format('previousSlide'),
+    selectDate: formatter.format('selectDate'),
     selectTime: formatter.format('selectTime'),
     slide: formatter.format('slide'),
     slideLabel: (index: number, count: number) =>
