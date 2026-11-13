@@ -116,6 +116,25 @@ const Multiple: Story = {
   ),
 }
 
+// A search that matches nothing: the list stays open on the ListBox's own
+// empty state rather than closing. Typed in `play`, as `Open` presses the
+// chevron, so Chromatic snapshots the emptied list; framed on the Overview
+// page, since it opens the list as it renders.
+const NoResults: Story = {
+  parameters: { docs: { story: { height: '240px', inline: false } } },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.type(canvas.getByRole('combobox'), 'zzz')
+    await waitFor(async () => {
+      const list = document.querySelector('[role="listbox"]')
+      await expect(list).not.toBeNull()
+      // React Aria draws the empty state in a row of its own, so what is
+      // checked is that none of the options is left.
+      await expect(list?.textContent).not.toContain('item')
+    })
+  },
+  render: Default.render,
+}
+
 // Its own story because `defaultFilter` takes a function, which the Controls
 // panel cannot supply, and a predicate reads only against the default it
 // replaces: type the same text into both.
@@ -139,6 +158,7 @@ export {
   Disabled,
   Invalid,
   Multiple,
+  NoResults,
   Open,
   Outlined,
   WithDescription,

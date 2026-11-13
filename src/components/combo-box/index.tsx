@@ -76,6 +76,15 @@ import ListBox from '../list-box'
 // `allowsCustomValue` is React Aria's, and with it off the input reverts to
 // the last chosen option on blur rather than keeping text that means nothing.
 //
+// **A search that matches nothing keeps the list open, saying so.** React
+// Aria closes a list its filter has emptied unless `allowsEmptyCollection`
+// says otherwise, and with it closed the field held its text with no list
+// and no word about why — a list that broke and one with no matches looked
+// the same. So the default here is `true`, and the ListBox inside draws the
+// empty state every ListBox does, a muted "No results" row in the
+// I18nProvider's locale, as it does under an Autocomplete. `false` is the
+// call site's for a field that would rather close.
+//
 // Choosing more than one is `selectionMode="multiple"`, which draws the
 // chosen options before the input on its line, through React Aria's
 // `ComboBoxValue`, with the label floated over them. For a field that draws
@@ -159,6 +168,12 @@ type ComboBoxProps<
   M extends ComboBoxSelectionMode = 'single',
 > = {
   /**
+   * Whether the list stays open when a search leaves nothing in it, showing
+   * the ListBox's "No results" row, rather than closing.
+   * @default true
+   */
+  allowsEmptyCollection?: boolean
+  /**
    * Where to portal the list. Defaults to the container of the `ThemeScope`
    * around it, which keeps the list on that scope's tokens, or to the end of
    * `<body>` where there is none. A subtree themed through the `themeScope`
@@ -218,6 +233,7 @@ type ComboBoxProps<
   variant?: FieldVariant
 } & Omit<
   RACComboBoxProps<T, M>,
+  | 'allowsEmptyCollection'
   | 'children'
   | 'defaultSelectedKey'
   | 'isInvalid'
@@ -267,7 +283,9 @@ function ChosenValues() {
  * Filtering is React Aria's: `defaultFilter` takes a predicate, `useFilter`
  * is re-exported for a locale-aware one, and `items` with `useAsyncList`
  * feeds a list that is fetched rather than listed. `allowsCustomValue` lets
- * the field keep text that matches nothing.
+ * the field keep text that matches nothing. A search that matches nothing
+ * keeps the list open on a "No results" row; `allowsEmptyCollection={false}`
+ * closes it instead.
  *
  * The box, label, input, supporting line and error are the field chrome in
  * `src/field`, shared with every other field; the list is ListBox on the
@@ -280,6 +298,7 @@ function ComboBox<
   T extends object = object,
   M extends ComboBoxSelectionMode = 'single',
 >({
+  allowsEmptyCollection = true,
   container,
   description,
   error,
@@ -299,6 +318,7 @@ function ComboBox<
 
   return (
     <RACComboBox<T, M>
+      allowsEmptyCollection={allowsEmptyCollection}
       isDisabled={isDisabled}
       isInvalid={invalidFrom(error)}
       validationBehavior={validationBehavior}

@@ -568,6 +568,7 @@ export function ComboBox<T extends object = object, M extends ComboBoxSelectionM
 
 // @public (undocumented)
 export type ComboBoxProps<T extends object = object, M extends ComboBoxSelectionMode = 'single'> = {
+    allowsEmptyCollection?: boolean;
     container?: Element;
     description?: string;
     error?: string;
@@ -577,7 +578,7 @@ export type ComboBoxProps<T extends object = object, M extends ComboBoxSelection
     leadingIcon?: ReactNode;
     options?: ((item: T) => ReactElement) | ReactNode;
     variant?: FieldVariant;
-} & Omit<ComboBoxProps_2<T, M>, 'children' | 'defaultSelectedKey' | 'isInvalid' | 'onSelectionChange' | 'selectedKey' | 'validationBehavior'>;
+} & Omit<ComboBoxProps_2<T, M>, 'allowsEmptyCollection' | 'children' | 'defaultSelectedKey' | 'isInvalid' | 'onSelectionChange' | 'selectedKey' | 'validationBehavior'>;
 
 // @public (undocumented)
 export type ComboBoxSelectionMode = 'multiple' | 'single';
