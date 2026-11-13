@@ -75,6 +75,20 @@ function inputOf(view: ReturnType<typeof render>) {
   return input
 }
 
+/** Where `element` starts inside `ancestor`'s padding box, transforms aside. */
+function offsetWithin(element: HTMLElement, ancestor: HTMLElement) {
+  let offset = 0
+  let at: Element | null = element
+  while (at instanceof HTMLElement && at !== ancestor) {
+    offset += at.offsetTop
+    at = at.offsetParent
+  }
+  if (at !== ancestor) {
+    throw new Error('expected the element to sit inside the surface')
+  }
+  return offset
+}
+
 function setup(
   props: Partial<Parameters<typeof ComboBox<object>>[0]> = {},
   container?: HTMLElement,
@@ -613,6 +627,29 @@ describe('combo box', () => {
 
       expect(surface.getAttribute('data-placement')).toBe('top')
       expect(originOf(surface).y).toBeCloseTo(1)
+    })
+
+    // The menus page gives the container 8dp above its first item and below
+    // its last. The ListBox inside draws that 8dp itself, so the surface
+    // around it adds none: padded as well, the list stood 16dp off both
+    // edges. Read from layout offsets rather than from the boxes on screen,
+    // since the surface is still scaling in as it opens.
+    it('stands the first and last options 8dp off the surface', async () => {
+      const view = setup()
+
+      fireEvent.click(view.toggle)
+      const surface = await surfaceOf(view)
+      const options = view.getAllByRole('option')
+      const first = options.at(0)
+      const last = options.at(-1)
+      if (first === undefined || last === undefined) {
+        throw new Error('expected the list to hold options')
+      }
+
+      expect(offsetWithin(first, surface)).toBe(8)
+      expect(
+        surface.clientHeight - offsetWithin(last, surface) - last.offsetHeight,
+      ).toBe(8)
     })
   })
   // The turn is drawn from the motion tokens rather than written as literals,

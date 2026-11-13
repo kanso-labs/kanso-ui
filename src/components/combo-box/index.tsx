@@ -117,6 +117,9 @@ const styles = stylex.create({
   },
   // The list, under the field and as wide as it. The overlay's own width
   // range belongs to a menu opened from a button, so it is replaced here.
+  // It carries no padding of its own: the ListBox inside already stands its
+  // first and last options the menus page's 8dp off the container's edge,
+  // and padding the surface as well doubled that to 16.
   list: {
     backgroundColor: colors.surfaceContainerLow,
     borderRadius: radii.xs,
@@ -125,7 +128,6 @@ const styles = stylex.create({
     maxInlineSize: 'none',
     minInlineSize: 0,
     overflowY: 'auto',
-    paddingBlock: spacing.sm,
   },
   // The button that opens the list: the page's 24dp trailing icon, pressable.
   // Drawn as nothing but the glyph, since the box around it already carries
