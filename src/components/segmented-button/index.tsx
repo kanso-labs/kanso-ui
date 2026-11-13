@@ -34,7 +34,7 @@ import { useToggleGroupDisabled } from '../../hooks/useToggleGroupDisabled'
 import { ariaAttributesOf, toggleButtonRenderer } from '../../render/aria'
 import { focus } from '../../styles/focus'
 import { mergeStatefulStyles } from '../../styles/merge'
-import { radioGroupRenderer, useRadioItem } from '../../toggle-group'
+import { toggleGroupRenderer, useRadioItem } from '../../toggle-group'
 import {
   colors,
   motion,
@@ -888,7 +888,7 @@ function SegmentedButton({
           <RACToggleButtonGroup
             {...props}
             disallowEmptySelection={disallowEmptySelection ?? single}
-            render={single ? radioGroupRenderer(render) : render}
+            render={toggleGroupRenderer(render, single)}
             selectionMode={selectionMode}
             {...mergeStatefulStyles(stylex.props(styles.root), props)}
           />

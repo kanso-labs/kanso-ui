@@ -9,6 +9,17 @@ import { hasRipple } from '../../hooks/useRipple.testing'
 import Button from '../button'
 import IconButton from '../icon-button'
 
+// A button after the group, for focus to leave it to. Found in its own
+// container, since the group's queries are bound to the whole document.
+function buttonOutside() {
+  const button = render(<button type="button">After</button>).container
+    .firstElementChild
+  if (!(button instanceof HTMLButtonElement)) {
+    throw new Error('expected a button')
+  }
+  return button
+}
+
 // The corners on each side of a button, read once its transitions have run.
 function cornersOf(element: HTMLElement) {
   settle(element)
@@ -27,6 +38,18 @@ function Group(props: Partial<ComponentProps<typeof ButtonGroup>>) {
       <Button id="third">Third item</Button>
     </ButtonGroup>
   )
+}
+
+// A press with a mouse, in the order the browser makes it: the pointer goes
+// down, the browser focuses the button under it, and the click follows. A
+// synthetic pointerdown moves no focus, so that step is taken by hand.
+function pointerPress(button: HTMLElement) {
+  fireEvent.pointerDown(button, { button: 0, pointerType: 'mouse' })
+  act(() => {
+    button.focus()
+  })
+  fireEvent.pointerUp(button, { button: 0, pointerType: 'mouse' })
+  fireEvent.click(button)
 }
 
 // Hoisted so each is one stable array per render, which is what react-perf's
@@ -260,6 +283,48 @@ describe('button group', () => {
 
       expect(document.activeElement).toBe(second)
       expect(second).toHaveAttribute('aria-checked', 'true')
+    })
+
+    // React Aria's toolbar hands focus back to the button it last left from
+    // whenever focus comes back into the group, a press included: the
+    // pressed button was checked while focus went to the one the keyboard
+    // had left, and the next arrow moved on from there.
+    it('keeps focus on the button a pointer pressed, wherever the keyboard left it', () => {
+      render(<Group defaultSelectedKeys={SECOND} selectionMode="single" />)
+      const [first, second, third] = screen.getAllByRole('radio')
+      const outside = buttonOutside()
+
+      act(() => {
+        second.focus()
+      })
+      act(() => {
+        outside.focus()
+      })
+      pointerPress(third)
+
+      expect(document.activeElement).toBe(third)
+      expect(third).toHaveAttribute('aria-checked', 'true')
+
+      fireEvent.keyDown(third, { key: 'ArrowRight' })
+      expect(document.activeElement).toBe(first)
+      expect(first).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('keeps focus on the button a pointer pressed while several may be chosen', () => {
+      render(<Group selectionMode="multiple" />)
+      const [first, , third] = screen.getAllByRole('button')
+      const outside = buttonOutside()
+
+      act(() => {
+        first.focus()
+      })
+      act(() => {
+        outside.focus()
+      })
+      pointerPress(third)
+
+      expect(document.activeElement).toBe(third)
+      expect(third).toHaveAttribute('aria-pressed', 'true')
     })
 
     // A group choosing several stays React Aria's toolbar.

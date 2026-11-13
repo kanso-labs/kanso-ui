@@ -83,6 +83,17 @@ const FIRST_AND_THIRD = ['first', 'third']
 
 const ICON = <svg aria-hidden="true" data-testid="icon" viewBox="0 0 24 24" />
 
+// A button after the set, for focus to leave it to. Found in its own
+// container, since the set's queries are bound to the whole document.
+function buttonOutside() {
+  const button = render(<button type="button">After</button>).container
+    .firstElementChild
+  if (!(button instanceof HTMLButtonElement)) {
+    throw new Error('expected a button')
+  }
+  return button
+}
+
 // Which segments are chosen, as each one reports it to a screen reader.
 function checked(view: ReturnType<typeof setup>) {
   return view
@@ -201,6 +212,18 @@ function layerOf(segment: Element) {
     throw new Error('expected the segment to carry a state layer')
   }
   return found
+}
+
+// A press with a mouse, in the order the browser makes it: the pointer goes
+// down, the browser focuses the segment under it, and the click follows. A
+// synthetic pointerdown moves no focus, so that step is taken by hand.
+function pointerPress(segment: HTMLElement) {
+  fireEvent.pointerDown(segment, { button: 0, pointerType: 'mouse' })
+  act(() => {
+    segment.focus()
+  })
+  fireEvent.pointerUp(segment, { button: 0, pointerType: 'mouse' })
+  fireEvent.click(segment)
 }
 
 // A key pressed and let go on the focused segment.
@@ -626,6 +649,68 @@ describe('segmented button', () => {
       expect(document.activeElement).toBe(
         view.getByRole('button', { name: 'After' }),
       )
+    })
+
+    // React Aria's toolbar hands focus back to the segment it last left from
+    // whenever focus comes back into the set, and a press is focus coming
+    // back too: the pressed segment was chosen while focus went to the one
+    // the keyboard had left, and the next arrow moved on from there.
+    it('keeps focus on the segment a pointer pressed, wherever the keyboard left it', () => {
+      const view = setup({ defaultSelectedKeys: FIRST })
+      const [first, , third] = view.getAllByRole('radio')
+      const outside = buttonOutside()
+
+      act(() => {
+        first.focus()
+      })
+      act(() => {
+        outside.focus()
+      })
+      pointerPress(third)
+
+      expect(document.activeElement).toBe(third)
+      expect(checked(view)).toStrictEqual(['false', 'false', 'true'])
+
+      press(third, 'ArrowRight')
+      expect(document.activeElement).toBe(first)
+      expect(checked(view)).toStrictEqual(['true', 'false', 'false'])
+    })
+
+    it('keeps focus on the segment a pointer pressed while several may be chosen', () => {
+      const view = setup({ selectionMode: 'multiple' })
+      const [first, second] = view.getAllByRole('button')
+      const outside = buttonOutside()
+
+      act(() => {
+        first.focus()
+      })
+      act(() => {
+        outside.focus()
+      })
+      pointerPress(second)
+
+      expect(document.activeElement).toBe(second)
+      expect(second).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    // The toolbar's half of it still stands for the keyboard: focus coming
+    // back into the set by any other way returns to where it left.
+    it('still hands focus back to the segment it left from when it returns by another way', () => {
+      const view = setup({ selectionMode: 'multiple' })
+      const [, second, third] = view.getAllByRole('button')
+      const outside = buttonOutside()
+
+      act(() => {
+        second.focus()
+      })
+      act(() => {
+        outside.focus()
+      })
+      act(() => {
+        third.focus()
+      })
+
+      expect(document.activeElement).toBe(second)
     })
 
     // Focus can still be put on a segment that is not the chosen one, by a
