@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.46.0](https://github.com/kanso-labs/kanso-ui/compare/v0.45.34...v0.46.0) (2026-11-13)
+
+
+### Features
+
+* **date-picker:** give the modal picker its headline and Cancel and OK actions ([#2142](https://github.com/kanso-labs/kanso-ui/issues/2142)) ([60943c4](https://github.com/kanso-labs/kanso-ui/commit/60943c4b02f962c4cea7c0c78c8fb286e2071bda))
+
+
+### Bug Fixes
+
+* **breadcrumbs:** fade the chevrons of a disabled trail with its links ([#2135](https://github.com/kanso-labs/kanso-ui/issues/2135)) ([ce1c72e](https://github.com/kanso-labs/kanso-ui/commit/ce1c72e826a0ce2601bb740581e71a5a255f8230))
+* **button-group:** give a single-selection group the radio pattern SegmentedButton has ([#2106](https://github.com/kanso-labs/kanso-ui/issues/2106)) ([84a7b37](https://github.com/kanso-labs/kanso-ui/commit/84a7b37dcc0fc3152a5788ef3f7ee4219822e29f))
+* **calendar:** draw disabled and outside-month days in GrayText under forced colours ([#2118](https://github.com/kanso-labs/kanso-ui/issues/2118)) ([5252e82](https://github.com/kanso-labs/kanso-ui/commit/5252e82527b7e39ae5943443fdafbd277046cd4d))
+* **calendar:** mark an invalid selected date with more than a 1:1 contrast ([#2107](https://github.com/kanso-labs/kanso-ui/issues/2107)) ([03868d1](https://github.com/kanso-labs/kanso-ui/commit/03868d12a8ec840cc39840095c3a0d2140056b18))
+* **card:** keep an outlined card's content on the same grid as the other variants ([#2136](https://github.com/kanso-labs/kanso-ui/issues/2136)) ([a09b1e2](https://github.com/kanso-labs/kanso-ui/commit/a09b1e2969a42d806c60f849bd5470532b1b730b))
+* **carousel:** keep focus on the controls when Next or Previous disables at an end ([#2108](https://github.com/kanso-labs/kanso-ui/issues/2108)) ([d24a4ba](https://github.com/kanso-labs/kanso-ui/commit/d24a4baa26084e83237ed3551fdb65db7c581234))
+* **chip:** announce a chip that opens a menu as a menu button, not a toggle ([#2137](https://github.com/kanso-labs/kanso-ui/issues/2137)) ([51684ae](https://github.com/kanso-labs/kanso-ui/commit/51684aee9a41f510b2f008b44acba26c4344acce))
+* **chip:** show a clipped label's full text on hover over the touch target ([#2109](https://github.com/kanso-labs/kanso-ui/issues/2109)) ([862684f](https://github.com/kanso-labs/kanso-ui/commit/862684fc9f2c563d552e3635710737d14ce7b06c))
+* **color-area:** stop the Alpha story drawing colours its value does not have ([#2110](https://github.com/kanso-labs/kanso-ui/issues/2110)) ([130cde6](https://github.com/kanso-labs/kanso-ui/commit/130cde67587b598de63dfcba3451517e510a982d))
+* **color-picker:** draw the trigger's boundary in a border that forced colours keep ([#2111](https://github.com/kanso-labs/kanso-ui/issues/2111)) ([263a72a](https://github.com/kanso-labs/kanso-ui/commit/263a72a9e0129e50d37675e1b9d8ff20a4d0282a))
+* **color-swatch-picker:** mark a disabled swatch as unavailable, not as a paler colour ([#2113](https://github.com/kanso-labs/kanso-ui/issues/2113)) ([5031f8b](https://github.com/kanso-labs/kanso-ui/commit/5031f8b6a3aaf90ed4b9a09480563719fce001c4))
+* **color-swatch-picker:** tell the focused swatch from the chosen one by more than its offset ([#2112](https://github.com/kanso-labs/kanso-ui/issues/2112)) ([69be268](https://github.com/kanso-labs/kanso-ui/commit/69be2681d8946a4db9e61bee8f1ae1f756b33ea9))
+* **color-swatch:** keep the checkerboard under a translucent colour in forced colours ([#2138](https://github.com/kanso-labs/kanso-ui/issues/2138)) ([b4bd120](https://github.com/kanso-labs/kanso-ui/commit/b4bd120687e0e208d3304fd45309e879dc935d71))
+* **combo-box,select:** pad the open list 8dp from its edge, not 16 ([#2139](https://github.com/kanso-labs/kanso-ui/issues/2139)) ([a21fe11](https://github.com/kanso-labs/kanso-ui/commit/a21fe110056227f9679a362a0781391c6a1a267d))
+* **combo-box:** show No results when nothing matches instead of closing the list ([#2114](https://github.com/kanso-labs/kanso-ui/issues/2114)) ([11fb717](https://github.com/kanso-labs/kanso-ui/commit/11fb717b867f169cd6a57c4b1a2ba34e79fb8110))
+* **copy-field:** draw a backslash as a backslash under a Japanese or Korean locale ([#2117](https://github.com/kanso-labs/kanso-ui/issues/2117)) ([3b81b36](https://github.com/kanso-labs/kanso-ui/commit/3b81b369b46c2b7aa62957323126fe00a0ea68a2))
+* **date-field:** stop padding the comma between the date and the time ([#2140](https://github.com/kanso-labs/kanso-ui/issues/2140)) ([bc5c9ef](https://github.com/kanso-labs/kanso-ui/commit/bc5c9ef19038b42ee0a66453a2b2a112d4539a5b))
+* **date-range-picker:** stop hiding a stacked month's last week in the docked popover ([#2143](https://github.com/kanso-labs/kanso-ui/issues/2143)) ([c7df4c3](https://github.com/kanso-labs/kanso-ui/commit/c7df4c30178ee1b40ecd451868b3631dd1010124))
+* **disclosure:** line the panel up with the headline when the header has a leading slot ([#2144](https://github.com/kanso-labs/kanso-ui/issues/2144)) ([ffa952b](https://github.com/kanso-labs/kanso-ui/commit/ffa952b7021dcd23c4c8e03131b9f2a44429b1c5))
+* **fab-menu:** draw a focused action's ring in primary, not the browser's default ([#2119](https://github.com/kanso-labs/kanso-ui/issues/2119)) ([9c18945](https://github.com/kanso-labs/kanso-ui/commit/9c1894549513b931a6338b93c3dcc3d5e59614f9))
+* **fab:** keep an extended FAB's label on one line ([#2145](https://github.com/kanso-labs/kanso-ui/issues/2145)) ([1c13934](https://github.com/kanso-labs/kanso-ui/commit/1c139343227dd8cc80ab8fc3a949011ec8d2fad1))
+* **navigation-tree:** let the keyboard reach the tree and mark the current item ([#2103](https://github.com/kanso-labs/kanso-ui/issues/2103)) ([475d81d](https://github.com/kanso-labs/kanso-ui/commit/475d81d5f15654f0c06c5e746bf78058b3d6c5f3))
+* **navigation:** tell the focused destination from the current one under forced colours ([#2121](https://github.com/kanso-labs/kanso-ui/issues/2121)) ([2eb4b28](https://github.com/kanso-labs/kanso-ui/commit/2eb4b288a1719cc1e2e6bc38922ca951ecc2cc88))
+* **popover:** draw the panel's focus ring only when the keyboard opened it ([#2122](https://github.com/kanso-labs/kanso-ui/issues/2122)) ([55923c2](https://github.com/kanso-labs/kanso-ui/commit/55923c231afaf884c27cf859bf1050d89af23e3b))
+* **range-calendar:** keep the range band under unavailable days inside the range ([#2123](https://github.com/kanso-labs/kanso-ui/issues/2123)) ([c7964c3](https://github.com/kanso-labs/kanso-ui/commit/c7964c33a396aace08d6773129e4db6d0bdbee10))
+* **row:** keep the focus ring visible on a selected row under forced colours ([#2120](https://github.com/kanso-labs/kanso-ui/issues/2120)) ([c3efce9](https://github.com/kanso-labs/kanso-ui/commit/c3efce9258e0eb54c337b4f1b11ecc4f4eaa1e27))
+* **row:** let a selected row's slots take system colours under forced colours ([#2148](https://github.com/kanso-labs/kanso-ui/issues/2148)) ([9a8468f](https://github.com/kanso-labs/kanso-ui/commit/9a8468f37cd19c3a72b53a24ae2d1641cf1f48e2))
+* **segmented-button:** move focus to the segment a pointer pressed ([#2124](https://github.com/kanso-labs/kanso-ui/issues/2124)) ([5bcaebb](https://github.com/kanso-labs/kanso-ui/commit/5bcaebb58316fd4700ef1ef3d2e925921d2df035))
+* **select:** stop the browser's own outline drawing on a hovered option ([#2125](https://github.com/kanso-labs/kanso-ui/issues/2125)) ([2b9e497](https://github.com/kanso-labs/kanso-ui/commit/2b9e49751b89122a32cae8e7865f5cb13a636d22))
+* **select:** truncate a long chosen value with an ellipsis ([#2127](https://github.com/kanso-labs/kanso-ui/issues/2127)) ([5f1dc0f](https://github.com/kanso-labs/kanso-ui/commit/5f1dc0fe21004f0ee332e68f798656ef76b606cc))
+* **slider:** draw a vertical slider's value indicator where there is room for it ([#2130](https://github.com/kanso-labs/kanso-ui/issues/2130)) ([5c23a23](https://github.com/kanso-labs/kanso-ui/commit/5c23a23d1535a995980fbbff493d61a07c43c74b))
+* **slider:** keep the value indicator inside the slider and off its label ([#2129](https://github.com/kanso-labs/kanso-ui/issues/2129)) ([ffb8d82](https://github.com/kanso-labs/kanso-ui/commit/ffb8d829e0bf1ae6a59275505f014c84ac02807a))
+* **slider:** round a vertical track's outer ends, not the ends by the handle ([#2128](https://github.com/kanso-labs/kanso-ui/issues/2128)) ([22ea902](https://github.com/kanso-labs/kanso-ui/commit/22ea902e21347c3c99640aaf0af5f9e98df7fd92))
+* **text-area:** wrap a long unbroken word inside an autosizing field ([#2104](https://github.com/kanso-labs/kanso-ui/issues/2104)) ([828a71c](https://github.com/kanso-labs/kanso-ui/commit/828a71c622604434d99d6ad38e3db6ce3429f88b))
+* **time-picker:** keep the selected hour and period readable under forced colours ([#2105](https://github.com/kanso-labs/kanso-ui/issues/2105)) ([014d9d4](https://github.com/kanso-labs/kanso-ui/commit/014d9d4fd9efffa6d43e7749a92f0d52ebcf14f7))
+* **token-field:** fade the text and tokens of a disabled field ([#2131](https://github.com/kanso-labs/kanso-ui/issues/2131)) ([3d85185](https://github.com/kanso-labs/kanso-ui/commit/3d851859d2120a3be25c78cf5add6efd59a3861c))
+* **toolbar:** stop a Button in the bar shrinking until its label breaks per letter ([#2133](https://github.com/kanso-labs/kanso-ui/issues/2133)) ([841abd7](https://github.com/kanso-labs/kanso-ui/commit/841abd720e42fce30c9486f181f9652d2c0726e7))
+* **tree:** draw the expand chevron in system colours under forced colours ([#2134](https://github.com/kanso-labs/kanso-ui/issues/2134)) ([ebca88e](https://github.com/kanso-labs/kanso-ui/commit/ebca88e473ed1083a396222b6951784603b954cc))
+
 ## [0.45.34](https://github.com/kanso-labs/kanso-ui/compare/v0.45.33...v0.45.34) (2026-11-13)
 
 
