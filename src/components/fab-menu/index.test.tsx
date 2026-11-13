@@ -16,9 +16,22 @@ import {
   declarationsHeld,
   reducedMotionOf,
 } from '../../styles/stylesheet.testing'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colorDefaultsDarkTheme,
+  colorDefaultsLightTheme,
+  colors,
+  spacing,
+  tokenScope,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 const FORCED_COLORS = 'forced-colors: active'
+
+// The library's two schemes, pinned as the Storybook toolbar pins them.
+const SCHEMES: [string, stylex.CompiledStyles[]][] = [
+  ['light', [...tokenScope, colorDefaultsLightTheme]],
+  ['dark', [...tokenScope, colorDefaultsDarkTheme]],
+]
 
 // Each pair compared by what it resolves to, so a test pins the role rather
 // than the colour it happens to be today.
@@ -73,6 +86,20 @@ const ITEM_ICON = (
     width="1em"
   />
 )
+
+// Moves focus onto an action from the keyboard, which is what React Aria
+// draws a visible ring for, and returns the action.
+function focusAnAction() {
+  const menu = screen.getByRole('menu')
+  fireEvent.keyDown(menu, { key: 'ArrowDown' })
+  fireEvent.keyUp(menu, { key: 'ArrowDown' })
+  const focused = document.activeElement
+  if (!(focused instanceof HTMLElement)) {
+    throw new Error('expected an action to hold focus')
+  }
+  expect(focused).toHaveAttribute('role', 'menuitem')
+  return focused
+}
 
 function Menu(props: Partial<ComponentProps<typeof FabMenu>>) {
   return (
@@ -270,6 +297,53 @@ describe('FAB menu', () => {
       expect(getComputedStyle(item).backgroundColor).toBe(container.background)
       expect(getComputedStyle(item).color).toBe(container.color)
       expect(getComputedStyle(fab).backgroundColor).toBe(solid.background)
+    })
+  })
+
+  // The ring a keyboard sees on an action is the primary every other ring
+  // here is drawn in. It named a colour under forced colours alone, so
+  // everywhere else it was the browser's own focus-ring colour, a near
+  // black that vanished against the dark theme's surface.
+  describe('a focused action', () => {
+    // The scheme goes on the body, since the actions are portalled there and
+    // a wrapper around the FAB would not reach them.
+    it.each(SCHEMES)('is ringed in primary, %s', (_name, scheme) => {
+      const classes = (stylex.props(scheme).className ?? '')
+        .split(' ')
+        .filter(Boolean)
+      document.body.classList.add(...classes)
+      try {
+        const view = render(
+          <>
+            <span
+              data-testid="primary"
+              {...stylex.props(probeStyles.primary)}
+            />
+            <Menu defaultOpen />
+          </>,
+        )
+        const primary = getComputedStyle(
+          screen.getByTestId('primary'),
+        ).backgroundColor
+        const focused = focusAnAction()
+        const ring = getComputedStyle(focused)
+
+        expect(focused).toHaveAttribute('data-focus-visible', 'true')
+        expect(ring.outlineStyle).toBe('solid')
+        expect(ring.outlineColor).toBe(primary)
+        view.unmount()
+      } finally {
+        document.body.classList.remove(...classes)
+      }
+    })
+
+    it('keeps Highlight for the ring under forced colours', () => {
+      render(<Menu defaultOpen />)
+      const focused = focusAnAction()
+
+      expect(
+        declarationsHeld(focused, FORCED_COLORS).get('outline-color'),
+      ).toBe('highlight')
     })
   })
 

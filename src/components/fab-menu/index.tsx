@@ -138,9 +138,13 @@ const styles = stylex.create({
     },
     cursor: 'not-allowed',
   },
-  // The ring for a keyboard, drawn outside the pill as Fab's is.
+  // The ring for a keyboard, drawn outside the pill as Fab's is, in the
+  // primary every ring here takes and `Highlight` under forced colours. Its
+  // colour is named in both: left unset outside the mode, the outline took
+  // the browser's own focus-ring colour, a near black that disappeared
+  // against the dark theme's surface.
   itemFocused: {
-    outlineColor: { default: null, [FORCED_COLORS]: 'Highlight' },
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
     outlineOffset: '2px',
     outlineStyle: 'solid',
     outlineWidth: '2px',
