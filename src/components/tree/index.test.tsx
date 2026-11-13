@@ -29,7 +29,10 @@ import {
   disabledContentOpacity,
   opacityWithin,
 } from '../../styles/opacity.testing'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
+
+const FORCED_COLORS = 'forced-colors: active'
 
 const probeStyles = stylex.create({
   onSurfaceVariant: { color: colors.onSurfaceVariant },
@@ -264,6 +267,24 @@ describe('tree', () => {
       expect(opacityWithin(first, caret)).toBeCloseTo(disabledContentOpacity())
       expect(opacityWithin(first, box)).toBe(1)
       expect(opacityWithin(child, enabledBox)).toBe(1)
+    })
+
+    // A selected row opts out of forced colours to keep its Highlight pair,
+    // and the caret inside it inherits the opt-out, so a colour of its own
+    // reaches the screen unforced: the muted token on Highlight, which in
+    // Chromium's default palette is about 1.6:1. The row's text colour is the
+    // mode's pair on every row, HighlightText on a selected one and
+    // CanvasText elsewhere.
+    it('takes the row’s text colour under forced colours, and its own outside them', () => {
+      const view = render(<Basic />)
+      const caret = view.getByRole('button', { name: 'Collapse First item' })
+
+      expect(declarationsHeld(caret, FORCED_COLORS).get('color')).toBe(
+        'currentcolor',
+      )
+      expect(getComputedStyle(caret).color).toBe(
+        probe(probeStyles.onSurfaceVariant).color,
+      )
     })
 
     // The glyph points to the inline end, so a right-to-left direction
