@@ -74,6 +74,14 @@ const rowStyles = stylex.create({
   // mode keeps because it is already one of its own colours, so a link row
   // and the row beside it are drawn alike. A selected or disabled row still
   // names its own colour after this.
+  //
+  // The outline is off until a style draws the ring: `focusVisible` from
+  // React Aria's render state on a collection item, `interactive`'s
+  // `:focus-visible` on a row that is a control of its own. React Aria moves
+  // DOM focus to the option or menu item under the pointer, and the browser
+  // can match that focus to `:focus-visible` while React Aria, reading the
+  // pointer, reports no ring, so left to the browser each row under the
+  // cursor drew its own black `outline: auto`.
   base: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -83,6 +91,7 @@ const rowStyles = stylex.create({
     display: 'flex',
     gap: spacing.lg,
     inlineSize: '100%',
+    outlineStyle: 'none',
     paddingBlock: spacing.sm,
     paddingInline: spacing.lg,
     position: 'relative',
