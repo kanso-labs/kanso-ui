@@ -263,11 +263,20 @@ const chipStyles = stylex.create({
   // `useClippedTitle` never measured, and the browser, which shows the title
   // of what is under the pointer and its ancestors, had none to show. A press
   // on the label still reaches the chip, which holds it.
+  //
+  // `unicode-bidi: isolate` keeps the label's text out of the bidi run
+  // around it, beside the `dir="auto"` in ./label.tsx that picks its
+  // direction. The UA stylesheet isolates an element with a `dir` as well,
+  // but a consumer's reset can undo that, so the library states it. The
+  // direction the label takes also decides which end an ellipsis cuts: the
+  // label's own end, so a Latin label in a right-to-left page keeps its
+  // first words rather than its last.
   label: {
     boxSizing: 'border-box',
     overflow: 'hidden',
     position: 'relative',
     textOverflow: 'ellipsis',
+    unicodeBidi: 'isolate',
     whiteSpace: 'nowrap',
   },
   // An elevated chip's shadow: the page's elevation 1 at rest, focused and
