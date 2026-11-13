@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react'
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import ButtonGroup from '.'
 import { hasRipple } from '../../hooks/useRipple.testing'
@@ -138,6 +139,142 @@ describe('button group', () => {
         }
       },
     )
+  })
+
+  // A single-selecting group is a radio group, and behaves as one rather
+  // than as the toolbar React Aria's `ToggleButtonGroup` makes of it: the
+  // choice cannot be pressed off, Tab lands on it, and the arrow keys move
+  // it, wrapping at the ends. SegmentedButton shares the same layer; see
+  // src/toggle-group.
+  describe('single selection', () => {
+    it('keeps the checked button checked when it is pressed again', () => {
+      render(<Group defaultSelectedKeys={SECOND} selectionMode="single" />)
+      const second = screen.getByRole('radio', { name: 'Second item' })
+
+      fireEvent.click(second)
+      expect(second).toHaveAttribute('aria-checked', 'true')
+
+      fireEvent.keyDown(second, { key: ' ' })
+      fireEvent.keyUp(second, { key: ' ' })
+      expect(second).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('lets a press clear the choice when empty selection is allowed', () => {
+      render(
+        <Group
+          defaultSelectedKeys={SECOND}
+          disallowEmptySelection={false}
+          selectionMode="single"
+        />,
+      )
+      const second = screen.getByRole('radio', { name: 'Second item' })
+
+      fireEvent.click(second)
+
+      expect(second).toHaveAttribute('aria-checked', 'false')
+    })
+
+    // A real Tab, through the browser: which button it lands on is the
+    // browser's decision, made from the Tab order the group leaves it.
+    it('takes one Tab stop, on the checked button', async () => {
+      render(
+        <>
+          <button type="button">Before</button>
+          <Group defaultSelectedKeys={SECOND} selectionMode="single" />
+          <button type="button">After</button>
+        </>,
+      )
+
+      act(() => {
+        screen.getByRole('button', { name: 'Before' }).focus()
+      })
+      await userEvent.keyboard('{Tab}')
+      expect(document.activeElement).toBe(
+        screen.getByRole('radio', { name: 'Second item' }),
+      )
+
+      await userEvent.keyboard('{Tab}')
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: 'After' }),
+      )
+    })
+
+    it('checks the button an arrow key moves to, wrapping at the ends', () => {
+      render(<Group defaultSelectedKeys={SECOND} selectionMode="single" />)
+      const [first, second, third] = screen.getAllByRole('radio')
+
+      act(() => {
+        second.focus()
+      })
+      fireEvent.keyDown(second, { key: 'ArrowRight' })
+      expect(document.activeElement).toBe(third)
+      expect(third).toHaveAttribute('aria-checked', 'true')
+      expect(second).toHaveAttribute('aria-checked', 'false')
+
+      fireEvent.keyDown(third, { key: 'ArrowRight' })
+      expect(document.activeElement).toBe(first)
+      expect(first).toHaveAttribute('aria-checked', 'true')
+
+      fireEvent.keyDown(first, { key: 'ArrowLeft' })
+      expect(document.activeElement).toBe(third)
+      expect(third).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('checks the first and last button with Home and End', () => {
+      render(<Group defaultSelectedKeys={SECOND} selectionMode="single" />)
+      const [first, second, third] = screen.getAllByRole('radio')
+
+      act(() => {
+        second.focus()
+      })
+      fireEvent.keyDown(second, { key: 'End' })
+      expect(document.activeElement).toBe(third)
+      expect(third).toHaveAttribute('aria-checked', 'true')
+
+      fireEvent.keyDown(third, { key: 'Home' })
+      expect(document.activeElement).toBe(first)
+      expect(first).toHaveAttribute('aria-checked', 'true')
+    })
+
+    it('checks an icon button an arrow key moves to', () => {
+      render(
+        <ButtonGroup
+          aria-label="Label"
+          defaultSelectedKeys={FIRST}
+          selectionMode="single"
+        >
+          <IconButton aria-label="First item" id="first">
+            <span />
+          </IconButton>
+          <IconButton aria-label="Second item" id="second">
+            <span />
+          </IconButton>
+        </ButtonGroup>,
+      )
+      const [first, second] = screen.getAllByRole('radio')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'ArrowRight' })
+
+      expect(document.activeElement).toBe(second)
+      expect(second).toHaveAttribute('aria-checked', 'true')
+    })
+
+    // A group choosing several stays React Aria's toolbar.
+    it('moves focus alone with the arrow keys while several may be chosen', () => {
+      render(<Group selectionMode="multiple" />)
+      const [first, second] = screen.getAllByRole('button')
+
+      act(() => {
+        first.focus()
+      })
+      fireEvent.keyDown(first, { key: 'ArrowRight' })
+
+      expect(document.activeElement).toBe(second)
+      expect(second).toHaveAttribute('aria-pressed', 'false')
+    })
   })
 
   describe('size', () => {
