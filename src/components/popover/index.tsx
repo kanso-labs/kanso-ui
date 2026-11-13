@@ -22,7 +22,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useInteractOutside } from 'react-aria'
+import { useFocusVisible, useInteractOutside } from 'react-aria'
 import {
   ButtonContext,
   DEFAULT_SLOT,
@@ -101,6 +101,12 @@ const styles = stylex.create({
   // inside the dialog draws its own — with its outer edge on the panel's
   // edge and following its corner. Inside rather than 2px out, so the ring
   // is the panel's boundary rather than a second one floating off it.
+  //
+  // Applied only while React Aria reads the input in use as other than a
+  // pointer — see `PopoverContent`. The panel focuses its dialog as it opens, and
+  // Chromium matches that programmatic focus to `:focus-visible` whatever
+  // opened the panel, so the pseudo-class alone drew the ring on a panel a
+  // pointer opened.
   dialogRing: {
     outlineColor: colors.primary,
     outlineOffset: '-2px',
@@ -500,6 +506,15 @@ function PopoverContent({
   const describedBy =
     descriptions.length > 0 ? [...new Set(descriptions)].join(' ') : undefined
 
+  // Whether React Aria reads the input in use as anything but a pointer: a
+  // press on the trigger reads as one, Enter on it as a keyboard. The ring
+  // waits on this as well as on the dialog's `:focus-visible`, which the
+  // browser matches to the focus the panel moves into its dialog however it
+  // was opened. React Aria takes an input it has not seen yet for a
+  // keyboard, as it does for every ring it draws, so a panel open before
+  // anything was pressed still shows the ring.
+  const { isFocusVisible } = useFocusVisible()
+
   return (
     <OverlayScope>
       <RACPopover
@@ -521,7 +536,7 @@ function PopoverContent({
             stylex.props(
               overlay.popup,
               styles.content,
-              styles.dialogRing,
+              isFocusVisible && styles.dialogRing,
               styles[size],
               popupOrigin(render.placement),
             ),
