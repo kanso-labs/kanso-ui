@@ -2,6 +2,7 @@ import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render } from '@testing-library/react'
 import { TokenFieldValue } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
@@ -105,21 +106,39 @@ describe('chip', () => {
 
     // Cut short, the rest of the label is out of sight, so the label hands
     // the browser its full text as a title, read when the pointer arrives.
-    // React derives onPointerEnter from the bubbling pointerover.
+    //
+    // A real pointer, moved over the middle of the pill where its text is,
+    // since what is under test is the browser's hit test: a chip's 48dp
+    // target is a box painted over the pill, and while it covered the label
+    // the pointer reached the chip and never the span, so the span had no
+    // title and the browser no tooltip to show. A fired event skips the hit
+    // test and passed throughout.
     it.each([
-      ['a chip', <Chip key="chip">{LONG_LABEL}</Chip>],
+      ['a chip', <Chip key="chip">{LONG_LABEL}</Chip>, 'button'],
       [
         "a group's chip",
         <ChipGroup key="group" label="Label">
           <ChipGroup.Chip id="long">{LONG_LABEL}</ChipGroup.Chip>
         </ChipGroup>,
+        'row',
       ],
-      [
-        'a token',
-        <TokenField defaultValue={LONG_TOKEN} key="token" label="Label" />,
-      ],
-    ])('shows its full text on hover in %s', (_name, pill) => {
+    ])('shows its full text on hover in %s', async (_name, pill, role) => {
       const view = render(<div {...stylex.props(probeStyles.room)}>{pill}</div>)
+
+      await userEvent.hover(view.getByRole(role, { name: LONG_LABEL }))
+
+      expect(view.getByText(LONG_LABEL)).toHaveAttribute('title', LONG_LABEL)
+    })
+
+    // A token takes no target, so nothing is painted over its label and an
+    // event fired on the span is the one a pointer would send it. React
+    // derives onPointerEnter from the bubbling pointerover.
+    it('shows its full text on hover in a token', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.room)}>
+          <TokenField defaultValue={LONG_TOKEN} label="Label" />
+        </div>,
+      )
       const label = view.getByText(LONG_LABEL)
 
       fireEvent.pointerOver(label)
