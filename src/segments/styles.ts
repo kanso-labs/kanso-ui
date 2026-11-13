@@ -93,6 +93,16 @@ const segmentStyles = stylex.create({
   segmentSeparator: {
     paddingInline: spacing.xs,
   },
+  // A literal that ends in its own space — the comma between a date and its
+  // time — hangs off the segment before it, as the same comma does in prose,
+  // so it takes no room on that side. The room was a space before the
+  // comma, and it was never needed there: the segment before it is a year,
+  // wide enough to clear the hour after it as a target with the room on the
+  // comma's far side alone. Its own space adds nothing, since a space at the
+  // end of a flex item collapses.
+  segmentSeparatorHanging: {
+    paddingInlineStart: 0,
+  },
 })
 
 export { segmentStyles }
