@@ -323,6 +323,45 @@ describe('slider', () => {
       expect(output?.textContent).toBe('40')
       expect(hasClasses(output!, CLASSES.indicator)).toBe(true)
     })
+
+    // Centred on a handle at either end, the value ran half its width past
+    // the slider's edge, and it sat over the label in the same space above
+    // the track. It is held to the track's length at the ends instead, and
+    // the slider keeps room for it between the label and the track, so it
+    // stays inside the slider and clear of the label in either direction.
+    it.each([
+      ['left-to-right', 0, 'en-US', 'ltr'],
+      ['left-to-right', 100, 'en-US', 'ltr'],
+      ['right-to-left', 0, 'he-IL', 'rtl'],
+      ['right-to-left', 100, 'he-IL', 'rtl'],
+    ] as const)(
+      'keeps the value inside the slider and off its label, %s, at %i',
+      (_, value, locale, dir) => {
+        const view = setupFramed({ defaultValue: value }, { dir, locale })
+
+        fireEvent.keyDown(document.body, { key: 'Tab' })
+        act(() => {
+          view.input.focus()
+        })
+        const output = view.container.querySelector('output')
+        if (output === null) {
+          throw new Error('expected the handle to show its value')
+        }
+        const box = output.getBoundingClientRect()
+        const root = view.getByRole('group').getBoundingClientRect()
+        const label = view.getByText('Label').getBoundingClientRect()
+        const thumb = view.thumb.getBoundingClientRect()
+
+        expect(box.left).toBeGreaterThanOrEqual(root.left - 0.5)
+        expect(box.right).toBeLessThanOrEqual(root.right + 0.5)
+        expect(box.top).toBeGreaterThanOrEqual(label.bottom)
+        // Still the page's 12 above the handle, and over it: the end of the
+        // track the handle sits at is under the value.
+        expect(thumb.top - box.bottom).toBeCloseTo(12, 0)
+        expect(middleOf(thumb)).toBeGreaterThanOrEqual(box.left - 0.5)
+        expect(middleOf(thumb)).toBeLessThanOrEqual(box.right + 0.5)
+      },
+    )
   })
 
   describe('measurements', () => {
