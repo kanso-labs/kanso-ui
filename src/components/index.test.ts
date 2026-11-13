@@ -126,6 +126,7 @@ import type {
   StackProps,
   SupportingPaneProps,
   SwitchProps,
+  TableAlign,
   TableLoadMoreProps,
   TabsLayout,
   TabsListProps,
@@ -1236,6 +1237,11 @@ describe('components barrel', () => {
   it('re-exports the SeparatorInset type', () => {
     const value: SeparatorInset = 'none'
     expect(value).toBe('none')
+  })
+
+  it('re-exports the TableAlign type', () => {
+    const value: TableAlign = 'end'
+    expect(value).toBe('end')
   })
 
   it('re-exports the TagTone type', () => {

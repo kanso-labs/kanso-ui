@@ -25,7 +25,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { TableBodyProps } from '.'
+import type { TableAlign, TableBodyProps } from '.'
 
 import Table from '.'
 import { rowStyles as rowLayers } from '../../row/styles'
@@ -74,6 +74,51 @@ const fromReactAria: RACTableBodyProps<object>['renderEmptyState'] = (state) =>
 // cases below need before they change one thing about it.
 // Hoisted, which is what react-perf's no-new-function-as-prop is after.
 const NOOP = () => {}
+
+// A table whose Value column is sorted and totalled, its column and cells
+// given the alignment a case chooses, in a fixed width so the column is wider
+// than what it holds and where the text lands inside it shows.
+function Aligned(props: { align: TableAlign | undefined }) {
+  return (
+    <div style={FOUR_HUNDRED_WIDE}>
+      <Table
+        aria-label="Label"
+        onSortChange={NOOP}
+        sortDescriptor={{ column: COLUMNS[1], direction: 'ascending' }}
+      >
+        <Table.Header>
+          <Table.Column id={COLUMNS[0]} isRowHeader>
+            Label
+          </Table.Column>
+          <Table.Column align={props.align} allowsSorting id={COLUMNS[1]}>
+            Value
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+            <Table.Cell align={props.align}>01</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+        <Table.Footer>
+          <Table.Row id="total">
+            <Table.Cell>Total</Table.Cell>
+            <Table.Cell align={props.align}>03</Table.Cell>
+          </Table.Row>
+        </Table.Footer>
+      </Table>
+    </div>
+  )
+}
+
+/** Where a header's sort arrow is drawn. */
+function arrowOf(header: HTMLElement) {
+  const arrow = header.querySelector('svg')
+  if (arrow === null) {
+    throw new Error('expected the sorted column to draw an arrow')
+  }
+  return arrow.getBoundingClientRect()
+}
 
 function Basic(props: {
   defaultSelectedKeys?: string[]
@@ -142,6 +187,15 @@ function Basic(props: {
       </Table.Body>
     </Table>
   )
+}
+
+/** The body or footer cell holding `text`. */
+function cellOf(view: ReturnType<typeof render>, text: string) {
+  const cell = view.getByText(text).closest('td')
+  if (!(cell instanceof HTMLElement)) {
+    throw new Error(`expected "${text}" to sit in a cell`)
+  }
+  return cell
 }
 
 // An empty list would make an `every` vacuously true and a `some` vacuously
@@ -236,6 +290,24 @@ function Sortable() {
       </Table>
     </>
   )
+}
+
+/**
+ * The box `text` itself takes inside `element`, rather than the box of the
+ * element holding it — a header's name sits in a flex row as wide as the
+ * cell, so only the text's own box says where the name landed.
+ */
+function textRect(element: HTMLElement, text: string) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if (node.textContent === text) {
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      const rect = range.getBoundingClientRect()
+      return { left: Math.round(rect.left), right: Math.round(rect.right) }
+    }
+  }
+  throw new Error(`expected "${text}" in the element`)
 }
 
 /**
@@ -1165,6 +1237,71 @@ describe('table', () => {
       }
 
       expect(cell.colSpan).toBe(2)
+    })
+  })
+
+  // The page aligns a numeric column to the end, its header with it, so the
+  // digits stack by place. Read from where the text lands rather than from
+  // the declarations, since what the column promises is that the name, the
+  // arrow and the digits meet at the cell's end padding.
+  describe('alignment', () => {
+    it('leaves a column at the start when it is not told otherwise', () => {
+      const view = render(<Aligned align={undefined} />)
+      const cell = cellOf(view, '01')
+      const header = view.getByRole('columnheader', { name: /Value/ })
+
+      expect(
+        textRect(cell, '01').left - cell.getBoundingClientRect().left,
+      ).toBeCloseTo(16, 0)
+      expect(
+        textRect(header, 'Value').left - header.getBoundingClientRect().left,
+      ).toBeCloseTo(16, 0)
+      // The arrow follows the name, as it does on any sorted column.
+      expect(arrowOf(header).left).toBeGreaterThan(
+        textRect(header, 'Value').right,
+      )
+    })
+
+    it('puts the cells, the header and the arrow at the end of an end column', () => {
+      const view = render(<Aligned align="end" />)
+      const cell = cellOf(view, '01')
+      const total = cellOf(view, '03')
+      const header = view.getByRole('columnheader', { name: /Value/ })
+
+      // The digits and the name end at the 16dp padding, down the column and
+      // in the footer alike.
+      expect(
+        cell.getBoundingClientRect().right - textRect(cell, '01').right,
+      ).toBeCloseTo(16, 0)
+      expect(
+        total.getBoundingClientRect().right - textRect(total, '03').right,
+      ).toBeCloseTo(16, 0)
+      expect(
+        header.getBoundingClientRect().right - textRect(header, 'Value').right,
+      ).toBeCloseTo(16, 0)
+      // The arrow goes before the name, so the name meets the digits rather
+      // than standing an arrow's width short of them.
+      expect(arrowOf(header).right).toBeLessThan(textRect(header, 'Value').left)
+    })
+
+    it('mirrors an end column right to left', () => {
+      const view = render(
+        <div dir="rtl">
+          <Aligned align="end" />
+        </div>,
+      )
+      const cell = cellOf(view, '01')
+      const header = view.getByRole('columnheader', { name: /Value/ })
+
+      expect(
+        textRect(cell, '01').left - cell.getBoundingClientRect().left,
+      ).toBeCloseTo(16, 0)
+      expect(
+        textRect(header, 'Value').left - header.getBoundingClientRect().left,
+      ).toBeCloseTo(16, 0)
+      expect(arrowOf(header).left).toBeGreaterThan(
+        textRect(header, 'Value').right,
+      )
     })
   })
 

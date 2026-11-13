@@ -101,6 +101,16 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // `aria-sort` on it. So the arrow is content next to the name, and the
 // hover and pressed layers belong to the cell.
 //
+// **A numeric column aligns to the end, and says so twice.** The page sets
+// a column of numbers flush with the end of its cells, header included, so
+// the digits stack by place and the name sits over them. `align="end"` on
+// the column moves its header, and on each cell moves that cell: React Aria
+// hands a cell nothing of its column's, so the two are the call site's to keep
+// together, as `selection` is. On the header the arrow goes before the name
+// rather than after it, as the page draws a sorted numeric column, so the
+// name meets the digits under it rather than standing an arrow's width short
+// of them. Both follow the writing direction.
+//
 // **The header sticks only when asked.** A sticky header needs an opaque
 // background to scroll rows under, and that colour is only right when the
 // table is in something that scrolls. `stickyHeader` is what says so.
@@ -158,6 +168,11 @@ const styles = stylex.create({
   // that draws its own colours and so reads nothing of the row's.
   cellDisabled: {
     opacity: stateLayerOpacity.disabledContent,
+  },
+  // A cell of a column aligned to the end, its text against the end padding
+  // and so on the left right to left.
+  cellEnd: {
+    textAlign: 'end',
   },
   // What the body shows in place of rows. React Aria puts it in a cell of its
   // own spanning every column, and that cell is not this component's — so the
@@ -224,6 +239,13 @@ const styles = stylex.create({
     alignItems: 'center',
     display: 'flex',
     gap: spacing.sm,
+  },
+  // An end column's name and arrow, against the end padding, with the arrow
+  // before the name. Reversed, the row starts at the end, so packing it to
+  // its start is what puts the name at the cell's end.
+  headerContentEnd: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-start',
   },
   // The rule under the header, on the group rather than on each cell so it
   // is one declaration rather than one per column — the same placement the
@@ -409,6 +431,13 @@ const styles = stylex.create({
   },
 })
 
+/**
+ * Which end of its cells a column's text sits at: `start` for words, `end`
+ * for numbers, so the digits stack by place. Both follow the writing
+ * direction.
+ */
+type TableAlign = 'end' | 'start'
+
 type TableBodyProps<T extends object = object> = Omit<
   RACTableBodyProps<T>,
   'className' | 'renderEmptyState' | 'style'
@@ -426,7 +455,14 @@ type TableBodyProps<T extends object = object> = Omit<
   style?: RACTableBodyProps<T>['style']
 }
 
-type TableCellProps = Omit<RACCellProps, 'children' | 'className' | 'style'> & {
+type TableCellProps = {
+  /**
+   * Which end of the cell its text sits at. Give it the value its column was
+   * given — React Aria hands a cell nothing of its column's, so a cell does
+   * not follow the header on its own.
+   * @default 'start'
+   */
+  align?: TableAlign
   /** What the cell holds. */
   children?: ReactNode
   /** A function may compute the class from the cell's render state. */
@@ -439,9 +475,17 @@ type TableCellProps = Omit<RACCellProps, 'children' | 'className' | 'style'> & {
   selection?: boolean
   /** A function may compute the style from the cell's render state. */
   style?: RACCellProps['style']
-}
+} & Omit<RACCellProps, 'children' | 'className' | 'style'>
 
 type TableColumnProps = {
+  /**
+   * Which end of the header cell the name sits at. `end` is for a column of
+   * numbers: the name goes against the end padding, over the digits, with
+   * the sort arrow before it rather than after. Give the column's cells the
+   * same `align`.
+   * @default 'start'
+   */
+  align?: TableAlign
   /** The column's name. */
   children?: ReactNode
   /** A function may compute the class from the column's render state. */
@@ -575,10 +619,11 @@ function cellContent(
 
 // A cell's classes, faded on a disabled row unless it holds the checkbox,
 // which draws its own disabled state.
-function cellStyles(selection: boolean) {
+function cellStyles(align: TableAlign, selection: boolean) {
   return (state: CellRenderProps) =>
     stylex.props(
       styles.cell,
+      align === 'end' && styles.cellEnd,
       styles.focus,
       selection ? styles.selection : state.isDisabled && styles.cellDisabled,
     )
@@ -586,6 +631,7 @@ function cellStyles(selection: boolean) {
 
 function columnContent(
   children: ReactNode,
+  align: TableAlign,
   selection: boolean,
   label: string | undefined,
   resizable: boolean,
@@ -599,7 +645,12 @@ function columnContent(
   // edge, which the name's own box does not reach.
   return (state: ColumnRenderProps): ReactNode => (
     <>
-      <span {...stylex.props(styles.headerContent)}>
+      <span
+        {...stylex.props(
+          styles.headerContent,
+          align === 'end' && styles.headerContentEnd,
+        )}
+      >
         {children}
         {sortArrowFor(state.sortDirection)}
       </span>
@@ -615,10 +666,11 @@ function columnContent(
   )
 }
 
-function columnStyles(selection: boolean, sticky: boolean) {
+function columnStyles(align: TableAlign, selection: boolean, sticky: boolean) {
   return (state: ColumnRenderProps) =>
     stylex.props(
       styles.cell,
+      align === 'end' && styles.cellEnd,
       styles.header,
       styles.focus,
       sticky && styles.sticky,
@@ -883,6 +935,7 @@ function TableBody<T extends object = object>({
  * it holds fades with its text.
  */
 function TableCell({
+  align = 'start',
   children,
   selection = false,
   ...props
@@ -890,7 +943,10 @@ function TableCell({
   const label = useContext(SelectLabelContext)
 
   return (
-    <RACCell {...props} {...mergeStatefulStyles(cellStyles(selection), props)}>
+    <RACCell
+      {...props}
+      {...mergeStatefulStyles(cellStyles(align, selection), props)}
+    >
       {cellContent(children, selection, label)}
     </RACCell>
   )
@@ -916,6 +972,7 @@ function tableClasses(state: TableRenderProps) {
  * the table with no columns at all.
  */
 function TableColumn({
+  align = 'start',
   children,
   resizable = false,
   selection = false,
@@ -941,7 +998,7 @@ function TableColumn({
   return (
     <RACColumn
       {...props}
-      {...mergeStatefulStyles(columnStyles(selection, sticky), props)}
+      {...mergeStatefulStyles(columnStyles(align, selection, sticky), props)}
       minWidth={
         props.minWidth ??
         (measured === undefined
@@ -952,6 +1009,7 @@ function TableColumn({
     >
       {columnContent(
         children,
+        align,
         selection,
         label,
         resizable && resizableTable,
@@ -1082,6 +1140,7 @@ Table.LoadMore = TableLoadMore
 Table.Row = TableRow
 
 export type {
+  TableAlign,
   TableBodyProps,
   TableCellProps,
   TableColumnProps,
