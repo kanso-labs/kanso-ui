@@ -256,9 +256,17 @@ const chipStyles = stylex.create({
   // `overflow: hidden` does two jobs: `text-overflow` draws nothing without
   // it, and a flex item that clips may narrow below the text it holds, where
   // one that does not is held at that text's width.
+  //
+  // `position: relative` lifts it over the chip's target, which is an
+  // absolute box and so painted over the chip's content in flow. Under the
+  // target, a pointer over the text reached the chip and never the span:
+  // `useClippedTitle` never measured, and the browser, which shows the title
+  // of what is under the pointer and its ancestors, had none to show. A press
+  // on the label still reaches the chip, which holds it.
   label: {
     boxSizing: 'border-box',
     overflow: 'hidden',
+    position: 'relative',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
