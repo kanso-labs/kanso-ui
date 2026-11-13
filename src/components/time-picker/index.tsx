@@ -55,6 +55,7 @@ import { segmentStyles } from '../../segments/styles'
 import { mergeStatefulStyles } from '../../styles/merge'
 import { overlay } from '../../styles/overlay'
 import { picker, triggerClassName } from '../../styles/picker'
+import { toggleGroupRenderer, useRadioItem } from '../../toggle-group'
 import {
   colors,
   motion,
@@ -100,9 +101,11 @@ import IconButton from '../icon-button'
 // which differ in how the boxes are drawn rather than in what they are. The
 // day period stays a segment for React Aria's sake but is hidden, and the
 // period selector beside the boxes takes its place, as a radio group of the
-// locale's two words for it. The dial is a pointer affordance over the
-// spinbuttons and is hidden from assistive technology: everything it sets,
-// the boxes set too.
+// locale's two words for it — React Aria's toggle group, with the radio
+// group's keys and single Tab stop SegmentedButton takes from
+// src/toggle-group, so an arrow chooses the period it moves to. The dial is
+// a pointer affordance over the spinbuttons and is hidden from assistive
+// technology: everything it sets, the boxes set too.
 //
 // **The dial does not mirror.** A clock face is the same in either writing
 // direction, so it is drawn and read in screen coordinates, three o'clock on
@@ -768,6 +771,29 @@ function periodClassName(state: PeriodState, divider: boolean) {
   )
 }
 
+/**
+ * A half of the period selector, and a radio of its group: its key written
+ * where the group's arrows read it, and out of the Tab order unless it is
+ * the chosen half. A component of its own because that is read from the
+ * group's state, which only its children reach.
+ */
+function PeriodHalf({
+  children,
+  className,
+  id,
+}: {
+  children: string
+  className: (state: PeriodState) => string
+  id: 'am' | 'pm'
+}) {
+  const radio = useRadioItem(id)
+  return (
+    <ToggleButton {...radio} className={className} id={id}>
+      {children}
+    </ToggleButton>
+  )
+}
+
 // Its afternoon half, under the rule between the two.
 function periodPmClassName(state: PeriodState) {
   return periodClassName(state, true)
@@ -1154,16 +1180,17 @@ function TimePickerDialog({
             disallowEmptySelection
             onSelectionChange={choosePeriod}
             orientation="vertical"
+            render={toggleGroupRenderer(undefined, true)}
             selectedKeys={isAfternoon ? AFTERNOON : MORNING}
             selectionMode="single"
             {...stylex.props(styles.period, !isDial && styles.periodInput)}
           >
-            <ToggleButton className={periodAmClassName} id="am">
+            <PeriodHalf className={periodAmClassName} id="am">
               {partOf(periods, 9, 'dayPeriod')}
-            </ToggleButton>
-            <ToggleButton className={periodPmClassName} id="pm">
+            </PeriodHalf>
+            <PeriodHalf className={periodPmClassName} id="pm">
               {partOf(periods, 21, 'dayPeriod')}
-            </ToggleButton>
+            </PeriodHalf>
           </ToggleButtonGroup>
         ) : null}
       </div>
