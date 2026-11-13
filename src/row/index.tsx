@@ -97,15 +97,19 @@ function RowContent({
   const onValueLine = useContext(RowOnValueLineContext)
   const tone = supportingTone(variant, { isDisabled, isSelected })
   const faded = isDisabled && rowStyles.slotDisabled
+  const handedBack = isSelected && rowStyles.slotSelected
   const leadingSlot = !hasContent(leading) ? null : (
-    <span {...stylex.props(rowStyles.slot, faded)}>{leading}</span>
+    <span {...stylex.props(rowStyles.slot, faded, handedBack)}>{leading}</span>
   )
   return (
     <>
       {/*
        * The caret, the checkbox and the leading content share one slot, with
        * nothing between them, so a column of rows lines each of them up. The
-       * two that fade are slots of their own inside it.
+       * two that fade are slots of their own inside it, and so is the
+       * checkbox, which a selected row hands back to forced colours with the
+       * leading content — see `slotSelected` — while the caret, a button
+       * drawn in the row's own colour, stays with the row.
        */}
       {!hasContent(chevron) && !hasContent(selection) ? (
         leadingSlot
@@ -114,7 +118,11 @@ function RowContent({
           {!hasContent(chevron) ? null : (
             <span {...stylex.props(rowStyles.slot, faded)}>{chevron}</span>
           )}
-          {selection}
+          {!hasContent(selection) ? null : (
+            <span {...stylex.props(rowStyles.slot, handedBack)}>
+              {selection}
+            </span>
+          )}
           {leadingSlot}
         </span>
       )}

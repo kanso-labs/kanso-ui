@@ -1067,6 +1067,184 @@ const SELECTED_ROWS: ReadonlyArray<{ name: string; row: () => Element }> = [
   },
 ]
 
+/**
+ * The `forced-color-adjust` an element takes under forced colours: its own,
+ * or else the nearest ancestor's, since the property inherits.
+ */
+function adjustReaching(element: Element): string | undefined {
+  for (
+    let current: Element | null = element;
+    current !== null;
+    current = current.parentElement
+  ) {
+    const adjust = forcedColorRules(current).get('forced-color-adjust')
+
+    if (adjust !== undefined) {
+      return adjust
+    }
+  }
+
+  return undefined
+}
+
+/** The selection checkbox inside `row`, or a failure saying it is missing. */
+function checkboxIn(row: Element): Element {
+  const found = row.querySelector('input[type="checkbox"]')
+
+  if (found === null) {
+    throw new Error('expected a checkbox inside the row')
+  }
+
+  return found
+}
+
+// What a row draws before its headline: the selection checkbox and the
+// leading content.
+const LEADING = <span>Leading</span>
+const TRAILING = <span>Trailing</span>
+
+const SELECTED_SLOTS: ReadonlyArray<{ name: string; slot: () => Element }> = [
+  {
+    name: "a List row's checkbox",
+    slot: () =>
+      checkboxIn(
+        selectedRowOf(
+          <List
+            aria-label="Label"
+            defaultSelectedKeys={FIRST_KEY}
+            selectionMode="multiple"
+          >
+            <List.Item id="first">First item</List.Item>
+            <List.Item id="second">Second item</List.Item>
+          </List>,
+          'row',
+        ),
+      ),
+  },
+  {
+    name: "a Tree row's checkbox",
+    slot: () =>
+      checkboxIn(
+        selectedRowOf(
+          <Tree
+            aria-label="Label"
+            defaultSelectedKeys={FIRST_KEY}
+            selectionMode="multiple"
+          >
+            <Tree.Item headline="First item" id="first" />
+            <Tree.Item headline="Second item" id="second" />
+          </Tree>,
+          'row',
+        ),
+      ),
+  },
+  {
+    name: "a ListBox option's leading content",
+    slot: () => {
+      render(
+        <ListBox
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <ListBox.Item id="first" leading={LEADING}>
+            First item
+          </ListBox.Item>
+        </ListBox>,
+      )
+
+      return screen.getByText('Leading')
+    },
+  },
+  {
+    name: "a Menu item's leading content",
+    slot: () => {
+      render(
+        <Menu defaultOpen>
+          <Button>Open</Button>
+          <Menu.Content defaultSelectedKeys={FIRST_KEY} selectionMode="single">
+            <Menu.Item id="first">First item</Menu.Item>
+            <Menu.Item id="second" leading={LEADING}>
+              Second item
+            </Menu.Item>
+          </Menu.Content>
+        </Menu>,
+      )
+      const items = screen.getAllByRole('menuitemradio')
+      const unchosen = items.find(
+        (candidate) => candidate.getAttribute('aria-checked') === 'false',
+      )
+      if (unchosen === undefined) {
+        throw new Error('expected an unchecked menu item')
+      }
+      // Chosen, the item draws its check in place of the leading content.
+      fireEvent.click(unchosen)
+
+      const check = unchosen.querySelector('svg')
+      if (check === null) {
+        throw new Error('expected the chosen item to draw its check')
+      }
+      return check
+    },
+  },
+  {
+    name: "a NavigationTree's current row's leading content",
+    slot: () => {
+      render(
+        <NavigationTree aria-label="Label" selectedRoute="#first">
+          <NavigationTree.Item
+            href="#first"
+            id="first"
+            label="First item"
+            leading={LEADING}
+          />
+        </NavigationTree>,
+      )
+
+      return screen.getByText('Leading')
+    },
+  },
+]
+
+const SELECTED_TEXT: ReadonlyArray<{ name: string; text: () => Element }> = [
+  {
+    name: "a ListBox option's headline",
+    text: () => {
+      render(
+        <ListBox
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <ListBox.Item id="first" leading={LEADING}>
+            First item
+          </ListBox.Item>
+        </ListBox>,
+      )
+
+      return screen.getByText('First item')
+    },
+  },
+  {
+    name: "a ListBox option's trailing content",
+    text: () => {
+      render(
+        <ListBox
+          aria-label="Label"
+          defaultSelectedKeys={FIRST_KEY}
+          selectionMode="single"
+        >
+          <ListBox.Item id="first" trailing={TRAILING}>
+            First item
+          </ListBox.Item>
+        </ListBox>,
+      )
+
+      return screen.getByText('Trailing')
+    },
+  },
+]
+
 describe('a selection told by a fill alone', () => {
   it.each(SELECTED_ROWS)('draws $name in Highlight', ({ row }) => {
     const rules = forcedColorRules(row())
@@ -1094,6 +1272,20 @@ describe('a selection told by a fill alone', () => {
     expect(
       forcedColorRules(view.getByText('Supporting line')).get('color'),
     ).toBe('highlighttext')
+  })
+
+  // What a selected row draws before its headline is handed back to the
+  // mode, so a checked box or an icon square takes system colours rather
+  // than the theme's, while the headline and the trailing slot, where the
+  // row's text sits, stay out of it with the row.
+  describe("a selected row's slots", () => {
+    it.each(SELECTED_SLOTS)('hands $name back to the mode', ({ slot }) => {
+      expect(adjustReaching(slot())).toBe('auto')
+    })
+
+    it.each(SELECTED_TEXT)('keeps $name out of the mode', ({ text }) => {
+      expect(adjustReaching(text())).toBe('none')
+    })
   })
 
   // A row's ring takes its text's colour, which is `HighlightText` on a
