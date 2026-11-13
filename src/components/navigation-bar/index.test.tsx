@@ -747,6 +747,26 @@ describe('navigation bar', () => {
       expect(getComputedStyle(current).outlineStyle).toBe('none')
     })
 
+    // Five long labels are each cut short at their destination's share of
+    // the bar. Each is held 4dp in from that share's edges, so an ellipsis
+    // stands 8dp clear of the label beside it and 4dp clear of the bar's
+    // ends, rather than the five reading as one strip.
+    it('leaves room between neighbouring labels cut short', () => {
+      const view = render(<LongLabels />)
+      const links = view.getAllByRole('link')
+      const labels = links.map((link) => labelOf(link).getBoundingClientRect())
+
+      expect(anyCut(links)).toBe(true)
+      for (const [index, link] of links.entries()) {
+        const box = link.getBoundingClientRect()
+        expect(labels[index].left - box.left).toBeCloseTo(4, 1)
+        expect(box.right - labels[index].right).toBeCloseTo(4, 1)
+      }
+      for (const [index, label] of labels.slice(1).entries()) {
+        expect(label.left - labels[index].right).toBeCloseTo(8, 1)
+      }
+    })
+
     it('starts the destinations at the leading edge under right-to-left', () => {
       const view = render(
         <div dir="rtl">
