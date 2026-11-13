@@ -117,6 +117,11 @@ function layerClasses(style: stylex.StyleXStyles) {
   return classes
 }
 
+/** What each row of the open list says, the empty state's row among them. */
+function rowsOf(view: ReturnType<typeof render>) {
+  return view.queryAllByRole('option').map((row) => row.textContent)
+}
+
 // A field that takes more than one option, holding two already.
 function setupMultiple(
   props: Partial<Parameters<typeof ComboBox<object, 'multiple'>>[0]> = {},
@@ -227,14 +232,59 @@ describe('combo box', () => {
       })
 
       // 'item' is in every option's text and at the start of none, so the
-      // default contains filter would keep all three.
+      // default contains filter would keep all three. What is left is the
+      // empty state, which React Aria draws in a row of its own.
       act(() => {
         fireEvent.change(view.input, { target: { value: 'item' } })
       })
 
       await waitFor(() => {
-        expect(view.queryAllByRole('option')).toHaveLength(0)
+        expect(rowsOf(view)).toEqual(['No results'])
       })
+    })
+
+    // React Aria closes a list that a search has emptied unless it is told
+    // to keep it, which left the field holding its text with no list and no
+    // word about why: a list that broke and one with no matches looked the
+    // same. Kept open, the ListBox inside draws its own empty state.
+    it('says No results when nothing matches, rather than closing', async () => {
+      const view = setup()
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'zzz' } })
+      })
+
+      // React Aria draws the empty state in a row of its own, so the list's
+      // one row is that rather than an option.
+      await waitFor(() => {
+        expect(rowsOf(view)).toEqual(['No results'])
+      })
+      expect(view.getByRole('listbox')).not.toBeNull()
+      expect(view.input.getAttribute('aria-expanded')).toBe('true')
+    })
+
+    // The default is the call site's to undo, for a field whose empty list
+    // means something its own copy says better.
+    it('closes an emptied list when told not to keep it', async () => {
+      const view = setup({ allowsEmptyCollection: false })
+      fireEvent.click(view.toggle)
+      await waitFor(() => {
+        expect(view.getAllByRole('option')).toHaveLength(3)
+      })
+
+      act(() => {
+        fireEvent.change(view.input, { target: { value: 'zzz' } })
+      })
+
+      await waitFor(() => {
+        expect(view.queryByRole('listbox')).toBeNull()
+      })
+      expect(view.queryByText('No results')).toBeNull()
+      expect(view.input.getAttribute('aria-expanded')).toBe('false')
     })
   })
 
