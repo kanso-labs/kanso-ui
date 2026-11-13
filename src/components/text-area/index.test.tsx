@@ -39,6 +39,9 @@ const OTHER_ICON = (
 
 const THREE_LINES = 'First line.\nSecond line.\nThird line.'
 const FIVE_LINES = `${THREE_LINES}\nFourth line.\nFifth line.`
+const LONG_WORD = 'Supercalifragilisticexpialidocious'.repeat(4)
+// A holder narrower than the word, so the word has to break to fit.
+const NARROW = { inlineSize: '320px' }
 
 // The box's height for a number of lines: 8 of padding above the small
 // label's line of 16, 24 per line of text, and 8 below.
@@ -123,6 +126,33 @@ describe('text area', () => {
         fireEvent.change(control, { target: { value: `${FIVE_LINES}\n` } })
       })
       expect(box.getBoundingClientRect().height).toBe(boxHeight(6))
+    })
+
+    // A pasted URL or ID has no space to break at. The replica that sizes the
+    // grid wraps it, but a word's width is still the least the grid's column
+    // will shrink to, so the column grew past the box to fit it and took the
+    // page's width with it.
+    it('wraps a long unbroken word inside its box', () => {
+      const view = render(
+        <div style={NARROW}>
+          <TextArea defaultValue={LONG_WORD} label="Label" />
+        </div>,
+      )
+      const control = view.getByLabelText('Label')
+      const box = boxOf(view.getByText('Label', { selector: 'label' }))
+      const holder = view.container.firstElementChild
+      if (!(holder instanceof HTMLElement)) {
+        throw new Error('expected the field to sit in the holder')
+      }
+
+      expect(box.getBoundingClientRect().right).toBeLessThanOrEqual(
+        holder.getBoundingClientRect().right,
+      )
+      expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
+        box.getBoundingClientRect().right,
+      )
+      // Wrapped rather than clipped: the word runs over more than one line.
+      expect(box.getBoundingClientRect().height).toBeGreaterThan(boxHeight(3))
     })
 
     it('keeps its rows and scrolls when not growing', () => {
