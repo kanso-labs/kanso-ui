@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import Calendar from '.'
 import { CalendarDate, getLocalTimeZone, today } from '../../date'
+import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
@@ -12,6 +13,13 @@ import {
   tokenScope,
   typography,
 } from '../../tokens/design.tokens.stylex'
+
+const FORCED_COLORS = 'forced-colors: active'
+
+// The colour a cell names for itself under forced colours, if any.
+function forcedColourOf(cell: Element) {
+  return declarationsHeld(cell, FORCED_COLORS).get('color')
+}
 
 const probeStyles = stylex.create({
   bodyLarge: { fontSize: typography.bodyLargeSize },
@@ -631,6 +639,34 @@ describe('calendar', () => {
       expect(getComputedStyle(outside).color).not.toBe(
         probe(probeStyles.onSurface).color,
       )
+    })
+
+    // A disabled date is a cell React Aria marks `aria-disabled`, not a
+    // disabled native control, so forced colours painted it in CanvasText
+    // like every date that can be picked: the fade was the one cue, and the
+    // mode drops it. A date outside the bounds and one from the month either
+    // side are both disabled, so both name GrayText, and a date that can be
+    // picked names no colour there and is left to the mode.
+    it('draws the dates it disables in GrayText under forced colours', () => {
+      const view = render(
+        <Calendar
+          aria-label="Label"
+          defaultValue={SEPTEMBER}
+          minValue={new CalendarDate(2026, 9, 10)}
+        />,
+      )
+      const outside = view.container.querySelector('[data-outside-month]')
+      if (!(outside instanceof HTMLElement)) {
+        throw new Error('expected a date from an adjacent month')
+      }
+
+      expect(forcedColourOf(cellFor(view, 'Tuesday, September 1, 2026'))).toBe(
+        'graytext',
+      )
+      expect(forcedColourOf(outside)).toBe('graytext')
+      expect(
+        forcedColourOf(cellFor(view, 'Wednesday, September 16, 2026')),
+      ).toBeUndefined()
     })
   })
 
