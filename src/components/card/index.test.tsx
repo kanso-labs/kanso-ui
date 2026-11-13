@@ -843,6 +843,51 @@ describe('card', () => {
       expect(expected).not.toBe('0px')
     })
 
+    // The outlined card's rule sits inside its border box, so on top of the
+    // padding it pushed the content 1px further in than the other variants
+    // put theirs: side by side, its headline sat lower and further in.
+    it('insets the content of every variant by the same amount', () => {
+      const insets = (['elevated', 'filled', 'outlined'] as const).map(
+        (variant) => {
+          const view = render(
+            <Card variant={variant}>
+              <span data-testid="content">content</span>
+            </Card>,
+          )
+          const card = cardIn(view.container).getBoundingClientRect()
+          const content = view.getByTestId('content').getBoundingClientRect()
+          view.unmount()
+          return {
+            bottom: card.bottom - content.bottom,
+            left: content.left - card.left,
+            top: content.top - card.top,
+          }
+        },
+      )
+
+      expect(insets[2]).toEqual(insets[0])
+      expect(insets[1]).toEqual(insets[0])
+      expect(insets[0].top).toBeGreaterThan(0)
+    })
+
+    it('starts every headline in the Interactive story at the same offset', () => {
+      const Row = composeStory(Interactive, meta)
+      const view = render(<Row />)
+      const offsets = view.getAllByText('Headline').map((headline) => {
+        const card = headline.closest('button')
+        if (card === null) {
+          throw new Error('expected the headline inside a card')
+        }
+        const outer = card.getBoundingClientRect()
+        const inner = headline.getBoundingClientRect()
+        return { left: inner.left - outer.left, top: inner.top - outer.top }
+      })
+
+      expect(offsets).toHaveLength(3)
+      expect(new Set(offsets.map(({ top }) => top)).size).toBe(1)
+      expect(new Set(offsets.map(({ left }) => left)).size).toBe(1)
+    })
+
     // This is what makes the design's bordered list container possible: rows
     // reach the card's edges and the rules between them span its full width.
     it('drops its padding entirely when asked', () => {
