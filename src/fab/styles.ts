@@ -55,6 +55,11 @@ const fabStyles = stylex.create({
     },
     cursor: 'not-allowed',
   },
+  // The extended FAB, kept inside the box it is placed in, so a label wider
+  // than that box is cut short rather than pushing the FAB past its edge.
+  extended: {
+    maxInlineSize: '100%',
+  },
   // The layers, in the label's own colour over whatever the container is.
   // A gradient from one colour to itself is how a flat colour is laid over
   // a background colour rather than replacing it.
@@ -72,6 +77,19 @@ const fabStyles = stylex.create({
     display: 'inline-flex',
     flexShrink: 0,
     justifyContent: 'center',
+  },
+  // The extended FAB's label, on one line as the pages draw it: allowed to
+  // wrap, a long one broke onto lines the size's fixed height had no room
+  // for. Cut short across with an ellipsis instead, and never down, so a
+  // reader's wider text spacing keeps the bottom of the line, as
+  // src/navigation's labels are. `minInlineSize` lets it shrink below its
+  // text, which a flex item clipped by `clip` otherwise will not.
+  label: {
+    minInlineSize: 0,
+    overflowX: 'clip',
+    overflowY: 'visible',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   pressed: {
     backgroundImage: `linear-gradient(color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent), color-mix(in srgb, currentColor calc(${stateLayerOpacity.pressed} * 100%), transparent))`,
