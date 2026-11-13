@@ -117,6 +117,33 @@ describe('code', () => {
     })
   })
 
+  // The mono stack names no face Windows ships ahead of the generic
+  // `monospace`, and under a Japanese or Korean page Chromium resolves that
+  // generic to a face drawing U+005C as a yen or a won sign, so a path showed
+  // one character and copied another. Code is in English whatever the page's
+  // language, which is what picks a Latin face for it, unless the call site
+  // says otherwise.
+  describe('under a Japanese or Korean page', () => {
+    it.each(['ja-JP', 'ko-KR'])(
+      'marks the code as English under %s',
+      (lang) => {
+        const view = render(
+          <div lang={lang}>
+            <Code data-testid="code">{'C:\\path\\to'}</Code>
+          </div>,
+        )
+        const code = view.getByTestId('code')
+
+        expect(code.closest('[lang]')?.getAttribute('lang')).toBe('en')
+      },
+    )
+
+    it('keeps a language the call site gives it', () => {
+      const { code } = setup({ lang: 'ja' })
+      expect(code.getAttribute('lang')).toBe('ja')
+    })
+  })
+
   // The mono face is the whole signal, so a container would be a second one.
   // This pins that decision rather than leaving it to drift.
   describe('surface', () => {
