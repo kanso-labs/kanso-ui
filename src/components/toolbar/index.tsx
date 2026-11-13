@@ -57,17 +57,33 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 // its container and squares its corner, both from the call site.
 
 const styles = stylex.create({
+  // A grid rather than a flex row, because a flex item shrinks to its
+  // min-content width and a Button's is a single letter: it wraps its label
+  // rather than overflow a narrow container, so a flex bar on a phone would
+  // squeeze it until the label broke after every letter. The bar has no say
+  // over its children's `flex-shrink`, and a grid's tracks are its own.
+  //
+  // A bar narrower than its controls then scrolls inside what holds it, as
+  // a scrollable Tabs does and with no scrollbar for the same reason — the
+  // control cut off at its edge is what says there is more — rather than
+  // overflow the page sideways or squeeze a control out of shape. Every
+  // control keeps the size and the one line its own spec gives it, and a
+  // control that Tab or an arrow key moves focus to is scrolled into view.
   base: {
-    alignItems: 'center',
+    '::-webkit-scrollbar': {
+      display: 'none',
+    },
     borderRadius: radii.pill,
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
-    display: 'inline-flex',
+    display: 'inline-grid',
     gap: spacing.sm,
-    justifyContent: 'center',
+    maxInlineSize: '100%',
     // React Aria moves focus to a control inside rather than to the
     // container, and each control draws its own ring.
     outlineStyle: 'none',
+    overflow: 'auto',
+    scrollbarWidth: 'none',
   },
   // The page's 64dp across the bar, and its 16dp of padding at the two ends.
   // A minimum rather than a fixed size, since a field or a button taller
@@ -75,11 +91,22 @@ const styles = stylex.create({
   //
   // The cross axis takes the 8dp the page puts between items rather than
   // nothing, and that is a layout consequence rather than a value the page
-  // states: a `Separator` takes its length from the flex parent, so with no
-  // padding there a rule runs the full 64dp and cuts the container in two
-  // instead of dividing what is inside it.
+  // states: a `Separator` takes its length from the row it sits in, which
+  // fills the bar's height, so with no padding there a rule runs the full
+  // 64dp and cuts the container in two instead of dividing what is inside
+  // it.
+  //
+  // One column per control, each as wide as the control's own max-content
+  // width, centred along the bar when it is wider than they need. `safe`
+  // because centring a row wider than the bar pushes as much of it past the
+  // start edge as past the end, and a scroll container cannot reach what
+  // lies before its start: the first control would be cut off with no way
+  // to scroll to it.
   horizontal: {
-    flexDirection: 'row',
+    alignItems: 'center',
+    gridAutoColumns: 'max-content',
+    gridAutoFlow: 'column',
+    justifyContent: 'safe center',
     minBlockSize: '64px',
     paddingBlock: spacing.sm,
     paddingInline: spacing.lg,
@@ -87,8 +114,13 @@ const styles = stylex.create({
   neutral: {
     backgroundColor: colors.surfaceContainer,
   },
+  // The same turned a quarter: one row per control, centred down the bar —
+  // safely, for the same reason — and the column they share filling its
+  // width, which is what a rule runs across.
   vertical: {
-    flexDirection: 'column',
+    alignContent: 'safe center',
+    gridAutoFlow: 'row',
+    justifyItems: 'center',
     minInlineSize: '64px',
     paddingBlock: spacing.lg,
     paddingInline: spacing.sm,
@@ -149,6 +181,10 @@ type ToolbarTone = 'neutral' | 'vibrant'
  *
  * The call site's `className` and `style` land on the container, which is
  * the element a layout positions.
+ *
+ * Every control keeps its own width. A bar given less room than its controls
+ * need — a phone's width, say — stays inside it and scrolls along its length
+ * rather than squeezing a control or overflowing the page.
  */
 function Toolbar({
   orientation = 'horizontal',
