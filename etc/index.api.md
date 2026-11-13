@@ -396,9 +396,15 @@ export type ChipActionProps = ChipBaseProps & Omit<ButtonProps_2, 'children' | '
     variant: 'assist' | 'suggestion';
 };
 
+// Warning: (ae-forgotten-export) The symbol "ChipSelectableProps" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type ChipFilterProps = ChipBaseProps & Omit<ToggleButtonProps, 'children'> & {
-    trailingIcon?: ReactNode;
+export type ChipDropdownProps = ChipBaseProps & ChipSelectableProps & Omit<ButtonProps_2, 'children' | 'isPending'> & {
+    variant: 'dropdown';
+};
+
+// @public
+export type ChipFilterProps = ChipBaseProps & ChipSelectableProps & Omit<ToggleButtonProps, 'children' | 'isSelected'> & {
     variant?: 'filter';
 };
 
@@ -434,10 +440,10 @@ export type ChipGroupProps<T extends object = object> = {
 } & Omit<TagGroupProps, 'children' | 'escapeKeyBehavior'> & Pick<TagListProps<T>, 'items' | 'renderEmptyState'>;
 
 // @public (undocumented)
-export type ChipProps = ChipActionProps | ChipFilterProps;
+export type ChipProps = ChipActionProps | ChipDropdownProps | ChipFilterProps;
 
 // @public
-export type ChipVariant = 'assist' | 'filter' | 'suggestion';
+export type ChipVariant = 'assist' | 'dropdown' | 'filter' | 'suggestion';
 
 // @public
 export function Code(input: CodeProps): ReactElement<unknown, string | JSXElementConstructor<any>>;

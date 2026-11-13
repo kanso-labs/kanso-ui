@@ -35,6 +35,12 @@ import { mergeStatefulStyles } from '../../styles/merge'
 // - **A filter chip**, the default, is React Aria's `ToggleButton`: a
 //   two-state button announced through `aria-pressed`, which takes the
 //   secondary container and the check once selected.
+// - **A dropdown chip** is the page's dropdown filter chip, a menu's
+//   trigger, and React Aria's `Button`: a press opens the menu and toggles
+//   nothing, so a toggle's `aria-pressed` would announce a pressed button
+//   that is also a collapsed menu. It draws the filter chip's pill, and its
+//   selected look is the call site's `isSelected`, drawn rather than
+//   announced, since what the menu has chosen is the menu's to say.
 // - **An assist or suggestion chip** is React Aria's `Button`: an action, so
 //   nothing is announced as pressed and nothing is ever selected. The two
 //   differ in the label's role alone; see `src/chip/styles.ts`.
@@ -94,30 +100,57 @@ type ChipBaseProps = {
   icon?: ReactNode
 }
 
+/** A dropdown chip: a menu's trigger, drawn as a filter chip. */
+type ChipDropdownProps = ChipBaseProps &
+  ChipSelectableProps &
+  Omit<RACButtonProps, 'children' | 'isPending'> & {
+    // Described on the filter chip's `variant`, for the action chip's reason.
+    variant: 'dropdown'
+  }
+
 /** A filter chip: a two-state button, the default. */
 type ChipFilterProps = ChipBaseProps &
-  Omit<RACToggleButtonProps, 'children'> & {
+  ChipSelectableProps &
+  Omit<RACToggleButtonProps, 'children' | 'isSelected'> & {
     /**
-     * An icon after the label, in the same 18dp slot and the chip's own
-     * content role, which is the page's dropdown filter chip: an arrow here
-     * says the chip opens a menu. It stays while the chip is selected. An
-     * icon drawn in `em` takes its size from the slot.
-     */
-    trailingIcon?: ReactNode
-    /**
-     * `filter`, the default, for a two-state button; `assist` for an action
-     * the chip's context suggests, and `suggestion` for one the product
-     * generates. Either of those is an action rather than a selection, so
-     * neither is ever selected.
+     * `filter`, the default, for a two-state button; `dropdown` for the
+     * page's dropdown filter chip, which opens a menu and so is a plain
+     * button rather than a toggle; `assist` for an action the chip's context
+     * suggests, and `suggestion` for one the product generates. Either of
+     * those two is an action rather than a selection, so neither is ever
+     * selected.
      * @default 'filter'
      */
     variant?: 'filter'
   }
 
-type ChipProps = ChipActionProps | ChipFilterProps
+type ChipProps = ChipActionProps | ChipDropdownProps | ChipFilterProps
+
+/**
+ * What the filter chip and the dropdown chip take and the action chips do
+ * not: both draw the pill a selection changes. Declared once, for the reason
+ * `ChipBaseProps` is.
+ */
+type ChipSelectableProps = {
+  /**
+   * Draws the chip selected: the secondary container, and the check in front
+   * of the label. On a filter chip it is the toggle's state, announced
+   * through `aria-pressed`: pass it with `onChange` to control it. On a
+   * dropdown chip it is drawn only, for a menu that has a choice, and the
+   * chip's label is the place to name that choice.
+   */
+  isSelected?: boolean
+  /**
+   * An icon after the label, in the same 18dp slot and the chip's own
+   * content role, which is the page's dropdown filter chip: an arrow here
+   * says the chip opens a menu. It stays while the chip is selected. An
+   * icon drawn in `em` takes its size from the slot.
+   */
+  trailingIcon?: ReactNode
+}
 
 /** Which of the chips page's chips a Chip is. */
-type ChipVariant = 'assist' | 'filter' | 'suggestion'
+type ChipVariant = 'assist' | 'dropdown' | 'filter' | 'suggestion'
 
 function ActionChip({
   children,
@@ -196,9 +229,11 @@ function actionChipContent(
  * time or several, is a `ChipGroup`, which keeps the rule, moves between the
  * chips with the arrow keys and labels the set.
  *
- * Given a `trailingIcon`, a filter chip is the page's dropdown filter chip:
- * placed first inside a `Menu`, it opens the menu, and an arrow after its
- * label says so.
+ * `variant="dropdown"` is the page's dropdown filter chip: placed first
+ * inside a `Menu`, it opens the menu, and a `trailingIcon` arrow after its
+ * label says so. It is a menu button rather than a toggle, so it announces no
+ * pressed state; `isSelected` draws it selected once the menu has a choice,
+ * and its label is where to name that choice.
  *
  * `variant="assist"` and `variant="suggestion"` draw the page's two action
  * chips instead: plain buttons, pressed with `onPress`, never selected.
@@ -218,6 +253,9 @@ function Chip(props: ChipProps & RefAttributes<HTMLButtonElement>) {
   if (isAction(props)) {
     return <ActionChip {...props} />
   }
+  if (isDropdown(props)) {
+    return <DropdownChip {...props} />
+  }
   return <FilterChip {...props} />
 }
 
@@ -235,6 +273,81 @@ function chipContent(
   return (state: ToggleButtonRenderProps) => (
     <>
       {chipGlyph(state, icon)}
+      {chipLabel(children)}
+      {chipTrailingIcon(trailingIcon)}
+      {surface}
+    </>
+  )
+}
+
+function DropdownChip({
+  children,
+  elevated = false,
+  icon,
+  isSelected = false,
+  onClick,
+  onContextMenu,
+  onKeyDown,
+  onKeyUp,
+  onPointerCancel,
+  onPointerDown,
+  onPointerLeave,
+  onPointerUp,
+  render,
+  trailingIcon,
+  // Taken out so it is not handed to the button: the chip is always the
+  // dropdown here, and the pill it draws is the filter chip's.
+  variant: _variant,
+  ...props
+}: ChipDropdownProps & RefAttributes<HTMLButtonElement>) {
+  const element = { aria: ariaAttributesOf(props), onKeyDown, onKeyUp }
+  // Off while disabled, and taking `onClick`, for the action chip's reasons.
+  const ripple = useRipple<FocusableElement>(props.isDisabled !== true, {
+    onClick,
+    onContextMenu,
+    onPointerCancel,
+    onPointerDown,
+    onPointerLeave,
+    onPointerUp,
+  })
+
+  return (
+    <Button
+      render={buttonRenderer(element, render)}
+      {...ripple.handlers}
+      {...props}
+      {...mergeStatefulStyles(dropdownChipClasses(isSelected, elevated), props)}
+    >
+      {dropdownChipContent(
+        children,
+        icon,
+        trailingIcon,
+        isSelected,
+        ripple.surface,
+      )}
+    </Button>
+  )
+}
+
+// A dropdown chip's classes: the filter chip's pill, selected as the call
+// site says rather than as a press leaves it.
+function dropdownChipClasses(isSelected: boolean, elevated: boolean) {
+  return (state: ButtonRenderProps) =>
+    chipPropsFor({ ...state, isSelected }, { elevated, kind: 'filter' })
+}
+
+// What a dropdown chip draws: what a filter chip draws, from the call site's
+// `isSelected` rather than a toggle's state.
+function dropdownChipContent(
+  children: ReactNode,
+  icon: ReactNode,
+  trailingIcon: ReactNode,
+  isSelected: boolean,
+  surface: ReactNode,
+) {
+  return (state: ButtonRenderProps) => (
+    <>
+      {chipGlyph({ isDisabled: state.isDisabled, isSelected }, icon)}
       {chipLabel(children)}
       {chipTrailingIcon(trailingIcon)}
       {surface}
@@ -299,6 +412,17 @@ function isAction(props: ChipProps): props is ChipActionProps {
   return props.variant === 'assist' || props.variant === 'suggestion'
 }
 
-export type { ChipActionProps, ChipFilterProps, ChipProps, ChipVariant }
+// Whether a chip is the dropdown chip, a guard for the same reason.
+function isDropdown(props: ChipProps): props is ChipDropdownProps {
+  return props.variant === 'dropdown'
+}
+
+export type {
+  ChipActionProps,
+  ChipDropdownProps,
+  ChipFilterProps,
+  ChipProps,
+  ChipVariant,
+}
 
 export default Chip
