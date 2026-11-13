@@ -658,6 +658,30 @@ describe('time picker', () => {
       expect(morning.get('background-color')).toBe('highlight')
     })
 
+    // Left to the mode, the text keeps HighlightText while the browser lays
+    // its Canvas backplate behind it, so the value read white on white.
+    // Opting the selected box and period out keeps the pair whole, as a
+    // selected row does in src/row/styles.ts.
+    it('keeps the followed box and the chosen period out of the mode’s backplate', () => {
+      const view = render(<TimePicker defaultValue={TIME} label="Label" />)
+      const dialog = open(view)
+      const hour = declarationsHeld(boxOf(dialog, 'hour'), FORCED_COLORS)
+      const minute = declarationsHeld(boxOf(dialog, 'minute'), FORCED_COLORS)
+      const morning = declarationsHeld(
+        view.getByRole('radio', { name: 'AM' }),
+        FORCED_COLORS,
+      )
+      const evening = declarationsHeld(
+        view.getByRole('radio', { name: 'PM' }),
+        FORCED_COLORS,
+      )
+
+      expect(hour.get('forced-color-adjust')).toBe('none')
+      expect(morning.get('forced-color-adjust')).toBe('none')
+      expect(minute.get('forced-color-adjust')).toBeUndefined()
+      expect(evening.get('forced-color-adjust')).toBeUndefined()
+    })
+
     it('draws the container’s edge as a CanvasText border', () => {
       const view = render(<TimePicker defaultValue={TIME} label="Label" />)
       const container = open(view).parentElement

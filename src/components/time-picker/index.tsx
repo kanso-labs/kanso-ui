@@ -320,6 +320,10 @@ const styles = stylex.create({
   periodInput: {
     blockSize: sizing.rowMd,
   },
+  // Under forced colours the pair is drawn whole, out of the mode: left to
+  // it, the browser lays its Canvas backplate behind the HighlightText and
+  // the chosen period reads white on white. A selected row does the same —
+  // see `selectedDrawer` in src/row/styles.ts.
   periodSelected: {
     backgroundColor: {
       default: colors.tertiaryContainer,
@@ -329,6 +333,7 @@ const styles = stylex.create({
       default: colors.onTertiaryContainer,
       [FORCED_COLORS]: 'HighlightText',
     },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   periodSelectedHovered: {
     backgroundColor: {
@@ -393,6 +398,7 @@ const styles = stylex.create({
     outlineOffset: '-2px',
     outlineStyle: 'solid',
   },
+  // Drawn whole under forced colours, for the reason `periodSelected` gives.
   selectorSelected: {
     backgroundColor: {
       default: colors.primaryContainer,
@@ -402,6 +408,7 @@ const styles = stylex.create({
       default: colors.onPrimaryContainer,
       [FORCED_COLORS]: 'HighlightText',
     },
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
   },
   selectorSelectedHovered: {
     backgroundColor: {
