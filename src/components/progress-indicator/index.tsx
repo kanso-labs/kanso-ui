@@ -33,6 +33,14 @@ import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 // track picks up past it and stops short of coming back round, leaving the
 // line's 4dp between the arcs' round ends — see `arcsFor`.
 //
+// The indeterminate line keeps the same 4dp, as Compose's does: its track is
+// the pieces the two bars leave before, between and after them, each the gap
+// clear of the bar beside it and following it as it moves — see
+// `primaryTravel` and `trackAfterPrimary`. The wavy line keeps its track
+// whole under the wave, whose dashes are placed from each bar's start rather
+// than about its middle and so are not where the flat bars are; the pieces
+// are drawn wherever the flat bars are instead.
+//
 // The animations are Material's own rather than something assembled from
 // the motion tokens: an indeterminate indicator is a piece of choreography,
 // and one written from scratch reads as a different component beside a
@@ -123,6 +131,15 @@ const RING_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
 // shared line's, since a meter moves the same way.
 const INDETERMINATE_MS = 2000
 const BUFFER_MS = 250
+
+// The middles of the indeterminate line's two bars before they move, as
+// shares of the row: each bar is a row wide, so its middle is half a row past
+// where it starts — see `primaryBar` and `secondaryBar`. And how far a piece
+// of the track reaches from the bar end it follows, which is the two rows the
+// furthest a bar travels, so a piece always reaches the row's far end.
+const PRIMARY_MIDDLE = -95.167
+const SECONDARY_MIDDLE = -4.8889
+const TRACK_REACH = 200
 
 // What `prefers-reduced-motion` slows each indeterminate shape by.
 const LINE_SLOWDOWN = 2
@@ -224,6 +241,144 @@ const secondaryScale = stylex.keyframes({
     transform: 'scaleX(0.72796)',
   },
   '100%': { transform: 'scaleX(0.08)' },
+})
+
+// The indeterminate track's pieces, which follow the bars rather than being
+// drawn by them. Each bar is two moves at once — its translation, and its
+// scale about its own middle — and a piece takes the two as two moves of its
+// own: the translation as `translate`, and the end of the scaled bar it sits
+// beside as a `transform`, half the scale's share of the row either side of
+// the middle. The two properties compose by adding, and each runs on its
+// bar's own keyframes, at the same times and on the same curves, so a piece
+// is exactly where its bar's end is at every moment. They are written in
+// `cqi`, shares of the row, since a piece is wider than the row and a
+// percentage would be a share of the piece.
+//
+// `Return` and the shift the other way are what a clip uses to hand its
+// contents back to the row's own frame — see `trackBeforeSecondary`.
+const primaryTravel = stylex.keyframes({
+  '0%': { translate: '0cqi' },
+  '20%': {
+    animationTimingFunction: 'cubic-bezier(0.5, 0, 0.701732, 0.495819)',
+    translate: '0cqi',
+  },
+  '59.15%': {
+    animationTimingFunction: 'cubic-bezier(0.302435, 0.381352, 0.55, 0.956352)',
+    translate: '83.6714cqi',
+  },
+  '100%': { translate: '200.611cqi' },
+})
+
+const primaryReturn = stylex.keyframes({
+  '0%': { translate: '0cqi' },
+  '20%': {
+    animationTimingFunction: 'cubic-bezier(0.5, 0, 0.701732, 0.495819)',
+    translate: '0cqi',
+  },
+  '59.15%': {
+    animationTimingFunction: 'cubic-bezier(0.302435, 0.381352, 0.55, 0.956352)',
+    translate: '-83.6714cqi',
+  },
+  '100%': { translate: '-200.611cqi' },
+})
+
+// Where the primary bar starts and ends either side of its middle: half its
+// scale, 0.08, 0.661479 and back, as a share of the row.
+const primaryStartShift = stylex.keyframes({
+  '0%': { transform: 'translateX(-4cqi)' },
+  '36.65%': {
+    animationTimingFunction: 'cubic-bezier(0.334731, 0.12482, 0.785844, 1)',
+    transform: 'translateX(-4cqi)',
+  },
+  '69.15%': {
+    animationTimingFunction: 'cubic-bezier(0.06, 0.11, 0.6, 1)',
+    transform: 'translateX(-33.07395cqi)',
+  },
+  '100%': { transform: 'translateX(-4cqi)' },
+})
+
+const primaryEndShift = stylex.keyframes({
+  '0%': { transform: 'translateX(4cqi)' },
+  '36.65%': {
+    animationTimingFunction: 'cubic-bezier(0.334731, 0.12482, 0.785844, 1)',
+    transform: 'translateX(4cqi)',
+  },
+  '69.15%': {
+    animationTimingFunction: 'cubic-bezier(0.06, 0.11, 0.6, 1)',
+    transform: 'translateX(33.07395cqi)',
+  },
+  '100%': { transform: 'translateX(4cqi)' },
+})
+
+const secondaryTravel = stylex.keyframes({
+  '0%': {
+    animationTimingFunction: 'cubic-bezier(0.15, 0, 0.515058, 0.409685)',
+    translate: '0cqi',
+  },
+  '25%': {
+    animationTimingFunction: 'cubic-bezier(0.31033, 0.284058, 0.8, 0.733712)',
+    translate: '37.6519cqi',
+  },
+  '48.35%': {
+    animationTimingFunction: 'cubic-bezier(0.4, 0.627035, 0.6, 0.902026)',
+    translate: '84.3862cqi',
+  },
+  '100%': { translate: '160.278cqi' },
+})
+
+const secondaryReturn = stylex.keyframes({
+  '0%': {
+    animationTimingFunction: 'cubic-bezier(0.15, 0, 0.515058, 0.409685)',
+    translate: '0cqi',
+  },
+  '25%': {
+    animationTimingFunction: 'cubic-bezier(0.31033, 0.284058, 0.8, 0.733712)',
+    translate: '-37.6519cqi',
+  },
+  '48.35%': {
+    animationTimingFunction: 'cubic-bezier(0.4, 0.627035, 0.6, 0.902026)',
+    translate: '-84.3862cqi',
+  },
+  '100%': { translate: '-160.278cqi' },
+})
+
+// Half the secondary bar's scale: 0.08, 0.457104, 0.72796 and back.
+const secondaryStartShift = stylex.keyframes({
+  '0%': {
+    animationTimingFunction:
+      'cubic-bezier(0.205028, 0.057051, 0.57661, 0.453971)',
+    transform: 'translateX(-4cqi)',
+  },
+  '19.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.152313, 0.196432, 0.648374, 1.00432)',
+    transform: 'translateX(-22.8552cqi)',
+  },
+  '44.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.257759, -0.003163, 0.211762, 1.38179)',
+    transform: 'translateX(-36.398cqi)',
+  },
+  '100%': { transform: 'translateX(-4cqi)' },
+})
+
+const secondaryEndShift = stylex.keyframes({
+  '0%': {
+    animationTimingFunction:
+      'cubic-bezier(0.205028, 0.057051, 0.57661, 0.453971)',
+    transform: 'translateX(4cqi)',
+  },
+  '19.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.152313, 0.196432, 0.648374, 1.00432)',
+    transform: 'translateX(22.8552cqi)',
+  },
+  '44.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.257759, -0.003163, 0.211762, 1.38179)',
+    transform: 'translateX(36.398cqi)',
+  },
+  '100%': { transform: 'translateX(4cqi)' },
 })
 
 // The buffer's dots scroll by one pitch of the pattern and start again.
@@ -497,7 +652,8 @@ const styles = stylex.create({
     inset: 0,
     position: 'absolute',
   },
-  // The row the bars run inside, which clips them at both ends.
+  // The row the bars run inside, which clips them at both ends, and the
+  // container the track's pieces are measured against.
   //
   // The whole row is mirrored under a right-to-left writing mode, which is
   // what makes the sweep travel in the reading direction. The bars inside it
@@ -511,13 +667,16 @@ const styles = stylex.create({
     blockSize: `${THICKNESS}px`,
     borderRadius: radii.pill,
     boxSizing: 'border-box',
+    containerType: 'inline-size',
     inlineSize: '100%',
     overflow: 'hidden',
     position: 'relative',
     transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
   },
-  // The pill is the row's clip as well, and is repeated here only so the
-  // forced-colours edge follows it rather than being cut at the corners.
+  // The wavy line's track while the wave is drawn, whole under it, since the
+  // wave's dashes are not where the flat bars are. The pill is the row's clip
+  // as well, and is repeated here only so the forced-colours edge follows it
+  // rather than being cut at the corners.
   indeterminateTrack: {
     backgroundColor: colors.secondaryContainer,
     borderRadius: radii.pill,
@@ -600,6 +759,51 @@ const styles = stylex.create({
     animationTimingFunction: 'linear, linear',
     stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
+  // The indeterminate track's pieces, each placed by the bar end it follows:
+  // its static place is that end before the bar moves, the gap beyond it,
+  // and the two keyframes on it move it as the end moves — see
+  // `primaryTravel`.
+  //
+  // The piece after the primary bar is the one between the bars, and it ends
+  // at the secondary bar's start, which moves on keyframes of its own. It is
+  // drawn inside a clip that follows the secondary bar's start, then, and
+  // the clip hands its contents back to the row's frame by undoing its own
+  // two moves, so the piece inside follows the primary bar as the others do.
+  // The piece before the primary bar shares that clip, which never cuts it:
+  // the primary bar trails the secondary across the whole cycle. The clip is
+  // a pill, which rounds the end it cuts as the page rounds every end.
+  trackAfterPrimary: {
+    animationName: `${primaryTravel}, ${primaryEndShift}`,
+    left: `calc(${PRIMARY_MIDDLE}cqi + ${GAP}px)`,
+  },
+  // Under forced colours a piece is its edge alone, and a clip cuts the
+  // edge it rounds: the piece between the bars lost its last end. The same
+  // stretch is drawn again the other way round for that mode — the piece
+  // that ends at the secondary bar, inside a clip that follows the primary —
+  // and the two edges together close it at both ends.
+  trackAfterPrimaryEdge: {
+    display: { default: 'none', [FORCED_COLORS]: 'block' },
+  },
+  trackAfterPrimaryEdgeFrame: {
+    animationName: `${primaryReturn}, ${primaryStartShift}`,
+    left: `calc(${-PRIMARY_MIDDLE}cqi - ${GAP}px)`,
+  },
+  trackAfterSecondary: {
+    animationName: `${secondaryTravel}, ${secondaryEndShift}`,
+    left: `calc(${SECONDARY_MIDDLE}cqi + ${GAP}px)`,
+  },
+  trackBeforePrimary: {
+    animationName: `${primaryTravel}, ${primaryStartShift}`,
+    left: `calc(${PRIMARY_MIDDLE}cqi - ${TRACK_REACH}cqi - ${GAP}px)`,
+  },
+  trackBeforeSecondary: {
+    animationName: `${secondaryTravel}, ${secondaryStartShift}`,
+    left: `calc(${SECONDARY_MIDDLE}cqi - ${TRACK_REACH}cqi - ${GAP}px)`,
+  },
+  trackBeforeSecondaryFrame: {
+    animationName: `${secondaryReturn}, ${secondaryEndShift}`,
+    left: `calc(${TRACK_REACH}cqi - ${SECONDARY_MIDDLE}cqi + ${GAP}px)`,
+  },
   trackBuffered: {
     backgroundColor: colors.secondaryContainer,
     blockSize: '100%',
@@ -610,6 +814,54 @@ const styles = stylex.create({
   trackBufferedAt: (share: number) => ({
     inlineSize: `${share}%`,
   }),
+  trackClip: {
+    borderRadius: radii.pill,
+    inlineSize: `${TRACK_REACH}cqi`,
+    overflow: 'hidden',
+  },
+  trackFill: {
+    backgroundColor: colors.secondaryContainer,
+  },
+  // A clip's contents, a row wide and back where the row is.
+  trackFrame: {
+    inlineSize: '100cqi',
+  },
+  // What every element of the indeterminate track shares: placed in the
+  // row's height, and moved over the bars' 2s, slowed with them under
+  // reduced motion.
+  trackMotion: {
+    animationDuration: {
+      default: `${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms`,
+      [REDUCED_MOTION]: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms, ${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
+    },
+    animationIterationCount: 'infinite, infinite',
+    animationTimingFunction: 'linear, linear',
+    blockSize: '100%',
+    boxSizing: 'border-box',
+    insetBlockStart: 0,
+    position: 'absolute',
+  },
+  // A piece of the track, with the forced-colours edge the whole track
+  // keeps — see `indeterminateTrack`.
+  trackPiece: {
+    borderRadius: radii.pill,
+    inlineSize: `${TRACK_REACH}cqi`,
+    outlineColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    outlineOffset: { default: null, [FORCED_COLORS]: '-1px' },
+    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    outlineWidth: { default: null, [FORCED_COLORS]: '1px' },
+  },
+  // The pieces together, over the row.
+  trackPieces: {
+    boxSizing: 'border-box',
+    inset: 0,
+    position: 'absolute',
+  },
+  // The wavy line's whole track, which gives way to the pieces wherever the
+  // flat bars are drawn instead of the wave.
+  trackUnderLineWave: {
+    opacity: { default: 1, [REDUCED_MOTION]: 0, [TOO_WIDE]: 0 },
+  },
   // The determinate line's wave, cut to the active indicator's length by its
   // dash: the value's share of the row less the stop and the gap before it,
   // as `activeAt` gives the flat one, less the half stroke each round cap
@@ -954,14 +1206,90 @@ function LinearTrack({
   const wavy = shape === 'wavy'
 
   if (isIndeterminate) {
+    // The pieces stand in for the wavy line's whole track only where the
+    // flat bars are drawn.
+    const piece = wavy && styles.flatUnderLineWave
+    const fill = [styles.trackFill, inherit && indicatorStyles.inheritTrack]
     const bars = (
       <div {...stylex.props(styles.indeterminateRow)}>
-        <span
-          {...stylex.props(
-            styles.indeterminateTrack,
-            inherit && indicatorStyles.inheritTrack,
-          )}
-        />
+        <span {...stylex.props(styles.trackPieces)}>
+          {wavy ? (
+            <span
+              {...stylex.props(
+                styles.indeterminateTrack,
+                inherit && indicatorStyles.inheritTrack,
+                styles.trackUnderLineWave,
+              )}
+            />
+          ) : null}
+          <span
+            {...stylex.props(
+              styles.trackMotion,
+              styles.trackClip,
+              styles.trackBeforeSecondary,
+              piece,
+            )}
+          >
+            <span
+              {...stylex.props(
+                styles.trackMotion,
+                styles.trackFrame,
+                styles.trackBeforeSecondaryFrame,
+              )}
+            >
+              <span
+                {...stylex.props(
+                  styles.trackMotion,
+                  styles.trackPiece,
+                  fill,
+                  styles.trackBeforePrimary,
+                )}
+              />
+              <span
+                {...stylex.props(
+                  styles.trackMotion,
+                  styles.trackPiece,
+                  fill,
+                  styles.trackAfterPrimary,
+                )}
+              />
+            </span>
+          </span>
+          <span
+            {...stylex.props(
+              styles.trackMotion,
+              styles.trackClip,
+              styles.trackAfterPrimary,
+              styles.trackAfterPrimaryEdge,
+              piece,
+            )}
+          >
+            <span
+              {...stylex.props(
+                styles.trackMotion,
+                styles.trackFrame,
+                styles.trackAfterPrimaryEdgeFrame,
+              )}
+            >
+              <span
+                {...stylex.props(
+                  styles.trackMotion,
+                  styles.trackPiece,
+                  styles.trackBeforeSecondary,
+                )}
+              />
+            </span>
+          </span>
+          <span
+            {...stylex.props(
+              styles.trackMotion,
+              styles.trackPiece,
+              fill,
+              styles.trackAfterSecondary,
+              piece,
+            )}
+          />
+        </span>
         <span
           {...stylex.props(
             styles.indeterminateBar,

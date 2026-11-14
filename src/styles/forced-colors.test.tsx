@@ -157,7 +157,7 @@ function forcedColorRules(element: Element, pseudoElement = '') {
 /**
  * The parts of the line a meter or a linear progress indicator draws under
  * its label row, in order: the active indicator, the track and the stop, or
- * for an indeterminate line the track and the two bars.
+ * for an indeterminate line the track's pieces together and the two bars.
  */
 function lineOf(element: ReactElement): Element[] {
   const view = render(element)
@@ -486,8 +486,17 @@ describe('a boundary drawn in a shadow or a fill', () => {
           forcedColorRules(firstChildOf(bar, 'a bar')).get('background-color'),
         ).toBe('highlight')
       }
-      expect(forcedColorRules(track).get('outline-style')).toBe('solid')
-      expect(forcedColorRules(track).get('outline-color')).toBe('canvastext')
+      // The track is the pieces the bars leave, and each keeps its edge —
+      // the pieces either side of the bars, and the two that between them
+      // close the stretch between the bars at both ends.
+      const pieces = [...track.querySelectorAll('*')].filter(
+        (part) => part.childElementCount === 0,
+      )
+      expect(pieces).toHaveLength(4)
+      for (const piece of pieces) {
+        expect(forcedColorRules(piece).get('outline-style')).toBe('solid')
+        expect(forcedColorRules(piece).get('outline-color')).toBe('canvastext')
+      }
     },
   )
 

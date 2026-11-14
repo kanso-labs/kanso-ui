@@ -56,6 +56,9 @@ const lineStyles = stylex.create({
   text: { fontSize: '16px', lineHeight: '24px' },
 })
 
+/** A stretch of the row, from its start to its end in pixels. */
+type Span = [number, number]
+
 function arcsOf(bar: HTMLElement) {
   const svg = bar.querySelector('svg')
   const [track, active] = [...(svg?.children ?? [])]
@@ -69,8 +72,48 @@ function arcsOf(bar: HTMLElement) {
   return { active, svg, track }
 }
 
+/**
+ * What is drawn of an indeterminate line's track, as spans across the row:
+ * every part of it that paints a fill, cut to each box between it and the row
+ * that clips what it holds.
+ */
+function drawnTrackOf(track: Element, row: Element) {
+  const box = row.getBoundingClientRect()
+  const spans: Span[] = []
+  for (const part of [track, ...track.querySelectorAll('*')]) {
+    if (getComputedStyle(part).backgroundColor === 'rgba(0, 0, 0, 0)') {
+      continue
+    }
+    let [start, end] = spanOf(part, box)
+    for (
+      let clip: Element | null = part.parentElement;
+      clip !== null && row.contains(clip);
+      clip = clip.parentElement
+    ) {
+      if (getComputedStyle(clip).overflowX !== 'visible') {
+        const [clipStart, clipEnd] = spanOf(clip, box)
+        start = Math.max(start, clipStart)
+        end = Math.min(end, clipEnd)
+      }
+    }
+    if (end > start) {
+      spans.push([start, end])
+    }
+  }
+  return spans
+}
+
+/** A computed comma list's entries. */
+function entriesOf(list: string | undefined) {
+  return (list ?? '').split(',').map((entry) => entry.trim())
+}
+
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+function lengthOf(spans: Span[]) {
+  return spans.reduce((total, [start, end]) => total + end - start, 0)
 }
 
 /** The three parts of a linear indicator, in the order the page draws them. */
@@ -90,12 +133,68 @@ function linearPartsOf(bar: HTMLElement) {
   return { active, row, stop, track }
 }
 
+/** Spans in order, with the ones that touch or overlap joined into one. */
+function merged(spans: Span[]) {
+  const joined: Span[] = []
+  // `toSorted` is ES2023 and the library compiles to ES2022, so the spread
+  // makes the copy instead.
+  // oxlint-disable-next-line unicorn/no-array-sort -- the spread is the copy
+  for (const [start, end] of [...spans].sort((a, b) => a[0] - b[0])) {
+    const last = joined.at(-1)
+    if (last !== undefined && start <= last[1]) {
+      last[1] = Math.max(last[1], end)
+    } else {
+      joined.push([start, end])
+    }
+  }
+  return joined
+}
+
+/**
+ * How much of the row two sets of spans disagree on: what either covers and
+ * the other does not, in pixels.
+ */
+function mismatchOf(first: Span[], second: Span[]) {
+  const a = merged(first)
+  const b = merged(second)
+  let shared = 0
+  for (const [aStart, aEnd] of a) {
+    for (const [bStart, bEnd] of b) {
+      shared += Math.max(0, Math.min(aEnd, bEnd) - Math.max(aStart, bStart))
+    }
+  }
+  return lengthOf(a) + lengthOf(b) - 2 * shared
+}
+
 /** The two numbers a dash pattern holds: the dash, then the gap. */
 function patternOf(value: string) {
   return value
     .split(/[\s,]+/u)
     .filter(Boolean)
     .map((number) => Number.parseFloat(number))
+}
+
+/** Where an element is drawn across the row, transforms and all. */
+function spanOf(element: Element | null, box: DOMRect): Span {
+  if (element === null) {
+    throw new Error('expected an element to measure')
+  }
+  const { left, right } = element.getBoundingClientRect()
+  return [left - box.left, right - box.left]
+}
+
+/** What is left of `spans` once every one of `holes` is taken out of it. */
+function without(spans: Span[], holes: Span[]) {
+  let left = spans
+  for (const [holeStart, holeEnd] of holes) {
+    left = left.flatMap(([start, end]): Span[] =>
+      [
+        [start, Math.min(end, holeStart)] as Span,
+        [Math.max(start, holeEnd), end] as Span,
+      ].filter(([from, to]) => to > from),
+    )
+  }
+  return left
 }
 
 const REDUCED_MOTION = 'prefers-reduced-motion: reduce'
@@ -844,6 +943,83 @@ describe('progress indicator', () => {
       // edge here, leaving `left` as `auto`, while Material's keyframes kept
       // translating the one way they know — away from the row to be crossed.
       expect(getComputedStyle(bar).left.startsWith('-')).toBe(true)
+    })
+
+    // The determinate line keeps the page's 4dp between its parts, and so
+    // does the indeterminate one, as Compose's draws it: the track is the
+    // pieces the bars leave, before, between and after them, each 4dp clear
+    // of the bar beside it. Frozen at moments across the cycle, what is drawn
+    // of the track is the row less each bar and the gap either side of it.
+    it('leaves the gap between each bar and the track', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.measured)}>
+          <ProgressIndicator isIndeterminate label="Label" />
+        </div>,
+      )
+      const row = view.getByRole('progressbar', {
+        name: 'Label',
+      }).lastElementChild
+      if (!(row instanceof HTMLElement)) {
+        throw new Error('expected the indicator to draw its row')
+      }
+      const [track, ...bars] = [...row.children]
+      if (!(track instanceof HTMLElement) || bars.length !== 2) {
+        throw new Error('expected the track and the two bars')
+      }
+      const animations = row.getAnimations({ subtree: true })
+      expect(animations.length).toBeGreaterThan(0)
+
+      let barsSeen = 0
+      for (let time = 0; time < 2000; time += 100) {
+        for (const animation of animations) {
+          animation.pause()
+          animation.currentTime = time
+        }
+        const box = row.getBoundingClientRect()
+        const holes = bars
+          .map((bar) => spanOf(bar.firstElementChild, box))
+          .filter(([start, end]) => end > 0 && start < box.width)
+          .map(([start, end]): Span => [start - 4, end + 4])
+        barsSeen += holes.length
+        const expected = without([[0, box.width]], holes)
+        const drawn = drawnTrackOf(track, row)
+
+        // Within half a pixel, for the rounding of a box measured mid-move;
+        // the moment rides along so a failure names it.
+        expect({ close: mismatchOf(drawn, expected) < 0.5, time }).toEqual({
+          close: true,
+          time,
+        })
+      }
+      // A cycle with no bar in sight would pass whatever the track drew.
+      expect(barsSeen).toBeGreaterThan(10)
+    })
+
+    // Under reduced motion the track's pieces slow with the bars they follow,
+    // so the gap stays where the bars are.
+    it('slows the track with the bars under reduced motion', () => {
+      const view = render(<ProgressIndicator isIndeterminate label="Label" />)
+      const row = view.getByRole('progressbar', {
+        name: 'Label',
+      }).lastElementChild
+      const [track, primary] = [...(row?.children ?? [])]
+      if (
+        !(track instanceof HTMLElement) ||
+        !(primary instanceof HTMLElement)
+      ) {
+        throw new Error('expected the track and the primary bar')
+      }
+      const bar = reducedMotionOf(primary, 'animation-duration')
+      const moving = [...track.querySelectorAll('*')].filter(
+        (part) => getComputedStyle(part).animationName !== 'none',
+      )
+
+      expect(moving.length).toBeGreaterThan(0)
+      for (const part of moving) {
+        const { reduced, resting } = reducedMotionOf(part, 'animation-duration')
+        expect(new Set(entriesOf(resting))).toEqual(new Set([bar.resting]))
+        expect(new Set(entriesOf(reduced))).toEqual(new Set([bar.reduced]))
+      }
     })
   })
 
