@@ -388,6 +388,41 @@ describe('time picker', () => {
       fireEvent.click(view.getByRole('button', { name: 'OK' }))
       expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('21:30:00')
     })
+
+    // A radio group's arrows choose as they move, wrapping at the ends, and
+    // the group is one Tab stop, on the choice; React Aria's toggle group
+    // only moved focus, so the reader reached an unchecked PM believing the
+    // period had changed.
+    it('chooses the period with the arrow keys, as a radio group does', () => {
+      const onChange = vi.fn<Picked>()
+      const view = render(
+        <TimePicker defaultValue={TIME} label="Label" onChange={onChange} />,
+      )
+      open(view)
+      const morning = view.getByRole('radio', { name: 'AM' })
+      const afternoon = view.getByRole('radio', { name: 'PM' })
+
+      expect(morning.tabIndex).toBe(0)
+      expect(afternoon.tabIndex).toBe(-1)
+
+      focus(morning)
+      fireEvent.keyDown(morning, { key: 'ArrowDown' })
+
+      expect(document.activeElement).toBe(afternoon)
+      expect(afternoon.getAttribute('aria-checked')).toBe('true')
+      expect(morning.getAttribute('aria-checked')).toBe('false')
+      expect(afternoon.tabIndex).toBe(0)
+
+      fireEvent.keyDown(afternoon, { key: 'ArrowDown' })
+
+      expect(document.activeElement).toBe(morning)
+      expect(morning.getAttribute('aria-checked')).toBe('true')
+
+      fireEvent.keyDown(morning, { key: 'ArrowUp' })
+      fireEvent.click(view.getByRole('button', { name: 'OK' }))
+
+      expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('21:30:00')
+    })
   })
 
   describe('the input variant', () => {
