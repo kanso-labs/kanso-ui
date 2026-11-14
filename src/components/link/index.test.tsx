@@ -4,7 +4,10 @@ import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import Link from '.'
-import { rulesReaching } from '../../styles/stylesheet.testing'
+import {
+  declarationsHeld,
+  rulesReaching,
+} from '../../styles/stylesheet.testing'
 import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 
 // Compared against elements styled straight from the tokens rather than hex
@@ -141,6 +144,25 @@ describe('link', () => {
       expect(
         DISABLED_CLASSES.some((name) => enabled.classList.contains(name)),
       ).toBe(false)
+    })
+
+    // Forced colours repaint the faded mix in the colour of enabled text, so
+    // a disabled link read as a live one there. It names `GrayText`, as
+    // every other disabled control does, for its text and for its rule.
+    it('draws in GrayText under forced colours', () => {
+      const { link } = setup({ isDisabled: true, underline: 'always' })
+      const forced = declarationsHeld(link, 'forced-colors: active')
+
+      expect(forced.get('color')).toBe('graytext')
+      expect(forced.get('text-decoration-color')).toBe('graytext')
+    })
+
+    it('leaves an enabled link to the mode', () => {
+      const { link } = setup()
+      const forced = declarationsHeld(link, 'forced-colors: active')
+
+      expect(forced.get('color')).toBeUndefined()
+      expect(forced.get('text-decoration-color')).toBeUndefined()
     })
   })
 
