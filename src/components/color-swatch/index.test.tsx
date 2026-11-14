@@ -1,9 +1,16 @@
+import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import ColorSwatch from '.'
 import { parseColor } from '../../react-aria'
 import { declarationsHeld } from '../../styles/stylesheet.testing'
+import {
+  colorDefaultsDarkTheme,
+  colorDefaultsLightTheme,
+  colors,
+  tokenScope,
+} from '../../tokens/design.tokens.stylex'
 
 const FORCED_COLORS = 'forced-colors: active'
 const OPAQUE = '#6750A4'
@@ -21,6 +28,49 @@ function groundOf(view: ReturnType<typeof render>) {
     throw new Error('expected the swatch to sit in a square')
   }
   return ground
+}
+
+// The roles a swatch's edge is compared with, resolved the way the page
+// resolves them.
+const probeStyles = stylex.create({
+  outline: { color: colors.outline },
+  surface: { color: colors.surface },
+})
+
+// The library's two schemes, pinned as the Storybook toolbar pins them.
+const SCHEMES = [
+  ['light', [...tokenScope, colorDefaultsLightTheme]],
+  ['dark', [...tokenScope, colorDefaultsDarkTheme]],
+] as const
+
+/** A role's colour as the page resolves it. */
+function colourOf(style: stylex.StyleXStyles) {
+  const view = render(<span {...stylex.props(style)} />)
+  const probe = view.container.firstElementChild
+  if (probe === null) {
+    throw new Error('expected the probe to render')
+  }
+  const { color } = getComputedStyle(probe)
+  view.unmount()
+  return color
+}
+
+/** WCAG's contrast ratio between two `rgb()` colours. */
+function contrastOf(one: string, two: string) {
+  const a = luminanceOf(one)
+  const b = luminanceOf(two)
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
+
+/** WCAG's relative luminance of an `rgb()` colour. */
+function luminanceOf(colour: string) {
+  const [r = 0, g = 0, b = 0] = (colour.match(/\d+/g) ?? []).map((part) => {
+    const channel = Number(part) / 255
+    return channel <= 0.039_28
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
 describe('color swatch', () => {
@@ -87,6 +137,33 @@ describe('color swatch', () => {
     // have to come out of the 40px square the swatch is given.
     expect(getComputedStyle(view.getByRole('img')).boxShadow).toContain('inset')
   })
+
+  // A white swatch's edge is what carries its value on a light surface, so
+  // it is a boundary that has to read, which WCAG 1.4.11 puts at 3:1 against
+  // what is beside it. Material Design gives that kind of boundary the
+  // outline role and keeps outline variant for decoration.
+  it.each(SCHEMES)(
+    'edges a white swatch in the outline role, at 3:1 on the %s surface',
+    (_name, scope) => {
+      const classes = (stylex.props(scope).className ?? '')
+        .split(' ')
+        .filter(Boolean)
+      document.body.classList.add(...classes)
+      try {
+        const view = render(<ColorSwatch color="#ffffff" />)
+        const edge = getComputedStyle(view.getByRole('img')).boxShadow
+        const outline = colourOf(probeStyles.outline)
+
+        expect(edge.startsWith(outline)).toBe(true)
+        expect(
+          contrastOf(outline, colourOf(probeStyles.surface)),
+        ).toBeGreaterThanOrEqual(3)
+        view.unmount()
+      } finally {
+        document.body.classList.remove(...classes)
+      }
+    },
+  )
 
   it('is sized by the square around it, which is what the call site reaches', () => {
     const view = render(<ColorSwatch color={OPAQUE} style={TALL} />)
