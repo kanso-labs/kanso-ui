@@ -41,12 +41,15 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 // — see `src/overlay` — and a rule inside one runs across the overlay as it
 // does anywhere else.
 //
-// **Arrow-key navigation is React Aria's and is not wrapped.** The arrows
-// move between the controls, and — worth knowing, since the pattern usually
-// implies otherwise — React Aria leaves every control tabbable rather than
-// giving the bar a roving tabindex, so Tab still steps through them one by
-// one. What the bar adds is the toolbar role, which tells a screen reader
-// the controls belong together, and a second way to move between them.
+// **Keyboard navigation is React Aria's and is not wrapped.** The arrows
+// move between the controls, and the bar is a single Tab stop, as the APG's
+// toolbar pattern has it. React Aria gets there without a roving tabindex:
+// every control keeps its own `tabindex`, and a Tab pressed inside the bar
+// first moves focus to its last control, a Shift+Tab to its first, so the
+// browser's own move then leaves the bar from there. Coming back with
+// either, focus returns to the control focused last rather than to the end
+// it came in from. The bar's other contribution is the toolbar role, which
+// tells a screen reader the controls belong together.
 //
 // One departure, and it is about the shape. The page gives the container's
 // corner as a token its widget draws rather than writes, so there is no
@@ -156,8 +159,8 @@ type ToolbarTone = 'neutral' | 'vibrant'
 /**
  * A container for a set of controls, announced as a toolbar so a screen
  * reader reads them as one group, with the arrow keys moving between them.
- * Tab still steps through each control: React Aria's toolbar adds the arrows
- * rather than replacing what Tab does.
+ * The bar is one Tab stop: Tab and Shift+Tab leave it from whichever control
+ * has focus, and coming back returns to that control.
  *
  * ```tsx
  * <Toolbar aria-label="Label">
