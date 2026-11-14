@@ -9,6 +9,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import * as stylex from '@stylexjs/stylex'
 
 import Tag from '.'
+import { spacing } from '../../tokens/design.tokens.stylex'
 import ListItem from '../list-item'
 import Separator from '../separator'
 
@@ -18,7 +19,26 @@ const styles = stylex.create({
     flexDirection: 'column',
     maxInlineSize: '420px',
   },
+  // Centred, so a row of tags lines up on their middles.
+  row: {
+    alignItems: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  // Rows a story draws one under the other.
+  rows: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: spacing.lg,
+  },
 })
+
+// The default first, then the three that name a direction.
+const TONES = ['neutral', 'primary', 'positive', 'negative'] as const
+
+// The default first.
+const VARIANTS = ['filled', 'outlined'] as const
 
 const meta = {
   args: {
@@ -56,6 +76,26 @@ const InListRow: Story = {
   ),
 }
 
-export { Default, InListRow }
+// Each tone in each variant, filled over outlined: the tone's container under
+// its on-colour, then the tone itself at full strength for the rule and the
+// text, with neutral's rule in outline variant. The two rows are the same
+// size, since filled keeps its 1px border, transparent.
+const Tones: Story = {
+  render: () => (
+    <div {...stylex.props(styles.rows)}>
+      {VARIANTS.map((variant) => (
+        <div key={variant} {...stylex.props(styles.row)}>
+          {TONES.map((tone) => (
+            <Tag key={tone} tone={tone} variant={variant}>
+              Label
+            </Tag>
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+}
+
+export { Default, InListRow, Tones }
 
 export default meta

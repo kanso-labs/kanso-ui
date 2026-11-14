@@ -50,6 +50,11 @@ function dialOf(dialog: HTMLElement) {
   return dial
 }
 
+// The figures an element's text is drawn in.
+function figures(element: Element) {
+  return getComputedStyle(element).fontVariantNumeric
+}
+
 // Focus moved the way a Tab or a press moves it, with what it sets flushed.
 function focus(element: HTMLElement) {
   act(() => {
@@ -187,6 +192,28 @@ describe('time picker', () => {
       expect(within(dialog).getAllByRole('spinbutton')).toHaveLength(2)
       expect(boxOf(dialog, 'hour').textContent).toBe('09')
       expect(boxOf(dialog, 'minute').textContent).toBe('30')
+    })
+
+    // React Aria's dialog takes focus itself unless something inside it
+    // already has it, which left the reader a Tab away from the hour the
+    // modal draws as selected.
+    it('opens with focus on the hour, in both variants', () => {
+      for (const defaultMode of ['dial', 'input'] as const) {
+        const view = render(
+          <TimePicker
+            defaultMode={defaultMode}
+            defaultValue={TIME}
+            label="Label"
+          />,
+        )
+        const dialog = open(view)
+        const hour = boxOf(dialog, 'hour')
+
+        expect(document.activeElement).toBe(hour)
+        fireEvent.keyDown(hour, { key: 'ArrowUp' })
+        expect(hour.textContent).toBe('10')
+        view.unmount()
+      }
     })
 
     it('opens on midnight when the field is empty', () => {
@@ -364,6 +391,41 @@ describe('time picker', () => {
 
       expect(boxOf(dialog, 'hour').textContent).toBe('09')
       fireEvent.click(view.getByRole('button', { name: 'OK' }))
+      expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('21:30:00')
+    })
+
+    // A radio group's arrows choose as they move, wrapping at the ends, and
+    // the group is one Tab stop, on the choice; React Aria's toggle group
+    // only moved focus, so the reader reached an unchecked PM believing the
+    // period had changed.
+    it('chooses the period with the arrow keys, as a radio group does', () => {
+      const onChange = vi.fn<Picked>()
+      const view = render(
+        <TimePicker defaultValue={TIME} label="Label" onChange={onChange} />,
+      )
+      open(view)
+      const morning = view.getByRole('radio', { name: 'AM' })
+      const afternoon = view.getByRole('radio', { name: 'PM' })
+
+      expect(morning.tabIndex).toBe(0)
+      expect(afternoon.tabIndex).toBe(-1)
+
+      focus(morning)
+      fireEvent.keyDown(morning, { key: 'ArrowDown' })
+
+      expect(document.activeElement).toBe(afternoon)
+      expect(afternoon.getAttribute('aria-checked')).toBe('true')
+      expect(morning.getAttribute('aria-checked')).toBe('false')
+      expect(afternoon.tabIndex).toBe(0)
+
+      fireEvent.keyDown(afternoon, { key: 'ArrowDown' })
+
+      expect(document.activeElement).toBe(morning)
+      expect(morning.getAttribute('aria-checked')).toBe('true')
+
+      fireEvent.keyDown(morning, { key: 'ArrowUp' })
+      fireEvent.click(view.getByRole('button', { name: 'OK' }))
+
       expect(onChange.mock.calls.at(-1)?.[0]?.toString()).toBe('21:30:00')
     })
   })
@@ -613,6 +675,31 @@ describe('time picker', () => {
         getComputedStyle(view.getByRole('radio', { name: 'PM' }))
           .backgroundColor,
       ).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    // The boxes' display type falls back to Georgia where the brand face is
+    // not loaded, whose default figures are old-style: `09` read as `o9`.
+    // Lining figures stand every digit on the baseline at cap height, in
+    // the boxes in both variants, on the dial and in the period selector.
+    it('draws its digits as lining figures', () => {
+      const view = render(<TimePicker defaultValue={TIME} label="Label" />)
+      const dialog = open(view)
+      const onDial = {
+        hour: figures(boxOf(dialog, 'hour')),
+        label: figures(dialOf(dialog).querySelector('text') ?? dialog),
+        minute: figures(boxOf(dialog, 'minute')),
+        period: figures(view.getByRole('radio', { name: 'AM' })),
+      }
+
+      fireEvent.click(view.getByRole('button', { name: 'Enter time' }))
+
+      expect(onDial).toEqual({
+        hour: 'lining-nums tabular-nums',
+        label: 'lining-nums',
+        minute: 'lining-nums tabular-nums',
+        period: 'lining-nums tabular-nums',
+      })
+      expect(figures(boxOf(dialog, 'hour'))).toBe('lining-nums tabular-nums')
     })
 
     // Read off the computed style rather than the box, which the modal's

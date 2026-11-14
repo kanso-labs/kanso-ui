@@ -156,14 +156,19 @@ describe('breadcrumbs', () => {
 
     // An `<svg>` keeps a colour of its own under forced colours, since the
     // user agent forces its colour only while it inherits one, so the faded
-    // mix would reach the screen in place of the system colour the mode
-    // paints the link in. The chevron inherits that colour there instead.
-    it('takes the link’s system colour under forced colours', () => {
+    // mix would reach the screen in place of a system colour. The chevron
+    // names `GrayText` there, the colour a disabled link takes, so the trail
+    // greys as a whole rather than leaving its chevrons in `CanvasText`.
+    it('takes the disabled link’s GrayText under forced colours', () => {
       const view = setup({ isDisabled: true })
       const [chevron] = [...view.container.querySelectorAll('svg')]
+      const [link] = view.getAllByRole('link')
 
       expect(declarationsHeld(chevron, FORCED_COLORS).get('color')).toBe(
-        'currentcolor',
+        'graytext',
+      )
+      expect(declarationsHeld(link, FORCED_COLORS).get('color')).toBe(
+        'graytext',
       )
     })
 

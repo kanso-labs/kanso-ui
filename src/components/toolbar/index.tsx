@@ -1,13 +1,13 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type { KeyboardEvent, ReactNode, RefAttributes } from 'react'
 import type {
   ToolbarProps as RACToolbarProps,
   SeparatorProps,
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
-import { useMemo } from 'react'
+import { createElement, useMemo } from 'react'
 import { Toolbar as RACToolbar, SeparatorContext } from 'react-aria-components'
 
 import { mergeStatefulStyles } from '../../styles/merge'
@@ -41,12 +41,24 @@ import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 // — see `src/overlay` — and a rule inside one runs across the overlay as it
 // does anywhere else.
 //
-// **Arrow-key navigation is React Aria's and is not wrapped.** The arrows
-// move between the controls, and — worth knowing, since the pattern usually
-// implies otherwise — React Aria leaves every control tabbable rather than
-// giving the bar a roving tabindex, so Tab still steps through them one by
-// one. What the bar adds is the toolbar role, which tells a screen reader
-// the controls belong together, and a second way to move between them.
+// **Keyboard navigation is React Aria's, with Home and End added.** The
+// arrows move between the controls, and the bar is a single Tab stop, as
+// the APG's toolbar pattern has it. React Aria gets there without a roving
+// tabindex: every control keeps its own `tabindex`, and a Tab pressed inside
+// the bar first moves focus to its last control, a Shift+Tab to its first,
+// so the browser's own move then leaves the bar from there. Coming back with
+// either, focus returns to the control focused last rather than to the end
+// it came in from. The bar's other contribution is the toolbar role, which
+// tells a screen reader the controls belong together.
+//
+// The pattern also gives Home and End to the first and the last control,
+// which React Aria's toolbar leaves alone, so `homeAndEnd` below adds them:
+// the start and the end of the bar in document order, whichever way it runs
+// and whichever direction it is drawn in, passing over a disabled control.
+// They are taken as the key bubbles out of the control rather than ahead of
+// it, so a control that has a use for them keeps it: a field moves its
+// caret, and a control that handles the key first, as React Aria's slider
+// does, takes it from the bar.
 //
 // One departure, and it is about the shape. The page gives the container's
 // corner as a token its widget draws rather than writes, so there is no
@@ -151,13 +163,103 @@ type ToolbarProps = Omit<
   tone?: ToolbarTone
 }
 
+type ToolbarRender = RACToolbarProps['render']
+
 type ToolbarTone = 'neutral' | 'vibrant'
+
+// What can take focus in the bar, as a Tab could land on it: a native
+// control or anything with a `tabindex`, narrowed in `controlsIn`.
+const FOCUSABLE = [
+  'a[href]',
+  'area[href]',
+  'button',
+  'iframe',
+  'input:not([type="hidden"])',
+  'select',
+  'summary',
+  'textarea',
+  '[contenteditable]:not([contenteditable="false"])',
+  '[tabindex]',
+].join(',')
+
+// The input types that are a press target rather than a value, and so have
+// no use for Home and End of their own.
+const PRESSABLE_INPUTS = new Set([
+  'button',
+  'checkbox',
+  'image',
+  'radio',
+  'reset',
+  'submit',
+])
+
+/**
+ * The bar's controls a Tab could land on, in document order: a disabled
+ * one, one taken out of the Tab order, and one inert or not drawn are left
+ * out, so Home and End never reach a control that cannot take focus.
+ */
+function controlsIn(bar: HTMLElement) {
+  return [...bar.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (control) =>
+      control.tabIndex >= 0 &&
+      !control.matches(':disabled') &&
+      control.closest('[inert]') === null &&
+      control.checkVisibility(),
+  )
+}
+
+// Home and End, to the first and the last control. Left alone while a
+// modifier is held, which the browser may want, once a control has taken
+// the key, and on a key from a portal the bar renders — a popover opened
+// from one of its controls — which React carries up to the bar as though it
+// came from inside it. Taken from the page once used, so End does not
+// scroll it as well.
+function homeAndEnd(event: KeyboardEvent<HTMLDivElement>) {
+  const bar = event.currentTarget
+  const { target } = event
+  if (
+    (event.key !== 'Home' && event.key !== 'End') ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    event.defaultPrevented ||
+    !(target instanceof HTMLElement) ||
+    !bar.contains(target) ||
+    ownsHomeAndEnd(target)
+  ) {
+    return
+  }
+  const controls = controlsIn(bar)
+  const control = event.key === 'Home' ? controls.at(0) : controls.at(-1)
+  if (control === undefined) {
+    return
+  }
+  event.preventDefault()
+  control.focus()
+}
+
+/**
+ * Whether `target` is a control with its own use for Home and End: a field,
+ * whose caret they move, a native select or range, or editable text.
+ */
+function ownsHomeAndEnd(target: HTMLElement) {
+  if (target instanceof HTMLInputElement) {
+    return !PRESSABLE_INPUTS.has(target.type)
+  }
+  return (
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  )
+}
 
 /**
  * A container for a set of controls, announced as a toolbar so a screen
- * reader reads them as one group, with the arrow keys moving between them.
- * Tab still steps through each control: React Aria's toolbar adds the arrows
- * rather than replacing what Tab does.
+ * reader reads them as one group, with the arrow keys moving between them
+ * and Home and End moving to the first and the last enabled control. The
+ * bar is one Tab stop: Tab and Shift+Tab leave it from whichever control has
+ * focus, and coming back returns to that control.
  *
  * ```tsx
  * <Toolbar aria-label="Label">
@@ -206,6 +308,7 @@ function Toolbar({
       <RACToolbar
         orientation={orientation}
         {...props}
+        render={toolbarRenderer(props.render)}
         {...mergeStatefulStyles(
           stylex.props(styles.base, styles[orientation], styles[tone]),
           props,
@@ -213,6 +316,21 @@ function Toolbar({
       />
     </SeparatorContext>
   )
+}
+
+/**
+ * The bar's element, with Home and End added to the keys React Aria handles,
+ * then handed to the call site's own `render` if it passed one. React Aria's
+ * toolbar passes no keyboard handler of the call site's through, so the
+ * element it hands over carries none for this to compose with.
+ */
+function toolbarRenderer(render: ToolbarRender): NonNullable<ToolbarRender> {
+  return (domProps, renderProps) => {
+    const merged = { ...domProps, onKeyDown: homeAndEnd }
+    return render === undefined
+      ? createElement('div', merged)
+      : render(merged, renderProps)
+  }
 }
 
 export type { ToolbarProps, ToolbarTone }

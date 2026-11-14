@@ -2014,6 +2014,9 @@ export namespace Table {
 }
 
 // @public
+export type TableAlign = 'end' | 'start';
+
+// @public
 export function TableBody<T extends object = object>(input: RefAttributes<HTMLTableSectionElement> & TableBodyProps<T>): JSX;
 
 // @public (undocumented)
@@ -2027,18 +2030,20 @@ export type TableBodyProps<T extends object = object> = Omit<TableBodyProps_2<T>
 export function TableCell(input: RefAttributes<HTMLTableCellElement> & TableCellProps): JSX;
 
 // @public (undocumented)
-export type TableCellProps = Omit<CellProps, 'children' | 'className' | 'style'> & {
+export type TableCellProps = {
+    align?: TableAlign;
     children?: ReactNode;
     className?: CellProps['className'];
     selection?: boolean;
     style?: CellProps['style'];
-};
+} & Omit<CellProps, 'children' | 'className' | 'style'>;
 
 // @public
 export function TableColumn(input: RefAttributes<HTMLTableCellElement> & TableColumnProps): JSX;
 
 // @public (undocumented)
 export type TableColumnProps = {
+    align?: TableAlign;
     children?: ReactNode;
     className?: ColumnProps['className'];
     resizable?: boolean;

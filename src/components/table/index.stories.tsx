@@ -39,6 +39,9 @@ const ROWS = [
   { id: 'third', name: 'Third item', status: 'Ready', value: '03' },
 ] as const
 
+// The Value column is numeric, so every story aligns it to the end, its
+// header and its cells alike, as the page draws a column of numbers.
+//
 // A column's id and a row's id share one namespace in React Aria's
 // collection, so the two sets are kept apart by prefix — a value used by
 // both leaves the table with no columns at all.
@@ -92,14 +95,16 @@ function Basic() {
             Label
           </Table.Column>
           <Table.Column id={COLUMNS.status}>Status</Table.Column>
-          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+          <Table.Column align="end" id={COLUMNS.value}>
+            Value
+          </Table.Column>
         </Table.Header>
         <Table.Body>
           {ROWS.map((row) => (
             <Table.Row id={row.id} key={row.id}>
               <Table.Cell>{row.name}</Table.Cell>
               <Table.Cell>{row.status}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell align="end">
                 <span {...stylex.props(styles.value)}>{row.value}</span>
               </Table.Cell>
             </Table.Row>
@@ -129,7 +134,7 @@ function Resizable() {
           <Table.Column defaultWidth="1fr" id={COLUMNS.status} resizable>
             Status
           </Table.Column>
-          <Table.Column defaultWidth="1fr" id={COLUMNS.value}>
+          <Table.Column align="end" defaultWidth="1fr" id={COLUMNS.value}>
             Value
           </Table.Column>
         </Table.Header>
@@ -138,7 +143,7 @@ function Resizable() {
             <Table.Row id={row.id} key={row.id}>
               <Table.Cell>{row.name}</Table.Cell>
               <Table.Cell>{row.status}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell align="end">
                 <span {...stylex.props(styles.value)}>{row.value}</span>
               </Table.Cell>
             </Table.Row>
@@ -216,7 +221,7 @@ function Sortable() {
             Label
           </Table.Column>
           <Table.Column id={COLUMNS.status}>Status</Table.Column>
-          <Table.Column allowsSorting id={COLUMNS.value}>
+          <Table.Column align="end" allowsSorting id={COLUMNS.value}>
             Value
           </Table.Column>
         </Table.Header>
@@ -225,7 +230,7 @@ function Sortable() {
             <Table.Row id={row.id} key={row.id}>
               <Table.Cell>{row.name}</Table.Cell>
               <Table.Cell>{row.status}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell align="end">
                 <span {...stylex.props(styles.value)}>{row.value}</span>
               </Table.Cell>
             </Table.Row>
@@ -271,13 +276,15 @@ const StickyHeader: Story = {
             <Table.Column id={COLUMNS.name} isRowHeader>
               Label
             </Table.Column>
-            <Table.Column id={COLUMNS.value}>Value</Table.Column>
+            <Table.Column align="end" id={COLUMNS.value}>
+              Value
+            </Table.Column>
           </Table.Header>
           <Table.Body>
             {SCROLLING_ROWS.map((row) => (
               <Table.Row id={row.id} key={row.id}>
                 <Table.Cell>{row.name}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell align="end">
                   <span {...stylex.props(styles.value)}>{row.value}</span>
                 </Table.Cell>
               </Table.Row>
@@ -300,13 +307,15 @@ const LoadingMore: Story = {
           <Table.Column id={COLUMNS.name} isRowHeader>
             Label
           </Table.Column>
-          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+          <Table.Column align="end" id={COLUMNS.value}>
+            Value
+          </Table.Column>
         </Table.Header>
         <Table.Body>
           {ROWS.map((row) => (
             <Table.Row id={row.id} key={row.id}>
               <Table.Cell>{row.name}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell align="end">
                 <span {...stylex.props(styles.value)}>{row.value}</span>
               </Table.Cell>
             </Table.Row>
@@ -329,13 +338,15 @@ const Footer: Story = {
           <Table.Column id={COLUMNS.name} isRowHeader>
             Label
           </Table.Column>
-          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+          <Table.Column align="end" id={COLUMNS.value}>
+            Value
+          </Table.Column>
         </Table.Header>
         <Table.Body>
           {ROWS.map((row) => (
             <Table.Row id={row.id} key={row.id}>
               <Table.Cell>{row.name}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell align="end">
                 <span {...stylex.props(styles.value)}>{row.value}</span>
               </Table.Cell>
             </Table.Row>
@@ -344,7 +355,7 @@ const Footer: Story = {
         <Table.Footer>
           <Table.Row id="total">
             <Table.Cell>Total</Table.Cell>
-            <Table.Cell>
+            <Table.Cell align="end">
               <span {...stylex.props(styles.value)}>06</span>
             </Table.Cell>
           </Table.Row>
@@ -364,7 +375,9 @@ const Empty: Story = {
           <Table.Column id={COLUMNS.name} isRowHeader>
             Label
           </Table.Column>
-          <Table.Column id={COLUMNS.value}>Value</Table.Column>
+          <Table.Column align="end" id={COLUMNS.value}>
+            Value
+          </Table.Column>
         </Table.Header>
         <Table.Body renderEmptyState={nothingToShow} />
       </Table>

@@ -87,15 +87,15 @@ const styles = stylex.create({
   // none of it — an item takes its disabled state from the list — so the
   // chevrons fade together with every link.
   //
-  // Under forced colours it takes the item's colour again, which the mode
-  // has repainted in the same system colour as the link beside it. The user
-  // agent gives an `<svg>` `forced-color-adjust: preserve-parent-color`,
-  // which forces its colour only while it inherits one, so the mix above
-  // would otherwise reach the screen unforced.
+  // Under forced colours it names `GrayText`, the colour Link gives a
+  // disabled link there, so the trail greys as a whole. The user agent gives
+  // an `<svg>` `forced-color-adjust: preserve-parent-color`, which keeps a
+  // colour it names, so the mix above would otherwise reach the screen
+  // unforced, and the item's own colour is the mode's `CanvasText`.
   chevronDisabled: {
     color: {
       default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
-      [FORCED_COLORS]: 'currentColor',
+      [FORCED_COLORS]: 'GrayText',
     },
   },
   // The item you are on: the same type as the links, in the full-strength

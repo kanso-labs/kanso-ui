@@ -284,6 +284,7 @@ export { default as SupportingPane } from './supporting-pane'
 export type { SwitchProps } from './switch'
 export { default as Switch } from './switch'
 export type {
+  TableAlign,
   TableBodyProps,
   TableCellProps,
   TableColumnProps,
