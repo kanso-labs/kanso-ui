@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.47.0](https://github.com/kanso-labs/kanso-ui/compare/v0.46.0...v0.47.0) (2026-11-14)
+
+
+### Features
+
+* **table:** align a numeric column and its header to the end ([#2154](https://github.com/kanso-labs/kanso-ui/issues/2154)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **toolbar:** move focus to the first and last control on Home and End ([#2165](https://github.com/kanso-labs/kanso-ui/issues/2165)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+
+
+### Bug Fixes
+
+* **code:** draw a backslash as a backslash under a Japanese or Korean locale ([#2167](https://github.com/kanso-labs/kanso-ui/issues/2167)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **color-swatch:** outline a swatch in the outline role ([#2179](https://github.com/kanso-labs/kanso-ui/issues/2179)) ([c835c70](https://github.com/kanso-labs/kanso-ui/commit/c835c70436810b795790318eedac502bfafb2637))
+* **date-field:** keep a single-digit day and the hour apart under ja-JP ([#2169](https://github.com/kanso-labs/kanso-ui/issues/2169)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **link:** draw a disabled link in GrayText under forced colours ([#2168](https://github.com/kanso-labs/kanso-ui/issues/2168)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **menu:** keep the shortcut column aligned whether or not an item is checked ([#2151](https://github.com/kanso-labs/kanso-ui/issues/2151)) ([61fb19f](https://github.com/kanso-labs/kanso-ui/commit/61fb19fc4742b82a0e6a93f1acdc25913ef4a8e4))
+* **navigation-bar:** leave room between neighbouring truncated labels ([#2152](https://github.com/kanso-labs/kanso-ui/issues/2152)) ([14fada2](https://github.com/kanso-labs/kanso-ui/commit/14fada285aae9b51ca6c1c392786146d324989e3))
+* **progress-indicator:** leave the gap between the indeterminate bars and the track ([#2178](https://github.com/kanso-labs/kanso-ui/issues/2178)) ([89f7e5d](https://github.com/kanso-labs/kanso-ui/commit/89f7e5d15b5efc67306c8fba420da104316e2330))
+* **progress-indicator:** move the wavy indicator's dashes with its bars ([#2183](https://github.com/kanso-labs/kanso-ui/issues/2183)) ([672ce69](https://github.com/kanso-labs/kanso-ui/commit/672ce692ed65adff4119a4ec6efdf7479b75abc9))
+* **search-view:** draw the divider under the header in a border forced colours keep ([#2153](https://github.com/kanso-labs/kanso-ui/issues/2153)) ([13ffd60](https://github.com/kanso-labs/kanso-ui/commit/13ffd609c4548890d31bb5363da5238bbf8f7a06))
+* **table:** let a selected row's selection checkbox take system colours under forced colours ([#2166](https://github.com/kanso-labs/kanso-ui/issues/2166)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **time-picker:** choose the period with the arrow keys, as a radio group does ([#2161](https://github.com/kanso-labs/kanso-ui/issues/2161)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **time-picker:** draw the dial's digits as lining figures ([#2162](https://github.com/kanso-labs/kanso-ui/issues/2162)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **time-picker:** focus the hour when the picker opens ([#2160](https://github.com/kanso-labs/kanso-ui/issues/2160)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **token-field:** keep a token's leading # in place under RTL ([#2163](https://github.com/kanso-labs/kanso-ui/issues/2163)) ([7e7f338](https://github.com/kanso-labs/kanso-ui/commit/7e7f3383b46d2349c93133c7567232164f27064c))
+* **toolbar:** draw a vibrant bar's icon buttons in on-primary-container ([#2181](https://github.com/kanso-labs/kanso-ui/issues/2181)) ([9e96dc1](https://github.com/kanso-labs/kanso-ui/commit/9e96dc1f9318b77e623f59070c2165f828b0b123))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.14.4 ([#2150](https://github.com/kanso-labs/kanso-ui/issues/2150)) ([8f5fa85](https://github.com/kanso-labs/kanso-ui/commit/8f5fa85852ac0c27367eeccd23c0f1b369e196e3))
+* update dependency eslint to v10.15.0 ([#2185](https://github.com/kanso-labs/kanso-ui/issues/2185)) ([4270d2e](https://github.com/kanso-labs/kanso-ui/commit/4270d2efbad092cb0609793e1ed8f4a1f3bdc9b6))
+* update dependency playwright to v1.65.1 ([#2184](https://github.com/kanso-labs/kanso-ui/issues/2184)) ([f7cc803](https://github.com/kanso-labs/kanso-ui/commit/f7cc803d4c41c928a29958b51d797a4627d489c5))
+
 ## [0.46.0](https://github.com/kanso-labs/kanso-ui/compare/v0.45.34...v0.46.0) (2026-11-13)
 
 
