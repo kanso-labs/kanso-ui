@@ -72,6 +72,11 @@ import IconButton from '../icon-button'
 // `SearchView.Content` is the view. The back button closes it, as Escape and
 // a press outside the docked view do.
 
+// Windows High Contrast and the rest of the forced-colours modes, spelled
+// here rather than imported, as Separator spells it: the StyleX compiler
+// resolves a constant across files only out of a `.stylex.ts` module.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 // The gap between what opened the view and the docked view, Popover's.
 const SIDE_OFFSET = 8
 
@@ -111,10 +116,16 @@ const styles = stylex.create({
     minBlockSize: 0,
     outlineStyle: 'none',
   },
-  // The page's divider under the header, in the outline role.
+  // The page's divider under the header, in the outline role. A fill on a
+  // 1dp box, which forced colours paint over in Canvas, so there it is
+  // redrawn as a 1dp border in CanvasText, as Separator's rule is. The box
+  // is sized by that border, so the divider stays 1dp in both.
   divider: {
     backgroundColor: colors.outline,
     blockSize: '1px',
+    borderBlockStartColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
+    borderBlockStartStyle: { default: null, [FORCED_COLORS]: 'solid' },
+    borderBlockStartWidth: { default: null, [FORCED_COLORS]: '1px' },
     borderWidth: 0,
     boxSizing: 'border-box',
     flexShrink: 0,

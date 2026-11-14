@@ -402,5 +402,21 @@ describe('search view', () => {
       expect(rules.get('border-top-style')).toBe('solid')
       expect(rules.get('border-top-color')).toBe('canvastext')
     })
+
+    // The divider is a 1dp fill, which the mode paints over in Canvas, so
+    // the header and the results ran together. It is redrawn as a border,
+    // as Separator's is.
+    it('draws the divider under the header as a border under forced colours', async () => {
+      const view = setup()
+      const divider = (await open(view)).querySelector('hr')
+      if (divider === null) {
+        throw new Error('expected the view to draw a divider')
+      }
+      const rules = declarationsHeld(divider, FORCED_COLORS)
+
+      expect(rules.get('border-top-style')).toBe('solid')
+      expect(rules.get('border-top-width')).toBe('1px')
+      expect(rules.get('border-top-color')).toBe('canvastext')
+    })
   })
 })
