@@ -21,8 +21,12 @@ import { colors, radii } from '../../tokens/design.tokens.stylex'
 //
 // **A swatch is outlined.** Its own colour is the content, so it cannot
 // carry a contrasting one — and a white swatch on a light surface, or a
-// near-black one in dark mode, would otherwise have no edge at all. The
-// outline is the same hairline a field's box takes.
+// near-black one in dark mode, would otherwise have no edge at all. That edge
+// carries the value, so it is a boundary a reader has to see, and it takes
+// the outline role a field's box takes rather than outline variant, which
+// Material Design keeps for decoration that needs no contrast: outline
+// variant stood at about 1.6:1 against the surface, short of the 3:1 WCAG
+// asks of a boundary.
 //
 // **Transparency is drawn against a chequer rather than against the page.**
 // A half-transparent red over a white surface and an opaque pink are the
@@ -52,7 +56,7 @@ const styles = stylex.create({
   swatch: {
     blockSize: '100%',
     borderRadius: radii.xs,
-    boxShadow: `inset 0 0 0 1px ${colors.outlineVariant}`,
+    boxShadow: `inset 0 0 0 1px ${colors.outline}`,
     boxSizing: 'border-box',
     display: 'block',
     inlineSize: '100%',
