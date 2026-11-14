@@ -1114,6 +1114,15 @@ function TimePickerDialog({
         <div onFocus={followFocus} ref={boxes}>
           <RACTimeField
             aria-label={fieldLabel}
+            // The modal opens on the hour, the box it draws as selected, so
+            // the arrows set it straight away. React Aria's dialog focuses
+            // itself as it opens unless focus is already inside it, and the
+            // field takes focus first: its effect runs before the dialog's,
+            // which is its ancestor. The first segment it focuses is the
+            // hour in every locale, since the period segment before it in
+            // some is hidden.
+            // oxlint-disable-next-line jsx-a11y/no-autofocus -- a modal opened to set a time starts on the hour it draws as selected
+            autoFocus
             granularity={granularity}
             hideTimeZone
             hourCycle={hourCycle}
