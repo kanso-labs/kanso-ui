@@ -226,6 +226,51 @@ function linkAndPlain() {
 }
 
 /**
+ * Where each item's shortcut ends along the line, in a menu of three items
+ * with the second chosen, rendered under `locale`: the right edge left to
+ * right, the left edge right to left.
+ */
+function shortcutEnds(
+  locale: string,
+  content: Partial<Parameters<typeof Menu.Content<object>>[0]>,
+) {
+  const view = render(
+    <I18nProvider locale={locale}>
+      <Menu defaultOpen>
+        <Button>Open</Button>
+        <Menu.Content defaultSelectedKeys={SECOND} {...content}>
+          <Menu.Item id="first" shortcut={SHORTCUT}>
+            First item
+          </Menu.Item>
+          <Menu.Item id="second" shortcut={SHORTCUT}>
+            Second item
+          </Menu.Item>
+          <Menu.Item id="third" shortcut={SHORTCUT}>
+            Third item
+          </Menu.Item>
+        </Menu.Content>
+      </Menu>
+    </I18nProvider>,
+  )
+  const rtl = locale.startsWith('ar')
+
+  const items = [
+    ...view.queryAllByRole('menuitemradio'),
+    ...view.queryAllByRole('menuitemcheckbox'),
+  ]
+
+  return items.map((item) => {
+    // The keyboard slot, around the keycap's own `kbd`.
+    const shortcut = item.querySelector('kbd')
+    if (shortcut === null) {
+      throw new Error('expected the item to draw its shortcut')
+    }
+    const box = shortcut.getBoundingClientRect()
+    return rtl ? box.left : box.right
+  })
+}
+
+/**
  * Where React Aria placed the submenu an item opens, with the menu rendered
  * under `locale`. The right-to-left case sits in a right-to-left wrapper so
  * the trigger, and the menu with it, lie against the right edge: the submenu
@@ -674,6 +719,46 @@ describe('menu', () => {
         keycap.getBoundingClientRect().left,
       )
       expect(surface.scrollWidth).toBeLessThanOrEqual(surface.clientWidth)
+    })
+
+    // The shortcuts form a column whichever item is checked, in either
+    // direction: a check drawn after the keycap on the chosen item alone
+    // pushed its keycap 24dp in from the others'.
+    it.each([
+      ['single', 'en-US'],
+      ['multiple', 'en-US'],
+      ['single', 'ar-EG'],
+      ['multiple', 'ar-EG'],
+    ] as const)(
+      'lines the shortcuts up in %s selection under %s',
+      (selectionMode, locale) => {
+        const ends = shortcutEnds(locale, { selectionMode })
+
+        expect(ends).toHaveLength(3)
+        expect(new Set(ends).size).toBe(1)
+      },
+    )
+
+    // A menu that selects nothing has no check to make room for, so the
+    // shortcut is the last thing in the row's trailing slot.
+    it('keeps no room for a check in a menu that selects nothing', () => {
+      const view = setup(
+        {},
+        <Menu.Item id="first" shortcut={SHORTCUT}>
+          First item
+        </Menu.Item>,
+      )
+      const item = view.getByRole('menuitem', { name: 'First item' })
+      const shortcut = item.querySelector('kbd')
+      const slot = shortcut?.parentElement
+
+      if (shortcut === null || slot === null || slot === undefined) {
+        throw new Error('expected the item to draw its shortcut in a slot')
+      }
+      expect(shortcut.nextElementSibling).toBeNull()
+      expect(shortcut.getBoundingClientRect().right).toBe(
+        slot.getBoundingClientRect().right,
+      )
     })
 
     it('draws nothing after the label without one', () => {
