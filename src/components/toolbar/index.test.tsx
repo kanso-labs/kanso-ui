@@ -4,7 +4,7 @@ import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import Toolbar from '.'
-import { colors } from '../../tokens/design.tokens.stylex'
+import { colors, stateLayerOpacity } from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Dialog from '../dialog'
 import IconButton from '../icon-button'
@@ -21,6 +21,21 @@ import TextField from '../text-field'
 const probeStyles = stylex.create({
   neutral: { backgroundColor: colors.surfaceContainer },
   vibrant: { backgroundColor: colors.primaryContainer },
+})
+
+// The colours a vibrant bar's icon buttons are drawn in, resolved the way the
+// page resolves them, so a case compares computed colour with computed
+// colour: the icon at rest, and the hover and pressed layers the page lays in
+// that same colour.
+const vibrantStyles = stylex.create({
+  hovered: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  icon: { color: colors.onPrimaryContainer },
+  muted: { color: colors.onSurfaceVariant },
+  pressed: {
+    backgroundColor: `color-mix(in srgb, ${colors.onPrimaryContainer} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
 })
 
 const testStyles = stylex.create({
@@ -95,6 +110,21 @@ const OVERLAYS = [
     </Dialog>,
   ],
 ] as const
+
+/** What a probe drawn in `style` computes, for one property. */
+function computedOf(
+  style: stylex.StyleXStyles,
+  property: 'backgroundColor' | 'color',
+) {
+  const view = render(<span {...stylex.props(style)} />)
+  const probe = view.container.firstElementChild
+  if (probe === null) {
+    throw new Error('expected the probe to render')
+  }
+  const value = getComputedStyle(probe)[property]
+  view.unmount()
+  return value
+}
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
@@ -432,6 +462,52 @@ describe('toolbar', () => {
       const toolbar = view.getByRole('toolbar')
       expect(hasClasses(toolbar, CLASSES.vibrant)).toBe(true)
       expect(hasClasses(toolbar, CLASSES.neutral)).toBe(false)
+    })
+
+    // The page puts on primary container on what a vibrant bar holds, and
+    // Compose's vibrant toolbar draws its icons in it. A standard icon button
+    // otherwise keeps its own on surface variant, which on primary container
+    // is a different colour from everything else the bar carries.
+    it('draws a vibrant bar’s icon buttons in on primary container', () => {
+      expect(computedOf(vibrantStyles.icon, 'color')).not.toBe(
+        computedOf(vibrantStyles.muted, 'color'),
+      )
+      const vibrant = setup({ tone: 'vibrant' })
+      for (const button of vibrant.getAllByRole('button')) {
+        expect(getComputedStyle(button).color).toBe(
+          computedOf(vibrantStyles.icon, 'color'),
+        )
+      }
+      vibrant.unmount()
+
+      const neutral = setup()
+      for (const button of neutral.getAllByRole('button')) {
+        expect(getComputedStyle(button).color).toBe(
+          computedOf(vibrantStyles.muted, 'color'),
+        )
+      }
+    })
+
+    // The state layer is the colour the icon rests in, so it follows the icon
+    // onto the vibrant bar: hovered with a mouse and pressed from the
+    // keyboard, both of which React Aria reports in the render state the
+    // layers are drawn from.
+    it('lays a vibrant bar’s hover and press layers in on primary container', () => {
+      const view = setup({ tone: 'vibrant' })
+      const [button] = view.getAllByRole('button')
+      // The layer eases in, so a read straight after the event would see
+      // where the transition starts rather than the colour it ends on.
+      button.style.transition = 'none'
+
+      fireEvent.pointerOver(button, { pointerType: 'mouse' })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        computedOf(vibrantStyles.hovered, 'backgroundColor'),
+      )
+      fireEvent.keyDown(button, { key: ' ' })
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        computedOf(vibrantStyles.pressed, 'backgroundColor'),
+      )
+      fireEvent.keyUp(button, { key: ' ' })
     })
 
     // The page's measurements, stated there in words: 64dp across the bar,
