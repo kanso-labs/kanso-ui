@@ -50,6 +50,11 @@ function dialOf(dialog: HTMLElement) {
   return dial
 }
 
+// The figures an element's text is drawn in.
+function figures(element: Element) {
+  return getComputedStyle(element).fontVariantNumeric
+}
+
 // Focus moved the way a Tab or a press moves it, with what it sets flushed.
 function focus(element: HTMLElement) {
   act(() => {
@@ -670,6 +675,31 @@ describe('time picker', () => {
         getComputedStyle(view.getByRole('radio', { name: 'PM' }))
           .backgroundColor,
       ).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    // The boxes' display type falls back to Georgia where the brand face is
+    // not loaded, whose default figures are old-style: `09` read as `o9`.
+    // Lining figures stand every digit on the baseline at cap height, in
+    // the boxes in both variants, on the dial and in the period selector.
+    it('draws its digits as lining figures', () => {
+      const view = render(<TimePicker defaultValue={TIME} label="Label" />)
+      const dialog = open(view)
+      const onDial = {
+        hour: figures(boxOf(dialog, 'hour')),
+        label: figures(dialOf(dialog).querySelector('text') ?? dialog),
+        minute: figures(boxOf(dialog, 'minute')),
+        period: figures(view.getByRole('radio', { name: 'AM' })),
+      }
+
+      fireEvent.click(view.getByRole('button', { name: 'Enter time' }))
+
+      expect(onDial).toEqual({
+        hour: 'lining-nums tabular-nums',
+        label: 'lining-nums',
+        minute: 'lining-nums tabular-nums',
+        period: 'lining-nums tabular-nums',
+      })
+      expect(figures(boxOf(dialog, 'hour'))).toBe('lining-nums tabular-nums')
     })
 
     // Read off the computed style rather than the box, which the modal's
