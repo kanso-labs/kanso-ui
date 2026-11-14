@@ -387,6 +387,17 @@ const styles = stylex.create({
     inlineSize: '1%',
     whiteSpace: 'nowrap',
   },
+  // A selected row's checkbox cell, handed back to the mode the row opts
+  // out of. The property inherits, so out of the mode the checked box kept
+  // the theme's primary fill on the row's `Highlight`; back in it, the box
+  // is drawn in system colours, as `slotSelected` in src/row/styles.ts draws
+  // a List row's. The cell paints no background of its own, so the row's
+  // `Highlight` still shows around the box. The cells holding text stay out
+  // with the row, since the `Canvas` backplate the mode lays behind text
+  // would leave `HighlightText` on `Canvas`.
+  selectionSelected: {
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
+  },
   // The arrow beside a sorted column's name, at the 18dp the checkbox page
   // draws its own glyph at, since there is no data table page here to take
   // one from.
@@ -618,7 +629,8 @@ function cellContent(
 }
 
 // A cell's classes, faded on a disabled row unless it holds the checkbox,
-// which draws its own disabled state.
+// which draws its own disabled state, and handed back to forced colours on a
+// selected row when it does.
 function cellStyles(align: TableAlign, selection: boolean) {
   return (state: CellRenderProps) =>
     stylex.props(
@@ -626,6 +638,7 @@ function cellStyles(align: TableAlign, selection: boolean) {
       align === 'end' && styles.cellEnd,
       styles.focus,
       selection ? styles.selection : state.isDisabled && styles.cellDisabled,
+      selection && state.isSelected && styles.selectionSelected,
     )
 }
 

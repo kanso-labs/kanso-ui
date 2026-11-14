@@ -34,6 +34,15 @@ import {
 // the padding and 1dp rule above in place of the badge's 16dp box, and the
 // container roles in place of the badge's error pair, since it names a state
 // rather than flagging one.
+//
+// Under forced colours a tag takes the mode's colours even inside something
+// that opts out of them. A selected Table or List row does, to keep its
+// `Highlight`, and the property inherits, so a tag there kept its theme
+// container on the row's `Highlight`. Handed back, it is drawn as a tag
+// anywhere else in the mode is: `CanvasText` on `Canvas`, inside a
+// `CanvasText` rule.
+const FORCED_COLORS = '@media (forced-colors: active)'
+
 const styles = stylex.create({
   base: {
     alignItems: 'center',
@@ -47,6 +56,7 @@ const styles = stylex.create({
     fontSize: typography.labelSmallSize,
     fontVariantNumeric: 'tabular-nums',
     fontWeight: typography.labelSmallWeight,
+    forcedColorAdjust: { default: null, [FORCED_COLORS]: 'auto' },
     gap: spacing.xs,
     letterSpacing: typography.labelSmallTracking,
     lineHeight: typography.labelSmallLineHeight,

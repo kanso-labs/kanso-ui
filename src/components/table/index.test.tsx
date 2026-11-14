@@ -216,6 +216,26 @@ function drag(resizer: HTMLElement) {
   fireEvent.pointerUp(resizer, DRAG_TO)
 }
 
+/**
+ * The `forced-color-adjust` an element takes under forced colours: its own,
+ * or else the nearest ancestor's, since the property inherits.
+ */
+function forcedAdjustOf(element: Element): string | undefined {
+  for (
+    let current: Element | null = element;
+    current !== null;
+    current = current.parentElement
+  ) {
+    const adjust = declarationsHeld(current, 'forced-colors: active').get(
+      'forced-color-adjust',
+    )
+    if (adjust !== undefined) {
+      return adjust
+    }
+  }
+  return undefined
+}
+
 function probe(style: stylex.StyleXStyles) {
   const view = render(<span data-testid="probe" {...stylex.props(style)} />)
   const computed = getComputedStyle(view.getByTestId('probe'))
@@ -644,6 +664,51 @@ describe('table', () => {
       const view = render(<Basic />)
 
       expect(view.queryByRole('checkbox')).toBeNull()
+    })
+
+    // A selected row opts out of forced colours to keep its Highlight, and
+    // the property inherits, so a checked box in it kept the theme's primary
+    // fill on the row's Highlight, and a Tag its own container. Both are
+    // handed back to the mode, while the cell holding the row's text stays
+    // out of it with the row. Read off the stylesheet, since no test can
+    // turn the mode on.
+    it('hands the checkbox and a Tag back to forced colours, and keeps the text out', () => {
+      const view = render(
+        <Table
+          aria-label="Label"
+          defaultSelectedKeys={['first']}
+          selectionMode="multiple"
+        >
+          <Table.Header>
+            <Table.Column id="colSelect" selection />
+            <Table.Column id="colName" isRowHeader>
+              Label
+            </Table.Column>
+            <Table.Column id="colTag">Tag</Table.Column>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row id="first">
+              <Table.Cell selection />
+              <Table.Cell>First item</Table.Cell>
+              <Table.Cell>
+                <Tag>Label</Tag>
+              </Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>,
+      )
+      const [, row] = view.getAllByRole('row')
+      // The first checkbox is the column's select-all, in the header.
+      const [, checkbox] = view.getAllByRole('checkbox')
+      // The column header reads `Label` too, so the Tag is the one in a cell.
+      const tag = view
+        .getAllByText('Label')
+        .find((candidate) => candidate.closest('td') !== null)
+
+      expect(forcedAdjustOf(row)).toBe('none')
+      expect(forcedAdjustOf(checkbox), 'checkbox').toBe('auto')
+      expect(tag && forcedAdjustOf(tag), 'tag').toBe('auto')
+      expect(forcedAdjustOf(view.getByText('First item'))).toBe('none')
     })
   })
 
