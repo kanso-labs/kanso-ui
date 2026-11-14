@@ -282,6 +282,14 @@ const barItemStyles = stylex.create({
   // taking the press because a pseudo-element is part of the element it
   // belongs to, and moving nothing because it is out of flow. The vertical
   // destination is the row's full height already, so it draws none.
+  //
+  // A vertical destination's label is held 4dp in from either side of its
+  // share, as the collapsed rail's is. Cut short at the very edge of it, five
+  // long labels read as one strip, each ellipsis touching the next label and
+  // the first and last touching the bar's ends. The 56dp indicator still
+  // fits inside that padding at a 64dp share, which is what five
+  // destinations get across a 320dp window, and is centred over a narrower
+  // one.
   item: {
     '::after': {
       content: { default: null, [media.medium]: '""' },
@@ -303,7 +311,7 @@ const barItemStyles = stylex.create({
     minBlockSize: { default: BAR_ROW, [media.medium]: 0 },
     minInlineSize: 0,
     paddingBlock: { default: '6px', [media.medium]: 0 },
-    paddingInline: { default: 0, [media.medium]: spacing.lg },
+    paddingInline: { default: spacing.xs, [media.medium]: spacing.lg },
   },
   itemCurrent: {
     backgroundColor: {

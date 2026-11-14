@@ -38,9 +38,10 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // A vertical destination's label stays on one line and is cut short with an
 // ellipsis where the destination's share of the bar ends, and a label cut
 // short shows its full text in the browser's tooltip on hover — see
-// `src/navigation`. Five destinations give each label 69dp at a 375dp
-// window and 66dp at 360dp, about ten characters of label medium, so five
-// destinations' names have to be short.
+// `src/navigation`. The label is held 4dp in from either side of the share,
+// so an ellipsis never touches the label beside it. Five destinations give
+// each label 61dp at a 375dp window and 58dp at 360dp, about nine
+// characters of label medium, so five destinations' names have to be short.
 //
 // The 64dp is the destinations' row rather than the bar's height, and the
 // bar grows past it: by padding the call site gives it, such as the inset a
