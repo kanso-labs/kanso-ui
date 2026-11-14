@@ -36,10 +36,9 @@ import { colors, motion, radii } from '../../tokens/design.tokens.stylex'
 // The indeterminate line keeps the same 4dp, as Compose's does: its track is
 // the pieces the two bars leave before, between and after them, each the gap
 // clear of the bar beside it and following it as it moves — see
-// `primaryTravel` and `trackAfterPrimary`. The wavy line keeps its track
-// whole under the wave, whose dashes are placed from each bar's start rather
-// than about its middle and so are not where the flat bars are; the pieces
-// are drawn wherever the flat bars are instead.
+// `primaryTravel` and `trackAfterPrimary`. The wavy line draws the same
+// pieces under its wave, whose dashes are drawn where the flat bars are — see
+// `primaryWaveOffset`.
 //
 // The animations are Material's own rather than something assembled from
 // the motion tokens: an indeterminate indicator is a piece of choreography,
@@ -434,74 +433,117 @@ const spin = stylex.keyframes({
   to: { transform: 'rotate(360deg)' },
 })
 
-// The indeterminate line's two bars, as dashes along the wave. A bar's
-// translation is where its dash starts, so it moves the dash's offset, and
-// its scale is how long the dash is, so it moves the dash's length; both are
-// the bar keyframes above, at their times and on their curves, turned from
-// shares of the row into lengths of it. The offset is the bar's distance
-// before the row's start, which is where its keyframes put it: the primary
-// bar sits 145.167% back and travels 200.611% of the row, the secondary
-// 54.8889% back and travels 160.278%. The gap after the dash is four rows
-// long, so the dash after it never reaches the row.
+// The indeterminate line's two bars, as dashes along the wave, drawn where
+// the flat bars are. A flat bar is its translation and its scale about its
+// own middle, so it starts half its scale's share of the row before that
+// middle; its dash starts there too, which takes the dash's offset from both
+// moves at once. The offset is the two added together — the middle on the
+// translation's keyframes, and the half scale before it on the scale's,
+// composed onto it with `add` — and the length is the scale, on its
+// keyframes too; every one at the bar keyframes' times and on their curves,
+// turned from shares of the row into lengths of it. The middles start where
+// `PRIMARY_MIDDLE` and `SECONDARY_MIDDLE` put them, and travel the 200.611%
+// and 160.278% of the row the bars do.
+//
+// The path starts the half stroke a round cap reaches into the row, so a
+// dash's cap begins where its bar does, and the length is the bar's less
+// that cap at each end, which ends the second cap where the bar ends. The
+// gap after the dash is four rows long, so the dash after it never reaches
+// the row.
 const primaryWaveOffset = stylex.keyframes({
-  '0%': { strokeDashoffset: '145.167cqi' },
+  '0%': { strokeDashoffset: '95.167cqi' },
   '20%': {
     animationTimingFunction: 'cubic-bezier(0.5, 0, 0.701732, 0.495819)',
-    strokeDashoffset: '145.167cqi',
+    strokeDashoffset: '95.167cqi',
   },
   '59.15%': {
     animationTimingFunction: 'cubic-bezier(0.302435, 0.381352, 0.55, 0.956352)',
-    strokeDashoffset: '61.4956cqi',
+    strokeDashoffset: '11.4956cqi',
   },
-  '100%': { strokeDashoffset: '-55.444cqi' },
+  '100%': { strokeDashoffset: '-105.444cqi' },
 })
 
-const primaryWaveLength = stylex.keyframes({
-  '0%': { strokeDasharray: '8cqi 400cqi' },
+// Half the primary bar's scale, which is how far before its middle the bar
+// starts — the same numbers as `primaryEndShift`.
+const primaryWaveStart = stylex.keyframes({
+  '0%': { strokeDashoffset: '4cqi' },
   '36.65%': {
     animationTimingFunction: 'cubic-bezier(0.334731, 0.12482, 0.785844, 1)',
-    strokeDasharray: '8cqi 400cqi',
+    strokeDashoffset: '4cqi',
   },
   '69.15%': {
     animationTimingFunction: 'cubic-bezier(0.06, 0.11, 0.6, 1)',
-    strokeDasharray: '66.1479cqi 400cqi',
+    strokeDashoffset: '33.07395cqi',
   },
-  '100%': { strokeDasharray: '8cqi 400cqi' },
+  '100%': { strokeDashoffset: '4cqi' },
+})
+
+const primaryWaveLength = stylex.keyframes({
+  '0%': { strokeDasharray: `calc(8cqi - ${THICKNESS}px) 400cqi` },
+  '36.65%': {
+    animationTimingFunction: 'cubic-bezier(0.334731, 0.12482, 0.785844, 1)',
+    strokeDasharray: `calc(8cqi - ${THICKNESS}px) 400cqi`,
+  },
+  '69.15%': {
+    animationTimingFunction: 'cubic-bezier(0.06, 0.11, 0.6, 1)',
+    strokeDasharray: `calc(66.1479cqi - ${THICKNESS}px) 400cqi`,
+  },
+  '100%': { strokeDasharray: `calc(8cqi - ${THICKNESS}px) 400cqi` },
 })
 
 const secondaryWaveOffset = stylex.keyframes({
   '0%': {
     animationTimingFunction: 'cubic-bezier(0.15, 0, 0.515058, 0.409685)',
-    strokeDashoffset: '54.8889cqi',
+    strokeDashoffset: '4.8889cqi',
   },
   '25%': {
     animationTimingFunction: 'cubic-bezier(0.31033, 0.284058, 0.8, 0.733712)',
-    strokeDashoffset: '17.237cqi',
+    strokeDashoffset: '-32.763cqi',
   },
   '48.35%': {
     animationTimingFunction: 'cubic-bezier(0.4, 0.627035, 0.6, 0.902026)',
-    strokeDashoffset: '-29.4973cqi',
+    strokeDashoffset: '-79.4973cqi',
   },
-  '100%': { strokeDashoffset: '-105.389cqi' },
+  '100%': { strokeDashoffset: '-155.3891cqi' },
+})
+
+// Half the secondary bar's scale — the same numbers as `secondaryEndShift`.
+const secondaryWaveStart = stylex.keyframes({
+  '0%': {
+    animationTimingFunction:
+      'cubic-bezier(0.205028, 0.057051, 0.57661, 0.453971)',
+    strokeDashoffset: '4cqi',
+  },
+  '19.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.152313, 0.196432, 0.648374, 1.00432)',
+    strokeDashoffset: '22.8552cqi',
+  },
+  '44.15%': {
+    animationTimingFunction:
+      'cubic-bezier(0.257759, -0.003163, 0.211762, 1.38179)',
+    strokeDashoffset: '36.398cqi',
+  },
+  '100%': { strokeDashoffset: '4cqi' },
 })
 
 const secondaryWaveLength = stylex.keyframes({
   '0%': {
     animationTimingFunction:
       'cubic-bezier(0.205028, 0.057051, 0.57661, 0.453971)',
-    strokeDasharray: '8cqi 400cqi',
+    strokeDasharray: `calc(8cqi - ${THICKNESS}px) 400cqi`,
   },
   '19.15%': {
     animationTimingFunction:
       'cubic-bezier(0.152313, 0.196432, 0.648374, 1.00432)',
-    strokeDasharray: '45.7104cqi 400cqi',
+    strokeDasharray: `calc(45.7104cqi - ${THICKNESS}px) 400cqi`,
   },
   '44.15%': {
     animationTimingFunction:
       'cubic-bezier(0.257759, -0.003163, 0.211762, 1.38179)',
-    strokeDasharray: '72.796cqi 400cqi',
+    strokeDasharray: `calc(72.796cqi - ${THICKNESS}px) 400cqi`,
   },
-  '100%': { strokeDasharray: '8cqi 400cqi' },
+  '100%': { strokeDasharray: `calc(8cqi - ${THICKNESS}px) 400cqi` },
 })
 
 const styles = stylex.create({
@@ -611,7 +653,8 @@ const styles = stylex.create({
     backgroundImage: `radial-gradient(circle at ${THICKNESS / 2}px 50%, color-mix(in srgb, currentColor 25%, transparent) ${THICKNESS / 2}px, transparent ${THICKNESS / 2}px)`,
   },
   // The same on the line, which also draws flat once it is wider than the
-  // wave reaches.
+  // wave reaches. The indeterminate line's track is drawn either way, so
+  // only its bars take this.
   flatUnderLineWave: {
     opacity: { default: 0, [REDUCED_MOTION]: 1, [TOO_WIDE]: 1 },
   },
@@ -673,20 +716,6 @@ const styles = stylex.create({
     position: 'relative',
     transform: { ':dir(rtl)': 'scaleX(-1)', default: 'none' },
   },
-  // The wavy line's track while the wave is drawn, whole under it, since the
-  // wave's dashes are not where the flat bars are. The pill is the row's clip
-  // as well, and is repeated here only so the forced-colours edge follows it
-  // rather than being cut at the corners.
-  indeterminateTrack: {
-    backgroundColor: colors.secondaryContainer,
-    borderRadius: radii.pill,
-    inset: 0,
-    outlineColor: { default: null, [FORCED_COLORS]: 'CanvasText' },
-    outlineOffset: { default: null, [FORCED_COLORS]: '-1px' },
-    outlineStyle: { default: null, [FORCED_COLORS]: 'solid' },
-    outlineWidth: { default: null, [FORCED_COLORS]: '1px' },
-    position: 'absolute',
-  },
   primaryBar: {
     '@media (prefers-reduced-motion: reduce)': {
       animationDuration: `${INDETERMINATE_MS * LINE_SLOWDOWN}ms`,
@@ -706,13 +735,16 @@ const styles = stylex.create({
     animationName: primaryScale,
     animationTimingFunction: 'linear',
   },
-  // The indeterminate line's waves, one per bar. Hidden rather than slowed
-  // under reduced motion, which draws the flat bars instead.
+  // The indeterminate line's waves, one per bar, each placed by its middle
+  // and the half scale before it added together — see `primaryWaveOffset`.
+  // Hidden rather than slowed under reduced motion, which draws the flat bars
+  // instead.
   primaryWave: {
-    animationDuration: `${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms`,
-    animationIterationCount: 'infinite, infinite',
-    animationName: `${primaryWaveOffset}, ${primaryWaveLength}`,
-    animationTimingFunction: 'linear, linear',
+    animationComposition: 'replace, add, replace',
+    animationDuration: `${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms`,
+    animationIterationCount: 'infinite, infinite, infinite',
+    animationName: `${primaryWaveOffset}, ${primaryWaveStart}, ${primaryWaveLength}`,
+    animationTimingFunction: 'linear, linear, linear',
     stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   // The ring's wave, hidden under reduced motion, where the flat arc
@@ -753,10 +785,11 @@ const styles = stylex.create({
     animationTimingFunction: 'linear',
   },
   secondaryWave: {
-    animationDuration: `${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms`,
-    animationIterationCount: 'infinite, infinite',
-    animationName: `${secondaryWaveOffset}, ${secondaryWaveLength}`,
-    animationTimingFunction: 'linear, linear',
+    animationComposition: 'replace, add, replace',
+    animationDuration: `${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms, ${INDETERMINATE_MS}ms`,
+    animationIterationCount: 'infinite, infinite, infinite',
+    animationName: `${secondaryWaveOffset}, ${secondaryWaveStart}, ${secondaryWaveLength}`,
+    animationTimingFunction: 'linear, linear, linear',
     stroke: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
   },
   // The indeterminate track's pieces, each placed by the bar end it follows:
@@ -841,8 +874,8 @@ const styles = stylex.create({
     insetBlockStart: 0,
     position: 'absolute',
   },
-  // A piece of the track, with the forced-colours edge the whole track
-  // keeps — see `indeterminateTrack`.
+  // A piece of the track, with the forced-colours edge the determinate
+  // line's track keeps — see src/indicator/styles.ts.
   trackPiece: {
     borderRadius: radii.pill,
     inlineSize: `${TRACK_REACH}cqi`,
@@ -856,11 +889,6 @@ const styles = stylex.create({
     boxSizing: 'border-box',
     inset: 0,
     position: 'absolute',
-  },
-  // The wavy line's whole track, which gives way to the pieces wherever the
-  // flat bars are drawn instead of the wave.
-  trackUnderLineWave: {
-    opacity: { default: 1, [REDUCED_MOTION]: 0, [TOO_WIDE]: 0 },
   },
   // The determinate line's wave, cut to the active indicator's length by its
   // dash: the value's share of the row less the stop and the gap before it,
@@ -1206,28 +1234,17 @@ function LinearTrack({
   const wavy = shape === 'wavy'
 
   if (isIndeterminate) {
-    // The pieces stand in for the wavy line's whole track only where the
-    // flat bars are drawn.
-    const piece = wavy && styles.flatUnderLineWave
+    // The track's pieces are the same under the wave as beside the flat
+    // bars, since the wave's dashes are drawn where those bars are.
     const fill = [styles.trackFill, inherit && indicatorStyles.inheritTrack]
     const bars = (
       <div {...stylex.props(styles.indeterminateRow)}>
         <span {...stylex.props(styles.trackPieces)}>
-          {wavy ? (
-            <span
-              {...stylex.props(
-                styles.indeterminateTrack,
-                inherit && indicatorStyles.inheritTrack,
-                styles.trackUnderLineWave,
-              )}
-            />
-          ) : null}
           <span
             {...stylex.props(
               styles.trackMotion,
               styles.trackClip,
               styles.trackBeforeSecondary,
-              piece,
             )}
           >
             <span
@@ -1261,7 +1278,6 @@ function LinearTrack({
               styles.trackClip,
               styles.trackAfterPrimary,
               styles.trackAfterPrimaryEdge,
-              piece,
             )}
           >
             <span
@@ -1286,7 +1302,6 @@ function LinearTrack({
               styles.trackPiece,
               fill,
               styles.trackAfterSecondary,
-              piece,
             )}
           />
         </span>

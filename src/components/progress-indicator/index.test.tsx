@@ -73,15 +73,41 @@ function arcsOf(bar: HTMLElement) {
 }
 
 /**
+ * Where a wave's dash is drawn across its row, round caps and all: the dash
+ * is read off the path's computed pattern and offset, in the path's own
+ * `pathLength`, and placed along the path itself, so a dash is measured where
+ * the wave carries it rather than where its length alone would put it.
+ */
+function drawnDashOf(wave: SVGPathElement): Span[] {
+  const style = getComputedStyle(wave)
+  const [dash = 0] = patternOf(style.strokeDasharray)
+  const start = -Number.parseFloat(style.strokeDashoffset)
+  const end = start + dash
+  const extent = Number(wave.getAttribute('pathLength'))
+  const cap = Number(wave.getAttribute('stroke-width')) / 2
+  if (end < 0 || start > extent) {
+    return []
+  }
+  const xAt = (length: number) =>
+    wave.getPointAtLength(
+      (Math.min(Math.max(length, 0), extent) / extent) * wave.getTotalLength(),
+    ).x
+  return [[xAt(start) - cap, xAt(end) + cap]]
+}
+
+/**
  * What is drawn of an indeterminate line's track, as spans across the row:
- * every part of it that paints a fill, cut to each box between it and the row
- * that clips what it holds.
+ * every part of it that paints a fill and is not faded out, cut to each box
+ * between it and the row that clips what it holds.
  */
 function drawnTrackOf(track: Element, row: Element) {
   const box = row.getBoundingClientRect()
   const spans: Span[] = []
   for (const part of [track, ...track.querySelectorAll('*')]) {
-    if (getComputedStyle(part).backgroundColor === 'rgba(0, 0, 0, 0)') {
+    if (
+      getComputedStyle(part).backgroundColor === 'rgba(0, 0, 0, 0)' ||
+      isFadedOut(part, row)
+    ) {
       continue
     }
     let [start, end] = spanOf(part, box)
@@ -110,6 +136,20 @@ function entriesOf(list: string | undefined) {
 
 function hasClasses(element: Element, classes: string[]) {
   return classes.every((name) => element.classList.contains(name))
+}
+
+/** Whether an element, or anything between it and `row`, is faded out. */
+function isFadedOut(element: Element, row: Element) {
+  for (
+    let part: Element | null = element;
+    part !== null && row.contains(part);
+    part = part.parentElement
+  ) {
+    if (getComputedStyle(part).opacity === '0') {
+      return true
+    }
+  }
+  return false
 }
 
 function lengthOf(spans: Span[]) {
@@ -181,6 +221,13 @@ function spanOf(element: Element | null, box: DOMRect): Span {
   }
   const { left, right } = element.getBoundingClientRect()
   return [left - box.left, right - box.left]
+}
+
+/** The part of `spans` inside a row `width` wide, which is what it shows. */
+function visibleIn(spans: Span[], width: number) {
+  return spans
+    .map(([start, end]): Span => [Math.max(start, 0), Math.min(end, width)])
+    .filter(([start, end]) => end > start)
 }
 
 /** What is left of `spans` once every one of `holes` is taken out of it. */
@@ -950,50 +997,58 @@ describe('progress indicator', () => {
     // pieces the bars leave, before, between and after them, each 4dp clear
     // of the bar beside it. Frozen at moments across the cycle, what is drawn
     // of the track is the row less each bar and the gap either side of it.
-    it('leaves the gap between each bar and the track', () => {
-      const view = render(
-        <div {...stylex.props(probeStyles.measured)}>
-          <ProgressIndicator isIndeterminate label="Label" />
-        </div>,
-      )
-      const row = view.getByRole('progressbar', {
-        name: 'Label',
-      }).lastElementChild
-      if (!(row instanceof HTMLElement)) {
-        throw new Error('expected the indicator to draw its row')
-      }
-      const [track, ...bars] = [...row.children]
-      if (!(track instanceof HTMLElement) || bars.length !== 2) {
-        throw new Error('expected the track and the two bars')
-      }
-      const animations = row.getAnimations({ subtree: true })
-      expect(animations.length).toBeGreaterThan(0)
-
-      let barsSeen = 0
-      for (let time = 0; time < 2000; time += 100) {
-        for (const animation of animations) {
-          animation.pause()
-          animation.currentTime = time
+    // The wavy line's dashes are where its flat bars are — see "moves each
+    // dash with its flat bar" — so its track leaves the same gaps under the
+    // wave.
+    it.each(['flat', 'wavy'] as const)(
+      'leaves the gap between each bar and the track, %s',
+      (shape) => {
+        const view = render(
+          <div {...stylex.props(probeStyles.measured)}>
+            <ProgressIndicator isIndeterminate label="Label" shape={shape} />
+          </div>,
+        )
+        const indicator = view.getByRole('progressbar', {
+          name: 'Label',
+        }).lastElementChild
+        // The wavy line's row holds the flat one and the wave over it.
+        const row = shape === 'wavy' ? indicator?.firstElementChild : indicator
+        if (!(row instanceof HTMLElement)) {
+          throw new Error('expected the indicator to draw its row')
         }
-        const box = row.getBoundingClientRect()
-        const holes = bars
-          .map((bar) => spanOf(bar.firstElementChild, box))
-          .filter(([start, end]) => end > 0 && start < box.width)
-          .map(([start, end]): Span => [start - 4, end + 4])
-        barsSeen += holes.length
-        const expected = without([[0, box.width]], holes)
-        const drawn = drawnTrackOf(track, row)
+        const [track, ...bars] = [...row.children]
+        if (!(track instanceof HTMLElement) || bars.length !== 2) {
+          throw new Error('expected the track and the two bars')
+        }
+        const animations = row.getAnimations({ subtree: true })
+        expect(animations.length).toBeGreaterThan(0)
 
-        // Within half a pixel, for the rounding of a box measured mid-move;
-        // the moment rides along so a failure names it.
-        expect({ close: mismatchOf(drawn, expected) < 0.5, time }).toEqual({
-          close: true,
-          time,
-        })
-      }
-      // A cycle with no bar in sight would pass whatever the track drew.
-      expect(barsSeen).toBeGreaterThan(10)
-    })
+        let barsSeen = 0
+        for (let time = 0; time < 2000; time += 100) {
+          for (const animation of animations) {
+            animation.pause()
+            animation.currentTime = time
+          }
+          const box = row.getBoundingClientRect()
+          const holes = bars
+            .map((bar) => spanOf(bar.firstElementChild, box))
+            .filter(([start, end]) => end > 0 && start < box.width)
+            .map(([start, end]): Span => [start - 4, end + 4])
+          barsSeen += holes.length
+          const expected = without([[0, box.width]], holes)
+          const drawn = drawnTrackOf(track, row)
+
+          // Within half a pixel, for the rounding of a box measured mid-move;
+          // the moment rides along so a failure names it.
+          expect({ close: mismatchOf(drawn, expected) < 0.5, time }).toEqual({
+            close: true,
+            time,
+          })
+        }
+        // A cycle with no bar in sight would pass whatever the track drew.
+        expect(barsSeen).toBeGreaterThan(10)
+      },
+    )
 
     // Under reduced motion the track's pieces slow with the bars they follow,
     // so the gap stays where the bars are.
@@ -1134,10 +1189,13 @@ describe('progress indicator', () => {
       )
 
       expect(waves).toHaveLength(2)
+      // Three moves each: the bar's middle, the half scale before it added
+      // on, and the dash's length.
       for (const wave of waves) {
         const style = getComputedStyle(wave)
-        expect(style.animationName.split(',')).toHaveLength(2)
-        expect(style.animationDuration).toBe('2s, 2s')
+        expect(style.animationName.split(',')).toHaveLength(3)
+        expect(style.animationDuration).toBe('2s, 2s, 2s')
+        expect(style.animationComposition).toBe('replace, add, replace')
       }
       // Two crests where the determinate wave has one: half its wavelength
       // along, the wave is back at the middle.
@@ -1160,6 +1218,59 @@ describe('progress indicator', () => {
         expect(declarationsHeld(bar, REDUCED_MOTION).get('opacity')).toBe('1')
       }
       expect(declarationsHeld(svg, REDUCED_MOTION).get('display')).toBe('none')
+    })
+
+    // Each dash stands in for a flat bar, so it is drawn where that bar is:
+    // entering and leaving where the bar does, and gone at the end of a
+    // cycle rather than left mid-row. Frozen at moments across the cycle,
+    // what each dash draws of the row, round caps and all, is what its bar
+    // draws.
+    it('moves each dash with its flat bar', () => {
+      const view = render(
+        <div {...stylex.props(probeStyles.measured)}>
+          <ProgressIndicator isIndeterminate label="Label" shape="wavy" />
+        </div>,
+      )
+      const indicator = view.getByRole('progressbar', { name: 'Label' })
+      const [flat, svg] = [...(indicator.lastElementChild?.children ?? [])]
+      if (!(flat instanceof HTMLElement) || !(svg instanceof SVGElement)) {
+        throw new Error('expected the flat row and the waves over it')
+      }
+      const [, ...bars] = [...flat.children]
+      const waves = [...svg.children].filter(
+        (wave) => wave instanceof SVGPathElement,
+      )
+      expect(bars).toHaveLength(2)
+      expect(waves).toHaveLength(2)
+      const animations = indicator.getAnimations({ subtree: true })
+
+      let dashesSeen = 0
+      for (let time = 0; time < 2000; time += 100) {
+        for (const animation of animations) {
+          animation.pause()
+          animation.currentTime = time
+        }
+        const box = flat.getBoundingClientRect()
+        for (const [index, wave] of waves.entries()) {
+          const bar = visibleIn(
+            [spanOf(bars[index]?.firstElementChild ?? null, box)],
+            box.width,
+          )
+          const dash = visibleIn(drawnDashOf(wave), box.width)
+          dashesSeen += dash.length
+
+          // Within a pixel, for the wave's length along it being a little
+          // uneven against its width across; the moment and the dash ride
+          // along so a failure names them.
+          expect({
+            close: mismatchOf(dash, bar) < 1,
+            dash: index,
+            time,
+          }).toEqual({ close: true, dash: index, time })
+        }
+      }
+      // A cycle with no dash in sight would pass whatever the bars did.
+      expect(dashesSeen).toBeGreaterThan(10)
     })
 
     it('mirrors the wave under a right-to-left writing mode', () => {
