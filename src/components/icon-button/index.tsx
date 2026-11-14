@@ -309,7 +309,8 @@ const styles = stylex.create({
   // the page rather than the component tree: a sheet or a menu opened from
   // that slot is portalled out of it, and its buttons keep their own colour.
   // Read here, with the role as its fallback, so it resolves in the theme
-  // the button is drawn in.
+  // the button is drawn in. The hover, focus and pressed layers read it too,
+  // since a standard button's state layer is the colour its icon rests in.
   standard: {
     backgroundColor: 'transparent',
     // No rule under forced colours either, which replaces `base`'s whole.
@@ -421,7 +422,7 @@ const hovered = stylex.create({
     },
   },
   standard: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+    backgroundColor: `color-mix(in srgb, var(--icon-button-standard-color, ${colors.onSurfaceVariant}) calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
   standardToggleSelected: {
     backgroundColor: {
@@ -463,7 +464,7 @@ const focused = stylex.create({
     },
   },
   standard: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.focus} * 100%), transparent)`,
+    backgroundColor: `color-mix(in srgb, var(--icon-button-standard-color, ${colors.onSurfaceVariant}) calc(${stateLayerOpacity.focus} * 100%), transparent)`,
   },
   standardToggleSelected: {
     backgroundColor: {
@@ -505,7 +506,7 @@ const pressed = stylex.create({
     },
   },
   standard: {
-    backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+    backgroundColor: `color-mix(in srgb, var(--icon-button-standard-color, ${colors.onSurfaceVariant}) calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   standardToggleSelected: {
     backgroundColor: {

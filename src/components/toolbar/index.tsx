@@ -137,7 +137,14 @@ const styles = stylex.create({
     paddingBlock: spacing.lg,
     paddingInline: spacing.sm,
   },
+  // The page's vibrant scheme. Its content role reaches a standard icon
+  // button through the property IconButton reads for its icon and its state
+  // layers, which would otherwise keep their own on surface variant: a
+  // different colour from everything else the bar carries, and the one
+  // Compose's vibrant toolbar does not draw its icons in. A disabled one
+  // keeps its own faded on surface, as it does on every surface.
   vibrant: {
+    '--icon-button-standard-color': colors.onPrimaryContainer,
     backgroundColor: colors.primaryContainer,
     color: colors.onPrimaryContainer,
   },

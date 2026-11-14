@@ -29,13 +29,17 @@ const probeStyles = stylex.create({
   },
   // The hover and pressed tints, each the variant's icon colour over its
   // container, written as the component writes them so they hash to the same
-  // atomic classes. Outlined and standard share theirs, since both draw the
-  // muted icon over nothing.
+  // atomic classes. Outlined and standard both draw the muted icon over
+  // nothing, and standard's reads it through the property a surface sets to
+  // give its icon buttons another role — see the component.
   hoverFilled: {
     backgroundColor: `color-mix(in srgb, ${colors.onPrimary} calc(${stateLayerOpacity.hover} * 100%), ${colors.primary})`,
   },
   hoverMuted: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.hover} * 100%), transparent)`,
+  },
+  hoverStandard: {
+    backgroundColor: `color-mix(in srgb, var(--icon-button-standard-color, ${colors.onSurfaceVariant}) calc(${stateLayerOpacity.hover} * 100%), transparent)`,
   },
   hoverTonal: {
     backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.hover} * 100%), ${colors.secondaryContainer})`,
@@ -54,6 +58,9 @@ const probeStyles = stylex.create({
   },
   pressMuted: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurfaceVariant} calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
+  },
+  pressStandard: {
+    backgroundColor: `color-mix(in srgb, var(--icon-button-standard-color, ${colors.onSurfaceVariant}) calc(${stateLayerOpacity.pressed} * 100%), transparent)`,
   },
   pressTonal: {
     backgroundColor: `color-mix(in srgb, ${colors.onSecondaryContainer} calc(${stateLayerOpacity.pressed} * 100%), ${colors.secondaryContainer})`,
@@ -423,7 +430,7 @@ describe('icon button', () => {
       const cases = [
         ['filled', probeStyles.hoverFilled, probeStyles.pressFilled],
         ['outlined', probeStyles.hoverMuted, probeStyles.pressMuted],
-        ['standard', probeStyles.hoverMuted, probeStyles.pressMuted],
+        ['standard', probeStyles.hoverStandard, probeStyles.pressStandard],
         ['tonal', probeStyles.hoverTonal, probeStyles.pressTonal],
       ] as const
 
