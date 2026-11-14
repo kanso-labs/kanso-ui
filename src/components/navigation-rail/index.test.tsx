@@ -3,9 +3,10 @@ import type { RenderResult } from '@testing-library/react'
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, within } from '@testing-library/react'
 import { RouterProvider } from 'react-aria-components'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import NavigationRail from '.'
+import { enlargeText, settle } from '../../hooks/useEnlargedText.testing'
 import {
   advance,
   firePointer,
@@ -679,6 +680,71 @@ describe('navigation rail', () => {
         expect(header - rail.top).toBe(44)
       },
     )
+  })
+
+  // A reader's text-only zoom or minimum font size grows the text and none of
+  // the lengths around it, so a label that fit the collapsed rail no longer
+  // does. At the size the label was set in it keeps to one line; once
+  // enlarged it takes further lines, and its destination grows to hold them.
+  describe("with the reader's text enlarged", () => {
+    let restore: (() => void) | undefined
+
+    afterEach(() => {
+      restore?.()
+      restore = undefined
+    })
+
+    it('keeps each label to one line at the size it was set in', async () => {
+      const view = render(<Rail />)
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        const { label } = partsOf(link)
+        expect(getComputedStyle(label).whiteSpace).toBe('nowrap')
+        expect(label.getBoundingClientRect().height).toBe(16)
+        expect(link.getBoundingClientRect().height).toBe(64)
+      }
+    })
+
+    it('shows every collapsed label whole on further lines', async () => {
+      const view = render(<Rail />)
+      restore = enlargeText()
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        const { label } = partsOf(link)
+        const box = link.getBoundingClientRect()
+        expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+        expect(label.scrollHeight).toBeLessThanOrEqual(label.clientHeight)
+        expect(label.getBoundingClientRect().height).toBeGreaterThan(32)
+        expect(label.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          box.bottom,
+        )
+      }
+    })
+
+    // A theme setting its labels larger has set them at that size, which is
+    // not the reader enlarging them.
+    it("keeps a theme's larger labels to one line", async () => {
+      const view = render(<Rail />)
+      restore = enlargeText({ fontsOnly: true })
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(partsOf(link).label).whiteSpace).toBe('nowrap')
+      }
+    })
+
+    // An expanded pill is as wide as its label.
+    it('keeps an expanded label to one line', async () => {
+      const view = render(<Rail isExpanded />)
+      restore = enlargeText()
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(partsOf(link).label).whiteSpace).toBe('nowrap')
+      }
+    })
   })
 
   describe('under forced colours', () => {

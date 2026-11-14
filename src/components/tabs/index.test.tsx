@@ -1,8 +1,9 @@
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
+import { enlargeText, settle } from '../../hooks/useEnlargedText.testing'
 import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -167,6 +168,20 @@ const MANY = [
   'Sixth item',
 ]
 
+// Whether a tab's label is drawn whole: not clamped, not overflowing its
+// span across, and painted inside the tab.
+function isWhole(tab: HTMLElement) {
+  const text = textOf(tab)
+  const box = tab.getBoundingClientRect()
+  const painted = paintedTextOf(tab)
+  return (
+    text.scrollHeight <= text.clientHeight &&
+    text.scrollWidth <= text.clientWidth &&
+    painted.top >= box.top &&
+    painted.bottom <= box.bottom
+  )
+}
+
 // A scrollable bar at a phone's width, on the tab `selectedKey` names.
 function setupScrollable(selectedKey: string) {
   return render(
@@ -235,6 +250,19 @@ function textBoxOf(tab: HTMLElement, text: string) {
     throw new Error(`expected the tab to carry the text "${text}"`)
   }
   return span.getBoundingClientRect()
+}
+
+// The span a tab's label is laid out in, which is what clamps it.
+function textOf(tab: HTMLElement) {
+  const span = [...tab.querySelectorAll('span')].find(
+    (element) =>
+      element.childElementCount === 0 &&
+      element.textContent === tab.textContent,
+  )
+  if (span === undefined) {
+    throw new Error('expected the tab to carry its label')
+  }
+  return span
 }
 
 // Hoisted, which is what react-perf's no-new-object-as-prop is after.
@@ -731,6 +759,77 @@ describe('tabs', () => {
 
       expect(paintedTextOf(tab).height).toBeLessThanOrEqual(lineHeight + 1)
       expect(tab.getBoundingClientRect().height).toBe(64)
+    })
+  })
+
+  // A reader's text-only zoom or minimum font size grows the text and none of
+  // the lengths around it, so a label that fit its section no longer does. At
+  // the size the label was set in a fixed tab keeps the two lines it is cut
+  // at, or one under a stacked icon; once enlarged its label takes as many as
+  // it needs, and the tab and the bar grow to hold them.
+  describe("with the reader's text enlarged", () => {
+    let restore: (() => void) | undefined
+
+    afterEach(() => {
+      restore?.()
+      restore = undefined
+    })
+
+    const LABELS = ['First item', 'Second item', 'Supporting line']
+
+    function setupThree(icon?: typeof ICON) {
+      return render(
+        <div {...stylex.props(probeStyles.phone)}>
+          <Tabs defaultSelectedKey="First item">
+            <Tabs.List>
+              {LABELS.map((label) => (
+                <Tabs.Tab icon={icon} id={label} key={label}>
+                  {label}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </div>,
+      )
+    }
+
+    it('keeps the two lines a label is cut at, at the size it was set in', async () => {
+      const view = setupThree()
+      await settle()
+
+      for (const tab of view.getAllByRole('tab')) {
+        expect(getComputedStyle(textOf(tab)).webkitLineClamp).toBe('2')
+      }
+      expect(view.getByRole('tablist').getBoundingClientRect().height).toBe(48)
+    })
+
+    it.each([
+      ['', undefined],
+      [' under a stacked icon', ICON],
+    ])('shows every label whole%s, the bar growing to fit', async (_, icon) => {
+      const view = setupThree(icon)
+      const before = view.getByRole('tablist').getBoundingClientRect().height
+      restore = enlargeText()
+      await settle()
+
+      for (const tab of view.getAllByRole('tab')) {
+        expect(isWhole(tab)).toBe(true)
+      }
+      expect(
+        view.getByRole('tablist').getBoundingClientRect().height,
+      ).toBeGreaterThan(before)
+    })
+
+    // A theme setting its labels larger has set them at that size, which is
+    // not the reader enlarging them.
+    it("keeps a theme's larger labels to two lines", async () => {
+      const view = setupThree()
+      restore = enlargeText({ fontsOnly: true })
+      await settle()
+
+      for (const tab of view.getAllByRole('tab')) {
+        expect(getComputedStyle(textOf(tab)).webkitLineClamp).toBe('2')
+      }
     })
   })
 

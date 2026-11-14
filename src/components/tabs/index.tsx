@@ -29,6 +29,7 @@ import {
   TabPanel,
 } from 'react-aria-components'
 
+import { useEnlargedText } from '../../hooks/useEnlargedText'
 import { refCallback } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 import {
@@ -475,6 +476,13 @@ const styles = stylex.create({
   textVertical: {
     textAlign: 'start',
   },
+  // A fixed bar's label once the reader has enlarged their text: as many
+  // lines as it needs rather than the two or the one it is cut at, the tab
+  // and the bar growing to hold them. See src/hooks/useEnlargedText.ts for
+  // how that is told.
+  textWhole: {
+    WebkitLineClamp: 'none',
+  },
 })
 
 // A vertical bar beside its panels, which take the rest of the row. A style
@@ -662,11 +670,17 @@ function tabClasses({ layout, orientation, variant }: Bar, stacked: boolean) {
 // a call for the same reason as `tabRenderer` below; React Aria hands the
 // function the tab's state, and it is passed on when the children are a
 // function too.
+//
+// A fixed bar's label is whole once the reader has enlarged their text,
+// rather than cut at the two lines or the one its section has room for. A
+// scrollable bar's tab is as wide as its label up to its 264dp, and its label
+// keeps the clamp past that.
 function tabContent(
   children: TabProps['children'],
   { layout, orientation, variant }: Bar,
   icon: ReactNode,
   badge: boolean | number | undefined,
+  isEnlarged: boolean,
 ) {
   const hasIcon = icon !== undefined && icon !== null
   const stacked = hasIcon && variant === 'primary'
@@ -687,6 +701,7 @@ function tabContent(
           styles.text,
           stacked && styles.textStacked,
           orientation === 'vertical' && styles.textVertical,
+          isEnlarged && layout === 'fixed' && styles.textWhole,
         )}
       >
         {typeof children === 'function' ? children(state) : children}
@@ -878,6 +893,7 @@ function TabsTab({
   const hasPanel = props.id !== undefined && panels.has(props.id)
   const stacked =
     icon !== undefined && icon !== null && bar.variant === 'primary'
+  const isEnlarged = useEnlargedText()
 
   return (
     <Tab
@@ -889,7 +905,7 @@ function TabsTab({
       render={tabRenderer(hasPanel, render)}
       {...mergeStatefulStyles(tabClasses(bar, stacked), props)}
     >
-      {tabContent(children, bar, icon, badge)}
+      {tabContent(children, bar, icon, badge, isEnlarged)}
     </Tab>
   )
 }

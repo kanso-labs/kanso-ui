@@ -2,10 +2,19 @@ import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render, within } from '@testing-library/react'
 import { createRef } from 'react'
 import { RouterProvider } from 'react-aria-components'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 import { page } from 'vitest/browser'
 
 import NavigationBar from '.'
+import { enlargeText, settle } from '../../hooks/useEnlargedText.testing'
 import {
   advance,
   firePointer,
@@ -979,6 +988,87 @@ describe('navigation bar', () => {
       }
       expect(anyCut(view.getAllByRole('link'))).toBe(false)
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+  })
+
+  // A reader's text-only zoom or minimum font size grows the text and none of
+  // the lengths around it, so a label that fit its share no longer does. At
+  // the size the label was set in it keeps to one line, as the page draws it;
+  // once enlarged it takes further lines, and the bar grows to hold them.
+  describe("with the reader's text enlarged", () => {
+    let restore: (() => void) | undefined
+
+    beforeAll(async () => {
+      await page.viewport(360, DEFAULT_VIEWPORT.height)
+    })
+
+    afterEach(() => {
+      restore?.()
+      restore = undefined
+    })
+
+    afterAll(async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('keeps each label to one line at the size it was set in', async () => {
+      const view = render(<LongLabels />)
+      await settle()
+      const links = view.getAllByRole('link')
+
+      for (const link of links) {
+        expect(getComputedStyle(labelOf(link)).whiteSpace).toBe('nowrap')
+        expect(labelOf(link).getBoundingClientRect().height).toBe(16)
+      }
+      expect(anyCut(links)).toBe(true)
+      expect(view.getByRole('navigation').getBoundingClientRect().height).toBe(
+        64,
+      )
+    })
+
+    it('shows every label whole on further lines, the bar growing to fit', async () => {
+      const view = render(<LongLabels />)
+      restore = enlargeText()
+      await settle()
+      const bar = view.getByRole('navigation').getBoundingClientRect()
+
+      for (const link of view.getAllByRole('link')) {
+        const label = labelOf(link)
+        expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+        expect(label.scrollHeight).toBeLessThanOrEqual(label.clientHeight)
+        expect(label.getBoundingClientRect().height).toBeGreaterThan(32)
+        expect(label.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          bar.bottom,
+        )
+      }
+      expect(bar.height).toBeGreaterThan(64)
+    })
+
+    // A theme setting its labels larger has set them at that size, which is
+    // not the reader enlarging them.
+    it("keeps a theme's larger labels to one line", async () => {
+      const view = render(<LongLabels />)
+      restore = enlargeText({ fontsOnly: true })
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(labelOf(link)).whiteSpace).toBe('nowrap')
+      }
+    })
+
+    // A horizontal pill is as wide as its label, and the bar turns vertical
+    // where it has no room for one.
+    it('keeps a horizontal label to one line', async () => {
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+      const view = render(<Bar />)
+      restore = enlargeText()
+      await settle()
+
+      for (const link of view.getAllByRole('link')) {
+        expect(getComputedStyle(link).flexDirection).toBe('row')
+        expect(getComputedStyle(labelOf(link)).whiteSpace).toBe('nowrap')
+      }
+      await page.viewport(360, DEFAULT_VIEWPORT.height)
     })
   })
 
