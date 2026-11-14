@@ -65,13 +65,11 @@ describe('color slider', () => {
       expect(view.getByText('Label')).not.toBeNull()
     })
 
-    it('shows the value React Aria announces', () => {
+    it('shows the value', () => {
       const view = render(
         <ColorSlider channel="hue" defaultValue={BLUE} label="Label" />,
       )
 
-      // The output rather than a number formatted here, so what is read and
-      // what is shown cannot disagree.
       expect(view.container.querySelector('output')?.textContent).toBe('200°')
     })
 
@@ -234,10 +232,34 @@ describe('color slider', () => {
         />,
       )
 
-      expect(view.container.querySelector('output')?.textContent).toBe(
-        '256.43°',
-      )
+      expect(view.container.querySelector('output')?.textContent).toBe('256°')
     })
+
+    // A channel field editing the hue shows it to the degree, and the readout
+    // follows it; the other channels' steps round the same way. The value
+    // itself keeps its decimals.
+    it.each([
+      ['hue', 'hsl(256.43, 47%, 48%)', '256°'],
+      ['hue', 'hsl(359.6, 47%, 48%)', '360°'],
+      ['saturation', 'hsl(256, 47.4%, 48%)', '47%'],
+      ['alpha', 'hsla(256, 47%, 48%, 0.574)', '57%'],
+    ] as const)(
+      'rounds the %s readout to its step, from %s',
+      (channel, value, shown) => {
+        const onChange = vi.fn<(value: Color) => void>()
+        const view = render(
+          <ColorSlider
+            channel={channel}
+            defaultValue={value}
+            label="Label"
+            onChange={onChange}
+          />,
+        )
+
+        expect(view.container.querySelector('output')?.textContent).toBe(shown)
+        expect(onChange).not.toHaveBeenCalled()
+      },
+    )
 
     it('fades the strip while disabled, and leaves the label readable', () => {
       const onChange = vi.fn<(value: Color) => void>()

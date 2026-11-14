@@ -253,6 +253,18 @@ describe('color picker', () => {
       expect(fieldOf(view).value).toBe(PURPLE)
     })
 
+    // The hex converts to a hue of 256.43, whose decimals come from the
+    // conversion and mean nothing to the reader. The readout rounds it as a
+    // channel field does, and the value itself is left alone.
+    it('reads the hue to the degree, as a channel field rounds it', () => {
+      const view = render(<ColorPicker defaultValue={PURPLE} label="Label" />)
+
+      fireEvent.click(triggerOf(view))
+
+      expect(view.getByRole('status').textContent).toBe('256°')
+      expect(fieldOf(view).value).toBe(PURPLE)
+    })
+
     it('reports a colour changed on the surface', () => {
       const onChange = vi.fn<(value: Color) => void>()
       const view = render(
