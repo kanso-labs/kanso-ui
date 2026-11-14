@@ -29,6 +29,16 @@ import { typography } from '../../tokens/design.tokens.stylex'
 // snackbar's, it was on surface over inverse surface and could not be read.
 // Whatever paints a surface around Code sets the colour that pairs with it,
 // as CopyField does for its value.
+//
+// It is in English whatever the page's language, through `lang` on the
+// element, as CopyField's value is. The mono stack names no face Windows
+// ships ahead of the generic `monospace`, and Chromium resolves that generic
+// by language: under Japanese it picked MS Gothic, which draws U+005C as a
+// yen sign, and under Korean a face drawing it as a won sign, so a path
+// showed one character and copied another. A Latin fragment gets a Latin
+// face, and one with Japanese in it still draws, since the browser falls back
+// character by character for what that face lacks. A call site's own `lang`
+// wins, for a fragment that is in another language.
 const styles = stylex.create({
   base: {
     boxSizing: 'border-box',
@@ -53,6 +63,7 @@ function Code({ render, ...props }: CodeProps) {
   return useRender({
     defaultTagName: 'code',
     props: {
+      lang: 'en',
       ...props,
       ...mergeStyles(stylex.props(styles.base), props),
     },
