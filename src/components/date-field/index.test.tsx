@@ -28,6 +28,9 @@ const DATE = new CalendarDate(2026, 9, 15)
 // rejects `minute` against a date-only value outright.
 const DATE_TIME = new CalendarDateTime(2026, 9, 15, 9, 30)
 const SINGLE_DIGITS = new CalendarDate(2026, 9, 5)
+// A day and an hour of one digit each, which in Japanese stand either side of
+// the space joining the date to the time.
+const SINGLE_DIGITS_TIME = new CalendarDateTime(2026, 9, 5, 9, 30)
 
 // The literals between the segments, by their text with the invisible
 // direction marks some locales add taken out, each with the padding on its
@@ -149,13 +152,18 @@ describe('date field', () => {
   // Storybook's locales, and with a space alone in Japanese, and the time
   // with its AM or PM with a space.
   describe('with a time', () => {
-    it.each(['en-US', 'de-DE', 'ar-EG', 'ja-JP'])(
-      'keeps every segment clear of the next as a target, in %s',
-      (locale) => {
+    it.each(
+      ['en-US', 'de-DE', 'ar-EG', 'ja-JP'].flatMap((locale) => [
+        { day: 'a two-digit day', locale, value: DATE_TIME },
+        { day: 'a one-digit day', locale, value: SINGLE_DIGITS_TIME },
+      ]),
+    )(
+      'keeps every segment clear of the next as a target, in $locale with $day',
+      ({ locale, value }) => {
         const view = render(
           <I18nProvider locale={locale}>
             <DateField
-              defaultValue={DATE_TIME}
+              defaultValue={value}
               granularity="minute"
               label="Label"
             />
@@ -188,6 +196,37 @@ describe('date field', () => {
         expect(comma).toMatchObject({ end: '4px', start: '0px' })
       },
     )
+
+    // Japanese joins the date to the time with a space alone, between a day
+    // and an hour either of which can be one digit, so that space takes
+    // twice the room. The space before AM or PM stands inside the time, and
+    // keeps the room a slash has.
+    it('widens the space joining a date to its time, and no other', () => {
+      const japanese = render(
+        <I18nProvider locale="ja-JP">
+          <DateField
+            defaultValue={SINGLE_DIGITS_TIME}
+            granularity="minute"
+            label="Label"
+          />
+        </I18nProvider>,
+      )
+      expect(
+        literalsOf(japanese).filter((literal) => literal.text === ' '),
+      ).toEqual([{ end: '8px', start: '8px', text: ' ' }])
+      japanese.unmount()
+
+      const english = render(
+        <DateField
+          defaultValue={SINGLE_DIGITS_TIME}
+          granularity="minute"
+          label="Label"
+        />,
+      )
+      expect(
+        literalsOf(english).filter((literal) => literal.text === ' '),
+      ).toEqual([{ end: '4px', start: '4px', text: ' ' }])
+    })
 
     it('keeps the room either side of the punctuation inside the date and the time', () => {
       const view = render(

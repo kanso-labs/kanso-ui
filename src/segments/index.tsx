@@ -6,6 +6,7 @@ import {
   DateSegment as RACDateSegment,
 } from 'react-aria-components'
 
+import { SegmentLiteral } from './literal'
 import { segmentStyles } from './styles'
 
 // How a date or a time is drawn once React Aria has decided what its parts
@@ -20,36 +21,12 @@ type Segment = Parameters<
   NonNullable<Parameters<typeof RACDateInput>[0]['children']>
 >[0]
 
-// The invisible marks that keep a value's direction, which a locale can put
-// at either end of it as a literal of their own.
-const UNSEEN = /^[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]*$/u
-
-// Punctuation followed by a space, as the comma between a date and its time
-// is written, in any script, once the direction marks are set aside.
-const HANGING = /^[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]*\p{P}+\s+$/u
-
 // What each segment draws. A literal — the slash or colon between two
 // segments — takes a style of its own, since it is punctuation rather than
-// something a reader types into, and the room either side of it only where
-// it takes up room: a direction mark at the start of a time is a literal
-// too, and spaced, it moved the value off the label's edge. A space is spaced
-// like a slash, since it is what stands between a time and its AM or PM, and
-// in Japanese between a date's day and the time's hour, two segments narrow
-// enough to need that room as targets. A comma and its space hang off the
-// segment before them instead — see `segmentSeparatorHanging`.
+// something a reader types into — see `SegmentLiteral`.
 function renderSegment(segment: Segment): ReactElement {
   if (segment.type === 'literal') {
-    return (
-      <RACDateSegment
-        {...stylex.props(
-          segmentStyles.segment,
-          segmentStyles.segmentLiteral,
-          !UNSEEN.test(segment.text) && segmentStyles.segmentSeparator,
-          HANGING.test(segment.text) && segmentStyles.segmentSeparatorHanging,
-        )}
-        segment={segment}
-      />
-    )
+    return <SegmentLiteral segment={segment} />
   }
   return <RACDateSegment className={segmentClassName} segment={segment} />
 }
