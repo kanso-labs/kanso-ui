@@ -4,6 +4,7 @@ import { TokenFieldValue } from 'react-aria-components'
 import { describe, expect, it } from 'vitest'
 
 import TokenField from '.'
+import { leftOf } from '../../chip/label.testing'
 import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -238,6 +239,25 @@ describe('token field', () => {
       const view = setup({ renderToken: (segment) => segment.text.slice(1) })
       expect(view.getByText('first')).not.toBeNull()
       expect(view.queryByText('#first')).toBeNull()
+    })
+
+    // A `#` is a neutral character, so in a right-to-left paragraph the
+    // bidi algorithm sent it to the paragraph's start, the right, and
+    // `#first` read `first#`. The label is isolated and takes its direction
+    // from its own text, so the tag keeps its hash before its word. Read
+    // off where the browser lays each character, since that is the order a
+    // reader sees.
+    it('keeps a token’s leading # before its word under right-to-left', () => {
+      const view = render(
+        <div dir="rtl">
+          <TokenField defaultValue={TAGGED} label="Label" />
+        </div>,
+      )
+
+      for (const tag of ['#first', '#second']) {
+        const label = view.getByText(tag)
+        expect(leftOf(label, 0)).toBeLessThan(leftOf(label, 1))
+      }
     })
 
     // Disabled, the label, box and underline faded and the value did not:

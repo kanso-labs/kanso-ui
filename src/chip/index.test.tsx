@@ -8,6 +8,7 @@ import Chip from '../components/chip'
 import ChipGroup from '../components/chip-group'
 import TokenField from '../components/token-field'
 import { reducedMotionOf, transitionOf } from '../styles/stylesheet.testing'
+import { leftOf } from './label.testing'
 
 const LONG_LABEL =
   'A label long enough that it has nowhere left to go on one line'
@@ -51,6 +52,20 @@ function fitOf(pill: Element, label: HTMLElement, room: HTMLElement) {
 }
 
 const FITS = { cutShort: true, inRoom: true, oneLine: true }
+
+// A chip and a group's chip holding `label`, for the cases each of them is
+// read in.
+function pills(label: string) {
+  return [
+    ['a chip', <Chip key="chip">{label}</Chip>],
+    [
+      "a group's chip",
+      <ChipGroup key="group" label="Label">
+        <ChipGroup.Chip id="only">{label}</ChipGroup.Chip>
+      </ChipGroup>,
+    ],
+  ] as const
+}
 
 // The pill is a fixed 32dp, so a label with no room on one line is cut short
 // with an ellipsis where it meets the pill's end, as Material's own chips do,
@@ -153,6 +168,58 @@ describe('chip', () => {
       fireEvent.pointerOver(label)
 
       expect(label).not.toHaveAttribute('title')
+    })
+  })
+
+  // The label is isolated from the text around it and runs the way its own
+  // first strong letter says, as a `<bdi>` does. Without that a label's
+  // leading `#` or `@` is a neutral character that takes the paragraph's
+  // direction, so a Latin tag read `tag#` in a right-to-left page and an
+  // Arabic one read `#تسمية` the wrong way round in a left-to-right one.
+  // Read off where the browser lays each character, for each of the two
+  // components besides TokenField that draw the label; its own spec reads
+  // the token.
+  describe("a label's direction", () => {
+    it.each(pills('#label'))(
+      'keeps a leading # before a Latin word under right-to-left in %s',
+      (_name, pill) => {
+        const view = render(<div dir="rtl">{pill}</div>)
+        const label = view.getByText('#label')
+
+        expect(leftOf(label, 0)).toBeLessThan(leftOf(label, 1))
+      },
+    )
+
+    it.each(pills('#تسمية'))(
+      'keeps a leading # before an Arabic word under left-to-right in %s',
+      (_name, pill) => {
+        const view = render(pill)
+        const label = view.getByText('#تسمية')
+
+        expect(leftOf(label, 0)).toBeGreaterThan(leftOf(label, 1))
+      },
+    )
+
+    // Its own direction, and not the page's, also decides which end an
+    // ellipsis cuts: a Latin label cut short in a right-to-left page keeps
+    // its first words and loses its last, rather than the other way round.
+    // The tooltip that hands back the rest still answers.
+    it('cuts a Latin label short at its own end under right-to-left', async () => {
+      const view = render(
+        <div dir="rtl" {...stylex.props(probeStyles.room)}>
+          <Chip>{LONG_LABEL}</Chip>
+        </div>,
+      )
+      const label = view.getByText(LONG_LABEL)
+      const box = label.getBoundingClientRect()
+
+      expect(leftOf(label, 0)).toBeGreaterThanOrEqual(box.left)
+      expect(leftOf(label, 0)).toBeLessThan(box.left + 1)
+
+      // A real pointer, for the reason the hover tests above give.
+      await userEvent.hover(view.getByRole('button', { name: LONG_LABEL }))
+
+      expect(label).toHaveAttribute('title', LONG_LABEL)
     })
   })
 
