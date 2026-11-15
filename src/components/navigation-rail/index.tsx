@@ -28,8 +28,12 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 // A collapsed destination's label stays on one line in the 88dp under its
 // indicator, about thirteen characters of label medium. A longer one is cut
 // short with an ellipsis and shows its full text in the browser's tooltip on
-// hover — see `src/navigation`. The expanded rail's labels sit beside their
-// icons, with the rest of the rail's 360dp at most.
+// hover — see `src/navigation`. Once the reader has enlarged their text, by
+// a text-only zoom or a minimum font size, the label takes further lines
+// instead and its destination grows to hold them, since that text no longer
+// fits the lengths around it — see src/hooks/useEnlargedText.ts. The expanded
+// rail's labels sit beside their icons, with the rest of the rail's 360dp at
+// most.
 //
 // The rail is a `<nav>`, and a page usually has more than one navigation
 // landmark, so name it with `aria-label`.

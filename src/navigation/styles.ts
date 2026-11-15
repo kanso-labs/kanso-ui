@@ -100,9 +100,12 @@ const navigationItemStyles = stylex.create({
     },
     cursor: 'default',
   },
-  // The label never wraps: a destination's name is a word or two, and one
-  // broken over two lines pushed its neighbours apart. One cut short shows
-  // its full text on hover instead — see `NavigationLabel` in ./index.tsx.
+  // At the size it was set in, the label never wraps: a destination's name
+  // is a word or two, and one broken over two lines pushed its neighbours
+  // apart. One cut short shows its full text on hover instead — see
+  // `NavigationLabel` in ./index.tsx. Once the reader has enlarged their text
+  // a vertical destination's label takes further lines instead — see each
+  // form's `labelWhole`.
   //
   // It is clipped across and never down. `hidden` clipped both ways, and
   // also let a flex column squeeze the label below its own line: under a
@@ -383,6 +386,20 @@ const barItemStyles = stylex.create({
       [media.medium]: colors.onSecondaryContainer,
     },
   },
+  // Below the medium breakpoint, a label the reader has enlarged past its
+  // share of the bar: on as many lines as it needs, centred under the icon,
+  // a word longer than the share broken inside itself — hyphenated where the
+  // page's language allows. The destination is at least the 64dp row and
+  // grows with it, and the bar with the destination. At the breakpoint and
+  // above the destination is a pill as wide as its label, which keeps it to
+  // one line, and the bar turns vertical where five of them do not fit —
+  // see NavigationBar.
+  labelWhole: {
+    hyphens: { default: 'auto', [media.medium]: null },
+    overflowWrap: { default: 'anywhere', [media.medium]: null },
+    textAlign: { default: 'center', [media.medium]: null },
+    whiteSpace: { default: 'normal', [media.medium]: 'nowrap' },
+  },
   // Vertical destinations meet, and horizontal ones are 8dp apart — see
   // NavigationBar.
   list: {
@@ -475,6 +492,16 @@ const collapsedItemStyles = stylex.create({
   labelCurrent: {
     color: colors.secondary,
   },
+  // A label the reader has enlarged past the rail's 88dp, which the bar's
+  // vertical form shares: on as many lines as it needs, centred under the
+  // icon, a word longer than the rail broken inside itself. The destination
+  // grows with it, and a rail too short for them all scrolls.
+  labelWhole: {
+    hyphens: 'auto',
+    overflowWrap: 'anywhere',
+    textAlign: 'center',
+    whiteSpace: 'normal',
+  },
   list: {
     gap: spacing.xs,
   },
@@ -561,6 +588,9 @@ const expandedItemStyles = stylex.create({
   labelCurrent: {
     color: colors.onSecondaryContainer,
   },
+  // A pill is as wide as its label, so enlarged text widens it rather than
+  // breaking the label.
+  labelWhole: {},
   // The pills meet, as the page draws them.
   list: {},
   // As wide as the pill, from the leading edge, and its height kept in a

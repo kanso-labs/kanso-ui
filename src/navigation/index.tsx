@@ -14,6 +14,7 @@ import type { NavigationForm } from './context'
 import { BadgeMarkContext } from '../badge'
 import Badge from '../components/badge'
 import { useClippedTitle } from '../hooks/useClippedTitle'
+import { useEnlargedText } from '../hooks/useEnlargedText'
 import { useRipple } from '../hooks/useRipple'
 import { focus } from '../styles/focus'
 import { mergeStatefulStyles } from '../styles/merge'
@@ -165,6 +166,10 @@ function itemClasses(form: NavigationForm, isCurrent: boolean) {
 // react-perf's no-new-function-as-prop is after.
 //
 // The ripple comes first, so a count badge drawn after it stays over it.
+//
+// Once the reader has enlarged their text the label takes the form's
+// `labelWhole`, further lines under the icon in a vertical form, rather than
+// being cut short. See src/hooks/useEnlargedText.ts for how that is told.
 function itemContent(
   form: NavigationForm,
   isCurrent: boolean,
@@ -173,6 +178,7 @@ function itemContent(
   label: ReactNode,
   naming: Naming | undefined,
   ripple: ReactNode,
+  isEnlarged: boolean,
 ) {
   const styles = FORMS[form]
   const glyph =
@@ -222,6 +228,7 @@ function itemContent(
           navigationItemStyles.label,
           navigationItemStyles.fade,
           styles.label,
+          isEnlarged && styles.labelWhole,
           isCurrent && styles.labelCurrent,
           state.isDisabled && navigationItemStyles.itemDisabled,
         )}
@@ -252,6 +259,7 @@ function NavigationItem({
   ...props
 }: NavigationItemProps & RefAttributes<HTMLAnchorElement>) {
   const { form, selectedRoute } = useContext(NavigationContext)
+  const isEnlarged = useEnlargedText()
   // The call site's handlers run after the ripple's own.
   const ripple = useRipple<FocusableElement>(props.isDisabled !== true, {
     onClick,
@@ -294,14 +302,15 @@ function NavigationItem({
           children,
           naming,
           ripple.surface,
+          isEnlarged,
         )}
       </RACLink>
     </li>
   )
 }
 
-// The label, kept to one line, which shows its full text in the browser's
-// tooltip on hover once it is cut short — see `useClippedTitle`. A component
+// The label, kept to one line at the size it was set in, which shows its
+// full text in the browser's tooltip on hover once it is cut short — see `useClippedTitle`. A component
 // because the title is state, and `itemContent` runs inside React Aria's
 // render function.
 function NavigationLabel({

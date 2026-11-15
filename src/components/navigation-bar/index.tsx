@@ -42,6 +42,10 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // so an ellipsis never touches the label beside it. Five destinations give
 // each label 61dp at a 375dp window and 58dp at 360dp, about nine
 // characters of label medium, so five destinations' names have to be short.
+// Once the reader has enlarged their text, by a text-only zoom or a minimum
+// font size, the label takes further lines instead and the bar grows to hold
+// them, since that text no longer fits the lengths around it — see
+// src/hooks/useEnlargedText.ts.
 //
 // The 64dp is the destinations' row rather than the bar's height, and the
 // bar grows past it: by padding the call site gives it, such as the inset a
