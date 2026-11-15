@@ -1,14 +1,21 @@
 'use client'
 
 import type { RefAttributes } from 'react'
-import type { ColorSliderProps as RACColorSliderProps } from 'react-aria-components'
+import type {
+  Color,
+  ColorChannel,
+  ColorSliderProps as RACColorSliderProps,
+} from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import {
   ColorSlider as RACColorSlider,
+  ColorSliderStateContext as RACColorSliderStateContext,
   ColorThumb as RACColorThumb,
   SliderOutput as RACSliderOutput,
   SliderTrack as RACSliderTrack,
+  useLocale,
 } from 'react-aria-components'
 
 import { FieldLabel } from '../../field'
@@ -59,8 +66,8 @@ import {
 // surface and one fading to white are the same pixels without it.
 
 const styles = stylex.create({
-  // The value React Aria announces, shown. Body-small in the muted role, so
-  // it reads as a readout beside the label rather than as a second label.
+  // The value, shown — see `ChannelReadout`. Body-small in the muted role,
+  // so it reads as a readout beside the label rather than as a second label.
   output: {
     color: colors.onSurfaceVariant,
     fontFamily: typography.bodySmallFont,
@@ -162,6 +169,24 @@ type ColorSliderProps = Omit<
 }
 
 /**
+ * The slider's value as a ColorField editing the same channel shows it:
+ * snapped to the channel's step within its range, then formatted as React
+ * Aria formats the channel. React Aria's own readout formats the value
+ * unrounded, so a hex converted to HSL read `256.43°` beside a field
+ * reading `256°`, the decimals coming from the conversion rather than from
+ * anything the reader chose.
+ *
+ * Only the readout is rounded. The value, the arrow keys' steps from it and
+ * the `aria-valuetext` React Aria builds are React Aria's, as they were.
+ */
+function ChannelReadout({ channel }: { channel: ColorChannel }) {
+  const state = useContext(RACColorSliderStateContext)
+  const { locale } = useLocale()
+
+  return state === null ? null : readoutOf(state.value, channel, locale)
+}
+
+/**
  * A slider over one channel of a colour — hue, saturation, lightness, alpha
  * and the rest. The value is React Aria's: pass `value` with `onChange` to
  * control it, or `defaultValue`, as a CSS colour string or a `Color` from
@@ -176,8 +201,10 @@ type ColorSliderProps = Omit<
  * one throws rather than converting — pass `colorSpace="hsl"` to convert it,
  * or give the value in the space you mean to slide.
  *
- * React Aria paints the gradient and names the value — "200°, cyan blue" —
- * so the readout beside the label is what it announces.
+ * React Aria paints the gradient and names the value — "200°, cyan blue".
+ * The readout beside the label shows the value rounded to the channel's
+ * step, as a ColorField editing the channel shows it: a hex converted to
+ * HSL has a hue of 256.43, which reads `256°`.
  *
  * The call site's `className` and `style` land on the slider as a whole,
  * which is the element a layout positions.
@@ -208,7 +235,9 @@ function ColorSlider({
           <FieldLabel variant="group">{label}</FieldLabel>
         )}
         {showValue ? (
-          <RACSliderOutput {...stylex.props(styles.output)} />
+          <RACSliderOutput {...stylex.props(styles.output)}>
+            <ChannelReadout channel={props.channel} />
+          </RACSliderOutput>
         ) : null}
       </div>
       <div
@@ -233,6 +262,19 @@ function ColorSlider({
       </div>
     </RACColorSlider>
   )
+}
+
+function readoutOf(color: Color, channel: ColorChannel, locale: string) {
+  const { maxValue, minValue, step } = color.getChannelRange(channel)
+  const steps = Math.round((color.getChannelValue(channel) - minValue) / step)
+  const snapped = Math.min(
+    maxValue,
+    Math.max(minValue, minValue + steps * step),
+  )
+
+  return color
+    .withChannelValue(channel, snapped)
+    .formatChannelValue(channel, locale)
 }
 
 export type { ColorSliderProps }
