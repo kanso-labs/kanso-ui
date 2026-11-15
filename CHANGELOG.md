@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.47.3](https://github.com/kanso-labs/kanso-ui/compare/v0.47.2...v0.47.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **color-picker:** round the hue the way the channel field does ([#2192](https://github.com/kanso-labs/kanso-ui/issues/2192)) ([f615ddb](https://github.com/kanso-labs/kanso-ui/commit/f615ddbac597ba5d9714f51abfce18049e391681))
+* **dialog:** lay out the full-screen dialog as Material Design draws it ([#2193](https://github.com/kanso-labs/kanso-ui/issues/2193)) ([e4263c4](https://github.com/kanso-labs/kanso-ui/commit/e4263c4d3e8a91d56191f7356a473ae4d176d677))
+* **menu:** inset an item's label and leading icon by the menus page's 12dp ([#2194](https://github.com/kanso-labs/kanso-ui/issues/2194)) ([97db849](https://github.com/kanso-labs/kanso-ui/commit/97db849cdab99dfe9281afbf624d1d6f1306d951))
+* **navigation:** keep navigation and tab labels whole at large text sizes ([#2191](https://github.com/kanso-labs/kanso-ui/issues/2191)) ([c25788d](https://github.com/kanso-labs/kanso-ui/commit/c25788d5f1ff08d375df009c5da4b8428bbd2a49))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.1.22 ([#2201](https://github.com/kanso-labs/kanso-ui/issues/2201)) ([60b4e41](https://github.com/kanso-labs/kanso-ui/commit/60b4e416e7736be02767906e4b277e339a1cace3))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.68 ([#2202](https://github.com/kanso-labs/kanso-ui/issues/2202)) ([68a2d32](https://github.com/kanso-labs/kanso-ui/commit/68a2d32769933d85f8eb8498e7b1b3c108117cf1))
+* update dependency lint-staged to v17.6.1 ([#2199](https://github.com/kanso-labs/kanso-ui/issues/2199)) ([c71c808](https://github.com/kanso-labs/kanso-ui/commit/c71c80865518981e93b1c3a0c635a0778f7695ec))
+* update eslint ([#2200](https://github.com/kanso-labs/kanso-ui/issues/2200)) ([ad19013](https://github.com/kanso-labs/kanso-ui/commit/ad19013fcbb805f7f934f4c5feed3477bd2ddbe9))
+
 ## [0.47.2](https://github.com/kanso-labs/kanso-ui/compare/v0.47.1...v0.47.2) (2026-11-15)
 
 
