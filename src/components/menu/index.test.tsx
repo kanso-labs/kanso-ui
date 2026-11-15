@@ -226,6 +226,17 @@ function linkAndPlain() {
 }
 
 /**
+ * Ends every animation on the page: the surface scales in from below its
+ * size, so a distance read while it is still arriving is a share of the
+ * real one.
+ */
+function settle() {
+  for (const animation of document.getAnimations()) {
+    animation.finish()
+  }
+}
+
+/**
  * Where each item's shortcut ends along the line, in a menu of three items
  * with the second chosen, rendered under `locale`: the right edge left to
  * right, the left edge right to left.
@@ -1074,6 +1085,64 @@ describe('menu', () => {
       const view = setup()
       const [first] = view.getAllByRole('menuitem')
       expect(getComputedStyle(first).minBlockSize).toBe('48px')
+    })
+
+    // The menus page's 12dp, where the lists page's row gives 16: from the
+    // surface's edge to the leading icon, and from the icon to the label.
+    // Mirrored right to left, where the start edge is the right one.
+    it.each(['en-US', 'ar-EG'])(
+      'insets the leading icon and the label by 12 under %s',
+      (locale) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <Menu defaultOpen>
+              <Button>Open</Button>
+              <Menu.Content>
+                <Menu.Item id="first" leading={FIRST_ICON}>
+                  First item
+                </Menu.Item>
+              </Menu.Content>
+            </Menu>
+          </I18nProvider>,
+        )
+        settle()
+        const item = view.getByRole('menuitem').getBoundingClientRect()
+        const icon = view.getByTestId('icon-1').getBoundingClientRect()
+        const label = view.getByText('First item').getBoundingClientRect()
+        const rtl = locale.startsWith('ar')
+
+        expect(rtl ? item.right - icon.right : icon.left - item.left).toBe(12)
+        expect(rtl ? icon.left - label.right : label.left - icon.right).toBe(12)
+      },
+    )
+
+    // With nothing leading it, the label starts at the same 12, the
+    // shortcut ends 12 short of the other edge, and a section's heading
+    // starts where the labels under it do.
+    it('insets a label, a shortcut and a heading by 12', () => {
+      const view = setup(
+        {},
+        <Menu.Section header="Headline">
+          <Menu.Item id="first" shortcut={SHORTCUT}>
+            First item
+          </Menu.Item>
+        </Menu.Section>,
+      )
+      settle()
+      const item = view.getByRole('menuitem').getBoundingClientRect()
+      const label = view.getByText('First item').getBoundingClientRect()
+      const heading = view.getByText('Headline')
+      const shortcut = view.getByText('⌘X').closest('kbd')
+      if (shortcut === null) {
+        throw new Error('expected the item to draw its shortcut')
+      }
+
+      expect(label.left - item.left).toBe(12)
+      expect(item.right - shortcut.getBoundingClientRect().right).toBe(12)
+      expect(
+        heading.getBoundingClientRect().left +
+          Number.parseFloat(getComputedStyle(heading).paddingLeft),
+      ).toBe(label.left)
     })
 
     it('draws a selected item on tertiary container', () => {

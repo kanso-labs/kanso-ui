@@ -159,7 +159,7 @@ const styles = stylex.create({
     lineHeight: typography.titleSmallLineHeight,
     paddingBlockEnd: spacing.xxs,
     paddingBlockStart: spacing.md,
-    paddingInline: spacing.lg,
+    paddingInline: spacing.md,
   },
   // The row shown while more items are being fetched: the ring on its own,
   // centred, in a row the height of an item.

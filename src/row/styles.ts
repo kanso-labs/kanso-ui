@@ -21,8 +21,9 @@ import {
 // Three variants, because three spec pages draw three rows. The lists page
 // gives a list item a 56dp floor, a body-large headline and a body-medium
 // supporting line, and primary container when selected. The menus page gives
-// a menu item 48dp, a label-large label, and tertiary container when
-// selected. The navigation drawer page gives its row 56dp too, with a
+// a menu item 48dp, a label-large label, 12dp of inline padding and of room
+// after its leading icon where the lists page gives 16, and tertiary
+// container when selected. The navigation drawer page gives its row 56dp too, with a
 // label-large label like a menu's, and marks the current one with a
 // secondary-container pill held 12dp off each edge — 336dp of indicator in a
 // 360dp container, which is what that inset comes to. The layout, the
@@ -315,9 +316,13 @@ const rowStyles = stylex.create({
     gap: spacing.xxs,
     minInlineSize: 0,
   },
-  // The menus page's item height.
+  // The menus page's item height, and its 12dp: between the surface's edge
+  // and the item's content at either end, and between the leading icon and
+  // the label, where the lists page's row gives 16.
   menu: {
+    gap: spacing.md,
     minBlockSize: sizing.rowXs,
+    paddingInline: spacing.md,
   },
   // A line above the headline, in the page's label-small and the same muted
   // role the supporting line takes. Its colour follows the supporting line's
