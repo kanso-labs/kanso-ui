@@ -278,6 +278,22 @@ async function pressScrim(dialog: HTMLElement) {
   })
 }
 
+/**
+ * The close button, the headline and the action of a dialog `setup` drew,
+ * read once it has arrived.
+ */
+function rowOf(
+  view: ReturnType<typeof render>,
+  role: 'alertdialog' | 'dialog' = 'dialog',
+) {
+  containerOf(view.getByRole(role))
+  return {
+    action: view.getByRole('button', { name: 'Cancel' }),
+    close: view.getByRole('button', { name: 'Close' }),
+    title: view.getByText('Headline'),
+  }
+}
+
 /** The scrim the container sits on, which fills the window. */
 function scrimOf(container: HTMLElement) {
   const scrim = container.parentElement
@@ -831,6 +847,141 @@ describe('dialog', () => {
     })
   })
 
+  // The page's full-screen dialog has no action bar: its header leads with
+  // the close button, follows it with the headline, and ends in the
+  // confirming action as a text button. Every case here renders the close
+  // button after the headline, as a call site writes it for the basic
+  // dialog, where it trails.
+  describe('the full-screen header', () => {
+    afterEach(async () => {
+      document.documentElement.removeAttribute('dir')
+      await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+    })
+
+    it('leads with the close button and ends in the actions', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      const { action, close, title } = rowOf(view)
+      const { header } = partsOf(view)
+
+      expect(header.contains(action)).toBe(true)
+      expect(close.getBoundingClientRect().right).toBeLessThanOrEqual(
+        title.getBoundingClientRect().left,
+      )
+      expect(title.getBoundingClientRect().right).toBeLessThanOrEqual(
+        action.getBoundingClientRect().left,
+      )
+      // The action at the header's trailing edge, inside its padding.
+      expect(
+        header.getBoundingClientRect().right -
+          action.getBoundingClientRect().right,
+      ).toBe(24)
+    })
+
+    // Tab reaches them in the order they are drawn, and both before the
+    // body, which is where the action now is rather than after it.
+    it('puts the actions after the close button and before the body', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      const { action, close } = rowOf(view)
+      const { body } = partsOf(view)
+
+      expect(
+        close.compareDocumentPosition(action) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(
+        action.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    // No bar below: the body runs to the container's bottom edge.
+    it('draws nothing below the body', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      const container = containerOf(view.getByRole('dialog'))
+      const { body } = partsOf(view)
+
+      expect(body.getBoundingClientRect().bottom).toBe(
+        container.getBoundingClientRect().bottom,
+      )
+    })
+
+    it('mirrors in a right-to-left page', async () => {
+      await page.viewport(375, 812)
+      document.documentElement.setAttribute('dir', 'rtl')
+      const { action, close, title } = rowOf(setup())
+
+      expect(close.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        title.getBoundingClientRect().right,
+      )
+      expect(title.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        action.getBoundingClientRect().right,
+      )
+    })
+
+    // Above the breakpoint the dialog is the basic one, and an alert dialog
+    // is the basic one at every width: the close button trails the headline
+    // and the actions are below the body, where the call site wrote them.
+    it.each([
+      ['a dialog above the breakpoint', 'dialog', 1024],
+      ['an alert dialog on a phone', 'alertdialog', 375],
+    ] as const)('leaves %s as written', async (_dialog, role, width) => {
+      await page.viewport(width, 768)
+      const view = setup({}, { role })
+      const { action, close, title } = rowOf(view, role)
+      const { body, header } = partsOf(view)
+
+      expect(header.contains(action)).toBe(false)
+      expect(title.getBoundingClientRect().right).toBeLessThanOrEqual(
+        close.getBoundingClientRect().left,
+      )
+      expect(action.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        body.getBoundingClientRect().bottom,
+      )
+    })
+
+    // With no header to take them, the actions keep their bar on the
+    // window's bottom edge.
+    it('keeps the action bar in a dialog with no header', async () => {
+      await page.viewport(375, 812)
+      const view = render(
+        <Dialog defaultOpen>
+          <Button>Open</Button>
+          <Dialog.Content aria-label="Label">
+            <Dialog.Body>Supporting line</Dialog.Body>
+            <Dialog.Footer>
+              <Button slot="close">Cancel</Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog>,
+      )
+      const container = containerOf(view.getByRole('dialog'))
+      const footer = parentOf(view.getByRole('button', { name: 'Cancel' }))
+
+      expect(footer.getBoundingClientRect().height).toBe(56)
+      expect(getComputedStyle(footer).borderTopStyle).toBe('solid')
+      expect(footer.getBoundingClientRect().bottom).toBe(
+        container.getBoundingClientRect().bottom,
+      )
+    })
+
+    // Crossing the breakpoint moves the actions between the two places.
+    it('moves the actions back below the body when the window widens', async () => {
+      await page.viewport(375, 812)
+      const view = setup()
+      rowOf(view)
+      expect(partsOf(view).header.contains(partsOf(view).footer)).toBe(true)
+
+      await page.viewport(1024, 768)
+
+      await waitFor(() => {
+        const { footer, header } = partsOf(view)
+        expect(header.contains(footer)).toBe(false)
+      })
+    })
+  })
+
   // The body is the one part that scrolls: a body longer than the room
   // leaves the header and the actions where they are, and the rest of the
   // text a scroll away rather than clipped past the container's edge.
@@ -1039,17 +1190,18 @@ describe('dialog', () => {
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
 
-    // Full screen, the header and the actions are the page's two 56dp bars.
-    it('draws a 56 header and action bar full screen', async () => {
+    // Full screen, the header is the page's 56dp bar over a divider, and the
+    // actions are drawn in it rather than in a bar of their own.
+    it('draws a 56 header holding the actions full screen', async () => {
       await page.viewport(375, 812)
       const view = setup()
       containerOf(view.getByRole('dialog'))
       const { footer, header } = partsOf(view)
 
       expect(header.getBoundingClientRect().height).toBe(56)
-      expect(footer.getBoundingClientRect().height).toBe(56)
       expect(getComputedStyle(header).borderBottomStyle).toBe('solid')
-      expect(getComputedStyle(footer).borderTopStyle).toBe('solid')
+      expect(header.contains(footer)).toBe(true)
+      expect(getComputedStyle(footer).borderTopStyle).toBe('none')
 
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })

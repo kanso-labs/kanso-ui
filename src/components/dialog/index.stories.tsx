@@ -295,14 +295,40 @@ const ThreeActions: Story = {
 }
 
 // The default dialog below the medium breakpoint, where it fills the window
-// as the page's full-screen dialog: square corners, the headline in a 56dp
-// bar with a divider under it, and the actions in a 56dp bar with a divider
-// over them.
+// as the page's full-screen dialog: square corners and a 56dp header over a
+// divider, leading with the close button and ending in the confirming action,
+// with no action bar below the body. The close button is written after the
+// headline, where it trails in the basic dialog, and the action in the
+// footer, where the basic dialog draws it; the footer holds that one action,
+// since the close button is the dismissive one.
 const FullScreen: Story = {
   decorators: AlertDialogCompact.decorators,
   globals: AlertDialogCompact.globals,
   parameters: AlertDialogCompact.parameters,
-  render: Default.render,
+  render: () => (
+    <Dialog defaultOpen>
+      <Button variant="outlined">Open dialog</Button>
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+          <IconButton aria-label="Close" slot="close">
+            <CloseGlyph {...stylex.props(styles.glyph)} />
+          </IconButton>
+        </Dialog.Header>
+        <Dialog.Body>
+          <Text tone="muted" variant="bodyMedium">
+            Supporting text explains what the dialog is asking, in as many lines
+            as it needs.
+          </Text>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button slot="close" variant="text">
+            Confirm
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  ),
 }
 
 // What the Overview page prints under Controlled. Storybook writes no snippet

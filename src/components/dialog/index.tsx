@@ -31,6 +31,7 @@ import {
   Dialog as RACDialog,
   useSlottedContext,
 } from 'react-aria-components'
+import { createPortal } from 'react-dom'
 
 import { useHoldBottomEdge } from '../../hooks/useBottomEdge'
 import { useScrollStop } from '../../hooks/useScrollStop'
@@ -63,8 +64,8 @@ const HEADLINE_REACH = `max(0px, calc((${sizing.controlSm} - ${typography.headli
 
 // The window size the full-screen dialog is drawn at, which the styles read
 // as `media.belowMedium`. Spelled again for `matchMedia`, which is the one
-// thing in this file that has to know it outside a stylesheet: the footer
-// holds the window's bottom edge only there. See `useFullScreen`.
+// thing in this file that has to know it outside a stylesheet: the footer's
+// actions are drawn in the header only there. See `useFullScreen`.
 const FULL_SCREEN = '(width < 600px)'
 
 // The dialogs page's two dialogs, which are one component here for the same
@@ -74,8 +75,20 @@ const FULL_SCREEN = '(width < 600px)'
 // 280 and 560dp wide, centred over the scrim, with 24dp of padding all round,
 // 16dp between the headline and the body and 24dp between the body and the
 // actions. Below it the same dialog fills the window as the page's
-// full-screen dialog: square corners, a 56dp header with the headline and a
-// divider under it, and a 56dp action bar with a divider over it.
+// full-screen dialog: square corners and a 56dp header over a divider, which
+// leads with the close button, follows it with the headline, and ends in the
+// confirming action as a text button, with no action bar below the body.
+//
+// The full-screen header is drawn from the same parts as the basic dialog,
+// so a call site writes the dialog once. Whatever the header holds besides
+// its title, which is where a call site puts the close button, is drawn
+// before the title there, though written after it for the basic dialog,
+// where it trails. And `Dialog.Footer`'s actions are drawn at the header's
+// trailing end rather than in a bar: portalled into the header, so they come
+// after the close button and before the body in the order Tab reaches them
+// as well as on screen. A dialog with no header keeps the footer as a 56dp
+// action bar over a divider, since nothing above the body can take its
+// actions.
 //
 // The pairing is for a dialog that is a task, which needs the room. An alert
 // dialog is a question with two or three answers, and the page keeps the
@@ -121,7 +134,9 @@ const styles = stylex.create({
   // gaps those two draw. A dialog without one of them has no part to carry
   // that end, so the body takes it when it is the element at that end — a
   // body-only dialog, the shape a command palette is, otherwise sat flush
-  // against the container's top and bottom edges.
+  // against the container's top and bottom edges. Full screen the footer is
+  // drawn in the header, which leaves the body at the bottom end with the
+  // 24dp of it.
   //
   // Full screen, the header is a 56dp bar with no padding below its divider,
   // so the body takes 24dp of its own under it: the inset its sides already
@@ -212,7 +227,7 @@ const styles = stylex.create({
     // Clips the body's scroll to the rounded corners.
     overflow: 'hidden',
     // Full screen, the device's safe area on every edge, so the header
-    // clears the status bar and the actions the home indicator, with the
+    // clears the status bar and the body's end the home indicator, with the
     // container's fill running on under both. On the container rather than
     // on the header and footer, which a dialog may leave out: a body-only
     // dialog would otherwise run its first line under the status bar. The
@@ -238,8 +253,8 @@ const styles = stylex.create({
     },
   },
   // The page's 24dp between the body and the actions, and 8dp between the
-  // buttons themselves. Full screen, the actions are its bottom action bar:
-  // 56dp tall, over a divider.
+  // buttons themselves. Full screen, in a dialog with no header to take
+  // them, the actions are a bottom action bar: 56dp tall, over a divider.
   //
   // Actions that do not fit on one row wrap onto another, still at the
   // trailing edge and 8dp apart, rather than running the first of them past
@@ -266,6 +281,24 @@ const styles = stylex.create({
     paddingBlockEnd: { default: spacing.xl, [media.belowMedium]: spacing.xs },
     paddingBlockStart: { default: spacing.xl, [media.belowMedium]: spacing.xs },
     paddingInline: spacing.xl,
+  },
+  // The footer full screen, drawn at the header's trailing end: after the
+  // headline whatever order the header's children are written in, 8dp
+  // between the buttons as in the basic dialog, and never narrower than they
+  // are, since the headline is the part of that row that gives way.
+  footerInHeader: {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexShrink: 0,
+    gap: spacing.sm,
+    order: 2,
+  },
+  // Where the footer's actions are portalled to full screen. It draws no box
+  // of its own, so the footer it holds is laid out as one of the header's
+  // items.
+  footerSlot: {
+    display: 'contents',
   },
   // A headline in a header reaches past its line by what the header takes
   // off its padding; see `header`. Outside one it reaches nowhere.
@@ -310,7 +343,10 @@ const styles = stylex.create({
     paddingInline: spacing.xl,
   },
   // Full screen the headline shares a 56dp row with the close button, so it
-  // takes the title role there rather than the headline one.
+  // takes the title role there rather than the headline one. It is drawn
+  // after whatever else the header holds, the close button among it, and
+  // before the actions, and it takes the room between them, so its text
+  // starts beside the close button.
   //
   // It is the part of that row that gives way. As a flex item it would
   // otherwise keep its longest word's width as its least one, so a single
@@ -320,6 +356,7 @@ const styles = stylex.create({
   title: {
     boxSizing: 'border-box',
     color: colors.onSurface,
+    flexGrow: { default: null, [media.belowMedium]: 1 },
     fontFamily: {
       default: typography.headlineSmallFont,
       [media.belowMedium]: typography.titleLargeFont,
@@ -342,6 +379,7 @@ const styles = stylex.create({
     },
     margin: 0,
     minInlineSize: 0,
+    order: { default: null, [media.belowMedium]: 1 },
     overflowWrap: 'anywhere',
   },
 })
@@ -387,11 +425,13 @@ const basic = stylex.create({
     paddingBlockStart: `calc(${spacing.xl} - ${HEADLINE_REACH})`,
   },
   title: {
+    flexGrow: null,
     fontFamily: typography.headlineSmallFont,
     fontSize: typography.headlineSmallSize,
     fontWeight: typography.headlineSmallWeight,
     letterSpacing: typography.headlineSmallTracking,
     lineHeight: typography.headlineSmallLineHeight,
+    order: null,
   },
 })
 
@@ -404,6 +444,14 @@ const BasicContext = createContext(false)
 // in; see `header`. Content clears it, so a dialog opened from inside a
 // header starts outside one.
 const HeaderContext = createContext(false)
+
+// Where the full-screen header holds the footer's actions: null while no
+// header is drawn full screen, which leaves the footer where it was written.
+// The header hands Content the element through the second.
+const FooterSlotContext = createContext<HTMLDivElement | null>(null)
+const SetFooterSlotContext = createContext<
+  ((slot: HTMLDivElement | null) => void) | null
+>(null)
 
 // Where an alert dialog's body hands Content its id, so the dialog can name
 // the body as its description: the message an alert dialog interrupts with
@@ -433,6 +481,13 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
  * `Dialog` opens it, and one given `slot="close"` anywhere inside the
  * content closes it; neither needs a part of its own.
  *
+ * Full screen, the header leads with its close button and ends in the
+ * footer's actions, and there is no action bar: the full-screen dialog's
+ * dismissive action is its close button, and its confirming one a text
+ * button at the header's trailing end. A dialog that fills a phone's window
+ * therefore gives its footer the confirming action alone, as below; a Cancel
+ * beside it would be drawn in the header too.
+ *
  * ```tsx
  * <Dialog>
  *   <Button>Open dialog</Button>
@@ -445,9 +500,6 @@ type DialogProps = Omit<DialogTriggerProps, 'children'> & {
  *     </Dialog.Header>
  *     <Dialog.Body>Supporting text</Dialog.Body>
  *     <Dialog.Footer>
- *       <Button slot="close" variant="text">
- *         Cancel
- *       </Button>
  *       <Button onPress={confirm} slot="close" variant="text">
  *         Confirm
  *       </Button>
@@ -567,65 +619,81 @@ function DialogContent({
   // The id of the body, which an alert dialog is described by unless the
   // call site names a description of its own.
   const [body, setBody] = useState<string>()
+  // Where the full-screen header holds the footer's actions.
+  const [slot, setSlot] = useState<HTMLDivElement | null>(null)
 
   return (
     <BasicContext value={isBasic}>
       <DescriptionContext value={isBasic ? setBody : null}>
-        <OverlayScope>
-          <ModalOverlay
-            defaultOpen={defaultOpen}
-            isDismissable={isDismissable}
-            isKeyboardDismissDisabled={isKeyboardDismissDisabled}
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-            // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
-            UNSTABLE_portalContainer={container}
-            {...stylex.props(
-              overlay.scrim,
-              styles.centre,
-              isBasic && basic.centre,
-            )}
-          >
-            <Modal
-              // The panel, where the call site's class and style land, rather
-              // than the dialog inside it, which takes the rest of the props.
-              ref={ref}
-              {...mergeStatefulStyles(
-                stylex.props(styles.container, isBasic && basic.container),
-                { className, style },
-              )}
-            >
-              <HeaderContext value={false}>
-                <RACDialog
-                  {...props}
-                  aria-describedby={
-                    props['aria-describedby'] ?? (isBasic ? body : undefined)
-                  }
-                  {...stylex.props(overlay.modalDialog)}
+        <FooterSlotContext value={slot}>
+          <SetFooterSlotContext value={setSlot}>
+            <OverlayScope>
+              <ModalOverlay
+                defaultOpen={defaultOpen}
+                isDismissable={isDismissable}
+                isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
+                UNSTABLE_portalContainer={container}
+                {...stylex.props(
+                  overlay.scrim,
+                  styles.centre,
+                  isBasic && basic.centre,
+                )}
+              >
+                <Modal
+                  // The panel, where the call site's class and style land, rather
+                  // than the dialog inside it, which takes the rest of the props.
+                  ref={ref}
+                  {...mergeStatefulStyles(
+                    stylex.props(styles.container, isBasic && basic.container),
+                    { className, style },
+                  )}
                 >
-                  {children}
-                </RACDialog>
-              </HeaderContext>
-            </Modal>
-          </ModalOverlay>
-        </OverlayScope>
+                  <HeaderContext value={false}>
+                    <RACDialog
+                      {...props}
+                      aria-describedby={
+                        props['aria-describedby'] ??
+                        (isBasic ? body : undefined)
+                      }
+                      {...stylex.props(overlay.modalDialog)}
+                    >
+                      {children}
+                    </RACDialog>
+                  </HeaderContext>
+                </Modal>
+              </ModalOverlay>
+            </OverlayScope>
+          </SetFooterSlotContext>
+        </FooterSlotContext>
       </DescriptionContext>
     </BasicContext>
   )
 }
 
 /**
- * The dialog's actions. Full screen they are the action bar on the window's
- * bottom edge, which a toast rises clear of while the dialog is open, so a
- * tap meant for one of them never lands on the toast's own action instead.
+ * The dialog's actions. Full screen they are drawn at the trailing end of
+ * `Dialog.Header`, where the page's full-screen dialog has its confirming
+ * action. In a dialog with no header they are the action bar on the
+ * window's bottom edge instead, which a toast rises clear of while the
+ * dialog is open, so a tap meant for one of them never lands on the toast's
+ * own action instead.
  */
 function DialogFooter({
   ref: callerRef,
   ...props
 }: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>) {
   const isBasic = useContext(BasicContext)
+  const fullScreen = useFullScreen() && !isBasic
+  const footerSlot = useContext(FooterSlotContext)
+  // The header's slot, while one is drawn full screen. Read against the
+  // window as well as the slot, since on the render that crosses the
+  // breakpoint the header has not yet let its slot go.
+  const slot = fullScreen ? footerSlot : null
   const ref = useRef<HTMLDivElement>(null)
-  useHoldBottomEdge(ref, useFullScreen() && !isBasic)
+  useHoldBottomEdge(ref, fullScreen && slot === null)
   // The footer measures itself through its own ref, and the call site's
   // lands on the same element.
   const merged = useMemo(
@@ -633,22 +701,29 @@ function DialogFooter({
     [callerRef],
   )
 
-  return (
+  const footer = (
     <div
       {...props}
       ref={merged}
       {...mergeStyles(
-        stylex.props(styles.footer, isBasic && basic.footer),
+        slot === null
+          ? stylex.props(styles.footer, isBasic && basic.footer)
+          : stylex.props(styles.footerInHeader),
         props,
       )}
     />
   )
+  return slot === null ? footer : createPortal(footer, slot)
 }
 
+// The headline's row, and the close button's. Full screen it also holds the
+// footer's actions, at its trailing end.
 function DialogHeader(
   props: HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>,
 ) {
   const isBasic = useContext(BasicContext)
+  const fullScreen = useFullScreen() && !isBasic
+  const setFooterSlot = useContext(SetFooterSlotContext)
 
   return (
     <HeaderContext value>
@@ -658,7 +733,12 @@ function DialogHeader(
           stylex.props(styles.header, isBasic && basic.header),
           props,
         )}
-      />
+      >
+        {props.children}
+        {fullScreen && setFooterSlot !== null ? (
+          <div ref={setFooterSlot} {...stylex.props(styles.footerSlot)} />
+        ) : null}
+      </div>
     </HeaderContext>
   )
 }

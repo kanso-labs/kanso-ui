@@ -238,8 +238,11 @@ describe('a dialog hosting other overlays', () => {
     expect(hit?.contains(dialog)).toBe(true)
   })
 
-  // A phone's width, where the dialog fills the window and pins its actions
-  // to the bottom edge the snackbar rises from.
+  // A phone's width, where the dialog fills the window. Its actions are drawn
+  // in its header there, and the toast keeps to the bottom edge it rises
+  // from, so the two are apart on screen rather than one over the other.
+  // src/components/snackbar/index.test.tsx holds a dialog with no header,
+  // whose actions keep the bottom edge, and the toast rising clear of them.
   it("keeps a toast raised over it clear of the dialog's actions", async () => {
     await page.viewport(360, 640)
     const { opener, queue, view } = host()
@@ -262,8 +265,8 @@ describe('a dialog hosting other overlays', () => {
           throw new Error(`expected ${name} to be a button`)
         }
         expect(action.contains(hitAt(action))).toBe(true)
-        expect(toast.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-          action.getBoundingClientRect().top,
+        expect(toast.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          action.getBoundingClientRect().bottom,
         )
       }
       expect(toast.contains(hitAt(toast))).toBe(true)
