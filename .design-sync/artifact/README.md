@@ -17,7 +17,7 @@ the types, and each component's preview and guidelines — and it holds the step
 that publishes both.
 
 A daily routine, "Kanso UI design system sync", runs both in one session
-shortly after release-please's 09:00 UTC run, kanso-ui-core's half first, and
+shortly after release-please's 12:15 UTC run, kanso-ui-core's half first, and
 any session asked to sync the artifact by hand follows the same steps.
 
 ## What lives where
