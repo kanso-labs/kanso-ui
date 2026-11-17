@@ -26,11 +26,12 @@ are developed and documented in Storybook.
 Tests require Playwright browsers; `npm install` installs them via the `prepare`
 script.
 
-**Install with the Node version in `.tool-versions` (24.21.0).** CI resolves it
-from that file, and an older npm silently drops the platform entries the
-lockfile carries for Linux builds — a rewrite with no visible symptom until a
-Linux runner installs the wrong native binary. If `node --version` disagrees,
-prefix the command: `mise exec node@24.21.0 -- npm install`.
+**Install with the Node version in `.tool-versions`.** CI resolves it from that
+file, and an older npm silently drops the platform entries the lockfile carries
+for Linux builds — a rewrite with no visible symptom until a Linux runner
+installs the wrong native binary. If `node --version` disagrees, prefix the
+command:
+`mise exec node@"$(awk '/^nodejs/{print $2}' .tool-versions)" -- npm install`.
 
 **A Claude Code session checks both when it starts**, through
 `.claude/hooks/session-setup.sh`. It puts the pinned Node first on `PATH`
