@@ -648,7 +648,7 @@ package's, and a module or declaration in `dist/` that still imports it.
 `src/tokens/theme.test.ts` fails a property `tokens.css` declares that the
 StyleX theme does not read.
 
-A daily routine runs the sync, after release-please's 09:00 UTC run, in two
+A daily routine runs the sync, after release-please's 12:15 UTC run, in two
 halves. kanso-ui-core's `.design-sync/artifact/` is the tokens': it brings a
 token or a usage note edited in the artifact into a pull request there, and
 builds the artifact's `tokens.json`, so a token edit reaches this library as a
