@@ -20,7 +20,12 @@ import type { ButtonProps, ButtonSize } from '../button'
 import { ButtonGroupItemContext } from '../../button/context'
 import { ChevronDownGlyph } from '../../glyphs'
 import { mergeStyles } from '../../styles/merge'
-import { radii, sizing, spacing } from '../../tokens/design.tokens.stylex'
+import {
+  motion,
+  radii,
+  sizing,
+  spacing,
+} from '../../tokens/design.tokens.stylex'
 import Button from '../button'
 import Menu from '../menu'
 
@@ -42,8 +47,21 @@ import Menu from '../menu'
 // chevron at the size's icon size, 22dp up to 50dp, with the menu below its
 // end edge. The chevron sits a pixel or more toward the start while the menu
 // is closed — the page's optical centring, 1dp to 6dp by size — and centres
-// once it opens, when the inner corners round off entirely. That corner and
-// that chevron are what say the menu is open. The page keeps the colours as
+// once it opens, when the inner corners round off entirely.
+//
+// **The trailing half is selected while its menu is open**, as the page
+// draws it: the inner corners round off and the chevron turns 180° to point
+// up, turning back as the menu closes. Both are read from the menu's open
+// state, which the half is handed, rather than from React Aria's report of
+// the trigger as pressed for as long as its menu is open — a Button draws
+// nothing for that report (see src/button). The turn takes the standard
+// easing on the short step the surface it opens arrives on, as Select's
+// chevron does, and happens at once for a reader who asks for reduced
+// motion. "Selected" is the picture alone: the button announces the open
+// menu through `aria-expanded`, and no `aria-pressed` beside it, which would
+// make it a toggle.
+//
+// The page keeps the colours as
 // they are while it is open and lays the pressed state layer over them; here
 // the colours stay at rest with no layer over them, and the hover layer
 // still answers the pointer, as every overlay trigger in the library does —
@@ -55,6 +73,18 @@ import Menu from '../menu'
 // container — the page gives text no split button.
 
 const styles = stylex.create({
+  // The trailing half's chevron, which turns to point up while the menu is
+  // open — see the header.
+  chevron: {
+    '@media (prefers-reduced-motion: reduce)': { transitionDuration: '0s' },
+    transform: 'rotate(0deg)',
+    transitionDuration: motion.durationShort3,
+    transitionProperty: 'transform',
+    transitionTimingFunction: motion.easingStandard,
+  },
+  chevronOpen: {
+    transform: 'rotate(180deg)',
+  },
   group: {
     alignItems: 'center',
     boxSizing: 'border-box',
@@ -311,7 +341,11 @@ function SplitButtonMenu({
     <Menu isOpen={open} onOpenChange={changeOpen}>
       <ButtonGroupItemContext value={item}>
         <Button aria-label={label} isDisabled={isDisabled} variant={variant}>
-          <ChevronDownGlyph height="1em" width="1em" />
+          <ChevronDownGlyph
+            height="1em"
+            width="1em"
+            {...stylex.props(styles.chevron, open && styles.chevronOpen)}
+          />
         </Button>
       </ButtonGroupItemContext>
       <Menu.Content align="end" container={container} onAction={onAction}>
