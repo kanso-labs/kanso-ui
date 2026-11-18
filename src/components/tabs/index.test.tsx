@@ -4,12 +4,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
 import { enlargeText, settle } from '../../hooks/useEnlargedText.testing'
+import { scrollFade } from '../../styles/scroll-fade'
 import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import { spacingPx } from '../../tokens/values'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -1081,6 +1083,20 @@ describe('tabs', () => {
       )
     })
 
+    // A tab with tabs past it on both sides, scrolled only just into view,
+    // came to rest inside the fade at the bar's edge, its last letters and
+    // its indicator fading out with the tabs beyond it.
+    it('opens on its selected tab clear of the fade at either edge', () => {
+      const view = setupScrollable('Fourth item')
+      const list = view.getByRole('tablist').getBoundingClientRect()
+      const tab = view
+        .getByRole('tab', { name: 'Fourth item' })
+        .getBoundingClientRect()
+
+      expect(tab.left).toBeGreaterThanOrEqual(list.left + spacingPx.xxl - 1)
+      expect(tab.right).toBeLessThanOrEqual(list.right - spacingPx.xxl + 1)
+    })
+
     it('brings a newly selected tab into view', async () => {
       const view = setupScrollable('First item')
       const list = view.getByRole('tablist')
@@ -1249,5 +1265,99 @@ describe('tabs', () => {
 
       expect(tab.querySelector('span[aria-hidden="true"]')).toBeNull()
     })
+  })
+})
+
+type ScrollFadeName = 'both' | 'end' | 'none' | 'start'
+
+async function expectScrollFade(
+  bar: HTMLElement,
+  masks: Record<string, ScrollFadeName>,
+  fade: ScrollFadeName,
+) {
+  await waitFor(() => {
+    expect(masks[getComputedStyle(bar).maskImage]).toBe(fade)
+  })
+}
+
+// What each fade computes to in `dir`, from the shared style itself, so
+// the comparison is with the mask the bar would take rather than with a
+// gradient spelled out again here.
+function scrollFadeMasks(dir: 'ltr' | 'rtl') {
+  const view = render(
+    <div dir={dir}>
+      <span data-testid="both" {...stylex.props(scrollFade.both)} />
+      <span data-testid="end" {...stylex.props(scrollFade.end)} />
+      <span data-testid="start" {...stylex.props(scrollFade.start)} />
+      <span data-testid="none" />
+    </div>,
+  )
+  const masks = Object.fromEntries(
+    (['both', 'end', 'none', 'start'] as const).map((fade) => [
+      getComputedStyle(view.getByTestId(fade)).maskImage,
+      fade,
+    ]),
+  ) as Record<string, ScrollFadeName>
+  view.unmount()
+  return masks
+}
+
+function setupOverflowing(dir: 'ltr' | 'rtl') {
+  const view = render(
+    <div dir={dir} {...stylex.props(probeStyles.phone)}>
+      <Tabs defaultSelectedKey={MANY[0]} layout="scrollable">
+        <Tabs.List>
+          {MANY.map((key) => (
+            <Tabs.Tab id={key} key={key}>
+              {key}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+      </Tabs>
+    </div>,
+  )
+  return view.getByRole('tablist')
+}
+
+// A bar cut off at its edge said nothing about the tabs past it: the first
+// tab of Tabs/Scrollable read "…d item", a whole tab with a shorter name.
+// The edge with tabs past it fades, and only that one.
+describe('the edges of a scrollable bar', () => {
+  it.each(['ltr', 'rtl'] as const)(
+    'fades the edge with tabs past it and no other, %s',
+    async (dir) => {
+      const masks = scrollFadeMasks(dir)
+      // Four different masks, or a mapping from one to its name says nothing.
+      expect(Object.keys(masks)).toHaveLength(4)
+      const bar = setupOverflowing(dir)
+      const room = bar.scrollWidth - bar.clientWidth
+      expect(room).toBeGreaterThan(100)
+      // `scrollLeft` runs into the negatives under right-to-left.
+      const sign = dir === 'rtl' ? -1 : 1
+
+      await expectScrollFade(bar, masks, 'end')
+
+      bar.scrollTo({ behavior: 'instant', left: (sign * room) / 2 })
+      await expectScrollFade(bar, masks, 'both')
+
+      bar.scrollTo({ behavior: 'instant', left: sign * room })
+      await expectScrollFade(bar, masks, 'start')
+
+      bar.scrollTo({ behavior: 'instant', left: 0 })
+      await expectScrollFade(bar, masks, 'end')
+    },
+  )
+
+  it('fades neither edge of a bar whose tabs fit', () => {
+    const view = render(
+      <Tabs defaultSelectedKey="first" layout="scrollable">
+        <Tabs.List>
+          <Tabs.Tab id="first">First item</Tabs.Tab>
+          <Tabs.Tab id="second">Second item</Tabs.Tab>
+        </Tabs.List>
+      </Tabs>,
+    )
+
+    expect(getComputedStyle(view.getByRole('tablist')).maskImage).toBe('none')
   })
 })

@@ -30,8 +30,10 @@ import {
 } from 'react-aria-components'
 
 import { useEnlargedText } from '../../hooks/useEnlargedText'
-import { refCallback } from '../../render/ref'
+import { useScrollEdges } from '../../hooks/useScrollEdges'
+import { mergeRefs, refCallback } from '../../render/ref'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
+import { scrollFadeOf } from '../../styles/scroll-fade'
 import {
   colors,
   motion,
@@ -41,6 +43,7 @@ import {
   stateLayerOpacity,
   typography,
 } from '../../tokens/design.tokens.stylex'
+import { spacingPx } from '../../tokens/values'
 import Badge from '../badge'
 
 // The tabs page's primary and secondary tabs. Both are a 48dp bar on the
@@ -256,8 +259,10 @@ const styles = stylex.create({
     display: 'flex',
   },
   // A bar wider than its room scrolls rather than squeezing its tabs, with
-  // no scrollbar, as material-web's does: the tabs cut off at its edge are
-  // what says there is more. Smooth unless the reader asked for less motion.
+  // no scrollbar, as material-web's does. A tab cut off at the edge read as
+  // a whole one with a shorter name — "…d item" — so the edge with tabs past
+  // it fades, and only that edge: see `TabsList`. Smooth unless the reader
+  // asked for less motion.
   listScrollable: {
     '::-webkit-scrollbar': {
       display: 'none',
@@ -606,9 +611,16 @@ function badgeFor(
   )
 }
 
-// Scrolls a scrollable bar just far enough to show its selected tab whole,
-// handed to the selected tab's label as a ref so it runs as that tab
-// becomes the selected one. The bar alone, never the page: `scrollIntoView`
+// The length of that fade, in pixels, for the arithmetic below: the spacing
+// step src/styles/scroll-fade.ts draws it at.
+const FADE = spacingPx.xxl
+
+// Scrolls a scrollable bar just far enough to show its selected tab whole and
+// clear of the fade on an edge with tabs past it — see `scrollFadeOf` — handed
+// to the selected tab's label as a ref so it runs as that tab becomes the
+// selected one. Shown only whole, it came to rest inside the fade, its last
+// letters and its indicator fading out with the tabs beyond it. Past the
+// bar's last tab there is no fade, and the scroll stops at the end anyway. The bar alone, never the page: `scrollIntoView`
 // would scroll every scrolling ancestor, the window included, to bring a
 // bar below the fold up to it. The first reveal is instant, so a bar opens
 // on its selected tab rather than sliding to it; the rest take the bar's own
@@ -625,7 +637,8 @@ function revealInBar(element: HTMLElement | null) {
   const box = tab.getBoundingClientRect()
   const room = bar.getBoundingClientRect()
   const left =
-    Math.min(0, box.left - room.left) + Math.max(0, box.right - room.right)
+    Math.min(0, box.left - FADE - room.left) +
+    Math.max(0, box.right + FADE - room.right)
   const top =
     Math.min(0, box.top - room.top) + Math.max(0, box.bottom - room.bottom)
   if (left !== 0 || top !== 0) {
@@ -830,19 +843,37 @@ function Tabs({
 }
 
 function TabsList(props: RefAttributes<HTMLDivElement> & TabsListProps) {
+  // Split here rather than in the signature, which would rename the
+  // parameter in the published declaration. The merge reads the two style
+  // props alone: handed the whole of `props`, it is handed the ref, which
+  // the compiler reads as a ref passed to a function during render.
+  const { className, style, ...rest } = props
   const { layout, orientation } = useContext(BarContext)
+  // The bar's element, measured for the edges with tabs past them, only in a
+  // horizontal bar that scrolls: a fixed bar squeezes its tabs into its room
+  // and has nothing past either edge. The call site's ref lands on the same
+  // element, read off the props for the reason NavigationBar gives.
+  const scrolls = layout === 'scrollable' && orientation !== 'vertical'
+  const [element, setElement] = useState<HTMLDivElement | null>(null)
+  const ref = useMemo(
+    () => mergeRefs<HTMLDivElement>(setElement, rest.ref ?? undefined),
+    [rest.ref],
+  )
+  const edges = useScrollEdges(scrolls ? element : null)
 
   return (
     <TabList
-      {...props}
+      {...rest}
       {...mergeStatefulStyles(
         stylex.props(
           styles.list,
           layout === 'scrollable' && styles.listScrollable,
           orientation === 'vertical' && styles.listVertical,
+          scrolls && scrollFadeOf(edges),
         ),
-        props,
+        { className, style },
       )}
+      ref={ref}
     />
   )
 }
