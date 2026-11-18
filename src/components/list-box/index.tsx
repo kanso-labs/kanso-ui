@@ -10,6 +10,7 @@ import type {
 } from 'react-aria-components'
 
 import * as stylex from '@stylexjs/stylex'
+import { useContext } from 'react'
 import {
   Header,
   ListBox as RACListBox,
@@ -19,6 +20,7 @@ import {
 } from 'react-aria-components'
 
 import { CollectionEmpty, CollectionLoadMore } from '../../collection'
+import { OptionRowContext } from '../../collection/context'
 import {
   collectionStyles,
   containerClasses,
@@ -50,6 +52,14 @@ import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 // since which of the two affordances a list wants is the list's decision and
 // the slot is already there for it.
 //
+// **Inside a Select's or a ComboBox's popup the options are menu rows.**
+// Material Design draws an exposed dropdown menu, which is what those two
+// are, as a menu: 48dp rows at the menu's 12dp inset and icon gap, a
+// label-large label, and the menu's selected container. Each provides
+// `OptionRowContext` around its list, and the option, the section's header,
+// the empty row and the load-more row read it. A ListBox anywhere else keeps
+// the lists page's row.
+//
 // Three things are worth knowing about how this maps onto React Aria.
 //
 // **The option's styles are a function of its render state.** StyleX cannot
@@ -61,7 +71,9 @@ import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
 // **A section's heading is React Aria's `Header`**, which is what points the
 // section's `aria-labelledby` at it. The lists page names no subhead in its
 // anatomy, so the type is title-small in on surface variant at the row's own
-// 16dp inline padding, which is what the page's own guidance draws.
+// 16dp inline padding, which is what the page's own guidance draws. Drawn as
+// a menu, it takes the menu's 12dp instead, so it lines up with the options
+// under it, as Menu's own section heading does.
 //
 // **The load-more row is a sentinel, not a button.** React Aria's
 // `ListBoxLoadMoreItem` calls `onLoadMore` when it comes into view and
@@ -132,10 +144,16 @@ type ListBoxSectionProps<T extends object = object> = Omit<
   header?: ReactNode
 }
 
+function EmptyRow() {
+  return <CollectionEmpty variant={useContext(OptionRowContext)} />
+}
+
 // The default empty state, at module scope so every list hands React Aria
-// the same function.
+// the same function. A component rather than the element itself, so it reads
+// which row the list draws — a menu row inside a Select's or a ComboBox's
+// popup.
 function emptyState() {
-  return <CollectionEmpty variant="list" />
+  return <EmptyRow />
 }
 
 // What the option draws, from React Aria's render state. Built by a call
@@ -155,6 +173,7 @@ function itemContent(
   supporting: ReactNode,
   trailing: ReactNode,
   ripple: ReactNode,
+  variant: 'list' | 'menu',
 ) {
   return (state: ListBoxItemRenderProps) => (
     <>
@@ -165,6 +184,7 @@ function itemContent(
         overline={overline}
         supporting={supporting}
         trailing={trailing}
+        variant={variant}
       >
         {children}
       </RowContent>
@@ -235,6 +255,7 @@ function ListBoxItem<T extends object = object>({
   trailing,
   ...props
 }: ListBoxItemProps<T> & RefAttributes<HTMLDivElement>) {
+  const variant = useContext(OptionRowContext)
   // The press ripple List's rows draw — see ListItem there.
   const ripple = useRipple<HTMLDivElement>(
     true,
@@ -253,7 +274,10 @@ function ListBoxItem<T extends object = object>({
       textValue={textValue ?? textOf(children)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(rowItemStyles(supporting, overline), props)}
+      {...mergeStatefulStyles(
+        rowItemStyles(supporting, overline, undefined, variant),
+        props,
+      )}
     >
       {itemContent(
         children,
@@ -262,6 +286,7 @@ function ListBoxItem<T extends object = object>({
         supporting,
         trailing,
         ripple.surface,
+        variant,
       )}
     </RACListBoxItem>
   )
@@ -276,10 +301,17 @@ function ListBoxLoadMore({
   label,
   ...props
 }: ListBoxLoadMoreProps & RefAttributes<HTMLDivElement>) {
+  const variant = useContext(OptionRowContext)
   return (
     <RACListBoxLoadMoreItem
       {...props}
-      {...mergeStyles(stylex.props(collectionStyles.loading), props)}
+      {...mergeStyles(
+        stylex.props(
+          collectionStyles.loading,
+          variant === 'menu' && collectionStyles.loadingMenu,
+        ),
+        props,
+      )}
     >
       <CollectionLoadMore diameter="24px" label={label} />
     </RACListBoxLoadMoreItem>
@@ -295,13 +327,21 @@ function ListBoxSection<T extends object = object>({
   header,
   ...props
 }: ListBoxSectionProps<T> & RefAttributes<HTMLElement>) {
+  const variant = useContext(OptionRowContext)
   return (
     <RACListBoxSection
       {...props}
       {...mergeStyles(stylex.props(collectionStyles.section), props)}
     >
       {header === undefined ? null : (
-        <Header {...stylex.props(collectionStyles.header)}>{header}</Header>
+        <Header
+          {...stylex.props(
+            collectionStyles.header,
+            variant === 'menu' && collectionStyles.headerMenu,
+          )}
+        >
+          {header}
+        </Header>
       )}
       {children}
     </RACListBoxSection>

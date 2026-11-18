@@ -18,6 +18,7 @@ import {
 
 import type { FieldVariant } from '../../field'
 
+import { OptionRowContext } from '../../collection/context'
 import { FieldBox, FieldMessage, FieldTrigger, FieldValue } from '../../field'
 import {
   fieldStyles,
@@ -35,8 +36,11 @@ import ListBox from '../list-box'
 // rather than taking a keystroke. Everything above the list is the field
 // chrome in `src/field` — the same box, label, supporting line and error
 // treatment every other field draws — and the list is ListBox on the shared
-// overlay surface. What is here is React Aria's `Select` around the two, and
-// the three things that are this component's own.
+// overlay surface, its options drawn as the menus page's rows: 48dp at the
+// menu's 12dp inset, with the menu's selected container, since Material
+// Design draws an exposed dropdown menu as a menu. `OptionRowContext` around
+// the list is what tells ListBox so. What is here is React Aria's `Select`
+// around the two, and the three things that are this component's own.
 //
 // **The whole box opens the list.** The chrome's `FieldTrigger` covers the
 // box rather than sitting on the value's line, so the padding, the label and
@@ -307,7 +311,9 @@ function selectContent(
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
       >
-        <ListBox>{options}</ListBox>
+        <OptionRowContext value="menu">
+          <ListBox>{options}</ListBox>
+        </OptionRowContext>
       </RACPopover>
     </>
   )

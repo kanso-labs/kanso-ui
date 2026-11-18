@@ -24,6 +24,7 @@ import {
 
 import type { FieldVariant } from '../../field'
 
+import { OptionRowContext } from '../../collection/context'
 import { FieldBox, FieldInput, FieldMessage, FieldValue } from '../../field'
 import {
   fieldStyles,
@@ -46,7 +47,9 @@ import ListBox from '../list-box'
 // list as it is typed. Everything above the list is the field chrome in
 // `src/field` — the same box, label, supporting line and error treatment
 // every other field draws — and the list is ListBox on the shared overlay
-// surface, positioned and sized against the box exactly as Select's is.
+// surface, positioned and sized against the box exactly as Select's is, and
+// drawn as Select's is: its options are the menus page's rows, through
+// `OptionRowContext`.
 //
 // It is Select's shape with two differences.
 //
@@ -346,7 +349,9 @@ function ComboBox<
         // oxlint-disable-next-line typescript/no-deprecated -- its replacement, UNSAFE_PortalProvider, is not exported by react-aria-components
         UNSTABLE_portalContainer={container}
       >
-        <ListBox<T>>{options}</ListBox>
+        <OptionRowContext value="menu">
+          <ListBox<T>>{options}</ListBox>
+        </OptionRowContext>
       </RACPopover>
     </RACComboBox>
   )
