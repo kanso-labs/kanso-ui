@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.48.0](https://github.com/kanso-labs/kanso-ui/compare/v0.47.5...v0.48.0) (2026-11-18)
+
+
+### Features
+
+* **split-button:** select the menu button and turn its chevron while the menu is open ([#2242](https://github.com/kanso-labs/kanso-ui/issues/2242)) ([b42c6d5](https://github.com/kanso-labs/kanso-ui/commit/b42c6d597dfff90ecdc284b6f687e393d5110748))
+* **table:** show that a table scrolled sideways has more columns past its edge ([#2245](https://github.com/kanso-labs/kanso-ui/issues/2245)) ([0e35b8e](https://github.com/kanso-labs/kanso-ui/commit/0e35b8e4fb70bf342ad2385aa8ab858c134fb631))
+* **tabs:** fade the edge of a scrollable tab bar that has tabs past it ([#2243](https://github.com/kanso-labs/kanso-ui/issues/2243)) ([2eaae22](https://github.com/kanso-labs/kanso-ui/commit/2eaae22952c4c94768fe955669bb027af17435d3))
+
+
+### Bug Fixes
+
+* **button,icon-button:** keep an overlay trigger's resting shape while its overlay is open ([#2240](https://github.com/kanso-labs/kanso-ui/issues/2240)) ([bf8929d](https://github.com/kanso-labs/kanso-ui/commit/bf8929d873d89a94679c6502bb69cca6706981aa))
+* **focus:** draw the focus ring 3dp in secondary, as Material Design does ([#2254](https://github.com/kanso-labs/kanso-ui/issues/2254)) ([237d5f0](https://github.com/kanso-labs/kanso-ui/commit/237d5f05d9d7185a7d274925e2df6b6a216ad3f0))
+* **list-box,table:** draw a focus ring on an empty list box or table ([#2235](https://github.com/kanso-labs/kanso-ui/issues/2235)) ([6b107c7](https://github.com/kanso-labs/kanso-ui/commit/6b107c70450e642563ffdcedd21c5d98315c59a9))
+* **select,combo-box:** draw options as menu rows, as Material Design's exposed dropdown menu does ([#2244](https://github.com/kanso-labs/kanso-ui/issues/2244)) ([5f59607](https://github.com/kanso-labs/kanso-ui/commit/5f59607ba53b4f0e97a1184784a45c20ffb8c1fe))
+
+
+### Performance Improvements
+
+* **field:** hand the field's parts the flags they read, not the render state ([#2246](https://github.com/kanso-labs/kanso-ui/issues/2246)) ([7d4e7c9](https://github.com/kanso-labs/kanso-ui/commit/7d4e7c9f4396de1941132480a4dc67d72b7d10cf))
+* **list,tree:** stop every row's selection checkbox re-rendering on a selection change ([#2236](https://github.com/kanso-labs/kanso-ui/issues/2236)) ([3ef4e3a](https://github.com/kanso-labs/kanso-ui/commit/3ef4e3a27aa76e62c41e29e09442bbcc7caafeed))
+
+
+### Dependencies
+
+* update chromaui/action action to v18.14.6 ([#2216](https://github.com/kanso-labs/kanso-ui/issues/2216)) ([5753eb0](https://github.com/kanso-labs/kanso-ui/commit/5753eb09796df8a317aebd78254335e11ba865cb))
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.71 ([#2217](https://github.com/kanso-labs/kanso-ui/issues/2217)) ([853982f](https://github.com/kanso-labs/kanso-ui/commit/853982f04f3dad32aa7c8af6dfcf7920546a073c))
+
 ## [0.47.5](https://github.com/kanso-labs/kanso-ui/compare/v0.47.4...v0.47.5) (2026-11-17)
 
 
