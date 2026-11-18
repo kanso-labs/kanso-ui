@@ -258,6 +258,13 @@ function cellClassNameIn(calendar: CalendarStates) {
  * Held means what React Aria would have called selected with the calendar
  * enabled: the value, inside the bounds, and in its own month's grid rather
  * than a neighbour's, which the classes check.
+ *
+ * Every cell of the month renders again on each focus move, and the React
+ * Compiler's memoisation of this one does not hold. React Aria's grid builds
+ * a new `CalendarDate` for every cell on every render, so `date` is a new
+ * prop each time, and `CalendarStateContext` changes with each move, which
+ * React Aria's own cell reads as well as this one. Rendering only the cells a
+ * move changes would take a copy of React Aria's `CalendarCell`.
  */
 function DateCell({ date }: { date: CalendarDate }): ReactElement {
   const calendar = useContext(CalendarStateContext)
