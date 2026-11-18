@@ -201,10 +201,25 @@ const Editing: Story = {
 // box floats its label while focus is within it, so a field checked while
 // still focused floats whatever it holds.
 //
+// So each edit is waited for in the box before focus leaves. The label floats
+// while focus is within the box or while the field holds something, so once
+// focus has gone the float depends only on the edit having landed. React Aria
+// draws the box's text from the value it holds, and the copy the label reads
+// moves in the same render, so the text is the signal the edit committed.
+// Leaving before then reads a race, not a state.
+//
+// Every wait here takes `UNDER_LOAD` rather than `waitFor`'s default second.
+// A key press goes through the page every story in the run shares, and with
+// six stories at once one float landed after that second, a failure that
+// would not come back with the file run alone. Five seconds still leaves room
+// for every wait inside the story's own fifteen.
+//
 // A test rather than documentation, so it is kept out of the sidebar the way
 // button's `Pressed` is — `!dev` subtracts the tag the sidebar filters on and
 // leaves `test`, and Chromatic is told separately since it reads the index.
 // `Empty` already covers this field visually.
+const UNDER_LOAD = { timeout: 5000 }
+
 const Typed: Story = {
   args: { defaultValue: EMPTY },
   parameters: {
@@ -222,22 +237,28 @@ const Typed: Story = {
     await step('type into it, then leave', async () => {
       await userEvent.click(box)
       await userEvent.keyboard('a')
+      await waitFor(async () => {
+        await expect(looseTextIn(box)).toBe('a')
+      }, UNDER_LOAD)
       await userEvent.tab()
     })
 
     await waitFor(async () => {
       await expect(isFloated(label)).toBe(true)
-    })
+    }, UNDER_LOAD)
 
     await step('take it back out, then leave again', async () => {
       await userEvent.click(box)
       await userEvent.keyboard('{Backspace}')
+      await waitFor(async () => {
+        await expect(looseTextIn(box)).toBe('')
+      }, UNDER_LOAD)
       await userEvent.tab()
     })
 
     await waitFor(async () => {
       await expect(isFloated(label)).toBe(false)
-    })
+    }, UNDER_LOAD)
   },
   render: Default.render,
   tags: ['!autodocs', '!dev'],
