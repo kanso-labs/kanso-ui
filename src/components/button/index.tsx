@@ -80,7 +80,11 @@ import {
 // `pressed` table is the layer a button draws in the ripple's place: when
 // `disableRipple` turns the ripple off, and while a key holds the button
 // down, since the ripple answers a key only once it is released. The layer
-// then gives way to the ripple, which plays its whole press from there.
+// then gives way to the ripple, which plays its whole press from there. A
+// press is a pointer or a key on the button, never an overlay it opened:
+// React Aria reports a trigger pressed for as long as its menu, popover or
+// dialog is open, and the button rests and answers hover through all of it
+// — see src/button.
 //
 // Disabled is a style of its own per variant rather than a `:disabled`
 // branch inside each property: a button given `href` renders as a link,

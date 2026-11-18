@@ -162,6 +162,13 @@ function Portalled() {
  * A mouse pressing `element`: down, up and the click after. A press on a
  * control moves focus to it, which a dispatched event never does, so
  * `focuses` does it between the two, where a real press does.
+ *
+ * The click counts one, as a mouse's always does. A click with a `detail` of
+ * 0 is what React Aria reads as a screen reader's virtual click, and a
+ * dialog opened by one is focused only once every running transition on the
+ * page has ended, and only if focus has not moved meanwhile — so a mouse
+ * press followed by a virtual click, which no browser sends, tied the
+ * dialog's focus to how long the trigger took to settle back from its press.
  */
 function pressWithMouse(element: Element, { focuses = false } = {}) {
   act(() => {
@@ -172,7 +179,7 @@ function pressWithMouse(element: Element, { focuses = false } = {}) {
   })
   act(() => {
     fireEvent.pointerUp(element, MOUSE)
-    fireEvent.click(element, MOUSE)
+    fireEvent.click(element, { ...MOUSE, detail: 1 })
   })
 }
 

@@ -26,7 +26,7 @@ import {
 } from '../render/aria'
 import { mergeStatefulStyles } from '../styles/merge'
 import { useRadioItem } from '../toggle-group'
-import { useButtonBase } from './hooks'
+import { useButtonBase, useOwnPress } from './hooks'
 import { buttonBaseStyles } from './styles'
 
 // The press-button core Button and IconButton both render through. A button
@@ -38,6 +38,19 @@ import { buttonBaseStyles } from './styles'
 // `aria-busy` that says so. Each component
 // brings its own classes, as a function of the render state, and the call
 // site's `className` and `style` are merged over them.
+//
+// **The classes are told a button is pressed only while it is being
+// pressed.** React Aria reports an overlay's trigger pressed for as long as
+// the overlay is open — `DialogTrigger` and `MenuTrigger` through the press
+// context, `Select` through `ButtonContext` — so a Button or IconButton that
+// opened a menu, popover or dialog took its pressed corner and held it,
+// with its hover layer off, until the overlay closed. The pressed corner is
+// the short answer to a press, and an open trigger is not one, so the state
+// the component's classes see has `isPressed` only while a pointer or a key
+// is actually pressing it, from `useOwnPress`. An open trigger therefore
+// rests as it did before it opened and still answers the pointer. A call
+// site's own `className` and `style` functions are handed React Aria's state
+// unchanged, as is its `data-pressed`.
 //
 // One module rather than a copy in each, since the copies had already drifted
 // once: IconButton read `ButtonContext` for a parent's disabled state and
@@ -209,7 +222,11 @@ function ButtonBase({
   const messages = useMessages()
   const base = useButtonBase(input, isPending)
   const { disabled, props, ref, ripple } = base
-  const merged = mergeStatefulStyles(classes, props)
+  const press = useOwnPress(props.onPressChange)
+  const merged = mergeStatefulStyles(
+    pressedByPress(classes, press.isPressing),
+    props,
+  )
 
   // A toggle is still React Aria's `Button`, which knows nothing of a
   // selected state, so the state goes onto the element as `aria-pressed` and
@@ -244,6 +261,7 @@ function ButtonBase({
         target={target}
         {...ripple.handlers}
         {...props}
+        onPressChange={press.onPressChange}
         {...styleProps}
       >
         {children}
@@ -263,6 +281,7 @@ function ButtonBase({
       )}
       {...ripple.handlers}
       {...props}
+      onPressChange={press.onPressChange}
       {...styleProps}
     >
       {buttonContent(
@@ -315,6 +334,16 @@ function buttonContent(
       {surface}
     </>
   )
+}
+
+// The component's classes, handed a state that is pressed only while the
+// button is being pressed — see the header.
+function pressedByPress(
+  classes: ButtonBaseProps['classes'],
+  isPressing: boolean,
+) {
+  return (state: ButtonClassesState) =>
+    classes({ ...state, isPressed: state.isPressed && isPressing })
 }
 
 // A toggle drawn through ButtonBase hands a call site's `render` the state of

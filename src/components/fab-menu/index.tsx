@@ -390,8 +390,9 @@ function itemClasses(tone: FabTone) {
 }
 
 // The FAB's classes: Fab's own while the menu is closed, the close button's
-// while it is open. A press layer is drawn only while closed — React Aria
-// reports the FAB pressed for as long as its menu is open.
+// while it is open. The press layer is a press's alone: React Aria reports
+// the FAB pressed for as long as its menu is open, and ButtonBase hands these
+// classes `isPressed` only while the FAB is actually being pressed.
 function triggerClasses(isOpen: boolean, size: FabSize, tone: FabTone) {
   return (state: ButtonState) =>
     stylex.props(
@@ -402,7 +403,7 @@ function triggerClasses(isOpen: boolean, size: FabSize, tone: FabTone) {
       isOpen ? styles.closeButton : fabSizes[size],
       state.isHovered && fabStyles.hovered,
       state.isFocusVisible && fabStyles.focused,
-      !isOpen && state.isPressed && fabStyles.pressed,
+      state.isPressed && fabStyles.pressed,
       state.isDisabled && fabStyles.disabled,
     )
 }

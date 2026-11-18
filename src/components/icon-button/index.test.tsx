@@ -14,6 +14,9 @@ import {
   radii,
   stateLayerOpacity,
 } from '../../tokens/design.tokens.stylex'
+import Dialog from '../dialog'
+import Menu from '../menu'
+import Popover from '../popover'
 
 // Compared against elements styled straight from the tokens rather than
 // literals, so the assertions pin which role each variant reaches for without
@@ -1137,4 +1140,80 @@ describe('focus layer', () => {
 
     expect(classes.every((name) => button.classList.contains(name))).toBe(true)
   })
+})
+
+// The three overlays a trigger opens, each around the trigger it is handed.
+const OVERLAYS = {
+  dialog: (trigger: ReactElement) => (
+    <Dialog>
+      {trigger}
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+      </Dialog.Content>
+    </Dialog>
+  ),
+  menu: (trigger: ReactElement) => (
+    <Menu>
+      {trigger}
+      <Menu.Content>
+        <Menu.Item id="first">First item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+  popover: (trigger: ReactElement) => (
+    <Popover>
+      {trigger}
+      <Popover.Content>
+        <Popover.Title>Headline</Popover.Title>
+      </Popover.Content>
+    </Popover>
+  ),
+}
+
+// React Aria reports an overlay's trigger pressed for as long as the overlay
+// is open. The pressed corner and the pressed layer are a press's alone, so
+// an open trigger rests round, with its hover layer, as it did closed.
+describe('as an overlay trigger', () => {
+  it.each(['dialog', 'menu', 'popover'] as const)(
+    'keeps its resting corner and layers while its %s is open',
+    (overlay) => {
+      const view = render(
+        OVERLAYS[overlay](
+          <IconButton aria-label="Open" variant="filled">
+            {ICON}
+          </IconButton>,
+        ),
+      )
+      // A modal overlay hides what is outside it from the accessibility tree.
+      const trigger = view.getByRole('button', { hidden: true, name: 'Open' })
+      const has = (style: StyleXStyles) =>
+        classesOf(style).every((name) => trigger.classList.contains(name))
+
+      fireEvent.keyDown(trigger, { key: 'Enter' })
+      fireEvent.keyUp(trigger, { key: 'Enter' })
+      expect(trigger.getAttribute('aria-expanded')).toBe('true')
+
+      for (const animation of trigger.getAnimations()) {
+        animation.finish()
+      }
+      const { borderTopLeftRadius, height } = getComputedStyle(trigger)
+      expect(has(probeStyles.pressedSmall)).toBe(false)
+      expect(has(probeStyles.pressFilled)).toBe(false)
+      expect(borderTopLeftRadius).toBe(`${px(height) / 2}px`)
+
+      // Hovered with a pen rather than a mouse: React Aria ignores a mouse's
+      // hover for 500ms after any touch ends, document-wide, and the touch
+      // tests earlier in the file leave that window open.
+      fireEvent.pointerOver(trigger, { pointerType: 'pen' })
+      expect(has(probeStyles.hoverFilled)).toBe(true)
+
+      // A press of the open trigger is still a press.
+      fireEvent.keyDown(trigger, { key: ' ' })
+      expect(has(probeStyles.pressedSmall)).toBe(true)
+      expect(has(probeStyles.pressFilled)).toBe(true)
+      fireEvent.keyUp(trigger, { key: ' ' })
+    },
+  )
 })

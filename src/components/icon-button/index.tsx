@@ -94,7 +94,9 @@ import {
 // curves — the container, icon and rule colours the standard one, the corner
 // and a group's change of width the emphasized one — so the timing functions
 // are a matching comma list rather than one value. All of them move at once
-// for a reader who asks for reduced motion.
+// for a reader who asks for reduced motion. It softens for a press alone: a
+// trigger whose menu, popover or dialog is open rests round, though React
+// Aria reports it pressed throughout — see src/button.
 //
 // A chosen toggle rests at that same pressed corner, which is the page's
 // shape morph: a toggle icon button moves from round while unchosen to
