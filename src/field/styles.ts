@@ -23,6 +23,13 @@ const FORCED_COLORS = '@media (forced-colors: active)'
 // a description alone: they are text beside a control, not a control the
 // mode would grey. The mode greys a native disabled input's value by itself,
 // but not a token field's, which is a contenteditable element.
+//
+// On-surface at 38% sits below the 4.5:1 text minimum, on purpose. Material
+// Design fades all of a disabled control's content to that opacity, and WCAG
+// 1.4.3 exempts text that is part of an inactive component. axe's
+// `color-contrast` finding on a disabled control is therefore the expected
+// one, which is why Checkbox's, Switch's and DropZone's Disabled stories turn
+// that rule off.
 const DISABLED_TEXT = {
   default: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.disabledContent} * 100%), ${colors.surface})`,
   [FORCED_COLORS]: 'GrayText',
