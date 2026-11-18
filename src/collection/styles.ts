@@ -41,7 +41,9 @@ const collectionStyles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     // React Aria moves focus to the item rather than the container, and the
-    // row draws its own ring inside its edges.
+    // row draws its own ring inside its edges — while there is an item. An
+    // empty collection keeps its place in the Tab order, so that its empty
+    // state is announced, and holds focus itself: `focusVisible` below.
     outlineStyle: 'none',
     paddingBlock: spacing.sm,
   },
@@ -61,6 +63,18 @@ const collectionStyles = stylex.create({
   // the items and nothing in it responds to a press.
   empty: {
     color: colors.onSurfaceVariant,
+  },
+  // The ring of a collection that holds keyboard focus itself, which React
+  // Aria gives it only while it has no item to move focus to. Without it, a
+  // Tab into an empty list landed on nothing a reader could see, and the
+  // next Tab looked like it had skipped a stop. The rows' own inset ring —
+  // see `focusVisible` in src/row/styles.ts — so the box a reader tabs into
+  // draws the ring its rows would, inside the edge a container may clip.
+  focusVisible: {
+    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: '-2px',
+    outlineStyle: 'solid',
+    outlineWidth: '2px',
   },
   // The lists page's subhead. Menu's and NavigationTree's are their own.
   header: {
@@ -122,12 +136,17 @@ type CollectionItemState = {
 
 /**
  * A collection's own box, as the function React Aria's `className` prop
- * wants: the container, and the drop target while a drop would land on the
- * collection as a whole. List, ListBox and Tree each draw it.
+ * wants: the container, its ring while it holds keyboard focus itself, and
+ * the drop target while a drop would land on the collection as a whole.
+ * List, ListBox and Tree each draw it.
  */
-function containerClasses(state: { isDropTarget: boolean }) {
+function containerClasses(state: {
+  isDropTarget: boolean
+  isFocusVisible: boolean
+}) {
   return stylex.props(
     collectionStyles.container,
+    state.isFocusVisible && collectionStyles.focusVisible,
     state.isDropTarget && collectionStyles.dropTarget,
   )
 }

@@ -437,7 +437,9 @@ const styles = stylex.create({
     letterSpacing: typography.bodyMediumTracking,
     lineHeight: typography.bodyMediumLineHeight,
     // React Aria moves focus to a row or a cell rather than to the table,
-    // and each draws its own ring inside its edges.
+    // and each draws its own ring inside its edges — while there is one. A
+    // table with no rows holds focus itself, and draws the ring the other
+    // collections' boxes do: see `tableClasses`.
     outlineStyle: 'none',
   },
 })
@@ -965,11 +967,14 @@ function TableCell({
   )
 }
 
-// The table's own classes, with the drop target the other collections'
-// boxes draw while a drop would land on the table as a whole.
+// The table's own classes, with the ring and the drop target the other
+// collections' boxes draw: the ring while the table holds keyboard focus
+// itself, which React Aria gives it only while it has no rows, and the drop
+// target while a drop would land on the table as a whole.
 function tableClasses(state: TableRenderProps) {
   return stylex.props(
     styles.table,
+    state.isFocusVisible && collectionStyles.focusVisible,
     state.isDropTarget && collectionStyles.dropTarget,
   )
 }
