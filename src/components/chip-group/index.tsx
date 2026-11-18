@@ -246,10 +246,6 @@ const RemoveLabelContext = createContext<string | undefined>(undefined)
 // target's name is one.
 const GroupActionContext = createContext(false)
 
-// Hoisted so neither is a new object on every render.
-const LABEL_STATE_VALID = { isInvalid: false }
-const LABEL_STATE_INVALID = { isInvalid: true }
-
 // The pill of a chip with an action, which a press always reaches.
 function actingChipPropsFor(state: TagRenderProps) {
   return chipPropsFor(state, { kind: kindOf(state) })
@@ -307,10 +303,7 @@ function ChipGroup<T extends object = object>({
       {/* React Aria's tag group has no disabled state of its own — a chip is
           disabled through the group's `disabledKeys` — so the label follows
           validity alone. */}
-      <FieldLabel
-        state={invalid ? LABEL_STATE_INVALID : LABEL_STATE_VALID}
-        variant="group"
-      >
+      <FieldLabel isInvalid={invalid} variant="group">
         {label}
       </FieldLabel>
       <RemoveLabelContext value={removeLabel}>

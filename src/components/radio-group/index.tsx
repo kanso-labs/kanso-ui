@@ -276,7 +276,12 @@ function groupContent(
 ) {
   return (state: RadioGroupRenderProps) => (
     <>
-      <FieldLabel isRequired={state.isRequired} state={state} variant="group">
+      <FieldLabel
+        isDisabled={state.isDisabled}
+        isInvalid={state.isInvalid}
+        isRequired={state.isRequired}
+        variant="group"
+      >
         {label}
       </FieldLabel>
       <div

@@ -188,7 +188,36 @@ type FieldInputProps = Omit<InputProps, 'prefix'> & {
   suffix?: ReactNode
 }
 
+// The colour follows these. Disabled wins over error, and error over focus,
+// so a focused invalid field keeps its error colour. Hover counts only while
+// focus is elsewhere, as the box's own colours do.
+//
+// Flags rather than React Aria's render state, which is a new object on
+// every render of the field — one per keystroke — so a label handed it
+// re-rendered with every character, though its colour changes only when one
+// of these does.
 type FieldLabelProps = LabelProps & {
+  /**
+   * Whether the field is disabled, which fades the label.
+   * @default false
+   */
+  isDisabled?: boolean
+  /**
+   * Whether the field has focus, which colours the label primary.
+   * @default false
+   */
+  isFocused?: boolean
+  /**
+   * Whether the pointer is over the field, which darkens an outlined box's
+   * label or an invalid one's while focus is elsewhere.
+   * @default false
+   */
+  isHovered?: boolean
+  /**
+   * Whether the field is invalid, which colours the label in the error role.
+   * @default false
+   */
+  isInvalid?: boolean
   /**
    * Whether the field must be filled, which ends the label in an asterisk in
    * the label's own colour.
@@ -203,12 +232,6 @@ type FieldLabelProps = LabelProps & {
    */
   outlined?: boolean
   /**
-   * The states the colour follows. Disabled wins over error, and error over
-   * focus, so a focused invalid field keeps its error colour. Hover counts
-   * only while focus is elsewhere, as the box's own colours do.
-   */
-  state?: Partial<FieldLabelState>
-  /**
    * Where the label sits. `field` is inside a box, positioned and typed by
    * whatever renders it. `group` is above a group of controls, which has no
    * box to float a label in, so this one carries its type itself.
@@ -216,11 +239,6 @@ type FieldLabelProps = LabelProps & {
    */
   variant?: FieldLabelVariant
 }
-
-type FieldLabelState = Pick<
-  GroupRenderProps,
-  'isDisabled' | 'isFocusWithin' | 'isHovered' | 'isInvalid'
->
 
 type FieldLabelVariant = 'field' | 'group'
 
@@ -361,13 +379,16 @@ function boxContent(
     <BoxContent
       endInset={endInset}
       floatingLabel={floatingLabel}
+      isDisabled={state.isDisabled}
       isFocused={isFocused}
+      isFocusWithin={state.isFocusWithin}
+      isHovered={state.isHovered}
+      isInvalid={state.isInvalid}
       isPopulated={isPopulated}
       isRequired={isRequired}
       label={label}
       leading={leading}
       multiline={multiline}
-      state={state}
       trailing={trailing}
       trigger={trigger}
       variant={variant}
@@ -383,18 +404,27 @@ function boxContent(
  * itself, so it can read whether the control holds a value — which is what
  * the outlined box's notch and label follow, and what CSS cannot express
  * for them. See the outlined variant's note above.
+ *
+ * It takes the four flags it reads off the box's render state rather than
+ * the state itself, for the reason `FieldLabelProps` gives: the state is a
+ * new object on every keystroke, and handed down it re-rendered the label
+ * and the outline with each one. It still re-renders on every keystroke
+ * itself, since it reads the value; what it hands down holds.
  */
 function BoxContent({
   children,
   endInset,
   floatingLabel,
+  isDisabled,
   isFocused,
+  isFocusWithin,
+  isHovered,
+  isInvalid,
   isPopulated,
   isRequired,
   label,
   leading,
   multiline,
-  state,
   trailing,
   trigger,
   variant,
@@ -402,13 +432,16 @@ function BoxContent({
   children: ReactNode
   endInset: string
   floatingLabel: boolean
+  isDisabled: boolean
   isFocused: boolean
+  isFocusWithin: boolean
+  isHovered: boolean
+  isInvalid: boolean
   isPopulated: boolean | undefined
   isRequired: boolean
   label: string
   leading: ReactNode
   multiline: boolean
-  state: GroupRenderProps
   trailing: ReactNode
   trigger: ReactNode
   variant: FieldVariant
@@ -416,7 +449,7 @@ function BoxContent({
   const read = useFieldPopulated()
   const populated = isPopulated ?? read
   const outlined = variant === 'outlined'
-  const focused = state.isFocusWithin || isFocused
+  const focused = isFocusWithin || isFocused
   const floated = !floatingLabel || focused || populated
 
   return (
@@ -467,7 +500,7 @@ function BoxContent({
             fieldChromeStyles.icon,
             multiline && fieldChromeStyles.iconMultiline,
             outlined && fieldChromeStyles.iconOutlined,
-            state.isDisabled && fieldChromeStyles.iconDisabled,
+            isDisabled && fieldChromeStyles.iconDisabled,
           )}
         >
           {leading}
@@ -477,16 +510,19 @@ function BoxContent({
         {...stylex.props(
           fieldChromeStyles.column,
           floatingLabel && fieldChromeStyles.columnFloating,
-          state.isDisabled &&
+          isDisabled &&
             (floatingLabel
               ? fieldChromeStyles.columnDisabledFloating
               : fieldChromeStyles.columnDisabled),
         )}
       >
         <FieldLabel
+          isDisabled={isDisabled}
+          isFocused={focused}
+          isHovered={isHovered}
+          isInvalid={isInvalid}
           isRequired={isRequired}
           outlined={outlined}
-          state={withFocus(state, focused)}
           {...stylex.props(
             fieldChromeStyles.boxLabel,
             floatingLabel && floated && fieldChromeStyles.boxLabelFloated,
@@ -510,11 +546,11 @@ function BoxContent({
             fieldChromeStyles.icon,
             multiline && fieldChromeStyles.iconMultiline,
             outlined && fieldChromeStyles.iconOutlined,
-            state.isInvalid &&
-              (state.isHovered && !focused
+            isInvalid &&
+              (isHovered && !focused
                 ? fieldChromeStyles.iconErrorHovered
                 : fieldChromeStyles.iconError),
-            state.isDisabled && fieldChromeStyles.iconDisabled,
+            isDisabled && fieldChromeStyles.iconDisabled,
           )}
         >
           {trailing}
@@ -969,15 +1005,6 @@ function useFieldPopulated() {
   return String(value).length > 0
 }
 
-// The box's render state with focus as the box draws it, for its label,
-// whose colour follows focus. Built by a call rather than written at the
-// prop, which is what react-perf's no-new-object-as-prop is after.
-function withFocus(state: GroupRenderProps, focused: boolean) {
-  return focused === state.isFocusWithin
-    ? state
-    : { ...state, isFocusWithin: focused }
-}
-
 /**
  * Whether the control in this box is holding anything, read off React
  * Aria's context for whichever control the field renders. The filled box
@@ -989,10 +1016,6 @@ function withFocus(state: GroupRenderProps, focused: boolean) {
  * renders it. React Aria's `Label`, which the field around it associates with
  * its control through context.
  */
-// Hoisted rather than written as the parameter's default, which would be a
-// new object on every render.
-const NO_STATE: Partial<FieldLabelState> = {}
-
 // The asterisk after a required field's label, which is how the text fields
 // page marks one, and Material Design's own web text field draws it unless
 // told not to. Hidden from assistive technology: the control already says it
@@ -1003,19 +1026,16 @@ const REQUIRED_MARK = <span aria-hidden="true">*</span>
 
 function FieldLabel({
   children,
+  isDisabled = false,
+  isFocused = false,
+  isHovered = false,
+  isInvalid = false,
   isRequired = false,
   outlined = false,
-  state = NO_STATE,
   variant = 'field',
   ...props
 }: FieldLabelProps) {
-  const {
-    isDisabled = false,
-    isFocusWithin = false,
-    isHovered = false,
-    isInvalid = false,
-  } = state
-  const hovered = !isDisabled && !isFocusWithin && isHovered
+  const hovered = !isDisabled && !isFocused && isHovered
 
   return (
     <Label
@@ -1028,7 +1048,7 @@ function FieldLabel({
           isInvalid && fieldChromeStyles.labelError,
           !isDisabled &&
             !isInvalid &&
-            isFocusWithin &&
+            isFocused &&
             fieldChromeStyles.labelFocused,
           hovered && isInvalid && fieldChromeStyles.labelErrorHovered,
           hovered && !isInvalid && outlined && fieldChromeStyles.labelHovered,
@@ -1296,7 +1316,6 @@ export type {
   FieldBoxProps,
   FieldInputProps,
   FieldLabelProps,
-  FieldLabelState,
   FieldLabelVariant,
   FieldMessageProps,
   FieldTextAreaProps,
