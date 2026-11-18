@@ -49,6 +49,11 @@ function classesOf(props: { className?: string | undefined }) {
   return classes
 }
 
+// The menu's selected container, read back through the browser.
+const rowProbeStyles = stylex.create({
+  selectedMenu: { backgroundColor: colors.tertiaryContainer },
+})
+
 const CLASSES = {
   disabledIcon: classesOf(stylex.props(probeStyles.disabledIcon)),
   error: classesOf(stylex.props(probeStyles.error)),
@@ -718,5 +723,66 @@ describe('select', () => {
         expected,
       )
     })
+  })
+})
+
+// Material Design draws an exposed dropdown menu as a menu, so the options in
+// the popup are the menus page's rows — 48dp at its 12dp inset, the label in
+// label-large, the menu's selected container — while a ListBox on the page
+// keeps the lists page's 56dp row.
+describe('options', () => {
+  it('draws them as menu rows, where a ListBox on the page keeps list rows', async () => {
+    const probe = render(
+      <div
+        data-testid="probe"
+        {...stylex.props(rowProbeStyles.selectedMenu)}
+      />,
+    )
+    const menuSelected = getComputedStyle(
+      probe.getByTestId('probe'),
+    ).backgroundColor
+    probe.unmount()
+
+    const page = render(
+      <ListBox aria-label="Page list">
+        <ListBox.Item id="page">Page item</ListBox.Item>
+      </ListBox>,
+    )
+    const pageRow = getComputedStyle(
+      page.getByRole('option', { name: 'Page item' }),
+    )
+    expect(pageRow.height).toBe('56px')
+    expect(pageRow.paddingLeft).toBe('16px')
+    page.unmount()
+
+    const view = setup({ defaultValue: 'second' })
+    fireEvent.click(view.trigger)
+    const list = await view.findByRole('listbox')
+    const first = getComputedStyle(
+      within(list).getByRole('option', { name: 'First item' }),
+    )
+    const chosen = getComputedStyle(
+      within(list).getByRole('option', { name: 'Second item' }),
+    )
+
+    expect(first.height).toBe('48px')
+    expect([first.paddingLeft, first.paddingRight]).toEqual(['12px', '12px'])
+    expect(chosen.backgroundColor).toBe(menuSelected)
+  })
+
+  it('heads a section at the menu inset its options take', async () => {
+    const view = setup({
+      options: (
+        <ListBox.Section header="First group">
+          <ListBox.Item id="first">First item</ListBox.Item>
+        </ListBox.Section>
+      ),
+    })
+    fireEvent.click(view.trigger)
+    const list = await view.findByRole('listbox')
+
+    expect(
+      getComputedStyle(within(list).getByText('First group')).paddingLeft,
+    ).toBe('12px')
   })
 })

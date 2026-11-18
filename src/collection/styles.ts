@@ -89,6 +89,13 @@ const collectionStyles = stylex.create({
     paddingBlockStart: spacing.lg,
     paddingInline: spacing.lg,
   },
+  // The menus page's subhead inset, for a ListBox drawn as a menu — see
+  // `OptionRowContext` in ./context.ts — so a section's header lines up with
+  // options at the menu's 12dp rather than standing 4dp inside them.
+  headerMenu: {
+    paddingBlockStart: spacing.md,
+    paddingInline: spacing.md,
+  },
   // A row's worth of height while more items are on the way, so the list does
   // not jump when they land. Menu's is shorter, matching its own row.
   loading: {
@@ -97,6 +104,10 @@ const collectionStyles = stylex.create({
     display: 'flex',
     justifyContent: 'center',
     minBlockSize: sizing.rowSm,
+  },
+  // The same, a menu row tall, for a ListBox drawn as a menu.
+  loadingMenu: {
+    minBlockSize: sizing.rowXs,
   },
   section: {
     boxSizing: 'border-box',
@@ -169,11 +180,16 @@ function containerClasses(state: {
  * end. NavigationTree is not a caller: it draws the drawer variant, branches
  * on an ancestor being current, and reads `isCurrent` where these read
  * `isSelected`.
+ *
+ * `variant` is the row the item draws: the lists page's, or the menus
+ * page's floor, inset and selected container for a ListBox in the popup of a
+ * Select or a ComboBox — see `OptionRowContext` in ./context.ts.
  */
 function rowItemStyles(
   supporting: ReactNode,
   overline: ReactNode,
   extra?: stylex.StyleXStyles,
+  variant: 'list' | 'menu' = 'list',
 ) {
   const lines =
     (hasContent(overline) ? 1 : 0) + (hasContent(supporting) ? 1 : 0)
@@ -181,12 +197,13 @@ function rowItemStyles(
   return (state: CollectionItemState) =>
     stylex.props(
       rowStyles.base,
-      rowStyles.list,
+      variant === 'menu' ? rowStyles.menu : rowStyles.list,
       extra,
       lines === 1 && rowStyles.twoLine,
       lines === 2 && rowStyles.threeLine,
       state.isDragging === true && rowStyles.dragging,
-      state.isSelected && rowStyles.selectedList,
+      state.isSelected &&
+        (variant === 'menu' ? rowStyles.selectedMenu : rowStyles.selectedList),
       state.isHovered && rowStyles.hovered,
       state.isFocusVisible && rowStyles.focusVisible,
       state.isFocusVisible &&

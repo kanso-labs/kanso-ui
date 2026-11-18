@@ -704,3 +704,49 @@ describe('combo box', () => {
     })
   })
 })
+
+// Drawn as Select's are: the menus page's rows in the popup, where a ListBox
+// on the page keeps the lists page's.
+describe('options', () => {
+  it('draws them as menu rows, where a ListBox on the page keeps list rows', async () => {
+    const page = render(
+      <ListBox aria-label="Page list">
+        <ListBox.Item id="page">Page item</ListBox.Item>
+      </ListBox>,
+    )
+    expect(
+      getComputedStyle(page.getByRole('option', { name: 'Page item' })).height,
+    ).toBe('56px')
+    page.unmount()
+
+    const view = setup()
+    fireEvent.click(view.toggle)
+    const option = await view.findByRole('option', { name: 'First item' })
+    const computed = getComputedStyle(option)
+
+    expect(computed.height).toBe('48px')
+    expect([computed.paddingLeft, computed.paddingRight]).toEqual([
+      '12px',
+      '12px',
+    ])
+  })
+
+  // The "No results" row a search that matches nothing leaves is a menu row
+  // too, so the list does not change height when the last match goes.
+  it('draws its empty row a menu row tall', async () => {
+    const view = setup()
+    fireEvent.click(view.toggle)
+    await view.findByRole('option', { name: 'First item' })
+
+    act(() => {
+      fireEvent.change(view.input, { target: { value: 'zzz' } })
+    })
+
+    // The text sits in a span inside the row that draws it.
+    const row = (await view.findByText('No results')).parentElement
+    if (row === null) {
+      throw new Error('expected the empty text to sit in a row')
+    }
+    expect(getComputedStyle(row).height).toBe('48px')
+  })
+})
