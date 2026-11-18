@@ -807,7 +807,10 @@ publishes a Storybook per commit, which is where to look at unreleased work.
 The port is 6006 unless `PORT` says otherwise, which is what lets two agents
 preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
 session is handed a free port instead of failing to bind. Read the port off the
-URL the preview reports rather than assuming 6006.
+URL the preview reports rather than assuming 6006. `scripts/storybook.mjs` reads
+`PORT`, not the npm script: npm runs scripts under `cmd.exe` on Windows, which
+expands no `${PORT:-6006}`, and Storybook refused the text it was handed as a
+port. Keep shell expansion out of `package.json`'s scripts for the same reason.
 
 The toolbar's Theme control sets the `theme` global, which is what the decorator
 in `.storybook/preview.tsx` reads to pick a StyleX theme. It defaults to light
