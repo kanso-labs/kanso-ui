@@ -91,6 +91,22 @@ const RowsActContext = createContext(false)
 const NESTED_CONTROL =
   'a[href], button, input, label, select, textarea, [role="button"], [role="checkbox"], [role="link"], [role="switch"]'
 
+// What `ItemContent` draws a row from: the flags it reads off React Aria's
+// render state, and the row's own slots.
+interface ItemContentProps {
+  children: ReactNode
+  isDisabled: boolean
+  isSelected: boolean
+  leading: ReactNode
+  overline: ReactNode
+  ripple: ReactNode
+  selectLabel: string | undefined
+  /** Whether the row draws its selection checkbox — see `showsCheckbox`. */
+  showsCheckbox: boolean
+  supporting: ReactNode
+  trailing: ReactNode
+}
+
 type ListLoadMoreProps = Omit<RACGridListLoadMoreItemProps, 'children'> & {
   /**
    * What the row says while it is loading. Read by a screen reader; the ring
@@ -169,14 +185,28 @@ type ListSectionProps<T extends object = object> = Omit<
   header?: ReactNode
 }
 
+// The checkbox itself, or nothing. Written as a call rather than inline at
+// the prop, which is what react-perf's jsx-no-jsx-as-prop is after; the
+// React Compiler memoises the result on its inputs, which are flags here
+// rather than the render state, so it holds across a row's renders.
+function checkboxFor(shows: boolean, selectLabel: string | undefined) {
+  return shows ? <Checkbox aria-label={selectLabel} slot="selection" /> : null
+}
+
 // What the row draws, from React Aria's render state. Built by a call rather
 // than written inline at the prop, which is what react-perf's
-// no-new-function-as-prop is after; the React Compiler memoises the result on
-// its inputs.
+// no-new-function-as-prop is after.
 //
 // The state decides two things: whether a selection checkbox is drawn, and
 // which colour the supporting line takes — the muted role holds only while
-// the row is drawn on the surface.
+// the row is drawn on the surface. It is read here and handed on as those
+// flags, to a component, rather than turned into the row's elements in this
+// function: React Aria calls it on every render of every row, and the
+// compiler memoises a component's elements but not a plain function's, so an
+// element built here is a new one each time and re-renders the row under it.
+// A selection change re-renders every row of the list, and every row's
+// checkbox went with it; built from the flags, a row whose own flags held
+// keeps the content it drew.
 function itemContent(
   children: ReactNode,
   leading: ReactNode,
@@ -187,19 +217,49 @@ function itemContent(
   ripple: ReactNode,
 ) {
   return (state: GridListItemRenderProps) => (
+    <ItemContent
+      isDisabled={state.isDisabled}
+      isSelected={state.isSelected}
+      leading={leading}
+      overline={overline}
+      ripple={ripple}
+      selectLabel={selectLabel}
+      showsCheckbox={showsCheckbox(state)}
+      supporting={supporting}
+      trailing={trailing}
+    >
+      {children}
+    </ItemContent>
+  )
+}
+
+/** A row's content and its ripple, from the flags `itemContent` reads. */
+function ItemContent({
+  children,
+  isDisabled,
+  isSelected,
+  leading,
+  overline,
+  ripple,
+  selectLabel,
+  showsCheckbox: shows,
+  supporting,
+  trailing,
+}: ItemContentProps) {
+  return (
     <>
       <RowContent
-        isDisabled={state.isDisabled}
-        isSelected={state.isSelected}
+        isDisabled={isDisabled}
+        isSelected={isSelected}
         leading={leading}
         overline={overline}
-        selection={selectionFor(state, selectLabel)}
+        selection={checkboxFor(shows, selectLabel)}
         supporting={supporting}
         trailing={trailing}
       >
         {children}
       </RowContent>
-      {state.isDisabled ? null : ripple}
+      {isDisabled ? null : ripple}
     </>
   )
 }
@@ -427,17 +487,11 @@ function ListSection<T extends object = object>({
 // what a row is doing and not what it holds; the row is built by a call for
 // the same reason `itemContent` is.
 /**
- * The selection checkbox, while the list toggles. The row draws it ahead of
- * whatever `leading` holds.
+ * Whether the row draws the selection checkbox, which it does while the list
+ * toggles. The row draws it ahead of whatever `leading` holds.
  */
-function selectionFor(
-  state: GridListItemRenderProps,
-  selectLabel: string | undefined,
-) {
-  if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
-    return null
-  }
-  return <Checkbox aria-label={selectLabel} slot="selection" />
+function showsCheckbox(state: GridListItemRenderProps) {
+  return state.selectionBehavior === 'toggle' && state.selectionMode !== 'none'
 }
 
 // The row's press: the ripple's, unless it lands on a control inside the

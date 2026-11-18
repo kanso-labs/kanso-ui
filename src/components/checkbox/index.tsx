@@ -357,6 +357,20 @@ function Checkbox({
     group?.isDisabled !== true &&
     group?.isReadOnly !== true
   const ripple = useRipple<HTMLLabelElement>(interactive, {}, true, true)
+
+  // Whether the line under the checkbox is drawn at all. It is drawn even
+  // empty, since it holds the live region an error is read out from, and a
+  // region has to be in the document before the error it announces arrives
+  // — see `FieldMessage`. A collection's selection checkbox is the one that
+  // never has anything to say: the row it selects labels it, nothing
+  // validates it, and it is drawn by the List, Tree or Table rather than by
+  // a call site, so nothing can hand it a message later either. Drawn, the
+  // line was a `FieldMessage` and a `FieldError` in every row, re-rendered
+  // with the row on every selection change while showing nothing.
+  const speaks =
+    props.slot !== 'selection' ||
+    description !== undefined ||
+    error !== undefined
   const press = {
     onPress: (event: PressEvent) => {
       if (event.pointerType === 'keyboard') {
@@ -381,6 +395,7 @@ function Checkbox({
         description,
         error,
         reachable,
+        speaks,
       )}
     </CheckboxField>
   )
@@ -389,12 +404,17 @@ function Checkbox({
 // The button and the line under it, from the field's render state: the
 // description fades with a disabled checkbox, by itself or by its group, as
 // its label does. Built by a call for the same reason as `buttonContent`.
+// Without `speaks` the button is all there is — see `Checkbox`.
 function fieldContent(
   button: ReactNode,
   description: string | undefined,
   error: string | undefined,
   reserve: boolean,
-) {
+  speaks: boolean,
+): RACCheckboxFieldProps['children'] {
+  if (!speaks) {
+    return button
+  }
   return ({ isDisabled }: CheckboxFieldRenderProps) => (
     <>
       {button}

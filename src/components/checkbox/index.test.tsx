@@ -651,6 +651,38 @@ describe('in a form', () => {
   })
 })
 
+describe('the message line', () => {
+  // The line holds the live region an error is read out from, which has to
+  // be in the document before the error arrives, so a checkbox with nothing
+  // to say yet keeps it.
+  it('is there, empty, under a checkbox with nothing to say yet', () => {
+    const view = render(<Checkbox>Label</Checkbox>)
+
+    expect(view.container.querySelector('[aria-live="polite"]')).not.toBeNull()
+  })
+
+  // A collection draws its row's selection checkbox itself, so no call site
+  // can hand it a message, and the line would only be re-rendered with the
+  // row on every selection change.
+  it("is left off a collection's selection checkbox", () => {
+    const view = render(<Checkbox aria-label="Label" slot="selection" />)
+
+    expect(view.container.querySelector('[aria-live="polite"]')).toBeNull()
+  })
+
+  it('stays under a selection checkbox given something to say', () => {
+    const view = render(
+      <Checkbox
+        aria-label="Label"
+        description="Supporting line"
+        slot="selection"
+      />,
+    )
+
+    expect(view.getByText('Supporting line')).toBeVisible()
+  })
+})
+
 describe('focus layer', () => {
   it.each([
     ['an unmarked', {}, focusProbeStyles.unmarked],

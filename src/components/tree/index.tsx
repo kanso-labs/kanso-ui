@@ -155,6 +155,23 @@ const styles = stylex.create({
   },
 })
 
+// What `ItemContent` draws a row from: the flags it reads off React Aria's
+// render state, and the row's own slots.
+interface ItemContentProps {
+  children: ReactNode
+  hasChildItems: boolean
+  isDisabled: boolean
+  isExpanded: boolean
+  isSelected: boolean
+  leading: ReactNode
+  ripple: ReactNode
+  selectLabel: string | undefined
+  /** Whether the row draws its selection checkbox — see `showsCheckbox`. */
+  showsCheckbox: boolean
+  supporting: ReactNode
+  trailing: ReactNode
+}
+
 type TreeHeaderProps = {
   /** The section's heading. */
   children?: ReactNode
@@ -249,6 +266,14 @@ type TreeSectionProps<T extends object = object> = Omit<
   header?: ReactNode
 }
 
+// The checkbox itself, or nothing. Written as a call rather than inline at
+// the prop, which is what react-perf's jsx-no-jsx-as-prop is after; the
+// React Compiler memoises the result on its inputs, which are flags here
+// rather than the render state, so it holds across a row's renders.
+function checkboxFor(shows: boolean, selectLabel: string | undefined) {
+  return shows ? <Checkbox aria-label={selectLabel} slot="selection" /> : null
+}
+
 // The button itself never turns — the glyph inside it does, so the press
 // target stays a square whichever way the row is pointing.
 function chevronClassName() {
@@ -256,14 +281,12 @@ function chevronClassName() {
 }
 
 // The caret, or the space it would have taken. Written as a call rather than
-// inline at the prop, which is what react-perf's no-new-function-as-prop and
-// jsx-no-jsx-as-prop are after; the React Compiler memoises the result on
-// its inputs.
+// inline at the prop, which is what react-perf's jsx-no-jsx-as-prop is after.
 //
 // A leaf gets the space rather than nothing, so its headline lines up with
 // the headline of a sibling that opens.
-function chevronFor(state: TreeItemRenderProps): ReactNode {
-  if (!state.hasChildItems) {
+function chevronFor(hasChildItems: boolean, isExpanded: boolean): ReactNode {
+  if (!hasChildItems) {
     return <span {...stylex.props(styles.spacer)} />
   }
   return (
@@ -271,7 +294,7 @@ function chevronFor(state: TreeItemRenderProps): ReactNode {
       <ChevronEndGlyph
         {...stylex.props(
           styles.chevronGlyph,
-          state.isExpanded && styles.chevronExpanded,
+          isExpanded && styles.chevronExpanded,
         )}
       />
     </RACButton>
@@ -280,7 +303,17 @@ function chevronFor(state: TreeItemRenderProps): ReactNode {
 
 // What a row draws, from React Aria's render state. The caret comes first,
 // then the selection checkbox, then whatever the row was given — one order,
-// always, which is what keeps a column of rows reading down.
+// always, which is what keeps a column of rows reading down. Written as a
+// call rather than inline at the prop, which is what react-perf's
+// no-new-function-as-prop is after.
+//
+// The state is read here and handed on as flags, to a component, rather than
+// turned into the row's elements in this function: React Aria calls it on
+// every render of every row, and the compiler memoises a component's
+// elements but not a plain function's, so an element built here is a new one
+// each time and re-renders the row under it. A selection change re-renders
+// every row of the tree, and every row's caret and checkbox went with it;
+// built from the flags, a row whose own flags held keeps the content it drew.
 function itemContent(
   headline: ReactNode,
   leading: ReactNode,
@@ -290,19 +323,52 @@ function itemContent(
   ripple: ReactNode,
 ) {
   return (state: TreeItemRenderProps): ReactNode => (
+    <ItemContent
+      hasChildItems={state.hasChildItems}
+      isDisabled={state.isDisabled}
+      isExpanded={state.isExpanded}
+      isSelected={state.isSelected}
+      leading={leading}
+      ripple={ripple}
+      selectLabel={selectLabel}
+      showsCheckbox={showsCheckbox(state)}
+      supporting={supporting}
+      trailing={trailing}
+    >
+      {headline}
+    </ItemContent>
+  )
+}
+
+/** A row's content and its ripple, from the flags `itemContent` reads. */
+function ItemContent({
+  children,
+  hasChildItems,
+  isDisabled,
+  isExpanded,
+  isSelected,
+  leading,
+  ripple,
+  selectLabel,
+  showsCheckbox: shows,
+  supporting,
+  trailing,
+}: ItemContentProps) {
+  const chevron = chevronFor(hasChildItems, isExpanded)
+  return (
     <>
       <RowContent
-        chevron={chevronFor(state)}
-        isDisabled={state.isDisabled}
-        isSelected={state.isSelected}
+        chevron={chevron}
+        isDisabled={isDisabled}
+        isSelected={isSelected}
         leading={leading}
-        selection={selectionFor(state, selectLabel)}
+        selection={checkboxFor(shows, selectLabel)}
         supporting={supporting}
         trailing={trailing}
       >
-        {headline}
+        {children}
       </RowContent>
-      {state.isDisabled ? null : ripple}
+      {isDisabled ? null : ripple}
     </>
   )
 }
@@ -321,17 +387,12 @@ function itemContent(
 // what a row is doing and not what it holds; the row is built by a call for
 // the same reason `itemContent` is.
 /**
- * The selection checkbox, while the tree toggles. The row draws it after the
- * caret and ahead of whatever `leading` holds.
+ * Whether the row draws the selection checkbox, which it does while the tree
+ * toggles. The row draws it after the caret and ahead of whatever `leading`
+ * holds.
  */
-function selectionFor(
-  state: TreeItemRenderProps,
-  selectLabel: string | undefined,
-) {
-  if (state.selectionBehavior !== 'toggle' || state.selectionMode === 'none') {
-    return null
-  }
-  return <Checkbox aria-label={selectLabel} slot="selection" />
+function showsCheckbox(state: TreeItemRenderProps) {
+  return state.selectionBehavior === 'toggle' && state.selectionMode !== 'none'
 }
 
 // What React Aria matches typeahead on, and what names the row. `TreeItemText`
