@@ -5,12 +5,22 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import SplitButton from '.'
+import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import { colors } from '../../tokens/design.tokens.stylex'
 import Menu from '../menu'
 
 const probeStyles = stylex.create({
   tonal: { backgroundColor: colors.secondaryContainer },
 })
+
+// The trailing half's chevron.
+function chevronOf(trigger: HTMLElement) {
+  const chevron = trigger.querySelector('svg')
+  if (chevron === null) {
+    throw new Error('expected the menu button to hold its chevron')
+  }
+  return chevron
+}
 
 // The corners on each side of a half, read once its transitions have run.
 function cornersOf(element: HTMLElement) {
@@ -79,6 +89,15 @@ function Split({
       </SplitButton.Menu>
     </SplitButton>
   )
+}
+
+// How far an element is turned, in whole degrees from 0 to 359, once its
+// transitions have run.
+function turnOf(element: Element) {
+  settle(element)
+  const { a, b } = new DOMMatrix(getComputedStyle(element).transform)
+  const degrees = Math.round((Math.atan2(b, a) * 180) / Math.PI)
+  return (degrees + 360) % 360
 }
 
 describe('split button', () => {
@@ -190,6 +209,49 @@ describe('split button', () => {
 
       expect(cornersOf(trigger)).toEqual({ left: '20px', right: '20px' })
       expect(fitsAsWritten(trigger)).toBe(true)
+    })
+
+    // The page selects the menu button while its menu is open: the inner
+    // corner rounds off and the chevron turns to point up, and both come
+    // back as it closes, with `aria-expanded` saying the same throughout.
+    it('selects the menu button while the menu is open, and lets it go on close', async () => {
+      render(<Split />)
+      const { trigger } = halves()
+      const chevron = chevronOf(trigger)
+      const closed = cornersOf(trigger)
+
+      expect(turnOf(chevron)).toBe(0)
+      expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+      fireEvent.click(trigger)
+
+      expect(trigger).toHaveAttribute('aria-expanded', 'true')
+      expect(turnOf(chevron)).toBe(180)
+      expect(cornersOf(trigger)).toEqual({ left: '20px', right: '20px' })
+
+      const menu = screen.getByRole('menu')
+      fireEvent.keyDown(menu, { key: 'Escape' })
+      fireEvent.keyUp(menu, { key: 'Escape' })
+
+      await waitFor(() => {
+        expect(trigger).toHaveAttribute('aria-expanded', 'false')
+      })
+      expect(turnOf(chevron)).toBe(0)
+      // Escape hands focus back to the menu button from the keyboard, so its
+      // inner corner is the one a focused half opens out to, not the open
+      // menu's round one.
+      expect(cornersOf(trigger)).toEqual({ ...closed, left: '12px' })
+    })
+
+    it('turns the chevron at once for a reader who asks for reduced motion', () => {
+      render(<Split />)
+      const { reduced, resting } = reducedMotionOf(
+        chevronOf(halves().trigger),
+        'transition-duration',
+      )
+
+      expect(resting).not.toBe('0s')
+      expect(reduced).toBe('0s')
     })
 
     it('keeps the round ends at the outside under right-to-left', () => {
