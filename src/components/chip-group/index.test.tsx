@@ -239,7 +239,7 @@ describe('the last chip removed', () => {
     expect(root.contains(list)).toBe(true)
     expect(list.getAttribute('role')).toBe('group')
     expect(outline.outlineStyle).toBe('solid')
-    expect(outline.outlineWidth).toBe('2px')
+    expect(outline.outlineWidth).toBe('3px')
     expect(root.getBoundingClientRect().height).toBe(before)
   })
   // The emptied list drew a square ring, 2px off an empty state that

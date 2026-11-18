@@ -321,7 +321,7 @@ const chipStyles = stylex.create({
     outlineColor: 'currentColor',
     outlineOffset: '1px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     padding: 0,
     position: 'relative',
   },

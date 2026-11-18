@@ -55,10 +55,10 @@ const colorThumb = stylex.create({
     // is what centres it across the strip. An area sets both axes inline,
     // where it wins over a class, so carrying this costs it nothing.
     insetBlockStart: '50%',
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
+    outlineColor: { default: colors.secondary, [FORCED_COLORS]: 'Highlight' },
     outlineOffset: '4px',
     outlineStyle: 'none',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     transitionDuration: motion.durationShort2,
     transitionProperty: 'box-shadow',
     transitionTimingFunction: motion.easingStandard,

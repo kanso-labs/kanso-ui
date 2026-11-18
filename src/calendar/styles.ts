@@ -178,7 +178,7 @@ const calendarStyles = stylex.create({
     // dashed run of separate blocks.
     inlineSize: '100%',
     marginInline: 0,
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
+    outlineColor: { default: colors.secondary, [FORCED_COLORS]: 'CanvasText' },
   },
   // The date an invalid calendar holds, in the error and on error roles
   // rather than the primary ones, so the circle says the choice was refused
@@ -237,7 +237,7 @@ const calendarStyles = stylex.create({
     color: { default: colors.onPrimary, [FORCED_COLORS]: 'HighlightText' },
     // Named rather than forced, as the band's are — see the header.
     forcedColorAdjust: { default: null, [FORCED_COLORS]: 'none' },
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'CanvasText' },
+    outlineColor: { default: colors.secondary, [FORCED_COLORS]: 'CanvasText' },
   },
   // The date a disabled calendar holds. React Aria stops marking a disabled
   // date as selected, so without this the calendar lost its value the moment
@@ -466,10 +466,10 @@ const calendarStyles = stylex.create({
   // Inside the row rather than around it: the rows run to the list's edges,
   // where its scrolling would clip a ring drawn outside them.
   menuItemFocused: {
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: 'solid',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The month or year the calendar shows, on the page's surface variant.
   menuItemSelected: {

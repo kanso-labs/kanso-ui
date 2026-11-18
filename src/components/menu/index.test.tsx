@@ -662,7 +662,7 @@ describe('menu', () => {
           rulesReaching(second, { holding: 'forced-colors: active' }),
           'outline-offset',
         ),
-      ).toBe('-4px')
+      ).toBe('-5px')
     })
 
     it('moves through the items with the arrow keys', () => {

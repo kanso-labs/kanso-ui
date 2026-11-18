@@ -655,8 +655,8 @@ describe('tabs', () => {
 
       expect(panel.matches(':focus-visible')).toBe(true)
       expect(computed.outlineStyle).toBe('solid')
-      expect(computed.outlineWidth).toBe('2px')
-      expect(computed.outlineOffset).toBe('-2px')
+      expect(computed.outlineWidth).toBe('3px')
+      expect(computed.outlineOffset).toBe('-3px')
     })
 
     // The line that makes it animate, and the one most easily lost: React

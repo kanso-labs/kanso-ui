@@ -51,12 +51,12 @@ const dropZoneStyles = stylex.create({
     gap: spacing.md,
     justifyContent: 'center',
     minBlockSize: '160px',
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     // Drawn inside the edge rather than around it, so a focused target shows
     // its whole ring instead of having the outer half clipped by a parent.
-    outlineOffset: '-2px',
+    outlineOffset: '-3px',
     outlineStyle: 'none',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     padding: spacing.xl,
     transitionDuration: motion.durationShort3,
     transitionProperty: 'background-color, border-color',

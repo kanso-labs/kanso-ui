@@ -302,7 +302,7 @@ describe('list box', () => {
           rulesReaching(second, { holding: 'forced-colors: active' }),
           'outline-offset',
         ),
-      ).toBe('-4px')
+      ).toBe('-5px')
     })
 
     // The muted role a supporting line draws on the surface is a second

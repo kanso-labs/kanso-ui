@@ -71,10 +71,10 @@ const collectionStyles = stylex.create({
   // see `focusVisible` in src/row/styles.ts — so the box a reader tabs into
   // draws the ring its rows would, inside the edge a container may clip.
   focusVisible: {
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'Highlight' },
-    outlineOffset: '-2px',
+    outlineColor: { default: colors.secondary, [FORCED_COLORS]: 'Highlight' },
+    outlineOffset: '-3px',
     outlineStyle: 'solid',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The lists page's subhead. Menu's and NavigationTree's are their own.
   header: {

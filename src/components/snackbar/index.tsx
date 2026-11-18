@@ -208,7 +208,7 @@ const styles = stylex.create({
     outlineColor: 'currentColor',
     outlineOffset: '-4px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     // A positioning context for the ripple and the action's target. Nothing
     // here clips: the ripple's surface clips itself to the corner, and the
     // action's target has to reach past the action's box to be pressed.
@@ -359,7 +359,7 @@ const styles = stylex.create({
     outlineColor: colors.inverseOnSurface,
     outlineOffset: '-4px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     paddingBlock: 0,
     paddingInline: spacing.sm,
     pointerEvents: 'auto',

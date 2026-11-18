@@ -51,6 +51,7 @@ const probeStyles = stylex.create({
   outlineVariant: { color: colors.outlineVariant },
   primary: { color: colors.primary },
   primaryContainer: { color: colors.primaryContainer },
+  secondary: { color: colors.secondary },
 })
 
 // A column's id and a row's id share one namespace in React Aria's
@@ -1446,9 +1447,9 @@ describe('table', () => {
       // showed before: that one computes `auto`, at a colour and an offset of
       // the UA's choosing.
       expect(getComputedStyle(first).outlineStyle).toBe('solid')
-      expect(getComputedStyle(first).outlineWidth).toBe('2px')
+      expect(getComputedStyle(first).outlineWidth).toBe('3px')
       expect(getComputedStyle(first).outlineColor).toBe(
-        probe(probeStyles.primary).color,
+        probe(probeStyles.secondary).color,
       )
     })
   })

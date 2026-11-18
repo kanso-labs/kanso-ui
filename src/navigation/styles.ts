@@ -139,15 +139,15 @@ const navigationItemStyles = stylex.create({
   },
   // The focus ring's weight, applied after whichever ring a form draws.
   // Under forced colours the current destination is marked by a 2px border
-  // in `Highlight`, and a 2px ring around the pill beside it read as the
-  // same mark in another colour: `Highlight` and the `LinkText` the mode
-  // draws a link's ring in are all but alike under High Contrast White. The
-  // ring is twice as heavy there, so the two differ in shape as well, and a
-  // focused current destination shows both, the border inside the ring.
-  // Everywhere else it is the 2px every ring here draws, spelled again
-  // because StyleX replaces a property whole.
+  // in `Highlight`, and a ring around the pill beside it read as the same
+  // mark in another colour: `Highlight` and the `LinkText` the mode draws a
+  // link's ring in are all but alike under High Contrast White. The ring is
+  // twice as heavy there, so the two differ in shape as well, and a focused
+  // current destination shows both, the border inside the ring. Everywhere
+  // else it is the 3px every ring here draws, spelled again because StyleX
+  // replaces a property whole.
   ringWeight: {
-    outlineWidth: { default: '2px', [FORCED_COLORS]: '4px' },
+    outlineWidth: { default: '3px', [FORCED_COLORS]: '6px' },
   },
 })
 
@@ -263,10 +263,10 @@ const barItemStyles = stylex.create({
   // breakpoint. The library's shared ring is solid wherever it is applied,
   // and this one has to give way at a width, so it is spelled out here.
   indicatorRing: {
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     outlineOffset: '2px',
     outlineStyle: { default: 'solid', [media.medium]: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // Each vertical destination shares the bar's width with the others; a
   // horizontal one is as wide as its pill, the group centred in the bar.
@@ -367,10 +367,10 @@ const barItemStyles = stylex.create({
   // The ring around the whole destination, the pill at the medium breakpoint
   // and above.
   itemRing: {
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     outlineOffset: '2px',
     outlineStyle: { default: 'none', [media.medium]: 'solid' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   label: {
     fontFamily: typography.labelMediumFont,

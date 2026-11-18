@@ -108,13 +108,13 @@ const styles = stylex.create({
   // opened the panel, so the pseudo-class alone drew the ring on a panel a
   // pointer opened.
   dialogRing: {
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: {
       ':has(> [role="dialog"]:focus-visible)': 'solid',
       default: 'none',
     },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The width belongs to the size rather than to the surface, the same split
   // Sheet makes: StyleX merges a property whole, so one unconditional

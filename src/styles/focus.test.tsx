@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import * as stylex from '@stylexjs/stylex'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import Button from '../components/button'
 import Card from '../components/card'
@@ -24,12 +25,15 @@ import { focus } from './focus'
 //
 // The always-solid form is not here. It is applied only when React Aria's
 // render state reports focus, so the class is absent until something focuses
-// the control, and this suite has no keyboard driver to do that.
+// the control; what it draws is read at the end of the file instead.
 const RING = classesOf(stylex.props(focus.ring))
 
-// A colour over the ring, as Card lays its own over it.
+// A colour over the ring, as Card lays its own over it — on surface, which
+// an outlined Card takes, since the elevated and filled ones take the ring's
+// own secondary. `secondary` is the role the ring itself is read against.
 const colourStyles = stylex.create({
-  over: { outlineColor: colors.secondary },
+  over: { outlineColor: colors.onSurface },
+  secondary: { outlineColor: colors.secondary },
 })
 
 // The ring's classes but its colour's: what reaches a component that takes
@@ -70,6 +74,17 @@ function classesOf({ className }: ReturnType<typeof stylex.props>) {
   return (className ?? '').split(' ').filter(Boolean)
 }
 
+// The role's colour as the browser resolves it, to compare a computed
+// outline colour against.
+function secondary() {
+  const view = render(
+    <span data-testid="probe" {...stylex.props(colourStyles.secondary)} />,
+  )
+  const colour = getComputedStyle(view.getByTestId('probe')).outlineColor
+  view.unmount()
+  return colour
+}
+
 describe('the shared focus ring', () => {
   it('compiles to classes at all', () => {
     // An empty list would make every case below pass for the wrong reason,
@@ -84,5 +99,37 @@ describe('the shared focus ring', () => {
     const classes = new Set(view.getByRole(role).classList)
 
     expect(ring.filter((name) => !classes.has(name))).toEqual([])
+  })
+})
+
+// What the ring draws, rather than where it reaches: Material Design's focus
+// indicator, 3dp thick in the secondary role and 2dp outside the element. It
+// was 2px in the primary role, which the file did not record as a departure.
+describe('the focus ring itself', () => {
+  it('draws 3px in secondary, 2px out, on a Tab', async () => {
+    const colour = secondary()
+    const view = render(<Button>Label</Button>)
+    await userEvent.tab()
+
+    const button = view.getByRole('button')
+    expect(document.activeElement).toBe(button)
+    const style = getComputedStyle(button)
+    expect(style.outlineStyle).toBe('solid')
+    expect(style.outlineWidth).toBe('3px')
+    expect(style.outlineOffset).toBe('2px')
+    expect(style.outlineColor).toBe(colour)
+  })
+
+  it('draws the always-solid form the same', () => {
+    const colour = secondary()
+    const view = render(
+      <span data-testid="ring" {...stylex.props(focus.ringVisible)} />,
+    )
+    const style = getComputedStyle(view.getByTestId('ring'))
+
+    expect(style.outlineStyle).toBe('solid')
+    expect(style.outlineWidth).toBe('3px')
+    expect(style.outlineOffset).toBe('2px')
+    expect(style.outlineColor).toBe(colour)
   })
 })

@@ -555,7 +555,7 @@ describe('list item', () => {
       expect(button.matches(':focus-visible')).toBe(true)
       expect(computed.backgroundColor).toBe(expected)
       expect(computed.outlineStyle).toBe('solid')
-      expect(computed.outlineWidth).toBe('2px')
+      expect(computed.outlineWidth).toBe('3px')
     })
   })
 

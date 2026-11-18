@@ -597,8 +597,8 @@ describe('popover', () => {
         expect(dialog.matches(':focus-visible')).toBe(true)
         expect(getComputedStyle(dialog).outlineStyle).toBe('none')
         expect(ring.outlineStyle).toBe('solid')
-        expect(ring.outlineWidth).toBe('2px')
-        expect(ring.outlineOffset).toBe('-2px')
+        expect(ring.outlineWidth).toBe('3px')
+        expect(ring.outlineOffset).toBe('-3px')
         expect(ring.borderTopLeftRadius).not.toBe('0px')
       },
     )

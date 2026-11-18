@@ -197,9 +197,10 @@ describe('row', () => {
   })
 
   // Under forced colours a selected row is `Highlight` under `HighlightText`
-  // on the mode's `Canvas`, and its ring takes the text's colour. Two pixels
-  // in, that ring lay along the row's own edge, against the `Canvas` beside
-  // it, so a focused selected row read as the same band 2px narrower.
+  // on the mode's `Canvas`, and its ring takes the text's colour. Drawn
+  // flush inside, that ring lay along the row's own edge, against the
+  // `Canvas` beside it, so a focused selected row read as the same band 3px
+  // narrower.
   describe('focus ring under forced colours', () => {
     it.each([
       ['list', rowStyles.selectedList],
@@ -213,15 +214,15 @@ describe('row', () => {
           rowStyles.focusVisible,
           rowStyles.focusVisibleSelected,
         ]),
-      ).toEqual({ forced: '-4px', resting: '-2px' })
+      ).toEqual({ forced: '-5px', resting: '-3px' })
     })
 
     it('leaves the ring of a row that is not selected where it was', () => {
       expect(
         outlineOffsetsOf([rowStyles.base, rowStyles.focusVisible]),
       ).toEqual({
-        forced: '-2px',
-        resting: '-2px',
+        forced: '-3px',
+        resting: '-3px',
       })
     })
   })
