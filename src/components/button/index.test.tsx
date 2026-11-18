@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { act, fireEvent, render } from '@testing-library/react'
@@ -23,6 +23,9 @@ import {
   typography,
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs } from '../../tokens/values'
+import Dialog from '../dialog'
+import Menu from '../menu'
+import Popover from '../popover'
 
 // The variant assertions compare against an element styled straight from
 // the tokens rather than against hex literals, so they pin which colour role
@@ -1892,4 +1895,73 @@ describe('an icon', () => {
 
     expect(icon.left).toBeGreaterThan(label.right)
   })
+})
+
+// The three overlays a trigger opens, each around the trigger it is handed.
+const OVERLAYS = {
+  dialog: (trigger: ReactElement) => (
+    <Dialog>
+      {trigger}
+      <Dialog.Content>
+        <Dialog.Header>
+          <Dialog.Title>Headline</Dialog.Title>
+        </Dialog.Header>
+      </Dialog.Content>
+    </Dialog>
+  ),
+  menu: (trigger: ReactElement) => (
+    <Menu>
+      {trigger}
+      <Menu.Content>
+        <Menu.Item id="first">First item</Menu.Item>
+      </Menu.Content>
+    </Menu>
+  ),
+  popover: (trigger: ReactElement) => (
+    <Popover>
+      {trigger}
+      <Popover.Content>
+        <Popover.Title>Headline</Popover.Title>
+      </Popover.Content>
+    </Popover>
+  ),
+}
+
+// React Aria reports an overlay's trigger pressed for as long as the overlay
+// is open. The pressed corner and the hover layer's absence are a press's
+// alone, so an open trigger rests as it did closed and answers the pointer.
+describe('as an overlay trigger', () => {
+  it.each(['dialog', 'menu', 'popover'] as const)(
+    'keeps its resting corner and hover layer while its %s is open',
+    (overlay) => {
+      const view = render(
+        OVERLAYS[overlay](<Button variant="filled">Open</Button>),
+      )
+      // A modal overlay hides what is outside it from the accessibility tree.
+      const trigger = view.getByRole('button', { hidden: true, name: 'Open' })
+      const pressedCorner = () =>
+        classesOf(shapeProbeStyles.small).every((name) =>
+          trigger.classList.contains(name),
+        )
+      const rest = settled(trigger)
+
+      fireEvent.keyDown(trigger, { key: 'Enter' })
+      fireEvent.keyUp(trigger, { key: 'Enter' })
+      expect(trigger.getAttribute('aria-expanded')).toBe('true')
+
+      settled(trigger)
+      const { borderTopLeftRadius, height } = getComputedStyle(trigger)
+      expect(pressedCorner()).toBe(false)
+      expect(borderTopLeftRadius).toBe(`${px(height) / 2}px`)
+
+      firePointer(trigger, 'pointerover')
+      expect(settled(trigger).background).not.toBe(rest.background)
+      firePointerLeave(trigger)
+
+      // A press of the open trigger is still a press.
+      fireEvent.keyDown(trigger, { key: ' ' })
+      expect(pressedCorner()).toBe(true)
+      fireEvent.keyUp(trigger, { key: ' ' })
+    },
+  )
 })

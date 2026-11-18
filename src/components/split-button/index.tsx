@@ -42,10 +42,14 @@ import Menu from '../menu'
 // chevron at the size's icon size, 22dp up to 50dp, with the menu below its
 // end edge. The chevron sits a pixel or more toward the start while the menu
 // is closed — the page's optical centring, 1dp to 6dp by size — and centres
-// once it opens, when the inner corners round off entirely. The page keeps
-// the colours as they are while the menu is open and lays the pressed state
-// layer over them, which is what React Aria's report of the trigger as
-// pressed for as long as its menu is open already draws.
+// once it opens, when the inner corners round off entirely. That corner and
+// that chevron are what say the menu is open. The page keeps the colours as
+// they are while it is open and lays the pressed state layer over them; here
+// the colours stay at rest with no layer over them, and the hover layer
+// still answers the pointer, as every overlay trigger in the library does —
+// a Button draws its pressed layer and corner for a press alone, not for the
+// open menu React Aria also reports as pressed (see src/button). The
+// difference from the page is a state layer's 10% over the container.
 //
 // Both halves take the variant the root names, out of Button's four with a
 // container — the page gives text no split button.

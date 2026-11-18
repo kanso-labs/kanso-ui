@@ -109,6 +109,30 @@ function useButtonBase<Props extends ButtonBaseInput>(
 }
 
 /**
+ * Whether the button is being pressed right now, by a pointer or a key, as
+ * opposed to reported pressed. React Aria's `DialogTrigger` and
+ * `MenuTrigger` hand their trigger `isPressed` through its press context for
+ * as long as the overlay is open, and `Select` and the pickers do the same
+ * through `ButtonContext`, so the render state's `isPressed` cannot tell an
+ * open overlay from a press. A press still reports its own start and end
+ * through `onPressChange`, which is what this follows. The call site's own
+ * handler is called as well.
+ */
+function useOwnPress(
+  onPressChange: ((isPressed: boolean) => void) | undefined,
+) {
+  const [isPressing, setPressing] = useState(false)
+
+  return {
+    isPressing,
+    onPressChange: (isPressed: boolean) => {
+      setPressing(isPressed)
+      onPressChange?.(isPressed)
+    },
+  }
+}
+
+/**
  * A toggle's state, for a button that is a toggle on its own rather than in
  * a selecting group: the call site's `isSelected` where it holds the state,
  * otherwise the button's own, starting from `defaultSelected`. `toggle` is
@@ -137,4 +161,4 @@ function useSelection({
   }
 }
 
-export { useButtonBase, useSelection }
+export { useButtonBase, useOwnPress, useSelection }
