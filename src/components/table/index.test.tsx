@@ -29,6 +29,10 @@ import type { TableAlign, TableBodyProps } from '.'
 
 import Table from '.'
 import { rowStyles as rowLayers } from '../../row/styles'
+import {
+  expectScrollFade,
+  scrollFadeMasks,
+} from '../../styles/scroll-fade.testing'
 import { declarationsHeld } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -41,6 +45,7 @@ const probeStyles = stylex.create({
   bodyMedium: { fontSize: typography.bodyMediumSize },
   faded: { opacity: stateLayerOpacity.disabledContent },
   labelLarge: { fontWeight: typography.labelLargeWeight },
+  narrow: { inlineSize: '320px' },
   onSurface: { color: colors.onSurface },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
   outlineVariant: { color: colors.outlineVariant },
@@ -1446,5 +1451,75 @@ describe('table', () => {
         probe(probeStyles.primary).color,
       )
     })
+  })
+})
+
+// A resizable table whose columns are given more room than its box, as a
+// reader widening one leaves it, in `dir`. React Aria fits columns left to
+// it into the box, so the widths are what make it scroll at all.
+function setupOverflowing(dir: 'ltr' | 'rtl') {
+  const view = render(
+    <div dir={dir} {...stylex.props(probeStyles.narrow)}>
+      <Table aria-label="Label" resizable>
+        <Table.Header>
+          <Table.Column defaultWidth={300} id="label" isRowHeader resizable>
+            Label
+          </Table.Column>
+          <Table.Column defaultWidth={300} id="status" resizable>
+            Status
+          </Table.Column>
+          <Table.Column defaultWidth={300} id="value" resizable>
+            Value
+          </Table.Column>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row id="first">
+            <Table.Cell>First item</Table.Cell>
+            <Table.Cell>Ready</Table.Cell>
+            <Table.Cell>01</Table.Cell>
+          </Table.Row>
+        </Table.Body>
+      </Table>
+    </div>,
+  )
+  const box = view.getByRole('grid').parentElement
+  if (box === null) {
+    throw new Error('expected the table inside its container')
+  }
+  return box
+}
+
+// A column past the edge of a table scrolled sideways was simply not there
+// until the reader happened to scroll. The edge with columns past it fades,
+// as a scrollable tab bar's does, and only that one.
+describe('the edges of a table scrolled sideways', () => {
+  it.each(['ltr', 'rtl'] as const)(
+    'fades the edge with columns past it and no other, %s',
+    async (dir) => {
+      const masks = scrollFadeMasks(dir)
+      const box = setupOverflowing(dir)
+      const room = box.scrollWidth - box.clientWidth
+      expect(room).toBeGreaterThan(100)
+      // `scrollLeft` runs into the negatives under right-to-left.
+      const sign = dir === 'rtl' ? -1 : 1
+
+      await expectScrollFade(box, masks, 'end')
+
+      box.scrollTo({ behavior: 'instant', left: (sign * room) / 2 })
+      await expectScrollFade(box, masks, 'both')
+
+      box.scrollTo({ behavior: 'instant', left: sign * room })
+      await expectScrollFade(box, masks, 'start')
+
+      box.scrollTo({ behavior: 'instant', left: 0 })
+      await expectScrollFade(box, masks, 'end')
+    },
+  )
+
+  it('fades neither edge of a resizable table whose columns fit', () => {
+    const view = render(<Words status="Ready" />)
+    const box = view.getByRole('grid').parentElement
+
+    expect(box === null ? null : getComputedStyle(box).maskImage).toBe('none')
   })
 })

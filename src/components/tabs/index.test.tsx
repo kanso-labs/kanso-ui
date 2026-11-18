@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import Tabs from '.'
 import { enlargeText, settle } from '../../hooks/useEnlargedText.testing'
-import { scrollFade } from '../../styles/scroll-fade'
+import {
+  expectScrollFade,
+  scrollFadeMasks,
+} from '../../styles/scroll-fade.testing'
 import { reducedMotionOf } from '../../styles/stylesheet.testing'
 import {
   colors,
@@ -1268,40 +1271,6 @@ describe('tabs', () => {
   })
 })
 
-type ScrollFadeName = 'both' | 'end' | 'none' | 'start'
-
-async function expectScrollFade(
-  bar: HTMLElement,
-  masks: Record<string, ScrollFadeName>,
-  fade: ScrollFadeName,
-) {
-  await waitFor(() => {
-    expect(masks[getComputedStyle(bar).maskImage]).toBe(fade)
-  })
-}
-
-// What each fade computes to in `dir`, from the shared style itself, so
-// the comparison is with the mask the bar would take rather than with a
-// gradient spelled out again here.
-function scrollFadeMasks(dir: 'ltr' | 'rtl') {
-  const view = render(
-    <div dir={dir}>
-      <span data-testid="both" {...stylex.props(scrollFade.both)} />
-      <span data-testid="end" {...stylex.props(scrollFade.end)} />
-      <span data-testid="start" {...stylex.props(scrollFade.start)} />
-      <span data-testid="none" />
-    </div>,
-  )
-  const masks = Object.fromEntries(
-    (['both', 'end', 'none', 'start'] as const).map((fade) => [
-      getComputedStyle(view.getByTestId(fade)).maskImage,
-      fade,
-    ]),
-  ) as Record<string, ScrollFadeName>
-  view.unmount()
-  return masks
-}
-
 function setupOverflowing(dir: 'ltr' | 'rtl') {
   const view = render(
     <div dir={dir} {...stylex.props(probeStyles.phone)}>
@@ -1327,8 +1296,6 @@ describe('the edges of a scrollable bar', () => {
     'fades the edge with tabs past it and no other, %s',
     async (dir) => {
       const masks = scrollFadeMasks(dir)
-      // Four different masks, or a mapping from one to its name says nothing.
-      expect(Object.keys(masks)).toHaveLength(4)
       const bar = setupOverflowing(dir)
       const room = bar.scrollWidth - bar.clientWidth
       expect(room).toBeGreaterThan(100)

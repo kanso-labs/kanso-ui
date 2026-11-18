@@ -40,12 +40,16 @@ import {
   TableLoadMoreItem as RACTableLoadMoreItem,
 } from 'react-aria-components'
 
+import type { ScrollEdges } from '../../hooks/useScrollEdges'
+
 import { CollectionLoadMore } from '../../collection'
 import { collectionStyles } from '../../collection/styles'
 import { ArrowDownwardGlyph, ArrowUpwardGlyph } from '../../glyphs'
+import { useScrollEdges } from '../../hooks/useScrollEdges'
 import { mergeRefs } from '../../render/ref'
 import { rowStyles as rowLayers } from '../../row/styles'
 import { mergeStatefulStyles, mergeStyles } from '../../styles/merge'
+import { scrollFadeOf } from '../../styles/scroll-fade'
 import {
   colors,
   sizing,
@@ -289,6 +293,11 @@ const styles = stylex.create({
   // which is also what a sticky header inside it sticks to. Words are kept
   // whole inside it, against a parent that breaks them, since the columns
   // are measured to hold them — see the header.
+  //
+  // React Aria fits the columns into it, so it scrolls only once a reader
+  // widens one past the room — and then a column past the edge was simply
+  // not there until the reader happened to scroll. The edge with columns past
+  // it fades, as a scrollable tab bar's does: see `resizableContainerClassName`.
   resizableContainer: {
     boxSizing: 'border-box',
     inlineSize: '100%',
@@ -769,9 +778,12 @@ function measureColumns(table: HTMLTableElement): Map<Element, number> {
 
 // The container's class. React Aria takes a plain string here rather than a
 // function of render state, since the container reports none — so this is a
-// call rather than the function form the other parts pass.
-function resizableContainerClassName() {
-  return stylex.props(styles.resizableContainer).className ?? ''
+// call rather than the function form the other parts pass. It carries the
+// fade on whichever edge has columns past it, from src/styles/scroll-fade.ts.
+function resizableContainerClassName(edges: ScrollEdges) {
+  return (
+    stylex.props(styles.resizableContainer, scrollFadeOf(edges)).className ?? ''
+  )
 }
 
 // The rule a handle draws, from React Aria's own render state — it reports
@@ -884,6 +896,10 @@ function Table({
     [props.ref, resizable],
   )
   const minWidths = useColumnMinWidths(resizable ? element : null)
+  // The box a resizable table scrolls in, measured for the edges with
+  // columns past them. A table that does not resize has no such box.
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
+  const edges = useScrollEdges(resizable ? container : null)
   const table = (
     <RACTable
       {...props}
@@ -901,9 +917,10 @@ function Table({
               <ColumnMinWidthsContext value={minWidths}>
                 {resizable ? (
                   <RACResizableTableContainer
-                    className={resizableContainerClassName()}
+                    className={resizableContainerClassName(edges)}
                     onResize={onResize}
                     onResizeEnd={onResizeEnd}
+                    ref={setContainer}
                   >
                     {table}
                   </RACResizableTableContainer>
