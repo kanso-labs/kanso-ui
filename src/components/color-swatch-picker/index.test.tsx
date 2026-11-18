@@ -201,9 +201,9 @@ describe('color swatch picker', () => {
   // Arrowing moves focus without choosing, so after it one swatch is chosen
   // and another focused. Both rings were 2px of primary then, the only
   // difference their distance from the swatch, and a keyboard could not tell
-  // which colour was its own. Focus is the library's focus ring, as it is on
-  // every other control; the selection ring is the one that changed, heavier
-  // and in on-surface, so the two differ in colour and in weight.
+  // which colour was its own. Focus is the library's focus ring in its
+  // colour, as it is on every other control, kept at 2px; the selection ring
+  // is heavier and in on-surface, so the two differ in colour and in weight.
   it('tells the focused swatch from the chosen one', () => {
     const view = render(picker())
     const listbox = view.getByRole('listbox')
@@ -219,7 +219,14 @@ describe('color swatch picker', () => {
 
     expect(first.getAttribute('aria-selected')).toBe('true')
     expect(second.getAttribute('data-focus-visible')).toBe('true')
-    expect(focused).toMatchObject(library)
+    // The library's ring in its colour and style, at the 2px that keeps it
+    // lighter than the selection ring — see the component's header.
+    expect(focused).toMatchObject({
+      color: library.color,
+      style: library.style,
+      width: '2px',
+    })
+    expect(library.width).toBe('3px')
     expect(chosen).toEqual({
       color: colourOf(probeStyles.onSurface),
       style: 'solid',

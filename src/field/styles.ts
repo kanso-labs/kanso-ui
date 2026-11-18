@@ -211,7 +211,7 @@ const fieldChromeStyles = stylex.create({
       default: null,
       [FORCED_COLORS]: { ':focus-within': 'solid', default: null },
     },
-    outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
+    outlineWidth: { default: null, [FORCED_COLORS]: '3px' },
     paddingBlockEnd: 0,
     paddingBlockStart: spacing.sm,
     paddingInline: spacing.lg,

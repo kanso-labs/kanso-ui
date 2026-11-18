@@ -360,11 +360,11 @@ describe('navigation tree', () => {
       // so it keeps the ring every other row draws.
       await dispatch('ArrowUp')
       expect(first.getAttribute('data-focus-visible')).toBe('true')
-      expect(forcedOutlineOffsetOf(first)).toBe('-2px')
+      expect(forcedOutlineOffsetOf(first)).toBe('-3px')
 
       await dispatch('ArrowDown')
       expect(child.getAttribute('data-focus-visible')).toBe('true')
-      expect(forcedOutlineOffsetOf(child)).toBe('-4px')
+      expect(forcedOutlineOffsetOf(child)).toBe('-5px')
     })
 
     it('marks nothing when no route matches', () => {

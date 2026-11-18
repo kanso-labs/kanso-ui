@@ -90,10 +90,10 @@ const overlay = stylex.create({
   // rather than around it, since the body runs to the panel's edges and the
   // panel clips whatever passes them.
   modalBodyRing: {
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The element with the dialog role inside a modal panel. It fills the panel
   // and lays the panel's parts out as a column, and shows no ring of its own

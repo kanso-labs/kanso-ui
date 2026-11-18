@@ -201,10 +201,13 @@ const styles = stylex.create({
   // In the text's own colour under forced colours, as a row's is — see
   // `focusVisible` in src/row/styles.ts.
   focus: {
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'currentColor' },
-    outlineOffset: '-2px',
+    outlineColor: {
+      default: colors.secondary,
+      [FORCED_COLORS]: 'currentColor',
+    },
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The footer's own rule, above it. On `<tfoot>` rather than on its cells
   // because its first row drops the row rule with every other first row.

@@ -43,13 +43,13 @@ import { colors, spacing } from '../../tokens/design.tokens.stylex'
 const FORCED_COLORS = '@media (forced-colors: active)'
 
 // How far a destination's focus ring reaches past it: the 2dp offset and
-// the 2dp ring, and 2dp more under forced colours, where the ring is twice
+// the 3dp ring, and 3dp more under forced colours, where the ring is twice
 // as heavy — see `ringWeight` in src/navigation/styles.ts. The destinations
 // scroll, and a scroll container clips what overflows it, so the block they
 // scroll in is padded by this much and pulled back out by as much, which
 // leaves every destination where it was and every ring whole.
-const RING_REACH = { default: '4px', [FORCED_COLORS]: '6px' }
-const RING_PULL = { default: '-4px', [FORCED_COLORS]: '-6px' }
+const RING_REACH = { default: '5px', [FORCED_COLORS]: '8px' }
+const RING_PULL = { default: '-5px', [FORCED_COLORS]: '-8px' }
 
 const styles = stylex.create({
   collapsed: {

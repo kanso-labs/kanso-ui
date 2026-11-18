@@ -317,10 +317,10 @@ const styles = stylex.create({
     lineHeight: typography.titleMediumLineHeight,
     margin: 0,
     // Inside the box, which clips anything drawn past its corners.
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: 'none',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     padding: 0,
   },
   periodDivider: {
@@ -388,10 +388,10 @@ const styles = stylex.create({
     justifyContent: 'center',
     letterSpacing: typography.displayLargeTracking,
     lineHeight: typography.displayLargeLineHeight,
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     outlineOffset: '2px',
     outlineStyle: 'none',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   selectorHovered: {
     backgroundColor: `color-mix(in srgb, ${colors.onSurface} calc(${stateLayerOpacity.hover} * 100%), ${colors.surfaceContainerHighest})`,

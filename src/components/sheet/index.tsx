@@ -229,7 +229,7 @@ const styles = stylex.create({
   // Its focus ring is drawn just inside its edge, since the panel clips what
   // lies past its own top edge and the button starts there. The circle that
   // leaves still clears the bar's ends, 16 from its centre against the
-  // ring's 22.
+  // ring's 21.
   handleButton: {
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -242,10 +242,10 @@ const styles = stylex.create({
     inlineSize: '48px',
     justifyContent: 'center',
     margin: 0,
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     padding: 0,
   },
   handleHolding: {

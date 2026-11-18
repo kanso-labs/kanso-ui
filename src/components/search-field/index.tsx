@@ -141,7 +141,7 @@ const styles = stylex.create({
     gap: spacing.lg,
     inlineSize: '100%',
     maxInlineSize: '720px',
-    // The outline repeats the 2px width and 2px offset of `focus.ring` in
+    // The outline repeats the 3px width and 2px offset of `focus.ring` in
     // src/styles/focus.ts, so the bar's focus is the size every other
     // component's is, rather than importing it: that style draws on the
     // element's own `:focus-visible` in every mode, and this one draws on
@@ -153,7 +153,7 @@ const styles = stylex.create({
       default: null,
       [FORCED_COLORS]: { ':focus-within': 'solid', default: null },
     },
-    outlineWidth: { default: null, [FORCED_COLORS]: '2px' },
+    outlineWidth: { default: null, [FORCED_COLORS]: '3px' },
     paddingInlineEnd: spacing.lg,
     paddingInlineStart: `calc(${spacing.lg} + ${spacing.md})`,
     transitionDuration: motion.durationShort2,

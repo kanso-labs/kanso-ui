@@ -194,23 +194,26 @@ const rowStyles = stylex.create({
     // The row's own text colour under forced colours, as the layers above
     // are: `HighlightText` on a selected row, which opts out of the mode, and
     // whatever the mode gives the text on any other.
-    outlineColor: { default: colors.primary, [FORCED_COLORS]: 'currentColor' },
+    outlineColor: {
+      default: colors.secondary,
+      [FORCED_COLORS]: 'currentColor',
+    },
     // Inside the row, as `interactive`'s is, so a focused row keeps its whole
     // ring inside a container that clips.
-    outlineOffset: '-2px',
+    outlineOffset: '-3px',
     outlineStyle: 'solid',
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The ring of a selected row, applied after `focusVisible` on a row that
   // is both. Under forced colours the row is `Highlight` on the mode's
-  // `Canvas` and the ring `HighlightText`, so at `focusVisible`'s 2px in it
+  // `Canvas` and the ring `HighlightText`, so at `focusVisible`'s offset it
   // lay along the row's own edge, against the `Canvas` beside it, and a
-  // focused selected row read as the same band 2px narrower. Two pixels
+  // focused selected row read as the same band 3px narrower. Two pixels
   // further in, it is drawn over the `Highlight` with a band of it either
   // side. Everywhere else the ring keeps `focusVisible`'s offset, which is
   // spelled again here because StyleX replaces a property whole.
   focusVisibleSelected: {
-    outlineOffset: { default: '-2px', [FORCED_COLORS]: '-4px' },
+    outlineOffset: { default: '-3px', [FORCED_COLORS]: '-5px' },
   },
   // A headline drawn heavier than its variant's own, for a row marked
   // without the container a selected one takes. It sets the weight alone, so
@@ -260,13 +263,13 @@ const rowStyles = stylex.create({
   interactive: {
     cursor: 'pointer',
     font: 'inherit',
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     // Drawn inside the row rather than around it, so a focused row inside a
     // list container shows its full ring instead of having the half that
     // falls outside clipped by the container's edge.
-    outlineOffset: '-2px',
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The hover, focus and pressed layers from pseudo-classes — see
   // `interactive`, and `HOVER_CAPABLE` for the query the hover waits on. The

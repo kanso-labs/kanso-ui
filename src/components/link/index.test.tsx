@@ -341,7 +341,7 @@ describe('link', () => {
       link.focus()
       expect(document.activeElement).toBe(link)
       expect(getComputedStyle(link).outlineStyle).toBe('solid')
-      expect(getComputedStyle(link).outlineWidth).toBe('2px')
+      expect(getComputedStyle(link).outlineWidth).toBe('3px')
     })
   })
 })

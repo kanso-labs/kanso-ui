@@ -56,6 +56,7 @@ const probeStyles = stylex.create({
     backgroundColor: colors.primaryContainer,
     color: colors.onPrimaryContainer,
   },
+  secondary: { backgroundColor: colors.secondary, color: colors.onSecondary },
   tertiary: { backgroundColor: colors.tertiary, color: colors.onTertiary },
   tertiaryContainer: {
     backgroundColor: colors.tertiaryContainer,
@@ -300,14 +301,14 @@ describe('FAB menu', () => {
     })
   })
 
-  // The ring a keyboard sees on an action is the primary every other ring
+  // The ring a keyboard sees on an action is the secondary every other ring
   // here is drawn in. It named a colour under forced colours alone, so
   // everywhere else it was the browser's own focus-ring colour, a near
   // black that vanished against the dark theme's surface.
   describe('a focused action', () => {
     // The scheme goes on the body, since the actions are portalled there and
     // a wrapper around the FAB would not reach them.
-    it.each(SCHEMES)('is ringed in primary, %s', (_name, scheme) => {
+    it.each(SCHEMES)('is ringed in secondary, %s', (_name, scheme) => {
       const classes = (stylex.props(scheme).className ?? '')
         .split(' ')
         .filter(Boolean)
@@ -316,21 +317,21 @@ describe('FAB menu', () => {
         const view = render(
           <>
             <span
-              data-testid="primary"
-              {...stylex.props(probeStyles.primary)}
+              data-testid="secondary"
+              {...stylex.props(probeStyles.secondary)}
             />
             <Menu defaultOpen />
           </>,
         )
-        const primary = getComputedStyle(
-          screen.getByTestId('primary'),
+        const secondary = getComputedStyle(
+          screen.getByTestId('secondary'),
         ).backgroundColor
         const focused = focusAnAction()
         const ring = getComputedStyle(focused)
 
         expect(focused).toHaveAttribute('data-focus-visible', 'true')
         expect(ring.outlineStyle).toBe('solid')
-        expect(ring.outlineColor).toBe(primary)
+        expect(ring.outlineColor).toBe(secondary)
         view.unmount()
       } finally {
         document.body.classList.remove(...classes)

@@ -66,7 +66,7 @@ describe('a field under forced colours', () => {
     const rules = forcedColorRules(box(<TextField label="Label" />))
 
     expect(rules.get('outline-style:focus-within')).toBe('solid')
-    expect(rules.get('outline-width')).toBe('2px')
+    expect(rules.get('outline-width')).toBe('3px')
     expect(rules.get('outline-offset')).toBe('2px')
   })
 

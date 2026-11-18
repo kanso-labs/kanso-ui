@@ -777,15 +777,15 @@ describe('navigation rail', () => {
       const first = collapsed.getByRole('link', { name: 'First item' })
       focusByKeyboard(first)
       expect(outlineWidthsOf(partsOf(first).indicator)).toEqual({
-        forced: '4px',
-        resting: '2px',
+        forced: '6px',
+        resting: '3px',
       })
       collapsed.unmount()
 
       const expanded = render(<Rail isExpanded />)
       const link = expanded.getByRole('link', { name: 'First item' })
       focusByKeyboard(link)
-      expect(outlineWidthsOf(link)).toEqual({ forced: '4px', resting: '2px' })
+      expect(outlineWidthsOf(link)).toEqual({ forced: '6px', resting: '3px' })
 
       // The destinations scroll, and the list they scroll in is padded by
       // the ring's reach so it is not clipped: 2px of offset and the ring.
@@ -794,13 +794,13 @@ describe('navigation rail', () => {
         throw new Error('expected the destinations to sit in a list')
       }
       const rules = rulesReaching(list, { holding: FORCED_COLORS })
-      expect(valueIn(rules, 'padding-block-start')).toBe('6px')
+      expect(valueIn(rules, 'padding-block-start')).toBe('8px')
       expect(
         valueIn(
           rules.filter((rule) => !rule.held),
           'padding-block-start',
         ),
-      ).toBe('4px')
+      ).toBe('5px')
     })
   })
 })

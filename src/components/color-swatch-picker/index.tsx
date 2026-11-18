@@ -40,9 +40,14 @@ import ColorSwatch from '../color-swatch'
 // pixels of the thing being chosen. It is not the focus ring's colour or
 // weight on purpose: the arrow keys move focus without choosing, so one
 // swatch is chosen while another is focused, and when both rings were 2px of
-// primary only their distance from the swatch told them apart. Focus keeps
-// the library's ring, the one every other control draws, so the selection
-// ring is the one that differs, heavier and in on-surface.
+// primary only their distance from the swatch told them apart. Focus takes
+// the library's ring in its secondary role, so the two differ in colour.
+// They differ in weight too, and that is the one place a swatch's focus ring
+// departs from the library's 3dp: it stays at 2px, lighter than the
+// selection ring, since under forced colours both rings take system colours
+// and the weight is what is left to tell them apart. Drawn at 3px, the two
+// would differ there only in their distance from the swatch, which is what
+// the 2px rings of primary did.
 //
 // **Focus and selection are drawn by different properties.** An element has
 // one outline, so with both drawn in it the second replaced the first, and a
@@ -145,9 +150,11 @@ const styles = stylex.create({
   },
   // Laid over the library's focus ring, which `itemStyles` applies with it:
   // the same ring at an offset of its own, outside the selection ring, so a
-  // swatch that is both keeps both.
+  // swatch that is both keeps both, and at 2px rather than 3, lighter than
+  // the selection ring — see the header.
   itemFocused: {
     outlineOffset: '6px',
+    outlineWidth: '2px',
   },
   // An unselected swatch under the pointer. See the fourth choice above.
   itemHovered: {

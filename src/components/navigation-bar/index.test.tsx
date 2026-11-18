@@ -1093,7 +1093,7 @@ describe('navigation bar', () => {
       const wide = render(<Bar />)
       const first = wide.getByRole('link', { name: 'First item' })
       focusByKeyboard(first)
-      expect(outlineWidthsOf(first)).toEqual({ forced: '4px', resting: '2px' })
+      expect(outlineWidthsOf(first)).toEqual({ forced: '6px', resting: '3px' })
       wide.unmount()
 
       await page.viewport(COMPACT_WIDTH, DEFAULT_VIEWPORT.height)
@@ -1102,8 +1102,8 @@ describe('navigation bar', () => {
         const link = compact.getByRole('link', { name: 'First item' })
         focusByKeyboard(link)
         expect(outlineWidthsOf(indicatorOf(link))).toEqual({
-          forced: '4px',
-          resting: '2px',
+          forced: '6px',
+          resting: '3px',
         })
       } finally {
         await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)

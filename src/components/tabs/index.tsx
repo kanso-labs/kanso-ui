@@ -296,10 +296,10 @@ const styles = stylex.create({
     // box the panels share clips at its edge, and a ring drawn outside the
     // panel fell wholly outside that box, so a keyboard reaching a panel
     // with nothing focusable inside it saw no ring at all.
-    outlineColor: colors.primary,
-    outlineOffset: '-2px',
+    outlineColor: colors.secondary,
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
   },
   // The box the panels share, which is what gives a change of panel a size
   // to animate between. React Aria measures the new panel, puts the old
@@ -359,12 +359,12 @@ const styles = stylex.create({
     lineHeight: typography.titleSmallLineHeight,
     minBlockSize: sizing.controlMd,
     minInlineSize: 0,
-    outlineColor: colors.primary,
+    outlineColor: colors.secondary,
     // Drawn inside the tab rather than around it, so a focused tab shows its
     // whole ring instead of the half that falls under its neighbours.
-    outlineOffset: '-2px',
+    outlineOffset: '-3px',
     outlineStyle: { ':focus-visible': 'solid', default: 'none' },
-    outlineWidth: '2px',
+    outlineWidth: '3px',
     paddingBlock: 0,
     paddingInline: spacing.lg,
     position: 'relative',
