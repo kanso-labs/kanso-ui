@@ -1954,9 +1954,12 @@ describe('as an overlay trigger', () => {
       expect(pressedCorner()).toBe(false)
       expect(borderTopLeftRadius).toBe(`${px(height) / 2}px`)
 
-      firePointer(trigger, 'pointerover')
+      // Hovered with a pen rather than a mouse: React Aria ignores a mouse's
+      // hover for 500ms after any touch ends, document-wide, and the touch
+      // tests earlier in the file leave that window open.
+      firePointer(trigger, 'pointerover', { pointerType: 'pen' })
       expect(settled(trigger).background).not.toBe(rest.background)
-      firePointerLeave(trigger)
+      firePointerLeave(trigger, { pointerType: 'pen' })
 
       // A press of the open trigger is still a press.
       fireEvent.keyDown(trigger, { key: ' ' })
