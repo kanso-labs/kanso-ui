@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.48.3](https://github.com/kanso-labs/kanso-ui/compare/v0.48.2...v0.48.3) (2026-11-20)
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.74 ([#2268](https://github.com/kanso-labs/kanso-ui/issues/2268)) ([c87b804](https://github.com/kanso-labs/kanso-ui/commit/c87b8047762220035d3fe4513f8ac006072576e3))
+* update storybook to v10.6.8 ([#2269](https://github.com/kanso-labs/kanso-ui/issues/2269)) ([7feb86d](https://github.com/kanso-labs/kanso-ui/commit/7feb86dfe1231a3926c1a6e4878bab5908c8078a))
+
 ## [0.48.2](https://github.com/kanso-labs/kanso-ui/compare/v0.48.1...v0.48.2) (2026-11-20)
 
 
