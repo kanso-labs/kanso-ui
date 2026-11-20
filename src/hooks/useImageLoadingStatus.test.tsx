@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { act, render, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { useImageLoadingStatus } from './useImageLoadingStatus'
@@ -17,6 +17,20 @@ const NOT_AN_IMAGE = 'data:image/gif;base64,AAAA'
 
 // Never answered, so a load of it is still in flight when the case reads it.
 const PENDING = 'https://example.invalid/pending.png'
+
+/** An `<img>` for {@link GIF} that reports the given state as its own. */
+function imageReporting(state: {
+  complete: boolean
+  decode?: () => Promise<unknown>
+  naturalWidth?: number
+}) {
+  const image = document.createElement('img')
+  image.setAttribute('src', GIF)
+  for (const [key, value] of Object.entries(state)) {
+    Object.defineProperty(image, key, { value })
+  }
+  return image
+}
 
 // What a component does with the hook: renders the image with its handlers,
 // and reads back the outcome and the picture to keep showing.
@@ -111,5 +125,42 @@ describe('useImageLoadingStatus', () => {
     view.rerender(<Probe src={GIF} />)
 
     expect(view.getByRole('status').textContent).toBe('loaded')
+  })
+
+  // An image already settled when its element mounts, as one served with a
+  // server-rendered page is by the time React hydrates it, is read through
+  // the ref. The case not every browser takes is an SVG with no intrinsic
+  // size, which Firefox loads with a natural width of 0, so an element made
+  // to report that state lets `decode()` give the answer.
+  it.each([
+    ['loaded', true],
+    ['error', false],
+  ] as const)(
+    'reads an image settled with no natural width as %s',
+    async (expected, decodes) => {
+      const decode = decodes
+        ? Promise.resolve.bind(Promise)
+        : Promise.reject.bind(Promise, new DOMException('', 'EncodingError'))
+      const hook = renderHook(() => useImageLoadingStatus(GIF))
+
+      await act(async () => {
+        hook.result.current.ref(
+          imageReporting({ complete: true, decode, naturalWidth: 0 }),
+        )
+        await Promise.resolve()
+      })
+
+      expect(hook.result.current.status).toBe(expected)
+    },
+  )
+
+  it('leaves an image still loading to its handlers', () => {
+    const hook = renderHook(() => useImageLoadingStatus(GIF))
+
+    act(() => {
+      hook.result.current.ref(imageReporting({ complete: false }))
+    })
+
+    expect(hook.result.current.status).toBe('loading')
   })
 })

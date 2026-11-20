@@ -89,7 +89,7 @@ function Mark({
   // The image is rendered from the start and shown once it has loaded, and
   // the initials stay until then and come back if it fails — see
   // useImageLoadingStatus.
-  const { onError, onLoad, previous, status } = useImageLoadingStatus(src)
+  const { onError, onLoad, previous, ref, status } = useImageLoadingStatus(src)
   const { locale } = useLocale()
   const fallback = initials(name, locale)
 
@@ -162,6 +162,7 @@ function Mark({
           {...imgProps}
           onError={onError}
           onLoad={onLoad}
+          ref={ref}
           src={src}
           {...stylex.props(
             markStyles.image,
