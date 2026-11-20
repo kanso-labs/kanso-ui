@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.4](https://github.com/kanso-labs/kanso-ui/compare/v0.48.3...v0.48.4) (2026-11-20)
+
+
+### Bug Fixes
+
+* **mark:** show a picture that settled before hydration ([#2278](https://github.com/kanso-labs/kanso-ui/issues/2278)) ([dd3e6f0](https://github.com/kanso-labs/kanso-ui/commit/dd3e6f0c12d2761a5e5ce043421346b83d4c7e13))
+
 ## [0.48.3](https://github.com/kanso-labs/kanso-ui/compare/v0.48.2...v0.48.3) (2026-11-20)
 
 
