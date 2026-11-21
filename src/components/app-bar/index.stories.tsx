@@ -107,10 +107,10 @@ const LEADING = (
 )
 
 // One German word, as wide as a headline gets without a space to break at.
+const LONG_WORD = 'Unterstützungszeilenüberschrift'
+
 // A kicker naming the parent a detail screen opened from, as a link back.
 const PARENT = <Link href="#parent">Parent</Link>
-
-const LONG_WORD = 'Unterstützungszeilenüberschrift'
 
 const TRAILING = (
   <IconButton aria-label="More">
@@ -368,6 +368,17 @@ const Kicker: Story = {
           headline="Headline"
           kicker={PARENT}
           label="md, a kicker holding a link"
+          leading={LEADING}
+          size="md"
+          trailing={TRAILING}
+        />
+      </section>
+      <section>
+        <Sample
+          align="center"
+          headline="Headline"
+          kicker={PARENT}
+          label="md, centred, a kicker holding a link"
           leading={LEADING}
           size="md"
           trailing={TRAILING}

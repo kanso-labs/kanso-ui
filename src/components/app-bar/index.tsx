@@ -70,8 +70,13 @@ import Text from '../text'
 // Material Design's flexible bars draw a subtitle under the headline and
 // nothing over it, so the kicker is the library's own, drawn as the subtitle
 // is: the bar grows by its line. It goes as the bar collapses, so the
-// collapsed bar holds the headline alone, and it stays outside the heading,
-// so the headline is still the bar's name. The small bar draws none.
+// collapsed bar holds the headline, and the subtitle where there is one, and
+// it fades back in as the bar expands. It stays outside the heading, so the
+// headline is still the bar's name. The small bar draws none.
+//
+// A link in it is as tall as its line. The line sits directly under the
+// slots' 48dp targets, so a larger target around the link would take presses
+// meant for the back button above it.
 //
 // The slots set the colours the page gives their icons: on surface for the
 // leading one and on surface variant for the trailing ones. The second is a
@@ -438,7 +443,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * headline and the subtitle move up into the row the slots sit in and take
    * the small bar's type roles, which fit both lines in its 64px, and the
    * slots never leave that row: they stay where they are while the bar
-   * shrinks under them.
+   * shrinks under them. A kicker goes, and fades back in on expanding.
    *
    * Collapsing hands the page back the height the bar gives up, and a bar
    * whose state is read off the scroll offset can then undo itself in two
@@ -500,8 +505,8 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * A line over the headline in `md` and `lg`, in label medium on on surface
    * variant, naming where the screen sits — the parent a detail screen opened
    * from, say, which it may hold as a link back there. Makes the bar taller
-   * by its line, and goes as the bar collapses, leaving the headline alone.
-   * `sm` draws none.
+   * by its line, and goes as the bar collapses, leaving the headline and any
+   * subtitle. `sm` draws none.
    */
   kicker?: ReactNode
   /**
@@ -534,7 +539,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * Height and headline size, as steps of the library's size scale. `sm` is
    * Material Design's small bar, a fixed 64px row; `md` and `lg` are its
    * medium and large flexible bars, which put the text in a row of its own
-   * under the slots and hug it.
+   * under the slots and hug it. A kicker adds its line to `md` and `lg`.
    * @default 'sm'
    */
   size?: 'lg' | 'md' | 'sm'
@@ -548,6 +553,9 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
 // subtitle beside it. Each is drawn as one kind of element, and the kicker
 // over them, which collapsing removes rather than moves, is neither.
 const LINES = [':scope > :is(h1, h2, h3, h4, h5, h6)', ':scope > p'] as const
+
+// The kicker, the text block's one `<div>` — see KICKER.
+const KICKER_LINE = ':scope > div'
 
 /**
  * What collapsing moves, and so what its animation runs between: the bar's
@@ -977,6 +985,28 @@ function useCollapseMotion(collapse: boolean, align: 'center' | 'start') {
             transformOrigin: [origin, origin],
           },
           timing,
+        ),
+      )
+    }
+    // The kicker is drawn only by the expanded bar, so expanding is when it
+    // arrives. It is laid out at once where it ends, which is below the edge
+    // of a bar that has only begun to grow, so it fades in over the second
+    // half of the motion, once the bar has room for it, rather than showing
+    // part of its line at the bar's edge. Collapsing removes it at once, and
+    // the headline is measured where it was drawn, beside it, so it does not
+    // move for it.
+    const kicker = collapse ? null : text.querySelector(KICKER_LINE)
+    if (kicker !== null) {
+      animations.current.push(
+        kicker.animate(
+          [
+            { opacity: 0 },
+            { easing: motionEasing.emphasized, offset: 0.5, opacity: 0 },
+            { opacity: 1 },
+          ],
+          // In time with the bar, eased over its own half rather than over
+          // the whole, so it is still hidden halfway.
+          { duration: timing.duration, easing: 'linear' },
         ),
       )
     }

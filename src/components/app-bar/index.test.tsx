@@ -10,7 +10,9 @@ import type { AppBarProps } from '.'
 import AppBar from '.'
 import { useAppBarScroll } from '../../hooks/useAppBarScroll'
 import { colors, spacing } from '../../tokens/design.tokens.stylex'
+import { motionDurationMs } from '../../tokens/values'
 import IconButton from '../icon-button'
+import Link from '../link'
 
 // Material Design's documented heights for the three sizes this ships, and
 // the second column is the whole point of the flexible bars: they grow for a
@@ -534,12 +536,7 @@ describe('headline', () => {
 
 // Hoisted so each is one stable element per render, which is what
 // react-perf's no-jsx-as-prop is after.
-const KICKER_BACK = (
-  <IconButton aria-label="Back">
-    <svg aria-hidden="true" />
-  </IconButton>
-)
-const KICKER_PARENT = <a href="#parent">Parent</a>
+const KICKER_PARENT = <Link href="#parent">Parent</Link>
 
 describe('kicker', () => {
   it.each(['md', 'lg'] as const)(
@@ -590,19 +587,42 @@ describe('kicker', () => {
 
   // The headline keeps its baseline above the bar's edge, and the kicker
   // sits clear of the strip's icon button targets.
-  it('keeps the headline on its baseline and the kicker under the targets', () => {
+  it.each(['md', 'lg'] as const)(
+    'keeps the %s headline on its baseline and the kicker under the targets',
+    (size) => {
+      const view = render(
+        <AppBar
+          headline="Headline"
+          kicker="Kicker"
+          leading={ICON_LEADING}
+          size={size}
+        />,
+      )
+      const bar = barIn(view.container).getBoundingClientRect()
+      const kicker = view.getByText('Kicker').getBoundingClientRect()
+      const heading = view.getByRole('heading', { level: 1 })
+
+      expect(bar.bottom - baselineOf(heading)).toBe(BASELINE_FROM_END[size])
+      expect(kicker.top - bar.top).toBeGreaterThanOrEqual((STRIP + TARGET) / 2)
+    },
+  )
+
+  it('centres the kicker with the headline in a centred bar', () => {
     const view = render(
       <AppBar
+        align="center"
         headline="Headline"
-        kicker="Kicker"
-        leading={KICKER_BACK}
+        kicker={KICKER_PARENT}
         size="md"
       />,
     )
     const bar = barIn(view.container).getBoundingClientRect()
-    const kicker = view.getByText('Kicker').getBoundingClientRect()
+    const link = view.getByRole('link', { name: 'Parent' })
+    const box = link.getBoundingClientRect()
 
-    expect(kicker.top - bar.top).toBeGreaterThanOrEqual((STRIP + TARGET) / 2)
+    expect(
+      Math.abs(box.left - bar.left - (bar.right - box.right)),
+    ).toBeLessThan(1)
   })
 
   it('stays out of the heading, which keeps the headline as the name', () => {
@@ -621,12 +641,11 @@ describe('kicker', () => {
     )
     const link = view.getByRole('link', { name: 'Parent' })
 
-    expect(view.getByText('Parent')).toBe(link)
     expect(view.getByRole('heading', { level: 1 })).not.toContainElement(link)
   })
 
   it.each(['md', 'lg'] as const)(
-    'goes as the %s bar collapses, leaving the headline alone',
+    'goes as the %s bar collapses, leaving the headline',
     (size) => {
       const view = render(
         <AppBar collapsed headline="Headline" kicker="Kicker" size={size} />,
@@ -659,6 +678,41 @@ describe('kicker', () => {
 
     expect(view.getByText('Kicker')).toBeVisible()
     expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.md.plain + 16)
+  })
+
+  // The headline is measured beside the kicker, so collapsing starts it from
+  // where it was drawn; expanding fades the kicker in over the motion's
+  // second half, so none of its line shows at the edge of a bar still short.
+  it('moves the headline from where it was, and fades the kicker in on expanding', () => {
+    const props = {
+      headline: 'Headline',
+      kicker: 'Kicker',
+      leading: ICON_LEADING,
+      size: 'md',
+    } as const
+    const view = render(<AppBar {...props} />)
+    const bar = barIn(view.container)
+    const heading = () => glyphsIn(bar, view.getByRole('heading', { level: 1 }))
+    const expanded = heading()
+    expect(motionIn(bar)).toHaveLength(0)
+
+    view.rerender(<AppBar {...props} collapsed />)
+    seek(bar, 0)
+    expectSameLine(heading(), expanded)
+    settle(bar)
+    const collapsed = heading()
+
+    view.rerender(<AppBar {...props} />)
+    const kicker = view.getByText('Kicker')
+    seek(bar, 0)
+    expectSameLine(heading(), collapsed)
+    expect(getComputedStyle(kicker).opacity).toBe('0')
+    seek(bar, motionDurationMs.medium1 / 2)
+    expect(getComputedStyle(kicker).opacity).toBe('0')
+
+    settle(bar)
+    expect(getComputedStyle(kicker).opacity).toBe('1')
+    expect(heading()).toEqual(expanded)
   })
 })
 
