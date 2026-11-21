@@ -14,7 +14,7 @@ import Text from '../text'
 // story shows is only what a press added, at the duration it was added with.
 const messages = new Snackbar.Queue()
 
-// Two sample actions. Their handlers do nothing, since what a story shows is
+// Three sample actions. Their handlers do nothing, since what a story shows is
 // the snackbar rather than what pressing it would do.
 const noop = () => {}
 const UNDO = { label: 'Undo', onPress: noop }
