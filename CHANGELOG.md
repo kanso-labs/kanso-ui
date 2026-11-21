@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.0](https://github.com/kanso-labs/kanso-ui/compare/v0.48.4...v0.49.0) (2026-11-21)
+
+
+### Features
+
+* **navigation-rail:** hold a FAB at the top of the rail, extended in the expanded rail ([#2286](https://github.com/kanso-labs/kanso-ui/issues/2286)) ([02fd53a](https://github.com/kanso-labs/kanso-ui/commit/02fd53a954c65ab4757b3aa0a500ab2ad9697e91))
+
 ## [0.48.4](https://github.com/kanso-labs/kanso-ui/compare/v0.48.3...v0.48.4) (2026-11-20)
 
 
