@@ -1468,7 +1468,8 @@ export namespace NavigationRail {
 export function NavigationRailFab(input: NavigationRailFabProps): JSX;
 
 // @public (undocumented)
-export type NavigationRailFabProps = Omit<FabProps, 'label' | 'size'> & RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
+export type NavigationRailFabProps = Omit<FabProps, 'aria-label' | 'label' | 'size'> & RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
+    'aria-label'?: string;
     label: string;
 };
 

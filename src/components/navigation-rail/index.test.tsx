@@ -65,12 +65,12 @@ const MENU_BUTTON = (
   </IconButton>
 )
 const FAB = (
-  <NavigationRail.Fab label="Add">
+  <NavigationRail.Fab label="Label">
     <Icon />
   </NavigationRail.Fab>
 )
 const NAMED_FAB = (
-  <NavigationRail.Fab aria-label="Add an item" label="Add">
+  <NavigationRail.Fab aria-label="Second label" label="Label">
     <Icon />
   </NavigationRail.Fab>
 )
@@ -644,7 +644,7 @@ describe('navigation rail', () => {
         const view = render(
           <Rail fab={FAB} header={HEADER} isExpanded={isExpanded} />,
         )
-        const fab = view.getByRole('button', { name: 'Add' })
+        const fab = view.getByRole('button', { name: 'Label' })
         const list = destinationsOf(view)
 
         expect(view.getByRole('navigation')).toContainElement(fab)
@@ -662,13 +662,13 @@ describe('navigation rail', () => {
 
     it('draws the 56dp FAB, its icon alone and named by its label, collapsed', () => {
       const view = render(<Rail fab={FAB} />)
-      const fab = view.getByRole('button', { name: 'Add' })
+      const fab = view.getByRole('button', { name: 'Label' })
       const box = fab.getBoundingClientRect()
       const rail = view.getByRole('navigation').getBoundingClientRect()
 
       expect(box.width).toBe(56)
       expect(box.height).toBe(56)
-      expect(fab).not.toHaveTextContent('Add')
+      expect(fab).not.toHaveTextContent('Label')
       // Centred across the 96dp column.
       expect(box.left - rail.left).toBe(rail.right - box.right)
     })
@@ -676,7 +676,7 @@ describe('navigation rail', () => {
     it('keeps an aria-label the call site gives the collapsed FAB', () => {
       const view = render(<Rail fab={NAMED_FAB} />)
 
-      expect(view.getByRole('button', { name: 'Add an item' })).toBeVisible()
+      expect(view.getByRole('button', { name: 'Second label' })).toBeVisible()
     })
 
     it.each([
@@ -688,7 +688,7 @@ describe('navigation rail', () => {
         const view = render(<Rail fab={FAB} isExpanded={isExpanded} />)
         const rail = view.getByRole('navigation').getBoundingClientRect()
         const fab = view
-          .getByRole('button', { name: 'Add' })
+          .getByRole('button', { name: 'Label' })
           .getBoundingClientRect()
         const first = view.getAllByRole('link')[0].getBoundingClientRect()
 
@@ -709,7 +709,7 @@ describe('navigation rail', () => {
         const rail = view.getByRole('navigation').getBoundingClientRect()
         const header = headerBoxOf(view)
         const fab = view
-          .getByRole('button', { name: 'Add' })
+          .getByRole('button', { name: 'Label' })
           .getBoundingClientRect()
         const first = view.getAllByRole('link')[0].getBoundingClientRect()
 
@@ -721,14 +721,14 @@ describe('navigation rail', () => {
 
     it('turns into the extended FAB, with its label, as the rail expands', () => {
       const view = render(<Rail fab={FAB} />)
-      expect(view.getByRole('button', { name: 'Add' })).not.toHaveTextContent(
-        'Add',
+      expect(view.getByRole('button', { name: 'Label' })).not.toHaveTextContent(
+        'Label',
       )
 
       view.rerender(<Rail fab={FAB} isExpanded />)
-      const fab = view.getByRole('button', { name: 'Add' })
+      const fab = view.getByRole('button', { name: 'Label' })
 
-      expect(fab).toHaveTextContent('Add')
+      expect(fab).toHaveTextContent('Label')
       expect(fab.getBoundingClientRect().height).toBe(56)
       expect(fab.getBoundingClientRect().width).toBeGreaterThan(56)
     })
@@ -747,7 +747,7 @@ describe('navigation rail', () => {
           </div>,
         )
 
-        expect(iconIn(view.getByRole('button', { name: 'Add' }))[edge]).toBe(
+        expect(iconIn(view.getByRole('button', { name: 'Label' }))[edge]).toBe(
           iconIn(view.getAllByRole('link')[0])[edge],
         )
       },

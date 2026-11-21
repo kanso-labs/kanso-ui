@@ -241,6 +241,7 @@ function Expandable() {
     <div {...stylex.props(styles.frame)}>
       <NavigationRail
         aria-label="Label"
+        fab={FAB}
         header={header}
         isExpanded={isExpanded}
         selectedRoute="#first"
@@ -281,7 +282,8 @@ const Expanded: Story = {
   },
 }
 
-// A menu button in the header that expands the rail and collapses it.
+// A menu button in the header that expands the rail and collapses it, and
+// the FAB under it, which turns into the extended FAB as the rail expands.
 const WithHeader: Story = {
   render: () => <Expandable />,
 }

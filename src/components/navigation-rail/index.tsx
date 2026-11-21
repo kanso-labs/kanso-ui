@@ -165,8 +165,13 @@ const styles = stylex.create({
   },
 })
 
-type NavigationRailFabProps = Omit<FabProps, 'label' | 'size'> &
+type NavigationRailFabProps = Omit<FabProps, 'aria-label' | 'label' | 'size'> &
   RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
+    /**
+     * The FAB's name in either form, in place of `label`, for a name that
+     * says more than the words drawn beside the icon.
+     */
+    'aria-label'?: string
     /**
      * What the FAB does, in words: drawn beside the icon in the expanded rail,
      * and the FAB's name in the collapsed one, where the icon stands alone.
