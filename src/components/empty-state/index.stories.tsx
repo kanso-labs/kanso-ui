@@ -116,10 +116,12 @@ const InAScope: Story = {
       <div {...stylex.props(styles.screen)}>
         <EmptyState {...args} />
         <EmptyState
-          {...args}
+          action={ACTION}
           description="Supporting line that says what went wrong"
           headingLevel={3}
+          icon={ICON}
           kind="status"
+          title="Headline"
         />
         <EmptyState description="Supporting line" icon={ICON} size="inline" />
         <EmptyState description="Supporting line" kind="done" />
