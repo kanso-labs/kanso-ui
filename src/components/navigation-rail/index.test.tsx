@@ -64,6 +64,16 @@ const MENU_BUTTON = (
     <Icon />
   </IconButton>
 )
+const FAB = (
+  <NavigationRail.Fab label="Label">
+    <Icon />
+  </NavigationRail.Fab>
+)
+const NAMED_FAB = (
+  <NavigationRail.Fab aria-label="Second label" label="Label">
+    <Icon />
+  </NavigationRail.Fab>
+)
 
 // Ten destinations, more than a 440px rail holds in either form.
 const TEN = Array.from({ length: 10 }, (_, index) => (
@@ -622,6 +632,136 @@ describe('navigation rail', () => {
         ).toBeGreaterThan(mark.getBoundingClientRect().right)
       },
     )
+  })
+
+  describe('with a FAB', () => {
+    it.each([
+      { isExpanded: false, name: 'collapsed' },
+      { isExpanded: true, name: 'expanded' },
+    ])(
+      'reaches the FAB before the destinations, outside their list, $name',
+      ({ isExpanded }) => {
+        const view = render(
+          <Rail fab={FAB} header={HEADER} isExpanded={isExpanded} />,
+        )
+        const fab = view.getByRole('button', { name: 'Label' })
+        const list = destinationsOf(view)
+
+        expect(view.getByRole('navigation')).toContainElement(fab)
+        expect(list).not.toContainElement(fab)
+        expect(
+          fab.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy()
+        expect(
+          view
+            .getByRole('button', { name: 'Menu' })
+            .compareDocumentPosition(fab) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy()
+      },
+    )
+
+    it('draws the 56dp FAB, its icon alone and named by its label, collapsed', () => {
+      const view = render(<Rail fab={FAB} />)
+      const fab = view.getByRole('button', { name: 'Label' })
+      const box = fab.getBoundingClientRect()
+      const rail = view.getByRole('navigation').getBoundingClientRect()
+
+      expect(box.width).toBe(56)
+      expect(box.height).toBe(56)
+      expect(fab).not.toHaveTextContent('Label')
+      // Centred across the 96dp column.
+      expect(box.left - rail.left).toBe(rail.right - box.right)
+    })
+
+    it('keeps an aria-label the call site gives the collapsed FAB', () => {
+      const view = render(<Rail fab={NAMED_FAB} />)
+
+      expect(view.getByRole('button', { name: 'Second label' })).toBeVisible()
+    })
+
+    it.each([
+      { isExpanded: false, name: 'collapsed' },
+      { isExpanded: true, name: 'expanded' },
+    ])(
+      'puts the FAB 44dp down, 40dp clear of the first destination, $name',
+      ({ isExpanded }) => {
+        const view = render(<Rail fab={FAB} isExpanded={isExpanded} />)
+        const rail = view.getByRole('navigation').getBoundingClientRect()
+        const fab = view
+          .getByRole('button', { name: 'Label' })
+          .getBoundingClientRect()
+        const first = view.getAllByRole('link')[0].getBoundingClientRect()
+
+        expect(fab.top - rail.top).toBe(44)
+        expect(first.top - fab.bottom).toBe(40)
+      },
+    )
+
+    it.each([
+      { isExpanded: false, name: 'collapsed' },
+      { isExpanded: true, name: 'expanded' },
+    ])(
+      'puts a header 4dp over the FAB, and the FAB 40dp over the first destination, $name',
+      ({ isExpanded }) => {
+        const view = render(
+          <Rail fab={FAB} header={HEADER} isExpanded={isExpanded} />,
+        )
+        const rail = view.getByRole('navigation').getBoundingClientRect()
+        const header = headerBoxOf(view)
+        const fab = view
+          .getByRole('button', { name: 'Label' })
+          .getBoundingClientRect()
+        const first = view.getAllByRole('link')[0].getBoundingClientRect()
+
+        expect(header.top - rail.top).toBe(44)
+        expect(fab.top - header.bottom).toBe(4)
+        expect(first.top - fab.bottom).toBe(40)
+      },
+    )
+
+    it('turns into the extended FAB, with its label, as the rail expands', () => {
+      const view = render(<Rail fab={FAB} />)
+      expect(view.getByRole('button', { name: 'Label' })).not.toHaveTextContent(
+        'Label',
+      )
+
+      view.rerender(<Rail fab={FAB} isExpanded />)
+      const fab = view.getByRole('button', { name: 'Label' })
+
+      expect(fab).toHaveTextContent('Label')
+      expect(fab.getBoundingClientRect().height).toBe(56)
+      expect(fab.getBoundingClientRect().width).toBeGreaterThan(56)
+    })
+
+    // The extended FAB's 16dp before its icon puts that icon over the pills'
+    // icons, 16dp into each, at the leading edge in either direction.
+    it.each([
+      { dir: 'ltr', edge: 'left' },
+      { dir: 'rtl', edge: 'right' },
+    ] as const)(
+      'lines the extended FAB icon up with the destination icons, $dir',
+      ({ dir, edge }) => {
+        const view = render(
+          <div dir={dir}>
+            <Rail fab={FAB} header={MENU_BUTTON} isExpanded />
+          </div>,
+        )
+
+        expect(iconIn(view.getByRole('button', { name: 'Label' }))[edge]).toBe(
+          iconIn(view.getAllByRole('link')[0])[edge],
+        )
+      },
+    )
+
+    // `fab={isWide && <Fab />}` hands the slot `false`, which holds nothing.
+    it('draws a slot handed false as no FAB, the header keeping its 40dp', () => {
+      const view = render(<Rail fab={false} header={HEADER} />)
+      const header = headerBoxOf(view)
+      const first = view.getAllByRole('link')[0].getBoundingClientRect()
+
+      expect(view.getAllByRole('button')).toHaveLength(1)
+      expect(first.top - header.bottom).toBe(40)
+    })
   })
 
   describe('layout', () => {

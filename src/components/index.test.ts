@@ -163,7 +163,10 @@ import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { LoadingIndicatorProps } from './loading-indicator'
 import type { NavigationBarProps } from './navigation-bar'
-import type { NavigationRailProps } from './navigation-rail'
+import type {
+  NavigationRailFabProps,
+  NavigationRailProps,
+} from './navigation-rail'
 import type { SearchViewContentProps, SearchViewProps } from './search-view'
 import type {
   SplitButtonActionProps,
@@ -245,7 +248,10 @@ import MenuDefault, {
 } from './menu'
 import MeterDefault from './meter'
 import NavigationBarDefault, { NavigationBarItem } from './navigation-bar'
-import NavigationRailDefault, { NavigationRailItem } from './navigation-rail'
+import NavigationRailDefault, {
+  NavigationRailFab,
+  NavigationRailItem,
+} from './navigation-rail'
 import NavigationTreeDefault, {
   NavigationTreeItem,
   NavigationTreeSection,
@@ -441,6 +447,7 @@ describe('components barrel', () => {
       'NavigationBar',
       'NavigationBarItem',
       'NavigationRail',
+      'NavigationRailFab',
       'NavigationRailItem',
       'NavigationTree',
       'NavigationTreeItem',
@@ -594,6 +601,7 @@ describe('components barrel', () => {
     NavigationBar: [components.NavigationBar, NavigationBarDefault],
     NavigationBarItem: [components.NavigationBarItem, NavigationBarItem],
     NavigationRail: [components.NavigationRail, NavigationRailDefault],
+    NavigationRailFab: [components.NavigationRailFab, NavigationRailFab],
     NavigationRailItem: [components.NavigationRailItem, NavigationRailItem],
     NavigationTree: [components.NavigationTree, NavigationTreeDefault],
     NavigationTreeItem: [components.NavigationTreeItem, NavigationTreeItem],
@@ -1469,6 +1477,11 @@ describe('components barrel', () => {
   it('re-exports the NavigationRailProps type', () => {
     const props: NavigationRailProps = { children: 'test' }
     expect(props.children).toBe('test')
+  })
+
+  it('re-exports the NavigationRailFabProps type', () => {
+    const props: NavigationRailFabProps = { label: 'test' }
+    expect(props.label).toBe('test')
   })
 
   it('re-exports the FabProps type', () => {

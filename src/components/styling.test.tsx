@@ -551,6 +551,12 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
     element: <NavigationRail {...PROBE}>Label</NavigationRail>,
     name: 'NavigationRail',
   },
+  // Drawn alone rather than in a rail's `fab` slot, since the ref case below
+  // reaches a probe through children and not through other props.
+  {
+    element: <NavigationRail.Fab {...PROBE} label="Label" />,
+    name: 'NavigationRail.Fab',
+  },
   {
     element: (
       <NavigationTree {...PROBE} aria-label="Label">
