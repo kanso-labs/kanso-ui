@@ -101,29 +101,37 @@ const ACTIONS = [
 ]
 
 // A part of an app's own container pair, as an app hands one action the
-// colours of the part it opens. The pair reads the same on either scheme's
-// surface, since the label is drawn on the container rather than the page.
-const PART_THEME: KuiTheme = {
-  '--kui-color-on-primary-container': '#002113',
-  '--kui-color-primary-container': '#89f8c7',
+// colours of the part it opens: a map per scheme, as ThemeScope's own docs
+// ask, the story taking the one for the scheme in the toolbar.
+const PART_THEMES: Record<'dark' | 'light', KuiTheme> = {
+  dark: {
+    '--kui-color-on-primary-container': '#89f8c7',
+    '--kui-color-primary-container': '#005139',
+  },
+  light: {
+    '--kui-color-on-primary-container': '#002113',
+    '--kui-color-primary-container': '#89f8c7',
+  },
 }
 
 // Four actions, each in a colour of its own: two of the page's other tones,
 // one under a theme of its own, and one left in the menu's.
-const TONED_ACTIONS = [
-  <FabMenu.Item icon={CIRCLE} id="first" key="first" tone="secondary">
-    First item
-  </FabMenu.Item>,
-  <FabMenu.Item icon={SQUARE} id="second" key="second" tone="tertiary">
-    Second item
-  </FabMenu.Item>,
-  <FabMenu.Item icon={TRIANGLE} id="third" key="third" theme={PART_THEME}>
-    Third item
-  </FabMenu.Item>,
-  <FabMenu.Item icon={CIRCLE} id="fourth" key="fourth">
-    Fourth item
-  </FabMenu.Item>,
-]
+function tonedActions(partTheme: KuiTheme) {
+  return [
+    <FabMenu.Item icon={CIRCLE} id="first" key="first" tone="secondary">
+      First item
+    </FabMenu.Item>,
+    <FabMenu.Item icon={SQUARE} id="second" key="second" tone="tertiary">
+      Second item
+    </FabMenu.Item>,
+    <FabMenu.Item icon={TRIANGLE} id="third" key="third" theme={partTheme}>
+      Third item
+    </FabMenu.Item>,
+    <FabMenu.Item icon={CIRCLE} id="fourth" key="fourth">
+      Fourth item
+    </FabMenu.Item>,
+  ]
+}
 
 const meta = {
   args: {
@@ -157,10 +165,18 @@ const Open: Story = {
 // menu's tone.
 const ItemTones: Story = {
   args: {
-    children: TONED_ACTIONS,
     defaultOpen: true,
   },
   parameters: { docs: { story: { height: '420px', inline: false } } },
+  render: (args, context) => (
+    <div {...stylex.props(styles.frame)}>
+      <FabMenu {...args}>
+        {tonedActions(
+          PART_THEMES[context.globals.theme === 'dark' ? 'dark' : 'light'],
+        )}
+      </FabMenu>
+    </div>
+  ),
 }
 
 export { Default, ItemTones, Open }
