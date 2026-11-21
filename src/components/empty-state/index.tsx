@@ -62,8 +62,9 @@ import Text from '../text'
 //
 // An empty state is not announced when it replaces what was there, since one
 // drawn on a screen's first render should not be. Where removing the last
-// item or a failed load swaps one in, give it `role="status"`, or announce
-// the change through the app's own live region.
+// item or a failed load swaps one in, announce the change through a live
+// region already on the page: one inserted with its words inside it is often
+// not read at all.
 //
 // Under forced colours the marks' fills are painted over, which leaves the
 // glyph in the system's text colour on the page, as an icon is anywhere else.
@@ -233,7 +234,8 @@ type EmptyStateScreenParts = {
   action?: EmptyStateAction
   /**
    * The line saying what is empty, what is done, or what can be done about
-   * it. The row forms need it, since it is all they say.
+   * it: inline content, since it is drawn as a paragraph. The row forms need
+   * it, since it is all they say.
    */
   description?: ReactNode
   /**
