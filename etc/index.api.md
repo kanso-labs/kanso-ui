@@ -806,6 +806,47 @@ export type DropZoneProps = Omit<DropZoneProps_2, 'children' | 'className' | 'st
 };
 
 // @public
+export function EmptyState(props: EmptyStateProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+
+// @public (undocumented)
+export type EmptyStateAction = {
+    href?: string;
+    label: string;
+    onPress?: () => void;
+};
+
+// @public (undocumented)
+export type EmptyStateKind = 'done' | 'first' | 'status';
+
+// Warning: (ae-forgotten-export) The symbol "EmptyStateScreenParts" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EmptyStateBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type EmptyStateProps = ((EmptyStateScreenParts & {
+    kind?: 'first' | 'status';
+    size?: 'default';
+}) | {
+    action?: never;
+    description: ReactNode;
+    headingLevel?: never;
+    icon?: never;
+    kind: 'done';
+    size?: never;
+    title?: never;
+} | {
+    action?: never;
+    description: ReactNode;
+    headingLevel?: never;
+    icon?: ReactNode;
+    kind?: 'first';
+    size: 'inline';
+    title?: never;
+}) & EmptyStateBaseProps;
+
+// @public (undocumented)
+export type EmptyStateSize = 'default' | 'inline';
+
+// @public
 export function Fab(input: FabProps & RefAttributes<HTMLAnchorElement | HTMLButtonElement>): JSX;
 
 // @public
