@@ -1459,14 +1459,25 @@ export function NavigationRail(input: NavigationRailProps): JSX;
 // @public (undocumented)
 export namespace NavigationRail {
     var // (undocumented)
+    Fab: typeof NavigationRailFab;
+    var // (undocumented)
     Item: typeof NavigationRailItem;
 }
+
+// @public
+export function NavigationRailFab(input: NavigationRailFabProps): JSX;
+
+// @public (undocumented)
+export type NavigationRailFabProps = Omit<FabProps, 'label' | 'size'> & RefAttributes<HTMLAnchorElement | HTMLButtonElement> & {
+    label: string;
+};
 
 // @public
 export function NavigationRailItem(props: NavigationItemProps & RefAttributes<HTMLAnchorElement>): JSX;
 
 // @public (undocumented)
 export type NavigationRailProps = RenderComponentProps<'nav'> & {
+    fab?: ReactNode;
     header?: ReactNode;
     isExpanded?: boolean;
     selectedRoute?: string;
