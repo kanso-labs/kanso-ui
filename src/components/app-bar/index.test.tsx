@@ -532,6 +532,128 @@ describe('headline', () => {
   )
 })
 
+describe('kicker', () => {
+  const BACK = (
+    <IconButton aria-label="Back">
+      <svg aria-hidden="true" />
+    </IconButton>
+  )
+  const PARENT = <a href="#parent">Parent</a>
+
+  it.each(['md', 'lg'] as const)(
+    'draws a kicker over the %s headline, in label medium on on surface variant',
+    (size) => {
+      const view = render(
+        <AppBar headline="Headline" kicker="Kicker" size={size} />,
+      )
+      const kicker = view.getByText('Kicker')
+      const heading = view.getByRole('heading', { level: 1 })
+      const style = getComputedStyle(kicker)
+
+      expect([style.fontSize, style.lineHeight]).toEqual(['12px', '16px'])
+      expect(style.color).toBe(colourOf('onSurfaceVariant'))
+      expect(kicker.nextElementSibling).toBe(heading)
+      expect(kicker.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        heading.getBoundingClientRect().top,
+      )
+    },
+  )
+
+  // The flexible bars hug their text, so the kicker's 16px line is added to
+  // either of their heights.
+  it.each(['md', 'lg'] as const)('makes the %s bar taller by its line', (size) => {
+    for (const subtitle of [undefined, 'Supporting line']) {
+      const view = render(
+        <AppBar
+          headline="Headline"
+          kicker="Kicker"
+          size={size}
+          subtitle={subtitle}
+        />,
+      )
+      const bar = barIn(view.container)
+      const expected =
+        (subtitle === undefined
+          ? HEIGHTS[size].plain
+          : HEIGHTS[size].withSubtitle) + 16
+
+      expect(minHeightOf(bar)).toBe(expected)
+      expect(bar.getBoundingClientRect().height).toBe(expected)
+      view.unmount()
+    }
+  })
+
+  // The headline keeps its baseline above the bar's edge, and the kicker
+  // sits clear of the strip's icon button targets.
+  it('keeps the headline on its baseline and the kicker under the targets', () => {
+    const view = render(
+      <AppBar headline="Headline" kicker="Kicker" leading={BACK} size="md" />,
+    )
+    const bar = barIn(view.container).getBoundingClientRect()
+    const kicker = view.getByText('Kicker').getBoundingClientRect()
+
+    expect(kicker.top - bar.top).toBeGreaterThanOrEqual(
+      (STRIP + TARGET) / 2,
+    )
+  })
+
+  it('stays out of the heading, which keeps the headline as the name', () => {
+    const view = render(
+      <AppBar headline="Headline" kicker="Kicker" size="md" />,
+    )
+
+    expect(view.getByRole('heading', { level: 1 })).toHaveAccessibleName(
+      'Headline',
+    )
+  })
+
+  it('holds a link back to the parent', () => {
+    const view = render(
+      <AppBar headline="Headline" kicker={PARENT} size="md" />,
+    )
+    const link = view.getByRole('link', { name: 'Parent' })
+
+    expect(view.getByText('Parent')).toBe(link)
+    expect(view.getByRole('heading', { level: 1 })).not.toContainElement(link)
+  })
+
+  it.each(['md', 'lg'] as const)(
+    'goes as the %s bar collapses, leaving the headline alone',
+    (size) => {
+      const view = render(
+        <AppBar collapsed headline="Headline" kicker="Kicker" size={size} />,
+      )
+
+      expect(view.queryByText('Kicker')).toBeNull()
+      expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
+      expect(view.getByRole('heading', { level: 1 })).toHaveAccessibleName(
+        'Headline',
+      )
+    },
+  )
+
+  it('is not drawn by the small bar', () => {
+    const view = render(<AppBar headline="Headline" kicker="Kicker" />)
+
+    expect(view.queryByText('Kicker')).toBeNull()
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.sm.plain)
+  })
+
+  it('comes back as the bar expands again', () => {
+    const view = render(
+      <AppBar collapsed headline="Headline" kicker="Kicker" size="md" />,
+    )
+    view.rerender(<AppBar headline="Headline" kicker="Kicker" size="md" />)
+    // Read where the expanding motion is heading rather than part way along.
+    for (const animation of motionIn(barIn(view.container))) {
+      animation.finish()
+    }
+
+    expect(view.getByText('Kicker')).toBeVisible()
+    expect(minHeightOf(barIn(view.container))).toBe(HEIGHTS.md.plain + 16)
+  })
+})
+
 describe('scrolled', () => {
   // Material Design replaced the drop shadow it once gave a scrolled bar with
   // a colour fill, so the separation is a different surface rather than an

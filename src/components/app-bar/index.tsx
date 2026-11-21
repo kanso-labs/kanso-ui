@@ -17,6 +17,7 @@ import {
   motion,
   sizing,
   spacing,
+  typography,
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs, motionEasing } from '../../tokens/values'
 import Text from '../text'
@@ -62,6 +63,15 @@ import Text from '../text'
 // it keeps wrapping when centred; collapsed, they are the small bar, and cut
 // their lines as it does. The headline is still the heading's whole text, so
 // it stays the bar's accessible name.
+//
+// A flexible bar can carry a kicker over its headline: a line in label
+// medium on on surface variant naming where the screen sits, such as the
+// parent a detail screen opened from, which may be a link back to it.
+// Material Design's flexible bars draw a subtitle under the headline and
+// nothing over it, so the kicker is the library's own, drawn as the subtitle
+// is: the bar grows by its line. It goes as the bar collapses, so the
+// collapsed bar holds the headline alone, and it stays outside the heading,
+// so the headline is still the bar's name. The small bar draws none.
 //
 // The slots set the colours the page gives their icons: on surface for the
 // leading one and on surface variant for the trailing ones. The second is a
@@ -327,6 +337,11 @@ function heading(level: number) {
 
 const PARAGRAPH = <p />
 
+// The kicker is a `<div>` rather than a paragraph, so the collapse motion,
+// which finds the subtitle as the text's paragraph, never takes it for one
+// — see LINES.
+const KICKER = <div />
+
 // Height is the one value the call site does not choose, and it depends on two
 // props at once, so it is a function style rather than one key per
 // combination. StyleX writes it to a custom property inline, the same
@@ -515,14 +530,23 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * @default 'sm'
    */
   size?: 'lg' | 'md' | 'sm'
+  /**
+   * A line over the headline in `md` and `lg`, in label medium on on surface
+   * variant, naming where the screen sits — the parent a detail screen opened
+   * from, say, which it may hold as a link back there. Makes the bar taller
+   * by its line, and goes as the bar collapses, leaving the headline alone.
+   * `sm` draws none.
+   */
+  kicker?: ReactNode
   /** A second line under the headline. Makes `md` and `lg` taller. */
   subtitle?: ReactNode
   /** Actions, at the far end. Usually icon buttons. */
   trailing?: ReactNode
 }
 
-// The text block's two lines: the headline, and the subtitle beside it. The
-// block holds nothing else, and each is drawn as one kind of element.
+// The text block's two lines the collapse moves: the headline, and the
+// subtitle beside it. Each is drawn as one kind of element, and the kicker
+// over them, which collapsing removes rather than moves, is neither.
 const LINES = [':scope > :is(h1, h2, h3, h4, h5, h6)', ':scope > p'] as const
 
 /**
@@ -564,6 +588,7 @@ function AppBar({
   contentMaxInlineSize = 'none',
   headingLevel = 1,
   headline,
+  kicker,
   leading,
   pinned = false,
   render,
@@ -580,9 +605,15 @@ function AppBar({
   // The flexible bars at their full height are the only state with a second
   // row. Collapsed, they are the small bar.
   const below = size !== 'sm' && !collapse
-  const expandedHeight = hasContent(subtitle)
+  // The kicker is drawn by the flexible bars at their full height alone, and
+  // adds its line to that height.
+  const showsKicker = below && hasContent(kicker)
+  const textHeight = hasContent(subtitle)
     ? HEIGHTS[size].withSubtitle
     : HEIGHTS[size].plain
+  const expandedHeight = showsKicker
+    ? `calc(${textHeight} + ${typography.labelMediumLineHeight})`
+    : textHeight
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
   const hasLeading = hasContent(leading)
   const hasTrailing = hasContent(trailing)
@@ -639,6 +670,11 @@ function AppBar({
             )}
             ref={textRef}
           >
+            {!showsKicker ? null : (
+              <Text render={KICKER} tone="muted" variant="labelMedium">
+                {kicker}
+              </Text>
+            )}
             {!hasContent(headline) ? null : (
               <Text
                 {...line}
