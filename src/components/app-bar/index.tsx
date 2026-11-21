@@ -17,6 +17,7 @@ import {
   motion,
   sizing,
   spacing,
+  typography,
 } from '../../tokens/design.tokens.stylex'
 import { motionDurationMs, motionEasing } from '../../tokens/values'
 import Text from '../text'
@@ -62,6 +63,24 @@ import Text from '../text'
 // it keeps wrapping when centred; collapsed, they are the small bar, and cut
 // their lines as it does. The headline is still the heading's whole text, so
 // it stays the bar's accessible name.
+//
+// A flexible bar can carry a kicker over its headline: a line in label
+// medium on on surface variant naming where the screen sits, such as the
+// parent a detail screen opened from, which may be a link back to it.
+// Material Design's flexible bars draw a subtitle under the headline and
+// nothing over it, so the kicker is the library's own, drawn as the subtitle
+// is: the bar grows by its line. It goes as the bar collapses, so the
+// collapsed bar holds the headline, and the subtitle where there is one, and
+// it fades back in as the bar expands. It stays outside the heading, so the
+// headline is still the bar's name. The small bar draws none.
+//
+// A link in it is pressed on its own line, 16dp tall, short of the 44dp the
+// design gives a parent link. The link is the call site's element, and
+// nothing here can draw a larger target around it: the bar's styles reach the
+// kicker's line and not what it holds. React Native's bar, which can, gives
+// the link 16dp more above and below and stacks the slots over it, so the
+// icon buttons keep their targets where the two meet. A focused link goes
+// with the kicker as the bar collapses, and focus with it.
 //
 // The slots set the colours the page gives their icons: on surface for the
 // leading one and on surface variant for the trailing ones. The second is a
@@ -327,6 +346,11 @@ function heading(level: number) {
 
 const PARAGRAPH = <p />
 
+// The kicker is a `<div>` rather than a paragraph, so the collapse motion,
+// which finds the subtitle as the text's paragraph, never takes it for one
+// — see LINES.
+const KICKER = <div />
+
 // Height is the one value the call site does not choose, and it depends on two
 // props at once, so it is a function style rather than one key per
 // combination. StyleX writes it to a custom property inline, the same
@@ -423,7 +447,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * headline and the subtitle move up into the row the slots sit in and take
    * the small bar's type roles, which fit both lines in its 64px, and the
    * slots never leave that row: they stay where they are while the bar
-   * shrinks under them.
+   * shrinks under them. A kicker goes, and fades back in on expanding.
    *
    * Collapsing hands the page back the height the bar gives up, and a bar
    * whose state is read off the scroll offset can then undo itself in two
@@ -482,6 +506,14 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    */
   headline?: ReactNode
   /**
+   * A line over the headline in `md` and `lg`, in label medium on on surface
+   * variant, naming where the screen sits — the parent a detail screen opened
+   * from, say, which it may hold as a link back there. Makes the bar taller
+   * by its line, and goes as the bar collapses, leaving the headline and any
+   * subtitle. `sm` draws none.
+   */
+  kicker?: ReactNode
+  /**
    * Usually a back or menu icon button. Sits before the text, and a standard
    * icon button here draws its icon in on surface, the colour the page gives
    * a bar's leading icon, rather than its own on surface variant.
@@ -511,7 +543,7 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * Height and headline size, as steps of the library's size scale. `sm` is
    * Material Design's small bar, a fixed 64px row; `md` and `lg` are its
    * medium and large flexible bars, which put the text in a row of its own
-   * under the slots and hug it.
+   * under the slots and hug it. A kicker adds its line to `md` and `lg`.
    * @default 'sm'
    */
   size?: 'lg' | 'md' | 'sm'
@@ -521,9 +553,13 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
   trailing?: ReactNode
 }
 
-// The text block's two lines: the headline, and the subtitle beside it. The
-// block holds nothing else, and each is drawn as one kind of element.
+// The text block's two lines the collapse moves: the headline, and the
+// subtitle beside it. Each is drawn as one kind of element, and the kicker
+// over them, which collapsing removes rather than moves, is neither.
 const LINES = [':scope > :is(h1, h2, h3, h4, h5, h6)', ':scope > p'] as const
+
+// The kicker, the text block's one `<div>` — see KICKER.
+const KICKER_LINE = ':scope > div'
 
 /**
  * What collapsing moves, and so what its animation runs between: the bar's
@@ -549,8 +585,9 @@ type Line = { size: number; x: number; y: number }
  *
  * Three sizes. `sm` is a fixed 64px bar for a page whose title is a label;
  * `md` and `lg` are the flexible bars, which give the headline a larger
- * type role in a row of its own under the slots, and grow to fit a subtitle
- * or a headline that wraps.
+ * type role in a row of its own under the slots, with a kicker over it where
+ * one is given, and grow to fit a kicker, a subtitle or a headline that
+ * wraps.
  *
  * It paints its own surface, unlike the layout components, because separating
  * itself from the content beneath is the job — which is also why `scrolled`
@@ -564,6 +601,7 @@ function AppBar({
   contentMaxInlineSize = 'none',
   headingLevel = 1,
   headline,
+  kicker,
   leading,
   pinned = false,
   render,
@@ -580,9 +618,15 @@ function AppBar({
   // The flexible bars at their full height are the only state with a second
   // row. Collapsed, they are the small bar.
   const below = size !== 'sm' && !collapse
-  const expandedHeight = hasContent(subtitle)
+  // The kicker is drawn by the flexible bars at their full height alone, and
+  // adds its line to that height.
+  const showsKicker = below && hasContent(kicker)
+  const textHeight = hasContent(subtitle)
     ? HEIGHTS[size].withSubtitle
     : HEIGHTS[size].plain
+  const expandedHeight = showsKicker
+    ? `calc(${textHeight} + ${typography.labelMediumLineHeight})`
+    : textHeight
   const height = collapse ? COLLAPSED_HEIGHT : expandedHeight
   const hasLeading = hasContent(leading)
   const hasTrailing = hasContent(trailing)
@@ -639,6 +683,11 @@ function AppBar({
             )}
             ref={textRef}
           >
+            {!showsKicker ? null : (
+              <Text render={KICKER} tone="muted" variant="labelMedium">
+                {kicker}
+              </Text>
+            )}
             {!hasContent(headline) ? null : (
               <Text
                 {...line}
@@ -941,6 +990,28 @@ function useCollapseMotion(collapse: boolean, align: 'center' | 'start') {
             transformOrigin: [origin, origin],
           },
           timing,
+        ),
+      )
+    }
+    // The kicker is drawn only by the expanded bar, so expanding is when it
+    // arrives. It is laid out at once where it ends, which is below the edge
+    // of a bar that has only begun to grow, so it fades in over the second
+    // half of the motion, once the bar has room for it, rather than showing
+    // part of its line at the bar's edge. Collapsing removes it at once, and
+    // the headline is measured where it was drawn, beside it, so it does not
+    // move for it.
+    const kicker = collapse ? null : text.querySelector(KICKER_LINE)
+    if (kicker !== null) {
+      animations.current.push(
+        kicker.animate(
+          [
+            { opacity: 0 },
+            { easing: motionEasing.emphasized, offset: 0.5, opacity: 0 },
+            { opacity: 1 },
+          ],
+          // In time with the bar, eased over its own half rather than over
+          // the whole, so it is still hidden halfway.
+          { duration: timing.duration, easing: 'linear' },
         ),
       )
     }

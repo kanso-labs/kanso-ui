@@ -171,6 +171,7 @@ export type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
     contentMaxInlineSize?: string;
     headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
     headline?: ReactNode;
+    kicker?: ReactNode;
     leading?: ReactNode;
     pinned?: boolean;
     scrolled?: boolean;
