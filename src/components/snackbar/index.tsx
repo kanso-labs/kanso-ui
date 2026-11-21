@@ -18,7 +18,7 @@ import {
   Text,
 } from 'react-aria-components'
 
-import { CloseGlyph } from '../../glyphs'
+import { CloseGlyph, ErrorGlyph } from '../../glyphs'
 import { useBottomEdgeClearance } from '../../hooks/useBottomEdge'
 import { useRipple } from '../../hooks/useRipple'
 import { layers } from '../../styles/layers.stylex'
@@ -73,6 +73,15 @@ import {
 // stylesheet, not by the order they are applied. Both are React Aria's
 // `Button` with the same ripple and the same state layers, over
 // `currentColor` so each takes the colour the snackbar gives it.
+//
+// **A failure leads with a warning glyph**, which the page does not draw: a
+// message added with `tone: 'failure'` starts with a 20dp exclamation mark in
+// a filled circle, so it no longer looks like a confirmation. It is drawn in
+// the inverse error, the error made to read on the inverse surface, as
+// inverse primary is the primary made to read there: by default the other
+// scheme's error, and a theme's own where it states one. It sits beside the
+// message's first line, and is decorative, since the message's words say
+// what failed.
 //
 // **There is no `container` prop.** Every other overlay here takes one,
 // because React Aria's `Modal` and `Popover` accept a portal container, and
@@ -247,6 +256,21 @@ const styles = stylex.create({
     flexShrink: 0,
     marginInlineStart: 'auto',
   },
+  // The failure glyph, 8dp in from the strip's own 8dp, where the message
+  // would otherwise start, which keeps its 8dp before the words. It sits at
+  // the top of the strip, 14dp down, beside the message's first line rather
+  // than between the lines of a longer one. Under forced colours the system
+  // colour replaces the inverse error, as it does every colour on the strip.
+  glyph: {
+    alignSelf: 'flex-start',
+    blockSize: '20px',
+    boxSizing: 'border-box',
+    color: colors.inverseError,
+    flexShrink: 0,
+    inlineSize: '20px',
+    marginBlockStart: '14px',
+    marginInlineStart: spacing.sm,
+  },
   // The message: body-medium in inverse on surface, with the page's 8dp
   // either side of it inside the container's own 8dp, and the 14dp above and
   // below that makes a single line 48 tall. The height is the message's
@@ -392,6 +416,7 @@ type SnackbarMessage = {
   action: SnackbarAction | undefined
   message: ReactNode
   showCloseButton: boolean
+  tone?: SnackbarTone | undefined
 }
 
 type SnackbarOptions = {
@@ -432,6 +457,13 @@ type SnackbarOptions = {
    * way to be rid of it.
    */
   timeout?: number
+  /**
+   * `failure` leads the message with a warning glyph in the inverse error,
+   * so a failure does not look like a confirmation. Left out, the message is
+   * drawn as a confirmation. The glyph is not announced, so the message's
+   * words should say that something failed.
+   */
+  tone?: SnackbarTone
 }
 
 type SnackbarProps = {
@@ -466,6 +498,9 @@ type SnackbarProps = {
 // `react-stately`, which this package does not depend on.
 type SnackbarToastItem =
   ToastRegionRenderProps<SnackbarMessage>['visibleToasts'][number]
+
+/** What a message reports: `failure`, where something did not happen. */
+type SnackbarTone = 'failure'
 
 /**
  * React Aria's queue, made to keep a closing snackbar on screen while it
@@ -562,10 +597,10 @@ class SnackbarQueue {
    * it does not come back.
    */
   add(message: ReactNode, options: SnackbarOptions = {}) {
-    const { action, onClose, showCloseButton = false, timeout } = options
+    const { action, onClose, showCloseButton = false, timeout, tone } = options
     this.clear()
     const key = this.#toasts.add(
-      { action, message, showCloseButton },
+      { action, message, showCloseButton, tone },
       {
         timeout: readableTimeout(
           timeout ?? (action === undefined ? MESSAGE_MS : UNTIL_CLOSED),
@@ -794,7 +829,7 @@ function SnackbarToast({
   queue: SnackbarQueue
   toast: SnackbarToastItem
 }) {
-  const { action, message, showCloseButton } = toast.content
+  const { action, message, showCloseButton, tone } = toast.content
   const fading = useFading(queue, toast.key)
 
   return (
@@ -802,6 +837,9 @@ function SnackbarToast({
       toast={toast}
       {...stylex.props(styles.toast, fading && styles.toastFading)}
     >
+      {tone === 'failure' ? (
+        <ErrorGlyph {...stylex.props(styles.glyph)} />
+      ) : null}
       <RACToastContent {...stylex.props(styles.message)}>
         <Text slot="title">{message}</Text>
       </RACToastContent>
@@ -840,6 +878,7 @@ export type {
   SnackbarProps,
   SnackbarQueue,
   ToastRegionRenderProps as SnackbarRegionRenderProps,
+  SnackbarTone,
 }
 
 export default Snackbar

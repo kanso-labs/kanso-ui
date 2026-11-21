@@ -265,6 +265,7 @@ export type {
   SnackbarProps,
   SnackbarQueue,
   SnackbarRegionRenderProps,
+  SnackbarTone,
 } from './snackbar'
 export { default as Snackbar } from './snackbar'
 export type {

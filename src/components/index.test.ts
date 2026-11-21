@@ -123,6 +123,7 @@ import type {
   SnackbarProps,
   SnackbarQueue,
   SnackbarRegionRenderProps,
+  SnackbarTone,
   StackProps,
   SupportingPaneProps,
   SwitchProps,
@@ -1447,6 +1448,11 @@ describe('components barrel', () => {
   it('re-exports the SnackbarOptions type', () => {
     const options: SnackbarOptions = { showCloseButton: true }
     expect(options.showCloseButton).toBe(true)
+  })
+
+  it('re-exports the SnackbarTone type', () => {
+    const tone: SnackbarTone = 'failure'
+    expect(tone).toBe('failure')
   })
 
   it('re-exports the SnackbarQueue type', () => {

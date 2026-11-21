@@ -1883,6 +1883,7 @@ export type SnackbarMessage = {
     action: SnackbarAction | undefined;
     message: ReactNode;
     showCloseButton: boolean;
+    tone?: SnackbarTone | undefined;
 };
 
 // @public (undocumented)
@@ -1891,6 +1892,7 @@ export type SnackbarOptions = {
     onClose?: () => void;
     showCloseButton?: boolean;
     timeout?: number;
+    tone?: SnackbarTone;
 };
 
 // @public (undocumented)
@@ -1912,6 +1914,9 @@ export class SnackbarQueue {
 }
 
 export { SnackbarRegionRenderProps }
+
+// @public
+export type SnackbarTone = 'failure';
 
 export { SortDescriptor }
 

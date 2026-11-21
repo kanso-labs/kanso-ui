@@ -20,6 +20,7 @@ import Sheet from '../sheet'
 const probeStyles = stylex.create({
   action: { color: colors.inversePrimary },
   container: { backgroundColor: colors.inverseSurface },
+  glyph: { color: colors.inverseError },
   message: { color: colors.inverseOnSurface },
 })
 
@@ -36,6 +37,7 @@ function classesOf(props: { className?: string | undefined }) {
 const CLASSES = {
   action: classesOf(stylex.props(probeStyles.action)),
   container: classesOf(stylex.props(probeStyles.container)),
+  glyph: classesOf(stylex.props(probeStyles.glyph)),
   message: classesOf(stylex.props(probeStyles.message)),
 }
 
@@ -120,6 +122,26 @@ async function shown() {
     animation.finish()
   }
   return { strip, view }
+}
+
+/** A failure shown and settled, with the glyph it leads with. */
+async function shownAsFailure(options: SnackbarOptions = {}) {
+  const { queue, view } = setup()
+  act(() => {
+    queue.add('First item', { tone: 'failure', ...options })
+  })
+  await waitFor(() => {
+    expect(view.getByText('First item')).not.toBeNull()
+  })
+  const strip = snackbarIn(view)
+  for (const animation of strip.getAnimations()) {
+    animation.finish()
+  }
+  const glyph = strip.querySelector('svg')
+  if (glyph === null) {
+    throw new Error('expected a failure to lead with a glyph')
+  }
+  return { glyph, strip, view }
 }
 
 /** A snackbar at a phone's width, its rise played out, and its parts. */
@@ -884,6 +906,55 @@ describe('snackbar', () => {
         view.getByRole('button', { name: 'Close' }).getBoundingClientRect()
           .height,
       ).toBe(48)
+    })
+  })
+
+  // A failure differs from a confirmation by a mark as well as a colour.
+  describe('a failure', () => {
+    it('leads with a 20dp warning glyph in the inverse error', async () => {
+      const { glyph, strip } = await shownAsFailure()
+
+      expect(strip.firstElementChild).toBe(glyph)
+      expect(hasClasses(glyph, CLASSES.glyph)).toBe(true)
+      // The library's own inverse error on its light inverse surface.
+      expect(getComputedStyle(glyph).color).toBe('rgb(242, 184, 181)')
+      const box = glyph.getBoundingClientRect()
+      expect([box.width, box.height]).toEqual([20, 20])
+    })
+
+    // 8dp in from the strip's 8dp, 8dp before the words, beside the first
+    // line, and the strip still 48 tall on one line.
+    it('sits beside the first line, keeping the strip 48 tall', async () => {
+      const { glyph, strip, view } = await shownAsFailure({
+        action: { label: 'Try again', onPress: () => {} },
+      })
+      const box = glyph.getBoundingClientRect()
+      const frame = strip.getBoundingClientRect()
+      const words = view.getByText('First item').getBoundingClientRect()
+
+      expect(box.left - frame.left).toBe(16)
+      expect(words.left - box.right).toBe(8)
+      expect(box.top - frame.top).toBe(14)
+      expect(frame.height).toBe(48)
+    })
+
+    it('is decorative, so the strip is named by its words alone', async () => {
+      const { glyph, view } = await shownAsFailure()
+
+      expect(glyph).toHaveAttribute('aria-hidden', 'true')
+      expect(view.getByRole('alertdialog')).toHaveAccessibleName('First item')
+    })
+
+    it('leaves a message without a tone as it was', async () => {
+      const { queue, view } = setup()
+      act(() => {
+        queue.add('First item', { action: UNDO })
+      })
+      await waitFor(() => {
+        expect(view.getByText('First item')).not.toBeNull()
+      })
+
+      expect(snackbarIn(view).querySelector(':scope > svg')).toBeNull()
     })
   })
 
