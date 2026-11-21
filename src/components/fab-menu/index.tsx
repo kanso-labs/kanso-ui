@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, RefAttributes } from 'react'
+import type { CSSProperties, ReactNode, RefAttributes } from 'react'
 import type {
   ClassNameOrFunction,
   Key,
@@ -20,6 +20,7 @@ import {
 } from 'react-aria-components'
 
 import type { ButtonState } from '../../button'
+import type { KuiTheme } from '../../theme-scope'
 import type { FabSize, FabTone } from '../fab'
 
 import { ButtonBase } from '../../button'
@@ -37,6 +38,7 @@ import {
   sizing,
   spacing,
   stateLayerOpacity,
+  tokenScope,
   typography,
 } from '../../tokens/design.tokens.stylex'
 
@@ -69,6 +71,15 @@ import {
 //
 // Under forced colours the shadows go and the containers are painted over,
 // so the FAB and each action are drawn as a 1px `ButtonText` rule.
+//
+// An action can take a tone of its own, or a theme of its own, which the page
+// does not draw: a menu whose actions each open a different part of an app
+// can draw each in that part's colour. Either changes that action's pill
+// alone, its container pair read from its own tone under its own theme, and
+// the close button keeps the menu's. A theme is the `--kui-*` map
+// `ThemeScope` takes, declared on the pill with the tokens resolved again
+// there, as a scope resolves them, so it reaches that pill and nothing else.
+// An action with neither draws in the menu's tone, as the page does.
 
 // Windows High Contrast and the rest of the forced-colours modes. Spelled
 // here rather than imported, for the reason src/field/styles.ts records: the
@@ -198,6 +209,20 @@ type FabMenuItemProps = Omit<
   icon?: ReactNode
   /** A function may compute the style from the action's render state. */
   style?: StyleOrFunction<MenuItemRenderProps>
+  /**
+   * `--kui-*` overrides for this action's pill alone, over those of the page
+   * around the menu, as `ThemeScope`'s `theme` takes them. The pill reads its
+   * tone's container pair from them, and its icon and label follow. Keep the
+   * map a constant, as for `ThemeScope`.
+   */
+  theme?: KuiTheme
+  /**
+   * The colour set this action's pill draws in, the container pair of the
+   * page's three tones, in place of the menu's. The close button keeps the
+   * menu's.
+   * @default the menu's `tone`
+   */
+  tone?: FabTone
 }
 
 type FabMenuProps = {
@@ -341,9 +366,11 @@ function FabMenuItem({
   onPointerLeave,
   onPointerUp,
   textValue,
+  theme,
+  tone: ownTone,
   ...props
 }: FabMenuItemProps & RefAttributes<HTMLDivElement>) {
-  const tone = useContext(ToneContext)
+  const menuTone = useContext(ToneContext)
   // The press ripple Menu's items draw — see MenuItem there.
   const ripple = useRipple<HTMLDivElement>(
     true,
@@ -362,7 +389,12 @@ function FabMenuItem({
       textValue={textValue ?? textOf(children)}
       {...ripple.handlers}
       {...props}
-      {...mergeStatefulStyles(itemClasses(tone), props)}
+      {...mergeStatefulStyles(
+        itemClasses(ownTone ?? menuTone, theme !== undefined),
+        theme === undefined
+          ? props
+          : { ...props, style: themed(theme, props.style) },
+      )}
     >
       {icon === undefined ? null : (
         <span {...stylex.props(fabStyles.icon, fabIconSizes.md)}>{icon}</span>
@@ -376,10 +408,11 @@ function FabMenuItem({
 // An action's classes, from React Aria's render state: the tone's container
 // pair, and the layers over it. Built by a call rather than written inline at
 // the prop, which is what react-perf's no-new-function-as-prop is after.
-function itemClasses(tone: FabTone) {
+function itemClasses(tone: FabTone, isScoped: boolean) {
   return (state: MenuItemRenderProps) =>
     stylex.props(
       styles.item,
+      isScoped && tokenScope,
       fabTones.tonal[tone],
       state.isHovered && fabStyles.hovered,
       state.isFocused && fabStyles.focused,
@@ -387,6 +420,19 @@ function itemClasses(tone: FabTone) {
       state.isPressed && fabStyles.pressed,
       state.isDisabled && styles.itemDisabled,
     )
+}
+
+// An action's style with its theme declared under the call site's own, as
+// ThemeScope declares a theme: the call site's style wins where the two set
+// the same property.
+function themed(
+  theme: KuiTheme,
+  style: StyleOrFunction<MenuItemRenderProps> | undefined,
+) {
+  return (state: MenuItemRenderProps & { defaultStyle: CSSProperties }) => ({
+    ...theme,
+    ...(typeof style === 'function' ? style(state) : style),
+  })
 }
 
 // The FAB's classes: Fab's own while the menu is closed, the close button's

@@ -11,6 +11,8 @@ import {
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { KuiTheme } from '../../theme-scope'
+
 import FabMenu from '.'
 import {
   declarationsHeld,
@@ -57,6 +59,10 @@ const probeStyles = stylex.create({
     color: colors.onPrimaryContainer,
   },
   secondary: { backgroundColor: colors.secondary, color: colors.onSecondary },
+  secondaryContainer: {
+    backgroundColor: colors.secondaryContainer,
+    color: colors.onSecondaryContainer,
+  },
   tertiary: { backgroundColor: colors.tertiary, color: colors.onTertiary },
   tertiaryContainer: {
     backgroundColor: colors.tertiaryContainer,
@@ -116,6 +122,12 @@ function Menu(props: Partial<ComponentProps<typeof FabMenu>>) {
   )
 }
 
+// A module's own primary pair, as an app hands an action its part's colours.
+const MODULE_THEME: KuiTheme = {
+  '--kui-color-on-primary-container': '#002113',
+  '--kui-color-primary-container': '#89f8c7',
+}
+
 // What a probe style resolves to in the page, with the probe torn down again.
 function resolved(style: stylex.StyleXStyles) {
   const view = render(<div data-testid="probe" {...stylex.props(style)} />)
@@ -127,6 +139,36 @@ function resolved(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return values
+}
+
+/** The FAB, its open-state change played to the end. */
+function settledFab() {
+  const fab = screen.getByRole('button', { name: 'Label' })
+  for (const animation of fab.getAnimations()) {
+    animation.finish()
+  }
+  return fab
+}
+
+// A menu whose actions each take a colour of their own, and one that keeps
+// the menu's.
+function TonedMenu() {
+  return (
+    <div {...stylex.props(frameStyles.frame)}>
+      <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+        <FabMenu.Item id="first" tone="secondary">
+          First item
+        </FabMenu.Item>
+        <FabMenu.Item id="second" tone="tertiary">
+          Second item
+        </FabMenu.Item>
+        <FabMenu.Item id="third" theme={MODULE_THEME}>
+          Third item
+        </FabMenu.Item>
+        <FabMenu.Item id="fourth">Fourth item</FabMenu.Item>
+      </FabMenu>
+    </div>
+  )
 }
 
 describe('FAB menu', () => {
@@ -298,6 +340,65 @@ describe('FAB menu', () => {
       expect(getComputedStyle(item).backgroundColor).toBe(container.background)
       expect(getComputedStyle(item).color).toBe(container.color)
       expect(getComputedStyle(fab).backgroundColor).toBe(solid.background)
+    })
+  })
+
+  describe("an action's own colours", () => {
+    it("draws an action in its own tone's container pair", () => {
+      const secondary = resolved(probeStyles.secondaryContainer)
+      const tertiary = resolved(probeStyles.tertiaryContainer)
+      render(<TonedMenu />)
+      const first = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'First item' }),
+      )
+      const second = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'Second item' }),
+      )
+
+      expect([first.backgroundColor, first.color]).toEqual([
+        secondary.background,
+        secondary.color,
+      ])
+      expect([second.backgroundColor, second.color]).toEqual([
+        tertiary.background,
+        tertiary.color,
+      ])
+    })
+
+    it("draws an action under its own theme, on that theme's container pair", () => {
+      render(<TonedMenu />)
+      const third = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'Third item' }),
+      )
+
+      expect(third.backgroundColor).toBe('rgb(137, 248, 199)')
+      expect(third.color).toBe('rgb(0, 33, 19)')
+    })
+
+    it("leaves an action with neither, and the close button, in the menu's tone", () => {
+      const container = resolved(probeStyles.primaryContainer)
+      const solid = resolved(probeStyles.primary)
+      render(<TonedMenu />)
+      const fourth = screen.getByRole('menuitem', { name: 'Fourth item' })
+
+      expect(getComputedStyle(fourth).backgroundColor).toBe(
+        container.background,
+      )
+      expect(getComputedStyle(settledFab()).backgroundColor).toBe(
+        solid.background,
+      )
+    })
+
+    // The theme is the pill's alone, so the action beside it keeps the page's.
+    it('keeps a theme to the action it is given to', () => {
+      const container = resolved(probeStyles.primaryContainer)
+      render(<TonedMenu />)
+
+      expect(
+        getComputedStyle(screen.getByRole('menuitem', { name: 'Fourth item' }))
+          .backgroundColor,
+      ).toBe(container.background)
+      expect(container.background).not.toBe('rgb(137, 248, 199)')
     })
   })
 

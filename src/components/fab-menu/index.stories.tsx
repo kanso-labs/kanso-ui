@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import * as stylex from '@stylexjs/stylex'
 
+import type { KuiTheme } from '../../theme-scope'
+
 import FabMenu from '.'
 import { spacing } from '../../tokens/design.tokens.stylex'
 
@@ -98,6 +100,31 @@ const ACTIONS = [
   </FabMenu.Item>,
 ]
 
+// A part of an app's own container pair, as an app hands one action the
+// colours of the part it opens. The pair reads the same on either scheme's
+// surface, since the label is drawn on the container rather than the page.
+const PART_THEME: KuiTheme = {
+  '--kui-color-on-primary-container': '#002113',
+  '--kui-color-primary-container': '#89f8c7',
+}
+
+// Four actions, each in a colour of its own: two of the page's other tones,
+// one under a theme of its own, and one left in the menu's.
+const TONED_ACTIONS = [
+  <FabMenu.Item icon={CIRCLE} id="first" key="first" tone="secondary">
+    First item
+  </FabMenu.Item>,
+  <FabMenu.Item icon={SQUARE} id="second" key="second" tone="tertiary">
+    Second item
+  </FabMenu.Item>,
+  <FabMenu.Item icon={TRIANGLE} id="third" key="third" theme={PART_THEME}>
+    Third item
+  </FabMenu.Item>,
+  <FabMenu.Item icon={CIRCLE} id="fourth" key="fourth">
+    Fourth item
+  </FabMenu.Item>,
+]
+
 const meta = {
   args: {
     'aria-label': 'Label',
@@ -126,6 +153,16 @@ const Open: Story = {
   parameters: { docs: { story: { height: '420px', inline: false } } },
 }
 
-export { Default, Open }
+// Each action in a colour of its own, while the close button keeps the
+// menu's tone.
+const ItemTones: Story = {
+  args: {
+    children: TONED_ACTIONS,
+    defaultOpen: true,
+  },
+  parameters: { docs: { story: { height: '420px', inline: false } } },
+}
+
+export { Default, ItemTones, Open }
 
 export default meta
