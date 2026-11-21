@@ -263,6 +263,15 @@ export {
   SheetHeader,
   SheetTitle,
 } from './sheet'
+export type {
+  SkeletonBarProps,
+  SkeletonBarSize,
+  SkeletonCircleProps,
+  SkeletonProps,
+  SkeletonRowProps,
+} from './skeleton'
+export { default as Skeleton } from './skeleton'
+export { SkeletonBar, SkeletonCircle, SkeletonRow } from './skeleton'
 export type { SliderProps, SliderSize } from './slider'
 export { default as Slider } from './slider'
 export type {
