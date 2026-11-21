@@ -1890,6 +1890,54 @@ export function SheetTitle(props: RefAttributes<HTMLHeadingElement> & SheetTitle
 export type SheetTitleProps = HeadingProps;
 
 // @public
+export function Skeleton(input: SkeletonProps): ReactElement<unknown, string | JSXElementConstructor<any>>;
+
+// @public (undocumented)
+export namespace Skeleton {
+    var // (undocumented)
+    Bar: typeof SkeletonBar;
+    var // (undocumented)
+    Circle: typeof SkeletonCircle;
+    var // (undocumented)
+    Row: typeof SkeletonRow;
+}
+
+// @public
+export function SkeletonBar(input: RefAttributes<HTMLDivElement> & SkeletonBarProps): JSX;
+
+// @public (undocumented)
+export type SkeletonBarProps = Omit<RenderComponentProps<'div'>, 'children' | 'render'> & {
+    size?: SkeletonBarSize;
+    width: number | string;
+};
+
+// @public (undocumented)
+export type SkeletonBarSize = 'lg' | 'md' | 'sm';
+
+// @public
+export function SkeletonCircle(props: RefAttributes<HTMLDivElement> & SkeletonCircleProps): JSX;
+
+// @public (undocumented)
+export type SkeletonCircleProps = Omit<RenderComponentProps<'div'>, 'children' | 'render'>;
+
+// @public (undocumented)
+export type SkeletonProps = RenderComponentProps<'div'> & {
+    'aria-label'?: string;
+    children?: ReactNode;
+};
+
+// @public
+export function SkeletonRow(input: RefAttributes<HTMLDivElement> & SkeletonRowProps): JSX;
+
+// @public (undocumented)
+export type SkeletonRowProps = Omit<RenderComponentProps<'div'>, 'render'> & {
+    children?: ReactNode;
+    leading?: ReactNode;
+    lines?: 1 | 2;
+    trailing?: ReactNode;
+};
+
+// @public
 export function Slider(input: RefAttributes<HTMLDivElement> & SliderProps): JSX;
 
 // @public (undocumented)
