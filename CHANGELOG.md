@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.50.0](https://github.com/kanso-labs/kanso-ui/compare/v0.49.0...v0.50.0) (2026-11-21)
+
+
+### Features
+
+* **app-bar:** hold a kicker over the headline ([#2288](https://github.com/kanso-labs/kanso-ui/issues/2288)) ([a654732](https://github.com/kanso-labs/kanso-ui/commit/a65473276e9a3aae3fc9f9b8bd9c1865ea407239))
+* **empty-state:** add EmptyState, for first use, inline, done and status ([#2291](https://github.com/kanso-labs/kanso-ui/issues/2291)) ([3294173](https://github.com/kanso-labs/kanso-ui/commit/3294173af5dd7ac44f95922f85d3ddb42562bf4c))
+* **fab-menu:** give each item a tone of its own ([#2293](https://github.com/kanso-labs/kanso-ui/issues/2293)) ([a9d523f](https://github.com/kanso-labs/kanso-ui/commit/a9d523fc087dabf1ce61c43a1a35476ad2e37729))
+* **skeleton:** add skeleton rows at the list's 56 and 72 heights ([#2292](https://github.com/kanso-labs/kanso-ui/issues/2292)) ([20041a7](https://github.com/kanso-labs/kanso-ui/commit/20041a7c4ebb95c0d3d4a9ff15e3201503221bfa))
+* **snackbar:** lead a failure with a warning glyph ([#2289](https://github.com/kanso-labs/kanso-ui/issues/2289)) ([d0b6eb6](https://github.com/kanso-labs/kanso-ui/commit/d0b6eb6efbb16af2d425422c84ce23bba791ddde))
+
 ## [0.49.0](https://github.com/kanso-labs/kanso-ui/compare/v0.48.4...v0.49.0) (2026-11-21)
 
 
