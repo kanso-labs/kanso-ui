@@ -191,11 +191,12 @@ export type {
 export { default as NavigationBar } from './navigation-bar'
 export { NavigationBarItem } from './navigation-bar'
 export type {
+  NavigationRailFabProps,
   NavigationRailItemProps,
   NavigationRailProps,
 } from './navigation-rail'
 export { default as NavigationRail } from './navigation-rail'
-export { NavigationRailItem } from './navigation-rail'
+export { NavigationRailFab, NavigationRailItem } from './navigation-rail'
 export type {
   NavigationTreeItemProps,
   NavigationTreeProps,

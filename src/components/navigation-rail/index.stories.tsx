@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { ReactNode } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import { useCallback, useMemo, useState } from 'react'
@@ -12,6 +13,13 @@ const styles = stylex.create({
   frame: {
     blockSize: '440px',
     display: 'flex',
+  },
+  // A collapsed and an expanded rail side by side, for the stories that show
+  // the two forms of what the rail holds at once.
+  frames: {
+    blockSize: '520px',
+    display: 'flex',
+    gap: '24px',
   },
   icon: {
     blockSize: '1em',
@@ -46,6 +54,22 @@ function MenuIcon() {
       {...stylex.props(styles.icon)}
     >
       <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      {...stylex.props(styles.icon)}
+    >
+      <path d="M12 5v14M5 12h14" />
     </svg>
   )
 }
@@ -165,6 +189,38 @@ const MENU_BUTTON = (
   </IconButton>
 )
 
+const FAB = (
+  <NavigationRail.Fab label="Label">
+    <PlusIcon />
+  </NavigationRail.Fab>
+)
+
+// The collapsed and the expanded rail with the same FAB, and the menu button
+// over it when `header` is given.
+function BothForms({ header }: { header?: ReactNode }) {
+  return (
+    <div {...stylex.props(styles.frames)}>
+      <NavigationRail
+        aria-label="Label"
+        fab={FAB}
+        header={header}
+        selectedRoute="#first"
+      >
+        {DESTINATIONS}
+      </NavigationRail>
+      <NavigationRail
+        aria-label="Second label"
+        fab={FAB}
+        header={header}
+        isExpanded
+        selectedRoute="#first"
+      >
+        {DESTINATIONS}
+      </NavigationRail>
+    </div>
+  )
+}
+
 // A rail whose header holds the menu button that expands and collapses it,
 // which is how the page has a reader move between the two forms.
 function Expandable() {
@@ -207,7 +263,10 @@ const meta = {
       <NavigationRail {...args} />
     </div>
   ),
-  subcomponents: { 'NavigationRail.Item': NavigationRail.Item },
+  subcomponents: {
+    'NavigationRail.Fab': NavigationRail.Fab,
+    'NavigationRail.Item': NavigationRail.Item,
+  },
   title: 'Components/NavigationRail',
 } satisfies Meta<typeof NavigationRail>
 
@@ -225,6 +284,24 @@ const Expanded: Story = {
 // A menu button in the header that expands the rail and collapses it.
 const WithHeader: Story = {
   render: () => <Expandable />,
+}
+
+// The screen's FAB at the top of the rail, the first destination 40dp under
+// it: the icon alone in the collapsed rail, named by its label, and the
+// extended FAB in the expanded one, its icon over the pills' icons.
+const WithFab: Story = {
+  render: () => <BothForms />,
+}
+
+// The FAB under a menu button, 4dp below it, with the first destination still
+// 40dp under the FAB.
+const WithMenuAndFab: Story = {
+  play: async ({ canvas }) => {
+    await expect(canvas.getAllByRole('button', { name: 'Label' })).toHaveLength(
+      2,
+    )
+  },
+  render: () => <BothForms header={MENU_BUTTON} />,
 }
 
 // A label with no room in the collapsed column stays on one line and ends in
@@ -269,7 +346,9 @@ export {
   LongLabel,
   ManyDestinations,
   NestedRoute,
+  WithFab,
   WithHeader,
+  WithMenuAndFab,
 }
 
 export default meta

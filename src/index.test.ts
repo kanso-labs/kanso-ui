@@ -80,6 +80,7 @@ import {
   NavigationBar as ComponentsNavigationBar,
   NavigationBarItem as ComponentsNavigationBarItem,
   NavigationRail as ComponentsNavigationRail,
+  NavigationRailFab as ComponentsNavigationRailFab,
   NavigationRailItem as ComponentsNavigationRailItem,
   NavigationTree as ComponentsNavigationTree,
   NavigationTreeItem as ComponentsNavigationTreeItem,
@@ -232,6 +233,7 @@ describe('package entry point', () => {
       'NavigationBar',
       'NavigationBarItem',
       'NavigationRail',
+      'NavigationRailFab',
       'NavigationRailItem',
       'NavigationTree',
       'NavigationTreeItem',
@@ -414,6 +416,10 @@ describe('package entry point', () => {
       ComponentsNavigationBarItem,
     ],
     NavigationRail: [publicApi.NavigationRail, ComponentsNavigationRail],
+    NavigationRailFab: [
+      publicApi.NavigationRailFab,
+      ComponentsNavigationRailFab,
+    ],
     NavigationRailItem: [
       publicApi.NavigationRailItem,
       ComponentsNavigationRailItem,
