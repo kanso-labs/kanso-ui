@@ -418,11 +418,11 @@ const ICON_BUTTON_VARIANTS = [
   'tonal',
   'filled',
 ] as const
+const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
+
 // The empty state's one button. It does nothing, since the page shows what a
 // scheme reaches rather than what pressing it would do.
 const EMPTY_STATE_ACTION = { label: 'Label', onPress: () => {} }
-
-const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
 // A meter on a scale of its own, its value written in units in the locale's
 // own figures.
@@ -1118,13 +1118,23 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
             description="The mark reads its container off the primary or the highest surface container a scheme sets, its corner off the radius scale, and the button takes the scheme's own."
             title="EmptyState"
           >
-            <EmptyState
-              action={EMPTY_STATE_ACTION}
-              description="Supporting line"
-              headingLevel={3}
-              icon={<CircleIcon />}
-              title="Headline"
-            />
+            <div {...stylex.props(styles.row)}>
+              <EmptyState
+                action={EMPTY_STATE_ACTION}
+                description="Supporting line"
+                headingLevel={3}
+                icon={<CircleIcon />}
+                title="Headline"
+              />
+              <EmptyState
+                action={EMPTY_STATE_ACTION}
+                description="Supporting line"
+                headingLevel={3}
+                icon={<CircleIcon />}
+                kind="status"
+                title="Headline"
+              />
+            </div>
           </Section>
 
           <Section

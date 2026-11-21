@@ -56,11 +56,21 @@ import Text from '../text'
 // steps of the sizing scale, and the second bounds a line of reading rather
 // than measuring anything a theme resizes.
 //
+// `size` takes `default` and `inline` rather than the library's size scale:
+// it names a layout, a screen's or a section's row, not a step of a scale,
+// and it is the name react-native-kanso-ui's EmptyState gives the same prop.
+//
+// An empty state is not announced when it replaces what was there, since one
+// drawn on a screen's first render should not be. Where removing the last
+// item or a failed load swaps one in, give it `role="status"`, or announce
+// the change through the app's own live region.
+//
 // Under forced colours the marks' fills are painted over, which leaves the
 // glyph in the system's text colour on the page, as an icon is anywhere else.
 
 const styles = stylex.create({
   action: {
+    boxSizing: 'border-box',
     marginBlockStart: spacing.xl,
   },
   // The screen layouts: centred across, 40dp under what is above.
@@ -80,6 +90,12 @@ const styles = stylex.create({
     flexShrink: 0,
     inlineSize: '24px',
   },
+  // A centred column sizes each line to its content, and a word with no break
+  // in it — a file name, an address, a long compound — would otherwise run
+  // past the container rather than breaking inside itself.
+  fitted: {
+    maxInlineSize: '100%',
+  },
   // The 40dp mark of a section's row, with its 20dp glyph.
   inlineMark: {
     alignItems: 'center',
@@ -94,8 +110,9 @@ const styles = stylex.create({
     inlineSize: sizing.controlSm,
     justifyContent: 'center',
   },
+  // The line's measure, and never wider than the room it is given.
   line: {
-    maxInlineSize: '280px',
+    maxInlineSize: 'min(280px, 100%)',
   },
   lineUnderTitle: {
     marginBlockStart: spacing.sm,
@@ -131,6 +148,7 @@ const styles = stylex.create({
 // The screen line's two placements, alone or under a title, each one stable
 // value rather than an array built at the prop.
 const lineStyles = {
+  alone: styles.line,
   underTitle: [styles.line, styles.lineUnderTitle],
 } as const
 
@@ -187,10 +205,8 @@ type EmptyStateProps = (
     })
   | {
       action?: never
-      /** The line saying the list is done. */
       description: ReactNode
       headingLevel?: never
-      /** `done` draws a check of its own. */
       icon?: never
       kind: 'done'
       size?: never
@@ -198,10 +214,8 @@ type EmptyStateProps = (
     }
   | {
       action?: never
-      /** The line saying what is empty. */
       description: ReactNode
       headingLevel?: never
-      /** The glyph in the 40dp mark, `1em` square in `currentColor`. */
       icon?: ReactNode
       kind?: 'first'
       size: 'inline'
@@ -212,9 +226,15 @@ type EmptyStateProps = (
 
 // The screen layouts' parts, which `first` and `status` share.
 type EmptyStateScreenParts = {
-  /** The one button: filled for `first`, outlined for `status`. */
+  /**
+   * The one button, filled for `first` and outlined for `status`. The row
+   * forms draw none.
+   */
   action?: EmptyStateAction
-  /** The line saying what is empty, or what can be done about it. */
+  /**
+   * The line saying what is empty, what is done, or what can be done about
+   * it. The row forms need it, since it is all they say.
+   */
   description?: ReactNode
   /**
    * Where the title sits in the page's outline, as one of the six heading
@@ -222,9 +242,13 @@ type EmptyStateScreenParts = {
    * @default 2
    */
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
-  /** The glyph in the mark, `1em` square in `currentColor`. */
+  /**
+   * The glyph in the mark, `1em` square in `currentColor`: 32dp in a screen's
+   * 64dp mark and 20dp in a section's 40dp one. `done` draws a check of its
+   * own.
+   */
   icon?: ReactNode
-  /** The title, a heading in the page's outline. */
+  /** The title, a heading in the page's outline. The row forms draw none. */
   title?: ReactNode
 }
 
@@ -290,7 +314,7 @@ function EmptyState(props: EmptyStateProps) {
     children = (
       <>
         <CheckGlyph {...stylex.props(styles.check)} />
-        <Line style={styles.rowLine}>{description}</Line>
+        <Line xstyle={styles.rowLine}>{description}</Line>
       </>
     )
   } else if (inline) {
@@ -301,7 +325,7 @@ function EmptyState(props: EmptyStateProps) {
             {icon}
           </div>
         )}
-        <Line style={styles.rowLine}>{description}</Line>
+        <Line xstyle={styles.rowLine}>{description}</Line>
       </>
     )
   } else {
@@ -319,12 +343,20 @@ function EmptyState(props: EmptyStateProps) {
           </div>
         )}
         {!hasContent(title) ? null : (
-          <Text render={heading(headingLevel)} variant="titleLarge">
+          <Text
+            render={heading(headingLevel)}
+            variant="titleLarge"
+            {...stylex.props(styles.fitted)}
+          >
             {title}
           </Text>
         )}
         {!hasContent(description) ? null : (
-          <Line style={hasContent(title) ? lineStyles.underTitle : styles.line}>
+          <Line
+            xstyle={
+              hasContent(title) ? lineStyles.underTitle : lineStyles.alone
+            }
+          >
             {description}
           </Line>
         )}
@@ -360,17 +392,17 @@ function EmptyState(props: EmptyStateProps) {
 // The line, in body medium on on surface variant, as a paragraph.
 function Line({
   children,
-  style,
+  xstyle,
 }: {
   children: ReactNode
-  style: stylex.StyleXStyles
+  xstyle: stylex.StyleXStyles
 }) {
   return (
     <Text
       render={PARAGRAPH}
       tone="muted"
       variant="bodyMedium"
-      {...stylex.props(style)}
+      {...stylex.props(xstyle)}
     >
       {children}
     </Text>

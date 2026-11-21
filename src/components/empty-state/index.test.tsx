@@ -17,6 +17,7 @@ const roleStyles = stylex.create({
 // What sits above the empty state, as a screen's bar would.
 const frameStyles = stylex.create({
   above: { blockSize: '64px' },
+  narrow: { inlineSize: '200px' },
 })
 
 function Icon() {
@@ -73,13 +74,30 @@ function firstUse() {
 }
 
 // Never rendered: each line is a form the types refuse.
+// `tsc -b` checks it, which is what fails when a line stops being refused.
 function InvalidForms() {
   return (
     <>
       {/* @ts-expect-error -- `done` draws no title */}
       <EmptyState description="Supporting line" kind="done" title="Headline" />
+      {/* @ts-expect-error -- `done` draws a check of its own */}
+      <EmptyState description="Supporting line" icon={ICON} kind="done" />
+      {/* @ts-expect-error -- `done` draws no button */}
+      <EmptyState action={ACTION} description="Supporting line" kind="done" />
+      {/* @ts-expect-error -- `done` has no heading to level */}
+      <EmptyState description="Supporting line" headingLevel={3} kind="done" />
+      {/* @ts-expect-error -- `done` is a row of one size */}
+      <EmptyState description="Supporting line" kind="done" size="inline" />
+      {/* @ts-expect-error -- `done` says what is done */}
+      <EmptyState kind="done" />
       {/* @ts-expect-error -- an inline row draws no button */}
       <EmptyState action={ACTION} description="Supporting line" size="inline" />
+      {/* @ts-expect-error -- an inline row draws no title */}
+      <EmptyState
+        description="Supporting line"
+        size="inline"
+        title="Headline"
+      />
       {/* @ts-expect-error -- `status` has no inline row */}
       <EmptyState description="Supporting line" kind="status" size="inline" />
     </>
@@ -93,6 +111,22 @@ function markOf(view: ReturnType<typeof render>) {
     throw new Error('expected the icon to sit in a mark')
   }
   return mark
+}
+
+// And the forms it takes, which must keep compiling.
+function ValidForms() {
+  return (
+    <>
+      <EmptyState
+        description="Supporting line"
+        icon={ICON}
+        kind="first"
+        size="inline"
+      />
+      <EmptyState kind="status" size="default" title="Headline" />
+      <EmptyState description="Supporting line" kind="done" />
+    </>
+  )
 }
 
 describe('empty state', () => {
@@ -154,9 +188,76 @@ describe('empty state', () => {
         />,
       )
 
-      view.getByRole('button', { name: 'Label' }).click()
+      const button = view.getByRole('button', { name: 'Label' })
+      button.click()
       expect(onActionPress).toHaveBeenCalledOnce()
       expect(view.getAllByRole('button')).toHaveLength(1)
+      // Filled: the primary role as its container, where outlined has none.
+      expect(getComputedStyle(button).backgroundColor).toBe(
+        roleOf('primary').color,
+      )
+    })
+
+    it('draws nothing for a slot handed false, null or an empty string', () => {
+      const view = render(
+        <EmptyState
+          data-testid="state"
+          description=""
+          icon={false}
+          title={null}
+        />,
+      )
+      const state = view.getByTestId('state')
+
+      expect(state.querySelector('[aria-hidden="true"]')).toBeNull()
+      expect(view.queryByRole('heading')).toBeNull()
+      expect(state.querySelector('p')).toBeNull()
+    })
+
+    it('drops the 8dp over the line when there is no title', () => {
+      const view = render(
+        <EmptyState data-testid="state" description="Supporting line" />,
+      )
+      const line = view.getByText('Supporting line')
+
+      expect(getComputedStyle(line).marginBlockStart).toBe('0px')
+      expect(boxOf(line).top - boxOf(view.getByTestId('state')).top).toBe(40)
+    })
+
+    // A value from a call site the type does not reach still draws a heading.
+    it.each([Number.NaN, 0, 2.5, 9])(
+      'falls back to an h2 for a level of %s',
+      (level) => {
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the untyped call site under test
+        const untyped = level as 2
+        const view = render(
+          <EmptyState headingLevel={untyped} title="Headline" />,
+        )
+
+        expect(
+          view.getByRole('heading', { level: 2, name: 'Headline' }),
+        ).toBeVisible()
+      },
+    )
+
+    // A centred column sizes each line to its content, so a word with no
+    // break in it ran past the container rather than breaking.
+    it('keeps a long unbroken title and line inside a narrow container', () => {
+      const word = 'Unterstützungszeilenüberschrift'.repeat(2)
+      const view = render(
+        <div {...stylex.props(frameStyles.narrow)}>
+          <EmptyState data-testid="state" description={word} title={word} />
+        </div>,
+      )
+      const state = boxOf(view.getByTestId('state'))
+
+      for (const element of [
+        view.getByRole('heading'),
+        view.getByText(word, { selector: 'p' }),
+      ]) {
+        expect(boxOf(element).right).toBeLessThanOrEqual(state.right)
+        expect(boxOf(element).left).toBeGreaterThanOrEqual(state.left)
+      }
     })
 
     it('draws the button as a link where it has somewhere to go', () => {
@@ -262,6 +363,9 @@ describe('empty state', () => {
   // Each form's props are its own, so a part a layout does not draw is a
   // compile error rather than something quietly left out.
   it('takes only the parts each form draws', () => {
-    expect(typeof InvalidForms).toBe('function')
+    expect([typeof InvalidForms, typeof ValidForms]).toEqual([
+      'function',
+      'function',
+    ])
   })
 })

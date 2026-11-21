@@ -49,7 +49,8 @@ const noop = () => {}
 const ACTION = { label: 'Label', onPress: noop }
 
 // A module's own colours, as an app hands a section of itself through
-// ThemeScope: the mark and the button take the scope's primary.
+// ThemeScope: the mark and the button take the scope's primary. A light map,
+// so the scope is pinned to the light scheme it was made for.
 const MODULE_THEME: KuiTheme = {
   '--kui-color-on-primary': '#ffffff',
   '--kui-color-on-primary-container': '#002113',
@@ -104,13 +105,22 @@ const Rows: Story = {
   ),
 }
 
-// Inside a module's own theme scope, where the mark and the button take the
-// module's primary rather than the app's.
+// Inside a module's own theme scope, where the mark, the check and the
+// button take the module's primary rather than the app's, and `status` keeps
+// its neutral mark. The scope pins its own scheme, so the story is the same
+// in both modes and is snapshotted once.
 const InAScope: Story = {
+  parameters: { chromatic: { modes: { dark: { disable: true } } } },
   render: (args) => (
-    <ThemeScope theme={MODULE_THEME}>
+    <ThemeScope scheme="light" theme={MODULE_THEME}>
       <div {...stylex.props(styles.screen)}>
         <EmptyState {...args} />
+        <EmptyState
+          {...args}
+          description="Supporting line that says what went wrong"
+          headingLevel={3}
+          kind="status"
+        />
         <EmptyState description="Supporting line" icon={ICON} size="inline" />
         <EmptyState description="Supporting line" kind="done" />
       </div>
