@@ -867,6 +867,8 @@ export type FabMenuItemProps = Omit<MenuItemProps_2, 'children' | 'className' | 
     className?: ClassNameOrFunction<MenuItemRenderProps>;
     icon?: ReactNode;
     style?: StyleOrFunction<MenuItemRenderProps>;
+    theme?: KuiTheme;
+    tone?: FabTone;
 };
 
 // @public (undocumented)

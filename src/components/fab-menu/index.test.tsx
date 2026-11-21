@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import {
@@ -11,11 +11,14 @@ import {
 import { I18nProvider } from 'react-aria-components'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { KuiTheme } from '../../theme-scope'
+
 import FabMenu from '.'
 import {
   declarationsHeld,
   reducedMotionOf,
 } from '../../styles/stylesheet.testing'
+import { ThemeScope } from '../../theme-scope'
 import {
   colorDefaultsDarkTheme,
   colorDefaultsLightTheme,
@@ -57,6 +60,11 @@ const probeStyles = stylex.create({
     color: colors.onPrimaryContainer,
   },
   secondary: { backgroundColor: colors.secondary, color: colors.onSecondary },
+  secondaryContainer: {
+    backgroundColor: colors.secondaryContainer,
+    color: colors.onSecondaryContainer,
+  },
+  surface: { backgroundColor: colors.surface },
   tertiary: { backgroundColor: colors.tertiary, color: colors.onTertiary },
   tertiaryContainer: {
     backgroundColor: colors.tertiaryContainer,
@@ -116,6 +124,13 @@ function Menu(props: Partial<ComponentProps<typeof FabMenu>>) {
   )
 }
 
+// The primary pair of one part of an app, as an app hands one action its
+// colours.
+const PART_THEME: KuiTheme = {
+  '--kui-color-on-primary-container': '#002113',
+  '--kui-color-primary-container': '#89f8c7',
+}
+
 // What a probe style resolves to in the page, with the probe torn down again.
 function resolved(style: stylex.StyleXStyles) {
   const view = render(<div data-testid="probe" {...stylex.props(style)} />)
@@ -127,6 +142,51 @@ function resolved(style: stylex.StyleXStyles) {
   }
   view.unmount()
   return values
+}
+
+/** The FAB, its open-state change played to the end. */
+function settledFab() {
+  const fab = screen.getByRole('button', { name: 'Label' })
+  for (const animation of fab.getAnimations()) {
+    animation.finish()
+  }
+  return fab
+}
+
+// The secondary pair stated by a theme, for an action whose tone is secondary.
+const SECONDARY_THEME: KuiTheme = {
+  '--kui-color-on-secondary-container': '#002113',
+  '--kui-color-secondary-container': '#89f8c7',
+}
+
+const Z_INDEX = { zIndex: 3 }
+// The primary container stated by an action's own style, over its theme's.
+const OVERRIDE_PROPERTY: string = '--kui-color-primary-container'
+const OVERRIDE: CSSProperties = { [OVERRIDE_PROPERTY]: '#005139' }
+
+// A menu whose actions each take a colour of their own, and one that keeps
+// the menu's.
+function TonedMenu() {
+  return (
+    <div {...stylex.props(frameStyles.frame)}>
+      <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+        <FabMenu.Item id="first" tone="secondary">
+          First item
+        </FabMenu.Item>
+        <FabMenu.Item id="second" tone="tertiary">
+          Second item
+        </FabMenu.Item>
+        <FabMenu.Item id="third" theme={PART_THEME}>
+          Third item
+        </FabMenu.Item>
+        <FabMenu.Item id="fourth">Fourth item</FabMenu.Item>
+      </FabMenu>
+    </div>
+  )
+}
+
+function zIndexOf() {
+  return { zIndex: 4 }
 }
 
 describe('FAB menu', () => {
@@ -206,10 +266,7 @@ describe('FAB menu', () => {
     it('becomes the 56px close button in the tone itself while open', () => {
       const solid = resolved(probeStyles.primary)
       render(<Menu defaultOpen size="lg" />)
-      const fab = screen.getByRole('button', { name: 'Label' })
-      for (const animation of fab.getAnimations()) {
-        animation.finish()
-      }
+      const fab = settledFab()
       const box = fab.getBoundingClientRect()
       const style = getComputedStyle(fab)
 
@@ -289,15 +346,171 @@ describe('FAB menu', () => {
       const container = resolved(probeStyles.tertiaryContainer)
       const solid = resolved(probeStyles.tertiary)
       render(<Menu defaultOpen tone="tertiary" />)
-      const fab = screen.getByRole('button', { name: 'Label' })
-      for (const animation of fab.getAnimations()) {
-        animation.finish()
-      }
+      const fab = settledFab()
       const item = screen.getByRole('menuitem', { name: 'First item' })
 
       expect(getComputedStyle(item).backgroundColor).toBe(container.background)
       expect(getComputedStyle(item).color).toBe(container.color)
       expect(getComputedStyle(fab).backgroundColor).toBe(solid.background)
+    })
+  })
+
+  describe("an action's own colours", () => {
+    it("draws an action in its own tone's container pair", () => {
+      const secondary = resolved(probeStyles.secondaryContainer)
+      const tertiary = resolved(probeStyles.tertiaryContainer)
+      render(<TonedMenu />)
+      const first = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'First item' }),
+      )
+      const second = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'Second item' }),
+      )
+
+      expect([first.backgroundColor, first.color]).toEqual([
+        secondary.background,
+        secondary.color,
+      ])
+      expect([second.backgroundColor, second.color]).toEqual([
+        tertiary.background,
+        tertiary.color,
+      ])
+    })
+
+    it("draws an action under its own theme, on that theme's container pair", () => {
+      render(<TonedMenu />)
+      const third = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'Third item' }),
+      )
+
+      expect(third.backgroundColor).toBe('rgb(137, 248, 199)')
+      expect(third.color).toBe('rgb(0, 33, 19)')
+    })
+
+    it("leaves an action with neither, and the close button, in the menu's tone", () => {
+      const container = resolved(probeStyles.primaryContainer)
+      const solid = resolved(probeStyles.primary)
+      render(<TonedMenu />)
+      const fourth = screen.getByRole('menuitem', { name: 'Fourth item' })
+
+      expect(getComputedStyle(fourth).backgroundColor).toBe(
+        container.background,
+      )
+      expect(getComputedStyle(settledFab()).backgroundColor).toBe(
+        solid.background,
+      )
+    })
+
+    // A theme supplies the pair a tone reads, so the two work together.
+    it("reads an action's own tone out of its own theme", () => {
+      render(
+        <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+          <FabMenu.Item id="first" theme={SECONDARY_THEME} tone="secondary">
+            First item
+          </FabMenu.Item>
+        </FabMenu>,
+      )
+      const item = getComputedStyle(
+        screen.getByRole('menuitem', { name: 'First item' }),
+      )
+
+      expect(item.backgroundColor).toBe('rgb(137, 248, 199)')
+      expect(item.color).toBe('rgb(0, 33, 19)')
+    })
+
+    // The tokens are resolved again on the pill, from the scheme around it:
+    // a theme naming one pair leaves every other role in that scheme.
+    it('keeps the scheme around the menu for what a theme leaves alone', () => {
+      const darkProbe = render(
+        <ThemeScope scheme="dark">
+          <span data-testid="dark" {...stylex.props(probeStyles.surface)} />
+        </ThemeScope>,
+      )
+      const darkSurface = getComputedStyle(
+        darkProbe.getByTestId('dark'),
+      ).backgroundColor
+      darkProbe.unmount()
+      render(
+        <ThemeScope scheme="dark">
+          <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+            <FabMenu.Item id="first" theme={PART_THEME}>
+              First item
+            </FabMenu.Item>
+          </FabMenu>
+        </ThemeScope>,
+      )
+      const item = screen.getByRole('menuitem', { name: 'First item' })
+      const probe = document.createElement('span')
+      probe.className = stylex.props(probeStyles.surface).className ?? ''
+      item.append(probe)
+
+      expect(getComputedStyle(item).backgroundColor).toBe('rgb(137, 248, 199)')
+      expect(getComputedStyle(probe).backgroundColor).toBe(darkSurface)
+      probe.remove()
+    })
+
+    it('draws a disabled action as disabled, whatever its tone or theme', () => {
+      render(
+        <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+          <FabMenu.Item
+            id="first"
+            isDisabled
+            theme={SECONDARY_THEME}
+            tone="secondary"
+          >
+            First item
+          </FabMenu.Item>
+        </FabMenu>,
+      )
+      const item = screen.getByRole('menuitem', { name: 'First item' })
+
+      expect(item).toHaveAttribute('aria-disabled', 'true')
+      expect(getComputedStyle(item).backgroundColor).not.toBe(
+        'rgb(137, 248, 199)',
+      )
+    })
+
+    // As ThemeScope declares a theme, the call site's own style wins.
+    it("lets an action's style override its theme", () => {
+      render(
+        <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+          <FabMenu.Item id="first" style={OVERRIDE} theme={PART_THEME}>
+            First item
+          </FabMenu.Item>
+        </FabMenu>,
+      )
+
+      expect(
+        getComputedStyle(screen.getByRole('menuitem', { name: 'First item' }))
+          .backgroundColor,
+      ).toBe('rgb(0, 81, 57)')
+    })
+
+    it("keeps a themed action's own className and style, in either form", () => {
+      render(
+        <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+          <FabMenu.Item
+            className="first"
+            id="first"
+            style={Z_INDEX}
+            theme={PART_THEME}
+          >
+            First item
+          </FabMenu.Item>
+          <FabMenu.Item id="second" style={zIndexOf} theme={PART_THEME}>
+            Second item
+          </FabMenu.Item>
+        </FabMenu>,
+      )
+      const first = screen.getByRole('menuitem', { name: 'First item' })
+      const second = screen.getByRole('menuitem', { name: 'Second item' })
+
+      expect(first).toHaveClass('first')
+      expect(first.style.zIndex).toBe('3')
+      expect(second.style.zIndex).toBe('4')
+      expect(
+        first.style.getPropertyValue('--kui-color-primary-container'),
+      ).toBe('#89f8c7')
     })
   })
 
