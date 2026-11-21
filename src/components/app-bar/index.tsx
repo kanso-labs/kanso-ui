@@ -497,6 +497,14 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    */
   headline?: ReactNode
   /**
+   * A line over the headline in `md` and `lg`, in label medium on on surface
+   * variant, naming where the screen sits — the parent a detail screen opened
+   * from, say, which it may hold as a link back there. Makes the bar taller
+   * by its line, and goes as the bar collapses, leaving the headline alone.
+   * `sm` draws none.
+   */
+  kicker?: ReactNode
+  /**
    * Usually a back or menu icon button. Sits before the text, and a standard
    * icon button here draws its icon in on surface, the colour the page gives
    * a bar's leading icon, rather than its own on surface variant.
@@ -530,14 +538,6 @@ type AppBarProps = Omit<RenderComponentProps<'header'>, 'children'> & {
    * @default 'sm'
    */
   size?: 'lg' | 'md' | 'sm'
-  /**
-   * A line over the headline in `md` and `lg`, in label medium on on surface
-   * variant, naming where the screen sits — the parent a detail screen opened
-   * from, say, which it may hold as a link back there. Makes the bar taller
-   * by its line, and goes as the bar collapses, leaving the headline alone.
-   * `sm` draws none.
-   */
-  kicker?: ReactNode
   /** A second line under the headline. Makes `md` and `lg` taller. */
   subtitle?: ReactNode
   /** Actions, at the far end. Usually icon buttons. */

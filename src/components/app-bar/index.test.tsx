@@ -532,14 +532,16 @@ describe('headline', () => {
   )
 })
 
-describe('kicker', () => {
-  const BACK = (
-    <IconButton aria-label="Back">
-      <svg aria-hidden="true" />
-    </IconButton>
-  )
-  const PARENT = <a href="#parent">Parent</a>
+// Hoisted so each is one stable element per render, which is what
+// react-perf's no-jsx-as-prop is after.
+const KICKER_BACK = (
+  <IconButton aria-label="Back">
+    <svg aria-hidden="true" />
+  </IconButton>
+)
+const KICKER_PARENT = <a href="#parent">Parent</a>
 
+describe('kicker', () => {
   it.each(['md', 'lg'] as const)(
     'draws a kicker over the %s headline, in label medium on on surface variant',
     (size) => {
@@ -561,40 +563,46 @@ describe('kicker', () => {
 
   // The flexible bars hug their text, so the kicker's 16px line is added to
   // either of their heights.
-  it.each(['md', 'lg'] as const)('makes the %s bar taller by its line', (size) => {
-    for (const subtitle of [undefined, 'Supporting line']) {
-      const view = render(
-        <AppBar
-          headline="Headline"
-          kicker="Kicker"
-          size={size}
-          subtitle={subtitle}
-        />,
-      )
-      const bar = barIn(view.container)
-      const expected =
-        (subtitle === undefined
-          ? HEIGHTS[size].plain
-          : HEIGHTS[size].withSubtitle) + 16
+  it.each(['md', 'lg'] as const)(
+    'makes the %s bar taller by its line',
+    (size) => {
+      for (const subtitle of [undefined, 'Supporting line']) {
+        const view = render(
+          <AppBar
+            headline="Headline"
+            kicker="Kicker"
+            size={size}
+            subtitle={subtitle}
+          />,
+        )
+        const bar = barIn(view.container)
+        const expected =
+          (subtitle === undefined
+            ? HEIGHTS[size].plain
+            : HEIGHTS[size].withSubtitle) + 16
 
-      expect(minHeightOf(bar)).toBe(expected)
-      expect(bar.getBoundingClientRect().height).toBe(expected)
-      view.unmount()
-    }
-  })
+        expect(minHeightOf(bar)).toBe(expected)
+        expect(bar.getBoundingClientRect().height).toBe(expected)
+        view.unmount()
+      }
+    },
+  )
 
   // The headline keeps its baseline above the bar's edge, and the kicker
   // sits clear of the strip's icon button targets.
   it('keeps the headline on its baseline and the kicker under the targets', () => {
     const view = render(
-      <AppBar headline="Headline" kicker="Kicker" leading={BACK} size="md" />,
+      <AppBar
+        headline="Headline"
+        kicker="Kicker"
+        leading={KICKER_BACK}
+        size="md"
+      />,
     )
     const bar = barIn(view.container).getBoundingClientRect()
     const kicker = view.getByText('Kicker').getBoundingClientRect()
 
-    expect(kicker.top - bar.top).toBeGreaterThanOrEqual(
-      (STRIP + TARGET) / 2,
-    )
+    expect(kicker.top - bar.top).toBeGreaterThanOrEqual((STRIP + TARGET) / 2)
   })
 
   it('stays out of the heading, which keeps the headline as the name', () => {
@@ -609,7 +617,7 @@ describe('kicker', () => {
 
   it('holds a link back to the parent', () => {
     const view = render(
-      <AppBar headline="Headline" kicker={PARENT} size="md" />,
+      <AppBar headline="Headline" kicker={KICKER_PARENT} size="md" />,
     )
     const link = view.getByRole('link', { name: 'Parent' })
 

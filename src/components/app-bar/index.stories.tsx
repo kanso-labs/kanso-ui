@@ -13,6 +13,7 @@ import {
 import { colors, radii, spacing } from '../../tokens/design.tokens.stylex'
 import Container from '../container'
 import IconButton from '../icon-button'
+import Link from '../link'
 import Text from '../text'
 
 // The measure the page under the bar runs at, and the gutter Container pads
@@ -106,6 +107,9 @@ const LEADING = (
 )
 
 // One German word, as wide as a headline gets without a space to break at.
+// A kicker naming the parent a detail screen opened from, as a link back.
+const PARENT = <Link href="#parent">Parent</Link>
+
 const LONG_WORD = 'Unterstützungszeilenüberschrift'
 
 const TRAILING = (
@@ -269,9 +273,10 @@ const meta = {
     scrolled: false,
     trailing: TRAILING,
   },
-  // A node, which Controls cannot write in general, but a subtitle is a line
-  // of text.
+  // Nodes, which Controls cannot write in general, but a kicker and a
+  // subtitle are each a line of text.
   argTypes: {
+    kicker: { control: 'text' },
     subtitle: { control: 'text' },
   },
   component: AppBar,
@@ -324,6 +329,58 @@ const Sizes: Story = {
           leading={LEADING}
           size="lg"
           subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+      </section>
+    </div>
+  ),
+}
+
+// A line over the headline in the flexible sizes, as text and as a link back
+// to the parent screen, each bar growing by its line, and a collapsed bar,
+// which drops it and keeps the headline alone.
+const Kicker: Story = {
+  render: () => (
+    <div {...stylex.props(styles.stack)}>
+      <Sample
+        headline="Headline"
+        kicker="Kicker"
+        label="md, with a kicker"
+        leading={LEADING}
+        size="md"
+        trailing={TRAILING}
+      />
+      {/* Sections, so each bar after the first heads its own content rather
+          than adding a banner landmark to the page. */}
+      <section>
+        <Sample
+          headline="Headline"
+          kicker="Kicker"
+          label="lg, with a kicker and a subtitle"
+          leading={LEADING}
+          size="lg"
+          subtitle="Supporting line"
+          trailing={TRAILING}
+        />
+      </section>
+      <section>
+        <Sample
+          headline="Headline"
+          kicker={PARENT}
+          label="md, a kicker holding a link"
+          leading={LEADING}
+          size="md"
+          trailing={TRAILING}
+        />
+      </section>
+      <section>
+        <Sample
+          collapsed
+          headline="Headline"
+          kicker="Kicker"
+          label="md, collapsed"
+          leading={LEADING}
+          size="md"
           trailing={TRAILING}
         />
       </section>
@@ -581,6 +638,7 @@ export {
   Collapsing,
   Default,
   HeadingLevel,
+  Kicker,
   Large,
   LongHeadline,
   PageAlignment,
