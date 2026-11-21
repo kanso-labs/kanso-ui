@@ -63,6 +63,7 @@ import Dialog from '../components/dialog'
 import Disclosure from '../components/disclosure'
 import DisclosureGroup from '../components/disclosure-group'
 import DropZone, { FileTrigger } from '../components/drop-zone'
+import EmptyState from '../components/empty-state'
 import Fab from '../components/fab'
 import FabMenu from '../components/fab-menu'
 import Feed from '../components/feed'
@@ -417,6 +418,10 @@ const ICON_BUTTON_VARIANTS = [
   'tonal',
   'filled',
 ] as const
+// The empty state's one button. It does nothing, since the page shows what a
+// scheme reaches rather than what pressing it would do.
+const EMPTY_STATE_ACTION = { label: 'Label', onPress: () => {} }
+
 const ICON_BUTTON_SIZES = ['xs', 'md', 'lg', 'xl', 'xxl'] as const
 
 // A meter on a scale of its own, its value written in units in the locale's
@@ -1107,6 +1112,19 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
                 <Button variant="outlined">Label</Button>
               </FileTrigger>
             </DropZone>
+          </Section>
+
+          <Section
+            description="The mark reads its container off the primary or the highest surface container a scheme sets, its corner off the radius scale, and the button takes the scheme's own."
+            title="EmptyState"
+          >
+            <EmptyState
+              action={EMPTY_STATE_ACTION}
+              description="Supporting line"
+              headingLevel={3}
+              icon={<CircleIcon />}
+              title="Headline"
+            />
           </Section>
 
           <Section

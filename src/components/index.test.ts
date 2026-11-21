@@ -159,6 +159,12 @@ import type {
   CarouselLayout,
   CarouselProps,
 } from './carousel'
+import type {
+  EmptyStateAction,
+  EmptyStateKind,
+  EmptyStateProps,
+  EmptyStateSize,
+} from './empty-state'
 import type { FabProps } from './fab'
 import type { FabMenuItemProps, FabMenuProps } from './fab-menu'
 import type { LoadingIndicatorProps } from './loading-indicator'
@@ -222,6 +228,7 @@ import DisclosureDefault, {
 } from './disclosure'
 import DisclosureGroupDefault from './disclosure-group'
 import DropZoneDefault, { FileTrigger as FileTriggerNamed } from './drop-zone'
+import EmptyStateDefault from './empty-state'
 import FabDefault from './fab'
 import FabMenuDefault, { FabMenuItem } from './fab-menu'
 import FeedDefault from './feed'
@@ -416,6 +423,7 @@ describe('components barrel', () => {
       'DisclosureHeader',
       'DisclosurePanel',
       'DropZone',
+      'EmptyState',
       'Fab',
       'FabMenu',
       'FabMenuItem',
@@ -570,6 +578,7 @@ describe('components barrel', () => {
     DisclosureHeader: [components.DisclosureHeader, DisclosureHeader],
     DisclosurePanel: [components.DisclosurePanel, DisclosurePanel],
     DropZone: [components.DropZone, DropZoneDefault],
+    EmptyState: [components.EmptyState, EmptyStateDefault],
     Fab: [components.Fab, FabDefault],
     FabMenu: [components.FabMenu, FabMenuDefault],
     FabMenuItem: [components.FabMenuItem, FabMenuItem],
@@ -1559,6 +1568,26 @@ describe('components barrel', () => {
   it('re-exports the LoadingIndicatorProps type', () => {
     const props: LoadingIndicatorProps = { contained: true }
     expect(props.contained).toBe(true)
+  })
+
+  it('re-exports the EmptyStateProps type', () => {
+    const props: EmptyStateProps = { title: 'test' }
+    expect(props.title).toBe('test')
+  })
+
+  it('re-exports the EmptyStateAction type', () => {
+    const action: EmptyStateAction = { label: 'test' }
+    expect(action.label).toBe('test')
+  })
+
+  it('re-exports the EmptyStateKind type', () => {
+    const kind: EmptyStateKind = 'done'
+    expect(kind).toBe('done')
+  })
+
+  it('re-exports the EmptyStateSize type', () => {
+    const size: EmptyStateSize = 'inline'
+    expect(size).toBe('inline')
   })
 
   it('re-exports the TimePickerMode type', () => {

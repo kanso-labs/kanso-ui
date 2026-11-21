@@ -38,6 +38,7 @@ import {
   Disclosure,
   DisclosureGroup,
   DropZone,
+  EmptyState,
   Fab,
   FabMenu,
   Feed,
@@ -364,6 +365,10 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
   {
     element: <DropZone {...PROBE} label="Drop here" />,
     name: 'DropZone',
+  },
+  {
+    element: <EmptyState {...PROBE} title="Headline" />,
+    name: 'EmptyState',
   },
   { element: <Fab {...PROBE}>Label</Fab>, name: 'Fab' },
   // The class, the style and the ref all land on the FAB, which is what a

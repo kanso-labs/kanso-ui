@@ -122,6 +122,13 @@ export type { DisclosureGroupProps } from './disclosure-group'
 export { default as DisclosureGroup } from './disclosure-group'
 export type { DropZoneProps, FileTriggerProps } from './drop-zone'
 export { default as DropZone, FileTrigger } from './drop-zone'
+export type {
+  EmptyStateAction,
+  EmptyStateKind,
+  EmptyStateProps,
+  EmptyStateSize,
+} from './empty-state'
+export { default as EmptyState } from './empty-state'
 export type { FabProps, FabSize, FabTone, FabVariant } from './fab'
 export { default as Fab } from './fab'
 export type { FabMenuItemProps, FabMenuProps } from './fab-menu'
