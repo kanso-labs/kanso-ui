@@ -14,11 +14,12 @@ import Text from '../text'
 // story shows is only what a press added, at the duration it was added with.
 const messages = new Snackbar.Queue()
 
-// Two sample actions. Their handlers do nothing, since what a story shows is
+// Three sample actions. Their handlers do nothing, since what a story shows is
 // the snackbar rather than what pressing it would do.
 const noop = () => {}
 const UNDO = { label: 'Undo', onPress: noop }
 const RETRY = { label: 'Retry', onPress: noop }
+const TRY_AGAIN = { label: 'Try again', onPress: noop }
 
 function clear() {
   messages.clear()
@@ -73,6 +74,19 @@ const Default: Story = {
 
 const WithAction: Story = {
   args: { queue: seeded({ action: UNDO }) },
+  parameters: { docs: { story: { height: '240px', inline: false } } },
+}
+
+// A failure, led by the warning glyph in the inverse error, so it does not
+// read as the confirmation WithAction draws with its Undo. The page holds one
+// snackbar at a time, so the two are a story each.
+const Failure: Story = {
+  args: {
+    queue: seeded(
+      { action: TRY_AGAIN, tone: 'failure' },
+      'First item could not be saved',
+    ),
+  },
   parameters: { docs: { story: { height: '240px', inline: false } } },
 }
 
@@ -155,6 +169,15 @@ const OnDemand: Story = {
         >
           Show both
         </Button>
+        <Button
+          onPress={show('Third item could not be saved', {
+            action: TRY_AGAIN,
+            tone: 'failure',
+          })}
+          variant="tonal"
+        >
+          Show a failure
+        </Button>
         <Button onPress={clear} variant="text">
           Clear
         </Button>
@@ -209,6 +232,7 @@ const OverAFullScreenDialog: Story = {
 
 export {
   Default,
+  Failure,
   LongAction,
   LongWord,
   OnDemand,
