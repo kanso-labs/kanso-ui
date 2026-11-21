@@ -952,6 +952,7 @@ export type KuiTheme = {
     readonly '--kui-color-background'?: string;
     readonly '--kui-color-error'?: string;
     readonly '--kui-color-error-container'?: string;
+    readonly '--kui-color-inverse-error'?: string;
     readonly '--kui-color-inverse-on-surface'?: string;
     readonly '--kui-color-inverse-primary'?: string;
     readonly '--kui-color-inverse-surface'?: string;
