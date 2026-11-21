@@ -100,9 +100,11 @@ const ACTIONS = [
   </FabMenu.Item>,
 ]
 
-// A part of an app's own container pair, as an app hands one action the
+// The container pair of one part of an app, as an app hands one action the
 // colours of the part it opens: a map per scheme, as ThemeScope's own docs
-// ask, the story taking the one for the scheme in the toolbar.
+// ask, the story taking the one for the scheme in the toolbar. The demo
+// schemes take the light map, which states both colours of its pair and so
+// reads on any of them.
 const PART_THEMES: Record<'dark' | 'light', KuiTheme> = {
   dark: {
     '--kui-color-on-primary-container': '#89f8c7',

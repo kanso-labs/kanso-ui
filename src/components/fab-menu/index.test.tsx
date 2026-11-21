@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 
 import * as stylex from '@stylexjs/stylex'
 import {
@@ -124,7 +124,8 @@ function Menu(props: Partial<ComponentProps<typeof FabMenu>>) {
   )
 }
 
-// A part of an app's own primary pair, as an app hands one action its colours.
+// The primary pair of one part of an app, as an app hands one action its
+// colours.
 const PART_THEME: KuiTheme = {
   '--kui-color-on-primary-container': '#002113',
   '--kui-color-primary-container': '#89f8c7',
@@ -159,6 +160,9 @@ const SECONDARY_THEME: KuiTheme = {
 }
 
 const Z_INDEX = { zIndex: 3 }
+// The primary container stated by an action's own style, over its theme's.
+const OVERRIDE_PROPERTY: string = '--kui-color-primary-container'
+const OVERRIDE: CSSProperties = { [OVERRIDE_PROPERTY]: '#005139' }
 
 // A menu whose actions each take a colour of their own, and one that keeps
 // the menu's.
@@ -262,10 +266,7 @@ describe('FAB menu', () => {
     it('becomes the 56px close button in the tone itself while open', () => {
       const solid = resolved(probeStyles.primary)
       render(<Menu defaultOpen size="lg" />)
-      const fab = screen.getByRole('button', { name: 'Label' })
-      for (const animation of fab.getAnimations()) {
-        animation.finish()
-      }
+      const fab = settledFab()
       const box = fab.getBoundingClientRect()
       const style = getComputedStyle(fab)
 
@@ -345,10 +346,7 @@ describe('FAB menu', () => {
       const container = resolved(probeStyles.tertiaryContainer)
       const solid = resolved(probeStyles.tertiary)
       render(<Menu defaultOpen tone="tertiary" />)
-      const fab = screen.getByRole('button', { name: 'Label' })
-      for (const animation of fab.getAnimations()) {
-        animation.finish()
-      }
+      const fab = settledFab()
       const item = screen.getByRole('menuitem', { name: 'First item' })
 
       expect(getComputedStyle(item).backgroundColor).toBe(container.background)
@@ -457,7 +455,7 @@ describe('FAB menu', () => {
           <FabMenu.Item
             id="first"
             isDisabled
-            theme={PART_THEME}
+            theme={SECONDARY_THEME}
             tone="secondary"
           >
             First item
@@ -470,6 +468,22 @@ describe('FAB menu', () => {
       expect(getComputedStyle(item).backgroundColor).not.toBe(
         'rgb(137, 248, 199)',
       )
+    })
+
+    // As ThemeScope declares a theme, the call site's own style wins.
+    it("lets an action's style override its theme", () => {
+      render(
+        <FabMenu aria-label="Label" defaultOpen icon={ICON}>
+          <FabMenu.Item id="first" style={OVERRIDE} theme={PART_THEME}>
+            First item
+          </FabMenu.Item>
+        </FabMenu>,
+      )
+
+      expect(
+        getComputedStyle(screen.getByRole('menuitem', { name: 'First item' }))
+          .backgroundColor,
+      ).toBe('rgb(0, 81, 57)')
     })
 
     it("keeps a themed action's own className and style, in either form", () => {
