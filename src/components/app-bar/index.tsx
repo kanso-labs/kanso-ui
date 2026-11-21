@@ -74,9 +74,13 @@ import Text from '../text'
 // it fades back in as the bar expands. It stays outside the heading, so the
 // headline is still the bar's name. The small bar draws none.
 //
-// A link in it is as tall as its line. The line sits directly under the
-// slots' 48dp targets, so a larger target around the link would take presses
-// meant for the back button above it.
+// A link in it is pressed on its own line, 16dp tall, short of the 44dp the
+// design gives a parent link. The link is the call site's element, and
+// nothing here can draw a larger target around it: the bar's styles reach the
+// kicker's line and not what it holds. React Native's bar, which can, gives
+// the link 16dp more above and below and stacks the slots over it, so the
+// icon buttons keep their targets where the two meet. A focused link goes
+// with the kicker as the bar collapses, and focus with it.
 //
 // The slots set the colours the page gives their icons: on surface for the
 // leading one and on surface variant for the trailing ones. The second is a
@@ -581,8 +585,9 @@ type Line = { size: number; x: number; y: number }
  *
  * Three sizes. `sm` is a fixed 64px bar for a page whose title is a label;
  * `md` and `lg` are the flexible bars, which give the headline a larger
- * type role in a row of its own under the slots, and grow to fit a subtitle
- * or a headline that wraps.
+ * type role in a row of its own under the slots, with a kicker over it where
+ * one is given, and grow to fit a kicker, a subtitle or a headline that
+ * wraps.
  *
  * It paints its own surface, unlike the layout components, because separating
  * itself from the content beneath is the job — which is also why `scrolled`
