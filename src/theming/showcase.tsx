@@ -93,6 +93,7 @@ import SegmentedButton from '../components/segmented-button'
 import Select from '../components/select'
 import Separator from '../components/separator'
 import Sheet from '../components/sheet'
+import Skeleton from '../components/skeleton'
 import Slider from '../components/slider'
 import Snackbar from '../components/snackbar'
 import SplitButton from '../components/split-button'
@@ -1706,6 +1707,23 @@ function ShowcasePage({ name }: Pick<ShowcaseProps, 'name'>) {
                 </Sheet.Content>
               </Sheet>
             </div>
+          </Section>
+
+          <Section
+            description="Bars and circles on the highest surface container a scheme sets, the bars at its smallest corner, in rows at the list's two heights."
+            title="Skeleton"
+          >
+            <Card padding="none" variant="outlined">
+              <Skeleton>
+                <Skeleton.Row>
+                  <Skeleton.Bar size="md" width="60%" />
+                </Skeleton.Row>
+                <Skeleton.Row leading={<Skeleton.Circle />} lines={2}>
+                  <Skeleton.Bar width="40%" />
+                  <Skeleton.Bar size="md" width="70%" />
+                </Skeleton.Row>
+              </Skeleton>
+            </Card>
           </Section>
 
           <Section

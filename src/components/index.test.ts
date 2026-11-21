@@ -176,6 +176,13 @@ import type {
 } from './navigation-rail'
 import type { SearchViewContentProps, SearchViewProps } from './search-view'
 import type {
+  SkeletonBarProps,
+  SkeletonBarSize,
+  SkeletonCircleProps,
+  SkeletonProps,
+  SkeletonRowProps,
+} from './skeleton'
+import type {
   SplitButtonActionProps,
   SplitButtonMenuProps,
   SplitButtonProps,
@@ -289,6 +296,11 @@ import SheetDefault, {
   SheetHeader,
   SheetTitle,
 } from './sheet'
+import SkeletonDefault, {
+  SkeletonBar,
+  SkeletonCircle,
+  SkeletonRow,
+} from './skeleton'
 import SliderDefault from './slider'
 import SnackbarDefault from './snackbar'
 import SplitButtonDefault, {
@@ -485,6 +497,10 @@ describe('components barrel', () => {
       'SheetHandle',
       'SheetHeader',
       'SheetTitle',
+      'Skeleton',
+      'SkeletonBar',
+      'SkeletonCircle',
+      'SkeletonRow',
       'Slider',
       'Snackbar',
       'SplitButton',
@@ -646,6 +662,10 @@ describe('components barrel', () => {
     SheetHandle: [components.SheetHandle, SheetHandle],
     SheetHeader: [components.SheetHeader, SheetHeader],
     SheetTitle: [components.SheetTitle, SheetTitle],
+    Skeleton: [components.Skeleton, SkeletonDefault],
+    SkeletonBar: [components.SkeletonBar, SkeletonBar],
+    SkeletonCircle: [components.SkeletonCircle, SkeletonCircle],
+    SkeletonRow: [components.SkeletonRow, SkeletonRow],
     Slider: [components.Slider, SliderDefault],
     Snackbar: [components.Snackbar, SnackbarDefault],
     SplitButton: [components.SplitButton, SplitButtonDefault],
@@ -1594,6 +1614,31 @@ describe('components barrel', () => {
   it('re-exports the EmptyStateSize type', () => {
     const size: EmptyStateSize = 'inline'
     expect(size).toBe('inline')
+  })
+
+  it('re-exports the SkeletonProps type', () => {
+    const props: SkeletonProps = { children: 'test' }
+    expect(props.children).toBe('test')
+  })
+
+  it('re-exports the SkeletonBarProps type', () => {
+    const props: SkeletonBarProps = { width: '50%' }
+    expect(props.width).toBe('50%')
+  })
+
+  it('re-exports the SkeletonBarSize type', () => {
+    const size: SkeletonBarSize = 'lg'
+    expect(size).toBe('lg')
+  })
+
+  it('re-exports the SkeletonCircleProps type', () => {
+    const props: SkeletonCircleProps = { id: 'test' }
+    expect(props.id).toBe('test')
+  })
+
+  it('re-exports the SkeletonRowProps type', () => {
+    const props: SkeletonRowProps = { lines: 2 }
+    expect(props.lines).toBe(2)
   })
 
   it('re-exports the TimePickerMode type', () => {

@@ -69,6 +69,7 @@ import {
   Select,
   Separator,
   Sheet,
+  Skeleton,
   Slider,
   Snackbar,
   SplitButton,
@@ -749,6 +750,31 @@ const CASES: ReadonlyArray<{ element: ReactElement; name: string }> = [
       </Sheet>
     ),
     name: 'Sheet.Title',
+  },
+  { element: <Skeleton {...PROBE}>Label</Skeleton>, name: 'Skeleton' },
+  {
+    element: (
+      <Skeleton>
+        <Skeleton.Bar {...PROBE} width="50%" />
+      </Skeleton>
+    ),
+    name: 'Skeleton.Bar',
+  },
+  {
+    element: (
+      <Skeleton>
+        <Skeleton.Circle {...PROBE} />
+      </Skeleton>
+    ),
+    name: 'Skeleton.Circle',
+  },
+  {
+    element: (
+      <Skeleton>
+        <Skeleton.Row {...PROBE} />
+      </Skeleton>
+    ),
+    name: 'Skeleton.Row',
   },
   {
     element: <Slider {...PROBE} defaultValue={40} label="Label" />,
