@@ -45,7 +45,8 @@ import {
 //
 // Under forced colours a fill is painted over in the page's own colour, which
 // would leave every shape invisible, so the shapes are drawn in `GrayText`,
-// the mode's colour for what cannot be used yet.
+// the mode's colour for what cannot be used yet, and held at full opacity,
+// since `GrayText` at 60% on the page's colour is barely there.
 
 const FORCED_COLORS = '@media (forced-colors: active)'
 const REDUCED_MOTION = '@media (prefers-reduced-motion: reduce)'
@@ -84,7 +85,11 @@ const styles = stylex.create({
     animationDirection: 'alternate',
     animationDuration: '1.5s',
     animationIterationCount: 'infinite',
-    animationName: { default: fade, [REDUCED_MOTION]: 'none' },
+    animationName: {
+      default: fade,
+      [FORCED_COLORS]: 'none',
+      [REDUCED_MOTION]: 'none',
+    },
     animationTimingFunction: 'ease-in-out',
     boxSizing: 'border-box',
   },
@@ -124,8 +129,11 @@ type SkeletonBarProps = Omit<
    * @default 'sm'
    */
   size?: SkeletonBarSize
-  /** How wide the bar is, as a CSS length or a percentage of its row. */
-  width: string
+  /**
+   * How wide the bar is: a number of pixels, or a CSS length or percentage
+   * of its row.
+   */
+  width: number | string
 }
 
 type SkeletonBarSize = 'lg' | 'md' | 'sm'
@@ -174,7 +182,10 @@ type SkeletonRowProps = Omit<RenderComponentProps<'div'>, 'render'> & {
  * ```
  *
  * Draw it where the content will be, in its place rather than over it, and
- * swap it for the content once that is read. The call site's `className` and
+ * swap it for the content once that is read. It says "Loading" where a
+ * reader reaches it and announces nothing as it comes and goes; mark the
+ * container it is swapped in `aria-busy` while it loads, or announce the
+ * change through a live region, where that matters. The call site's `className` and
  * `style` land on its own element.
  */
 function Skeleton({
@@ -189,7 +200,11 @@ function Skeleton({
     defaultTagName: 'div',
     props: {
       'aria-busy': true,
-      'aria-label': ariaLabel ?? messages.loading,
+      // An empty name is no name, so it falls back as a missing one does.
+      'aria-label':
+        ariaLabel === undefined || ariaLabel === ''
+          ? messages.loading
+          : ariaLabel,
       role: 'progressbar',
       ...props,
       ...mergeStyles(stylex.props(styles.root), props),
@@ -213,7 +228,11 @@ function SkeletonBar({
     <div
       {...props}
       {...mergeStyles(
-        stylex.props(styles.bar, barSizes[size], barWidth.width(width)),
+        stylex.props(
+          styles.bar,
+          barSizes[size],
+          barWidth.width(typeof width === 'number' ? `${width}px` : width),
+        ),
         props,
       )}
     />
