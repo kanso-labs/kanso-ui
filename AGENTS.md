@@ -950,8 +950,10 @@ what has already shipped rather than gating what reaches it. That trigger works
 because release-please publishes the release with an application token: a
 release published by `GITHUB_TOKEN` starts no workflow at all, so swapping that
 job back to the default token would stop the site updating with no error
-anywhere to say so. `workflow_dispatch` is the manual lever, and it has to be
-run from the release's tag — it builds the ref it is given, and main's tip is
+anywhere to say so. It would stop npm and GitHub Packages publishing too, since
+`release-please.yaml` publishes on the same event; `check-published.yaml` is
+what would notice that. `workflow_dispatch` is the manual lever, and it has to
+be run from the release's tag — it builds the ref it is given, and main's tip is
 ahead of what was released. Chromatic publishes its own Storybook per commit,
 which is what the `Storybook Publish` context reports on; the two are
 independent, and the Pages copy is the one at a stable URL.

@@ -7,7 +7,9 @@ name: Check published
 # command that publishes it, while anything is.
 on:
   schedule:
-    - cron: '45 18 * * *'
+    # Late in the UTC day, because the release cron's runs start hours late
+    # here (about 19:30 UTC) and releases land around 20:00.
+    - cron: '45 23 * * *'
   workflow_dispatch:
 
 # A dispatch overlapping the scheduled run could open the issue twice, since
@@ -28,6 +30,6 @@ jobs:
       packages: read
     uses: kanso-labs/actions/.github/workflows/_check-published.yaml@v4.6.0
     with:
-      # Six hours, so the day's release, cut from 12:15 UTC, is checked this
-      # same evening rather than the next.
-      grace-hours: 6
+      # Three hours, so a release that lands around 20:00 UTC is checked on the
+      # run that night rather than the next.
+      grace-hours: 3
