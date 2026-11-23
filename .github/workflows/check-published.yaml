@@ -1,0 +1,35 @@
+name: Check published
+
+# The alarm for a version that is tagged and never published, which says
+# nothing on its own: the tag and the GitHub release exist, and only a registry
+# is behind. Once a day it compares the latest releases with npmjs.com and
+# GitHub Packages and fails, with an issue listing what is missing and the
+# command that publishes it, while anything is.
+on:
+  schedule:
+    # Late in the UTC day, because the release cron's runs start hours late
+    # here (about 19:30 UTC) and releases land around 20:00.
+    - cron: '45 23 * * *'
+  workflow_dispatch:
+
+# A dispatch overlapping the scheduled run could open the issue twice, since
+# finding it and opening it are two requests.
+concurrency:
+  cancel-in-progress: false
+  group: check-published
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check every release is published
+    permissions:
+      contents: read
+      issues: write
+      packages: read
+    uses: kanso-labs/actions/.github/workflows/_check-published.yaml@v4.6.0
+    with:
+      # Three hours, so a release that lands around 20:00 UTC is checked on the
+      # run that night rather than the next.
+      grace-hours: 3
