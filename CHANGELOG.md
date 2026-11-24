@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.51.0](https://github.com/kanso-labs/kanso-ui/compare/v0.50.2...v0.51.0) (2026-11-24)
+
+
+### Features
+
+* **tokens:** publish kanso-ui-core 0.3.0's icon size scale ([#2311](https://github.com/kanso-labs/kanso-ui/issues/2311)) ([0f1253c](https://github.com/kanso-labs/kanso-ui/commit/0f1253c29b149366150c62b8646eaafde9044937))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/kanso-ui-core to v0.2.1 ([#2309](https://github.com/kanso-labs/kanso-ui/issues/2309)) ([a647c4d](https://github.com/kanso-labs/kanso-ui/commit/a647c4dd70e996c0fee06a0bb2ae6fa88ff54f64))
+* update kanso-labs/actions to v4.6.1 ([#2307](https://github.com/kanso-labs/kanso-ui/issues/2307)) ([1ec75d3](https://github.com/kanso-labs/kanso-ui/commit/1ec75d31f1f34c5c25d9c88f6acab76116d0870a))
+
 ## [0.50.2](https://github.com/kanso-labs/kanso-ui/compare/v0.50.1...v0.50.2) (2026-11-23)
 
 
