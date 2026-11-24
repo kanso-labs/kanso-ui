@@ -591,6 +591,11 @@ const sizingStyles = stylex.create({
   controlXl: { blockSize: sizing.controlXl },
   controlXs: { blockSize: sizing.controlXs },
   controlXxl: { blockSize: sizing.controlXxl },
+  iconLg: { blockSize: sizing.iconLg },
+  iconMd: { blockSize: sizing.iconMd },
+  iconSm: { blockSize: sizing.iconSm },
+  iconXl: { blockSize: sizing.iconXl },
+  iconXs: { blockSize: sizing.iconXs },
   rowLg: { blockSize: sizing.rowLg },
   rowMd: { blockSize: sizing.rowMd },
   rowSm: { blockSize: sizing.rowSm },
@@ -607,6 +612,11 @@ const sizingOrder: (keyof typeof sizingStyles)[] = [
   'rowSm',
   'rowMd',
   'rowLg',
+  'iconXs',
+  'iconSm',
+  'iconMd',
+  'iconLg',
+  'iconXl',
 ]
 
 const radiiStyles = stylex.create({
@@ -1040,7 +1050,8 @@ function TokensPage() {
             segmented control takes its height from, and the row scale a list,
             menu or table row takes its own from. The values are the Material
             Design spec's, so overriding them is how a theme sets a density the
-            spec does not draw.
+            spec does not draw. Then the icon scale, the square an icon is drawn
+            at, from 16 in dense text to 40 for a large icon.
           </Text>
         </div>
         <div {...stylex.props(styles.rowList)}>

@@ -1085,6 +1085,11 @@ export type KuiTheme = {
     readonly '--kui-sizing-control-xl'?: string;
     readonly '--kui-sizing-control-xs'?: string;
     readonly '--kui-sizing-control-xxl'?: string;
+    readonly '--kui-sizing-icon-lg'?: string;
+    readonly '--kui-sizing-icon-md'?: string;
+    readonly '--kui-sizing-icon-sm'?: string;
+    readonly '--kui-sizing-icon-xl'?: string;
+    readonly '--kui-sizing-icon-xs'?: string;
     readonly '--kui-sizing-row-lg'?: string;
     readonly '--kui-sizing-row-md'?: string;
     readonly '--kui-sizing-row-sm'?: string;

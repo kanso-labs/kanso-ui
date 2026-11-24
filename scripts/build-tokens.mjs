@@ -496,9 +496,10 @@ function spacingEntries(allTokens) {
   ])
 }
 
-// Flattened from the JSON's two families, control and row, because defineVars
-// takes a flat record — `controlXs` here is `sizing.component.controlXs` there,
-// and `--kui-sizing-control-xs` in the stylesheet.
+// Flattened from the JSON's three families, control, row and icon, because
+// defineVars takes a flat record — `controlXs` here is
+// `sizing.component.controlXs` there, and `--kui-sizing-control-xs` in the
+// stylesheet.
 /** @param {TransformedToken[]} allTokens @returns {Entry[]} */
 function sizingEntries(allTokens) {
   const keys = [
@@ -512,6 +513,11 @@ function sizingEntries(allTokens) {
     'rowSm',
     'rowMd',
     'rowLg',
+    'iconXs',
+    'iconSm',
+    'iconMd',
+    'iconLg',
+    'iconXl',
   ]
   return keys.map((key) => [
     key,
