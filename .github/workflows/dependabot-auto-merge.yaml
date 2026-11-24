@@ -25,4 +25,4 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: kanso-labs/actions/.github/workflows/_dependabot-auto-merge.yaml@v4.6.0
+    uses: kanso-labs/actions/.github/workflows/_dependabot-auto-merge.yaml@v4.6.1

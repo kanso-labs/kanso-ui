@@ -69,7 +69,7 @@ jobs:
   release-please:
     name: Propose releases
     if: github.ref_type != 'tag'
-    uses: kanso-labs/actions/.github/workflows/_release-please.yaml@v4.6.0
+    uses: kanso-labs/actions/.github/workflows/_release-please.yaml@v4.6.1
     with:
       # True only on the scheduled run, which is what batches a day of merges
       # into one release. A push proposes without merging, and so does
@@ -133,4 +133,4 @@ jobs:
       contents: read
       id-token: write
       packages: write
-    uses: kanso-labs/actions/.github/workflows/_publish-npm.yaml@v4.6.0
+    uses: kanso-labs/actions/.github/workflows/_publish-npm.yaml@v4.6.1
