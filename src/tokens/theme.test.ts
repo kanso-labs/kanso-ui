@@ -29,7 +29,7 @@ describe('the StyleX theme', () => {
     const declared = propertiesIn(root, /^\s*(--kui-[\w-]+):/gmu)
     const read = propertiesIn(theme, /var\((--kui-[\w-]+),/gu)
 
-    expect(declared.size).toBe(191)
+    expect(declared.size).toBe(196)
     expect(read).toEqual(declared)
   })
 })
