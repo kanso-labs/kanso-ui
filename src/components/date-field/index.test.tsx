@@ -316,6 +316,36 @@ describe('date field', () => {
     })
   })
 
+  // The segments' line is 24dp of the 56dp box, and a press on the rest of
+  // the box once focused the first segment wherever it landed, so the day
+  // took a press on its own 24dp alone. Each segment now takes the box's
+  // height under it (kanso-labs/daily#1224), pressed at points the page hit-tests.
+  describe('pressing the box', () => {
+    it.each([
+      ['under', (box: DOMRect) => box.bottom - 4],
+      ['over', (box: DOMRect) => box.top + 4],
+    ] as const)('focuses the segment %s which it lands', (_where, yOf) => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const box = view.container
+        .querySelector('[role="group"]')
+        ?.getBoundingClientRect()
+      if (box === undefined) throw new Error('expected the field’s box')
+
+      for (const segment of segmentsOf(view)) {
+        const { left, width } = segment.getBoundingClientRect()
+        const x = left + width / 2
+        const y = yOf(box)
+        const hit = document.elementFromPoint(x, y)
+        if (hit === null) throw new Error('expected the box to be drawn there')
+        expect(segment.contains(hit)).toBe(false)
+
+        fireEvent.pointerDown(hit, { clientX: x, clientY: y })
+
+        expect(document.activeElement).toBe(segment)
+      }
+    })
+  })
+
   describe('the field chrome', () => {
     it('floats the label clear of the segments, even with no value', () => {
       const view = render(<DateField label="Label" />)
