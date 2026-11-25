@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.6](https://github.com/kanso-labs/kanso-ui/compare/v0.51.5...v0.51.6) (2026-11-25)
+
+
+### Dependencies
+
+* update kanso-labs/actions action to v4.7.0 ([#2331](https://github.com/kanso-labs/kanso-ui/issues/2331)) ([7f1a2f3](https://github.com/kanso-labs/kanso-ui/commit/7f1a2f3ef380fbfec351e66375329e127e82ae0c))
+
 ## [0.51.5](https://github.com/kanso-labs/kanso-ui/compare/v0.51.4...v0.51.5) (2026-11-25)
 
 
