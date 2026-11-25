@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.5](https://github.com/kanso-labs/kanso-ui/compare/v0.51.4...v0.51.5) (2026-11-25)
+
+
+### Dependencies
+
+* update dependency @types/react to v19.3.3 ([#2329](https://github.com/kanso-labs/kanso-ui/issues/2329)) ([5ba0719](https://github.com/kanso-labs/kanso-ui/commit/5ba0719733d2ce55af15bfd9d0c735e68d9279b9))
+
 ## [0.51.4](https://github.com/kanso-labs/kanso-ui/compare/v0.51.3...v0.51.4) (2026-11-25)
 
 
