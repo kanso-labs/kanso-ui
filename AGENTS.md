@@ -818,7 +818,8 @@ asks before gtag.js loads, and granted elsewhere, where a notice offers to opt
 out. It sends nothing from a host outside kansolabs.org, so a local Storybook,
 Chromatic's and the test runner's count nothing. `src/privacy.stories.tsx` is
 the note the banner links to, and the switch that stays within reach in the
-sidebar; it reads the setting from the manager, its parent frame.
+sidebar, where `storySort` puts it last; it reads the setting from the manager,
+its parent frame.
 
 The port is 6006 unless `PORT` says otherwise, which is what lets two agents
 preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
