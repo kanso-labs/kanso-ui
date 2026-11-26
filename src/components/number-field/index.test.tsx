@@ -400,6 +400,8 @@ describe('number field', () => {
         expect(at(minus.right + reach - 1)).toBe(decrement)
         expect(at(plus.left - reach + 1)).toBe(increment)
         expect(at(minus.left - reach + 1)).toBe(decrement)
+        // And they meet, with no gap between them that takes no press.
+        expect(at(minus.right + reach + 1)).toBe(increment)
       },
     )
 

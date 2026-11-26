@@ -98,12 +98,13 @@ const BOX_OUTLINED_HALF = `calc((2 * ${spacing.lg} + ${typography.bodyLargeLineH
 // below it: a negative margin, half the difference between the two.
 const STEPPER_REACH = `calc((${typography.bodyLargeLineHeight} - ${sizing.controlXs}) / 2)`
 
-// The press area an extra-small icon button draws around itself, which is
-// IconButton's `TARGET_SIZE`, spelled again here for the reason its own
-// literal gives, and the gap two of them need side by side so that their
-// targets meet edge to edge: the target less the button, 16dp at the
-// defaults. Worked out from the button rather than taken from the spacing
-// scale, so a theme that resizes the button or the scale keeps the two apart.
+// The press area an extra-small icon button draws around itself, a literal
+// for the reason IconButton's `TARGET_SIZE` gives, and spelled again here
+// rather than imported for the reason `BOX_HALF` gives. Two of them side by
+// side need the target less the button between them, 16dp at the defaults,
+// for their targets to meet edge to edge. It is worked out from the button
+// rather than taken from the spacing scale, so a theme that resizes either
+// keeps the two apart.
 const TARGET_SIZE = '48px'
 const STEPPER_GAP = `max(0px, calc(${TARGET_SIZE} - ${sizing.controlXs}))`
 
