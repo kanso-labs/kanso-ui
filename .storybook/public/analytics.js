@@ -10,6 +10,8 @@
  *   data-banner          "none" when the site draws the banner itself, through
  *                        window.kansoAnalytics; otherwise this file draws it
  *
+ * A site that cannot set them, as on Mintlify, is listed in SITES below.
+ *
  * Ads signals are denied for everyone, always. Analytics storage is denied by
  * default in the EEA, the UK and Switzerland, where the visitor is asked
  * first, and granted elsewhere, where a notice says so and offers a way out.
@@ -28,8 +30,20 @@
 ;(function () {
   'use strict'
 
+  // Mintlify includes a site's .js files itself, with no attributes of their
+  // own, so docs.kansolabs.org's are written here instead.
+  var SITES = {
+    'docs.kansolabs.org': {
+      measurementId: 'G-G5J7LFENG0',
+      privacyUrl: '/privacy',
+    },
+  }
+
   var script = document.currentScript
-  var options = (script && script.dataset) || {}
+  var options =
+    (script && script.dataset && script.dataset.measurementId
+      ? script.dataset
+      : SITES[window.location.hostname]) || {}
   var id = options.measurementId
   if (!id || window.kansoAnalytics) return
 
