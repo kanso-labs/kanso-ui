@@ -330,7 +330,14 @@ const preview: Preview = {
           if (a.title === 'Getting started') {
             return -1
           }
-          return b.title === 'Getting started' ? 1 : 0
+          if (b.title === 'Getting started') {
+            return 1
+          }
+          // The privacy note goes last, where it is easy to find again.
+          if (a.title === 'Privacy') {
+            return 1
+          }
+          return b.title === 'Privacy' ? -1 : 0
         }
         for (const name of ['Overview', 'Default']) {
           if (a.name === name) {

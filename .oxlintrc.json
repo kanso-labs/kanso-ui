@@ -65,6 +65,7 @@
   },
   "ignorePatterns": [
     ".design-sync",
+    ".storybook/public/analytics.js",
     ".ds-sync",
     "dist",
     "ds-bundle",

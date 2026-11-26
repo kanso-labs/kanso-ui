@@ -804,6 +804,23 @@ however long a deploy takes, so it is not a substitute for running a server
 while developing — a component merged this morning is not there yet. Chromatic
 publishes a Storybook per commit, which is where to look at unreleased work.
 
+**The published Storybook counts visits with Google Analytics, from the manager
+only.** `.storybook/manager-head.html` loads `.storybook/public/analytics.js`,
+which `staticDirs` copies into the build, with the property's measurement ID,
+`G-0GR4GNHHLM`, public by nature and shared with react-native-kanso-ui's
+Storybook. The preview iframe loads nothing, so no story is counted twice. The
+script is the same file in every Kanso Labs site that loads gtag.js itself
+(kansolabs.org and the Home Assistant applications site are the others), so
+change one copy and carry the change to the rest; it is why oxlint and ESLint
+skip it. It runs Google Consent Mode v2: ads signals denied for everyone,
+analytics storage denied in the EEA, the UK and Switzerland, where its banner
+asks before gtag.js loads, and granted elsewhere, where a notice offers to opt
+out. It sends nothing from a host outside kansolabs.org, so a local Storybook,
+Chromatic's and the test runner's count nothing. `src/privacy.stories.tsx` is
+the note the banner links to, and the switch that stays within reach in the
+sidebar, where `storySort` puts it last; it reads the setting from the manager,
+its parent frame.
+
 The port is 6006 unless `PORT` says otherwise, which is what lets two agents
 preview the repo at once — `.claude/launch.json` sets `autoPort`, so a second
 session is handed a free port instead of failing to bind. Read the port off the
