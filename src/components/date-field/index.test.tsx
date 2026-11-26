@@ -344,6 +344,59 @@ describe('date field', () => {
         expect(document.activeElement).toBe(segment)
       }
     })
+
+    it('keeps the segment a press on the label focused, once the click lands', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const segments = view.getAllByRole('spinbutton')
+
+      for (const segment of segments) {
+        const { left, width } = segment.getBoundingClientRect()
+        fireEvent.pointerDown(label, { clientX: left + width / 2 })
+        fireEvent.click(label, { detail: 1 })
+
+        expect(document.activeElement).toBe(segment)
+      }
+    })
+
+    it('still focuses the first segment on a click with no press before it', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const [first, last] = [
+        view.getAllByRole('spinbutton')[0],
+        view.getAllByRole('spinbutton').at(-1),
+      ]
+      last?.focus()
+
+      fireEvent.click(label)
+
+      expect(document.activeElement).toBe(first)
+    })
+
+    it('leaves the label its click once the press before it was cancelled', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const segments = view.getAllByRole('spinbutton')
+      const { left, width } = segments[1].getBoundingClientRect()
+
+      fireEvent.pointerDown(label, { clientX: left + width / 2 })
+      fireEvent.pointerCancel(label)
+      fireEvent.click(label, { detail: 1 })
+
+      expect(document.activeElement).toBe(segments[0])
+    })
+
+    it('leaves the label a click from the keyboard, though a press came before it', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const segments = view.getAllByRole('spinbutton')
+      const { left, width } = segments[1].getBoundingClientRect()
+
+      fireEvent.pointerDown(label, { clientX: left + width / 2 })
+      fireEvent.click(label, { detail: 0 })
+
+      expect(document.activeElement).toBe(segments[0])
+    })
   })
 
   describe('the field chrome', () => {
