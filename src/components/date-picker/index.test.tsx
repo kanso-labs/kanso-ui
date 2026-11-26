@@ -102,7 +102,7 @@ describe('date picker', () => {
       for (const segment of segmentsOf(view)) {
         const { left, width } = segment.getBoundingClientRect()
         fireEvent.pointerDown(label, { clientX: left + width / 2 })
-        fireEvent.click(label)
+        fireEvent.click(label, { detail: 1 })
 
         expect(document.activeElement).toBe(segment)
       }

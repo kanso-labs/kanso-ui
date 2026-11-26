@@ -17,12 +17,12 @@ const PRESSABLE =
 // field carries its value to a form in.
 const CONTROL = 'input:not([type="hidden"]), textarea, [contenteditable="true"]'
 
-// The boxes whose last press down focused a control, until the click that
+// The control each box's last press down focused, until the click that
 // press ends in. React Aria's label for a date field focuses the first
-// segment on a click, which follows the press down whatever it did, so the
-// box holds that click back from the label: a press on the label over the
-// day otherwise focused the day and then the month.
-const pressed = new WeakSet<Element>()
+// segment on a click, which follows the press down whatever it did, so a
+// press on the label over the day focused the day and then the month; the
+// box's own click, after the label's, focuses the day again.
+const pressed = new WeakMap<Element, HTMLElement>()
 
 /**
  * The box's press handler: a press anywhere on the box focuses the control
@@ -59,24 +59,47 @@ function focusesControl(
     // and away from the control the line below hands it to.
     event.preventDefault()
     control.focus()
-    pressed.add(event.currentTarget)
+    pressed.set(event.currentTarget, control)
   }
 }
 
 /**
- * The box's click handler, in the capture phase: the click that ends a press
- * `focusesControl` answered stops at the box, so nothing inside it moves
- * focus again. Only a label inside the box acts on a click there, and a
- * click with no press down before it, as a screen reader sends, still
- * reaches it.
+ * The box's handler for a press the browser cancelled, as a touch that
+ * turns into a scroll is: that press ends in no click, so nothing it
+ * focused is held for one.
+ */
+function forgetsCancelledPress(
+  onPointerCancel: ((event: PointerEvent<HTMLDivElement>) => void) | undefined,
+) {
+  return (event: PointerEvent<HTMLDivElement>) => {
+    onPointerCancel?.(event)
+    pressed.delete(event.currentTarget)
+  }
+}
+
+/**
+ * The box's click handler: the click that ends a press `focusesControl`
+ * answered puts focus back on the control that press focused, should
+ * anything inside the box have moved it on the way up, as a date field's
+ * label does. The click goes on as it would, to whatever else listens. Only
+ * a pointer's click counts, `detail` above 0, which a press down always
+ * comes before, so a click from the keyboard or a screen reader, which has
+ * none, is left alone, and so is one after a press that was cancelled.
  */
 function keepsPressedFocus(
-  onClickCapture: ((event: MouseEvent<HTMLDivElement>) => void) | undefined,
+  onClick: ((event: MouseEvent<HTMLDivElement>) => void) | undefined,
 ) {
   return (event: MouseEvent<HTMLDivElement>) => {
-    onClickCapture?.(event)
-    if (pressed.delete(event.currentTarget)) {
-      event.stopPropagation()
+    onClick?.(event)
+    const control = pressed.get(event.currentTarget)
+    pressed.delete(event.currentTarget)
+    if (
+      control !== undefined &&
+      event.detail > 0 &&
+      control.isConnected &&
+      document.activeElement !== control
+    ) {
+      control.focus()
     }
   }
 }
@@ -104,4 +127,4 @@ function nearestTo(controls: NodeListOf<HTMLElement>, x: number) {
   return nearest
 }
 
-export { focusesControl, keepsPressedFocus }
+export { focusesControl, forgetsCancelledPress, keepsPressedFocus }

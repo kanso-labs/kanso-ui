@@ -353,7 +353,7 @@ describe('date field', () => {
       for (const segment of segments) {
         const { left, width } = segment.getBoundingClientRect()
         fireEvent.pointerDown(label, { clientX: left + width / 2 })
-        fireEvent.click(label)
+        fireEvent.click(label, { detail: 1 })
 
         expect(document.activeElement).toBe(segment)
       }
@@ -371,6 +371,19 @@ describe('date field', () => {
       fireEvent.click(label)
 
       expect(document.activeElement).toBe(first)
+    })
+
+    it('leaves the label its click once the press before it was cancelled', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const segments = view.getAllByRole('spinbutton')
+      const { left, width } = segments[1].getBoundingClientRect()
+
+      fireEvent.pointerDown(label, { clientX: left + width / 2 })
+      fireEvent.pointerCancel(label)
+      fireEvent.click(label, { detail: 1 })
+
+      expect(document.activeElement).toBe(segments[0])
     })
   })
 
