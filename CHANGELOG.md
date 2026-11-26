@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.9](https://github.com/kanso-labs/kanso-ui/compare/v0.51.8...v0.51.9) (2026-11-26)
+
+
+### Bug Fixes
+
+* **field:** keep the segment a press on a date field's label focused ([#2340](https://github.com/kanso-labs/kanso-ui/issues/2340)) ([e700dd3](https://github.com/kanso-labs/kanso-ui/commit/e700dd39efb96b508c50817552e9f9564225c16f))
+
 ## [0.51.8](https://github.com/kanso-labs/kanso-ui/compare/v0.51.7...v0.51.8) (2026-11-26)
 
 
