@@ -3,7 +3,12 @@ import { act, fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import NumberField from '.'
-import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
+import {
+  colors,
+  sizing,
+  spacing,
+  typography,
+} from '../../tokens/design.tokens.stylex'
 
 // StyleX hashes an atomic class from the property and value, so the same
 // declaration written here produces the same class the component produces.
@@ -51,6 +56,13 @@ const longLineType = stylex.createTheme(typography, {
   bodySmallLineHeight: '20px',
 })
 const longLineSpacing = stylex.createTheme(spacing, { lg: '26px', sm: '10px' })
+
+// A theme with a smaller extra-small button and a tighter scale than the
+// defaults, as kanso-ui-core's Graphite has them: the gap the side-by-side
+// steppers need follows the button, and a gap taken from the scale would put
+// the two targets over each other again.
+const smallControls = stylex.createTheme(sizing, { controlXs: '24px' })
+const tightSpacing = stylex.createTheme(spacing, { lg: '12px' })
 
 // A frame narrower than a long label, so it is cut short and where it ends
 // is what decides whether it reaches the steppers.
@@ -360,19 +372,36 @@ describe('number field', () => {
     // Each is an extra-small icon button, a 32dp box drawing a 48dp target,
     // and the two stand far enough apart that their targets meet in the
     // middle of the gap rather than one taking the other's.
-    it('gives each side-by-side stepper its whole 48 of target', () => {
-      const { decrement, increment } = setup({ steppers: 'horizontal' })
-      const plus = increment.getBoundingClientRect()
-      const minus = decrement.getBoundingClientRect()
-      const y = plus.top + plus.height / 2
-      const at = (x: number) =>
-        document.elementFromPoint(x, y)?.closest('button')
+    it.each([
+      ['the default tokens', [], 16],
+      [
+        'a smaller button and a tighter scale',
+        [smallControls, tightSpacing],
+        24,
+      ],
+    ] as const)(
+      'gives each side-by-side stepper its whole 48 of target under %s',
+      (_name, themes, gap) => {
+        const view = render(
+          <div {...stylex.props(...themes)}>
+            <NumberField label="Label" steppers="horizontal" />
+          </div>,
+        )
+        const decrement = view.getByRole('button', { name: /^Decrease/ })
+        const increment = view.getByRole('button', { name: /^Increase/ })
+        const plus = increment.getBoundingClientRect()
+        const minus = decrement.getBoundingClientRect()
+        const y = plus.top + plus.height / 2
+        const at = (x: number) =>
+          document.elementFromPoint(x, y)?.closest('button')
+        const reach = gap / 2
 
-      expect(plus.left - minus.right).toBe(16)
-      expect(at(minus.right + 7)).toBe(decrement)
-      expect(at(plus.left - 7)).toBe(increment)
-      expect(at(minus.left - 7)).toBe(decrement)
-    })
+        expect(plus.left - minus.right).toBe(gap)
+        expect(at(minus.right + reach - 1)).toBe(decrement)
+        expect(at(plus.left - reach + 1)).toBe(increment)
+        expect(at(minus.left - reach + 1)).toBe(decrement)
+      },
+    )
 
     // The icon buttons page gives the extra-small button a 20dp icon. The
     // glyph carries no size of its own, so without one drawn in `em` it
