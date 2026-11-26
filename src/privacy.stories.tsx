@@ -38,8 +38,11 @@ type Analytics = {
 }
 
 function manager(): undefined | (Window & { kansoAnalytics?: Analytics }) {
+  // A parent on another origin, as in a composed Storybook, throws on any
+  // read, so the read that would throw is made here.
   try {
-    return window.parent
+    const parent: Window & { kansoAnalytics?: Analytics } = window.parent
+    return parent.location.href ? parent : undefined
   } catch {
     return undefined
   }
@@ -96,29 +99,32 @@ function Choice() {
     return (
       <Paragraph>
         The setting for this browser appears here when the page is opened in the
-        published Storybook.
+        published Storybook. If it never does there, something in this browser
+        is blocking the analytics, and nothing is sent.
       </Paragraph>
     )
   }
 
   const { analytics, status } = state
+  const on = status === 'granted'
 
+  // One button whose label follows the setting, so focus stays on it when it
+  // is pressed, and a status line that is announced when it changes.
   return (
     <>
-      <Paragraph>
-        {status === 'granted'
-          ? 'Analytics is on for this Storybook in this browser.'
-          : 'Analytics is off for this Storybook in this browser.'}
-      </Paragraph>
-      {status === 'granted' ? (
-        <Button onPress={analytics.deny} variant="outlined">
-          Turn it off
-        </Button>
-      ) : (
-        <Button onPress={analytics.grant} variant="outlined">
-          Turn it on
-        </Button>
-      )}
+      <div aria-live="polite">
+        <Paragraph>
+          {on
+            ? 'Analytics is on for this Storybook in this browser.'
+            : 'Analytics is off for this Storybook in this browser.'}
+        </Paragraph>
+      </div>
+      <Button
+        onPress={on ? analytics.deny : analytics.grant}
+        variant="outlined"
+      >
+        {on ? 'Turn it off' : 'Turn it on'}
+      </Button>
     </>
   )
 }
@@ -151,7 +157,9 @@ function PrivacyPage() {
           a page; clicks on links that leave the site; and files you download.
           With each, Google Analytics records your browser, device, language and
           approximate location, which it derives from your IP address without
-          storing the address. No user ID is set, and nothing you type is sent.
+          storing the address. No user ID is set. The address of a page records
+          the values you give a story&apos;s controls, so those are recorded
+          with it; nothing else you type is sent.
         </Paragraph>
         <Paragraph>
           Google signals and every advertising feature are off, and the site
