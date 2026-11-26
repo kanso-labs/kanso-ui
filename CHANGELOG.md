@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.51.10](https://github.com/kanso-labs/kanso-ui/compare/v0.51.9...v0.51.10) (2026-11-26)
+
+
+### Bug Fixes
+
+* **number-field:** give each side-by-side stepper its whole 48dp target ([#2342](https://github.com/kanso-labs/kanso-ui/issues/2342)) ([3c488ad](https://github.com/kanso-labs/kanso-ui/commit/3c488ad12c6d9f47484a1e83179f7002a9ab7f39))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.82 ([#2346](https://github.com/kanso-labs/kanso-ui/issues/2346)) ([e8c4951](https://github.com/kanso-labs/kanso-ui/commit/e8c4951475207671d4b934fb3e659e0200ac2c7a))
+
 ## [0.51.9](https://github.com/kanso-labs/kanso-ui/compare/v0.51.8...v0.51.9) (2026-11-26)
 
 
