@@ -92,14 +92,14 @@ const BOX_OUTLINED_HALF = `calc((2 * ${spacing.lg} + ${typography.bodyLargeLineH
 // own end, so the label ends where the value does.
 //
 // Stacked, the 32dp column less the 16dp of the box's padding it reaches
-// into; side by side, the two extra-small buttons and the 8dp between them,
+// into; side by side, the two extra-small buttons and the 16dp between them,
 // less the 4dp they reach into the padding.
 // How far a side-by-side stepper reaches past the control's line above and
 // below it: a negative margin, half the difference between the two.
 const STEPPER_REACH = `calc((${typography.bodyLargeLineHeight} - ${sizing.controlXs}) / 2)`
 
 const STACKED_INSET = `calc(32px - ${spacing.lg} + ${spacing.sm})`
-const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${spacing.sm} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
+const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${spacing.lg} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
 
 // Each layout's inset, keyed by the prop. With no steppers there is nothing
 // for the label to stop short of, so the box's own default holds.
@@ -201,8 +201,10 @@ const styles = stylex.create({
   // icon button is 32dp drawing a 48dp target, so each reaches 8dp past its
   // own edge — flush against each other, every press on the inner 8dp of one
   // glyph would land on its neighbour's target, and a reader pressing minus
-  // would increment. The gap is that reach, which puts each target's edge
-  // exactly on the other's, with neither over a glyph.
+  // would increment. The gap is twice that reach, so the two targets meet
+  // edge to edge in its middle and each keeps its whole 48dp. With the gap
+  // only one reach wide, each target ran to the other's glyph and the later,
+  // plus, took the whole gap, which left minus a target 40dp across.
   //
   // They take no more of the row's height than the control's line, the
   // 32dp buttons reaching past it by the same amount above and below. As
@@ -212,7 +214,7 @@ const styles = stylex.create({
   // either way.
   steppersInline: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.lg,
     marginBlockEnd: STEPPER_REACH,
     marginBlockStart: STEPPER_REACH,
     marginInlineEnd: `calc(${spacing.md} - ${spacing.lg})`,

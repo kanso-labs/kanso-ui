@@ -357,6 +357,23 @@ describe('number field', () => {
       expect(box.getBoundingClientRect().right - plus.right).toBe(12)
     })
 
+    // Each is an extra-small icon button, a 32dp box drawing a 48dp target,
+    // and the two stand far enough apart that their targets meet in the
+    // middle of the gap rather than one taking the other's.
+    it('gives each side-by-side stepper its whole 48 of target', () => {
+      const { decrement, increment } = setup({ steppers: 'horizontal' })
+      const plus = increment.getBoundingClientRect()
+      const minus = decrement.getBoundingClientRect()
+      const y = plus.top + plus.height / 2
+      const at = (x: number) =>
+        document.elementFromPoint(x, y)?.closest('button')
+
+      expect(plus.left - minus.right).toBe(16)
+      expect(at(minus.right + 7)).toBe(decrement)
+      expect(at(plus.left - 7)).toBe(increment)
+      expect(at(minus.left - 7)).toBe(decrement)
+    })
+
     // The icon buttons page gives the extra-small button a 20dp icon. The
     // glyph carries no size of its own, so without one drawn in `em` it
     // fills the whole 32dp button.
