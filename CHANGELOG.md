@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.51.8](https://github.com/kanso-labs/kanso-ui/compare/v0.51.7...v0.51.8) (2026-11-26)
+
+
+### Bug Fixes
+
+* **field:** focus the segment nearest a press on a date field's box ([#2336](https://github.com/kanso-labs/kanso-ui/issues/2336)) ([96bae22](https://github.com/kanso-labs/kanso-ui/commit/96bae2293ac608b45f34d0daa151b94a36b9f345))
+
+
+### Dependencies
+
+* update dependency @types/node to v26.6.11 ([#2337](https://github.com/kanso-labs/kanso-ui/issues/2337)) ([71cb165](https://github.com/kanso-labs/kanso-ui/commit/71cb165753974c35a34e30974fb338cac398b2b4))
+* update dependency vite to v8.4.0 ([#2339](https://github.com/kanso-labs/kanso-ui/issues/2339)) ([8cf7d22](https://github.com/kanso-labs/kanso-ui/commit/8cf7d2299be3784818024872f68cf6bb3075a4ad))
+
 ## [0.51.7](https://github.com/kanso-labs/kanso-ui/compare/v0.51.6...v0.51.7) (2026-11-25)
 
 
