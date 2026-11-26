@@ -92,14 +92,24 @@ const BOX_OUTLINED_HALF = `calc((2 * ${spacing.lg} + ${typography.bodyLargeLineH
 // own end, so the label ends where the value does.
 //
 // Stacked, the 32dp column less the 16dp of the box's padding it reaches
-// into; side by side, the two extra-small buttons and the 8dp between them,
+// into; side by side, the two extra-small buttons and the gap between them,
 // less the 4dp they reach into the padding.
 // How far a side-by-side stepper reaches past the control's line above and
 // below it: a negative margin, half the difference between the two.
 const STEPPER_REACH = `calc((${typography.bodyLargeLineHeight} - ${sizing.controlXs}) / 2)`
 
+// The press area an extra-small icon button draws around itself, a literal
+// for the reason IconButton's `TARGET_SIZE` gives, and spelled again here
+// rather than imported for the reason `BOX_HALF` gives. Two of them side by
+// side need the target less the button between them, 16dp at the defaults,
+// for their targets to meet edge to edge. It is worked out from the button
+// rather than taken from the spacing scale, so a theme that resizes either
+// keeps the two apart.
+const TARGET_SIZE = '48px'
+const STEPPER_GAP = `max(0px, calc(${TARGET_SIZE} - ${sizing.controlXs}))`
+
 const STACKED_INSET = `calc(32px - ${spacing.lg} + ${spacing.sm})`
-const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${spacing.sm} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
+const INLINE_INSET = `calc(2 * ${sizing.controlXs} + ${STEPPER_GAP} + ${spacing.md} - ${spacing.lg} + ${spacing.sm})`
 
 // Each layout's inset, keyed by the prop. With no steppers there is nothing
 // for the label to stop short of, so the box's own default holds.
@@ -201,8 +211,11 @@ const styles = stylex.create({
   // icon button is 32dp drawing a 48dp target, so each reaches 8dp past its
   // own edge — flush against each other, every press on the inner 8dp of one
   // glyph would land on its neighbour's target, and a reader pressing minus
-  // would increment. The gap is that reach, which puts each target's edge
-  // exactly on the other's, with neither over a glyph.
+  // would increment. The gap is twice that reach, `STEPPER_GAP`, so the two
+  // targets meet edge to edge in its middle and each keeps its whole 48dp.
+  // With the gap only one reach wide, each target ran to the other's glyph
+  // and the later, plus, took the whole gap, which left minus a target 40dp
+  // across.
   //
   // They take no more of the row's height than the control's line, the
   // 32dp buttons reaching past it by the same amount above and below. As
@@ -212,7 +225,7 @@ const styles = stylex.create({
   // either way.
   steppersInline: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: STEPPER_GAP,
     marginBlockEnd: STEPPER_REACH,
     marginBlockStart: STEPPER_REACH,
     marginInlineEnd: `calc(${spacing.md} - ${spacing.lg})`,
