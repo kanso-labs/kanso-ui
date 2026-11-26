@@ -385,6 +385,18 @@ describe('date field', () => {
 
       expect(document.activeElement).toBe(segments[0])
     })
+
+    it('leaves the label a click from the keyboard, though a press came before it', () => {
+      const view = render(<DateField defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+      const segments = view.getAllByRole('spinbutton')
+      const { left, width } = segments[1].getBoundingClientRect()
+
+      fireEvent.pointerDown(label, { clientX: left + width / 2 })
+      fireEvent.click(label, { detail: 0 })
+
+      expect(document.activeElement).toBe(segments[0])
+    })
   })
 
   describe('the field chrome', () => {
