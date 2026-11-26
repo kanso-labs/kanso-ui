@@ -95,6 +95,19 @@ describe('date picker', () => {
       expect(segmentsOf(view)).toHaveLength(3)
     })
 
+    it('keeps the segment a press on the label focused, once the click lands', () => {
+      const view = render(<DatePicker defaultValue={DATE} label="Label" />)
+      const label = view.getByText('Label')
+
+      for (const segment of segmentsOf(view)) {
+        const { left, width } = segment.getBoundingClientRect()
+        fireEvent.pointerDown(label, { clientX: left + width / 2 })
+        fireEvent.click(label)
+
+        expect(document.activeElement).toBe(segment)
+      }
+    })
+
     it('holds the segments and the trigger in one group', () => {
       const view = render(<DatePicker defaultValue={DATE} label="Label" />)
       // Two groups: React Aria's, around the segments, and the field box

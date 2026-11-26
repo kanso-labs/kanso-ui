@@ -1,4 +1,4 @@
-import type { PointerEvent } from 'react'
+import type { MouseEvent, PointerEvent } from 'react'
 
 // A field's press handler, apart from ./index.tsx so that file exports
 // components alone, which is what keeps fast refresh working for it. The
@@ -17,6 +17,13 @@ const PRESSABLE =
 // field carries its value to a form in.
 const CONTROL = 'input:not([type="hidden"]), textarea, [contenteditable="true"]'
 
+// The boxes whose last press down focused a control, until the click that
+// press ends in. React Aria's label for a date field focuses the first
+// segment on a click, which follows the press down whatever it did, so the
+// box holds that click back from the label: a press on the label over the
+// day otherwise focused the day and then the month.
+const pressed = new WeakSet<Element>()
+
 /**
  * The box's press handler: a press anywhere on the box focuses the control
  * in it nearest the press, as the whole of a native text field's box does. The box is 56dp
@@ -31,6 +38,7 @@ function focusesControl(
   onPointerDown: ((event: PointerEvent<HTMLDivElement>) => void) | undefined,
 ) {
   return (event: PointerEvent<HTMLDivElement>) => {
+    pressed.delete(event.currentTarget)
     onPointerDown?.(event)
     if (
       event.defaultPrevented ||
@@ -51,6 +59,25 @@ function focusesControl(
     // and away from the control the line below hands it to.
     event.preventDefault()
     control.focus()
+    pressed.add(event.currentTarget)
+  }
+}
+
+/**
+ * The box's click handler, in the capture phase: the click that ends a press
+ * `focusesControl` answered stops at the box, so nothing inside it moves
+ * focus again. Only a label inside the box acts on a click there, and a
+ * click with no press down before it, as a screen reader sends, still
+ * reaches it.
+ */
+function keepsPressedFocus(
+  onClickCapture: ((event: MouseEvent<HTMLDivElement>) => void) | undefined,
+) {
+  return (event: MouseEvent<HTMLDivElement>) => {
+    onClickCapture?.(event)
+    if (pressed.delete(event.currentTarget)) {
+      event.stopPropagation()
+    }
   }
 }
 
@@ -77,4 +104,4 @@ function nearestTo(controls: NodeListOf<HTMLElement>, x: number) {
   return nearest
 }
 
-export { focusesControl }
+export { focusesControl, keepsPressedFocus }

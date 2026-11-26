@@ -39,7 +39,7 @@ import {
 import { useMessages } from '../i18n'
 import { mergeStatefulStyles, mergeStyles } from '../styles/merge'
 import { spacing } from '../tokens/design.tokens.stylex'
-import { focusesControl } from './press'
+import { focusesControl, keepsPressedFocus } from './press'
 import { useInsideForm } from './root'
 import {
   fieldChromeStyles,
@@ -660,7 +660,13 @@ function FieldBox({
     <Group
       {...props}
       // A box with a press target of its own has it covering the box, so it
-      // is only a box without one that answers a press itself.
+      // is only a box without one that answers a press itself, and holds
+      // back the click that press ends in.
+      onClickCapture={
+        trigger === undefined
+          ? keepsPressedFocus(props.onClickCapture)
+          : props.onClickCapture
+      }
       onPointerDown={
         trigger === undefined
           ? focusesControl(props.onPointerDown)
