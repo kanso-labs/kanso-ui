@@ -175,8 +175,8 @@ function PrivacyPage() {
         <Paragraph>
           Your choice is shared: it applies to every Kanso Labs site under
           kansolabs.org, so you answer once. It is kept for 13 months in a
-          cookie on kansolabs.org, <Code>kl_consent</Code>, which only Kanso
-          Labs sites read, and goes nowhere else.
+          cookie on kansolabs.org, <Code>kl_consent</Code>, which your browser
+          sends to Kanso Labs sites alone.
         </Paragraph>
       </Section>
       <Section heading="How long it is kept">
