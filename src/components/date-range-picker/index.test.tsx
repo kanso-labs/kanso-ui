@@ -52,6 +52,8 @@ function parts(container: HTMLElement) {
 
 // A phone's 360dp less the page's 16dp margins either side.
 const PHONE = { inlineSize: '328px' }
+// Narrower than the start date and the dash together.
+const SLIVER = { inlineSize: '120px' }
 
 // The page's 56dp box, and the segments' body-large line.
 const BOX_HEIGHT = 56
@@ -490,6 +492,24 @@ describe('date range picker', () => {
       expect(end.left).toBeCloseTo(start.left, 0)
       expect(dash.top).toBeLessThan(start.bottom)
       expect(dash.left).toBeGreaterThan(start.right)
+    })
+
+    // The field grows to the narrowest its segments can be, and the dash is
+    // held to the start date there, rather than wrapping onto a line alone.
+    it('keeps the dash after the start date in a column narrower than both', () => {
+      const view = render(
+        <div style={SLIVER}>
+          <DateRangePicker label="Label" />
+        </div>,
+      )
+      const start = segmentsOf(view, 'Start')[0].getBoundingClientRect()
+      const end = segmentsOf(view, 'End')[0].getBoundingClientRect()
+      const dash = view.getByText('–').getBoundingClientRect()
+
+      expect(dash.top).toBeLessThan(start.bottom)
+      expect(dash.left).toBeGreaterThan(start.right)
+      expect(end.top).toBeGreaterThanOrEqual(start.bottom)
+      expect(end.top).toBeLessThan(start.bottom + start.height + 1)
     })
 
     it.each(['filled', 'outlined'] as const)(

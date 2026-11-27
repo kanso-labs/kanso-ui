@@ -229,10 +229,9 @@ describe('time field', () => {
 
       expect(line.scrollWidth).toBeLessThanOrEqual(line.clientWidth)
       expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(room.right)
-      expect(
-        view.getAllByRole('group', { name: 'Label' })[0].getBoundingClientRect()
-          .width,
-      ).toBeGreaterThan(120)
+      // The field itself, wider than the 120px it was given.
+      const field = view.container.firstElementChild?.firstElementChild
+      expect(field?.getBoundingClientRect().width).toBeGreaterThan(120)
     })
   })
 })

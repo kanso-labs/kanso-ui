@@ -872,9 +872,10 @@ const fieldChromeStyles = stylex.create({
   // is at least as wide as its segments, and the column around it, the box
   // and the field each grow to hold it; see `column` here and `root` in
   // ./root.ts. At least its narrowest, which is what lets a range's end date
-  // still wrap onto a line of its own — see DateRangePicker. A layout too narrow for the field then wraps or overflows
-  // around a field that reads whole. The line still clips, so the ring of a
-  // segment at its very edge is cut as it was.
+  // still wrap onto a line of its own — see DateRangePicker. A layout too
+  // narrow for the field then wraps or overflows around a field that reads
+  // whole. The line still clips, so the ring of a segment at its very edge
+  // is cut as it was.
   segments: {
     alignItems: 'center',
     display: 'flex',

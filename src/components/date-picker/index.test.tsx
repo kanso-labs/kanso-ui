@@ -380,12 +380,14 @@ describe('date picker', () => {
         while (line && getComputedStyle(line).overflowX !== 'hidden') {
           line = line.parentElement
         }
-        const { trigger } = parts(view.container)
+        const { box, trigger } = parts(view.container)
         const last = segments.at(-1)?.getBoundingClientRect()
 
         expect(line).not.toBeNull()
         expect(line?.scrollWidth).toBeLessThanOrEqual(line?.clientWidth ?? 0)
         expect(last?.right).toBeLessThanOrEqual(trigger.left)
+        // The box grows with them, so the trigger is still inside it.
+        expect(trigger.right).toBeLessThanOrEqual(box.right)
       },
     )
 

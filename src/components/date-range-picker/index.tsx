@@ -38,7 +38,7 @@ import {
   picker,
   triggerClassName,
 } from '../../styles/picker'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 import RangeCalendar from '../range-calendar'
 
 // `DatePicker` picking two dates rather than one. Every part it draws is
@@ -70,9 +70,9 @@ import RangeCalendar from '../range-calendar'
 // Two dates and the dash are wider than a phone's field: at 328px the empty
 // field had 212px of the 281px its placeholders take. Every segment is a
 // place to type, so none can be hidden, and shortening the placeholders would
-// not hold for a locale whose dates are longer. So the two groups wrap, the dash stays
-// after the start date, and the box grows by a line, as a text area's does,
-// from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
+// not hold for a locale whose dates are longer. So the two groups wrap, the
+// dash stays after the start date, and the box grows by a line, as a text
+// area's does, from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
 // the dates share their line.
 //
 // The wrap is decided by the line's width, and typing never undoes it. A date
@@ -89,10 +89,10 @@ const styles = stylex.create({
   // the lines, which are the segments' own line height apart, as a text
   // area's are.
   //
-  // Free to wrap even while everything fits, because the field's width is
-  // held to the narrowest its segments can be, which is a line that cannot
-  // wrap's whole length. Held to that, the line never ran short of room, and
-  // the end date never moved down to make any.
+  // Free to wrap even while everything fits. The field is never narrower
+  // than the narrowest its segments can be drawn, and a line that cannot
+  // wrap is narrowest at its whole length, so the end date would never be
+  // short of room on it.
   group: {
     flexWrap: 'wrap',
     rowGap: 0,
@@ -114,6 +114,16 @@ const styles = stylex.create({
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
     lineHeight: typography.bodyLargeLineHeight,
+  },
+  // The start date and the dash after it, which never part: the dash says
+  // the first line is the start of a range, and wrapped on its own it left
+  // the start date with nothing after it and the end date a line further
+  // down still.
+  start: {
+    alignItems: 'center',
+    display: 'flex',
+    flexShrink: 0,
+    gap: spacing.sm,
   },
 })
 
@@ -287,11 +297,13 @@ function DateRangePicker<T extends DateValue>({
             ref={setGroup}
             {...stylex.props(picker.group, styles.group)}
           >
-            <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
-              {renderSegment}
-            </RACDateInput>
-            <span aria-hidden="true" {...stylex.props(styles.separator)}>
-              {separator}
+            <span {...stylex.props(styles.start)}>
+              <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
+                {renderSegment}
+              </RACDateInput>
+              <span aria-hidden="true" {...stylex.props(styles.separator)}>
+                {separator}
+              </span>
             </span>
             {wrapped && (
               <span aria-hidden="true" {...stylex.props(styles.lineBreak)} />
