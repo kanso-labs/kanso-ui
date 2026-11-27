@@ -519,9 +519,9 @@ function restAtEdge(layer: HTMLElement, scroller: HTMLElement) {
  * So a layer whose scroller has no size as it mounts is watched until the
  * scroller first has one, and the panel is then put where it opens, which
  * ends the scroll React Aria is waiting on. A scroller with a size from the
- * start is left to React Aria, and to `restIfArrivalStalls` should its
- * scroll stop without ending, and nothing here runs again: a panel being
- * dragged or arriving always has a size. A ref callback rather than an
+ * start is left to React Aria, and nothing here runs again: a panel being
+ * dragged or arriving always has a size. One whose scroll stops without
+ * ending is `restIfArrivalStalls`'s. A ref callback rather than an
  * effect, since the layer mounts with the sheet's opening, which the trigger
  * rather than this part decides.
  */
@@ -564,15 +564,19 @@ const ARRIVAL_LIMIT = 1500
  * machine — never fires `scrollend`, and the panel stayed where the scroll
  * left it, off the window, with its scrim over the page and focus outside.
  *
- * So the layer is watched while React Aria marks it as entering. Once its
- * scroller has gone this long without scrolling, or the arrival has taken
- * longer than any slide does, the panel is put where it opens and the
- * scroller told its scroll has ended, which is what React Aria waits on: a
- * panel already at rest scrolls nowhere and would end nothing. The watch
- * goes on until React Aria has finished, so a scroll it starts later is
- * covered too. A scroller with no size is left to `restOnceLaidOut`, and
- * under reduced motion the arrival is one instant scroll that ends at once,
- * so nothing here acts.
+ * So the arrival is watched for as long as React Aria marks the layer as
+ * entering: from when it says so, which can be frames after the layer mounts
+ * while it waits for a software keyboard, until it is done. Once the scroller
+ * has gone this long without scrolling, or the arrival has taken longer than
+ * any slide does, the panel is put where it opens and the scroller told its
+ * scroll has ended, which is what React Aria waits on: a panel already at
+ * rest scrolls nowhere and would end nothing. The watch goes on until React
+ * Aria has finished, so a scroll it starts later is covered too, and a
+ * finger holding the panel still that long while it arrives lets go of it.
+ *
+ * A sheet closed while it arrives is marked as leaving too, and is left
+ * alone from then on: put back where it opens, it was drawn open after it
+ * had closed. A scroller with no size is left to `restOnceLaidOut`.
  */
 function restIfArrivalStalls(
   layer: HTMLDivElement | null,
@@ -581,15 +585,13 @@ function restIfArrivalStalls(
   if (!(layer instanceof HTMLElement && scroller instanceof HTMLElement)) {
     return undefined
   }
+  let limit: ReturnType<typeof setTimeout> | undefined
   let stall: ReturnType<typeof setTimeout> | undefined
-  const stop = () => {
-    clearTimeout(stall)
-    clearTimeout(limit)
-    scroller.removeEventListener('scroll', wait)
-  }
+  let watching = false
+  const arriving = () =>
+    layer.hasAttribute('data-entering') && !layer.hasAttribute('data-exiting')
   const rest = () => {
-    if (!layer.hasAttribute('data-entering')) {
-      stop()
+    if (!arriving()) {
       return
     }
     if (hasSize(scroller)) {
@@ -603,10 +605,31 @@ function restIfArrivalStalls(
     clearTimeout(stall)
     stall = setTimeout(rest, ARRIVAL_STALL)
   }
-  const limit = setTimeout(rest, ARRIVAL_LIMIT)
-  scroller.addEventListener('scroll', wait, { passive: true })
-  wait()
-  return stop
+  const unwatch = () => {
+    watching = false
+    clearTimeout(limit)
+    clearTimeout(stall)
+    scroller.removeEventListener('scroll', wait)
+  }
+  const follow = () => {
+    if (arriving() && !watching) {
+      watching = true
+      scroller.addEventListener('scroll', wait, { passive: true })
+      limit = setTimeout(rest, ARRIVAL_LIMIT)
+      wait()
+    } else if (!arriving() && watching) {
+      unwatch()
+    }
+  }
+  const observer = new MutationObserver(follow)
+  observer.observe(layer, {
+    attributeFilter: ['data-entering', 'data-exiting'],
+  })
+  follow()
+  return () => {
+    observer.disconnect()
+    unwatch()
+  }
 }
 
 /**
@@ -776,7 +799,7 @@ function SheetContent({
       ? snapPoints
       : undefined
   const overlayRef = useRef<HTMLDivElement>(null)
-  const layerRef = mergeRefs(overlayRef, watchArrival)
+  const layerRef = useMemo(() => mergeRefs(overlayRef, watchArrival), [])
   useRestOnTurn(overlayRef, position)
   // React Aria holds Escape whenever it holds the scrim and the swipe, so
   // the two settings disagreeing is where the dialog answers for Escape.

@@ -225,6 +225,24 @@ function scrollerOf(dialog: HTMLElement) {
 const LONG_WORD = 'Headline'.repeat(4)
 
 /**
+ * Waits frame by frame until `holds` is true, for at most two seconds of
+ * them. Frames rather than `waitFor`, which polls on the timeouts a test may
+ * have faked.
+ */
+async function framesUntil(holds: () => boolean, left = 120): Promise<void> {
+  if (holds()) {
+    return
+  }
+  if (left === 0) {
+    throw new Error('expected it to hold within two seconds of frames')
+  }
+  await new Promise((resolve) => {
+    requestAnimationFrame(resolve)
+  })
+  await framesUntil(holds, left - 1)
+}
+
+/**
  * A press on the scrim, outside the panel, which is what React Aria reads as
  * outside: on whatever is drawn at a point the panel does not cover, as a
  * finger would land, once the panel has come to rest. React is let catch up
@@ -326,14 +344,22 @@ function showing(panel: Element) {
 }
 
 /**
- * Renders the sheet and lets the clock run past the 400ms an arrival
- * may go without scrolling, on fake timers so nothing waits for it.
+ * Renders the sheet, checks its panel is stranded outside the window, and
+ * lets the clock run past the 400ms an arrival may go without scrolling, on fake timers so nothing waits for it.
  * Timeouts alone: the browser's own frames still run, so React Aria's
  * arrival starts as it would.
  */
 async function stalledFor(draw: () => RenderResult) {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   const view = draw()
+  // Stranded: ten frames on, well past where React Aria starts its scroll,
+  // the panel is still outside the window.
+  let frames = 0
+  await framesUntil(() => {
+    frames += 1
+    return frames > 10
+  })
+  expect(inWindow(panelOf(view.getByRole('dialog')))).toBe(false)
   await act(async () => {
     await vi.advanceTimersByTimeAsync(500)
   })
@@ -1037,63 +1063,6 @@ describe('sheet', () => {
     })
   })
 
-  // React Aria counts a sheet as arriving until the smooth scroll that brings
-  // it in ends, and holds focus back until then. On a loaded machine a press
-  // inside the panel as it arrives can stop that scroll without its ever
-  // ending, and the panel stayed off the window behind its scrim, focus
-  // outside it. Here every smooth scroll is dropped and the browser's own
-  // `scrollend` swallowed before anything hears it, which is that scroll
-  // deterministically: one that neither moves the panel nor ends.
-  describe('an arrival whose scroll never ends', () => {
-    beforeEach(() => {
-      // Called on the element it is handed, through `Reflect.apply`.
-      // oxlint-disable-next-line typescript/unbound-method
-      const { scrollTo } = HTMLElement.prototype
-      vi.spyOn(HTMLElement.prototype, 'scrollTo').mockImplementation(function (
-        this: HTMLElement,
-        ...args: Parameters<HTMLElement['scrollTo']>
-      ) {
-        const [options] = args
-        if (typeof options === 'object' && options.behavior === 'smooth') {
-          return
-        }
-        Reflect.apply(scrollTo, this, args)
-      })
-      window.addEventListener('scrollend', swallowTrusted, true)
-    })
-
-    afterEach(() => {
-      vi.useRealTimers()
-      window.removeEventListener('scrollend', swallowTrusted, true)
-    })
-
-    it.each([
-      { edge: 'the bottom', height: 812, width: 375 },
-      { edge: 'the right', height: 768, width: 1024 },
-    ])(
-      'rests the panel at $edge and moves focus into it',
-      async ({ height, width }) => {
-        await resize(width, height)
-        const view = await stalledFor(setup)
-        const dialog = view.getByRole('dialog')
-
-        await arrived(dialog)
-        await waitFor(() => {
-          expect(dialog.contains(document.activeElement)).toBe(true)
-        })
-      },
-    )
-
-    it('rests a sheet with snap points at its first', async () => {
-      const view = await stalledFor(() =>
-        setup({}, { snapPoints: SNAP_POINTS }),
-      )
-      const panel = await collapsed(view.getByRole('dialog'))
-
-      expect(showing(panel)).toBe(200)
-    })
-  })
-
   // The body is the one part that scrolls: a body longer than the room
   // leaves the header and the actions where they are, and the rest of the
   // text a scroll away rather than clipped past the panel's edge.
@@ -1490,6 +1459,96 @@ describe('sheet, moving', () => {
   afterEach(async () => {
     vi.restoreAllMocks()
     await resize(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
+  })
+
+  // React Aria counts a sheet as arriving until the smooth scroll that brings
+  // it in ends, and holds focus back until then. On a loaded machine a press
+  // inside the panel as it arrives can stop that scroll without its ever
+  // ending, and the panel stayed off the window behind its scrim, focus
+  // outside it. Here every smooth scroll is dropped and the browser's own
+  // `scrollend` swallowed before anything hears it, which is that scroll
+  // deterministically: one that neither moves the panel nor ends.
+  describe('an arrival whose scroll never ends', () => {
+    beforeEach(() => {
+      // Called on the element it is handed, through `Reflect.apply`.
+      // oxlint-disable-next-line typescript/unbound-method
+      const { scrollTo } = HTMLElement.prototype
+      vi.spyOn(HTMLElement.prototype, 'scrollTo').mockImplementation(function (
+        this: HTMLElement,
+        options?: number | ScrollToOptions,
+        y?: number,
+      ) {
+        if (typeof options === 'object' && options.behavior === 'smooth') {
+          return
+        }
+        Reflect.apply(
+          scrollTo,
+          this,
+          y === undefined ? [options] : [options, y],
+        )
+      })
+      window.addEventListener('scrollend', swallowTrusted, true)
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      window.removeEventListener('scrollend', swallowTrusted, true)
+    })
+
+    it.each([
+      { edge: 'the bottom', height: 812, width: 375 },
+      { edge: 'the right', height: 768, width: 1024 },
+    ])(
+      'rests the panel at $edge and moves focus into it',
+      async ({ height, width }) => {
+        await resize(width, height)
+        const view = await stalledFor(setup)
+        const dialog = view.getByRole('dialog')
+
+        await arrived(dialog)
+        await waitFor(() => {
+          expect(dialog.contains(document.activeElement)).toBe(true)
+        })
+      },
+    )
+
+    it('rests a sheet with snap points at its first', async () => {
+      const view = await stalledFor(() =>
+        setup({}, { snapPoints: SNAP_POINTS }),
+      )
+      const panel = await collapsed(view.getByRole('dialog'))
+
+      expect(showing(panel)).toBe(200)
+    })
+  })
+
+  // A sheet closed while its arrival has yet to end is leaving as well as
+  // arriving, and is left to leave: put back where it opens, its exit scroll
+  // was cut short and it was drawn open, scrim and all, after it had closed.
+  it('leaves a sheet closed while it arrives to close', async () => {
+    window.addEventListener('scrollend', swallowTrusted, true)
+    try {
+      await resize(1024, 768)
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const view = setup()
+      const panel = panelOf(view.getByRole('dialog'))
+      await framesUntil(() => inWindow(panel))
+
+      fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000)
+      })
+      vi.useRealTimers()
+
+      await waitFor(
+        () => {
+          expect(view.queryByRole('dialog')).toBeNull()
+        },
+        { timeout: 3000 },
+      )
+    } finally {
+      window.removeEventListener('scrollend', swallowTrusted, true)
+    }
   })
 
   // It opens outside the window, past the edge it rests on, and scrolls in,
