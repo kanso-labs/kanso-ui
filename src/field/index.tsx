@@ -26,7 +26,6 @@ import {
   InputContext,
   Label,
   Button as RACButton,
-  SelectStateContext,
   Text,
   TextArea,
   TextAreaContext,
@@ -117,9 +116,9 @@ type FieldBoxProps = Omit<GroupProps, 'children'> & {
   isFocused?: boolean
   /**
    * Whether the control is holding anything, for a field whose control the
-   * chrome cannot ask. It reads an input, a text area and a select's own
-   * state; a control that is none of those — a token field's editable area,
-   * say — says so here, and the floating label floats on it.
+   * chrome cannot ask. It reads an input and a text area; a control that is
+   * neither — a select's chosen value, a token field's editable area — says
+   * so here, and the floating label floats on it.
    */
   isPopulated?: boolean
   /**
@@ -1004,26 +1003,23 @@ function returnToStart(event: FocusEvent<HTMLElement>) {
   }
 }
 
-function useFieldPopulated() {
-  const input = useSlottedContext(InputContext)
-  const textArea = useSlottedContext(TextAreaContext)
-  // A field whose value is chosen rather than typed holds no input at all,
-  // so being populated is a question for its own state — without this a
-  // select's floating label never floats, however much is chosen.
-  const select = useContext(SelectStateContext)
-  if (select !== null) {
-    return select.selectionManager.selectedKeys.size > 0
-  }
-  const value = input?.value ?? textArea?.value ?? ''
-  return String(value).length > 0
-}
-
 /**
  * Whether the control in this box is holding anything, read off React
  * Aria's context for whichever control the field renders. The filled box
  * reads the same thing in CSS through `:placeholder-shown`; this is for
  * what CSS cannot express — see the outlined variant's note above.
  */
+function useFieldPopulated() {
+  const input = useSlottedContext(InputContext)
+  const textArea = useSlottedContext(TextAreaContext)
+  // A field whose value is chosen rather than typed holds no input at all,
+  // and tells its box through `isPopulated` instead, as Select does. Reading
+  // React Aria's select state here would make its `Select` module, and the
+  // overlays it pulls in, a dependency of every field.
+  const value = input?.value ?? textArea?.value ?? ''
+  return String(value).length > 0
+}
+
 /**
  * A field's label: the colour alone, positioned and given its type by whatever
  * renders it. React Aria's `Label`, which the field around it associates with

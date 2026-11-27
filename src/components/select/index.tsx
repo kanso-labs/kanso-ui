@@ -16,7 +16,7 @@ import {
   SelectStateContext,
 } from 'react-aria-components'
 
-import type { FieldVariant } from '../../field'
+import type { FieldBoxProps, FieldVariant } from '../../field'
 
 import { OptionRowContext } from '../../collection/context'
 import { FieldBox, FieldMessage, FieldTrigger, FieldValue } from '../../field'
@@ -263,6 +263,38 @@ function Select<T extends object = object>({
   )
 }
 
+/**
+ * The box and what has been chosen, drawn on its value's line. The chrome's
+ * `FieldValue` is the styled element and React Aria's `SelectValue` sits
+ * inside it, since the wrapper is the box's flex item.
+ *
+ * Whether anything is chosen is read here, off React Aria's select state, and
+ * handed to the box as `isPopulated`, which is what floats its label. The
+ * chrome does not look the state up itself: it is shared by every field, and
+ * importing the context there made React Aria's `Select` module, with the
+ * overlays it pulls in, part of every bundle holding a field.
+ */
+function SelectBox({
+  isValueFocused,
+  ...props
+}: Omit<FieldBoxProps, 'children' | 'isPopulated'> & {
+  /** Whether the select's button has focus, which shows a hidden placeholder. */
+  isValueFocused: boolean
+}) {
+  const state = useContext(SelectStateContext)
+  const chosen = (state?.selectionManager.selectedKeys.size ?? 0) > 0
+
+  return (
+    <FieldBox {...props} isPopulated={chosen}>
+      <FieldValue isFocused={isValueFocused} isPlaceholder={!chosen}>
+        <RowOnValueLineContext value>
+          <RACSelectValue {...stylex.props(styles.valueText)} />
+        </RowOnValueLineContext>
+      </FieldValue>
+    </FieldBox>
+  )
+}
+
 // What the field draws, from React Aria's render state. Built by a call
 // rather than written inline at the prop, which is what react-perf's
 // no-new-function-as-prop is after; the React Compiler memoises the result
@@ -283,7 +315,7 @@ function selectContent(
 ) {
   return (state: SelectRenderProps) => (
     <>
-      <FieldBox
+      <SelectBox
         floatingLabel={floatingLabel}
         // React Aria's `TextField` hands its group the field's disabled and
         // invalid state through context; its `Select` does not, so the box is
@@ -295,15 +327,14 @@ function selectContent(
         isFocused={state.isOpen}
         isInvalid={state.isInvalid}
         isRequired={state.isRequired}
+        isValueFocused={state.isFocused}
         label={label}
         leading={leadingIcon}
         ref={boxRef}
         trailing={chevronFor(state.isOpen)}
         trigger={TRIGGER}
         variant={variant}
-      >
-        <SelectedValue isFocused={state.isFocused} />
-      </FieldBox>
+      />
       <FieldMessage description={description} error={error} />
       <RACPopover
         className={listClassName}
@@ -316,24 +347,6 @@ function selectContent(
         </OptionRowContext>
       </RACPopover>
     </>
-  )
-}
-
-/**
- * What has been chosen, drawn on the value's line. The chrome's `FieldValue`
- * is the styled element and React Aria's `SelectValue` sits inside it, since
- * the wrapper is the box's flex item.
- */
-function SelectedValue({ isFocused }: { isFocused: boolean }) {
-  const state = useContext(SelectStateContext)
-  const isPlaceholder = (state?.selectionManager.selectedKeys.size ?? 0) === 0
-
-  return (
-    <FieldValue isFocused={isFocused} isPlaceholder={isPlaceholder}>
-      <RowOnValueLineContext value>
-        <RACSelectValue {...stylex.props(styles.valueText)} />
-      </RowOnValueLineContext>
-    </FieldValue>
   )
 }
 
