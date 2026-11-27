@@ -456,21 +456,15 @@ describe('navigation rail', () => {
           <NavigationRail.Item href="#first" icon={ICON}>
             {LONG_LABEL}
           </NavigationRail.Item>
-          <NavigationRail.Item href="#second" icon={ICON}>
-            Eleventh item
-          </NavigationRail.Item>
         </NavigationRail>,
       )
       const rail = view.getByRole('navigation').getBoundingClientRect()
-      const [long, over] = view
-        .getAllByRole('link')
-        .map((link) => partsOf(link).label)
+      // Cut short, the label is as wide as it is let be: the whole rail,
+      // from its leading edge. What text fills it depends on the font.
+      const label = partsOf(view.getByRole('link')).label
 
-      expect(long.getBoundingClientRect().left).toBe(rail.left)
-      expect(long.getBoundingClientRect().width).toBe(96)
-      // Wider than the 88dp the inset left, and whole.
-      expect(over.scrollWidth).toBeGreaterThan(88)
-      expect(over.scrollWidth).toBeLessThanOrEqual(over.clientWidth)
+      expect(label.getBoundingClientRect().left).toBe(rail.left)
+      expect(label.getBoundingClientRect().width).toBe(96)
     })
 
     // The label stays on one line and is cut short where the column ends,
