@@ -7,6 +7,7 @@ import {
   media,
   radii,
   shadows,
+  sizing,
   spacing,
 } from '../tokens/design.tokens.stylex'
 import { focus } from './focus'
@@ -27,6 +28,10 @@ import { overlay } from './overlay'
 // The scrim a picker's surface casts below the breakpoint, as a spread shadow
 // added to its elevation — see `popover`.
 const SCRIM = `0 0 0 100vmax color-mix(in srgb, ${colors.scrim} 32%, transparent)`
+
+// The least a press may be, from the text fields page, whose trailing icon
+// takes a 48dp target around its 40dp button.
+const TARGET_SIZE = '48px'
 
 const picker = stylex.create({
   // The date pickers' surface, over `popover`: the page's docked container,
@@ -119,6 +124,20 @@ const picker = stylex.create({
     blockSize: '24px',
     inlineSize: '24px',
   },
+  // The trigger's press area: the field's trailing icon is a 40dp button,
+  // and the text fields page gives it the 48dp target every control takes,
+  // so a transparent box reaches the 4dp either side, which takes the press
+  // because a pseudo-element is part of the element it belongs to and moves
+  // nothing because it is out of flow. A 56dp field holds it with 4dp to
+  // spare above and below. `IconButton`'s `md` does the same.
+  triggerTarget: {
+    '::before': {
+      content: '""',
+      inset: `calc((${sizing.controlSm} - ${TARGET_SIZE}) / 2)`,
+      position: 'absolute',
+    },
+    position: 'relative',
+  },
 })
 
 // The origin the surface grows from, for the placement React Aria reports.
@@ -186,6 +205,7 @@ function triggerClassName(state: {
   return (
     stylex.props(
       iconButton.chrome,
+      picker.triggerTarget,
       focus.ring,
       state.isHovered && iconButton.chromeHovered,
       state.isPressed && iconButton.chromePressed,

@@ -415,6 +415,27 @@ describe('calendar', () => {
       }
     })
 
+    // Today's outline sits outside the box its target is set against, so the
+    // target reaches the outline's 1px further to come to the same 48, where
+    // it came to 46.
+    it('takes the same 48px square around today, outlined or held', () => {
+      const now = today(getLocalTimeZone())
+      // Held, it is filled; with nothing held, the month shown is today's and
+      // today takes its outline.
+      for (const held of [now, undefined]) {
+        const view = render(<Calendar aria-label="Label" defaultValue={held} />)
+        const cell = view.container.querySelector('[data-today]')
+        if (!(cell instanceof HTMLElement)) {
+          throw new Error('expected a cell marked today')
+        }
+        const target = getComputedStyle(cell, '::before')
+
+        expect(target.width).toBe('48px')
+        expect(target.height).toBe('48px')
+        view.unmount()
+      }
+    })
+
     // Compose lays its days at the page's 48dp both ways.
     it('puts the page 48px between one week and the next', () => {
       const view = render(

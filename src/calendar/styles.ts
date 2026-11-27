@@ -64,6 +64,9 @@ const WEEK_INLINE_SIZE = `calc(${ROW_BLOCK_SIZE} * 7)`
 // controls drawn at 40.
 const TARGET_REACH = `calc((${DATE_SIZE} - ${ROW_BLOCK_SIZE}) / 2)`
 
+// Today's outline, which `cellToday` draws around its date.
+const TODAY_RULE = '1px'
+
 // The weeks the grid holds room for, which is the most any month occupies: a
 // 31-day month beginning on the last day of a week runs one day, then four
 // whole weeks, then two days. February 2026 is the other end at four. Holding
@@ -264,10 +267,21 @@ const calendarStyles = stylex.create({
   },
   // Today, when it is not the date held: the page's 1dp outline in the
   // primary role, with the label to match.
+  //
+  // The press area reaches the outline's 1dp further. The outline is a
+  // border, and an absolutely placed box is set against its element's
+  // padding box, inside the border, so the 4dp `cell` reaches stopped 1dp
+  // short on every side and today alone took 46dp of its 48
+  // (kanso-labs/daily#1221).
   cellToday: {
+    '::before': {
+      content: '""',
+      inset: `calc(${TARGET_REACH} - ${TODAY_RULE})`,
+      position: 'absolute',
+    },
     borderColor: colors.primary,
     borderStyle: 'solid',
-    borderWidth: '1px',
+    borderWidth: TODAY_RULE,
     color: colors.primary,
   },
   // A date ruled out one at a time by `isDateUnavailable`. React Aria keeps
