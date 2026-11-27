@@ -40,8 +40,9 @@ import { colors } from '../../tokens/design.tokens.stylex'
 // short shows its full text in the browser's tooltip on hover — see
 // `src/navigation`. The label is held 4dp in from either side of the share,
 // so an ellipsis never touches the label beside it. Five destinations give
-// each label 61dp at a 375dp window and 58dp at 360dp, about nine
-// characters of label medium, so five destinations' names have to be short.
+// each label 67dp at a 375dp window and 64dp at 360dp: about ten characters
+// of label medium at 375dp and nine at 360dp, so an eleven-letter name is cut
+// short at both. The component's description says so to a reader.
 // Once the reader has enlarged their text, by a text-only zoom or a minimum
 // font size, the label takes further lines instead and the bar grows to hold
 // them, since that text no longer fits the lengths around it — see
@@ -101,6 +102,12 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
  * icon over its label, and the destinations share the bar's width; from 600px
  * each is a horizontal pill, once the window is wide enough for every label
  * to show whole.
+ *
+ * A vertical destination's label stays on one line, and one longer than its
+ * share of the bar is cut short, with its full text in a tooltip. Five
+ * destinations leave each label about ten characters at a 375px window and
+ * nine at 360px; three or four leave it more. Once the reader has enlarged
+ * their text, a label takes further lines instead.
  *
  * ```tsx
  * <NavigationBar aria-label="Label" selectedRoute="/first">

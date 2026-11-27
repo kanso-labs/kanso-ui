@@ -141,7 +141,7 @@ const NESTED = (
   </>
 )
 
-// A label far past the collapsed rail's 88dp, between two that fit.
+// A label far past the collapsed rail's 96dp, between two that fit.
 const LONG_LABEL = 'A label long enough to be cut short'
 
 const LONG_LABEL_DESTINATIONS = (
