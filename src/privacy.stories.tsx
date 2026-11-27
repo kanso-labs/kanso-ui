@@ -12,8 +12,8 @@ import { spacing } from './tokens/design.tokens.stylex'
 
 // The privacy note of the published Storybook, which counts visits with
 // Google Analytics. The counting is the manager's: `.storybook/manager-head.html`
-// loads `.storybook/public/analytics.js`, a copy of the file every Kanso Labs
-// site that loads gtag.js shares, and that file draws the banner and links it
+// loads `https://kansolabs.org/analytics.js`, the one file every Kanso Labs
+// site that loads gtag.js loads, and that file draws the banner and links it
 // here. This page is the way to opt out that stays within reach, so it reads
 // the visitor's setting from the manager, which is the story's parent frame
 // and the same origin. Built from the library's own components, as Getting
@@ -115,8 +115,8 @@ function Choice() {
       <div aria-live="polite">
         <Paragraph>
           {on
-            ? 'Analytics is on for this Storybook in this browser.'
-            : 'Analytics is off for this Storybook in this browser.'}
+            ? 'Analytics is on for Kanso Labs sites in this browser.'
+            : 'Analytics is off for Kanso Labs sites in this browser.'}
         </Paragraph>
       </div>
       <Button
@@ -170,9 +170,13 @@ function PrivacyPage() {
         <Paragraph>
           While analytics is on, Google Analytics sets two cookies on this site
           alone, <Code>_ga</Code> and one beginning <Code>_ga_</Code>, to tell a
-          returning browser from a new one. Each Kanso Labs site keeps its own,
-          so your choice here applies to this site only. It is kept in your
-          browser&apos;s local storage, and goes nowhere else.
+          returning browser from a new one. Each Kanso Labs site keeps its own.
+        </Paragraph>
+        <Paragraph>
+          Your choice is shared: it applies to every Kanso Labs site under
+          kansolabs.org, so you answer once. It is kept for 13 months in a
+          cookie on kansolabs.org, <Code>kl_consent</Code>, which your browser
+          sends to Kanso Labs sites alone.
         </Paragraph>
       </Section>
       <Section heading="How long it is kept">

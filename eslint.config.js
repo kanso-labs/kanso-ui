@@ -16,12 +16,8 @@ export default defineConfig([
   // consumer of the built package, which only exists after a build, so it is
   // type-checked by scripts/check-package.mjs rather than linted here. The
   // two token modules are generated, and ignored by git for that reason.
-  // `.storybook/public/analytics.js` is a plain script shared byte for byte
-  // with the other Kanso Labs sites, so it follows none of this repository's
-  // TypeScript rules.
   globalIgnores([
     '.claude',
-    '.storybook/public/analytics.js',
     '.design-sync',
     '.ds-sync',
     'dist',

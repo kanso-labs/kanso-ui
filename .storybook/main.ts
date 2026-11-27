@@ -30,8 +30,8 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
-  // analytics.js, which manager-head.html loads, and the logo and favicons
-  // manager.ts and Storybook itself use. Relative to this directory.
+  // The logo and favicons manager.ts and Storybook itself use. Relative to
+  // this directory.
   staticDirs: ['./public'],
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   typescript: {
