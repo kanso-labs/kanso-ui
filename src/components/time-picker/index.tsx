@@ -263,7 +263,7 @@ const styles = stylex.create({
     letterSpacing: typography.labelMediumTracking,
     lineHeight: typography.labelMediumLineHeight,
     margin: 0,
-    marginBlockEnd: '20px',
+    marginBlockEnd: spacing.lgPlus,
   },
   input: {
     alignItems: 'center',

@@ -36,11 +36,13 @@ const alignments = stylex.create({
 // out by hand.
 const gaps = stylex.create({
   lg: { gap: spacing.lg },
+  lgPlus: { gap: spacing.lgPlus },
   md: { gap: spacing.md },
   none: { gap: 0 },
   sm: { gap: spacing.sm },
   xl: { gap: spacing.xl },
   xs: { gap: spacing.xs },
+  xsPlus: { gap: spacing.xsPlus },
   xxl: { gap: spacing.xxl },
   xxs: { gap: spacing.xxs },
   xxxl: { gap: spacing.xxxl },
@@ -88,11 +90,13 @@ type StackAlign = 'baseline' | 'center' | 'end' | 'start' | 'stretch'
 
 type StackGap =
   | 'lg'
+  | 'lgPlus'
   | 'md'
   | 'none'
   | 'sm'
   | 'xl'
   | 'xs'
+  | 'xsPlus'
   | 'xxl'
   | 'xxs'
   | 'xxxl'

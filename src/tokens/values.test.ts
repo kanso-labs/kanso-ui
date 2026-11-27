@@ -87,9 +87,11 @@ describe('generated motion values', () => {
   it.each([
     ['xxs', spacingPx.xxs, spacingSource[2].$value],
     ['xs', spacingPx.xs, spacingSource[4].$value],
+    ['xsPlus', spacingPx.xsPlus, spacingSource[6].$value],
     ['sm', spacingPx.sm, spacingSource[8].$value],
     ['md', spacingPx.md, spacingSource[12].$value],
     ['lg', spacingPx.lg, spacingSource[16].$value],
+    ['lgPlus', spacingPx.lgPlus, spacingSource[20].$value],
     ['xl', spacingPx.xl, spacingSource[24].$value],
     ['xxl', spacingPx.xxl, spacingSource[32].$value],
     ['xxxl', spacingPx.xxxl, spacingSource[40].$value],

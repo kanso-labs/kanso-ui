@@ -563,10 +563,12 @@ const TYPE_SCALE: {
 
 const spacingStyles = stylex.create({
   lg: { width: spacing.lg },
+  lgPlus: { width: spacing.lgPlus },
   md: { width: spacing.md },
   sm: { width: spacing.sm },
   xl: { width: spacing.xl },
   xs: { width: spacing.xs },
+  xsPlus: { width: spacing.xsPlus },
   xxl: { width: spacing.xxl },
   xxs: { width: spacing.xxs },
   xxxl: { width: spacing.xxxl },
@@ -576,9 +578,11 @@ const spacingStyles = stylex.create({
 const spacingOrder: (keyof typeof spacingStyles)[] = [
   'xxs',
   'xs',
+  'xsPlus',
   'sm',
   'md',
   'lg',
+  'lgPlus',
   'xl',
   'xxl',
   'xxxl',

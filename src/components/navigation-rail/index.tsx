@@ -90,13 +90,12 @@ const styles = stylex.create({
     paddingBlock: RING_REACH,
     paddingInline: RING_REACH,
   },
-  // The page's 20dp either side of the pills, which falls between two steps
-  // of the spacing scale and so is written out.
+  // The page's 20dp either side of the pills.
   expanded: {
     inlineSize: 'fit-content',
     maxInlineSize: '360px',
     minInlineSize: '220px',
-    paddingInline: '20px',
+    paddingInline: spacing.lgPlus,
   },
   // The rail's FAB, centred in the collapsed rail, with the first
   // destination the page's 40dp under it, as under a header.
