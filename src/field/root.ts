@@ -63,10 +63,17 @@ function useInsideForm() {
 }
 
 const fieldStyles = stylex.create({
+  // A field holding a date or a time's segments is never narrower than they
+  // are, so a narrow column cannot clip its value — see `segments` in
+  // ./styles.ts.
   root: {
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
+    minInlineSize: {
+      ':has([data-field-segments])': 'min-content',
+      default: null,
+    },
   },
 })
 

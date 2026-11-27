@@ -38,7 +38,7 @@ import {
   picker,
   triggerClassName,
 } from '../../styles/picker'
-import { colors, typography } from '../../tokens/design.tokens.stylex'
+import { colors, spacing, typography } from '../../tokens/design.tokens.stylex'
 import RangeCalendar from '../range-calendar'
 
 // `DatePicker` picking two dates rather than one. Every part it draws is
@@ -67,15 +67,13 @@ import RangeCalendar from '../range-calendar'
 // rather than meeting three controls in a row.
 //
 // **The end date takes a line of its own where the two do not fit on one.**
-// The line the segments sit on clips them, as an input clips its text, and
-// two dates and the dash are wider than a phone's field: at 328px the empty
-// field showed 212px of the 281px its placeholders take, so most of the end
-// date was out of sight until it was typed in. Every segment is a place to
-// type, so none can be hidden, and shortening the placeholders would not hold
-// for a locale whose dates are longer. So the two groups wrap, the dash stays
-// after the start date, and the box grows by a line, as a text area's does,
-// from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
-// the dates share their line.
+// Two dates and the dash are wider than a phone's field: at 328px the empty
+// field had 212px of the 281px its placeholders take. Every segment is a
+// place to type, so none can be hidden, and shortening the placeholders would
+// not hold for a locale whose dates are longer. So the two groups wrap, the
+// dash stays after the start date, and the box grows by a line, as a text
+// area's does, from the page's 56dp. Where both fit, nothing moves: the box
+// is 56dp and the dates share their line.
 //
 // The wrap is decided by the line's width, and typing never undoes it. A date
 // is narrower filled than empty — `9` where `mm` was — so a field between the
@@ -86,10 +84,16 @@ import RangeCalendar from '../range-calendar'
 // or a font arrives — see `useEndDateWrap`.
 
 const styles = stylex.create({
-  // The two segment groups and the dash, with the end date on a line of its
-  // own — see the header. No gap between the lines, which are the segments'
-  // own line height apart, as a text area's are.
-  groupWrapped: {
+  // The two segment groups and the dash, free to wrap, with the end date on
+  // a line of its own once they do not fit — see the header. No gap between
+  // the lines, which are the segments' own line height apart, as a text
+  // area's are.
+  //
+  // Free to wrap even while everything fits. The field is never narrower
+  // than the narrowest its segments can be drawn, and a line that cannot
+  // wrap is narrowest at its whole length, so the end date would never be
+  // short of room on it.
+  group: {
     flexWrap: 'wrap',
     rowGap: 0,
   },
@@ -110,6 +114,16 @@ const styles = stylex.create({
     fontFamily: typography.bodyLargeFont,
     fontSize: typography.bodyLargeSize,
     lineHeight: typography.bodyLargeLineHeight,
+  },
+  // The start date and the dash after it, which never part: the dash says
+  // the first line is the start of a range, and wrapped on its own it left
+  // the start date with nothing after it and the end date a line further
+  // down still.
+  start: {
+    alignItems: 'center',
+    display: 'flex',
+    flexShrink: 0,
+    gap: spacing.sm,
   },
 })
 
@@ -281,13 +295,15 @@ function DateRangePicker<T extends DateValue>({
         <FieldSegments>
           <RACGroup
             ref={setGroup}
-            {...stylex.props(picker.group, wrapped && styles.groupWrapped)}
+            {...stylex.props(picker.group, styles.group)}
           >
-            <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
-              {renderSegment}
-            </RACDateInput>
-            <span aria-hidden="true" {...stylex.props(styles.separator)}>
-              {separator}
+            <span {...stylex.props(styles.start)}>
+              <RACDateInput slot="start" {...stylex.props(segmentStyles.input)}>
+                {renderSegment}
+              </RACDateInput>
+              <span aria-hidden="true" {...stylex.props(styles.separator)}>
+                {separator}
+              </span>
             </span>
             {wrapped && (
               <span aria-hidden="true" {...stylex.props(styles.lineBreak)} />

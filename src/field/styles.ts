@@ -504,11 +504,17 @@ const fieldChromeStyles = stylex.create({
   // The label and control's column. Its colour is the affixes', which have
   // none of their own: the muted role while the field is focused or holds a
   // value, and nothing at rest under a floating label.
+  //
+  // Around a date or a time's segments it is never narrower than they are —
+  // see `segments`.
   column: {
     boxSizing: 'border-box',
     color: colors.onSurfaceVariant,
     flexGrow: 1,
-    minInlineSize: 0,
+    minInlineSize: {
+      ':has(> [data-field-segments])': 'min-content',
+      default: 0,
+    },
     position: 'relative',
   },
   columnDisabled: {
@@ -857,14 +863,23 @@ const fieldChromeStyles = stylex.create({
     whiteSpace: 'pre-wrap',
   },
   // A date or a time's segments on the value's line, laid out as a row so it
-  // does not stretch to the box's height. Clipped at the box as an input's
-  // text is, and neither wrapped nor cut short with an ellipsis: every
-  // segment on the line is a place to type, so none of it can be drawn as
-  // though it were not there. The browser scrolls the segment with focus into
-  // view, since a box that clips is still one it can scroll.
+  // does not stretch to the box's height, and neither wrapped nor cut short
+  // with an ellipsis: every segment on the line is a place to type, so none
+  // of it can be drawn as though it were not there.
+  //
+  // Nor is it clipped by a field given less room than it takes. A date read
+  // in part reads wrong — "11 / 18 / 2" is a year nobody chose — so the line
+  // is at least as wide as its segments, and the column around it, the box
+  // and the field each grow to hold it; see `column` here and `root` in
+  // ./root.ts. At least its narrowest, which is what lets a range's end date
+  // still wrap onto a line of its own — see DateRangePicker. A layout too
+  // narrow for the field then wraps or overflows around a field that reads
+  // whole. The line still clips, so the ring of a segment at its very edge
+  // is cut as it was.
   segments: {
     alignItems: 'center',
     display: 'flex',
+    minInlineSize: 'min-content',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
   },
