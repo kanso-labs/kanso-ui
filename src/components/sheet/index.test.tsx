@@ -345,9 +345,9 @@ function showing(panel: Element) {
 
 /**
  * Renders the sheet, checks its panel is stranded outside the window, and
- * lets the clock run past the 400ms an arrival may go without scrolling, on fake timers so nothing waits for it.
- * Timeouts alone: the browser's own frames still run, so React Aria's
- * arrival starts as it would.
+ * lets the clock run past the 400ms an arrival may go without scrolling, on
+ * fake timers so nothing waits for it. Timeouts alone: the browser's own
+ * frames still run, so React Aria's arrival starts as it would.
  */
 async function stalledFor(draw: () => RenderResult) {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -1547,6 +1547,7 @@ describe('sheet, moving', () => {
         { timeout: 3000 },
       )
     } finally {
+      vi.useRealTimers()
       window.removeEventListener('scrollend', swallowTrusted, true)
     }
   })
