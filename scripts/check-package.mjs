@@ -155,8 +155,12 @@ check('dist/index.js still imports ./styles.css', () => {
 // would read the installed copy's.
 const CONSUMER = '\0consumer'
 
-/** @returns {Promise<string[]>} the names of the files the bundle emits */
-async function bundleConsumer() {
+/**
+ * @param {string} name the component the consumer imports
+ * @returns {Promise<{ files: string[], modules: string[] }>} the names of the
+ *   files the bundle emits, and the ids of every module its chunks render
+ */
+async function bundleConsumer(name) {
   const result = await build({
     build: { rolldownOptions: { input: 'consumer' }, write: false },
     configFile: false,
@@ -165,7 +169,7 @@ async function bundleConsumer() {
       {
         load: (id) =>
           id === CONSUMER
-            ? "import { Button } from '@kanso-labs/kanso-ui'\nglobalThis.Button = Button\n"
+            ? `import { ${name} } from '@kanso-labs/kanso-ui'\nglobalThis.${name} = ${name}\n`
             : null,
         name: 'consumer',
         resolveId: (id) => (id === 'consumer' ? CONSUMER : null),
@@ -178,28 +182,89 @@ async function bundleConsumer() {
     throw new TypeError('the build started a watcher rather than bundling')
   }
 
-  return (Array.isArray(result) ? result : [result]).flatMap((bundle) =>
-    bundle.output.map((file) => file.fileName),
+  const outputs = (Array.isArray(result) ? result : [result]).flatMap(
+    (bundle) => bundle.output,
   )
+
+  return {
+    files: outputs.map((file) => file.fileName),
+    // Only what renders: a module the tree-shaking emptied out is no cost.
+    modules: outputs.flatMap((file) =>
+      file.type === 'chunk'
+        ? Object.entries(file.modules)
+            .filter(([, module]) => module.renderedLength > 0)
+            .map(([id]) => id)
+        : [],
+    ),
+  }
 }
 
-const consumerBundle = await bundleConsumer().catch(
-  /** @param {unknown} error */
-  (error) => (error instanceof Error ? error : new Error(String(error))),
-)
+/**
+ * @param {string} name
+ * @returns {Promise<Error | { files: string[], modules: string[] }>}
+ */
+async function bundleOf(name) {
+  try {
+    return await bundleConsumer(name)
+  } catch (error) {
+    return error instanceof Error ? error : new Error(String(error))
+  }
+}
+
+const consumerBundle = await bundleOf('Button')
 
 check("a consumer's production bundle keeps the stylesheet", () => {
   if (consumerBundle instanceof Error) {
     throw consumerBundle
   }
 
-  if (!consumerBundle.some((name) => name.endsWith('.js'))) {
+  if (!consumerBundle.files.some((name) => name.endsWith('.js'))) {
     throw new Error('the bundle holds no JavaScript, so this proves nothing')
   }
 
-  if (!consumerBundle.some((name) => name.endsWith('.css'))) {
+  if (!consumerBundle.files.some((name) => name.endsWith('.css'))) {
     throw new Error(
       'the bundle holds no stylesheet: the entry was dropped, and its ./styles.css import with it',
+    )
+  }
+})
+
+// The field chrome is one module every field shares, so whatever it imports
+// from React Aria reaches every bundle holding a field. Its `Select` module
+// pulls in the popover, the list box and the dialog, which is what a field
+// that chooses nothing has no use for: the chrome once read the select's
+// state itself, and one text field then cost an app every overlay React Aria
+// has. The select bundle is the control, since it must hold the module, and
+// without it this check could pass on a module that was merely renamed.
+const RAC_SELECT = /react-aria-components\/dist\/(private\/)?Select\.m?js$/
+/** @param {{ modules: string[] }} bundle */
+function holdsSelect(bundle) {
+  return bundle.modules.some((id) => RAC_SELECT.test(id.replaceAll('\\', '/')))
+}
+
+const [fieldBundle, selectBundle] = await Promise.all([
+  bundleOf('TextField'),
+  bundleOf('Select'),
+])
+
+check("a field's bundle leaves out React Aria's Select", () => {
+  if (fieldBundle instanceof Error) {
+    throw fieldBundle
+  }
+
+  if (selectBundle instanceof Error) {
+    throw selectBundle
+  }
+
+  if (!holdsSelect(selectBundle)) {
+    throw new Error(
+      'a Select bundle holds no React Aria Select module, so this check matches nothing',
+    )
+  }
+
+  if (holdsSelect(fieldBundle)) {
+    throw new Error(
+      "a TextField bundle holds React Aria's Select module: something every field shares imports it",
     )
   }
 })
