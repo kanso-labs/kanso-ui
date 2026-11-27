@@ -1003,6 +1003,12 @@ function returnToStart(event: FocusEvent<HTMLElement>) {
   }
 }
 
+/**
+ * Whether the control in this box is holding anything, read off React
+ * Aria's context for whichever control the field renders. The filled box
+ * reads the same thing in CSS through `:placeholder-shown`; this is for
+ * what CSS cannot express — see the outlined variant's note above.
+ */
 function useFieldPopulated() {
   const input = useSlottedContext(InputContext)
   const textArea = useSlottedContext(TextAreaContext)
@@ -1014,12 +1020,6 @@ function useFieldPopulated() {
   return String(value).length > 0
 }
 
-/**
- * Whether the control in this box is holding anything, read off React
- * Aria's context for whichever control the field renders. The filled box
- * reads the same thing in CSS through `:placeholder-shown`; this is for
- * what CSS cannot express — see the outlined variant's note above.
- */
 /**
  * A field's label: the colour alone, positioned and given its type by whatever
  * renders it. React Aria's `Label`, which the field around it associates with

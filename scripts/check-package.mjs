@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Checks the seven things about the built package that publint and attw
+// Checks the nine things about the built package that publint and attw
 // cannot see.
 //
 // publint reads package.json and the packed file list, so it catches an
@@ -60,6 +60,12 @@
 // the package, which a consumer's bundler or compiler would fail to find —
 // `KuiTheme` is re-exported from it, so its declaration has to be written into
 // dist rather than referenced.
+//
+// The ninth is what a field alone costs a consumer. Every field shares one
+// chrome module, so whatever it imports from React Aria reaches every bundle
+// holding a field, and a field that reached React Aria's `Select` module
+// made its overlays a static dependency of every page with a text field.
+// The package's own tests never bundle, so only a consumer's bundle shows it.
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
