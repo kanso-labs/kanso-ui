@@ -72,8 +72,8 @@ import RangeCalendar from '../range-calendar'
 // place to type, so none can be hidden, and shortening the placeholders would
 // not hold for a locale whose dates are longer. So the two groups wrap, the
 // dash stays after the start date, and the box grows by a line, as a text
-// area's does, from the page's 56dp. Where both fit, nothing moves: the box is 56dp and
-// the dates share their line.
+// area's does, from the page's 56dp. Where both fit, nothing moves: the box
+// is 56dp and the dates share their line.
 //
 // The wrap is decided by the line's width, and typing never undoes it. A date
 // is narrower filled than empty — `9` where `mm` was — so a field between the
