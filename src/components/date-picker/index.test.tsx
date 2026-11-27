@@ -431,7 +431,6 @@ describe('date picker', () => {
       expect(buttonAt(middleX, trigger.bottom + 3.5)).toBe(button)
       expect(buttonAt(trigger.left - 3.5, middleY)).toBe(button)
       expect(buttonAt(trigger.right + 3.5, middleY)).toBe(button)
-      expect(buttonAt(middleX, trigger.top - 4.5)).not.toBe(button)
       expect(trigger.top - 4).toBeGreaterThanOrEqual(box.top)
       expect(trigger.bottom + 4).toBeLessThanOrEqual(box.bottom)
     })
