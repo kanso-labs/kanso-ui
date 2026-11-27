@@ -519,7 +519,8 @@ function restAtEdge(layer: HTMLElement, scroller: HTMLElement) {
  * So a layer whose scroller has no size as it mounts is watched until the
  * scroller first has one, and the panel is then put where it opens, which
  * ends the scroll React Aria is waiting on. A scroller with a size from the
- * start is left to React Aria, and nothing here runs again: a panel being
+ * start is left to React Aria, and to `restIfArrivalStalls` should its
+ * scroll stop without ending, and nothing here runs again: a panel being
  * dragged or arriving always has a size. A ref callback rather than an
  * effect, since the layer mounts with the sheet's opening, which the trigger
  * rather than this part decides.
@@ -545,6 +546,67 @@ function restOnceLaidOut(
   return () => {
     observer.disconnect()
   }
+}
+
+// How long an arrival's scroll may go without moving before it counts as
+// stalled, and how long an arrival may take at all. The slide is the
+// browser's smooth scroll, a few hundred milliseconds; a frame or two of
+// silence is a loaded machine, and 400 is well past both.
+const ARRIVAL_STALL = 400
+const ARRIVAL_LIMIT = 1500
+
+/**
+ * Rests a panel whose arrival stops without ending, as a scroll can.
+ *
+ * React Aria counts a panel as arriving until the smooth scroll that brings
+ * it in ends, and holds focus back while it does. A smooth scroll the browser
+ * drops or stops — a press inside the panel as it arrives, on a loaded
+ * machine — never fires `scrollend`, and the panel stayed where the scroll
+ * left it, off the window, with its scrim over the page and focus outside.
+ *
+ * So the layer is watched while React Aria marks it as entering. Once its
+ * scroller has gone this long without scrolling, or the arrival has taken
+ * longer than any slide does, the panel is put where it opens and the
+ * scroller told its scroll has ended, which is what React Aria waits on: a
+ * panel already at rest scrolls nowhere and would end nothing. The watch
+ * goes on until React Aria has finished, so a scroll it starts later is
+ * covered too. A scroller with no size is left to `restOnceLaidOut`, and
+ * under reduced motion the arrival is one instant scroll that ends at once,
+ * so nothing here acts.
+ */
+function restIfArrivalStalls(
+  layer: HTMLDivElement | null,
+): (() => void) | undefined {
+  const scroller = layer?.querySelector('[data-sheet-scroll]')
+  if (!(layer instanceof HTMLElement && scroller instanceof HTMLElement)) {
+    return undefined
+  }
+  let stall: ReturnType<typeof setTimeout> | undefined
+  const stop = () => {
+    clearTimeout(stall)
+    clearTimeout(limit)
+    scroller.removeEventListener('scroll', wait)
+  }
+  const rest = () => {
+    if (!layer.hasAttribute('data-entering')) {
+      stop()
+      return
+    }
+    if (hasSize(scroller)) {
+      restWhereItOpens(layer, scroller)
+      scroller.dispatchEvent(new Event('scrollend'))
+    }
+    wait()
+  }
+  // Every scroll puts the stall off again.
+  function wait() {
+    clearTimeout(stall)
+    stall = setTimeout(rest, ARRIVAL_STALL)
+  }
+  const limit = setTimeout(rest, ARRIVAL_LIMIT)
+  scroller.addEventListener('scroll', wait, { passive: true })
+  wait()
+  return stop
 }
 
 /**
@@ -714,7 +776,7 @@ function SheetContent({
       ? snapPoints
       : undefined
   const overlayRef = useRef<HTMLDivElement>(null)
-  const layerRef = mergeRefs(overlayRef, restOnceLaidOut)
+  const layerRef = mergeRefs(overlayRef, watchArrival)
   useRestOnTurn(overlayRef, position)
   // React Aria holds Escape whenever it holds the scrim and the swipe, so
   // the two settings disagreeing is where the dialog answers for Escape.
@@ -936,6 +998,20 @@ function useRestOnTurn(
     }
     restAtEdge(layer, scroller)
   }, [overlayRef, position])
+}
+
+/**
+ * Both of the ways an arrival can be left unfinished, watched from the layer
+ * as it mounts: a scroller with no size, and a scroll that stops without
+ * ending.
+ */
+function watchArrival(layer: HTMLDivElement | null): () => void {
+  const unsized = restOnceLaidOut(layer)
+  const stalled = restIfArrivalStalls(layer)
+  return () => {
+    unsized?.()
+    stalled?.()
+  }
 }
 
 Sheet.Body = SheetBody
