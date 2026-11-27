@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.51.11](https://github.com/kanso-labs/kanso-ui/compare/v0.51.10...v0.51.11) (2026-11-27)
+
+
+### Bug Fixes
+
+* **calendar:** give today's date and a picker's calendar button a 48px target ([#2351](https://github.com/kanso-labs/kanso-ui/issues/2351)) ([383c42a](https://github.com/kanso-labs/kanso-ui/commit/383c42a51f49c966b9d5a2768051144a0b482278))
+
+
+### Dependencies
+
+* update dependency @kanso-labs/unplugin-style-dictionary to v0.10.83 ([#2348](https://github.com/kanso-labs/kanso-ui/issues/2348)) ([e2bae1b](https://github.com/kanso-labs/kanso-ui/commit/e2bae1bec1cfe79f17264d10907e7e6329d3e7bc))
+
 ## [0.51.10](https://github.com/kanso-labs/kanso-ui/compare/v0.51.9...v0.51.10) (2026-11-26)
 
 
