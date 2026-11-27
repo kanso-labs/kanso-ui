@@ -29,6 +29,11 @@ const DATE = new CalendarDate(2026, 9, 15)
 
 const TWO_MONTHS = { months: 2 }
 
+// The button whose press a point in the window lands on, if any.
+function buttonAt(x: number, y: number) {
+  return document.elementFromPoint(x, y)?.closest('button')
+}
+
 // The surface stays in the document while it animates out, so closed is
 // a state it reaches rather than one it is in the moment it is told.
 async function closed(view: ReturnType<typeof render>) {
@@ -410,6 +415,25 @@ describe('date picker', () => {
         filled: triggerOffCentre('filled'),
         outlined: triggerOffCentre('outlined'),
       }).toEqual({ filled: 0, outlined: 0 })
+    })
+
+    // The trigger is a 40dp button whose press reaches the text fields page's
+    // 48dp, 4dp past it on every side, still inside the 56dp box.
+    it('takes a press 4dp past the trigger on every side', () => {
+      const view = render(<DatePicker label="Label" />)
+      const button = triggerOf(view)
+      const { box, trigger } = parts(view.container)
+      const middleX = trigger.left + trigger.width / 2
+      const middleY = trigger.top + trigger.height / 2
+
+      expect(trigger.width).toBe(40)
+      expect(buttonAt(middleX, trigger.top - 3.5)).toBe(button)
+      expect(buttonAt(middleX, trigger.bottom + 3.5)).toBe(button)
+      expect(buttonAt(trigger.left - 3.5, middleY)).toBe(button)
+      expect(buttonAt(trigger.right + 3.5, middleY)).toBe(button)
+      expect(buttonAt(middleX, trigger.top - 4.5)).not.toBe(button)
+      expect(trigger.top - 4).toBeGreaterThanOrEqual(box.top)
+      expect(trigger.bottom + 4).toBeLessThanOrEqual(box.bottom)
     })
   })
 })
