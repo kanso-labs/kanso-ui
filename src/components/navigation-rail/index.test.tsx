@@ -447,9 +447,9 @@ describe('navigation rail', () => {
       expect(first.top - header.bottom).toBe(40)
     })
 
-    // The label reaches across the rail's whole 96dp rather than the 88dp
-    // inside the destination's 4dp either side: held to those, a
-    // twelve-letter label a pixel over its width was cut short.
+    // The label reaches across the rail's whole 96dp rather than the 88dp a
+    // 4dp inset either side left it: held to those, a label a pixel or two
+    // over was cut short.
     it("gives a label the rail's whole width", () => {
       const view = render(
         <NavigationRail aria-label="Label">
@@ -457,18 +457,20 @@ describe('navigation rail', () => {
             {LONG_LABEL}
           </NavigationRail.Item>
           <NavigationRail.Item href="#second" icon={ICON}>
-            Twelfth item
+            Eleventh item
           </NavigationRail.Item>
         </NavigationRail>,
       )
       const rail = view.getByRole('navigation').getBoundingClientRect()
-      const [long, twelve] = view
+      const [long, over] = view
         .getAllByRole('link')
         .map((link) => partsOf(link).label)
 
       expect(long.getBoundingClientRect().left).toBe(rail.left)
       expect(long.getBoundingClientRect().width).toBe(96)
-      expect(twelve.scrollWidth).toBeLessThanOrEqual(twelve.clientWidth)
+      // Wider than the 88dp the inset left, and whole.
+      expect(over.scrollWidth).toBeGreaterThan(88)
+      expect(over.scrollWidth).toBeLessThanOrEqual(over.clientWidth)
     })
 
     // The label stays on one line and is cut short where the column ends,

@@ -106,7 +106,8 @@ type NavigationBarProps = RenderComponentProps<'nav'> & {
  * A vertical destination's label stays on one line, and one longer than its
  * share of the bar is cut short, with its full text in a tooltip. Five
  * destinations leave each label about ten characters at a 375px window and
- * nine at 360px; three or four leave it more.
+ * nine at 360px; three or four leave it more. Once the reader has enlarged
+ * their text, a label takes further lines instead.
  *
  * ```tsx
  * <NavigationBar aria-label="Label" selectedRoute="/first">

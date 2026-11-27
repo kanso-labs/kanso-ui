@@ -141,7 +141,7 @@ const NESTED = (
   </>
 )
 
-// A label far past the collapsed rail's 88dp, between two that fit.
+// A label far past the collapsed rail's 96dp, between two that fit.
 const LONG_LABEL = 'A label long enough to be cut short'
 
 const LONG_LABEL_DESTINATIONS = (
@@ -153,7 +153,7 @@ const LONG_LABEL_DESTINATIONS = (
       {LONG_LABEL}
     </NavigationRail.Item>
     <NavigationRail.Item href="#third" icon={TRIANGLE}>
-      Twelfth item
+      Third item
     </NavigationRail.Item>
   </>
 )
@@ -309,8 +309,6 @@ const WithMenuAndFab: Story = {
 // A label with no room in the collapsed column stays on one line and ends in
 // an ellipsis, and shows its full text in the browser's tooltip on hover.
 // Its `play` hovers it, so the title is on the label in the snapshot too.
-// The third label, twelve characters, fits whole: a label takes the rail's
-// whole 96dp.
 const LongLabel: Story = {
   args: {
     children: LONG_LABEL_DESTINATIONS,

@@ -29,9 +29,9 @@ import Fab from '../fab'
 // `src/navigation`'s, shared with NavigationBar, which holds their values.
 //
 // A collapsed destination's label stays on one line across the rail's 96dp
-// under its indicator, about fourteen characters of label medium. A longer one is cut
-// short with an ellipsis and shows its full text in the browser's tooltip on
-// hover — see `src/navigation`. Once the reader has enlarged their text, by
+// under its indicator, about fourteen characters of label medium. A longer
+// one is cut short with an ellipsis and shows its full text in the browser's
+// tooltip on hover — see `src/navigation`. Once the reader has enlarged their text, by
 // a text-only zoom or a minimum font size, the label takes further lines
 // instead and its destination grows to hold them, since that text no longer
 // fits the lengths around it — see src/hooks/useEnlargedText.ts. The expanded

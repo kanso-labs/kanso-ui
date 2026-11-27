@@ -459,9 +459,11 @@ const collapsedItemStyles = stylex.create({
   },
   // The page's 64dp destination: 6dp above the indicator and below the
   // label, which falls between two steps of the spacing scale and so is
-  // written out, and 4dp in from either edge of the rail. At the 16dp a
-  // horizontal destination is set in by, a two-word label was cut short in a
-  // rail that had room for it.
+  // written out. Nothing either side, so the label has the rail's whole 96dp.
+  // Set in by 4dp, a twelve-letter label a pixel over the 88dp left was cut
+  // short; at the 16dp a horizontal destination is set in by, a two-word one
+  // was. Nothing stands beside a label in a column of destinations, so no
+  // inset kept two of them apart; a label cut short ends at the rail's edge.
   //
   // It keeps its height in a rail too short for every destination, which
   // scrolls them instead — see NavigationRail.
@@ -472,7 +474,7 @@ const collapsedItemStyles = stylex.create({
     inlineSize: '100%',
     justifyContent: 'center',
     paddingBlock: '6px',
-    paddingInline: spacing.xs,
+    paddingInline: 0,
   },
   itemCurrent: {},
   itemFocused: {},
@@ -481,18 +483,13 @@ const collapsedItemStyles = stylex.create({
   itemHoveredCurrent: {},
   itemPressed: {},
   itemPressedCurrent: {},
-  // The label reaches past the destination's 4dp either side, across the
-  // rail's whole 96dp. Nothing stands beside it in a column of destinations,
-  // so the inset kept no neighbour apart, and held to the 88dp inside it a
-  // twelve-letter label a pixel over was cut short.
   label: {
     fontFamily: typography.labelMediumFont,
     fontSize: typography.labelMediumSize,
     fontWeight: typography.labelMediumWeight,
     letterSpacing: typography.labelMediumTracking,
     lineHeight: typography.labelMediumLineHeight,
-    marginInline: `calc(-1 * ${spacing.xs})`,
-    maxInlineSize: `calc(100% + 2 * ${spacing.xs})`,
+    maxInlineSize: '100%',
   },
   labelCurrent: {
     color: colors.secondary,
