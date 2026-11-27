@@ -69,7 +69,7 @@ jobs:
   release-please:
     name: Propose releases
     if: github.ref_type != 'tag'
-    uses: kanso-labs/actions/.github/workflows/_release-please.yaml@v4.7.0
+    uses: kanso-labs/actions/.github/workflows/_release-please.yaml@v4.8.0
     with:
       # True only on the scheduled run, which is what batches a day of merges
       # into one release. A push proposes without merging, and so does
@@ -133,4 +133,9 @@ jobs:
       contents: read
       id-token: write
       packages: write
-    uses: kanso-labs/actions/.github/workflows/_publish-npm.yaml@v4.7.0
+    uses: kanso-labs/actions/.github/workflows/_publish-npm.yaml@v4.8.0
+    with:
+      # Both jobs run in the release environment, whose deployment tags are
+      # limited to this repository's release tags, so only a run on one can
+      # publish (kanso-labs/actions#126).
+      environment: release
