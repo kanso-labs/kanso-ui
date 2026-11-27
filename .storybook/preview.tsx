@@ -100,7 +100,19 @@ const withJSDocDefaultsUnquoted: Enhancer = ({ argTypes }) =>
 
 // The steps of the library's size scale, smallest first: the steps `size`
 // takes, and the spacing steps Stack's `gap` does.
-const SCALE = ['none', 'xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl']
+const SCALE = [
+  'none',
+  'xxs',
+  'xs',
+  'xsPlus',
+  'sm',
+  'md',
+  'lg',
+  'lgPlus',
+  'xl',
+  'xxl',
+  'xxxl',
+]
 
 // A control lists a union's members in the order its type declares them, and
 // lint sorts those by name, so Button's `size` offered lg, md, xl, xs and xxl.

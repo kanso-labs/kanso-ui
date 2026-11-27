@@ -313,7 +313,7 @@ const barItemStyles = stylex.create({
     },
     minBlockSize: { default: BAR_ROW, [media.medium]: 0 },
     minInlineSize: 0,
-    paddingBlock: { default: '6px', [media.medium]: 0 },
+    paddingBlock: { default: spacing.xsPlus, [media.medium]: 0 },
     paddingInline: { default: spacing.xs, [media.medium]: spacing.lg },
   },
   itemCurrent: {
@@ -458,8 +458,7 @@ const collapsedItemStyles = stylex.create({
     backgroundColor: PRESSED_OVER_CURRENT,
   },
   // The page's 64dp destination: 6dp above the indicator and below the
-  // label, which falls between two steps of the spacing scale and so is
-  // written out. Nothing either side, so the label has the rail's whole 96dp.
+  // label. Nothing either side, so the label has the rail's whole 96dp.
   // Set in by 4dp, a twelve-letter label a pixel over the 88dp left was cut
   // short; at the 16dp a horizontal destination is set in by, a two-word one
   // was. Nothing stands beside a label in a column of destinations, so no
@@ -473,7 +472,7 @@ const collapsedItemStyles = stylex.create({
     gap: spacing.xs,
     inlineSize: '100%',
     justifyContent: 'center',
-    paddingBlock: '6px',
+    paddingBlock: spacing.xsPlus,
     paddingInline: 0,
   },
   itemCurrent: {},
@@ -618,7 +617,7 @@ const crampedBarItemStyles = stylex.create({
     gap: spacing.xs,
     justifyContent: 'center',
     minInlineSize: 0,
-    paddingBlock: '6px',
+    paddingBlock: spacing.xsPlus,
     paddingInline: 0,
   },
   list: {

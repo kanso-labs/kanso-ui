@@ -1095,10 +1095,12 @@ export type KuiTheme = {
     readonly '--kui-sizing-row-sm'?: string;
     readonly '--kui-sizing-row-xs'?: string;
     readonly '--kui-spacing-lg'?: string;
+    readonly '--kui-spacing-lg-plus'?: string;
     readonly '--kui-spacing-md'?: string;
     readonly '--kui-spacing-sm'?: string;
     readonly '--kui-spacing-xl'?: string;
     readonly '--kui-spacing-xs'?: string;
+    readonly '--kui-spacing-xs-plus'?: string;
     readonly '--kui-spacing-xxl'?: string;
     readonly '--kui-spacing-xxs'?: string;
     readonly '--kui-spacing-xxxl'?: string;
@@ -2069,7 +2071,7 @@ export function Stack(input: StackProps): ReactElement<unknown, string | JSXElem
 export type StackAlign = 'baseline' | 'center' | 'end' | 'start' | 'stretch';
 
 // @public (undocumented)
-export type StackGap = 'lg' | 'md' | 'none' | 'sm' | 'xl' | 'xs' | 'xxl' | 'xxs' | 'xxxl';
+export type StackGap = 'lg' | 'lgPlus' | 'md' | 'none' | 'sm' | 'xl' | 'xs' | 'xsPlus' | 'xxl' | 'xxs' | 'xxxl';
 
 // @public (undocumented)
 export type StackJustify = 'around' | 'between' | 'center' | 'end' | 'start';

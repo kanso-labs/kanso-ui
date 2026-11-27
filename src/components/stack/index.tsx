@@ -14,9 +14,10 @@ import { spacing } from '../../tokens/design.tokens.stylex'
 // either way — `alignItems` takes `flex-start` and `justifyContent` takes
 // `space-between`, neither of which is a word anyone wants in a prop.
 //
-// No Material Design page draws a stack. Its gaps are the spacing tokens,
-// the 4dp grid the layout pages space elements on, and `xl` is their 24dp
-// spacer between panes.
+// No Material Design page draws a stack. Its gaps are the spacing tokens:
+// the 4dp grid the layout pages space elements on, with the 2dp, 6dp and
+// 20dp steps their components use between it, and `xl` is their 24dp spacer
+// between panes.
 const alignments = stylex.create({
   baseline: { alignItems: 'baseline' },
   center: { alignItems: 'center' },
@@ -36,11 +37,13 @@ const alignments = stylex.create({
 // out by hand.
 const gaps = stylex.create({
   lg: { gap: spacing.lg },
+  lgPlus: { gap: spacing.lgPlus },
   md: { gap: spacing.md },
   none: { gap: 0 },
   sm: { gap: spacing.sm },
   xl: { gap: spacing.xl },
   xs: { gap: spacing.xs },
+  xsPlus: { gap: spacing.xsPlus },
   xxl: { gap: spacing.xxl },
   xxs: { gap: spacing.xxs },
   xxxl: { gap: spacing.xxxl },
@@ -88,11 +91,13 @@ type StackAlign = 'baseline' | 'center' | 'end' | 'start' | 'stretch'
 
 type StackGap =
   | 'lg'
+  | 'lgPlus'
   | 'md'
   | 'none'
   | 'sm'
   | 'xl'
   | 'xs'
+  | 'xsPlus'
   | 'xxl'
   | 'xxs'
   | 'xxxl'

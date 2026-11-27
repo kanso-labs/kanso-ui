@@ -489,7 +489,18 @@ function typographyEntries(allTokens) {
 
 /** @param {TransformedToken[]} allTokens @returns {Entry[]} */
 function spacingEntries(allTokens) {
-  const keys = ['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl']
+  const keys = [
+    'xxs',
+    'xs',
+    'xsPlus',
+    'sm',
+    'md',
+    'lg',
+    'lgPlus',
+    'xl',
+    'xxl',
+    'xxxl',
+  ]
   return keys.map((key) => [
     key,
     `'${byPath(allTokens, 'spacing', 'component', key)}'`,

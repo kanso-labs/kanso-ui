@@ -64,8 +64,10 @@ describe('gap', () => {
   it('takes each step from the spacing scale', () => {
     const steps = [
       ['xxs', spacingPx.xxs],
+      ['xsPlus', spacingPx.xsPlus],
       ['sm', spacingPx.sm],
       ['lg', spacingPx.lg],
+      ['lgPlus', spacingPx.lgPlus],
       ['xxxl', spacingPx.xxxl],
     ] as const
 
