@@ -7,7 +7,7 @@
 | Family | Names |
 |---|---|
 | Colour (Material 3 roles) | `--kui-color-primary`, `-on-primary`, `-primary-container`, `-secondary-container`, `-surface`, `-on-surface`, `-on-surface-variant`, `-surface-container-lowest` to `-surface-container-highest`, `-outline`, `-outline-variant`, `-positive`, `-negative`, `-error` |
-| Spacing | `--kui-spacing-xxs` 2px, `-xs` 4, `-sm` 8, `-md` 12, `-lg` 16, `-xl` 24, `-xxl` 32, `-xxxl` 40 (`Stack`'s `gap` takes the same names) |
+| Spacing | `--kui-spacing-xxs` 2px, `-xs` 4, `-xs-plus` 6, `-sm` 8, `-md` 12, `-lg` 16, `-lg-plus` 20, `-xl` 24, `-xxl` 32, `-xxxl` 40 (`Stack`'s `gap` takes the same steps, spelling the two between-steps `xsPlus` and `lgPlus`) |
 | Radius | `--kui-radius-xs` 4px, `-sm` 8, `-md` 12, `-lg` 16, `-xl` 28, `-pill` |
 | Elevation | `--kui-shadow-elevation1` to `--kui-shadow-elevation5` |
 | Motion | `--kui-motion-duration-short1` to `-long3`, `--kui-motion-easing-standard`, `-emphasized` |

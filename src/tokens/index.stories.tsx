@@ -1008,7 +1008,8 @@ function TokensPage() {
             Spacing
           </Text>
           <Text render={PARAGRAPH} tone="muted" variant="bodyMedium">
-            4px-based scale for padding, gaps, and margins.
+            4px-based scale for padding, gaps, and margins, with steps between
+            steps where a component's spec gives one.
           </Text>
         </div>
         <div {...stylex.props(styles.rowList)}>
