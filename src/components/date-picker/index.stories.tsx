@@ -4,25 +4,27 @@ import * as stylex from '@stylexjs/stylex'
 
 import DatePicker from '.'
 import { CalendarDate } from '../../date'
-import { spacing } from '../../tokens/design.tokens.stylex'
+import { colors } from '../../tokens/design.tokens.stylex'
 
 // A fixed date, so every snapshot reads the same whenever it is taken.
 const DATE = new CalendarDate(2026, 9, 15)
 const MIN = new CalendarDate(2026, 9, 8)
 
 const styles = stylex.create({
-  // Narrower than the picker's segments and its calendar button together.
+  // A column narrower than the picker's segments and its calendar button
+  // together, outlined so the column reads beside the field.
   narrow: {
-    display: 'flex',
-    gap: spacing.sm,
-    inlineSize: '340px',
+    inlineSize: '170px',
+    outlineColor: colors.outlineVariant,
+    outlineOffset: '4px',
+    outlineStyle: 'dashed',
+    outlineWidth: '1px',
   },
 })
 
-// Two pickers side by side in a column of 340px, about 170px each.
-const SideBySide: Decorator = (Story) => (
+// The picker in that column.
+const InNarrowColumn: Decorator = (Story) => (
   <div {...stylex.props(styles.narrow)}>
-    <Story />
     <Story />
   </div>
 )
@@ -93,11 +95,10 @@ const WithMinValue: Story = {
   parameters: { docs: { story: { height: '500px', inline: false } } },
 }
 
-// Two pickers sharing a column narrower than they need. Each is as wide as
-// its whole date, rather than clipping the year, and the column overflows
-// rather than either reading in part.
+// A picker in a column narrower than it needs. It is as wide as its whole
+// date, past the column's dashed edge, rather than clipping the year.
 const Narrow: Story = {
-  decorators: [SideBySide],
+  decorators: [InNarrowColumn],
 }
 
 export {
