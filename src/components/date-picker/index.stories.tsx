@@ -1,11 +1,31 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
+import type { Decorator, Meta, StoryObj } from '@storybook/react-vite'
+
+import * as stylex from '@stylexjs/stylex'
 
 import DatePicker from '.'
 import { CalendarDate } from '../../date'
+import { spacing } from '../../tokens/design.tokens.stylex'
 
 // A fixed date, so every snapshot reads the same whenever it is taken.
 const DATE = new CalendarDate(2026, 9, 15)
 const MIN = new CalendarDate(2026, 9, 8)
+
+const styles = stylex.create({
+  // Narrower than the picker's segments and its calendar button together.
+  narrow: {
+    display: 'flex',
+    gap: spacing.sm,
+    inlineSize: '340px',
+  },
+})
+
+// Two pickers side by side in a column of 340px, about 170px each.
+const SideBySide: Decorator = (Story) => (
+  <div {...stylex.props(styles.narrow)}>
+    <Story />
+    <Story />
+  </div>
+)
 
 const meta = {
   args: {
@@ -73,9 +93,17 @@ const WithMinValue: Story = {
   parameters: { docs: { story: { height: '500px', inline: false } } },
 }
 
+// Two pickers sharing a column narrower than they need. Each is as wide as
+// its whole date, rather than clipping the year, and the column overflows
+// rather than either reading in part.
+const Narrow: Story = {
+  decorators: [SideBySide],
+}
+
 export {
   Default,
   Empty,
+  Narrow,
   Open,
   OpenWithMenus,
   Outlined,

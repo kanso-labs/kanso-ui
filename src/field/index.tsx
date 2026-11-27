@@ -1,5 +1,4 @@
 import type {
-  FocusEvent,
   HTMLAttributes,
   InputEventHandler,
   ReactNode,
@@ -812,19 +811,17 @@ function FieldInput({
  * control's type and its place on the line, clearing the label at the top,
  * as {@link FieldValue} does for a value that was chosen.
  *
- * A typed value longer than its box behaves as an input's text does. It is
- * clipped rather than cut short, since every segment on the line is still a
- * place to type. The browser scrolls whichever segment has focus into view,
- * as it scrolls to an input's caret. And when focus leaves the segments the
- * line goes back to its start, as an input's text does on blur, so a value
- * at rest reads from its beginning rather than from wherever it was left.
+ * The line is never narrower than its segments, and the field grows to hold
+ * it rather than clipping the value, since a date read in part reads wrong —
+ * see `segments` in ./styles.ts.
  */
 function FieldSegments({ children }: { children: ReactNode }) {
   const box = useContext(BoxContext)
 
   return (
     <span
-      onBlur={returnToStart}
+      // What the column and the field's root hold their width to.
+      data-field-segments=""
       {...stylex.props(
         fieldChromeStyles.input,
         fieldChromeStyles.segments,
@@ -992,15 +989,6 @@ function idsOf(...lists: (string | undefined)[]) {
   const ids = new Set(lists.flatMap((list) => list?.split(' ') ?? []))
   ids.delete('')
   return ids.size === 0 ? undefined : [...ids].join(' ')
-}
-
-// Back to the start of the line once focus has left every segment on it —
-// not while it moves from one segment to the next. The start is 0 in either
-// writing direction: a right-to-left line scrolls towards negative values.
-function returnToStart(event: FocusEvent<HTMLElement>) {
-  if (!event.currentTarget.contains(event.relatedTarget)) {
-    event.currentTarget.scrollLeft = 0
-  }
 }
 
 /**

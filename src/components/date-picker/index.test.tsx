@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex'
 import { fireEvent, render, waitFor } from '@testing-library/react'
+import { I18nProvider } from 'react-aria-components'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { page } from 'vitest/browser'
 
@@ -14,6 +15,7 @@ const DEFAULT_VIEWPORT = {
 }
 
 const probeStyles = stylex.create({
+  narrow: { inlineSize: '170px' },
   onSurface: { color: colors.onSurface },
   onSurfaceVariant: { color: colors.onSurfaceVariant },
 })
@@ -359,6 +361,34 @@ describe('date picker', () => {
   })
 
   describe('the field chrome', () => {
+    // A date read in part reads wrong, so a field given less room than its
+    // segments take is as wide as they are rather than clipping the year:
+    // in a 170px column the segments needed some 120px of the 90 left
+    // beside the calendar button.
+    it.each(['en-US', 'pt-BR'])(
+      'shows its whole value in a column too narrow for it, in %s',
+      (locale) => {
+        const view = render(
+          <I18nProvider locale={locale}>
+            <div {...stylex.props(probeStyles.narrow)}>
+              <DatePicker defaultValue={DATE} label="Label" />
+            </div>
+          </I18nProvider>,
+        )
+        const segments = segmentsOf(view)
+        let line = segments[0].parentElement
+        while (line && getComputedStyle(line).overflowX !== 'hidden') {
+          line = line.parentElement
+        }
+        const { trigger } = parts(view.container)
+        const last = segments.at(-1)?.getBoundingClientRect()
+
+        expect(line).not.toBeNull()
+        expect(line?.scrollWidth).toBeLessThanOrEqual(line?.clientWidth ?? 0)
+        expect(last?.right).toBeLessThanOrEqual(trigger.left)
+      },
+    )
+
     it('shows an error in place of the description, and marks the field', () => {
       const view = render(
         <DatePicker
