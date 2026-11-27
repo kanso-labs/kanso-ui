@@ -268,10 +268,11 @@ const calendarStyles = stylex.create({
   // Today, when it is not the date held: the page's 1dp outline in the
   // primary role, with the label to match.
   //
-  // The press area reaches the outline's 1dp further. An absolutely placed
-  // box is set against its element's padding box, which the outline sits
-  // outside of, so the 4dp `cell` reaches stopped 1dp short on every side
-  // and today alone took 46dp of its 48 (kanso-labs/daily#1221).
+  // The press area reaches the outline's 1dp further. The outline is a
+  // border, and an absolutely placed box is set against its element's
+  // padding box, inside the border, so the 4dp `cell` reaches stopped 1dp
+  // short on every side and today alone took 46dp of its 48
+  // (kanso-labs/daily#1221).
   cellToday: {
     '::before': {
       content: '""',
