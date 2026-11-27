@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.52.0](https://github.com/kanso-labs/kanso-ui/compare/v0.51.11...v0.52.0) (2026-11-27)
+
+
+### Features
+
+* **tokens:** name the 6px and 20px spacing steps ([#2358](https://github.com/kanso-labs/kanso-ui/issues/2358)) ([e4a944b](https://github.com/kanso-labs/kanso-ui/commit/e4a944b7aaf44f8f1d9c4f2f6669b4d99f07aefc))
+
+
+### Bug Fixes
+
+* **date-picker:** show the whole date in a field narrower than its segments ([#2355](https://github.com/kanso-labs/kanso-ui/issues/2355)) ([18c6bd9](https://github.com/kanso-labs/kanso-ui/commit/18c6bd9d1045ba30e4f198178a3401f73947428c))
+* **navigation:** fit a label a pixel over in the rail and say what fits in the bar ([#2354](https://github.com/kanso-labs/kanso-ui/issues/2354)) ([5f36586](https://github.com/kanso-labs/kanso-ui/commit/5f36586dc06b614d25a6bf4404b487553beccfdb))
+* **sheet:** rest the panel where it opens when its arrival scroll never ends ([#2353](https://github.com/kanso-labs/kanso-ui/issues/2353)) ([47a6d34](https://github.com/kanso-labs/kanso-ui/commit/47a6d34241a8ae9260c9918bcab6ec3848ebd403))
+
+
+### Performance Improvements
+
+* **field:** look up Select's context only inside Select, so a field alone tree-shakes it ([#2352](https://github.com/kanso-labs/kanso-ui/issues/2352)) ([a0acdec](https://github.com/kanso-labs/kanso-ui/commit/a0acdecce9a07209467541b1d9e3d9de17e296ef))
+
 ## [0.51.11](https://github.com/kanso-labs/kanso-ui/compare/v0.51.10...v0.51.11) (2026-11-27)
 
 
