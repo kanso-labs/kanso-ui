@@ -103,7 +103,7 @@ describe('generated motion values', () => {
   )
 
   it('exposes every spacing step as a usable finite number', () => {
-    expect(Object.keys(spacingPx)).toHaveLength(8)
+    expect(Object.keys(spacingPx)).toHaveLength(10)
     for (const px of Object.values(spacingPx)) {
       expect(Number.isFinite(px)).toBe(true)
     }
