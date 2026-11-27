@@ -447,6 +447,30 @@ describe('navigation rail', () => {
       expect(first.top - header.bottom).toBe(40)
     })
 
+    // The label reaches across the rail's whole 96dp rather than the 88dp
+    // inside the destination's 4dp either side: held to those, a
+    // twelve-letter label a pixel over its width was cut short.
+    it("gives a label the rail's whole width", () => {
+      const view = render(
+        <NavigationRail aria-label="Label">
+          <NavigationRail.Item href="#first" icon={ICON}>
+            {LONG_LABEL}
+          </NavigationRail.Item>
+          <NavigationRail.Item href="#second" icon={ICON}>
+            Twelfth item
+          </NavigationRail.Item>
+        </NavigationRail>,
+      )
+      const rail = view.getByRole('navigation').getBoundingClientRect()
+      const [long, twelve] = view
+        .getAllByRole('link')
+        .map((link) => partsOf(link).label)
+
+      expect(long.getBoundingClientRect().left).toBe(rail.left)
+      expect(long.getBoundingClientRect().width).toBe(96)
+      expect(twelve.scrollWidth).toBeLessThanOrEqual(twelve.clientWidth)
+    })
+
     // The label stays on one line and is cut short where the column ends,
     // so the label hands the browser its full text as a title on hover.
     // React derives onPointerEnter from the bubbling pointerover.

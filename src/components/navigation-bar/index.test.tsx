@@ -574,6 +574,26 @@ describe('navigation bar', () => {
       await page.viewport(DEFAULT_VIEWPORT.width, DEFAULT_VIEWPORT.height)
     })
 
+    // What the component's description promises a label: five destinations
+    // share the window, less 4dp either side of each label, so 67dp at 375dp
+    // and 64dp at 360dp. Each label is longer than that, since a label that
+    // fits is only as wide as its text.
+    it.each([
+      [375, 67],
+      [360, 64],
+    ])('gives each of five labels its share at %ipx', async (width, label) => {
+      await page.viewport(width, DEFAULT_VIEWPORT.height)
+      try {
+        const view = render(<LongLabels />)
+
+        for (const link of view.getAllByRole('link')) {
+          expect(labelOf(link).getBoundingClientRect().width).toBe(label)
+        }
+      } finally {
+        await page.viewport(COMPACT_WIDTH, DEFAULT_VIEWPORT.height)
+      }
+    })
+
     // The label is under the icon here, so the badge places its own mark on
     // the icon's corner, out of the flow.
     it('leaves a count badge where the badge puts it', () => {
