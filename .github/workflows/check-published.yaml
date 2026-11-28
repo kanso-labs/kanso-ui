@@ -28,7 +28,7 @@ jobs:
       contents: read
       issues: write
       packages: read
-    uses: kanso-labs/actions/.github/workflows/_check-published.yaml@v4.7.0
+    uses: kanso-labs/actions/.github/workflows/_check-published.yaml@v4.8.0
     with:
       # Three hours, so a release that lands around 20:00 UTC is checked on the
       # run that night rather than the next.
